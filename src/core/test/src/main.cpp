@@ -12,7 +12,7 @@
 namespace sge {
 
 void run_temp_test() {
-	RUN_TEST(test_UtfUtil);
+	RUN_TEST(test_NativeUIWindow_Win32);
 }
 
 void run_all_test() {
@@ -25,6 +25,9 @@ void run_all_test() {
 
 // net
 	RUN_TEST(test_Socket);
+
+// native_ui
+	RUN_TEST(test_NativeUIWindow_Win32);
 }
 
 int test_main() {

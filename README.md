@@ -1,2 +1,2 @@
 # SimpleGameEngine
-> Jason: https://github.com/SimpleTalkCpp/SimpleGameEngine
+* Jason workshop: https://github.com/SimpleTalkCpp/SimpleGameEngine

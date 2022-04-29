@@ -44,9 +44,10 @@ String NativeUIApp_Win32::onGetCurrentDir() {
 	return o;
 }
 
+// This parameter may specify a relative path or a full path. (base on ::GetCurrentDirectory to relative)
 void NativeUIApp_Win32::onSetCurrentDir(StrView dir) {
 	TempStringW tmp = UtfUtil::toStringW(dir);
-	::SetCurrentDirectory(tmp.c_str());
+	::SetCurrentDirectory(tmp.c_str()); // https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-setcurrentdirectory
 }
 
 }
