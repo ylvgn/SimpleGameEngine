@@ -1,20 +1,23 @@
 #pragma once
 
+#ifndef _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS 1
+#endif
+
 #include "../detect_platform/sge_detect_platform.h"
 
 #if SGE_OS_WINDOWS
-#define NOMINMAX 1
-
-#include <WinSock2.h> // WinSock2.h must include before windows.h to avoid winsock1 define
-#include <ws2tcpip.h> // struct sockaddr_in6
-#pragma comment(lib, "Ws2_32.lib")
-
-#include <Windows.h>
+	#define NOMINMAX 1
+	#include <WinSock2.h> // WinSock2.h must include before windows.h to avoid winsock1 define
+	#include <ws2tcpip.h> // struct sockaddr_in6
+	#pragma comment(lib, "Ws2_32.lib")
+	#include <Windows.h>
+	#include <intsafe.h>
 #else
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <netinet/in.h> // struct sockaddr_in
+	#include <sys/types.h>
+	#include <sys/socket.h>
+	#include <netdb.h>
+	#include <netinet/in.h> // struct sockaddr_in
 #endif
 
 #include <cassert>
@@ -22,6 +25,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <cstdint>
+#include <atomic>
 
 #include <EASTL/vector.h>
 #include <EASTL/fixed_vector.h>
@@ -30,8 +34,11 @@
 #include <EASTL/string_view.h>
 #include <EASTL/span.h>
 
+#include <EASTL/optional.h>
+
 #include <EASTL/map.h>
 #include <EASTL/hash_map.h>
+#include <EASTL/vector_map.h>
 #include <EASTL/string_map.h>
 
 #include <EASTL/unique_ptr.h>
@@ -84,14 +91,30 @@ using f32 = float;
 using f64 = double;
 using f128 = long double;
 
+template< class Obj, class Member > constexpr
+intptr_t memberOffset(Member Obj::*ptrToMember) {
+	Obj* c = nullptr;
+	Member* m = &(c->*ptrToMember);
+	return reinterpret_cast<intptr_t>(m);
+}
+
 template<class T> using UPtr = eastl::unique_ptr<T>;
-template<class T> using SPtr = eastl::shared_ptr<T>;
-template<class T> using WPtr = eastl::weak_ptr<T>;
 
 template<class T> using Span = eastl::span<T>;
-template<class T, size_t N, bool bEnableOverflow = true> using Vector_ = eastl::fixed_vector<T, N, bEnableOverflow>;
 
+template<class DST, class SRC> inline 
+Span<DST> spanCast(Span<SRC> src) {
+	size_t sizeInBytes = src.size() * sizeof(SRC);
+	return Span<DST>(reinterpret_cast<DST*>(src.data()), sizeInBytes / sizeof(DST));
+}
+
+template<class T, size_t N, bool bEnableOverflow = true> using Vector_ = eastl::fixed_vector<T, N, bEnableOverflow>;
 template<class T> using Vector = eastl::vector<T>;
+
+template<class KEY, class VALUE> using Map = eastl::map<KEY, VALUE>;
+template<class KEY, class VALUE> using VectorMap = eastl::vector_map<KEY, VALUE>;
+
+template<class T> using Opt = eastl::optional<T>;
 
 template<class T> using StrViewT = eastl::basic_string_view<T>;
 using StrViewA = StrViewT<char>;
@@ -161,37 +184,16 @@ private:
 	void operator=(const NonCopyable&) = delete;
 };
 
-template<class T>
-class ComPtr : public NonCopyable {
+class RefCountBase : public NonCopyable {
 public:
-	ComPtr() = default;
-	ComPtr(const ComPtr& r) { ref(r._p); }
-	~ComPtr() noexcept { reset(nullptr); }
-
-	T* operator->() noexcept		{ return _p; }
-	operator T*() noexcept			{ return _p; }
-
-			T* ptr() noexcept		{ return _p; }
-	const	T* ptr() const noexcept	{ return _p; }
-
-	void reset(T* p) {
-		if (p == _p) return;
-		if (_p) {
-			_p->Release();
-			_p = nullptr;
-		}
-		if (_p) {
-			_p->AddRef();
-		}
-	}
-
-	T** ptrForInit() noexcept { reset(nullptr); return &_p; }
-
-	T* detach() { T* o = _p; _ p = nullptr; return o; }
-private:
-	T* _p = nullptr;
+	std::atomic_int	_refCount = 0;
 };
 
-template<class T> inline void sge_delete(T* p) { delete p; }
+class Object : public RefCountBase {
+public:
+	virtual ~Object() = default;
+};
+
+template<class T> inline void sge_delete(T* p) noexcept { delete p; }
 
 } // namespace

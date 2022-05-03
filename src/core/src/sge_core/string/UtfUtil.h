@@ -1,11 +1,11 @@
 #pragma once
 
-#include "String.h"
 #include "../base/Error.h"
 
 namespace sge {
 
 struct UtfUtil {
+	UtfUtil() = delete;
 
 	template<class DST, class SRC> static void convert(DST& dst, const SRC& src);
 
@@ -245,4 +245,4 @@ void UtfUtil::_appendCharW(OUT_STR& dst, uint32_t v) {
 	}
 }
 
-}
+} // namespace

@@ -1,3 +1,4 @@
+#include <sge_core/base/Error.h>
 #include <sge_core/base/UnitTest.h>
 #include <sge_core/log/Log.h>
 
