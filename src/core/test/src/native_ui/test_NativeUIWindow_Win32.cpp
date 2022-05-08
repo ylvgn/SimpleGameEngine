@@ -16,12 +16,22 @@
 #include <sge_core/base/Error.h>
 
 // define the screen resolution
+/*
 #define SCREEN_WIDTH  800
 #define SCREEN_HEIGHT 600
+*/
+
+const int SCREEN_WIDTH = 800;
+const int SCREEN_HEIGHT = 600;
 
 namespace sge {
 	class Test_NativeUIWindow_Win32 : public UnitTestBase {
 	private:
+
+		// define constant (for type tracking)
+		static const int SCREEN_WIDTH = 800;
+		static const int SCREEN_HEIGHT = 800;
+
 		static LRESULT WINAPI s_MyWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 		IDXGISwapChain* swapchain;

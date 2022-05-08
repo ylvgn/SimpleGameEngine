@@ -19,7 +19,33 @@ public:
 	Vec2 operator+(const Vec2& r) const { return Vec2(x + r.x, y + r.y); }
 	Vec2 operator-(const Vec2& r) const { return Vec2(x - r.x, y - r.y); }
 	Vec2 operator*(const Vec2& r) const { return Vec2(x * r.x, y * r.y); }
-	Vec2 operator/(const Vec2& r) const { return Vec2(x / r.x, y / r.y); }
+	Vec2 operator/(const Vec2& r) const {
+		SGE_ASSERT(r.x != 0);
+		SGE_ASSERT(r.y != 0);
+		return Vec2(x / r.x, y / r.y);
+	}
+
+	void operator+=(const Vec2& r) const {
+		x += r.x;
+		y += r.y;
+	}
+
+	void operator-=(const Vec2& r) const {
+		x -= r.x;
+		y -= r.y;
+	}
+
+	void operator*=(const Vec2& r) const {
+		x *= r.x;
+		y *= r.y;
+	}
+
+	void operator/=(const Vec2& r) const {
+		SGE_ASSERT(r.x != 0);
+		SGE_ASSERT(r.y != 0);
+		x /= r.x;
+		y /= r.y;
+	}
 
 	Vec2 operator+(const T& s) const { return Vec2(x + s, y + s); }
 	Vec2 operator-(const T& s) const { return Vec2(x - s, y - s); }

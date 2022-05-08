@@ -11,7 +11,7 @@ void NativeUIWindow_Win32::onCreate(CreateDesc& desc) {
 	const wchar_t* clsName = L"NativeUIWindow";
 
 	auto hInstance = ::GetModuleHandle(nullptr);
-	WNDCLASSEX wc = {};
+	WNDCLASSEX wc       = {}; // ZeroMemory
 	wc.cbSize			= sizeof(wc);
 	wc.style			= CS_HREDRAW | CS_VREDRAW; // | CS_DROPSHADOW;
 	wc.lpfnWndProc		= &s_wndProc;
@@ -20,7 +20,7 @@ void NativeUIWindow_Win32::onCreate(CreateDesc& desc) {
 	wc.hInstance		= hInstance;
 	wc.hIcon			= LoadIcon(hInstance, IDI_APPLICATION);
 	wc.hCursor			= LoadCursor(hInstance, IDC_ARROW);
-	wc.hbrBackground	= nullptr; //(HBRUSH)(COLOR_WINDOW+1);
+	wc.hbrBackground	= nullptr; //(HBRUSH)(COLOR_WINDOW+1); // Modify the window to have no background, leaves the background color untouched
 	wc.lpszMenuName		= nullptr;
 	wc.lpszClassName	= clsName;
 	wc.hIconSm			= LoadIcon(hInstance, IDI_APPLICATION);
@@ -31,7 +31,10 @@ void NativeUIWindow_Win32::onCreate(CreateDesc& desc) {
 
 	DWORD dwStyle = 0;
 	DWORD dwExStyle = WS_EX_ACCEPTFILES;
-	if (desc.alwaysOnTop) dwExStyle |= WS_EX_TOPMOST;
+
+	if (desc.alwaysOnTop) {
+		dwExStyle |= WS_EX_TOPMOST;
+	}
 
 	switch (desc.type) {
 		case CreateDesc::Type::ToolWindow:
@@ -48,7 +51,10 @@ void NativeUIWindow_Win32::onCreate(CreateDesc& desc) {
 		case CreateDesc::Type::PopupWindow: {
 			dwStyle   |= WS_POPUP | WS_BORDER;
 		}break;
-		default: SGE_ASSERT(false); break;
+
+		default: {
+			SGE_ASSERT(false);
+		}break;
 	}
 
 	if (desc.type == CreateDesc::Type::ToolWindow) {
@@ -70,10 +76,10 @@ void NativeUIWindow_Win32::onCreate(CreateDesc& desc) {
 	}
 
 	_hwnd = ::CreateWindowEx(dwExStyle, clsName, clsName, dwStyle,
-								(int)desc.rect.x,
-								(int)desc.rect.y,
-								(int)desc.rect.w,
-								(int)desc.rect.h,
+								static_cast<int>(desc.rect.x),
+								static_cast<int>(desc.rect.y),
+								static_cast<int>(desc.rect.w),
+								static_cast<int>(desc.rect.h),
 								nullptr, nullptr, hInstance, this);
 	if (!_hwnd) {
 		throw SGE_ERROR("cannot create native window");
@@ -89,6 +95,7 @@ void NativeUIWindow_Win32::onSetWindowTitle(StrView title) {
 }
 
 void NativeUIWindow_Win32::onDrawNeeded() {
+	if (!_hwnd) return;
 	::InvalidateRect(_hwnd, nullptr, false);
 }
 
@@ -109,6 +116,7 @@ LRESULT WINAPI NativeUIWindow_Win32::s_wndProc(HWND hwnd, UINT msg, WPARAM wPara
 			}
 		}break;
 
+		//case WM_PRINTCLIENT :
 		case WM_PAINT: {
 			PAINTSTRUCT ps;
 			BeginPaint(hwnd, &ps);
@@ -118,7 +126,7 @@ LRESULT WINAPI NativeUIWindow_Win32::s_wndProc(HWND hwnd, UINT msg, WPARAM wPara
 			}
 			EndPaint(hwnd, &ps);
 		}break;
-
+		
 		case WM_CLOSE: {
 			if (auto* thisObj = s_getThis(hwnd)) {
 				thisObj->onCloseButton();

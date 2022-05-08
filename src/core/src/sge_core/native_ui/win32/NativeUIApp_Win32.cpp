@@ -33,7 +33,7 @@ String NativeUIApp_Win32::onGetExecutableFilename() {
 		throw SGE_ERROR("");
 
 	String o = UtfUtil::toString(tmp);
-	return o;
+	return o; // sge\build\SimpleGameEngine-x64-windows\src\editor\app\Debug\sge_editor_app.exe
 }
 
 String NativeUIApp_Win32::onGetCurrentDir() {
@@ -41,7 +41,7 @@ String NativeUIApp_Win32::onGetCurrentDir() {
 	if (!::GetCurrentDirectory(MAX_PATH, tmp))
 		throw SGE_ERROR("getCurrentDir");
 	String o = UtfUtil::toString(tmp);
-	return o;
+	return o; // sge\build\SimpleGameEngine-x64-windows\src\editor\app
 }
 
 // This parameter may specify a relative path or a full path. (base on ::GetCurrentDirectory to relative)
