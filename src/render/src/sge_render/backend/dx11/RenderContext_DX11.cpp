@@ -57,9 +57,8 @@ namespace sge {
 		}
 
 		// set-up renger target
-		//DX11_ID3DRenderTargetView* rt = _renderTargetView;
-		DX11_ID3DRenderTargetView* rt[] = { _renderTargetView };
-		d3dDeviceContext->OMSetRenderTargets(1, rt, nullptr);
+		DX11_ID3DRenderTargetView* rt = _renderTargetView;
+		d3dDeviceContext->OMSetRenderTargets(1, &rt, nullptr);
 	}
 
 	void RenderContext_DX11::onClearColorAndDepthBuffer() {
@@ -83,36 +82,37 @@ namespace sge {
 	void RenderContext_DX11::onDraw() {
 		auto* d3dDevice = _renderer->d3dDevice();
 		auto* d3dDeviceContext = _renderer->d3dDeviceContext();
-
 		HRESULT hr;
 
-		// set the viewport -----------------------------------------
-		D3D11_VIEWPORT viewport;
-		ZeroMemory(&viewport, sizeof(D3D11_VIEWPORT));
-		viewport.TopLeftX = 0;
-		viewport.TopLeftY = 0;
-		viewport.Width = 800;
-		viewport.Height = 600;
-
-		//-------------------------------------------------------------------------------------
 		struct VERTEX {
 			float x, y, z;
 			u8 color[4];
 		};
 
+#define SomthingWrong 0
+
 		// vertex layout
-		static VERTEX OurVertices[] =
+		static VERTEX vertexData[] =
 		{
-			{0.0f,   0.5f,  0.0f, {255.0f, 0.0f, 0.0f, 1.0f} },
-			{0.45f,  -0.5,  0.0f, {0.0f, 255.0f, 0.0f, 1.0f} },
-			{-0.45f, -0.5f, 0.0f, {0.0f, 0.0f, 255.0f, 1.0f} },
+#if SomthingWrong
+			{0.0f, 0.5f, 0.0f, {1.0f, 0.0f, 0.0f, 1.0f} },
+			{0.5f, -0.5, 0.0f, {0.0f, 1.0f, 0.0f, 1.0f} },
+			{-0.5f, -0.5f, 0.0f, {0.0f, 0.0f, 1.0f, 1.0f} },
+
+#else
+			{0.0f, 0.5f, 0.0f, {255.0f, 0.0f, 0.0f, 255.0f} },
+			{0.5f, -0.5, 0.0f, {0.0f, 255.0f, 0.0f, 255.0f} },
+			{-0.5f, -0.5f, 0.0f, {0.0f, 0.0f, 255.0f, 255.0f} },
+#endif
 		};
+
+		UINT vertexCount = sizeof(vertexData) / sizeof(vertexData[0]);
 
 		if (!_testVertexBuffer) {
 			D3D11_BUFFER_DESC bd;
 			ZeroMemory(&bd, sizeof(bd));
 			bd.Usage = D3D11_USAGE_DYNAMIC;
-			bd.ByteWidth = sizeof(VERTEX) * 3;
+			bd.ByteWidth = sizeof(VERTEX) * vertexCount;
 			bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 			bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 			hr = d3dDevice->CreateBuffer(&bd, NULL, _testVertexBuffer.ptrForInit());
@@ -122,7 +122,7 @@ namespace sge {
 			D3D11_MAPPED_SUBRESOURCE ms;
 			hr = d3dDeviceContext->Map(_testVertexBuffer, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
 			Util::throwIfError(hr);
-			memcpy(ms.pData, OurVertices, sizeof(OurVertices));
+			memcpy(ms.pData, vertexData, sizeof(vertexData));
 			d3dDeviceContext->Unmap(_testVertexBuffer, NULL);
 		}
 
@@ -131,7 +131,7 @@ namespace sge {
 				LPCWSTR shaderName = L"Assets/Shaders/test.hlsl";
 
 				ID3D10Blob* errorMsg;
-				ID3D10Blob *VS, *PS;
+				ID3D10Blob *VS, *PS; // bytecode
 
 				hr = D3DCompileFromFile(shaderName, 0, 0, "VShader", "vs_4_0", 0, 0, &VS, &errorMsg);
 				Util::throwIfError(hr);
@@ -148,20 +148,28 @@ namespace sge {
 					D3D11_INPUT_ELEMENT_DESC ied[] =
 					{
 						{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-						{"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+#if SomthingWrong
+						// DXGI_FORMAT_R32G32B32A32_FLOAT: https://docs.microsoft.com/en-us/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format
+						{"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+#else
+						{"COLOR", 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+#endif
 					};
 
-					hr = d3dDevice->CreateInputLayout(ied, 2, VS->GetBufferPointer(), VS->GetBufferSize(), _testInputLayout.ptrForInit());
+					hr = d3dDevice->CreateInputLayout(ied, sizeof(ied) / sizeof(ied[0]), VS->GetBufferPointer(), VS->GetBufferSize(), _testInputLayout.ptrForInit());
 					Util::throwIfError(hr);
 				}
 			}
 		}
 
 		{ // draw
-			UINT stride = sizeof(VERTEX);
-			UINT offset = 0;
-
-			// view port
+			// set the viewport
+			D3D11_VIEWPORT viewport;
+			ZeroMemory(&viewport, sizeof(D3D11_VIEWPORT));
+			viewport.TopLeftX = 0;
+			viewport.TopLeftY = 0;
+			viewport.Width = 800;
+			viewport.Height = 600;
 			d3dDeviceContext->RSSetViewports(1, &viewport);
 
 			// input layout
@@ -170,7 +178,8 @@ namespace sge {
 			// triangle primitive
 			d3dDeviceContext->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-			//ID3D11Buffer* pVBuffer[] = { _testVertexBuffer };
+			UINT stride = sizeof(VERTEX);
+			UINT offset = 0;
 			ID3D11Buffer* pVBuffer = _testVertexBuffer;
 			d3dDeviceContext->IASetVertexBuffers(0, 1, &pVBuffer, &stride, &offset);
 
@@ -178,7 +187,7 @@ namespace sge {
 			d3dDeviceContext->VSSetShader(_testVertexShader, 0, 0);
 			d3dDeviceContext->PSSetShader(_testPixelShader, 0, 0);
 
-			d3dDeviceContext->Draw(3, 0);
+			d3dDeviceContext->Draw(vertexCount, 0);
 		}
 	}
 
