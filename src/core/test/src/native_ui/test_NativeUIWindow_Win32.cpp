@@ -21,9 +21,6 @@
 #define SCREEN_HEIGHT 600
 */
 
-const int SCREEN_WIDTH = 800;
-const int SCREEN_HEIGHT = 600;
-
 namespace sge {
 	class Test_NativeUIWindow_Win32 : public UnitTestBase {
 	private:

@@ -5,7 +5,7 @@ namespace sge {
 	struct MyStruct {
 		int x, y;
 
-		// 写法1 (default public method)
+		// 写法1 (default public method in struct)
 		MyStruct operator+(const MyStruct& r) const {
 			MyStruct o;
 			o.x = x + r.x;
@@ -23,17 +23,19 @@ namespace sge {
 	}
 #endif
 	
-
 	class MyClass
 	{
-		int x, y;
-		// 写法3 (default private method) !!
-		MyClass operator+(const MyClass& r) const {
-			MyClass o;
-			o.x = x + r.x;
-			o.y = y + r.y;
-			return o;
-		}
+		// default private method in class
+		public:
+			int x, y;
+			MyClass operator+(const MyClass& r) const {
+				MyClass o;
+				o.x = x + r.x;
+				o.y = y + r.y;
+				return o;
+			}
+			MyClass() = default;
+			MyClass(int x_, int y_) : x(x_), y(y_) {};
 	};
 
 	class Test_Operator_Overload : public UnitTestBase {
@@ -63,7 +65,26 @@ namespace sge {
 			MyStruct a {1, 2};
 			MyStruct b {3, 4};
 			MyStruct c = a + b;
+
 			SGE_LOG("c={}, {}", c.x, c.y);
+
+			MyClass A;
+			A.x = 1;
+			A.y = 2;
+
+			MyClass B;
+			B.x = 1;
+			B.y = 2;
+
+			MyClass C = A + B;
+			SGE_LOG("C={}, {}", C.x, C.y);
+
+			MyClass D = A + MyClass(1, 2);
+			SGE_LOG("D={}, {}", D.x, D.y);
+
+			const MyClass F = A;
+			MyClass E = A + F;
+			SGE_LOG("E={}, {}", E.x, E.y);
 		}
 	};
 
