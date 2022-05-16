@@ -1,3 +1,4 @@
+#include <sge_render.h>
 #include <sge_editor.h>
 #include <sge_core/file/FilePath.h>
 #include <sge_core/pointer/SPtr.h>

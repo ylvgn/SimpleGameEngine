@@ -365,7 +365,6 @@ namespace sge {
 				d->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
 			}
 			throw SGE_ERROR("VShader HRESULT = {}", hr);
-			exit(1);
 		}
 
 		hr = D3DCompileFromFile(shaderName, 0, 0, "PShader", "ps_4_0", 0, 0, &PS, &errorMsg);
@@ -377,7 +376,6 @@ namespace sge {
 			}
 
 			throw SGE_ERROR("PShader HRESULT = {}", hr);
-			exit(1);
 		}
 
 		// encapsulate both shaders into shader objects (create the shader objects)

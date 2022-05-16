@@ -13,7 +13,7 @@
 namespace sge {
 
 void run_temp_test() {
-	RUN_TEST(test_Lexer);
+	RUN_TEST(test_Json);
 }
 
 void run_all_test() {

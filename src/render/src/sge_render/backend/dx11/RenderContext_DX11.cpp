@@ -62,7 +62,6 @@ namespace sge {
 	}
 
 	void RenderContext_DX11::onClearColorAndDepthBuffer() {
-		auto* renderer = Renderer_DX11::current();
 		auto* d3dDeviceContext = _renderer->d3dDeviceContext();
 
 		// clear back buffer(color buffer)
@@ -86,7 +85,7 @@ namespace sge {
 
 		struct VERTEX {
 			float x, y, z;
-			u8 color[4];
+			float color[4];
 		};
 
 #define SomthingWrong 0

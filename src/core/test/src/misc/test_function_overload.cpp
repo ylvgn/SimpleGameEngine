@@ -26,7 +26,7 @@ namespace sge {
 
 			func1(a);         // func1
 			func1(b);         // func2
-			func1(0.6, 0.8);  // func3
+			func1(0.6f, 0.8f);  // func3
 		}
 	};
 

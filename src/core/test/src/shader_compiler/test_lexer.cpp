@@ -18,7 +18,7 @@ namespace sge {
 	{
 	public:
 		TokenType type;
-		StrView value;
+		String value;
 
 		Token() = default;
 		Token(TokenType type_, StrView value_) {
@@ -26,33 +26,19 @@ namespace sge {
 			value = value_;
 		}
 
-		void show() {
-			String str = "";
+		String tokenTypeToStr() {
+			String str;
 			switch (type)
 			{
-			case sge::TokenType::None:
-				str = "None";
-				break;
-			case sge::TokenType::Identifier:
-				str = "Identifier";
-				break;
-			case sge::TokenType::Operator:
-				str = "Operator";
-				break;
-			case sge::TokenType::Number:
-				str = "Number";
-				break;
-			case sge::TokenType::String:
-				str = "String";
-				break;
-			case sge::TokenType::Comment:
-				str = "Comment";
-				break;
-			default:
-				str = "Unknown";
-				break;
+			case sge::TokenType::None: str = "None"; break;
+			case sge::TokenType::Identifier: str = "Identifier"; break;
+			case sge::TokenType::Operator: str = "Operator"; break;
+			case sge::TokenType::Number: str = "Number"; break;
+			case sge::TokenType::String: str = "String"; break;
+			case sge::TokenType::Comment: str = "Comment"; break;
+			default: str = "Unknown"; break;
 			}
-			SGE_LOG("------->\t{}: {}", str, value);
+			return str + ":\t" + value;
 		}
 	};
 
@@ -115,7 +101,7 @@ namespace sge {
 
 						auto item = Token(TokenType::Comment, String(value));
 						res.push_back(item);
-						SGE_LOG("{}: {}", res.size(), value); item.show();
+						//SGE_LOG("{}: {}", res.size(), value); 
 						value.clear();
 						cur++;
 						continue;
@@ -127,7 +113,7 @@ namespace sge {
 						isCommented = false;
 						auto item = Token(TokenType::Comment, String(value));
 						res.push_back(item);
-						SGE_LOG("{}: {}", res.size(), value); item.show();
+						//SGE_LOG("{}: {}", res.size(), value); 
 						value.clear();
 					}
 				}
@@ -149,7 +135,7 @@ namespace sge {
 				if (cur == str.end() || *cur == '\n') {
 					auto item = Token(TokenType::None, String(value));
 					res.push_back(item);
-					SGE_LOG("{}: {}", res.size(), value); item.show();
+					//SGE_LOG("{}: {}", res.size(), value); 
 					value.clear();
 					break;
 				}
@@ -157,7 +143,7 @@ namespace sge {
 				value += *cur; // add right quote "
 				auto item = Token(TokenType::String, String(value));
 				res.push_back(item);
-				SGE_LOG("{}: {}", res.size(), value); item.show();
+				//SGE_LOG("{}: {}", res.size(), value); 
 				value.clear();
 				cur++; // skip "
 				continue;
@@ -196,7 +182,7 @@ namespace sge {
 						value += *cur;
 						auto item = Token(TokenType::None, String(value));
 						res.push_back(item);
-						SGE_LOG("{}: {}", res.size(), value); item.show();
+						//SGE_LOG("{}: {}", res.size(), value); 
 						value.clear();
 						break;
 					}
@@ -214,7 +200,7 @@ namespace sge {
 						value += *cur;
 						auto item = Token(TokenType::None, String(value));
 						res.push_back(item);
-						SGE_LOG("{}: {}", res.size(), value); item.show();
+						//SGE_LOG("{}: {}", res.size(), value); 
 						value.clear();
 						break;
 					}
@@ -254,7 +240,7 @@ namespace sge {
 					value += '.';
 					auto item = Token(TokenType::None, String(value));
 					res.push_back(item);
-					SGE_LOG("{}: {}", res.size(), value); item.show();
+					//SGE_LOG("{}: {}", res.size(), value); 
 					value.clear();
 					break;
 				}
@@ -264,7 +250,7 @@ namespace sge {
 				// 3: 1e9, 1e-9, 1ee9-(may be invalid number)
 				auto item = Token(TokenType::Number, String(value));
 				res.push_back(item);
-				SGE_LOG("{}: {}", res.size(), value); item.show();
+				//SGE_LOG("{}: {}", res.size(), value); 
 				value.clear();
 				continue;
 			}
@@ -292,7 +278,7 @@ namespace sge {
 				// unknown *cur now -> just insert single '/'
 				auto item = Token(TokenType::Operator, String(value));
 				res.push_back(item);
-				SGE_LOG("{}: {}", res.size(), value); item.show();
+				//SGE_LOG("{}: {}", res.size(), value); 
 				value.clear();
 				continue;
 			}
@@ -307,7 +293,7 @@ namespace sge {
 
 				auto item = Token(TokenType::Identifier, String(value));
 				res.push_back(item);
-				SGE_LOG("{}: {}", res.size(), value); item.show();
+				//SGE_LOG("{}: {}", res.size(), value); 
 				value.clear();
 				continue;
 			}
@@ -318,7 +304,7 @@ namespace sge {
 				value = *cur;
 				auto item = Token(TokenType::Operator, String(value));
 				res.push_back(item);
-				SGE_LOG("{}: {}", res.size(), value); item.show();
+				//SGE_LOG("{}: {}", res.size(), value); 
 				value.clear();
 				cur++;
 				continue;
@@ -345,7 +331,7 @@ namespace sge {
 		SGE_LOG("\n---------------saved---------------\n");
 
 		for (auto& item : res) {
-			item.show();
+			SGE_LOG("{}", item.tokenTypeToStr());
 		}
 
 		return res;
