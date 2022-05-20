@@ -13,7 +13,7 @@
 namespace sge {
 
 void run_temp_test() {
-	RUN_TEST(test_Json);
+	RUN_TEST(test_ShaderParser);
 }
 
 void run_all_test() {

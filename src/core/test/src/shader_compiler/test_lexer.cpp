@@ -99,7 +99,7 @@ namespace sge {
 						value += *cur;
 						isCommented = false;
 
-						auto item = Token(TokenType::Comment, String(value));
+						auto item = Token(TokenType::Comment, value);
 						res.push_back(item);
 						//SGE_LOG("{}: {}", res.size(), value); 
 						value.clear();
@@ -111,7 +111,7 @@ namespace sge {
 				{
 					if (*cur == '\n') { // "//"  --> comment end
 						isCommented = false;
-						auto item = Token(TokenType::Comment, String(value));
+						auto item = Token(TokenType::Comment, value);
 						res.push_back(item);
 						//SGE_LOG("{}: {}", res.size(), value); 
 						value.clear();
@@ -133,7 +133,7 @@ namespace sge {
 
 				// invalid
 				if (cur == str.end() || *cur == '\n') {
-					auto item = Token(TokenType::None, String(value));
+					auto item = Token(TokenType::None, value);
 					res.push_back(item);
 					//SGE_LOG("{}: {}", res.size(), value); 
 					value.clear();
@@ -141,7 +141,7 @@ namespace sge {
 				}
 
 				value += *cur; // add right quote "
-				auto item = Token(TokenType::String, String(value));
+				auto item = Token(TokenType::String, value);
 				res.push_back(item);
 				//SGE_LOG("{}: {}", res.size(), value); 
 				value.clear();
@@ -180,7 +180,7 @@ namespace sge {
 					// invalid: .-,  .+
 					if (ispunct(*cur)) {
 						value += *cur;
-						auto item = Token(TokenType::None, String(value));
+						auto item = Token(TokenType::None, value);
 						res.push_back(item);
 						//SGE_LOG("{}: {}", res.size(), value); 
 						value.clear();
@@ -198,7 +198,7 @@ namespace sge {
 				} else { // exist +- or . -> next must be number
 					if (*cur < '0' && *cur > '9') {
 						value += *cur;
-						auto item = Token(TokenType::None, String(value));
+						auto item = Token(TokenType::None, value);
 						res.push_back(item);
 						//SGE_LOG("{}: {}", res.size(), value); 
 						value.clear();
@@ -238,7 +238,7 @@ namespace sge {
 				// num + '.'x2 -> invalid
 				if (*cur == '.') {
 					value += '.';
-					auto item = Token(TokenType::None, String(value));
+					auto item = Token(TokenType::None, value);
 					res.push_back(item);
 					//SGE_LOG("{}: {}", res.size(), value); 
 					value.clear();
@@ -248,7 +248,7 @@ namespace sge {
 				// 1: num + ' ', num + '\n'
 				// 2: num + '?'
 				// 3: 1e9, 1e-9, 1ee9-(may be invalid number)
-				auto item = Token(TokenType::Number, String(value));
+				auto item = Token(TokenType::Number, value);
 				res.push_back(item);
 				//SGE_LOG("{}: {}", res.size(), value); 
 				value.clear();
@@ -276,7 +276,7 @@ namespace sge {
 				}
 
 				// unknown *cur now -> just insert single '/'
-				auto item = Token(TokenType::Operator, String(value));
+				auto item = Token(TokenType::Operator, value);
 				res.push_back(item);
 				//SGE_LOG("{}: {}", res.size(), value); 
 				value.clear();
@@ -291,7 +291,7 @@ namespace sge {
 					cur++;
 				}
 
-				auto item = Token(TokenType::Identifier, String(value));
+				auto item = Token(TokenType::Identifier, value);
 				res.push_back(item);
 				//SGE_LOG("{}: {}", res.size(), value); 
 				value.clear();
@@ -302,7 +302,7 @@ namespace sge {
 			if (ispunct(*cur)) {
 				SGE_ASSERT(value == "");
 				value = *cur;
-				auto item = Token(TokenType::Operator, String(value));
+				auto item = Token(TokenType::Operator, value);
 				res.push_back(item);
 				//SGE_LOG("{}: {}", res.size(), value); 
 				value.clear();
