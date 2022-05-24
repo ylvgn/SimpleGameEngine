@@ -91,7 +91,7 @@ String DX11Util::getStrFromHRESULT(HRESULT hr) {
 
 	buf[bufSize] = 0; // ensure terminate with 0
 
-	auto str = dwChars ? UtfUtil::toString(buf) : "Error message not found.";
+	auto str = dwChars ? UtfUtil::toString(buf) : String("Error message not found.");
 	return str;
 }
 

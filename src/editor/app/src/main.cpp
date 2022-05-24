@@ -1,6 +1,7 @@
 #include <sge_render.h>
 #include <sge_editor.h>
 #include <sge_core/file/FilePath.h>
+#include <sge_core/file/Directory.h>
 #include <sge_core/pointer/SPtr.h>
 
 namespace sge {
@@ -47,11 +48,11 @@ public:
 		
 		{ // set working dir
 			auto exeFilePath = getExecutableFilename();
-			auto workingDir = FilePath::getDir(exeFilePath);
+			String workingDir = FilePath::dirname(exeFilePath);
 			workingDir.append("/../../../../../../examples/Test101");
-			setCurrentDir(workingDir);
 
-			auto curDir = getCurrentDir();
+			Directory::setCurrent(workingDir);
+			auto curDir = Directory::getCurrent();
 			SGE_LOG("current dir={}", curDir);
 		}
 

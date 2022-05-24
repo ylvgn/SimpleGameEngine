@@ -245,4 +245,4 @@ void UtfUtil::_appendCharW(OUT_STR& dst, uint32_t v) {
 	}
 }
 
-} // namespace
+}

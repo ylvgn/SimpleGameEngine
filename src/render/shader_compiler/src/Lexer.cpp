@@ -255,7 +255,9 @@ namespace sge {
 		}
 
 		_cur = cur;
-		Token res = Token{ tokenType , value };
+		Token res = Token();
+		res.type = tokenType;
+		res.value = value;
 		SGE_LOG("{}", res.mylog());
 		return res;
 	}

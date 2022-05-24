@@ -13,7 +13,7 @@ enum class ShaderDataType {
 	Color4f,
 };
 
-struct ShaderParserOuputInfo {
+struct ShaderInfo {
 
 	struct Property {
 		ShaderDataType type = ShaderDataType::None;
@@ -36,15 +36,15 @@ struct ShaderParserOuputInfo {
 	}
 };
 
-class ShaderParser {
+class ShaderParser : public Lexer {
 public:
 	ShaderParser() = default;
-	static void loadFile(ShaderParserOuputInfo& outputInfo, StrView filename);
-	static void loadMem(ShaderParserOuputInfo& outputInfo, Span<const u8> src);
+	static void loadFile(ShaderInfo& outputInfo, StrView filename);
+	static void loadMem(ShaderInfo& outputInfo, Span<const u8> src);
 private:
-	void _loadMem(ShaderParserOuputInfo& outputInfo, Span<const u8> src);
+	void _loadMem(ShaderInfo& outputInfo, Span<const u8> src);
 
-	UPtr<Lexer> _lexer;
+	ShaderInfo* _outInfo = nullptr;
 
 	int _lineNumber = 0;
 	void _error(StrView msg) {

@@ -1,7 +1,7 @@
-namespace sge {
+
 
 int main() {
+	//using sge::
 	return 0;
 }
 
-} // namespace
