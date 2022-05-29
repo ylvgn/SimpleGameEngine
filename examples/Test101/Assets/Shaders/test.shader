@@ -1,11 +1,18 @@
-Shader {
+#if 0
+Shader "MyShader" {
 	Properties {
+		// aaaaaaaaa
 		Float	test  = 0.5
 		Vec4f	test2 = {0,0,0,1}
 		
 		[DisplayName="Color Test"]
 		Color4f	color = {1,1,1,1}
+		Int test3 = -1234.56e-78
 	}
+	
+	/*
+		hello world!
+	*/
 	
 	Pass {
 		// Queue	"Transparent"
@@ -21,6 +28,7 @@ Shader {
 		PsFunc		ps_main
 	}
 }
+#endif
 
 struct VertexIn {
 	float4 position : POSITION;

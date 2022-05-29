@@ -1,7 +1,8 @@
-
+#include "ShaderCompiler.h"
 
 int main() {
-	//using sge::
+	sge::ShaderCompiler app;
+	app.run();
+
 	return 0;
 }
-
