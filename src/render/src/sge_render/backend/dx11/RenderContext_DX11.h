@@ -3,7 +3,7 @@
 #include <sge_render/RenderContext.h>
 #include <sge_core/pointer/ComPtr.h>
 
-#include "RenderCommon_DX11.h"
+#include "Render_DX11_Common.h"
 
 namespace sge {
 	class RenderContext_DX11 : public RenderContext {

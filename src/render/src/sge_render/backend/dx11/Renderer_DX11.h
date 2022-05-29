@@ -3,7 +3,7 @@
 #include <sge_render/Renderer.h>
 #include <sge_core/pointer/ComPtr.h>
 
-#include "RenderCommon_DX11.h"
+#include "Render_DX11_Common.h"
 
 namespace sge {
 	class Renderer_DX11 : public Renderer {

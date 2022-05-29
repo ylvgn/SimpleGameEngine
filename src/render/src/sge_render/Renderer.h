@@ -1,5 +1,5 @@
 #pragma once
-#include "RenderCommon.h"
+#include "Render_Common.h"
 
 namespace sge {
 	// render context
