@@ -1,5 +1,4 @@
 #include <sge_core/base/UnitTest.h>
-#include <sge_core/string/Fmt.h>
 
 namespace sge {
 
@@ -9,26 +8,40 @@ public:
 		return StrView();
 	}
 
-	//StrView f2() {
-	//	return "";
-	//}
+	StrView f2() {
+		return "";
+	}
 
 	StrView f3() {
 		return String();
 	}
 
-	void test_stringview() {
-		//if (StrView() == "") {
-		//	SGE_DUMP_VAR("StrView() == \"\"");
-		//}
+	void test_1() {
+		if (f1() == f2()) {
+			SGE_DUMP_VAR("yes");
+		}
 
-		////if (f2() == f3()) {
-		////	SGE_DUMP_VAR("f2 == f3");
-		////}
-		//
-		//if (StrView() == String()) {
-		//	SGE_DUMP_VAR("f1 == f3");
-		//}
+		if (f2() == f3()) {
+			SGE_DUMP_VAR("yes");
+		}
+		
+		if (f1() == f3()) {
+			SGE_DUMP_VAR("yes");
+		}
+	}
+
+	void test_2() {
+		String str = "hello \"world";
+
+		for (auto& s : str) {
+			if (s == '"') {
+				SGE_LOG("1111111111");
+			}
+
+			if (s == '\"') {
+				SGE_LOG("22222222");
+			}
+		}
 	}
 };
 
@@ -36,5 +49,5 @@ public:
 
 void test_StringView() {
 	using namespace sge;
-	SGE_TEST_CASE(Test_StringView, test_stringview());
+	SGE_TEST_CASE(Test_StringView, test_2());
 }
