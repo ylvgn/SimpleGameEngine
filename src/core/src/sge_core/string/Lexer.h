@@ -75,6 +75,7 @@ public:
 
 	StrView getLastFewLines(size_t lineCount);
 
+	const char& ch()  const { return _ch;     }
 	const char* cur() const { return _cur;    }
 	StrView source()  const { return _source; }
 	size_t line()     const { return _line;   }
