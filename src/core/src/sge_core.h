@@ -22,7 +22,7 @@
 #include "sge_core/file/MemMapFile.h"
 #include "sge_core/file/Directory.h"
 
-//#include "sge_core/graph/Color.h"
+#include "sge_core/graph/Color.h"
 
 #include "sge_core/pointer/SPtr.h"
 #include "sge_core/pointer/ComPtr.h"

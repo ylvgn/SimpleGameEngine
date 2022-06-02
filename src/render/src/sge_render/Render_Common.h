@@ -14,6 +14,13 @@ struct RenderAdapterInfo {
 	int		minThreadGroupSize = 1;
 };
 
+enum class RenderPrimitiveType {
+	None,
+	Points,
+	Lines,
+	Triangles,
+};
+
 enum class ShaderStage {
 	None,
 	Vertex,

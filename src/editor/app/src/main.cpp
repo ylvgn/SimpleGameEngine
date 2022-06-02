@@ -3,6 +3,8 @@
 #include <sge_core/file/FilePath.h>
 #include <sge_core/file/Directory.h>
 #include <sge_core/pointer/SPtr.h>
+//#include <sge_render/mesh/EditMesh.h>
+#include <sge_render/mesh/WavefrontObjLoader.h>
 
 namespace sge {
 
@@ -61,6 +63,13 @@ public:
 			winDesc.isMainWindow = true;
 			_mainWin.create(winDesc);
 			_mainWin.setWindowTitle("SGE Editor");
+		}
+
+		{ // just for test ----------------------------
+			EditMesh info;
+			WavefrontObjLoader loader;
+			loader.readFile(info, "Assets/Mesh/test.obj");
+			SGE_LOG("{}", info);
 		}
 	}
 
