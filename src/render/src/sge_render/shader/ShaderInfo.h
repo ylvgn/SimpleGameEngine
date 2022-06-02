@@ -45,7 +45,7 @@ struct ShaderInfo {
 	Vector_<Pass, 1>	passes;
 
 	String name;
-	void clean();
+	void clear();
 
 	void onFormat(fmt::format_context& ctx) const;
 

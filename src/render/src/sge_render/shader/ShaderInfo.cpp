@@ -3,7 +3,7 @@
 
 namespace sge {
 
-	void ShaderInfo::clean() {
+	void ShaderInfo::clear() {
 		props.clear();
 		passes.clear();
 	}

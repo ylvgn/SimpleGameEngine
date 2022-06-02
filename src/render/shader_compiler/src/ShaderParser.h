@@ -6,11 +6,11 @@ namespace sge {
 
 class ShaderParser : public Lexer {
 public:
-	static void loadFile(ShaderInfo& outInfo, StrView filename);
-	static void loadMem(ShaderInfo& outInfo, ByteSpan data, StrView filename);
+	static void readFile(ShaderInfo& outInfo, StrView filename);
+	static void readMem(ShaderInfo& outInfo, ByteSpan data, StrView filename);
 
 private:
-	void _loadMem(ShaderInfo& outInfo, ByteSpan data, StrView filename);
+	void _readMem(ShaderInfo& outInfo, ByteSpan data, StrView filename);
 
 	void _readShader();
 	void _readProperties();

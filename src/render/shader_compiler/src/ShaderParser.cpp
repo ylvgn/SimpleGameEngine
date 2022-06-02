@@ -3,19 +3,19 @@
 
 namespace sge {
 
-void ShaderParser::loadFile(ShaderInfo& outInfo, StrView filename) {
+void ShaderParser::readFile(ShaderInfo& outInfo, StrView filename) {
 	MemMapFile mm;
 	mm.open(filename);
-	loadMem(outInfo, mm, filename);
+	readMem(outInfo, mm, filename);
 }
 
-void ShaderParser::loadMem(ShaderInfo& outInfo, ByteSpan data, StrView filename) {
+void ShaderParser::readMem(ShaderInfo& outInfo, ByteSpan data, StrView filename) {
 	ShaderParser inst;
-	inst._loadMem(outInfo, data, filename);
+	inst._readMem(outInfo, data, filename);
 }
 
-void ShaderParser::_loadMem(ShaderInfo& outInfo, ByteSpan data, StrView filename) {
-	outInfo.clean();
+void ShaderParser::_readMem(ShaderInfo& outInfo, ByteSpan data, StrView filename) {
+	outInfo.clear();
 	_outInfo = &outInfo;
 	reset(data, filename);
 

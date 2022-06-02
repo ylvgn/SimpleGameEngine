@@ -33,7 +33,7 @@ namespace sge {
 
 		{ // shader parser
 			ShaderParser parser;
-			parser.loadFile(info, shaderFilename);
+			parser.readFile(info, shaderFilename);
 			SGE_LOG("{}", info);
 		}
 

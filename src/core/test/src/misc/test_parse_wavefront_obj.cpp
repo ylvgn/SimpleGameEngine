@@ -120,12 +120,15 @@ private:
 				StringUtil::tryParse(first, out.data[index]);
 			}
 			str = s.second;
-			index++;
+			if (splitSymbol == '/') {
+				index++;
+			}
 		}
 	}
 
-	void MyParser::_readFace() {
 
+	void MyParser::_readFace() {
+		// f vertex_index/texture_index/normal_index
 		// 1. Vertex indices: f v1 v2 v3 ....
 		// 2. Vertex texture coordinate indices: f v1/vt1 v2/vt2 v3/vt3 ...
 		// 3. Vertex normal indices:
@@ -201,7 +204,7 @@ private:
 	}
 }; // MyParser
 
-class Test_ParseWavefontObj : public UnitTestBase {
+class Test_ParseWavefrontObj : public UnitTestBase {
 
 public:
 	void main()
@@ -212,16 +215,15 @@ public:
 		MyInfo info;
 		MyParser p;
 		p.loadFile(info, "Assets/Mesh/test.obj");
-
 		SGE_LOG("{}", info);
 	}
-}; // Test_ParseWavefontObj
+}; // Test_ParseWavefrontObj
 
 } // namespace
 
 SGE_FORMATTER(sge::MyInfo)
 
-void test_ParseWavefontObj() {
+void test_ParseWavefrontObj() {
 	using namespace sge;
-	SGE_TEST_CASE(Test_ParseWavefontObj, main());
+	SGE_TEST_CASE(Test_ParseWavefrontObj, main());
 }
