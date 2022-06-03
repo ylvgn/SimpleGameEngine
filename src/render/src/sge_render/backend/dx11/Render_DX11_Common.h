@@ -42,6 +42,9 @@ using DX11_ID3DVertexShader		= ID3D11VertexShader;
 using DX11_ID3DPixelShader		= ID3D11PixelShader;
 using DX11_ID3DInputLayout		= ID3D11InputLayout;
 
+// render reflect -------------
+using DX11_ID3DShaderReflection = ID3D11ShaderReflection;
+
 struct DX11Util {
 	DX11Util() = delete;
 

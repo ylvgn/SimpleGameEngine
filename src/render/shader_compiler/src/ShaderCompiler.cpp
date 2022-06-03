@@ -44,12 +44,12 @@ namespace sge {
 
 				if (pass.vsFunc.size()) {
 					ShaderCompiler_DX11 c;
-					c.compile(passOutPath, ShaderStage::Vertex, shaderFilename, pass.vsFunc);
+					c.compile(passOutPath + "_vs", ShaderStage::Vertex, shaderFilename, pass.vsFunc);
 				}
 
 				if (pass.psFunc.size()) {
 					ShaderCompiler_DX11 c;
-					c.compile(passOutPath, ShaderStage::Pixel, shaderFilename, pass.psFunc);
+					c.compile(passOutPath + "_ps", ShaderStage::Pixel, shaderFilename, pass.psFunc);
 				}
 				passIndex++;
 			}

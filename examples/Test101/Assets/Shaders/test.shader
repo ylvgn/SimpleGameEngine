@@ -1,18 +1,12 @@
 #if 0
-Shader "MyShader" {
+Shader {
 	Properties {
-		// aaaaaaaaa
 		Float	test  = 0.5
 		Vec4f	test2 = {0,0,0,1}
 		
 		[DisplayName="Color Test"]
 		Color4f	color = {1,1,1,1}
-		Int test3 = -1234.56e-78
 	}
-	
-	/*
-		hello world!
-	*/
 	
 	Pass {
 		// Queue	"Transparent"
@@ -42,18 +36,20 @@ struct PixelIn {
 
 float4x4	SGE_MVP;
 
-float x;
-float b;
-float c;
+float  test_float;
+float4 test_color;
 
 PixelIn vs_main(VertexIn i) {
     PixelIn o;
     o.position = i.position;
+	o.position.y += test_float;
+	
     o.color    = i.color;
     return o;
 }
 
 float4 ps_main(PixelIn i) : SV_TARGET
 {
-    return i.color;
+//	return float4(1,0,0,1);
+    return i.color * test_color;
 }

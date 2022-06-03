@@ -129,8 +129,8 @@ namespace sge {
 			if (!_testVertexShader || !_testPixelShader) {
 				LPCWSTR shaderName = L"Assets/Shaders/test.hlsl";
 
-				ID3D10Blob* errorMsg;
-				ID3D10Blob *VS, *PS; // bytecode
+				DX11_ID3DBlob *errorMsg;
+				DX11_ID3DBlob *VS, *PS; // bytecode
 
 				hr = D3DCompileFromFile(shaderName, 0, 0, "VShader", "vs_4_0", 0, 0, &VS, &errorMsg);
 				Util::throwIfError(hr);

@@ -27,4 +27,21 @@ enum class ShaderStage {
 	Pixel,
 };
 
+inline
+const char* enumStr(ShaderStage v) {
+	switch (v) {
+#define E(T) case ShaderStage::T: return #T;
+		E(None)
+		E(Vertex)
+		E(Pixel)
+#undef E
+	default: {
+			SGE_ASSERT(false);
+			return "";
+		}
+	}
+}
+
 } // namespace
+
+SGE_FORMATTER_ENUM(sge::ShaderStage)
