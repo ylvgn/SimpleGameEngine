@@ -102,47 +102,41 @@ void Lexer::readString(String& outputStr) {
 StrView Lexer::getLastFewLines(size_t lineCount) {
 	if (!_cur) return StrView();
 
-	auto* st = _cur - 1;
-	auto* ed = _cur;
+	auto n = lineCount;
 
-	while (st > _source.begin() && lineCount > 0) {
-		if (*st == '\n') {
-			lineCount--;
+	auto* start = _source.data();
+
+	auto* p = _cur;
+	for (; p >= start && n > 0; p--) {
+		if (*p == '\n') {
+			n--;
 		}
-		st--;
 	}
-	st++;
+	p++;
 
-	while (ed < _source.end() && *ed != '\n') {
-		ed++;
-	}
-
-	return StrView(st, ed - st);
+	return StrView(p, _cur - p);
 }
 
 void Lexer::_error(StrView msg) {
-	TempString tmp = getLastFewLines(3);
+	TempString tmp = msg;
+	FmtTo(tmp, "\n{}\n", getLastFewLines(3));
 
 	{
-		size_t tokenStrSize = _token.str.size();
-		auto* st = _cur - tokenStrSize;
-		while (st > _source.begin()) {
-			char c = *st;
-			if (c == '\n') {
-				break;
-			}
-			if (c == '\t') tmp += "----";
-			else tmp += '-';
-			st--;
+		TempString lastLine = getLastFewLines(1);
+		size_t i = 0;
+		for (auto& c : lastLine) {
+			if (i >= _col) break;
+			if (c == ' ') { tmp += '-';	continue; }
+			if (c == '\n') { tmp += c;		continue; }
+			if (c == '\t') { tmp += "----";	continue; }
+			tmp += '-';
+			i++;
 		}
-		while (tokenStrSize > 0) {
-			tmp += '^';
-			tokenStrSize--;
-		}
+		tmp += "^^^\n";
 	}
 
-	FmtTo(tmp, "file - {}, line:{}, col: {}", _filename, _line, _col);
-	throw SGE_ERROR("{}:\n{}", msg, tmp);
+	FmtTo(tmp, "file - {}:{}:{}\n", _filename, _line, _col);
+	throw SGE_ERROR("{}", tmp);
 }
 
 bool Lexer::_nextToken() {
