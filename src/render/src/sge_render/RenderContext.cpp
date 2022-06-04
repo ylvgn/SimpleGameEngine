@@ -4,7 +4,7 @@
 namespace sge {
 
 	RenderContext* RenderContext::create(CreateDesc& desc) {
-		return Renderer::current()->createRenderContext(desc);
+		return Renderer::instance()->createRenderContext(desc);
 	}
 
 	RenderContext::RenderContext(CreateDesc& desc) {

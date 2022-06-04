@@ -4,7 +4,7 @@
 
 namespace sge {
 
-Renderer* Renderer::_current = nullptr;
+Renderer* Renderer::s_instance = nullptr;
 
 Renderer::CreateDesc::CreateDesc() {
 #if SGE_OS_WINDOWS
@@ -37,13 +37,13 @@ Renderer* Renderer::create(CreateDesc& desc)
 }
 
 Renderer::Renderer() {
-	SGE_ASSERT(_current == nullptr);
-	_current = this;
+	SGE_ASSERT(s_instance == nullptr);
+	s_instance = this;
 }
 
 Renderer::~Renderer() {
-	SGE_ASSERT(_current == this);
-	_current = nullptr;
+	SGE_ASSERT(s_instance == this);
+	s_instance = nullptr;
 }
 
 } // namespace

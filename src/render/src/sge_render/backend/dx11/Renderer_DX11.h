@@ -12,7 +12,7 @@ namespace sge {
 		using Util = DX11Util;
 	public:
 		Renderer_DX11(CreateDesc& desc);
-		static Renderer_DX11* current() { return static_cast<Renderer_DX11*>(_current); }
+		static Renderer_DX11* instance() { return static_cast<Renderer_DX11*>(s_instance); }
 
 		DX11_IDXGIFactory*      dxgiFactory()      { return _dxgiFactory;      }
 		DX11_IDXGIDevice*       dxgiDevice()       { return _dxgiDevice;       }

@@ -25,14 +25,14 @@ namespace sge {
 		Renderer();
 		virtual ~Renderer();
 
-		static Renderer* current() { return _current; };
+		static Renderer* instance() { return s_instance; };
 		const RenderAdapterInfo& adapterInfo() { return _adapterInfo; };
 
 		static Renderer* create(CreateDesc& desc);
 		RenderContext* createRenderContext(RenderContext_CreateDesc& desc) { return onCreateRenderContext(desc); }
 
 	protected:
-		static Renderer* _current;
+		static Renderer* s_instance;
 		RenderAdapterInfo _adapterInfo;
 		virtual RenderContext* onCreateRenderContext(RenderContext_CreateDesc& desc) = 0;
 	};

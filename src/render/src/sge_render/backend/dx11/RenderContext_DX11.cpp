@@ -6,7 +6,7 @@ namespace sge {
 	RenderContext_DX11::RenderContext_DX11(CreateDesc& desc)
 		: Base(desc)
 	{
-		_renderer = Renderer_DX11::current();
+		_renderer = Renderer_DX11::instance();
 
 		auto* dxgiFactory = _renderer->dxgiFactory();
 		auto* d3dDevice = _renderer->d3dDevice();
