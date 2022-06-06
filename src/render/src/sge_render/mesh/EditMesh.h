@@ -25,7 +25,6 @@ public:
 
 }; // EditMesh
 
+SGE_FORMATTER(EditMesh)
+
 } // namespace
-
-SGE_FORMATTER(sge::EditMesh)
-

@@ -219,9 +219,9 @@ public:
 	}
 }; // Test_ParseWavefrontObj
 
-} // namespace
+SGE_FORMATTER(MyInfo)
 
-SGE_FORMATTER(sge::MyInfo)
+} // namespace
 
 void test_ParseWavefrontObj() {
 	using namespace sge;

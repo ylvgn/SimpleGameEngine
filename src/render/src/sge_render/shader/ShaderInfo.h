@@ -70,7 +70,7 @@ const char* enumStr(ShaderPropType v) {
 	}
 }
 
-} // namespace
+SGE_FORMATTER(ShaderInfo)
+SGE_FORMATTER_ENUM(ShaderPropType)
 
-SGE_FORMATTER(sge::ShaderInfo)
-SGE_FORMATTER_ENUM(sge::ShaderPropType)
+} // namespace

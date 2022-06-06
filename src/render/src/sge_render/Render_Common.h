@@ -42,6 +42,6 @@ const char* enumStr(ShaderStage v) {
 	}
 }
 
-} // namespace
+SGE_FORMATTER_ENUM(ShaderStage)
 
-SGE_FORMATTER_ENUM(sge::ShaderStage)
+} // namespace

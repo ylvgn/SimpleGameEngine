@@ -30,7 +30,7 @@
 #include "sge_core/net/Socket.h"
 #include "sge_core/net/Poll.h"
 
-#include "sge_core/string/String.h"
+#include <sge_core/string/StringUtil.h>
 #include "sge_core/string/Lexer.h"
 
 #include "sge_core/file/FilePath.h"
