@@ -13,7 +13,7 @@
 namespace sge {
 
 void run_temp_test() {
-	RUN_TEST(test_StringView);
+	RUN_TEST(test_Vector);
 }
 
 void run_all_test() {
