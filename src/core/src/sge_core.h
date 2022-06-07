@@ -8,7 +8,7 @@
 #include "sge_core/base/BinDeserializer.h"
 #include "sge_core/base/BinSerializer.h"
 
-//#include "sge_core/allocator/LinearAllocator.h"
+#include "sge_core/allocator/LinearAllocator.h"
 
 #include "sge_core/app/ConsoleApp.h"
 
