@@ -13,7 +13,7 @@
 namespace sge {
 
 void run_temp_test() {
-	RUN_TEST(test_Vector);
+	RUN_TEST(test_BitWise);
 }
 
 void run_all_test() {
