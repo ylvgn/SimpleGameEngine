@@ -146,6 +146,11 @@ bool Lexer::_nextToken() {
 		trimSpaces();
 		if (!_ch) return false;
 
+		if (_ch == '#') {
+			_parseCommentSingleLine();
+			continue;
+		}
+
 		// check newline
 		if (_ch == '\n') {
 			_parseNewline();

@@ -10,7 +10,7 @@ public:
 	enum class TokenType {
 		None,
 		Identifier, // x, color, UP
-		Operator,   // {}
+		Operator,
 		Number,     // true, 6.02e23, 
 		String,     // "music"
 		Newline,    // '\n'
@@ -21,24 +21,24 @@ public:
 		TokenType	type = TokenType::None;
 		String		str;
 
-		bool isNone() const { return type == TokenType::None; }
+		bool isNone() const					{ return type == TokenType::None; }
 
-		bool isIdentifier() const { return type == TokenType::Identifier; }
-		bool isIdentifier(StrView s) const { return type == TokenType::Identifier && s == str; }
+		bool isIdentifier() const			{ return type == TokenType::Identifier; }
+		bool isIdentifier(StrView s) const	{ return type == TokenType::Identifier && s == str; }
 
-		bool isOperator() const { return type == TokenType::Operator; }
-		bool isOperator(StrView s) const { return type == TokenType::Operator && s == str; }
+		bool isOperator() const				{ return type == TokenType::Operator; }
+		bool isOperator(StrView s) const	{ return type == TokenType::Operator && s == str; }
 
-		bool isString() const { return type == TokenType::String; }
-		bool isString(StrView s) const { return type == TokenType::String && s == str; }
+		bool isString() const				{ return type == TokenType::String; }
+		bool isString(StrView s) const		{ return type == TokenType::String && s == str; }
 
-		bool isNumber() const { return type == TokenType::Number; }
+		bool isNumber() const				{ return type == TokenType::Number; }
 
-		bool isNewline() const { return type == TokenType::Newline; }
+		bool isNewline() const				{ return type == TokenType::Newline; }
 
-		void setNone() { type = TokenType::None; str.clear(); }
-		void reset(TokenType type_) { type = type_; str.clear(); }
-		void reset(TokenType type_, StrView s) { type = type_; str.assign(s.begin(), s.end()); }
+		void setNone()							{ type = TokenType::None; str.clear(); }
+		void reset(TokenType type_)				{ type = type_; str.clear(); }
+		void reset(TokenType type_, StrView s)	{ type = type_; str.assign(s.begin(), s.end()); }
 
 		void onFormat(fmt::format_context& ctx) const;
 

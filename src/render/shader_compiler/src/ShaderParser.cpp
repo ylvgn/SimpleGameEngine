@@ -18,11 +18,7 @@ void ShaderParser::_readMem(ShaderInfo& outInfo, ByteSpan data, StrView filename
 	outInfo.clear();
 	_outInfo = &outInfo;
 	reset(data, filename);
-
-	// skip #if 0
-	while (!_token.isIdentifier("Shader")) {
-		nextToken();
-	}
+	skipNewlineTokens();
 
 	if (_token.isIdentifier("Shader")) {
 		_readShader();
