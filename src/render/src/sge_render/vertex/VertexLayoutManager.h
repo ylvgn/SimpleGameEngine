@@ -6,6 +6,7 @@ namespace sge {
 
 class VertexLayoutManager {
 public:
+	VertexLayoutManager();
 	static VertexLayoutManager* instance();
 	const VertexLayout* getLayout(VertexType type);
 

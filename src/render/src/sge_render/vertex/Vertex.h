@@ -81,6 +81,17 @@ enum class VertexSemanticType : u8 {
 	BINORMAL,
 };
 
+#define VertexSemanticType_ENUM_LIST(E) \
+	E(None)		\
+	E(POSITION)	\
+	E(COLOR)	\
+	E(TEXCOORD)	\
+	E(NORMAL)	\
+	E(TANGENT)	\
+	E(BINORMAL)	\
+//----
+SGE_ENUM_STR_UTIL(VertexSemanticType)
+
 enum class VertexSemantic : u16; // forward declare
 SGE_ENUM_ALL_OPERATOR(VertexSemantic)
 
@@ -253,7 +264,7 @@ struct VertexLayout : public NonCopyable {
 
 private:
 	template<class VERTEX, class ATTR>
-	void _addElement(Semantic semantic, ATTR VERTEX::* attr, int index) {
+	void _addElement(Semantic semantic, ATTR VERTEX::* attr, size_t index) {
 		auto& o = elements.push_back();
 		o.semantic = semantic;
 		using A = std::remove_extent<ATTR>::type;
@@ -289,12 +300,11 @@ struct VertexBase {
 template<class POS_TYPE> /* VertexT_Pos<Tuple3f> */
 struct VertexT_Pos : public VertexBase
 {
-	using BASE = VertexBase;
 	using PosType = POS_TYPE;
 	POS_TYPE pos;
 
 	static const RenderDataType	kPosType = RenderDataTypeUtil::get<POS_TYPE>();
-	static const VertexType kType = VertexTypeUtil::addPos(BASE::kType, kPosType);
+	static const VertexType kType = VertexTypeUtil::addPos(VertexBase::kType, kPosType);
 
 	static const VertexLayout* layout() {
 		static const VertexLayout* s = VertexLayoutManager::instance()->getLayout(kType);
@@ -388,7 +398,7 @@ struct VertexT_Tangent : public BASE
 		static_assert(std::is_same<TangentType, NormalType>::value, "");
 
 		BASE::onRegister(layout);
-		layout->addElement(Semantic::TANGENT, &TANGENT_TYPE::tangent);
+		layout->addElement(Semantic::TANGENT, &VertexT_Tangent::tangent);
 	}
 };
 
@@ -411,7 +421,7 @@ struct VertexT_Binormal : public BASE
 		static_assert(std::is_same<BinormalType, NormalType>::value, "");
 
 		BASE::onRegister(layout);
-		layout->addElement(Semantic::BINORMAL, &TANGENT_TYPE::binormal);
+		layout->addElement(Semantic::BINORMAL, &VertexT_Binormal::binormal);
 	}
 };
 
