@@ -88,6 +88,14 @@ void RenderMesh::clear() {
 	_subMeshes.clear();
 }
 
+void RenderMesh::setSubMeshCount(size_t newSize) {
+	size_t oldSize = _subMeshes.size();
+	_subMeshes.resize(newSize);
+	for (size_t i = oldSize; i < newSize; i++) {
+		_subMeshes[i]._mesh = this;
+	}
+}
+
 void RenderSubMesh::create(const EditMesh& src) {
 	using Helper = RenderMesh_InternalHelper;
 	clear();
@@ -173,12 +181,12 @@ void RenderSubMesh::clear() {
 	_indexCount = 0;
 }
 
-void RenderMesh::setSubMeshCount(size_t newSize) {
-	size_t oldSize = _subMeshes.size();
-	_subMeshes.resize(newSize);
-	for (size_t i = oldSize; i < newSize; i++) {
-		_subMeshes[i]._mesh = this;
-	}
+SGE_INLINE RenderPrimitiveType RenderSubMesh::primitive() const {
+	return _mesh->primitive();
+}
+
+SGE_INLINE const VertexLayout* RenderSubMesh::vertexLayout() const {
+	return _mesh->vertexLayout();
 }
 
 } // namespace

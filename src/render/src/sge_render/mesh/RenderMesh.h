@@ -23,6 +23,9 @@ public:
 	size_t indexCount() const			{ return _indexCount; }
 	RenderDataType indexType() const	{ return _indexType; }
 
+	RenderPrimitiveType primitive() const;
+	const VertexLayout* vertexLayout() const;
+
 friend class RenderMesh;
 protected:
 	RenderMesh* _mesh = nullptr;

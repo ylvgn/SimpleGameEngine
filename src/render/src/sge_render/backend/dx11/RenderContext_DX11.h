@@ -15,17 +15,17 @@ namespace sge {
 	public:
 		RenderContext_DX11(CreateDesc& desc);
 
+		void onCmd_ClearFrameBuffers(RenderCommand_ClearFrameBuffers& cmd);
+		void onCmd_SwapBuffers(RenderCommand_SwapBuffers& cmd);
+		void onCmd_DrawCall(RenderCommand_DrawCall& cmd);
+
 	protected:
 		Renderer_DX11* _renderer = nullptr;
 		void _createRenderTarget();
 
+		virtual void onCommit(RenderCommandBuffer& cmdBuf) override;
 		virtual void onBeginRender() override;
 		virtual void onEndRender() override;
-
-		virtual void onDraw() override;
-
-		virtual void onSwapBuffers() override;
-		virtual void onClearColorAndDepthBuffer() override;
 
 		ComPtr<DX11_IDXGISwapChain>		  _swapChain;
 		ComPtr<DX11_ID3DRenderTargetView> _renderTargetView; // back buffer(color buffer)
@@ -36,6 +36,12 @@ namespace sge {
 		ComPtr<DX11_ID3DVertexShader> _testVertexShader;
 		ComPtr<DX11_ID3DPixelShader> _testPixelShader;
 		ComPtr<DX11_ID3DInputLayout> _testInputLayout;
+		ComPtr<DX11_ID3DBlob> _testVertexShaderBytecode;
+
+		DX11_ID3DInputLayout* _getTestInputLayout(const VertexLayout* src);
+		VectorMap<const VertexLayout*, ComPtr<DX11_ID3DInputLayout>> _testInputLayouts;
+
+		void _setTestShaders(const VertexLayout* vertexLayout);
 	};
 
 } // namespace

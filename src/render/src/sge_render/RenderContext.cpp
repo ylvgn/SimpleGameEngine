@@ -3,21 +3,8 @@
 
 namespace sge {
 
-	RenderContext* RenderContext::create(CreateDesc& desc) {
-		return Renderer::instance()->createRenderContext(desc);
-	}
+RenderContext::RenderContext(CreateDesc& desc) {
 
-	RenderContext::RenderContext(CreateDesc& desc) {
-
-	}
-
-	// test
-	void RenderContext::render()
-	{
-		beginRender();
-		clearColorAndDepthBuffer();
-		draw();
-		swapBuffers();
-		endRender();
-	}
 }
+
+} // namespace

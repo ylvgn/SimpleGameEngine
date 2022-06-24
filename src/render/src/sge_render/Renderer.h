@@ -33,16 +33,18 @@ public:
 	static Renderer* instance() { return s_instance; };
 	const RenderAdapterInfo& adapterInfo() { return _adapterInfo; };
 
-	static Renderer*	create(CreateDesc& desc);
-	RenderContext*		createRenderContext(RenderContext_CreateDesc& desc) { return onCreateRenderContext(desc); }
-	RenderGpuBuffer*	createGpuBuffer(RenderGpuBuffer_CreateDesc& desc)	{ return onCreateGpuBuffer(desc); }
+	static Renderer*		create(CreateDesc& desc);
+	SPtr<RenderContext>		createContext(RenderContext_CreateDesc& desc)		{ return onCreateContext(desc); }
+	SPtr<RenderContext>		createRenderContext(RenderContext_CreateDesc& desc) { return onCreateRenderContext(desc); }
+	SPtr<RenderGpuBuffer>	createGpuBuffer(RenderGpuBuffer_CreateDesc& desc)	{ return onCreateGpuBuffer(desc); }
 
 protected:
 	static Renderer* s_instance;
 	RenderAdapterInfo _adapterInfo;
 
-	virtual RenderContext*		onCreateRenderContext(RenderContext_CreateDesc& desc) = 0;
-	virtual RenderGpuBuffer*	onCreateGpuBuffer(RenderGpuBuffer_CreateDesc& desc) = 0;
+	virtual SPtr<RenderContext>		onCreateContext(RenderContext_CreateDesc& desc) = 0;
+	virtual SPtr<RenderContext>		onCreateRenderContext(RenderContext_CreateDesc& desc) = 0;
+	virtual SPtr<RenderGpuBuffer>	onCreateGpuBuffer(RenderGpuBuffer_CreateDesc& desc) = 0;
 }; // Renderer
 
 } // namespace

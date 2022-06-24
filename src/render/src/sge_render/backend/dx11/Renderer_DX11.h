@@ -25,12 +25,13 @@ public:
 	DX11_ID3DDebug*         d3dDebug()         { return _d3dDebug;         }
 
 protected:
-	virtual RenderContext* onCreateRenderContext(RenderContext_CreateDesc& desc) override;
-	virtual RenderGpuBuffer* onCreateGpuBuffer(RenderGpuBuffer_CreateDesc& desc) override;
+	virtual SPtr<RenderContext>		onCreateContext(RenderContext_CreateDesc& desc) override;
+	virtual SPtr<RenderContext>		onCreateRenderContext(RenderContext_CreateDesc& desc) override;
+	virtual SPtr<RenderGpuBuffer>	onCreateGpuBuffer(RenderGpuBuffer_CreateDesc& desc) override;
 
 	ComPtr<DX11_IDXGIFactory>		_dxgiFactory;
 	ComPtr<DX11_IDXGIDevice>		_dxgiDevice;
-	ComPtr<DX11_IDXGIAdapter>		_dxgiAdapter; // how to use? use for what?
+	ComPtr<DX11_IDXGIAdapter>		_dxgiAdapter;
 
 	ComPtr<DX11_ID3DDevice>			_d3dDevice;
 	ComPtr<DX11_ID3DDeviceContext>	_d3dDeviceContext;

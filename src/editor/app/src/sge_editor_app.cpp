@@ -11,10 +11,11 @@ namespace sge {
 class MainWin : public NativeUIWindow {
 	using Base = NativeUIWindow;
 public:
-	UPtr<RenderContext>	_renderContext;
+	SPtr<RenderContext>	_renderContext;
 
 	virtual void onCreate(CreateDesc& desc) {
 		Base::onCreate(desc);
+		auto* renderer = Renderer::instance();
 
 		{ // create renderer
 			Renderer::CreateDesc rendererCreateDesc;
@@ -24,7 +25,7 @@ public:
 		{ // create render context
 			RenderContext::CreateDesc renderContextDesc;
 			renderContextDesc.window = this;
-			_renderContext.reset(RenderContext::create(renderContextDesc));
+			_renderContext = renderer->createContext(renderContextDesc);
 		}
 	}
 
@@ -35,9 +36,7 @@ public:
 	virtual void onDraw() {
 		Base::onDraw();
 
-		if (_renderContext) {
-			_renderContext->render();
-		}
+		// tmp -----------
 		drawNeeded(); // what is `drawNeeded` use for? ----------
 	}
 };

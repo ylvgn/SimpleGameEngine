@@ -1,10 +1,12 @@
 #pragma once
 #include <sge_core.h>
 #include "../vertex/Vertex.h"
+#include <sge_render/buffer/RenderGpuBuffer.h>
 
 namespace sge {
 
 class RenderMesh;
+class RenderSubMesh;
 
 enum class RenderCommandType {
 	None,
@@ -16,8 +18,15 @@ enum class RenderCommandType {
 class RenderCommand : NonCopyable {
 	using Type = RenderCommandType;
 public:
+
 	RenderCommand(Type type) : _type(type) {}
 	virtual ~RenderCommand() {}
+
+	Type type() const { return _type; }
+
+#if _DEBUG
+	SrcLoc	debugLoc;
+#endif
 
 private:
 	Type _type = Type::None;
@@ -42,11 +51,11 @@ public:
 
 	RenderPrimitiveType	 primitive = RenderPrimitiveType::None;
 	const VertexLayout* vertexLayout = nullptr;
-	//RenderDataType indexType = RenderDataType::UInt16;
 
-	//SPtr<RenderGpuBuffer> vertexBuffer;
+	SPtr<RenderGpuBuffer> vertexBuffer;
+	RenderDataType indexType = RenderDataType::UInt16;
+	SPtr<RenderGpuBuffer> indexBuffer;
 
-	//SPtr<RenderGpuBuffer>	indexBuffer;
 	//SPtr<MaterialPass> materialPass;
 
 	size_t vertexCount = 0;
@@ -58,7 +67,8 @@ public:
 	RenderCommand_ClearFrameBuffers*	clearFrameBuffers()	{ return newCommand<RenderCommand_ClearFrameBuffers>();	}
 	RenderCommand_SwapBuffers*			swapBuffers()		{ return newCommand<RenderCommand_SwapBuffers>();		}
 
-	void drawMesh(const RenderMesh& mesh);
+	void drawMesh	(const SrcLoc& debugLoc, const RenderMesh&    mesh/*, Material* material*/);
+	void drawSubMesh(const SrcLoc& debugLoc, const RenderSubMesh& subMesh/*, Material* material*/);
 
 	Span<RenderCommand*>	commands() { return _commands; }
 
