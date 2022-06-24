@@ -52,6 +52,7 @@ struct DX11Util {
 	static bool assertIfError(HRESULT hr);
 	static String getStrFromHRESULT(HRESULT hr);
 	static void reportError(HRESULT hr);
+	static UINT castUINT(size_t v) { SGE_ASSERT(v < UINT_MAX); return static_cast<UINT>(v); }
 
 private:
 	static bool _checkError(HRESULT hr) {

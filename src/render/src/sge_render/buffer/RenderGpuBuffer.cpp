@@ -1,16 +1,10 @@
 #include "RenderGpuBuffer.h"
 
 namespace sge {
+RenderGpuBuffer::RenderGpuBuffer(CreateDesc& desc)
+	: _desc(desc)
+{
 
-enum class RenderGpuBufferType {
-	None,
-	Vertex,
-	Index,
-	Const,
-};
-
-class RenderGpuBuffer : public Object {
-
-};
+}
 
 } // namespace

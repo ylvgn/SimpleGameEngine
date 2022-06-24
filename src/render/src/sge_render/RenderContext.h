@@ -3,34 +3,35 @@
 #include <sge_core/native_ui/NativeUI.h>
 
 namespace sge {
-	struct RenderContext_CreateDesc {
-		NativeUIWindow* window;
-	};
 
-	// abstruct class
-	class RenderContext : public NonCopyable {
-	public:
-		using CreateDesc = RenderContext_CreateDesc;
+struct RenderContext_CreateDesc {
+	NativeUIWindow* window;
+};
 
-		RenderContext(CreateDesc& desc);
-		virtual ~RenderContext() = default;
-		static RenderContext* create(CreateDesc& desc);
+// abstruct class
+class RenderContext : public NonCopyable {
+public:
+	using CreateDesc = RenderContext_CreateDesc;
 
-		void beginRender()              { onBeginRender(); }
-		void endRender()                { onEndRender(); }
-		void draw()                     { onDraw(); } // tmp
-		void swapBuffers()              { onSwapBuffers(); };
-		void clearColorAndDepthBuffer() { onClearColorAndDepthBuffer(); };
+	RenderContext(CreateDesc& desc);
+	virtual ~RenderContext() = default;
+	static RenderContext* create(CreateDesc& desc);
 
-		// test
-		void render();
+	void beginRender()              { onBeginRender(); }
+	void endRender()                { onEndRender(); }
+	void draw()                     { onDraw(); } // tmp
+	void swapBuffers()              { onSwapBuffers(); };
+	void clearColorAndDepthBuffer() { onClearColorAndDepthBuffer(); };
 
-	protected:
-		virtual void onBeginRender() {};
-		virtual void onEndRender() {};
-		virtual void onDraw() {};
-		virtual void onSwapBuffers() {};
-		virtual void onClearColorAndDepthBuffer() {};
-	};
+	// test
+	void render();
+
+protected:
+	virtual void onBeginRender() {};
+	virtual void onEndRender() {};
+	virtual void onDraw() {};
+	virtual void onSwapBuffers() {};
+	virtual void onClearColorAndDepthBuffer() {};
+}; // RenderContext_CreateDesc
 
 } // namespace
