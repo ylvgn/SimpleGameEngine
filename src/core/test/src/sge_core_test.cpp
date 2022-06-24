@@ -13,7 +13,7 @@
 namespace sge {
 
 void run_temp_test() {
-	RUN_TEST(test_BitWise);
+	RUN_TEST(test_SharePtr);
 }
 
 void run_all_test() {
