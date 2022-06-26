@@ -22,9 +22,12 @@ public:
 	RenderContext(CreateDesc& desc);
 	virtual ~RenderContext() = default;
 
+	void setFrameBufferSize(Vec2f newSize);
+
 protected:
 	virtual void onBeginRender() {};
 	virtual void onEndRender() {};
+	virtual void onSetFrameBufferSize(Vec2f newSize) {};
 	virtual void onCommit(RenderCommandBuffer& cmdBuf) {};
 
 	template<class IMPL>
@@ -50,6 +53,8 @@ protected:
 
 		#undef CMD_CASE
 	}
+
+	Vec2f	_frameBufferSize {0, 0};
 
 }; // RenderContext_CreateDesc
 

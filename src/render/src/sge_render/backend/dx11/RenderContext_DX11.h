@@ -26,6 +26,7 @@ namespace sge {
 		virtual void onCommit(RenderCommandBuffer& cmdBuf) override;
 		virtual void onBeginRender() override;
 		virtual void onEndRender() override;
+		virtual void onSetFrameBufferSize(Vec2f newSize) override;
 
 		ComPtr<DX11_IDXGISwapChain>		  _swapChain;
 		ComPtr<DX11_ID3DRenderTargetView> _renderTargetView; // back buffer(color buffer)

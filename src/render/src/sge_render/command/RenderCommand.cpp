@@ -15,7 +15,7 @@ void RenderCommandBuffer::drawSubMesh(const SrcLoc& debugLoc, const RenderSubMes
 	///for (auto& pass : material->passes()) {
 		auto* cmd = newCommand<RenderCommand_DrawCall>();
 		#if _DEBUG
-			//cmd->debugLoc = debugLoc;
+			cmd->debugLoc = debugLoc;
 		#endif
 		//cmd->materialPass	= pass.ptr();
 		cmd->primitive		= subMesh.primitive();
@@ -26,6 +26,14 @@ void RenderCommandBuffer::drawSubMesh(const SrcLoc& debugLoc, const RenderSubMes
 		cmd->indexType		= subMesh.indexType();
 		cmd->indexCount		= subMesh.indexCount();
 	//}
+}
+
+void RenderCommandBuffer::reset() {
+	for (auto* cmd : _commands) {
+		cmd->~RenderCommand();
+	}
+	_allocator.clear();
+	_commands.clear();
 }
 
 } // namespace

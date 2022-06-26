@@ -34,8 +34,19 @@ private:
 
 class RenderCommand_ClearFrameBuffers : public RenderCommand {
 	using Base = RenderCommand;
+	using This = RenderCommand_ClearFrameBuffers;
 public:
 	RenderCommand_ClearFrameBuffers() : Base(Type::ClearFrameBuffers) {}
+
+	This& setColor(const Color4f& color_)	{ color = color_; return *this; }
+	This& setDepth(float depth_)			{ depth = depth_; return *this; }
+
+	This& dontClearColor() { color.reset(); return *this; }
+	This& dontClearDepth() { depth.reset(); return *this; }
+
+	Opt<Color4f> color = Color4f(1, 1, 1, 1);
+	Opt<float>   depth = 0;
+
 }; // RenderCommand_ClearFrameBuffers
 
 class RenderCommand_SwapBuffers : public RenderCommand {
@@ -76,17 +87,12 @@ public:
 	CMD* newCommand() {
 		auto* buf = _allocator.allocate(sizeof(CMD));
 		auto* cmd = new(buf) CMD();
-		_commands.push_back(cmd);
+		_commands.emplace_back(cmd);
 		return cmd;
 	}
 
-	void reset() {
-		for (auto* cmd : _commands) {
-			cmd->~RenderCommand();
-		}
-		_commands.clear();
-		_allocator.clear();
-	}
+	void reset();
+
 private:
 	Vector_<RenderCommand*, 64>	_commands;
 	LinearAllocator _allocator;
