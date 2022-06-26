@@ -46,6 +46,14 @@ void RenderContext_DX11::onBeginRender() {
 	// set-up renger target
 	DX11_ID3DRenderTargetView* rt = _renderTargetView;
 	ctx->OMSetRenderTargets(1, &rt, nullptr);
+
+	D3D11_VIEWPORT viewport = {};
+	viewport.TopLeftX = 0;
+	viewport.TopLeftY = 0;
+	viewport.Width = _frameBufferSize.x;
+	viewport.Height = _frameBufferSize.y;
+
+	ctx->RSSetViewports(1, &viewport);
 }
 
 void RenderContext_DX11::onEndRender() {
@@ -332,24 +340,24 @@ DX11_ID3DInputLayout* RenderContext_DX11::_getTestInputLayout(const VertexLayout
 
 	for (auto& e : src->elements) {
 		auto& dst = inputDesc.emplace_back();
-		auto semanticType = VertexSemanticUtil::getType(e.semantic);
-		dst.SemanticName = enumStr(semanticType); //Util::getDxSemanticName(semanticType);
-		dst.SemanticIndex = VertexSemanticUtil::getIndex(e.semantic);
-		dst.Format = Util::getDxFormat(e.dataType);
-		dst.InputSlot = 0;
-		dst.AlignedByteOffset = e.offset;
-		dst.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-		dst.InstanceDataStepRate = 0;
+		auto semanticType			= VertexSemanticUtil::getType(e.semantic);
+		dst.SemanticName			= Util::getDxSemanticName(semanticType);
+		dst.SemanticIndex			= VertexSemanticUtil::getIndex(e.semantic);
+		dst.Format					= Util::getDxFormat(e.dataType);
+		dst.InputSlot				= 0;
+		dst.AlignedByteOffset		= e.offset;
+		dst.InputSlotClass			= D3D11_INPUT_PER_VERTEX_DATA;
+		dst.InstanceDataStepRate	= 0;
 	}
 
 	ComPtr<DX11_ID3DInputLayout>	outLayout;
 
 	auto* dev = _renderer->d3dDevice();
 	auto hr = dev->CreateInputLayout(inputDesc.data()
-		, static_cast<UINT>(inputDesc.size())
-		, _testVertexShaderBytecode->GetBufferPointer()
-		, _testVertexShaderBytecode->GetBufferSize()
-		, outLayout.ptrForInit());
+								, static_cast<UINT>(inputDesc.size())
+								, _testVertexShaderBytecode->GetBufferPointer()
+								, _testVertexShaderBytecode->GetBufferSize()
+								, outLayout.ptrForInit());
 	Util::throwIfError(hr);
 
 	_testInputLayouts[src] = outLayout;
