@@ -322,9 +322,9 @@ struct VertexT_Color : public BASE
 	using ColorType = COLOR_TYPE;
 	COLOR_TYPE	color[COLOR_COUNT];
 
-	static const RenderDataType	kUvType = RenderDataTypeUtil::get<COLOR_TYPE>();
+	static const RenderDataType	kColorType = RenderDataTypeUtil::get<COLOR_TYPE>();
 	static const u8 kColorCount = COLOR_COUNT;
-	static const VertexType kType = VertexTypeUtil::addColor(BASE::kType, kUvType, kColorCount);
+	static const VertexType kType = VertexTypeUtil::addColor(BASE::kType, kColorType, kColorCount);
 
 	static const VertexLayout* layout() {
 		static const VertexLayout* s = VertexLayoutManager::instance()->getLayout(kType);
@@ -410,7 +410,7 @@ struct VertexT_Binormal : public BASE
 
 	static const RenderDataType	kBinormalType = RenderDataTypeUtil::get<BINORMAL_TYPE>();
 	static const u8 kBinormalCount = BINORMAL_COUNT;
-	static const VertexType kType = VertexTypeUtil::addTangent(BASE::kType, kBinormalCount); // kBinormalType same as kNormalType
+	static const VertexType kType = VertexTypeUtil::addBinormal(BASE::kType, kBinormalCount); // kBinormalType same as kNormalType
 
 	static const VertexLayout* layout() {
 		static const VertexLayout* s = VertexLayoutManager::instance()->getLayout(kType);
