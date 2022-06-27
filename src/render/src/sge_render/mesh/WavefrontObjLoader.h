@@ -12,25 +12,31 @@ public:
 private:
 	void _readMem(EditMesh& outInfo, ByteSpan data, StrView filename);
 
-	void _readPos();
-	void _readUv();
-	void _readNormal();
+	void _parseLine_v();
+	void _parseLine_vt();
+	void _parseLine_vn();
 
-	void _readFace();
-	void __readFaceInnerWithChar(Tuple3<int>& out, StrView str, char splitSymbol);
+	void _parseLine_f();
+	void _parseLine_f_inner(Tuple3<int>& out, StrView str, char splitSymbol);
+
+	template<class T>
+	void _readLineNumbers(T& out) {
+		String str;
+		int index = 0;
+		while (_ch && _ch != '\n') {
+			_readNumber(str);
+			//SGE_DUMP_VAR(index, v);
+			if (!StringUtil::tryParse(str, out.data[index++])) {
+				_error("error _readLineNumbers");
+			}
+		}
+	};
+	void _readNumber(String& out);
 
 	EditMesh* _outInfo = nullptr;
-
 	Vector<Tuple3f> _tmpPos;
 	Vector<Tuple2f> _tmpUv;
 	Vector<Tuple3f> _tmpNormal;
-
-	void __readPosValue(size_t index);
-	void __readUvValue(size_t index);
-	void __readNormalValue(size_t index);
-	void __readIndices(size_t index);
-
-	size_t __getRealIndex(size_t index, size_t size);
 
 }; // WavefrontObjLoader
 

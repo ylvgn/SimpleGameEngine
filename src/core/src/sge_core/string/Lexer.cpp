@@ -47,9 +47,13 @@ void Lexer::errorUnexpectedToken() {
 	error("Unexpected token [{}]", _token.str);
 }
 
+void Lexer::errorUnexpectedChar() {
+	error("Unexpected character [{}]", _ch);
+}
+
 bool Lexer::nextToken() {
 	if (!_nextToken()) return false;
-	SGE_DUMP_VAR(_line, _token);
+	//SGE_DUMP_VAR(_line, _token);
 	return true;
 }
 
@@ -126,7 +130,7 @@ void Lexer::_error(StrView msg) {
 		size_t i = 0;
 		for (auto& c : lastLine) {
 			if (i >= _col) break;
-			if (c == ' ') { tmp += '-';	continue; }
+			if (c == ' ' ) { tmp += '-';	continue; }
 			if (c == '\n') { tmp += c;		continue; }
 			if (c == '\t') { tmp += "----";	continue; }
 			tmp += '-';
@@ -135,7 +139,7 @@ void Lexer::_error(StrView msg) {
 		tmp += "^^^\n";
 	}
 
-	FmtTo(tmp, "file - {}:{}:{}\n", _filename, _line, _col);
+	FmtTo(tmp, "  token={}\n  file={}:{}:{}\n", _filename, _line, _col);
 	throw SGE_ERROR("{}", tmp);
 }
 
@@ -171,7 +175,9 @@ bool Lexer::_nextToken() {
 				continue;
 			}
 
-			_errorUnexpectedChar();
+			_token.type = TokenType::Operator;
+			_token.str = '/';
+			return true;
 		}
 
 		// check string
@@ -181,8 +187,7 @@ bool Lexer::_nextToken() {
 
 		// check number
 		if (isDigit(_ch)) {
-			_parseNumber();
-			return true;
+			return _parseNumber();
 		}
 
 		// check identifier
@@ -191,7 +196,7 @@ bool Lexer::_nextToken() {
 			return true;
 		}
 
-		// final operator
+		// default must be operator
 		_token.type = TokenType::Operator;
 		_appendAndNextChar();
 		return true;
@@ -205,7 +210,7 @@ void Lexer::_parseNewline() {
 }
 
 // e.g. 1234.56e-78;
-void Lexer::_parseNumber() {
+bool Lexer::_parseNumber() {
 	// _ch start as '0' ~ '9'
 		
 	_token.reset(TokenType::Number);
@@ -217,7 +222,8 @@ void Lexer::_parseNumber() {
 		// check dot
 		if (_ch == '.') {
 			if (hasDot || hasE) {
-				_errorUnexpectedChar();
+				errorUnexpectedChar();
+				return false;
 			}
 			hasDot = true;
 			_appendAndNextChar();
@@ -227,7 +233,8 @@ void Lexer::_parseNumber() {
 		// check e
 		if (_ch == 'e' || _ch == 'E') {
 			if (hasE) {
-				_errorUnexpectedChar();
+				errorUnexpectedChar();
+				return false;
 			}
 			hasE = true;
 			_appendAndNextChar(); // add 'e' or 'E'
@@ -245,6 +252,7 @@ void Lexer::_parseNumber() {
 			break;
 		}
 	}
+	return true;
 }
 
 void Lexer::_parseCommentSingleLine() {
@@ -254,7 +262,7 @@ void Lexer::_parseCommentSingleLine() {
 		tmp += _ch;
 	}
 	tmp.pop_back(); // ignore last '\n'
-	SGE_LOG("ignore comment single line:\n{}", tmp);
+	//SGE_LOG("ignore comment single line:\n{}", tmp);
 	nextChar(); // skip '\n'
 }
 
@@ -279,10 +287,9 @@ void Lexer::_parseCommentBlock() {
 bool Lexer::_parseString() {
 	// _ch start as \" or \'
 	_token.reset(TokenType::String);
+	const char validquote = _ch; // start quote \" or \'
 
-	const char validquote = _ch; // start quote \" \'
-
-	_appendAndNextChar(); // skip \" \'
+	_appendAndNextChar(); // skip \" or \'
 	auto* _st = _cur - 1;
 
 	while (_ch && _ch != '\n' && _ch != '"' && _ch != '\'') {
@@ -306,7 +313,7 @@ bool Lexer::_parseString() {
 					_appendAndNextChar(); // add '\xxxxx'
 					break;
 				default:
-					_errorUnexpectedChar();
+					errorUnexpectedChar();
 			}
 			continue;
 		}
@@ -335,7 +342,7 @@ void Lexer::_parseIdentifier() {
 
 	// check invalid, now _ch must be empty character
 	if (!_ch && _ch != ' ' && _ch != '\t' && _ch != '\n' && _ch != '\r') {
-		_errorUnexpectedChar();
+		errorUnexpectedChar();
 	}
 }
 
@@ -343,10 +350,6 @@ void Lexer::_appendAndNextChar()
 {
 	_token.str += _ch;
 	nextChar();
-}
-
-void Lexer::_errorUnexpectedChar() {
-	error("Unexpected character [{}]", _ch);
 }
 
 } // namespace

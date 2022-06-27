@@ -23,20 +23,27 @@ public:
 			_renderContext = renderer->createContext(renderContextDesc);
 		}
 
-		{
-			// test draw triangle ----------------------------
-			EditMesh editMesh;
-
-			editMesh.pos.emplace_back(0.0f, 0.5f, 0.0f);
-			editMesh.pos.emplace_back(0.5f, -0.5f, 0.0f);
-			editMesh.pos.emplace_back(-0.5f, -0.5f, 0.0f);
-
-			editMesh.color.emplace_back(255, 0, 0, 255);
-			editMesh.color.emplace_back(0, 255, 0, 255);
-			editMesh.color.emplace_back(0, 0, 255, 255);
-
-			_renderMesh.create(editMesh);
+		EditMesh editMesh;
+#if 1
+		WavefrontObjLoader::readFile(editMesh, "Assets/Mesh/test.obj");
+		// the current shader need color
+		for (size_t i = editMesh.color.size(); i < editMesh.pos.size(); i++) {
+			editMesh.color.emplace_back(255, 255, 255, 255);
 		}
+		// the current shader has no uv or normal
+		editMesh.uv[0].clear();
+		editMesh.normal.clear();
+		//SGE_LOG("{}", editMesh);
+#else
+		editMesh.pos.emplace_back(0.0f, 0.5f, 0.0f);
+		editMesh.pos.emplace_back(0.5f, -0.5f, 0.0f);
+		editMesh.pos.emplace_back(-0.5f, -0.5f, 0.0f);
+
+		editMesh.color.emplace_back(255, 0, 0, 255);
+		editMesh.color.emplace_back(0, 255, 0, 255);
+		editMesh.color.emplace_back(0, 0, 255, 255);
+#endif
+		_renderMesh.create(editMesh);
 	}
 
 	virtual void onCloseButton() {

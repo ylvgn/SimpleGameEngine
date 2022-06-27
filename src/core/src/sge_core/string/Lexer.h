@@ -68,6 +68,7 @@ public:
 	}
 
 	void errorUnexpectedToken();
+	void errorUnexpectedChar();
 
 	void expectOperator(StrView s);
 	void expectNewline();
@@ -88,11 +89,10 @@ protected:
 
 	bool _nextToken();
 	void _appendAndNextChar();
-	void _errorUnexpectedChar();
 
 	bool _parseString();
 	void _parseIdentifier();
-	void _parseNumber();
+	bool _parseNumber();
 	void _parseNewline();
 	void _parseCommentBlock();
 	void _parseCommentSingleLine();
