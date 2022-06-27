@@ -117,15 +117,14 @@ LRESULT WINAPI NativeUIWindow_Win32::s_wndProc(HWND hwnd, UINT msg, WPARAM wPara
 			}
 		}break;
 
-		//case WM_PRINTCLIENT :
 		case WM_PAINT: {
 			PAINTSTRUCT ps;
 			BeginPaint(hwnd, &ps);
 			if (auto* thisObj = s_getThis(hwnd)) {
 				thisObj->onDraw();
-				return 0;
 			}
 			EndPaint(hwnd, &ps);
+			return 0;
 		}break;
 		
 		case WM_CLOSE: {
