@@ -150,13 +150,13 @@ void RenderSubMesh::create(const EditMesh& src) {
 
 	if (_indexCount > 0) {
 		ByteSpan indexData;
+		Vector_<u16, 1024> index16Data;
 
 		if (_vertexCount > UINT16_MAX) {
 			_indexType = RenderDataType::UInt32;
 			indexData = spanCast<const u8, const u32>(src.indices);
 		}
 		else {
-			Vector_<u16, 1024> index16Data;
 			_indexType = RenderDataType::UInt16;
 			index16Data.resize(src.indices.size());
 			for (size_t i = 0; i < src.indices.size(); i++) {
