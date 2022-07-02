@@ -28,21 +28,26 @@ namespace sge {
 		virtual void onEndRender() override;
 		virtual void onSetFrameBufferSize(Vec2f newSize) override;
 
-		ComPtr<DX11_IDXGISwapChain>		  _swapChain;
-		ComPtr<DX11_ID3DRenderTargetView> _renderTargetView; // back buffer(color buffer)
-		ComPtr<DX11_ID3DDepthStencilView> _depthStencilView; // depth buffer
-		ComPtr<DX11_ID3DTexture2D>        _depthStencil;
+		ComPtr<DX11_IDXGISwapChain>			_swapChain;
+		ComPtr<DX11_ID3DRenderTargetView>	_renderTargetView; // back buffer(color buffer)
+		ComPtr<DX11_ID3DDepthStencilView>	_depthStencilView; // depth buffer
+		ComPtr<DX11_ID3DTexture2D>			_depthStencil;
 
-		ComPtr<DX11_ID3DBuffer> _testVertexBuffer;
-		ComPtr<DX11_ID3DVertexShader> _testVertexShader;
-		ComPtr<DX11_ID3DPixelShader> _testPixelShader;
-		ComPtr<DX11_ID3DInputLayout> _testInputLayout;
-		ComPtr<DX11_ID3DBlob> _testVertexShaderBytecode;
+		ComPtr<DX11_ID3DBuffer>				_testVertexBuffer;
+		ComPtr<DX11_ID3DVertexShader>		_testVertexShader;
+		ComPtr<DX11_ID3DPixelShader>		_testPixelShader;
+		ComPtr<DX11_ID3DInputLayout>		_testInputLayout;
+		ComPtr<DX11_ID3DBlob>				_testVertexShaderBytecode;
+
+		ComPtr<DX11_ID3DRasterizerState>	_testRasterizerState;
+		ComPtr<DX11_ID3DDepthStencilState>	_testDepthStencilState;
+		ComPtr<DX11_ID3DBlendState>			_testBlendState;
 
 		DX11_ID3DInputLayout* _getTestInputLayout(const VertexLayout* src);
 		VectorMap<const VertexLayout*, ComPtr<DX11_ID3DInputLayout>> _testInputLayouts;
 
 		void _setTestShaders(const VertexLayout* vertexLayout);
+		void _setTestDefaultRenderState();
 	};
 
 } // namespace

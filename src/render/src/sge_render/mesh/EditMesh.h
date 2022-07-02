@@ -1,6 +1,5 @@
 #pragma once
 
-#include <sge_core.h>
 #include <sge_render/Render_Common.h>
 
 namespace sge {
