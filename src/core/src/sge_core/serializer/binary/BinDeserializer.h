@@ -4,11 +4,9 @@
 
 namespace sge {
 
-class BinDeserializer;
-
 class BinDeserializer : public NonCopyable {
 public:
-	BinDeserializer(Span<const u8> data) 
+	BinDeserializer(ByteSpan data) 
 		: _data(data.data())
 		, _cur(data.data())
 		, _end(data.end())
