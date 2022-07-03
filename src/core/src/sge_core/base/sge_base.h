@@ -47,7 +47,11 @@
 #include <EASTL/shared_ptr.h>
 #include <EASTL/weak_ptr.h>
 
+#include <nlohmann/json.hpp>
+
 #include "sge_macro.h"
+
+using Json = nlohmann::json;
 
 //==== EASTL ====
 
@@ -116,6 +120,7 @@ template<class T> using Vector = eastl::vector<T>;
 
 template<class KEY, class VALUE> using Map = eastl::map<KEY, VALUE>;
 template<class KEY, class VALUE> using VectorMap = eastl::vector_map<KEY, VALUE>;
+template<class VALUE> using StringMap = eastl::string_map<VALUE>;
 
 template<class T> using Opt = eastl::optional<T>;
 
@@ -166,6 +171,10 @@ using StringW = StringW_<0>;
 
 using StrView		= StrViewA;
 using String		= StringA;
+
+inline StrView StrView_c_str(const char* s) {
+	return s ? StrView(s, strlen(s)) : StrView();
+}
 
 inline StrView StrView_make(ByteSpan s) {
 	return StrView(reinterpret_cast<const char*>(s.data()), s.size());

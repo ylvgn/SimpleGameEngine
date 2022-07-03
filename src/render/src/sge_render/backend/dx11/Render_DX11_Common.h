@@ -14,7 +14,7 @@
 #include <sge_render/RenderDataType.h>
 #include <sge_render/Render_Common.h>
 #include <sge_render/vertex/Vertex.h>
-//#include <sge_render/shader/Shader.h>
+#include <sge_render/shader/Shader.h>
 
 namespace sge {
 
@@ -57,18 +57,35 @@ struct DX11Util {
 
 	static void throwIfError(HRESULT hr);
 	static bool assertIfError(HRESULT hr);
-	static String getStrFromHRESULT(HRESULT hr);
 	static void reportError(HRESULT hr);
+
 	static UINT castUINT(size_t v) { SGE_ASSERT(v < UINT_MAX); return static_cast<UINT>(v); }
-	static DXGI_FORMAT getDxFormat(RenderDataType v);
-	static const char* getDxSemanticName(VertexSemanticType v);
+
+	static DXGI_FORMAT				getDxFormat(RenderDataType v);
 	static D3D11_PRIMITIVE_TOPOLOGY getDxPrimitiveTopology(RenderPrimitiveType t);
+
+	static const char*			getDxSemanticName(VertexSemanticType v);
+	static VertexSemanticType	parseDxSemanticName(StrView s);
+
+	static String		getStrFromHRESULT(HRESULT hr);
+
+	static const char*	getDxStageProfile(ShaderStageMask s);
+
+	static ByteSpan toSpan(ID3DBlob* blob);
+	static StrView  toStrView(ID3DBlob* blob) { return StrView_make(toSpan(blob)); }
 
 private:
 	static bool _checkError(HRESULT hr) {
 		return FAILED(hr); // if got error, return true
 	}
 };
+
+inline
+ByteSpan DX11Util::toSpan(ID3DBlob* blob) {
+	if (!blob) return ByteSpan();
+	return ByteSpan(reinterpret_cast<const u8*>(blob->GetBufferPointer()),
+		static_cast<size_t>(blob->GetBufferSize()));
+}
 
 inline
 void DX11Util::throwIfError(HRESULT hr) {
@@ -107,6 +124,15 @@ String DX11Util::getStrFromHRESULT(HRESULT hr) {
 
 	auto str = dwChars ? UtfUtil::toString(buf) : String("Error message not found.");
 	return str;
+}
+
+inline
+const char* DX11Util::getDxStageProfile(ShaderStageMask s) {
+	switch (s) {
+	case ShaderStageMask::Vertex:	return "vs_5_0";
+	case ShaderStageMask::Pixel:	return "ps_5_0";
+	default: return "";
+	}
 }
 
 inline

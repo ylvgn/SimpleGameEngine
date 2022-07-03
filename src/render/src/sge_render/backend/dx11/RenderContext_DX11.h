@@ -19,6 +19,8 @@ namespace sge {
 		void onCmd_SwapBuffers(RenderCommand_SwapBuffers& cmd);
 		void onCmd_DrawCall(RenderCommand_DrawCall& cmd);
 
+		Renderer_DX11* renderer() { return _renderer; }
+
 	protected:
 		Renderer_DX11* _renderer = nullptr;
 		void _createRenderTarget();

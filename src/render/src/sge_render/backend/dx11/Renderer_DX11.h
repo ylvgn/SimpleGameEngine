@@ -28,6 +28,7 @@ protected:
 	virtual SPtr<RenderContext>		onCreateContext(RenderContext_CreateDesc& desc) override;
 	virtual SPtr<RenderContext>		onCreateRenderContext(RenderContext_CreateDesc& desc) override;
 	virtual SPtr<RenderGpuBuffer>	onCreateGpuBuffer(RenderGpuBuffer_CreateDesc& desc) override;
+	virtual SPtr<Shader>			onCreateShader(StrView filename) override;
 
 	ComPtr<DX11_IDXGIFactory>		_dxgiFactory;
 	ComPtr<DX11_IDXGIDevice>		_dxgiDevice;

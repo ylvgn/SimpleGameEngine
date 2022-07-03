@@ -71,6 +71,8 @@ struct VertexTypeUtil {
 	}
 }; // VertexTypeUtil
 
+using VertexSemanticIndex = u8;
+
 enum class VertexSemanticType : u8 {
 	None,
 	POSITION,
@@ -98,7 +100,7 @@ SGE_ENUM_ALL_OPERATOR(VertexSemantic)
 struct VertexSemanticUtil {
 	using Semantic = VertexSemantic;	// u16 (u8-Vertex_SemanticType, u8-Index)
 	using Type = VertexSemanticType;	// u8
-	using Index = u8;					// index 0~255, e.g. TEXCOORD255, COLOR0255
+	using Index = VertexSemanticIndex;	// u8, index 0~255, e.g. TEXCOORD255, COLOR0255
 	
 	// Vertex_SemanticType, Index -> Vertex_Semantic
 	static constexpr Semantic make(Type type, Index index) {

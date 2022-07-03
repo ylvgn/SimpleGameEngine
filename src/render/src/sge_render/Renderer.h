@@ -1,5 +1,9 @@
 #pragma once
+
 #include "Render_Common.h"
+#include "RenderContext.h"
+#include "shader/Shader.h"
+//#include "Shader/Material.h"
 
 namespace sge {
 
@@ -27,24 +31,35 @@ public:
 		bool multithread : 1;
 	};
 
+	static Renderer* create(CreateDesc& desc);
+
 	Renderer();
 	virtual ~Renderer();
 
 	static Renderer* instance() { return s_instance; };
 	const RenderAdapterInfo& adapterInfo() { return _adapterInfo; };
 
-	static Renderer*		create(CreateDesc& desc);
+	bool vsync() const { return _vsync; }
+
 	SPtr<RenderContext>		createContext(RenderContext_CreateDesc& desc)		{ return onCreateContext(desc); }
 	SPtr<RenderContext>		createRenderContext(RenderContext_CreateDesc& desc) { return onCreateRenderContext(desc); }
 	SPtr<RenderGpuBuffer>	createGpuBuffer(RenderGpuBuffer_CreateDesc& desc)	{ return onCreateGpuBuffer(desc); }
+	SPtr<Shader>			createShader(StrView filename);
+
+	void onShaderDestory(Shader* shader);
 
 protected:
-	static Renderer* s_instance;
-	RenderAdapterInfo _adapterInfo;
-
 	virtual SPtr<RenderContext>		onCreateContext(RenderContext_CreateDesc& desc) = 0;
 	virtual SPtr<RenderContext>		onCreateRenderContext(RenderContext_CreateDesc& desc) = 0;
 	virtual SPtr<RenderGpuBuffer>	onCreateGpuBuffer(RenderGpuBuffer_CreateDesc& desc) = 0;
+	virtual SPtr<Shader>			onCreateShader(StrView filename) = 0;
+
+	StringMap<Shader*>	_shaders;
+
+	static Renderer* s_instance;
+	RenderAdapterInfo _adapterInfo;
+
+	bool _vsync : 1;
 }; // Renderer
 
 } // namespace

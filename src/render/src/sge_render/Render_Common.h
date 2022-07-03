@@ -21,27 +21,4 @@ enum class RenderPrimitiveType {
 	Triangles,
 };
 
-enum class ShaderStage {
-	None,
-	Vertex,
-	Pixel,
-};
-
-inline
-const char* enumStr(ShaderStage v) {
-	switch (v) {
-#define E(T) case ShaderStage::T: return #T;
-		E(None)
-		E(Vertex)
-		E(Pixel)
-#undef E
-	default: {
-			SGE_ASSERT(false);
-			return "";
-		}
-	}
-}
-
-SGE_FORMATTER_ENUM(ShaderStage)
-
 } // namespace
