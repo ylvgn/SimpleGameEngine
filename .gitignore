@@ -2,7 +2,6 @@
 
 # User Preference
 *.vs
-*.vscode
 
 /build
 /externals/vcpkg

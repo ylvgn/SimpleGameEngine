@@ -24,7 +24,7 @@ public:
 		}
 
 		EditMesh editMesh;
-#if 1
+#if 0
 		WavefrontObjLoader::readFile(editMesh, "Assets/Mesh/test.obj");
 		// the current shader need color
 		for (size_t i = editMesh.color.size(); i < editMesh.pos.size(); i++) {
@@ -33,7 +33,6 @@ public:
 		// the current shader has no uv or normal
 		editMesh.uv[0].clear();
 		editMesh.normal.clear();
-		//SGE_LOG("{}", editMesh);
 #else
 		editMesh.pos.emplace_back(0.0f, 0.5f, 0.0f);
 		editMesh.pos.emplace_back(0.5f, -0.5f, 0.0f);
@@ -42,6 +41,14 @@ public:
 		editMesh.color.emplace_back(255, 0, 0, 255);
 		editMesh.color.emplace_back(0, 255, 0, 255);
 		editMesh.color.emplace_back(0, 0, 255, 255);
+
+		editMesh.uv[0].emplace_back(0, 1);
+		editMesh.uv[0].emplace_back(1, 1);
+		editMesh.uv[0].emplace_back(1, 0);
+
+		editMesh.normal.emplace_back(0, 0, 0);
+		editMesh.normal.emplace_back(0, 0, 0);
+		editMesh.normal.emplace_back(0, 0, 0);
 #endif
 		_renderMesh.create(editMesh);
 	}
@@ -67,7 +74,7 @@ public:
 
 		_renderContext->endRender();
 
-		drawNeeded(); // what is `drawNeeded` use for? ----------
+		drawNeeded();
 	}
 
 	SPtr<RenderContext>	_renderContext;
@@ -88,6 +95,24 @@ public:
 			auto curDir = Directory::getCurrent();
 			SGE_LOG("current dir={}", curDir);
 		}
+
+	#if 1 // for quick testing
+		{ // compile shader
+			SHELLEXECUTEINFO ShExecInfo = {};
+			ShExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
+			ShExecInfo.fMask = SEE_MASK_NOCLOSEPROCESS;
+			ShExecInfo.hwnd = NULL;
+			ShExecInfo.lpVerb = L"open";
+			ShExecInfo.lpFile = L"compile_shaders.bat";
+			ShExecInfo.lpParameters = L"";
+			ShExecInfo.lpDirectory = NULL;
+			ShExecInfo.nShow = SW_SHOW;
+			ShExecInfo.hInstApp = NULL;
+			ShellExecuteEx(&ShExecInfo);
+			WaitForSingleObject(ShExecInfo.hProcess, INFINITE);
+			CloseHandle(ShExecInfo.hProcess);
+		}
+	#endif
 
 		Base::onCreate(desc);
 
