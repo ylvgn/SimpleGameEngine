@@ -1,5 +1,14 @@
 #pragma once
 
+#if SGE_CPLUSPLUS_17
+	#define SGE_FALLTHROUGH		[[fallthrough]]
+	#define SGE_NODISCARD		[[nodiscard]]
+#else
+	#define SGE_FALLTHROUGH
+	#define SGE_NODISCARD
+#endif
+
+
 #define SGE_COMMA ,
 #define SGE_EMPTY
 #define SGE_ARGS(...) __VA_ARGS__
@@ -74,19 +83,19 @@
 	SGE_ENUM_ARITHMETIC_OPERATOR_INT(T) \
 //-------
 
-#define SGE_ENUM_STR__CASE(V) case E::V: return #V;
+#define SGE_ENUM_STR__CASE(V, ...) case E::V: return #V;
 
 #define SGE_ENUM_STR(T) \
 	inline const char* enumStr(const T& v) { \
 		using E = T; \
 		switch (v) { \
 			T##_ENUM_LIST(SGE_ENUM_STR__CASE) \
-			default: return nullptr; \
+			default: SGE_ASSERT(false); return ""; \
 		} \
 	} \
 //----
 
-#define SGE_ENUM_TRY_PARSE__CASE(V) if (str == #V) { outValue = E::V; return true; }
+#define SGE_ENUM_TRY_PARSE__CASE(V, ...) if (str == #V) { outValue = E::V; return true; }
 
 #define SGE_ENUM_TRY_PARSE(T) \
 	inline bool enumTryParse(T& outValue, StrView str) { \
@@ -100,6 +109,19 @@
 	SGE_ENUM_STR(T) \
 	SGE_ENUM_TRY_PARSE(T) \
 	SGE_FORMATTER_ENUM(T) \
+//----
+
+#define SGE_ENUM_DECLARE__ITEM(ITEM, VALUE) ITEM VALUE,
+
+#define SGE_ENUM_DECLARE(T, BASE_TYPE) \
+	enum class T : BASE_TYPE { \
+		T##_ENUM_LIST(SGE_ENUM_DECLARE__ITEM) \
+	}; \
+//----
+
+#define SGE_ENUM_CLASS(T, BASE_TYPE) \
+	SGE_ENUM_DECLARE(T, BASE_TYPE) \
+	SGE_ENUM_STR_UTIL(T) \
 //----
 
 #define SGE_NAMED_IO(SE, V)	SE.named_io(#V, V)

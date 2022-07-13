@@ -26,29 +26,17 @@ const char* enumStr(ShaderStageMask v) {
 }
 SGE_FORMATTER_ENUM(ShaderStageMask)
 
-enum class ShaderPropType {
-	None,
-	Int,
-	Float,
-	Vec2f,
-	Vec3f,
-	Vec4f,
-	Color4f,
-};
-
-inline
-bool enumTryParse(ShaderPropType& outValue, StrView str) {
-#define E(V) if (str == #V) { outValue = ShaderPropType::V; return true; }
-	E(None)
-	E(Int)
-	E(Float)
-	E(Vec2f)
-	E(Vec3f)
-	E(Vec4f)
-	E(Color4f)
-#undef E
-	return false;
-}
+#define ShaderPropType_ENUM_LIST(E) \
+	E(None,) \
+	E(Int,) \
+	E(Float,) \
+	E(Vec2f,) \
+	E(Vec3f,) \
+	E(Vec4f,) \
+	E(Color4f,) \
+	E(Texture2D,) \
+//----
+SGE_ENUM_CLASS(ShaderPropType, u8)
 
 struct ShaderInfo {
 
@@ -95,25 +83,7 @@ struct ShaderInfo {
 
 }; // ShaderInfo
 
-inline
-const char* enumStr(ShaderPropType v) {
-	switch (v)
-	{
-#define E(T) case ShaderPropType::T: return #T;
-		E(None)
-		E(Int)
-		E(Float)
-		E(Vec2f)
-		E(Vec3f)
-		E(Vec4f)
-		E(Color4f)
-#undef E
-	default: SGE_ASSERT(false); return "";
-	}
-}
-
 SGE_FORMATTER(ShaderInfo)
-SGE_FORMATTER_ENUM(ShaderPropType)
 
 class ShaderStageInfo {
 public:
