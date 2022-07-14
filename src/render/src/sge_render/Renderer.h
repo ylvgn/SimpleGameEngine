@@ -2,8 +2,7 @@
 
 #include "Render_Common.h"
 #include "RenderContext.h"
-#include "shader/Shader.h"
-//#include "Shader/Material.h"
+#include "Shader/Material.h"
 
 namespace sge {
 

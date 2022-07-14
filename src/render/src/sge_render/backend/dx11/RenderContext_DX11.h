@@ -1,8 +1,6 @@
 #pragma once
 
 #include <sge_render/RenderContext.h>
-#include <sge_core/pointer/ComPtr.h>
-
 #include "Render_DX11_Common.h"
 
 namespace sge {

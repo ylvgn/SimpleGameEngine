@@ -11,7 +11,6 @@
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "d3dcompiler.lib") // tmp
 
-#include <sge_render/RenderDataType.h>
 #include <sge_render/Render_Common.h>
 #include <sge_render/vertex/Vertex.h>
 #include <sge_render/shader/Shader.h>
