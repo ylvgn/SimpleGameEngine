@@ -23,6 +23,10 @@ public:
 			_renderContext = renderer->createContext(renderContextDesc);
 		}
 
+		auto shader = renderer->createShader("Assets/Shaders/test.shader");
+		_material = renderer->createMaterial();
+		_material->setShader(shader);
+
 		EditMesh editMesh;
 #if 0
 		WavefrontObjLoader::readFile(editMesh, "Assets/Mesh/test.obj");
@@ -67,7 +71,7 @@ public:
 
 		_cmdBuf.reset();
 		_cmdBuf.clearFrameBuffers()->setColor({ 0, 0, 0.2f, 1 });
-		_cmdBuf.drawMesh(SGE_LOC, _renderMesh);
+		_cmdBuf.drawMesh(SGE_LOC, _renderMesh, _material);
 		_cmdBuf.swapBuffers();
 
 		_renderContext->commit(_cmdBuf);
@@ -79,7 +83,8 @@ public:
 
 	SPtr<RenderContext>	_renderContext;
 	RenderCommandBuffer _cmdBuf;
-	RenderMesh	_renderMesh;
+	RenderMesh _renderMesh;
+	SPtr<Material> _material;
 };
 
 class EditorApp : public NativeUIApp {

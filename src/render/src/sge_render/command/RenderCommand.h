@@ -1,7 +1,8 @@
 #pragma once
-#include <sge_core.h>
-#include "../vertex/Vertex.h"
+
+#include <sge_render/vertex/Vertex.h>
 #include <sge_render/buffer/RenderGpuBuffer.h>
+#include <sge_render/shader/Material.h>
 
 namespace sge {
 
@@ -67,7 +68,12 @@ public:
 	RenderDataType indexType = RenderDataType::UInt16;
 	SPtr<RenderGpuBuffer> indexBuffer;
 
-	//SPtr<MaterialPass> materialPass;
+	SPtr<Material>			material;
+	size_t					materialPassIndex = 0;
+
+	MaterialPass* getMaterialPass() {
+		return material ? material->getPass(materialPassIndex) : nullptr;
+	}
 
 	size_t vertexCount = 0;
 	size_t indexCount = 0;
@@ -78,8 +84,8 @@ public:
 	RenderCommand_ClearFrameBuffers*	clearFrameBuffers()	{ return newCommand<RenderCommand_ClearFrameBuffers>();	}
 	RenderCommand_SwapBuffers*			swapBuffers()		{ return newCommand<RenderCommand_SwapBuffers>();		}
 
-	void drawMesh	(const SrcLoc& debugLoc, const RenderMesh&    mesh/*, Material* material*/);
-	void drawSubMesh(const SrcLoc& debugLoc, const RenderSubMesh& subMesh/*, Material* material*/);
+	void drawMesh	(const SrcLoc& debugLoc, const RenderMesh&    mesh,		Material* material);
+	void drawSubMesh(const SrcLoc& debugLoc, const RenderSubMesh& subMesh,	Material* material);
 
 	Span<RenderCommand*>	commands() { return _commands; }
 

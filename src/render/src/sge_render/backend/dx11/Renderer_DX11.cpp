@@ -1,8 +1,7 @@
 #include "Renderer_DX11.h"
 #include "RenderContext_DX11.h"
 #include "RenderGpuBuffer_DX11.h"
-//#include "Material_DX11.h"
-#include "Shader_DX11.h"
+#include "Material_DX11.h"
 
 namespace sge {
 
@@ -110,6 +109,10 @@ SPtr<RenderGpuBuffer> Renderer_DX11::onCreateGpuBuffer(RenderGpuBuffer_CreateDes
 
 SPtr<Shader> Renderer_DX11::onCreateShader(StrView filename) {
 	return new Shader_DX11(filename);
+}
+
+SPtr<Material> Renderer_DX11::onCreateMaterial() {
+	return new Material_DX11();
 }
 
 } // namespace

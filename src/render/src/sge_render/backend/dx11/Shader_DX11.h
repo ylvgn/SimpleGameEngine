@@ -44,6 +44,6 @@ public:
 		MyVertexStage		_myVertexStage;
 		MyPixelStage		_myPixelStage;
 	};
-};
+}; // Shader_DX11
 
-}
+} // namespace

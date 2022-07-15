@@ -36,7 +36,7 @@ RenderContext_DX11::RenderContext_DX11(CreateDesc& desc)
 }
 
 void RenderContext_DX11::onBeginRender() {
-	auto* ctx = _renderer->d3dDeviceContext();
+	auto* dc = _renderer->d3dDeviceContext();
 
 	// clear render target
 	if (!_renderTargetView) {
@@ -45,7 +45,7 @@ void RenderContext_DX11::onBeginRender() {
 
 	// set-up renger target
 	DX11_ID3DRenderTargetView* rt = _renderTargetView;
-	ctx->OMSetRenderTargets(1, &rt, nullptr);
+	dc->OMSetRenderTargets(1, &rt, nullptr);
 
 	D3D11_VIEWPORT viewport = {};
 	viewport.TopLeftX = 0;
@@ -53,7 +53,7 @@ void RenderContext_DX11::onBeginRender() {
 	viewport.Width = _frameBufferSize.x;
 	viewport.Height = _frameBufferSize.y;
 
-	ctx->RSSetViewports(1, &viewport);
+	dc->RSSetViewports(1, &viewport);
 }
 
 void RenderContext_DX11::onEndRender() {
@@ -64,16 +64,16 @@ void RenderContext_DX11::onCommit(RenderCommandBuffer& cmdBuf) {
 }
 
 void RenderContext_DX11::onCmd_ClearFrameBuffers(RenderCommand_ClearFrameBuffers& cmd) {
-	auto* ctx = _renderer->d3dDeviceContext();
+	auto* dc = _renderer->d3dDeviceContext();
 
 	// clear back buffer(color buffer)
 	if (_renderTargetView && cmd.color.has_value()) {
-		ctx->ClearRenderTargetView(_renderTargetView, cmd.color->data);
+		dc->ClearRenderTargetView(_renderTargetView, cmd.color->data);
 	}
 
 	// clear depth buffer
 	if (_depthStencilView && cmd.depth.has_value()) {
-		ctx->ClearDepthStencilView(_depthStencilView, D3D11_CLEAR_DEPTH, *cmd.depth, 0);
+		dc->ClearDepthStencilView(_depthStencilView, D3D11_CLEAR_DEPTH, *cmd.depth, 0);
 	}
 }
 
@@ -92,12 +92,18 @@ void RenderContext_DX11::onCmd_DrawCall(RenderCommand_DrawCall& cmd) {
 		if (!indexBuffer) { SGE_ASSERT(false); return; }
 	}
 
-	_setTestDefaultRenderState();
-	_setTestShaders(cmd.vertexLayout);
+	auto* dc = _renderer->d3dDeviceContext();
 
-	auto* ctx = _renderer->d3dDeviceContext();
+	//_setTestDefaultRenderState();
+
+	if (auto* pass = cmd.getMaterialPass()) {
+		pass->bind(this, cmd.vertexLayout);
+	} else {
+		_setTestShaders(cmd.vertexLayout);
+	}
+
 	auto primitive = Util::getDxPrimitiveTopology(cmd.primitive);
-	ctx->IASetPrimitiveTopology(primitive);
+	dc->IASetPrimitiveTopology(primitive);
 
 	UINT stride = static_cast<UINT>(cmd.vertexLayout->stride);
 	UINT offset = 0;
@@ -105,15 +111,15 @@ void RenderContext_DX11::onCmd_DrawCall(RenderCommand_DrawCall& cmd) {
 	UINT indexCount = static_cast<UINT>(cmd.indexCount);
 
 	DX11_ID3DBuffer* ppVertexBuffers[] = { vertexBuffer->d3dBuf() };
-	ctx->IASetVertexBuffers(0, 1, ppVertexBuffers, &stride, &offset);
+	dc->IASetVertexBuffers(0, 1, ppVertexBuffers, &stride, &offset);
 
 	if (indexCount > 0) {
 		auto indexType = Util::getDxFormat(cmd.indexType);
-		ctx->IASetIndexBuffer(indexBuffer->d3dBuf(), indexType, 0);
-		ctx->DrawIndexed(indexCount, 0, 0);
+		dc->IASetIndexBuffer(indexBuffer->d3dBuf(), indexType, 0);
+		dc->DrawIndexed(indexCount, 0, 0);
 	}
 	else {
-		ctx->Draw(vertexCount, 0);
+		dc->Draw(vertexCount, 0);
 	}
 }
 
@@ -178,7 +184,7 @@ void RenderContext_DX11::onSetFrameBufferSize(Vec2f newSize) {
 
 void RenderContext_DX11::_setTestDefaultRenderState() {
 	auto* dev = _renderer->d3dDevice();
-	auto* ctx = _renderer->d3dDeviceContext();
+	auto* dc = _renderer->d3dDeviceContext();
 
 	HRESULT hr;
 	if (!_testRasterizerState) {
@@ -249,11 +255,11 @@ void RenderContext_DX11::_setTestDefaultRenderState() {
 		Util::throwIfError(hr);
 	}
 
-	ctx->RSSetState(_testRasterizerState);
-	ctx->OMSetDepthStencilState(_testDepthStencilState, 1);
+	dc->RSSetState(_testRasterizerState);
+	dc->OMSetDepthStencilState(_testDepthStencilState, 1);
 
 	Color4f blendColor(1, 1, 1, 1);
-	ctx->OMSetBlendState(_testBlendState, blendColor.data, 0xffffffff);
+	dc->OMSetBlendState(_testBlendState, blendColor.data, 0xffffffff);
 }
 
 void RenderContext_DX11::_setTestShaders(const VertexLayout* vertexLayout) {
@@ -261,7 +267,7 @@ void RenderContext_DX11::_setTestShaders(const VertexLayout* vertexLayout) {
 	const wchar_t* shaderFile = L"Assets/Shaders/test.hlsl";
 
 	auto* dev = _renderer->d3dDevice();
-	auto* ctx = _renderer->d3dDeviceContext();
+	auto* dc = _renderer->d3dDeviceContext();
 
 	if (!_testVertexShader) {
 		ComPtr<ID3DBlob>	bytecode;
@@ -285,12 +291,12 @@ void RenderContext_DX11::_setTestShaders(const VertexLayout* vertexLayout) {
 		Util::throwIfError(hr);
 	}
 
-	ctx->VSSetShader(_testVertexShader, 0, 0);
-	ctx->PSSetShader(_testPixelShader, 0, 0);
+	dc->VSSetShader(_testVertexShader, 0, 0);
+	dc->PSSetShader(_testPixelShader, 0, 0);
 
 	auto* inputLayout = _getTestInputLayout(vertexLayout);
 	if (!inputLayout) { SGE_ASSERT(false); return; }
-	ctx->IASetInputLayout(inputLayout);
+	dc->IASetInputLayout(inputLayout);
 }
 
 DX11_ID3DInputLayout* RenderContext_DX11::_getTestInputLayout(const VertexLayout* src) {

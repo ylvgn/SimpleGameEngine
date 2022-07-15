@@ -23,6 +23,19 @@ protected:
 		using Info		= ShaderStageInfo::ConstBuffer;
 		using VarInfo	= ShaderStageInfo::Variable;
 
+		Vector<u8>				cpuBuffer;
+		SPtr<RenderGpuBuffer>	gpuBuffer;
+
+		void create(const Info& info);
+
+		void uploadToGpu();
+
+		const Info* info() const { return _info; }
+	private:
+		void errorType();
+
+		const Info*		_info = nullptr;
+		bool			_gpuDirty = false;
 	};
 
 	Pass* _pass = nullptr;
@@ -53,11 +66,15 @@ public:
 	using VertexStage	= MaterialPass_VertexStage;
 	using PixelStage	= MaterialPass_PixelStage;
 
+	void bind(RenderContext* ctx, const VertexLayout* vertexLayout) { onBind(ctx, vertexLayout); }
+
 protected:
 	MaterialPass(Material* material, ShaderPass* shaderPass)
 		: _material(material)
 		, _shaderPass(shaderPass)
 	{}
+
+	virtual void onBind(RenderContext* ctx, const VertexLayout* vertexLayout) = 0;
 
 	Material*	_material		= nullptr;
 	ShaderPass* _shaderPass		= nullptr;
@@ -75,6 +92,15 @@ public:
 	using PixelStage	= MaterialPass_PixelStage;
 
 	void setShader(Shader * shader);
+	Span<UPtr<Pass>>	passes() { return _passes; }
+
+	Pass* getPass(size_t index) {
+		if (index >= _passes.size()) {
+			SGE_ASSERT(false);
+			return nullptr;
+		}
+		return _passes[index].get();
+	}
 
 protected:
 	virtual void onSetShader() {}

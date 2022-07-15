@@ -44,6 +44,7 @@ public:
 	SPtr<RenderContext>		createRenderContext(RenderContext_CreateDesc& desc) { return onCreateRenderContext(desc); }
 	SPtr<RenderGpuBuffer>	createGpuBuffer(RenderGpuBuffer_CreateDesc& desc)	{ return onCreateGpuBuffer(desc); }
 	SPtr<Shader>			createShader(StrView filename);
+	SPtr<Material>			createMaterial()									{ return onCreateMaterial(); };
 
 	void onShaderDestory(Shader* shader);
 
@@ -52,6 +53,7 @@ protected:
 	virtual SPtr<RenderContext>		onCreateRenderContext(RenderContext_CreateDesc& desc) = 0;
 	virtual SPtr<RenderGpuBuffer>	onCreateGpuBuffer(RenderGpuBuffer_CreateDesc& desc) = 0;
 	virtual SPtr<Shader>			onCreateShader(StrView filename) = 0;
+	virtual SPtr<Material>			onCreateMaterial() = 0;
 
 	StringMap<Shader*>	_shaders;
 
