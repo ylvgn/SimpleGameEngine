@@ -3,10 +3,10 @@
 
 namespace sge {
 
-void Material::setShader(Shader* shader)
-{
+void Material::setShader(Shader* shader) {
 	if (_shader == shader) return;
-
+	_shader = shader;
+	_passes.clear();
 	_passes.reserve(shader->passes().size());
 	for (auto& shaderPass : shader->passes()) {
 		UPtr<Pass> pass = onCreatePass(shaderPass.get());
