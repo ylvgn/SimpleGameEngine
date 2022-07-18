@@ -23,8 +23,8 @@ public:
 			_renderContext = renderer->createContext(renderContextDesc);
 		}
 
-#if 0
-		auto shader = renderer->createShader("Assets/Shaders/test.shader");
+#if 1
+		auto shader = renderer->createShader("Assets/Shaders/test.hlsl"/*"Assets/Shaders/test.shader"*/);
 		_material = renderer->createMaterial();
 		_material->setShader(shader);
 		EditMesh editMesh;
@@ -34,9 +34,6 @@ public:
 		for (size_t i = editMesh.color.size(); i < editMesh.pos.size(); i++) {
 			editMesh.color.emplace_back(255, 255, 255, 255);
 		}
-		// the current shader has no uv or normal
-		editMesh.uv[0].clear();
-		editMesh.normal.clear();
 #else
 		auto shader = renderer->createShader("Assets/Shaders/test.hlsl");
 		_material = renderer->createMaterial();

@@ -20,15 +20,21 @@ void run_all_test() {
 // base
 	RUN_TEST(test_BinSerializer);
 
+// file
+	RUN_TEST(test_MemMapFile);
+
+// math
+	RUN_TEST(test_Vec2);
+	RUN_TEST(test_Vec3);
+	RUN_TEST(test_Vec4);
+	RUN_TEST(test_Mat4);
+
 // string
 	RUN_TEST(test_Fmt);
 	RUN_TEST(test_UtfUtil);
 
 // net
 	RUN_TEST(test_Socket);
-
-// native_ui
-	RUN_TEST(test_NativeUIWindow_Win32);
 }
 
 int test_main() {
