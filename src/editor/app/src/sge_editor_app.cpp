@@ -22,9 +22,8 @@ public:
 			renderContextDesc.window = this;
 			_renderContext = renderer->createContext(renderContextDesc);
 		}
-
 #if 1
-		auto shader = renderer->createShader("Assets/Shaders/test.hlsl"/*"Assets/Shaders/test.shader"*/);
+		auto shader = renderer->createShader("Assets/Shaders/test.shader");
 		_material = renderer->createMaterial();
 		_material->setShader(shader);
 		EditMesh editMesh;
@@ -71,6 +70,12 @@ public:
 	virtual void onDraw() {
 		Base::onDraw();
 		if (!_renderContext) return;
+
+		auto time = GetTickCount() * 0.001f;
+		auto s = abs(sin(time * 2));
+		//auto s = 1.0f;
+		_material->setParam("test_float", s * 0.5f);
+		_material->setParam("test_color", Color4f(s, 0, 0, 1));
 
 		_renderContext->setFrameBufferSize(clientRect().size);
 
