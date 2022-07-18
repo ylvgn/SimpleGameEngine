@@ -23,12 +23,12 @@ public:
 			_renderContext = renderer->createContext(renderContextDesc);
 		}
 
+#if 0
 		auto shader = renderer->createShader("Assets/Shaders/test.shader");
 		_material = renderer->createMaterial();
 		_material->setShader(shader);
-
 		EditMesh editMesh;
-#if 0
+
 		WavefrontObjLoader::readFile(editMesh, "Assets/Mesh/test.obj");
 		// the current shader need color
 		for (size_t i = editMesh.color.size(); i < editMesh.pos.size(); i++) {
@@ -38,6 +38,11 @@ public:
 		editMesh.uv[0].clear();
 		editMesh.normal.clear();
 #else
+		auto shader = renderer->createShader("Assets/Shaders/test.hlsl");
+		_material = renderer->createMaterial();
+		_material->setShader(shader);
+
+		EditMesh editMesh;
 		editMesh.pos.emplace_back(0.0f, 0.5f, 0.0f);
 		editMesh.pos.emplace_back(0.5f, -0.5f, 0.0f);
 		editMesh.pos.emplace_back(-0.5f, -0.5f, 0.0f);
@@ -53,6 +58,11 @@ public:
 		editMesh.normal.emplace_back(0, 0, 0);
 		editMesh.normal.emplace_back(0, 0, 0);
 		editMesh.normal.emplace_back(0, 0, 0);
+
+		// because CullMode = D3D11_CULL_BACK; 2->1->0
+		editMesh.indices.emplace_back(2);
+		editMesh.indices.emplace_back(1);
+		editMesh.indices.emplace_back(0);
 #endif
 		_renderMesh.create(editMesh);
 	}

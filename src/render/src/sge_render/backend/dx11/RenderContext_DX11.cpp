@@ -94,7 +94,7 @@ void RenderContext_DX11::onCmd_DrawCall(RenderCommand_DrawCall& cmd) {
 
 	auto* dc = _renderer->d3dDeviceContext();
 
-	//_setTestDefaultRenderState();
+	_setTestDefaultRenderState();
 
 	if (auto* pass = cmd.getMaterialPass()) {
 		pass->bind(this, cmd.vertexLayout);
@@ -141,23 +141,22 @@ void RenderContext_DX11::_createRenderTarget() {
 	hr = dev->CreateRenderTargetView(backBuffer, NULL, _renderTargetView.ptrForInit());
 	Util::throwIfError(hr);
 
-#if 0
 	// Create depth stencil texture
 	D3D11_TEXTURE2D_DESC backBufferDesc;
 	backBuffer->GetDesc(&backBufferDesc);
 
 	D3D11_TEXTURE2D_DESC descDepth = {};
-	descDepth.Width = backBufferDesc.Width;
-	descDepth.Height = backBufferDesc.Height;
-	descDepth.MipLevels = 1;
-	descDepth.ArraySize = 1;
-	descDepth.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-	descDepth.SampleDesc.Count = 1;
-	descDepth.SampleDesc.Quality = 0;
-	descDepth.Usage = D3D11_USAGE_DEFAULT;
-	descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-	descDepth.CPUAccessFlags = 0;
-	descDepth.MiscFlags = 0;
+	descDepth.Width					= backBufferDesc.Width;
+	descDepth.Height				= backBufferDesc.Height;
+	descDepth.MipLevels				= 1;
+	descDepth.ArraySize				= 1;
+	descDepth.Format				= DXGI_FORMAT_D24_UNORM_S8_UINT;
+	descDepth.SampleDesc.Count		= 1;
+	descDepth.SampleDesc.Quality	= 0;
+	descDepth.Usage					= D3D11_USAGE_DEFAULT;
+	descDepth.BindFlags				= D3D11_BIND_DEPTH_STENCIL;
+	descDepth.CPUAccessFlags		= 0;
+	descDepth.MiscFlags				= 0;
 	hr = dev->CreateTexture2D(&descDepth, nullptr, _depthStencil.ptrForInit());
 	Util::throwIfError(hr);
 
@@ -168,23 +167,22 @@ void RenderContext_DX11::_createRenderTarget() {
 	descDSV.Texture2D.MipSlice = 0;
 	hr = dev->CreateDepthStencilView(_depthStencil.ptr(), &descDSV, _depthStencilView.ptrForInit());
 	Util::throwIfError(hr);
-#endif
 }
 
 void RenderContext_DX11::onSetFrameBufferSize(Vec2f newSize) {
 	_renderTargetView.reset(nullptr); // release buffer and render target view before resize
 
 	auto hr = _swapChain->ResizeBuffers(0
-		, static_cast<UINT>(Math::max(0.0f, newSize.x))
-		, static_cast<UINT>(Math::max(0.0f, newSize.y))
-		, DXGI_FORMAT_UNKNOWN
-		, 0);
+								, static_cast<UINT>(Math::max(0.0f, newSize.x))
+								, static_cast<UINT>(Math::max(0.0f, newSize.y))
+								, DXGI_FORMAT_UNKNOWN
+								, 0);
 	Util::throwIfError(hr);
 }
 
 void RenderContext_DX11::_setTestDefaultRenderState() {
 	auto* dev = _renderer->d3dDevice();
-	auto* dc = _renderer->d3dDeviceContext();
+	auto* ctx = _renderer->d3dDeviceContext();
 
 	HRESULT hr;
 	if (!_testRasterizerState) {
@@ -195,7 +193,7 @@ void RenderContext_DX11::_setTestDefaultRenderState() {
 		rasterDesc.DepthBiasClamp = 0.0f;
 		rasterDesc.DepthClipEnable = true;
 
-		bool wireframe = true; // test
+		bool wireframe = false;
 		rasterDesc.FillMode = wireframe ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID;
 
 		rasterDesc.FrontCounterClockwise = true;
@@ -212,19 +210,18 @@ void RenderContext_DX11::_setTestDefaultRenderState() {
 
 		bool depthTest = true;
 		if (depthTest) {
-			depthStencilDesc.DepthEnable = true;
-			depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
-			depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-		}
-		else {
-			depthStencilDesc.DepthEnable = false;
-			depthStencilDesc.DepthFunc = D3D11_COMPARISON_ALWAYS;
-			depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+			depthStencilDesc.DepthEnable	= true;
+			depthStencilDesc.DepthFunc		= D3D11_COMPARISON_LESS_EQUAL;
+			depthStencilDesc.DepthWriteMask	= D3D11_DEPTH_WRITE_MASK_ALL;
+		} else {
+			depthStencilDesc.DepthEnable	= false;
+			depthStencilDesc.DepthFunc		= D3D11_COMPARISON_ALWAYS;
+			depthStencilDesc.DepthWriteMask	= D3D11_DEPTH_WRITE_MASK_ZERO;
 		}
 
-		depthStencilDesc.StencilEnable = false;
-		depthStencilDesc.StencilReadMask = 0xFF;
-		depthStencilDesc.StencilWriteMask = 0xFF;
+		depthStencilDesc.StencilEnable		= false;
+		depthStencilDesc.StencilReadMask	= 0xFF;
+		depthStencilDesc.StencilWriteMask	= 0xFF;
 
 		hr = dev->CreateDepthStencilState(&depthStencilDesc, _testDepthStencilState.ptrForInit());
 		Util::throwIfError(hr);
@@ -232,39 +229,38 @@ void RenderContext_DX11::_setTestDefaultRenderState() {
 
 	if (!_testBlendState) {
 		D3D11_BLEND_DESC blendStateDesc = {};
-		blendStateDesc.AlphaToCoverageEnable = false;
+		blendStateDesc.AlphaToCoverageEnable  = false;
 		blendStateDesc.IndependentBlendEnable = false;
 		auto& rtDesc = blendStateDesc.RenderTarget[0];
 
 		rtDesc.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 		bool blendEnable = true;
 		if (blendEnable) {
-			rtDesc.BlendEnable = true;
-			rtDesc.BlendOp = D3D11_BLEND_OP_ADD;
-			rtDesc.BlendOpAlpha = D3D11_BLEND_OP_ADD;
-			rtDesc.SrcBlend = D3D11_BLEND_SRC_ALPHA;
-			rtDesc.DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
-			rtDesc.SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
+			rtDesc.BlendEnable	  = true;
+			rtDesc.BlendOp        = D3D11_BLEND_OP_ADD;
+			rtDesc.BlendOpAlpha   = D3D11_BLEND_OP_ADD;
+			rtDesc.SrcBlend       = D3D11_BLEND_SRC_ALPHA;
+			rtDesc.DestBlend      = D3D11_BLEND_INV_SRC_ALPHA;
+			rtDesc.SrcBlendAlpha  = D3D11_BLEND_SRC_ALPHA;
 			rtDesc.DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
-		}
-		else {
-			rtDesc.BlendEnable = false;
+		}else{
+			rtDesc.BlendEnable	  = false;
 		}
 
 		hr = dev->CreateBlendState(&blendStateDesc, _testBlendState.ptrForInit());
 		Util::throwIfError(hr);
 	}
 
-	dc->RSSetState(_testRasterizerState);
-	dc->OMSetDepthStencilState(_testDepthStencilState, 1);
+	ctx->RSSetState(_testRasterizerState);
+	ctx->OMSetDepthStencilState(_testDepthStencilState, 1);
 
-	Color4f blendColor(1, 1, 1, 1);
-	dc->OMSetBlendState(_testBlendState, blendColor.data, 0xffffffff);
+	Color4f blendColor(1,1,1,1);
+	ctx->OMSetBlendState(_testBlendState, blendColor.data, 0xffffffff);
 }
 
 void RenderContext_DX11::_setTestShaders(const VertexLayout* vertexLayout) {
 	HRESULT hr;
-	const wchar_t* shaderFile = L"Assets/Shaders/test.hlsl";
+	const wchar_t* shaderFile = L"Assets/Shaders/test.hlsl"; // tmp
 
 	auto* dev = _renderer->d3dDevice();
 	auto* dc = _renderer->d3dDeviceContext();
@@ -272,7 +268,7 @@ void RenderContext_DX11::_setTestShaders(const VertexLayout* vertexLayout) {
 	if (!_testVertexShader) {
 		ComPtr<ID3DBlob>	bytecode;
 		ComPtr<ID3DBlob>	errorMsg;
-		hr = D3DCompileFromFile(shaderFile, 0, 0, "vs_main", "vs_4_0", 0, 0, bytecode.ptrForInit(), errorMsg.ptrForInit());
+		hr = D3DCompileFromFile(shaderFile, 0, 0, "vs_main", "vs_5_0", 0, 0, bytecode.ptrForInit(), errorMsg.ptrForInit());
 		Util::throwIfError(hr);
 
 		_testVertexShaderBytecode = bytecode;
@@ -284,7 +280,7 @@ void RenderContext_DX11::_setTestShaders(const VertexLayout* vertexLayout) {
 	if (!_testPixelShader) {
 		ComPtr<ID3DBlob>	bytecode;
 		ComPtr<ID3DBlob>	errorMsg;
-		hr = D3DCompileFromFile(shaderFile, 0, 0, "ps_main", "ps_4_0", 0, 0, bytecode.ptrForInit(), errorMsg.ptrForInit());
+		hr = D3DCompileFromFile(shaderFile, 0, 0, "ps_main", "ps_5_0", 0, 0, bytecode.ptrForInit(), errorMsg.ptrForInit());
 		Util::throwIfError(hr);
 
 		hr = dev->CreatePixelShader(bytecode->GetBufferPointer(), bytecode->GetBufferSize(), nullptr, _testPixelShader.ptrForInit());
@@ -310,7 +306,7 @@ DX11_ID3DInputLayout* RenderContext_DX11::_getTestInputLayout(const VertexLayout
 	Vector_<D3D11_INPUT_ELEMENT_DESC, 32> inputDesc;
 
 	for (auto& e : src->elements) {
-		auto& dst = inputDesc.emplace_back();
+		auto& dst					= inputDesc.emplace_back();
 		auto semanticType			= VertexSemanticUtil::getType(e.semantic);
 		dst.SemanticName			= Util::getDxSemanticName(semanticType);
 		dst.SemanticIndex			= VertexSemanticUtil::getIndex(e.semantic);

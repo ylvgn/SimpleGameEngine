@@ -18,9 +18,14 @@ protected:
 			proj->setProjectRoot(path);
 		}		
 
-		ShaderInfo info;
+		compile("Assets/Shaders/test.shader");
+		compile("Assets/Shaders/test.hlsl");
 
-		StrView shaderFilename = "Assets/Shaders/test.shader"; // tmp
+		SGE_LOG("---- end ----");
+	}
+
+	void compile(StrView shaderFilename) {
+		ShaderInfo info;
 
 		String outputPath = Fmt("LocalTemp/Imported/{}", shaderFilename);
 		Directory::create(outputPath);
@@ -51,11 +56,6 @@ protected:
 				passIndex++;
 			}
 		}
-
-		SGE_LOG("---- end ----");
-	}
-
-	void compile(StrView filename) {
 	}
 
 }; // ShaderCompiler

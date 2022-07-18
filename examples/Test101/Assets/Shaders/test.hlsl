@@ -1,3 +1,15 @@
+#if 0
+Shader {
+	Properties {
+	}
+
+	Pass {
+		VsFunc		vs_main
+		PsFunc		ps_main
+	}
+}
+#endif
+
 struct VOut
 {
     float4 position : SV_POSITION;
