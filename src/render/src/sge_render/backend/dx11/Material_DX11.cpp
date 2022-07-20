@@ -32,6 +32,113 @@ void Material_DX11::MyPass::onBind(RenderContext* ctx_, const VertexLayout* vert
 	auto* ctx = static_cast<RenderContext_DX11*>(ctx_);
 	_myVertexStage.bind(ctx, vertexLayout);
 	_myPixelStage.bind(ctx, vertexLayout);
+
+	_bindRenderState(ctx);
+}
+
+void Material_DX11::MyPass::_bindRenderState(RenderContext_DX11* ctx) {
+
+	if (!_rasterizerState) {
+		HRESULT hr;
+		auto* dev = ctx->renderer()->d3dDevice();
+		auto& rs = info()->renderState;
+
+		D3D11_RASTERIZER_DESC rasterDesc = {};
+
+		rasterDesc.AntialiasedLineEnable = true;
+		rasterDesc.CullMode = Util::getDxCullMode(rs.cull);
+		rasterDesc.DepthBias = 0;
+		rasterDesc.DepthBiasClamp = 0.0f;
+		rasterDesc.DepthClipEnable = true;
+
+		rasterDesc.FillMode = rs.wireframe ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID;
+
+		rasterDesc.FrontCounterClockwise = true;
+		rasterDesc.MultisampleEnable = false;
+		rasterDesc.ScissorEnable = false;
+		rasterDesc.SlopeScaledDepthBias = 0.0f;
+
+		hr = dev->CreateRasterizerState(&rasterDesc, _rasterizerState.ptrForInit());
+		Util::throwIfError(hr);
+	}
+
+	if (!_depthStencilState) {
+		HRESULT hr;
+		auto* dev = ctx->renderer()->d3dDevice();
+		auto& rs = info()->renderState;
+
+		D3D11_DEPTH_STENCIL_DESC depthStencilDesc = {};
+
+		bool depthTest = rs.depthTest.isEnable();
+		if (depthTest) {
+			depthStencilDesc.DepthEnable = true;
+			depthStencilDesc.DepthFunc = Util::getDxDepthTestOp(rs.depthTest.op);
+		}
+		else {
+			depthStencilDesc.DepthEnable = false;
+			depthStencilDesc.DepthFunc = D3D11_COMPARISON_ALWAYS;
+		}
+		depthStencilDesc.DepthWriteMask = rs.depthTest.writeMask ? D3D11_DEPTH_WRITE_MASK_ALL : D3D11_DEPTH_WRITE_MASK_ZERO;
+
+		depthStencilDesc.StencilEnable = false;
+		depthStencilDesc.StencilReadMask = 0xFF;
+		depthStencilDesc.StencilWriteMask = 0xFF;
+
+		hr = dev->CreateDepthStencilState(&depthStencilDesc, _depthStencilState.ptrForInit());
+		Util::throwIfError(hr);
+	}
+
+	if (!_blendState) {
+		HRESULT hr;
+		auto* dev = ctx->renderer()->d3dDevice();
+		auto& rs = info()->renderState;
+
+		D3D11_BLEND_DESC blendStateDesc = {};
+		blendStateDesc.AlphaToCoverageEnable = false;
+		blendStateDesc.IndependentBlendEnable = false;
+		auto& rtDesc = blendStateDesc.RenderTarget[0];
+
+		rtDesc.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+		bool blendEnable = rs.blend.isEnable();
+		if (blendEnable) {
+			rtDesc.BlendEnable		= true;
+
+			// color(rgb)
+			if (rs.blend.rgb.op == RenderState_BlendOp::Disable) {
+				rtDesc.BlendOp			= D3D11_BLEND_OP_ADD;
+				rtDesc.SrcBlend			= D3D11_BLEND_ONE;
+				rtDesc.DestBlend		= D3D11_BLEND_ZERO;
+			} else {
+				rtDesc.BlendOp			= Util::getDxBlendOp(rs.blend.rgb.op);
+				rtDesc.SrcBlend			= Util::getDxBlendFactor(rs.blend.rgb.srcFactor);
+				rtDesc.DestBlend		= Util::getDxBlendFactor(rs.blend.rgb.dstFactor);
+			}
+
+			// alpha
+			if (rs.blend.alpha.op == RenderState_BlendOp::Disable) {
+				rtDesc.BlendOpAlpha		= D3D11_BLEND_OP_ADD;
+				rtDesc.SrcBlendAlpha	= D3D11_BLEND_ONE;
+				rtDesc.DestBlendAlpha	= D3D11_BLEND_ZERO;
+			} else {
+				rtDesc.BlendOpAlpha		= Util::getDxBlendOp(rs.blend.alpha.op);
+				rtDesc.SrcBlendAlpha	= Util::getDxBlendFactor(rs.blend.alpha.srcFactor);
+				rtDesc.DestBlendAlpha	= Util::getDxBlendFactor(rs.blend.alpha.dstFactor);
+			}
+		}
+		else {
+			rtDesc.BlendEnable = false;
+		}
+
+		hr = dev->CreateBlendState(&blendStateDesc, _blendState.ptrForInit());
+		Util::throwIfError(hr);
+	}
+
+	auto* dc = ctx->renderer()->d3dDeviceContext();
+	dc->RSSetState(_rasterizerState);
+	dc->OMSetDepthStencilState(_depthStencilState, 1);
+
+	Color4f blendColor(1, 1, 1, 1);
+	dc->OMSetBlendState(_blendState, blendColor.data, 0xffffffff);
 }
 
 void Material_DX11::MyVertexStage::bind(RenderContext_DX11* ctx, const VertexLayout* vertexLayout) {

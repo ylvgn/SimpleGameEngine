@@ -15,7 +15,6 @@ struct MaterialPass_Stage : public NonCopyable {
 	virtual ~MaterialPass_Stage() = default;
 
 	MaterialPass_Stage(MaterialPass* pass, ShaderStage* shaderStage);
-	const ShaderStageInfo* info() const { return _shaderStage->info(); }
 
 friend class MaterialPass;
 protected:
@@ -84,6 +83,10 @@ protected:
 	Pass* _pass = nullptr;
 	ShaderStage* _shaderStage = nullptr;
 	Vector_<ConstBuffer, 4>	_constBuffers;
+public:
+	Span<ConstBuffer>	constBuffers() { return _constBuffers; }
+	const ShaderStageInfo* info() const { return _shaderStage->info(); }
+
 }; // MaterialPass_Stage
 
 struct MaterialPass_VertexStage : public MaterialPass_Stage {
@@ -110,6 +113,8 @@ public:
 	using PixelStage	= MaterialPass_PixelStage;
 
 	void bind(RenderContext* ctx, const VertexLayout* vertexLayout) { onBind(ctx, vertexLayout); }
+
+	const ShaderInfo::Pass*	info() { return _shaderPass ? _shaderPass->info() : nullptr; }
 
 friend class Material;
 protected:

@@ -45,13 +45,15 @@ void RenderContext_DX11::onBeginRender() {
 
 	// set-up renger target
 	DX11_ID3DRenderTargetView* rt = _renderTargetView;
-	dc->OMSetRenderTargets(1, &rt, nullptr);
+	dc->OMSetRenderTargets(1, &rt, _depthStencilView);
 
 	D3D11_VIEWPORT viewport = {};
-	viewport.TopLeftX = 0;
-	viewport.TopLeftY = 0;
-	viewport.Width = _frameBufferSize.x;
-	viewport.Height = _frameBufferSize.y;
+	viewport.TopLeftX	= 0;
+	viewport.TopLeftY	= 0;
+	viewport.Width		= _frameBufferSize.x;
+	viewport.Height		= _frameBufferSize.y;
+	viewport.MinDepth	= 0;
+	viewport.MaxDepth	= 1;
 
 	dc->RSSetViewports(1, &viewport);
 }
@@ -171,6 +173,7 @@ void RenderContext_DX11::_createRenderTarget() {
 
 void RenderContext_DX11::onSetFrameBufferSize(Vec2f newSize) {
 	_renderTargetView.reset(nullptr); // release buffer and render target view before resize
+	_depthStencilView.reset(nullptr);
 
 	auto hr = _swapChain->ResizeBuffers(0
 								, static_cast<UINT>(Math::max(0.0f, newSize.x))
@@ -182,7 +185,7 @@ void RenderContext_DX11::onSetFrameBufferSize(Vec2f newSize) {
 
 void RenderContext_DX11::_setTestDefaultRenderState() {
 	auto* dev = _renderer->d3dDevice();
-	auto* ctx = _renderer->d3dDeviceContext();
+	auto* dc = _renderer->d3dDeviceContext();
 
 	HRESULT hr;
 	if (!_testRasterizerState) {
@@ -251,11 +254,11 @@ void RenderContext_DX11::_setTestDefaultRenderState() {
 		Util::throwIfError(hr);
 	}
 
-	ctx->RSSetState(_testRasterizerState);
-	ctx->OMSetDepthStencilState(_testDepthStencilState, 1);
+	dc->RSSetState(_testRasterizerState);
+	dc->OMSetDepthStencilState(_testDepthStencilState, 1);
 
 	Color4f blendColor(1,1,1,1);
-	ctx->OMSetBlendState(_testBlendState, blendColor.data, 0xffffffff);
+	dc->OMSetBlendState(_testBlendState, blendColor.data, 0xffffffff);
 }
 
 void RenderContext_DX11::_setTestShaders(const VertexLayout* vertexLayout) {

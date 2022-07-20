@@ -34,8 +34,6 @@ private:
 			dc->VSSetConstantBuffers(bindPoint, 1, &d3dBuf);
 		}
 
-		Span<ConstBuffer>	constBuffers()	{ return _constBuffers; }
-
 		VectorMap<const VertexLayout*, ComPtr<DX11_ID3DInputLayout>> _inputLayoutsMap;
 	};
 
@@ -55,8 +53,6 @@ private:
 		void _dxSetConstBuffer(DX11_ID3DDeviceContext* dc, UINT bindPoint, DX11_ID3DBuffer* d3dBuf) {
 			dc->PSSetConstantBuffers(bindPoint, 1, &d3dBuf);
 		}
-
-		Span<ConstBuffer>	constBuffers()	{ return _constBuffers; }
 	};
 
 	struct MyPass : public Pass {
@@ -65,8 +61,14 @@ private:
 
 		virtual void onBind(RenderContext* ctx, const VertexLayout* vertexLayout) override;
 
+		void _bindRenderState(RenderContext_DX11* ctx);
+
 		MyVertexStage _myVertexStage;
 		MyPixelStage  _myPixelStage;
+
+		ComPtr<DX11_ID3DRasterizerState>	_rasterizerState;
+		ComPtr<DX11_ID3DDepthStencilState>	_depthStencilState;
+		ComPtr<DX11_ID3DBlendState>			_blendState;
 	};
 
 	virtual UPtr<Pass> onCreatePass(ShaderPass* shaderPass) override {
