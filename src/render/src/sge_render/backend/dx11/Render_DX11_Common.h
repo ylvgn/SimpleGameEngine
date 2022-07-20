@@ -63,8 +63,14 @@ struct DX11Util {
 
 	static UINT castUINT(size_t v) { SGE_ASSERT(v < UINT_MAX); return static_cast<UINT>(v); }
 
-	static DXGI_FORMAT				getDxFormat(RenderDataType v);
 	static D3D11_PRIMITIVE_TOPOLOGY getDxPrimitiveTopology(RenderPrimitiveType t);
+	static DXGI_FORMAT				getDxFormat(RenderDataType v);
+	//static DXGI_FORMAT				getDxColorType(ColorType v);
+
+	static D3D11_CULL_MODE			getDxCullMode(RenderState_Cull v);
+	static D3D11_COMPARISON_FUNC	getDxDepthTestOp(RenderState_DepthTestOp v);
+	static D3D11_BLEND_OP			getDxBlendOp(RenderState_BlendOp v);
+	static D3D11_BLEND				getDxBlendFactor(RenderState_BlendFactor v);
 
 	static const char*			getDxSemanticName(VertexSemanticType v);
 	static VertexSemanticType	parseDxSemanticName(StrView s);
@@ -145,6 +151,7 @@ void DX11Util::reportError(HRESULT hr) {
 	}
 }
 
+// https://docs.microsoft.com/en-us/windows/win32/api/d3dcommon/ne-d3dcommon-d3d_primitive_topology
 inline
 D3D11_PRIMITIVE_TOPOLOGY DX11Util::getDxPrimitiveTopology(RenderPrimitiveType t) {
 	using SRC = RenderPrimitiveType;
@@ -156,85 +163,152 @@ D3D11_PRIMITIVE_TOPOLOGY DX11Util::getDxPrimitiveTopology(RenderPrimitiveType t)
 	}
 }
 
+// https://docs.microsoft.com/en-us/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format
 inline
 DXGI_FORMAT DX11Util::getDxFormat(RenderDataType v) {
 	using SRC = RenderDataType;
 	switch (v) {
-		case SRC::Int8:			return DXGI_FORMAT_R8_SINT; break;
-		case SRC::Int8x2:		return DXGI_FORMAT_R8G8_SINT; break;
-//		case SRC::Int8x3:		return DXGI_FORMAT_R8G8B8_SINT; break; //does not support in DX11
-		case SRC::Int8x4:		return DXGI_FORMAT_R8G8B8A8_SINT; break;
+		case SRC::Int8:			return DXGI_FORMAT_R8_SINT;
+		case SRC::Int8x2:		return DXGI_FORMAT_R8G8_SINT;
+//		case SRC::Int8x3:		return DXGI_FORMAT_R8G8B8_SINT; //does not support in DX11
+		case SRC::Int8x4:		return DXGI_FORMAT_R8G8B8A8_SINT;
 
-		case SRC::UInt8:		return DXGI_FORMAT_R8_UINT; break;
-		case SRC::UInt8x2:		return DXGI_FORMAT_R8G8_UINT; break;
-//		case SRC::UInt8x3:		return DXGI_FORMAT_R8G8B8_UINT; break; //does not support in DX11
-		case SRC::UInt8x4:		return DXGI_FORMAT_R8G8B8A8_UINT; break;
+		case SRC::UInt8:		return DXGI_FORMAT_R8_UINT;
+		case SRC::UInt8x2:		return DXGI_FORMAT_R8G8_UINT;
+//		case SRC::UInt8x3:		return DXGI_FORMAT_R8G8B8_UINT; //does not support in DX11
+		case SRC::UInt8x4:		return DXGI_FORMAT_R8G8B8A8_UINT;
 
-		case SRC::SNorm8:		return DXGI_FORMAT_R8_SNORM; break;
-		case SRC::SNorm8x2:		return DXGI_FORMAT_R8G8_SNORM; break;
-//		case SRC::SNorm8x3:		return DXGI_FORMAT_R8G8B8_SNORM; break; //does not support in DX11
-		case SRC::SNorm8x4:		return DXGI_FORMAT_R8G8B8A8_SNORM; break;
+		case SRC::SNorm8:		return DXGI_FORMAT_R8_SNORM;
+		case SRC::SNorm8x2:		return DXGI_FORMAT_R8G8_SNORM;
+//		case SRC::SNorm8x3:		return DXGI_FORMAT_R8G8B8_SNORM; //does not support in DX11
+		case SRC::SNorm8x4:		return DXGI_FORMAT_R8G8B8A8_SNORM;
 
-		case SRC::UNorm8:		return DXGI_FORMAT_R8_UNORM; break;
-		case SRC::UNorm8x2:		return DXGI_FORMAT_R8G8_UNORM; break;
-//		case SRC::UNorm8x3:		return DXGI_FORMAT_R8G8B8_UNORM; break; //does not support in DX11
-		case SRC::UNorm8x4:		return DXGI_FORMAT_R8G8B8A8_UNORM; break;
+		case SRC::UNorm8:		return DXGI_FORMAT_R8_UNORM;
+		case SRC::UNorm8x2:		return DXGI_FORMAT_R8G8_UNORM;
+//		case SRC::UNorm8x3:		return DXGI_FORMAT_R8G8B8_UNORM; //does not support in DX11
+		case SRC::UNorm8x4:		return DXGI_FORMAT_R8G8B8A8_UNORM;
 
-		case SRC::Int16:		return DXGI_FORMAT_R16_SINT; break;
-		case SRC::Int16x2:		return DXGI_FORMAT_R16G16_SINT; break;
-//		case SRC::Int16x3:		return DXGI_FORMAT_R16G16B16_SINT; break; //does not support in DX11
-		case SRC::Int16x4:		return DXGI_FORMAT_R16G16B16A16_SINT; break;
+		case SRC::Int16:		return DXGI_FORMAT_R16_SINT;
+		case SRC::Int16x2:		return DXGI_FORMAT_R16G16_SINT;
+//		case SRC::Int16x3:		return DXGI_FORMAT_R16G16B16_SINT; //does not support in DX11
+		case SRC::Int16x4:		return DXGI_FORMAT_R16G16B16A16_SINT;
 
-		case SRC::UInt16:		return DXGI_FORMAT_R16_UINT; break;
-		case SRC::UInt16x2:		return DXGI_FORMAT_R16G16_UINT; break;
-//		case SRC::UInt16x3:		return DXGI_FORMAT_R16G16B16_UINT; break; //does not support in DX11
-		case SRC::UInt16x4:		return DXGI_FORMAT_R16G16B16A16_UINT; break;
+		case SRC::UInt16:		return DXGI_FORMAT_R16_UINT;
+		case SRC::UInt16x2:		return DXGI_FORMAT_R16G16_UINT;
+//		case SRC::UInt16x3:		return DXGI_FORMAT_R16G16B16_UINT; //does not support in DX11
+		case SRC::UInt16x4:		return DXGI_FORMAT_R16G16B16A16_UINT;
 
-		case SRC::SNorm16:		return DXGI_FORMAT_R16_SNORM; break;
-		case SRC::SNorm16x2:	return DXGI_FORMAT_R16G16_SNORM; break;
-//		case SRC::SNorm16x3:	return DXGI_FORMAT_R16G16B16_SNORM; break; //does not support in DX11
-		case SRC::SNorm16x4:	return DXGI_FORMAT_R16G16B16A16_SNORM; break;
+		case SRC::SNorm16:		return DXGI_FORMAT_R16_SNORM;
+		case SRC::SNorm16x2:	return DXGI_FORMAT_R16G16_SNORM;
+//		case SRC::SNorm16x3:	return DXGI_FORMAT_R16G16B16_SNORM; //does not support in DX11
+		case SRC::SNorm16x4:	return DXGI_FORMAT_R16G16B16A16_SNORM;
 
-		case SRC::UNorm16:		return DXGI_FORMAT_R16_UNORM; break;
-		case SRC::UNorm16x2:	return DXGI_FORMAT_R16G16_UNORM; break;
-//		case SRC::UNorm16x3:	return DXGI_FORMAT_R16G16B16_UNORM; break; //does not support in DX11
-		case SRC::UNorm16x4:	return DXGI_FORMAT_R16G16B16A16_UNORM; break;
+		case SRC::UNorm16:		return DXGI_FORMAT_R16_UNORM;
+		case SRC::UNorm16x2:	return DXGI_FORMAT_R16G16_UNORM;
+//		case SRC::UNorm16x3:	return DXGI_FORMAT_R16G16B16_UNORM; //does not support in DX11
+		case SRC::UNorm16x4:	return DXGI_FORMAT_R16G16B16A16_UNORM;
 
-		case SRC::Int32:		return DXGI_FORMAT_R32_SINT; break;
-		case SRC::Int32x2:		return DXGI_FORMAT_R32G32_SINT; break;
-//		case SRC::Int32x3:		return DXGI_FORMAT_R32G32B32_SINT; break; //does not support in DX11
-		case SRC::Int32x4:		return DXGI_FORMAT_R32G32B32A32_SINT; break;
+		case SRC::Int32:		return DXGI_FORMAT_R32_SINT;
+		case SRC::Int32x2:		return DXGI_FORMAT_R32G32_SINT;
+//		case SRC::Int32x3:		return DXGI_FORMAT_R32G32B32_SINT; //does not support in DX11
+		case SRC::Int32x4:		return DXGI_FORMAT_R32G32B32A32_SINT;
 
-		case SRC::UInt32:		return DXGI_FORMAT_R32_UINT; break;
-		case SRC::UInt32x2:		return DXGI_FORMAT_R32G32_UINT; break;
-//		case SRC::UInt32x3:		return DXGI_FORMAT_R32G32B32_UINT; break; //does not support in DX11
-		case SRC::UInt32x4:		return DXGI_FORMAT_R32G32B32A32_UINT; break;
+		case SRC::UInt32:		return DXGI_FORMAT_R32_UINT;
+		case SRC::UInt32x2:		return DXGI_FORMAT_R32G32_UINT;
+//		case SRC::UInt32x3:		return DXGI_FORMAT_R32G32B32_UINT; //does not support in DX11
+		case SRC::UInt32x4:		return DXGI_FORMAT_R32G32B32A32_UINT;
 
-//		case SRC::SNorm32:		return DXGI_FORMAT_R32_SNORM; break;
-//		case SRC::SNorm32x2:	return DXGI_FORMAT_R32G32_SNORM; break;
-//		case SRC::SNorm32x3:	return DXGI_FORMAT_R32G32B32_SNORM; break; //does not support in DX11
-//		case SRC::SNorm32x4:	return DXGI_FORMAT_R32G32B32A32_SNORM; break;
+//		case SRC::SNorm32:		return DXGI_FORMAT_R32_SNORM;
+//		case SRC::SNorm32x2:	return DXGI_FORMAT_R32G32_SNORM;
+//		case SRC::SNorm32x3:	return DXGI_FORMAT_R32G32B32_SNORM; //does not support in DX11
+//		case SRC::SNorm32x4:	return DXGI_FORMAT_R32G32B32A32_SNORM;
 
-//		case SRC::UNorm32:		return DXGI_FORMAT_R32_UNORM; break;
-//		case SRC::UNorm32x2:	return DXGI_FORMAT_R32G32_UNORM; break;
-//		case SRC::UNorm32x3:	return DXGI_FORMAT_R32G32B32_UNORM; break; //does not support in DX11
-//		case SRC::UNorm32x4:	return DXGI_FORMAT_R32G32B32A32_UNORM; break;
+//		case SRC::UNorm32:		return DXGI_FORMAT_R32_UNORM;
+//		case SRC::UNorm32x2:	return DXGI_FORMAT_R32G32_UNORM;
+//		case SRC::UNorm32x3:	return DXGI_FORMAT_R32G32B32_UNORM; //does not support in DX11
+//		case SRC::UNorm32x4:	return DXGI_FORMAT_R32G32B32A32_UNORM;
 
 	//--
-		case SRC::Float16:		return DXGI_FORMAT_R16_FLOAT; break;
-		case SRC::Float16x2:	return DXGI_FORMAT_R16G16_FLOAT; break;
-//		case SRC::Float16x3:	return DXGI_FORMAT_R16G16B16_FLOAT; break; //does not support in DX11
-		case SRC::Float16x4:	return DXGI_FORMAT_R16G16B16A16_FLOAT; break;
+		case SRC::Float16:		return DXGI_FORMAT_R16_FLOAT;
+		case SRC::Float16x2:	return DXGI_FORMAT_R16G16_FLOAT;
+//		case SRC::Float16x3:	return DXGI_FORMAT_R16G16B16_FLOAT; //does not support in DX11
+		case SRC::Float16x4:	return DXGI_FORMAT_R16G16B16A16_FLOAT;
 	//---
-		case SRC::Float32:		return DXGI_FORMAT_R32_FLOAT; break;
-		case SRC::Float32x2:	return DXGI_FORMAT_R32G32_FLOAT; break;
-		case SRC::Float32x3:	return DXGI_FORMAT_R32G32B32_FLOAT; break;
-		case SRC::Float32x4:	return DXGI_FORMAT_R32G32B32A32_FLOAT; break;
+		case SRC::Float32:		return DXGI_FORMAT_R32_FLOAT;
+		case SRC::Float32x2:	return DXGI_FORMAT_R32G32_FLOAT;
+		case SRC::Float32x3:	return DXGI_FORMAT_R32G32B32_FLOAT;
+		case SRC::Float32x4:	return DXGI_FORMAT_R32G32B32A32_FLOAT;
 	//---
 		default: throw SGE_ERROR("unsupported RenderDataType");
 	}
 }
 
+// https://docs.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_cull_mode
+inline
+D3D11_CULL_MODE DX11Util::getDxCullMode(RenderState_Cull v) {
+	using SRC = RenderState_Cull;
+	switch (v) {
+		case SRC::None:		return D3D11_CULL_NONE;
+		case SRC::Back:		return D3D11_CULL_BACK;
+		case SRC::Front:	return D3D11_CULL_FRONT;
+		default: throw SGE_ERROR("unsupported CullMode");
+	}
+}
+
+// https://docs.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_comparison_func
+inline
+D3D11_COMPARISON_FUNC DX11Util::getDxDepthTestOp(RenderState_DepthTestOp v) {
+	using SRC = RenderState_DepthTestOp;
+	switch (v) {
+		case SRC::Always:		return  D3D11_COMPARISON_ALWAYS;
+		case SRC::Less:			return  D3D11_COMPARISON_LESS;
+		case SRC::Equal:		return  D3D11_COMPARISON_EQUAL;
+		case SRC::LessEqual:	return  D3D11_COMPARISON_LESS_EQUAL;
+		case SRC::Greater:		return  D3D11_COMPARISON_GREATER;
+		case SRC::GreaterEqual:	return  D3D11_COMPARISON_GREATER_EQUAL;
+		case SRC::NotEqual:		return  D3D11_COMPARISON_NOT_EQUAL;
+		case SRC::Never:		return  D3D11_COMPARISON_NEVER;
+		default: throw SGE_ERROR("unsupported DepthTestOp");
+	}
+}
+
+// https://docs.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_blend_op
+inline
+D3D11_BLEND_OP DX11Util::getDxBlendOp(RenderState_BlendOp v) {
+	using SRC = RenderState_BlendOp;
+	switch (v) {
+		case SRC::Add:		return D3D11_BLEND_OP_ADD;
+		case SRC::Min:		return D3D11_BLEND_OP_MIN;
+		case SRC::Max:		return D3D11_BLEND_OP_MAX;
+		case SRC::Sub:		return D3D11_BLEND_OP_SUBTRACT;
+		case SRC::RevSub:	return D3D11_BLEND_OP_REV_SUBTRACT;
+		default: throw SGE_ERROR("unsupported BlendOp");
+	}
+}
+
+// https://docs.microsoft.com/zh-tw/windows/win32/api/d3d11/ne-d3d11-d3d11_blend
+inline
+D3D11_BLEND DX11Util::getDxBlendFactor(RenderState_BlendFactor v) {
+	using SRC = RenderState_BlendFactor;
+	switch (v) {
+		case SRC::Zero:					return D3D11_BLEND_ZERO;
+		case SRC::One:					return D3D11_BLEND_ONE;
+		case SRC::SrcAlpha:				return D3D11_BLEND_SRC_ALPHA;
+		case SRC::DstAlpha:				return D3D11_BLEND_DEST_ALPHA;
+		case SRC::SrcColor:				return D3D11_BLEND_SRC_COLOR;
+		case SRC::DstColor:				return D3D11_BLEND_DEST_COLOR;
+		case SRC::ConstColor:			return D3D11_BLEND_BLEND_FACTOR;
+//		case SRC::ConstAlpha:			return 
+		case SRC::OneMinusSrcAlpha:		return D3D11_BLEND_INV_SRC_ALPHA;
+		case SRC::OneMinusSrcColor:		return D3D11_BLEND_INV_SRC_COLOR;
+		case SRC::OneMinusDstAlpha:		return D3D11_BLEND_INV_DEST_ALPHA;
+		case SRC::OneMinusDstColor:		return D3D11_BLEND_INV_DEST_COLOR;
+		case SRC::OneMinusConstColor:	return D3D11_BLEND_INV_BLEND_FACTOR;
+//		case SRC::OneMinusConstAlpha:	return 
+		case SRC::SrcAlphaSaturate:		return D3D11_BLEND_SRC_ALPHA_SAT;
+		default: throw SGE_ERROR("unsupported BlendFactor");
+	}
+}
 } // namespace
 
 #endif // SGE_RENDER_HAS_DX11

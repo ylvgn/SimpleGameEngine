@@ -17,24 +17,11 @@ private:
 	void _readProperty();
 	void _readPass();
 
-	template<class T> void _readEnum(T& outputShaderPropType);
+	void _readBlendFunc(RenderState::BlendFunc& v);
 
 	ShaderInfo* _outInfo = nullptr;
 	MemMapFile _memMapFile;
 
 }; // ShaderParser
-
-template<class T> inline
-void ShaderParser::_readEnum(T& outputShaderPropType) {
-	if (!_token.isIdentifier()) {
-		errorUnexpectedToken();
-		return;
-	}
-	if (!enumTryParse(outputShaderPropType, _token.str)) {
-		error("read enum [{}]", _token.str);
-		return;
-	}
-	nextToken();
-}
 
 } // namespace

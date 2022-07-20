@@ -25,6 +25,7 @@ public:
 
 	void io(f32& v) { toValue(v); }
 	void io(f64& v) { toValue(v); }
+	void io(bool& v) { toValue(v); }
 
 	template<class V> void io(V& v) { JsonIO<This, V>::io(*this, v); }
 

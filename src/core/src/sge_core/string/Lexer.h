@@ -36,6 +36,8 @@ public:
 
 		bool isNewline() const				{ return type == TokenType::Newline; }
 
+		bool isBool(StrView s) const		{ return type == TokenType::Identifier && (s == "true" || s == "false"); }
+
 		void setNone()							{ type = TokenType::None; str.clear(); }
 		void reset(TokenType type_)				{ type = type_; str.clear(); }
 		void reset(TokenType type_, StrView s)	{ type = type_; str.assign(s.begin(), s.end()); }
@@ -75,6 +77,9 @@ public:
 
 	void readString(String& outputStr);
 	void readIdentifier(String& outputStr);
+
+	template<class E> void readEnum(E& v);
+	void readBool(bool& v);
 
 	StrView getLastFewLines(size_t lineCount);
 
@@ -127,5 +132,18 @@ const char* enumStr(Lexer::TokenType v) {
 
 SGE_FORMATTER(Lexer::Token)
 SGE_FORMATTER_ENUM(Lexer::TokenType)
+
+template<class E> inline
+void Lexer::readEnum(E& v) {
+	if (!token().isIdentifier()) {
+		errorUnexpectedToken();
+		return;
+	}
+	if (!enumTryParse(v, _token.str)) {
+		error("read enum [{}]", _token.str);
+		return;
+	}
+	nextToken();
+}
 
 } // namespace

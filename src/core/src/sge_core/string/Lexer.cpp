@@ -103,6 +103,15 @@ void Lexer::readString(String& outputStr) {
 	nextToken();
 }
 
+void Lexer::readBool(bool& v) {
+	if (!_token.isBool(_token.str)) {
+		errorUnexpectedToken();
+	}
+	if (_token.str == "true") v = true;
+	else v = false;
+	nextToken();
+}
+
 StrView Lexer::getLastFewLines(size_t lineCount) {
 	if (!_cur) return StrView();
 
