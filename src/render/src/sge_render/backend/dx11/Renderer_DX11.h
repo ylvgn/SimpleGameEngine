@@ -26,8 +26,8 @@ public:
 
 protected:
 	virtual SPtr<RenderContext>		onCreateContext(RenderContext_CreateDesc& desc) override;
-	virtual SPtr<RenderContext>		onCreateRenderContext(RenderContext_CreateDesc& desc) override;
 	virtual SPtr<RenderGpuBuffer>	onCreateGpuBuffer(RenderGpuBuffer_CreateDesc& desc) override;
+	virtual SPtr<Texture2D>			onCreateTexture2D(Texture2D_CreateDesc& desc) override;
 	virtual SPtr<Shader>			onCreateShader(StrView filename) override;
 	virtual SPtr<Material>			onCreateMaterial() override;
 

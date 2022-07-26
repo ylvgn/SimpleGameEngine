@@ -26,22 +26,47 @@ public:
 		_camera.setPos(0, 5, 5);
 		_camera.setAim(0, 0, 0);
 
+		int w = 256;
+		int h = 256;
+
+		Texture2D_CreateDesc texDesc;
+		auto& image = texDesc.imageToUpload;
+
+		texDesc.size.set(w, h);
+		texDesc.colorType = ColorType::RGBAb;
+
+		image.create(Color4b::kColorType, w, h);
+
+		for (int y = 0; y < w; y++) {
+			auto span = image.row<Color4b>(y);
+			for (int x = 0; x < h; x++) {
+				span[x] = Color4b(static_cast<u8>(x),	// r, span[x] means row[x]
+					static_cast<u8>(y),					// g
+					0,									// b
+					255);								// a
+			}
+		}
+
+		_testTexture = renderer->createTexture2D(texDesc);
+
 #if 1
 		auto shader = renderer->createShader("Assets/Shaders/test.shader");
+#else
+		auto shader = renderer->createShader("Assets/Shaders/test.hlsl");
+#endif
+
 		_material = renderer->createMaterial();
 		_material->setShader(shader);
-		EditMesh editMesh;
+		_material->setParam("mainTex", _testTexture);
 
+		EditMesh editMesh;
+#if 1
 		WavefrontObjLoader::readFile(editMesh, "Assets/Mesh/test.obj");
 		// the current shader need color
 		for (size_t i = editMesh.color.size(); i < editMesh.pos.size(); i++) {
 			editMesh.color.emplace_back(255, 255, 255, 255);
 		}
 #else
-		auto shader = renderer->createShader("Assets/Shaders/test.hlsl");
-		_material = renderer->createMaterial();
-		_material->setShader(shader);
-
 		EditMesh editMesh;
 		editMesh.pos.emplace_back(0.0f, 0.5f, 0.0f);
 		editMesh.pos.emplace_back(0.5f, -0.5f, 0.0f);
@@ -141,10 +166,12 @@ public:
 		drawNeeded();
 	}
 
+	SPtr<Material> _material;
+	SPtr<Texture2D> _testTexture;
+
 	SPtr<RenderContext>	_renderContext;
 	RenderCommandBuffer _cmdBuf;
 	RenderMesh _renderMesh;
-	SPtr<Material> _material;
 
 	Math::Camera3f	_camera;
 };

@@ -2,6 +2,7 @@
 #include "RenderContext_DX11.h"
 #include "RenderGpuBuffer_DX11.h"
 #include "Material_DX11.h"
+#include "Texture_DX11.h"
 
 namespace sge {
 
@@ -98,14 +99,14 @@ Renderer_DX11::Renderer_DX11(CreateDesc& desc) {
 SPtr<RenderContext>	Renderer_DX11::onCreateContext(RenderContext_CreateDesc& desc) {
 	return new RenderContext_DX11(desc);
 }
-
-SPtr<RenderContext> Renderer_DX11::onCreateRenderContext(RenderContext_CreateDesc& desc) {
-	return new RenderContext_DX11(desc);
-}
 	
 SPtr<RenderGpuBuffer> Renderer_DX11::onCreateGpuBuffer(RenderGpuBuffer_CreateDesc& desc) {
 	return new RenderGpuBuffer_DX11(desc);
 };
+
+SPtr<Texture2D> Renderer_DX11::onCreateTexture2D(Texture2D_CreateDesc& desc) {
+	return new Texture2D_DX11(desc);
+}
 
 SPtr<Shader> Renderer_DX11::onCreateShader(StrView filename) {
 	return new Shader_DX11(filename);

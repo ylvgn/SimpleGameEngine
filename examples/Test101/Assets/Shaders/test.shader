@@ -6,6 +6,8 @@ Shader {
 		
 		[DisplayName="Color Test"]
 		Color4f	color = {1,1,1,1}
+		
+		Texture2D mainTex
 	}
 	
 	Pass {
@@ -54,6 +56,9 @@ float3		sge_light_color;
 
 float  test_float;
 float4 test_color;
+
+Texture2D mainTex;
+SamplerState mainTex_Sampler;
 
 PixelIn vs_main(VertexIn i) {
 	PixelIn o;
@@ -130,6 +135,9 @@ float4 ps_main(PixelIn i) : SV_TARGET
 	s.diffuse	 = float3(1, 1, 1);
 	s.shininess	 = 1;
 	
-	float3 color = lighting_blinn_phong(s);
+	float4 texCol = mainTex.Sample(mainTex_Sampler, i.uv);
+//	return texCol;
+
+	float3 color = lighting_blinn_phong(s) * texCol;
 	return float4(Color_Linear_to_sRGB(color), 1);
 }
