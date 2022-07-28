@@ -21,6 +21,11 @@ public:
 
 					void		clear();
 
+					void		loadFile(StrView filename);
+
+					void		loadPngFile(StrView filename);
+					void		loadPngMem(ByteSpan data);
+
 					void		create		(ColorType colorType, int width, int height);
 					void		create		(ColorType colorType, int width, int height, int strideInBytes);
 					void		create		(ColorType colorType, int width, int height, int strideInBytes, int mipmapCount, size_t dataSizeInBytes);

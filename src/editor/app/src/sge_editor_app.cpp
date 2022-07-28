@@ -26,11 +26,15 @@ public:
 		_camera.setPos(0, 5, 5);
 		_camera.setAim(0, 0, 0);
 
-		int w = 256;
-		int h = 256;
-
 		Texture2D_CreateDesc texDesc;
 		auto& image = texDesc.imageToUpload;
+#if 1
+		image.loadFile("Assets/Textures/uvChecker.png");
+		texDesc.size = image.size();
+		texDesc.colorType = image.colorType();
+#else
+		int w = 256;
+		int h = 256;
 
 		texDesc.size.set(w, h);
 		texDesc.colorType = ColorType::RGBAb;
@@ -46,7 +50,7 @@ public:
 					255);								// a
 			}
 		}
-
+#endif
 		_testTexture = renderer->createTexture2D(texDesc);
 
 #if 1
