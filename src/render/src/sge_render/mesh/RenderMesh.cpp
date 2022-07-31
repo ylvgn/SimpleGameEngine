@@ -107,7 +107,7 @@ void RenderSubMesh::create(const EditMesh& src) {
 
 	auto* vertexLayout = _mesh->vertexLayout();
 
-	Vector_<u8, 1024> vertexData;
+	Vector<u8, 1024> vertexData;
 	vertexData.resize(vertexLayout->stride * _vertexCount);
 	auto* pData = vertexData.data();
 	auto stride = vertexLayout->stride;
@@ -150,7 +150,7 @@ void RenderSubMesh::create(const EditMesh& src) {
 
 	if (_indexCount > 0) {
 		ByteSpan indexData;
-		Vector_<u16, 1024> index16Data;
+		Vector<u16, 1024> index16Data;
 
 		if (_vertexCount > UINT16_MAX) {
 			_indexType = RenderDataType::UInt32;

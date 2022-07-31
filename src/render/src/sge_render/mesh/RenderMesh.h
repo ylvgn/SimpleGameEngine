@@ -57,7 +57,7 @@ public:
 private:
 	const VertexLayout* _vertexLayout = nullptr;
 
-	Vector_<SubMesh, 1>	_subMeshes;
+	Vector<SubMesh, 1>	_subMeshes;
 	RenderPrimitiveType _primitive = RenderPrimitiveType::Triangles;
 
 }; // RenderMesh

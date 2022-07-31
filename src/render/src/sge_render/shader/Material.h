@@ -121,8 +121,8 @@ protected:
 	Pass* _pass = nullptr;
 	ShaderStage* _shaderStage = nullptr;
 
-	Vector_<ConstBuffer, 4>	_constBuffers;
-	Vector_<TexParam, 4>	_texParams;
+	Vector<ConstBuffer, 4>	_constBuffers;
+	Vector<TexParam, 4>	_texParams;
 public:
 
 	Span<ConstBuffer>	constBuffers()	{ return _constBuffers; }
@@ -229,7 +229,7 @@ protected:
 	virtual UPtr<Pass> onCreatePass(ShaderPass* shaderPass) = 0;
 	
 	SPtr<Shader> _shader;
-	Vector_<UPtr<Pass>, 2>	_passes;
+	Vector<UPtr<Pass>, 2>	_passes;
 
 }; // Material
 

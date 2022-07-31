@@ -49,7 +49,7 @@ public:
 protected:
 	String	_filename;
 	ShaderInfo	_info;
-	Vector_<UPtr<ShaderPass>, 1> _passes;
+	Vector<UPtr<ShaderPass>, 1> _passes;
 };
 
 }

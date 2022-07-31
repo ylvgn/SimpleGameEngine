@@ -249,7 +249,7 @@ struct VertexLayout : public NonCopyable {
 
 	VertexType type = VertexType::None;
 	size_t stride = 0;
-	Vector_<Element, 16> elements;
+	Vector<Element, 16> elements;
 
 	template<class VERTEX, class ATTR>
 	void addElement(Semantic semantic, ATTR VERTEX::* attr) { // e.g. attr = &VertexT_xxx::VertexT_xxxMember

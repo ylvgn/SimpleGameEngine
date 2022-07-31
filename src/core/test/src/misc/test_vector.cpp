@@ -145,7 +145,7 @@ public:
 		//SGE_DUMP_VAR(*a[0], *a[1], *a[2]);
 		SGE_LOG("{}", a);
 
-		Vector_<int, 1> c;
+		Vector<int, 1> c;
 		c.push_back(100);
 		c.push_back(200);
 		c.push_back(300);
@@ -198,8 +198,8 @@ struct fmt::formatter<sge::MyVector<sge::Test_Vector::MyClass>> {
 };
 
 template<class T, size_t N>
-struct fmt::formatter<sge::Vector_<T, N>> {
-	using MyType = sge::Vector_<T, N>;
+struct fmt::formatter<sge::Vector<T, N>> {
+	using MyType = sge::Vector<T, N>;
 	auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
 	auto format(const MyType& v, fmt::format_context& ctx) {
 		sge::TempString tmp;

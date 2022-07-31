@@ -75,9 +75,9 @@ void WavefrontObjLoader::_parseLine_f() {
 	const char* last = cur(); // start as ' '
 	nextChar(); // skip f
 
-	Vector_<int, 64>	face_vi;
-	Vector_<int, 64>	face_vt;
-	Vector_<int, 64>	face_vn;
+	Vector<int, 64>	face_vi;
+	Vector<int, 64>	face_vt;
+	Vector<int, 64>	face_vn;
 	Tuple3<int> _tmp = Tuple3<int>(0, 0, 0); // x:pos, y:uv, z:normal
 
 	while (nextChar()) {
