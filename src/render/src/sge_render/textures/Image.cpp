@@ -1,5 +1,6 @@
 #include "Image.h"
 #include "ImageIO_png.h"
+#include "ImageIO.dds.h"
 
 namespace sge {
 
@@ -14,6 +15,10 @@ void Image::loadFile(StrView filename) {
 		return loadPngFile(filename);
 	}
 
+	if (0 == StringUtil::ignoreCaseCompare(ext, "dds")) {
+		return loadDdsFile(filename);
+	}
+
 	throw SGE_ERROR("unsupported image file format {}", ext);
 }
 
@@ -26,6 +31,18 @@ void Image::loadPngFile(StrView filename)
 
 void Image::loadPngMem(ByteSpan data) {
 	ImageIO_png::Reader r;
+	r.load(*this, data);
+}
+
+void Image::loadDdsFile(StrView filename)
+{
+	MemMapFile mm;
+	mm.open(filename);
+	loadDdsMem(mm);
+}
+
+void Image::loadDdsMem(ByteSpan data) {
+	ImageIO_dds::Reader r;
 	r.load(*this, data);
 }
 
