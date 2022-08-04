@@ -3,6 +3,7 @@
 #include <sge_render.h>
 #include <sge_render/mesh/RenderMesh.h>
 #include <sge_render/mesh/WavefrontObjLoader.h>
+#include <sge_render/mesh/RenderTerrain.h>
 
 #include <sge_core/file/FilePath.h>
 #include <sge_render/vertex/Vertex.h>
@@ -23,8 +24,9 @@ public:
 			_renderContext = renderer->createContext(renderContextDesc);
 		}
 
-		_camera.setPos(0, 5, 5);
-		_camera.setAim(0, 0, 0);
+		// test
+		_camera.setPos(58.932793f, 38.021767f, 3.6692433f);
+		_camera.setAim(0.79875153f, 0.8193707f, 1.8785787f);
 
 		Texture2D_CreateDesc texDesc;
 		auto& image = texDesc.imageToUpload;
@@ -99,6 +101,7 @@ public:
 		editMesh.indices.emplace_back(0);
 #endif
 		_renderMesh.create(editMesh);
+		_testTerrain.create();
 	}
 
 	virtual void onCloseButton() {
@@ -124,6 +127,7 @@ public:
 					_camera.dolly(d.x + d.y);
 				}break;
 			}
+			//SGE_LOG("{}\t{}", _camera.pos(), _camera.aim());
 		}
 	}
 
@@ -150,6 +154,11 @@ public:
 			_material->setParam("sge_light_dir", Vec3f(-5, -10, -2));
 			_material->setParam("sge_light_power", 4.0f);
 			_material->setParam("sge_light_color", Vec3f(1, 1, 1));
+#if 1
+			_testTerrain.sge_matrix_view = view;
+			_testTerrain.sge_matrix_proj = proj;
+			_testTerrain.sge_camera_pos = _camera.pos();
+#endif
 		}
 //-----
 //		auto time = GetTickCount() * 0.001f;
@@ -165,15 +174,20 @@ public:
 
 		_cmdBuf.reset();
 		_cmdBuf.clearFrameBuffers()->setColor({ 0, 0, 0.2f, 1 });
+#if 0
 		_cmdBuf.drawMesh(SGE_LOC, _renderMesh, _material);
+#else
+		_testTerrain.render(_cmdBuf); // test
+#endif
+
 		_cmdBuf.swapBuffers();
-
 		_renderContext->commit(_cmdBuf);
-
 		_renderContext->endRender();
 
 		drawNeeded();
 	}
+
+	RenderTerrain _testTerrain;
 
 	SPtr<Material> _material;
 	SPtr<Texture2D> _testTexture;

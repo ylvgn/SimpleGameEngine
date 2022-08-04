@@ -20,6 +20,7 @@ protected:
 
 		compile("Assets/Shaders/test.shader");
 		compile("Assets/Shaders/test.hlsl");
+		compile("Assets/Shaders/terrain.shader");
 
 		SGE_LOG("---- end ----");
 	}

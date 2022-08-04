@@ -50,9 +50,13 @@
 	constexpr T operator| (T  a, T b) { return static_cast<T>(enumInt(a) | enumInt(b)); } \
 	constexpr T operator& (T  a, T b) { return static_cast<T>(enumInt(a) & enumInt(b)); } \
 	constexpr T operator^ (T  a, T b) { return static_cast<T>(enumInt(a) ^ enumInt(b)); } \
+	constexpr T operator>> (T a, T b) { return static_cast<T>(enumInt(a) >> enumInt(b)); } \
+	constexpr T operator<< (T a, T b) { return static_cast<T>(enumInt(a) << enumInt(b)); } \
 	constexpr void operator|=(T& a, T b) { a = static_cast<T>(enumInt(a) | enumInt(b)); } \
 	constexpr void operator&=(T& a, T b) { a = static_cast<T>(enumInt(a) & enumInt(b)); } \
 	constexpr void operator^=(T& a, T b) { a = static_cast<T>(enumInt(a) ^ enumInt(b)); } \
+	constexpr void operator>>=(T& a, T b) { a = static_cast<T>(enumInt(a) >> enumInt(b)); } \
+	constexpr void operator<<=(T& a, T b) { a = static_cast<T>(enumInt(a) << enumInt(b)); } \
 //--------
 
 #define SGE_ENUM_ARITHMETIC_OPERATOR(T) \
@@ -71,10 +75,14 @@
 	constexpr T operator- (T  a, int b) { return static_cast<T>(enumInt(a) - b); } \
 	constexpr T operator* (T  a, int b) { return static_cast<T>(enumInt(a) * b); } \
 	constexpr T operator/ (T  a, int b) { return static_cast<T>(enumInt(a) / b); } \
+	constexpr T operator>> (T a, int b) { return static_cast<T>(enumInt(a) >> b); } \
+	constexpr T operator<< (T a, int b) { return static_cast<T>(enumInt(a) << b); } \
 	constexpr void operator+=(T& a, int b) { a = static_cast<T>(enumInt(a) + b); } \
 	constexpr void operator-=(T& a, int b) { a = static_cast<T>(enumInt(a) - b); } \
 	constexpr void operator*=(T& a, int b) { a = static_cast<T>(enumInt(a) * b); } \
 	constexpr void operator/=(T& a, int b) { a = static_cast<T>(enumInt(a) / b); } \
+	constexpr void operator>>=(T& a, int b) { a = static_cast<T>(enumInt(a) >> b); } \
+	constexpr void operator<<=(T& a, int b) { a = static_cast<T>(enumInt(a) << b); } \
 //--------
 
 #define SGE_ENUM_ALL_OPERATOR(T) \
