@@ -1,6 +1,7 @@
 #pragma once
 #include "../command/RenderCommand.h"
 #include "../shader/Material.h"
+#include "../command/RenderRequest.h"
 
 namespace sge {
 
@@ -10,7 +11,7 @@ class Patch {
 
 public:
 	void create(RenderTerrain* terrain, int index);
-	void render(RenderCommandBuffer& cmdBuf);
+	void render(RenderRequest& req);
 
 private:
 	int _index = -1;
@@ -22,18 +23,7 @@ private:
 
 public:
 	void create();
-	void render(RenderCommandBuffer& cmdBuf);
-
-// ----- tmp
-	Mat4f sge_matrix_model = Mat4f::s_identity();
-	Mat4f sge_matrix_view;
-	Mat4f sge_matrix_proj;
-	Vec3f sge_camera_pos;
-	Vec3f sge_light_pos{10,10,0};
-	Vec3f sge_light_dir{-5, -10, -1};
-	float sge_light_power = 4.0f;
-	Vec3f sge_light_color{ 1, 1, 1 };
-// -------------
+	void render(RenderRequest& req);
 
 	const VertexLayout* vertexLayout() const { return _vertexLayout; }
 	int vertexCount() { return _vertexCount; }

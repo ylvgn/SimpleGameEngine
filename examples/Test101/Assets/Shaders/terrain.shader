@@ -44,8 +44,8 @@ float4 calcPositionOS(float4 positionOS) {
 	float size = rowCount - 1;
 	float2 dir = float2(patchIndex / rowCount, patchIndex % rowCount);
 
-	positionOS.x += ceil(dir.x) * size + dir.x;
-	positionOS.z += ceil(dir.y) * size + dir.y;
+	positionOS.x += ceil(dir.x) * size;
+	positionOS.z += ceil(dir.y) * size;
 
 	return positionOS;
 }

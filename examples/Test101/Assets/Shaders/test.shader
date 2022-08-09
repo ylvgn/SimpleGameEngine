@@ -136,8 +136,7 @@ float4 ps_main(PixelIn i) : SV_TARGET
 	s.shininess	 = 1;
 	
 	float4 texCol = mainTex.Sample(mainTex_Sampler, i.uv);
-//	return texCol;
-
+	
 	float3 color = lighting_blinn_phong(s) * texCol;
 	return float4(Color_Linear_to_sRGB(color), 1);
 }

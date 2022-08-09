@@ -79,76 +79,16 @@ void RenderTerrain::Patch::create(RenderTerrain* terrain, int index) {
 	_material->setShader(shader);
 }
 
-void RenderTerrain::Patch::render(RenderCommandBuffer& cmdBuf) {
+void RenderTerrain::Patch::render(RenderRequest& req) {
 // --------------
-	auto model = Mat4f::s_identity();
-	auto sge_matrix_mvp = _terrain->sge_matrix_proj * _terrain->sge_matrix_view;
+	req.setMaterialCommonParams(_material);
 
-	_material->setParam("sge_matrix_model", model);
-	_material->setParam("sge_matrix_view", _terrain->sge_matrix_view);
-	_material->setParam("sge_matrix_proj", _terrain->sge_matrix_proj);
-	_material->setParam("sge_matrix_mvp", sge_matrix_mvp);
-
-	_material->setParam("sge_camera_pos", _terrain->sge_camera_pos);
-
-	_material->setParam("sge_light_pos", _terrain->sge_light_pos);
-	_material->setParam("sge_light_dir", _terrain->sge_light_dir);
-	_material->setParam("sge_light_power", _terrain->sge_light_power);
-	_material->setParam("sge_light_color", _terrain->sge_light_color);
-// --------------
 	int maxLod = PatchIndexesManager::instance()->maxLod();
 	u8 lod = MyTestHelper::s_getLod(_index);
 	_material->setParam("patchIndex", _index);
 	_material->setParam("patchMaxLod", maxLod);
 	_material->setParam("patchLod", lod);
 // -----
-
-#if 0
-	{ // test index buffer
-		auto* renderer = Renderer::instance();
-		ByteSpan indexData;
-		Vector<u16> index16Data;
-
-		_indexCount = 96; //  6(cube) * 16
-		int line = _terrain->vertexPerRowCount();
-		for (int i = 0; i < line - 1; i++) {
-			for (int j = 0; j < line - 1; j ++) {
-				int ind = j + i * line;
-
-				index16Data.emplace_back(ind);
-				index16Data.emplace_back(ind + line);
-				index16Data.emplace_back(ind + 1);
-
-				index16Data.emplace_back(ind + 1);
-				index16Data.emplace_back(ind + line);
-				index16Data.emplace_back(ind + 1 + line);
-			}
-		}
-
-		indexData = spanCast<const u8, const u16>(index16Data);
-
-		RenderGpuBuffer::CreateDesc desc;
-		desc.type = RenderGpuBufferType::Index;
-		desc.bufferSize = indexData.size();
-		_indexBuffer = renderer->createGpuBuffer(desc);
-		_indexBuffer->uploadToGpu(indexData);
-	}
-
-	auto passes = _material->passes();
-	for (size_t i = 0; i < passes.size(); i++) {
-		auto* cmd = cmdBuf.newCommand<RenderCommand_DrawCall>();
-		cmd->material = _material;
-		cmd->materialPassIndex = i;
-
-		cmd->primitive		= RenderPrimitiveType::Triangles;
-		cmd->vertexLayout	= _terrain->vertexLayout();
-		cmd->vertexBuffer	= _terrain->vertexBuffer();
-		cmd->vertexCount	= _terrain->vertexCount();
-		cmd->indexBuffer	= _indexBuffer;
-		cmd->indexType		= RenderDataType::UInt16;
-		cmd->indexCount		= _indexCount;
-	}
-#else
 
 	int x = _index / k_PatchColCount;
 	int y = _index % k_PatchColCount;
@@ -170,11 +110,12 @@ void RenderTerrain::Patch::render(RenderCommandBuffer& cmdBuf) {
 	}
 	//FmtTo(tmpStr, "\n\t({})", _index);
 	//SGE_DUMP_VAR(tmpStr, tJoint, lod);
+
 	auto* info = PatchIndexesManager::instance()->getInfo(lod, tJoint);
 
 	auto passes = _material->passes();
 	for (size_t i = 0; i < passes.size(); i++) {
-		auto* cmd = cmdBuf.newCommand<RenderCommand_DrawCall>();
+		auto* cmd = req.commandBuffer.newCommand<RenderCommand_DrawCall>();
 		cmd->material = _material;
 		cmd->materialPassIndex = i;
 		cmd->primitive		= RenderPrimitiveType::Triangles;
@@ -185,13 +126,12 @@ void RenderTerrain::Patch::render(RenderCommandBuffer& cmdBuf) {
 		cmd->indexType		= info->indexType();
 		cmd->indexCount		= info->indexCount();
 	}
-#endif
 }
 
-void RenderTerrain::render(RenderCommandBuffer& cmdBuf) {
+void RenderTerrain::render(RenderRequest& req) {
 	for (int i = 0; i < _patches.size(); i++) {
 		auto& patch = _patches[i];
-		patch.render(cmdBuf);
+		patch.render(req);
 	}
 }
 

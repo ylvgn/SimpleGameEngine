@@ -9,6 +9,9 @@
 #include <sge_render/vertex/Vertex.h>
 #include <sge_render/vertex/VertexLayoutManager.h>
 
+#include <sge_render/command/RenderRequest.h>
+
+
 namespace sge {
 
 class MainWin : public NativeUIWindow {
@@ -24,7 +27,8 @@ public:
 			_renderContext = renderer->createContext(renderContextDesc);
 		}
 
-		// test
+		//_camera.setPos(0, 10, 10);
+		//_camera.setAim(0, 0, 0);
 		_camera.setPos(58.932793f, 38.021767f, 3.6692433f);
 		_camera.setAim(0.79875153f, 0.8193707f, 1.8785787f);
 
@@ -60,11 +64,7 @@ public:
 #endif
 		_testTexture = renderer->createTexture2D(texDesc);
 
-#if 1
 		auto shader = renderer->createShader("Assets/Shaders/test.shader");
-#else
-		auto shader = renderer->createShader("Assets/Shaders/test.hlsl");
-#endif
 
 		_material = renderer->createMaterial();
 		_material->setShader(shader);
@@ -78,7 +78,6 @@ public:
 			editMesh.color.emplace_back(255, 255, 255, 255);
 		}
 #else
-		EditMesh editMesh;
 		editMesh.pos.emplace_back(0.0f, 0.5f, 0.0f);
 		editMesh.pos.emplace_back(0.5f, -0.5f, 0.0f);
 		editMesh.pos.emplace_back(-0.5f, -0.5f, 0.0f);
@@ -101,7 +100,8 @@ public:
 		editMesh.indices.emplace_back(0);
 #endif
 		_renderMesh.create(editMesh);
-		_testTerrain.create();
+
+		_terrain.create();
 	}
 
 	virtual void onCloseButton() {
@@ -137,29 +137,17 @@ public:
 
 		_camera.setViewport(clientRect());
 
-		{
-			auto model = Mat4f::s_identity();
-			auto view = _camera.viewMatrix();
-			auto proj = _camera.projMatrix();
-			auto mvp = proj * view;
+		_renderContext->setFrameBufferSize(clientRect().size);
+		_renderContext->beginRender();
 
-			_material->setParam("sge_matrix_model", model);
-			_material->setParam("sge_matrix_view", view);
-			_material->setParam("sge_matrix_proj", proj);
-			_material->setParam("sge_matrix_mvp", mvp);
+		_renderRequest.reset();
+		_renderRequest.matrix_model = Mat4f::s_identity();
+		_renderRequest.matrix_view = _camera.viewMatrix();
+		_renderRequest.matrix_proj = _camera.projMatrix();
+		_renderRequest.camera_pos = _camera.pos();
 
-			_material->setParam("sge_camera_pos", _camera.pos());
+		_renderRequest.clearFrameBuffers()->setColor({ 0, 0, 0.2f, 1 });
 
-			_material->setParam("sge_light_pos", Vec3f(10, 10, 0));
-			_material->setParam("sge_light_dir", Vec3f(-5, -10, -2));
-			_material->setParam("sge_light_power", 4.0f);
-			_material->setParam("sge_light_color", Vec3f(1, 1, 1));
-#if 1
-			_testTerrain.sge_matrix_view = view;
-			_testTerrain.sge_matrix_proj = proj;
-			_testTerrain.sge_camera_pos = _camera.pos();
-#endif
-		}
 //-----
 //		auto time = GetTickCount() * 0.001f;
 //		auto s = abs(sin(time * 2));
@@ -168,35 +156,29 @@ public:
 		_material->setParam("test_color", Color4f(s, s, s, 1));
 //-----
 
-		_renderContext->setFrameBufferSize(clientRect().size);
+		_terrain.render(_renderRequest);
+		_renderRequest.drawMesh(SGE_LOC, _renderMesh, _material);
 
-		_renderContext->beginRender();
+		_renderRequest.swapBuffers();
 
-		_cmdBuf.reset();
-		_cmdBuf.clearFrameBuffers()->setColor({ 0, 0, 0.2f, 1 });
-#if 0
-		_cmdBuf.drawMesh(SGE_LOC, _renderMesh, _material);
-#else
-		_testTerrain.render(_cmdBuf); // test
-#endif
+		_renderContext->commit(_renderRequest.commandBuffer);
 
-		_cmdBuf.swapBuffers();
-		_renderContext->commit(_cmdBuf);
 		_renderContext->endRender();
 
 		drawNeeded();
 	}
 
-	RenderTerrain _testTerrain;
+	RenderTerrain _terrain;
 
 	SPtr<Material> _material;
 	SPtr<Texture2D> _testTexture;
 
 	SPtr<RenderContext>	_renderContext;
-	RenderCommandBuffer _cmdBuf;
 	RenderMesh _renderMesh;
 
 	Math::Camera3f	_camera;
+
+	RenderRequest	_renderRequest;
 };
 
 class EditorApp : public NativeUIApp {
