@@ -36,19 +36,20 @@ class TextureCube;
 	\
 	E(Float32_4x4,) \
 	\
-	E(Texture1D,)		E(Texture2D,)		E(Texture3D,)		E(TextureCube,)			\
-	E(Texture1DArray,)	E(Texture2DArray,)	E(Texture3DArray,)	E(TextureCubeArray,)	\
+	E(Texture1D,)		E(Texture2D,)		E(Texture3D,)		E(TextureCube,) \
+	E(Texture1DArray,)	E(Texture2DArray,)	E(Texture3DArray,)	E(TextureCubeArray,) \
+
 //----
 SGE_ENUM_CLASS(RenderDataType, u8)
 
 struct RenderDataTypeUtil {
 	RenderDataTypeUtil() = delete;
-
+	
 	using Type = RenderDataType;
 
 	template<class T> static constexpr Type get();
 
-	template<> static constexpr Type get<void>() { return Type::None; }
+	template<> static constexpr Type get<void>() { return Type::None;  }
 
 	template<> static constexpr Type get<i8 >() { return Type::Int8;  }
 	template<> static constexpr Type get<i16>() { return Type::Int16; }
@@ -86,4 +87,3 @@ struct RenderDataTypeUtil {
 };
 
 } // namespace
-

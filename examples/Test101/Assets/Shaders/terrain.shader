@@ -36,17 +36,12 @@ float3		sge_light_dir;
 float		sge_light_power;
 float3		sge_light_color;
 
-int patchIndex;
-int patchMaxLod;
-int patchLod;
+int2 patchIndex;
+int patchCellsPerRow;
 float4 calcPositionOS(float4 positionOS) {
-	int rowCount = (1 << patchMaxLod) + 1;
-	float size = rowCount - 1;
-	float2 dir = float2(patchIndex / rowCount, patchIndex % rowCount);
-
-	positionOS.x += ceil(dir.x) * size;
-	positionOS.z += ceil(dir.y) * size;
-
+	float padding = 1;
+	positionOS.x += patchIndex.y * (patchCellsPerRow + padding);
+	positionOS.z += patchIndex.x * (patchCellsPerRow + padding);
 	return positionOS;
 }
 
@@ -58,7 +53,8 @@ PixelIn vs_main(VertexIn i) {
 }
 
 float4 ps_main(PixelIn i) : SV_TARGET {
-	if (patchIndex % 2 == 0)
+	int tmp = patchIndex.x + patchIndex.y;
+	if (tmp % 2 == 0)
 		return float4(0.8, 0.8, 0, 1);
 	return float4(0.8, 0, 0, 1);
 }

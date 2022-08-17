@@ -5,38 +5,128 @@
 
 namespace sge {
 
+#define RenderTerrain3_ZoneMask_ENUM_LIST(E) \
+	E(None, = 0) \
+	E(North, = 1 << 0)  \
+	E(East,  = 1 << 1)  \
+	E(South, = 1 << 2)  \
+	E(West,  = 1 << 3)  \
+//----
+SGE_ENUM_CLASS(RenderTerrain3_ZoneMask, u8)
+SGE_ENUM_ALL_OPERATOR(RenderTerrain3_ZoneMask)
+
 class RenderTerrain : public NonCopyable {
-
-class Patch {
-
+	using Terrain		= RenderTerrain;
+	using ZoneMask		= RenderTerrain3_ZoneMask;
+	using VertexIndex	= u16;
 public:
-	void create(RenderTerrain* terrain, int index);
+
+	class Patch {
+	public:
+		void create(Terrain* terrain, const Vec2i& index, Shader* shader);
+		void render(RenderRequest& req);
+	private:
+		Vec2i			_index{ 0, 0 };
+		RenderTerrain* _terrain = nullptr;
+		SPtr<Material> _material;
+	}; // Patch
+
+	class PatchIndices {
+	public:
+		void create(Terrain* terrain, int level, ZoneMask zoneMask);
+
+		RenderGpuBuffer*	indexBuffer() const { return constCast(_indexBuffer.ptr()); }
+		size_t				indexCount() const	{ return _indexCount; }
+		RenderDataType		indexType() const	{ return RenderDataTypeUtil::get<VertexIndex>(); }
+
+	private:
+		SPtr<RenderGpuBuffer> _indexBuffer;
+		size_t _indexCount = 0;
+
+	}; // PatchIndices
+
+	class PatchLevelIndices {
+	public:
+		static const int s_patchMeshCount = 16;
+
+		void create(Terrain* terrain, int level);
+
+		PatchIndices* patchIndices(ZoneMask zoneMask) {
+			return &_patchIndices[enumInt(zoneMask)];
+		}
+
+	private:
+		Terrain*	_terrain = nullptr;
+		int			_level = 0;
+		Vector<PatchIndices, s_patchMeshCount>	_patchIndices;
+	}; // PatchLevelIndices
+
+	void destroy();
+	void createFromHeightMapFile(const Vec3f& terrainPos, const Vec2f& terrainSize, float terrainHeight, int maxLod, StrView heightMapFilename);
+	void createFromHeightMap(const Vec3f& terrainPos, const Vec2f& terrainSize, float terrainHeight, int maxLod, const Image& heightMap);
+
 	void render(RenderRequest& req);
+			int		patchCellsPerRow	() const { return 1 << (_maxLod - 1); }
+			int		patchVerticesPerRow	() const { return patchCellsPerRow() + 1; }
+			int		maxLod				() const { return _maxLod; }
 
+			const	Vec3f&	terrainPos	() const { return _terrainPos; }
+	const	Vec2f&	terrainSize			() const { return _terrainSize; }
+			float	terrainHeight		() const { return _terrainHeight; }
+
+			Vec2i	patchCount			() const { return _patchCount; }
+			Vec2f	patchSize			() const { return _terrainSize / Vec2f::s_cast(_patchCount); }
+			Vec2f	cellSize			() const { return _terrainSize / Vec2f::s_cast(_heightmapResolution - 1); }
+
+			PatchIndices*	patchIndices(int level, ZoneMask zoneMask);
+			Span<PatchLevelIndices>	patchLevelIndices() { return _patchLevelIndices; }
+
+			Patch* patch(int x, int y);
+
+	const VertexLayout* vertexLayout() const	{ return _vertexLayout; }
+	size_t				vertexCount() const		{ return _vertexCount; }
+
+	RenderGpuBuffer*	vertexBuffer() { return _vertexBuffer; }
+	Texture2D*		heightMapTexture() { return _heightMapTexture; }
 private:
-	int _index = -1;
-	int _indexCount = 0;
-	SPtr<RenderGpuBuffer> _indexBuffer;
-	SPtr<Material> _material;
-	RenderTerrain* _terrain = nullptr;
-};
 
-public:
-	void create();
-	void render(RenderRequest& req);
+	Vec3f	_terrainPos  {0, 0, 0};
+	Vec2f	_terrainSize {0, 0};
+	float	_terrainHeight = 0;
+	Vec2i	_heightmapResolution {0, 0};
+	int		_maxLod = 1;
+	Vec2i	_patchCount {0, 0};
 
-	const VertexLayout* vertexLayout() const { return _vertexLayout; }
-	int vertexCount() { return _vertexCount; }
-	RenderGpuBuffer* vertexBuffer() { return _vertexBuffer; }
-	int vertexPerRowCount() { return _vertexPerRowCount; }
-
-private:
 	Vector<Patch> _patches;
+	Vector<PatchLevelIndices>	_patchLevelIndices;
 
-	const VertexLayout* _vertexLayout = nullptr;
-	SPtr<RenderGpuBuffer> _vertexBuffer;
-	int _vertexCount = 0;
-	int _vertexPerRowCount = 0;
+	const VertexLayout*		_vertexLayout	= nullptr;
+	size_t					_vertexCount	= 0;
+	SPtr<RenderGpuBuffer>	_vertexBuffer;
+
+	SPtr<Texture2D>			_heightMapTexture;
+
+	// ------
+	Vector<u16> calcN(int lod, bool isTjoint);
+	Vector<u16> calcE(int lod, bool isTjoint);
+	Vector<u16> calcS(int lod, bool isTjoint);
+	Vector<u16> calcW(int lod, bool isTjoint);
 };
+
+SGE_INLINE RenderTerrain::PatchIndices* RenderTerrain::patchIndices(int level, ZoneMask zoneMask) {
+	if (level < 0 || level >= _patchLevelIndices.size()) {
+		SGE_ASSERT(false);
+		return nullptr;
+	}
+
+	auto& lv = _patchLevelIndices[level];
+	return lv.patchIndices(zoneMask);
+}
+
+SGE_INLINE RenderTerrain::Patch* RenderTerrain::patch(int x, int y) {
+	if (x < 0 || y < 0 || x >= _patchCount.x || y >= _patchCount.y)
+		return nullptr;
+	return &_patches[y * _patchCount.x + x];
+}
 
 } // namespace

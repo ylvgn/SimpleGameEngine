@@ -101,7 +101,19 @@ public:
 #endif
 		_renderMesh.create(editMesh);
 
-		_terrain.create();
+		{
+			float size = 2048;
+			float pos = size / -2;
+			float y = -100;
+			float height = 200;
+			int maxLod = 3;
+			_terrain.createFromHeightMapFile(
+				Vec3f(pos, y, pos),
+				Vec2f(size, size),
+				height,
+				maxLod,
+				"Assets/Terrain/TerrainTest/TerrainHeight_Small.png");
+		}
 	}
 
 	virtual void onCloseButton() {

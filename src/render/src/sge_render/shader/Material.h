@@ -44,6 +44,9 @@ protected:
 
 		void _setParam(const VarInfo* varInfo, const float&   value) { _setParamCheckType(varInfo, value); }
 		void _setParam(const VarInfo* varInfo, const i32&     value) { _setParamCheckType(varInfo, value); }
+		void _setParam(const VarInfo* varInfo, const Tuple2i& value) { _setParamCheckType(varInfo, value); }
+		void _setParam(const VarInfo* varInfo, const Tuple3i& value) { _setParamCheckType(varInfo, value); }
+		void _setParam(const VarInfo* varInfo, const Tuple4i& value) { _setParamCheckType(varInfo, value); }
 		void _setParam(const VarInfo* varInfo, const Tuple2f& value) { _setParamCheckType(varInfo, value); }
 		void _setParam(const VarInfo* varInfo, const Tuple3f& value) { _setParamCheckType(varInfo, value); }
 		void _setParam(const VarInfo* varInfo, const Tuple4f& value) { _setParamCheckType(varInfo, value); }
@@ -197,6 +200,9 @@ public:
 	void setParam(StrView name, Texture2D* v) { _setTexParam(name, v); }
 	void setParam(StrView name, const float&   v) { _setParam(name, v); }
 	void setParam(StrView name, const i32&     v) { _setParam(name, v); }
+	void setParam(StrView name, const Tuple2i& v) { _setParam(name, v); }
+	void setParam(StrView name, const Tuple3i& v) { _setParam(name, v); }
+	void setParam(StrView name, const Tuple4i& v) { _setParam(name, v); }
 	void setParam(StrView name, const Tuple2f& v) { _setParam(name, v); }
 	void setParam(StrView name, const Tuple3f& v) { _setParam(name, v); }
 	void setParam(StrView name, const Tuple4f& v) { _setParam(name, v); }
