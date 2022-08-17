@@ -3,9 +3,10 @@
 #include <sge_render/Renderer.h>
 #include "../vertex/Vertex.h"
 
+// test only
 constexpr const int k_PatchRowCount = 5;
 constexpr const int k_PatchColCount = 5;
-constexpr const int k_PatchCount = k_PatchRowCount * k_PatchColCount; // test
+constexpr const int k_PatchCount = k_PatchRowCount * k_PatchColCount;
 
 namespace sge {
 
@@ -14,19 +15,18 @@ constexpr static int dy[4] = { -1, 0, 1, 0 };
 
 struct MyTestHelper {
 	constexpr static int s_lods[k_PatchCount] = {
-#if 1
 		//--------------> x
+#if 0
 		2, 1, 1, 2, 2,
 		2, 1, 1, 1, 2,
 		1, 0, 0, 0, 1,
 		2, 1, 0, 1, 2,
 		2, 2, 1, 2, 2,
 #else
-		//--------------> x
 		2, 2, 2, 2, 2,
-		2, 2, 2, 2, 2,
-		2, 2, 2, 2, 2,
-		2, 2, 2, 2, 2,
+		2, 2, 1, 2, 2,
+		2, 1, 0, 1, 2,
+		2, 2, 1, 2, 2,
 		2, 2, 2, 2, 2,
 #endif
 	};
@@ -73,7 +73,7 @@ void RenderTerrain::createFromHeightMap(const Vec3f& terrainPos, const Vec2f& te
 	_maxLod = maxLod;
 
 	_patchCount = (_heightmapResolution - 1) / patchCellsPerRow(); // (2049-1) / patchCellsPerRow
-	_patchCount.set(5, 5); // temp
+	_patchCount.set(5, 5); // temp test
 
 	_patchLevelIndices.resize(maxLod);
 
@@ -376,9 +376,8 @@ Vector<u16> RenderTerrain::calcN(int lod, bool isTjoint) {
 	int step = 1 << deltaLod;
 
 	Vec2i startXY{ 0, 0 };
-	int localDir[4] = { 0, 1, 2, 3 };
-	Span<int> span(localDir, localDir + 4);
-	auto helper = MyHelper(startXY, step, span, isTjoint);
+	Vector<int, 4> localDir = { 0, 1, 2, 3 };
+	auto helper = MyHelper(startXY, step, localDir.span(), isTjoint);
 
 	Vector<u16> res;
 	helper.work(lod, maxLod, res);
@@ -391,9 +390,8 @@ Vector<u16> RenderTerrain::calcE(int lod, bool isTjoint) {
 	int step = 1 << deltaLod;
 
 	Vec2i startXY{ patchVerticesPerRow() - 1, 0};
-	int localDir[4] = { 1, 2, 3, 0 };
-	Span<int> span(localDir, localDir + 4);
-	auto helper = MyHelper(startXY, step, span, isTjoint);
+	Vector<int, 4> localDir = { 1, 2, 3, 0 };
+	auto helper = MyHelper(startXY, step, localDir.span(), isTjoint);
 
 	Vector<u16> res;
 	helper.work(lod, maxLod, res);
@@ -406,10 +404,8 @@ Vector<u16> RenderTerrain::calcS(int lod, bool isTjoint) {
 	int step = 1 << deltaLod;
 
 	Vec2i startXY{ patchVerticesPerRow() - 1, patchVerticesPerRow() - 1};
-	
-int localDir[4] = { 2, 3, 0, 1 };
-	Span<int> span(localDir, localDir + 4);
-	auto helper = MyHelper(startXY, step, span, isTjoint);
+	Vector<int, 4> localDir = { 2, 3, 0, 1 };
+	auto helper = MyHelper(startXY, step, localDir.span(), isTjoint);
 
 	Vector<u16> res;
 	helper.work(lod, maxLod, res);
@@ -422,9 +418,8 @@ Vector<u16> RenderTerrain::calcW(int lod, bool isTjoint) {
 	int step = 1 << deltaLod;
 
 	Vec2i startXY{ 0, patchVerticesPerRow() - 1};
-	int localDir[4] = { 3, 0, 1, 2 };
-	Span<int> span(localDir, localDir + 4);
-	auto helper = MyHelper(startXY, step, span, isTjoint);
+	Vector<int, 4> localDir = { 3, 0, 1, 2 };
+	auto helper = MyHelper(startXY, step, localDir.span(), isTjoint);
 
 	Vector<u16> res;
 	helper.work(lod, maxLod, res);

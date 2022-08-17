@@ -132,6 +132,9 @@ public:
 	using Base::begin;
 	using Base::end;
 
+	Vector() = default;
+	Vector(std::initializer_list<T> list) : Base(list) {}
+
 	void appendRange(const Span<T>& r) { Base::insert(end(), r.begin(), r.end()); }
 
 	Span<      T> span()			{ return Span<      T>(begin(), end()); }
