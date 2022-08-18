@@ -16,18 +16,18 @@ constexpr static int dy[4] = { -1, 0, 1, 0 };
 struct MyTestHelper {
 	constexpr static int s_lods[k_PatchCount] = {
 		//--------------> x
-#if 0
-		2, 1, 1, 2, 2,
-		2, 1, 1, 1, 2,
+#if 1
+		3, 1, 1, 2, 3,
+		2, 1, 0, 1, 2,
 		1, 0, 0, 0, 1,
 		2, 1, 0, 1, 2,
-		2, 2, 1, 2, 2,
+		3, 2, 1, 2, 3,
 #else
-		2, 2, 2, 2, 2,
-		2, 2, 1, 2, 2,
-		2, 1, 0, 1, 2,
-		2, 2, 1, 2, 2,
-		2, 2, 2, 2, 2,
+		0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0,
 #endif
 	};
 
@@ -135,7 +135,6 @@ void RenderTerrain::Patch::render(RenderRequest& req) {
 	_material->setParam("patchCellsPerRow", _terrain->patchCellsPerRow());
 // -----
 	ZoneMask zoneMask = ZoneMask::None;
-
 	//int index = _index.y * k_PatchColCount + _index.x;
 	//TempString tmpStr;
 	for (int i = 0; i < 4; i ++) {
@@ -154,7 +153,6 @@ void RenderTerrain::Patch::render(RenderRequest& req) {
 	//FmtTo(tmpStr, "\n\t- {}", index);
 	//int tJoint = static_cast<int>(zoneMask);
 	//SGE_DUMP_VAR(tmpStr, tJoint, lv);
-
 	auto* pi = _terrain->patchIndices(lv, zoneMask);
 	if (!pi) { SGE_ASSERT(false); return; }
 
@@ -207,6 +205,11 @@ void RenderTerrain::PatchLevelIndices::create(Terrain* terrain, int level) {
 
 //-------------------------------------------------------
 struct MyHelper {
+	using ZoneMask = RenderTerrain3_ZoneMask;
+
+	static int s_flatten(const Vec2i& p, int col)	{ return p.x * col + p.y; }
+
+	static int maxRowVertexCount(int lod)			{ return (1 << lod) + 1; }
 
 	MyHelper(Vec2i startXY_, int step_, Span<int> localDir_, bool isTjoint_)
 		: moveTimes(-1)
@@ -217,12 +220,60 @@ struct MyHelper {
 	{ }
 
 	void work(int lod, int maxLod, Vector<u16>& out) {
-		if (!isTjoint) _calcIndexesInner1(lod, maxLod, out);
-		else _calcIndexesInner2(lod, maxLod, out);
+		int maxRowCount = maxRowVertexCount(maxLod);
+		int maxCubeCount = maxRowVertexCount(lod) - 1;
+		int maxTrangleCount = (maxCubeCount - 1) * 2; // ignore 1 cube
+
+		if (isTjoint) {  // first row 
+			resetV012();
+			//SGE_DUMP_VAR(trangleCount, v0, v1, v2);
+			for (int i = 0, j = 2; i < maxTrangleCount;) {
+
+				if (j == 2) { // tjoint
+					Vec2i _v0(v0);
+
+					moveNext(); // 0 -> 1
+					moveNext(); // 1 -> 2
+
+					Vec2i _v2(v2);
+					Vec2i _v1(v1);
+
+					//SGE_DUMP_VAR("big", _v0, _v1, _v2);
+					out.emplace_back(s_flatten(_v0, maxRowCount));
+					out.emplace_back(s_flatten(_v1, maxRowCount));
+					out.emplace_back(s_flatten(_v2, maxRowCount));
+
+					i += 2;
+					j = 0;
+				}
+				else {
+					moveNext(); // 2 -> 3, 3 -> 0
+					//SGE_DUMP_VAR("small", v0, v1, v2);
+					out.emplace_back(s_flatten(v0, maxRowCount));
+					out.emplace_back(s_flatten(v1, maxRowCount));
+					out.emplace_back(s_flatten(v2, maxRowCount));
+					i++;
+					j++;
+				}
+			}
+			maxTrangleCount -= 4; // next row
+		}
+
+		while (maxTrangleCount > 0) {
+			resetV012();
+			//SGE_DUMP_VAR(maxTrangleCount, v0, v1, v2);
+			for (int j = 0; j < maxTrangleCount; j++) {
+				moveNext();
+				//SGE_DUMP_VAR(v0, v1, v2);
+				out.emplace_back(s_flatten(v0, maxRowCount));
+				out.emplace_back(s_flatten(v1, maxRowCount));
+				out.emplace_back(s_flatten(v2, maxRowCount));
+			}
+			maxTrangleCount -= 4;
+		}
 	}
 
 private:
-	// keep N E S W
 	Vec2i moveN(const Vec2i& p) {
 		Vec2i o;
 		int index = localDir[0];
@@ -281,85 +332,26 @@ private:
 				v2 v1      v1     v2     v2 v1    v2 v1
 				 [0]     [1]      [2]     [3]     [0]
 		*/
-		if (moveTimes % 4 == 0) { // 0 -> 1
+
+		if (moveTimes % 4 == 0) {		// 0 -> 1
 			v0.set(moveE(v0));
 			v2.set(moveW(v0));
 			v1.set(moveS(v0));
 		}
-		else if (moveTimes % 4 == 1) { // 1 -> 2
+		else if (moveTimes % 4 == 1) {	// 1 -> 2
 			v1.set(moveE(v0));
 			v2.set(moveS(v0));
 		}
-		else if (moveTimes % 4 == 2) { // 2 -> 3
+		else if (moveTimes % 4 == 2) {	// 2 -> 3
 			v0.set(moveE(v0));
 			v1.set(moveS(v0));
 			v2.set(moveW(v1));
 		}
-		else {                        // 3 -> 0
+		else {							// 3 -> 0
 			v2.set(moveS(v0));
 			v1.set(moveE(v2));
 		}
 		moveTimes++;
-	}
-
-	static int s_flatten(const Vec2i& p, int col)	{ return p.x * col + p.y; }
-	static int maxRowVertexCount(int lod)			{ return (1 << lod) + 1; }
-
-	void _calcIndexesInner1(int lod, int maxLod, Vector<u16>& out) {
-		int maxRowCount = maxRowVertexCount(maxLod);
-		for (int i = lod; i > 0; i--) {
-			int cubeCount = maxRowVertexCount(i) - 1;
-			int trangleCount = (cubeCount - 1) * 2; // ignore 1 cube
-			resetV012();
-//			SGE_DUMP_VAR(trangleCount, v0, v1, v2);
-			for (int j = 0; j < trangleCount; j++) {
-				moveNext();
-//				SGE_DUMP_VAR(v0, v1, v2);
-				out.emplace_back(s_flatten(v0, maxRowCount));
-				out.emplace_back(s_flatten(v1, maxRowCount));
-				out.emplace_back(s_flatten(v2, maxRowCount));
-			}
-		}
-	}
-
-	void _calcIndexesInner2(int lod, int maxLod, Vector<u16>& out) {
-		int maxRowCount = maxRowVertexCount(maxLod);
-
-		{ // first line
-			int cubeCount = maxRowVertexCount(lod) - 1;
-			int trangleCount = (cubeCount - 1) * 2; // ignore 1 cube
-			resetV012();
-			//SGE_DUMP_VAR(trangleCount, v0, v1, v2);
-			for (int i = 0, j = 2; i < trangleCount; i++) {
-
-				if (j == 2) { // tjoint
-					Vec2i _v0(v0);
-
-					moveNext(); // 0 -> 1
-					moveNext(); // 1 -> 2
-					Vec2i _v2(v2);
-					Vec2i _v1(v1);
-
-					//SGE_DUMP_VAR("big", _v0, _v1, _v2);
-					out.emplace_back(s_flatten(_v0, maxRowCount));
-					out.emplace_back(s_flatten(_v1, maxRowCount));
-					out.emplace_back(s_flatten(_v2, maxRowCount));
-
-					i += 2;
-					j = 0;
-				}
-				else {
-					moveNext(); // 2 -> 3, 3 -> 0
-					//SGE_DUMP_VAR("small", v0, v1, v2);
-					out.emplace_back(s_flatten(v0, maxRowCount));
-					out.emplace_back(s_flatten(v1, maxRowCount));
-					out.emplace_back(s_flatten(v2, maxRowCount));
-					j++;
-				}
-			}
-		}
-
-		_calcIndexesInner1(lod - 1, maxLod, out);
 	}
 
 	int moveTimes;
