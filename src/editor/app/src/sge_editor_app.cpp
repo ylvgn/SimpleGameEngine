@@ -26,11 +26,14 @@ public:
 			renderContextDesc.window = this;
 			_renderContext = renderer->createContext(renderContextDesc);
 		}
-
-		//_camera.setPos(0, 10, 10);
-		//_camera.setAim(0, 0, 0);
+#if 1
+		_camera.setPos(0, 1200, 10);
+		_camera.setAim(0, 0, 0);
+#else
+		// just for test 5x5 terrain 
 		_camera.setPos(58.932793f, 38.021767f, 3.6692433f);
 		_camera.setAim(0.79875153f, 0.8193707f, 1.8785787f);
+#endif
 
 		Texture2D_CreateDesc texDesc;
 		auto& image = texDesc.imageToUpload;
@@ -106,7 +109,7 @@ public:
 			float pos = size / -2;
 			float y = -100;
 			float height = 200;
-			int maxLod = 4;
+			int maxLod = 6;
 			_terrain.createFromHeightMapFile(
 				Vec3f(pos, y, pos),
 				Vec2f(size, size),

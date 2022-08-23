@@ -21,6 +21,7 @@ protected:
 		compile("Assets/Shaders/test.shader");
 		compile("Assets/Shaders/test.hlsl");
 		compile("Assets/Shaders/terrain.shader");
+		compile("Assets/Shaders/terrain_test.shader"); // just for test
 
 		SGE_LOG("---- end ----");
 	}

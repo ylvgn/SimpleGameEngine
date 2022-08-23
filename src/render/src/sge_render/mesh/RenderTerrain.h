@@ -19,16 +19,24 @@ class RenderTerrain : public NonCopyable {
 	using Terrain		= RenderTerrain;
 	using ZoneMask		= RenderTerrain3_ZoneMask;
 	using VertexIndex	= u16;
+	using Vertex		= Vertex_Pos2f;
 public:
 
 	class Patch {
 	public:
 		void create(Terrain* terrain, const Vec2i& index, Shader* shader);
+		int displayLevel() const { return _displayLevel; }
+
 		void render(RenderRequest& req);
+
+		Vec3f worldCenterPos();
+		void setDisplayLevelByViewPos(const Vec3f& viewPos);
+
 	private:
 		Vec2i			_index{ 0, 0 };
-		RenderTerrain* _terrain = nullptr;
-		SPtr<Material> _material;
+		int				_displayLevel = 0;
+		RenderTerrain*	_terrain = nullptr;
+		SPtr<Material>	_material;
 	}; // Patch
 
 	class PatchIndices {
@@ -127,6 +135,13 @@ SGE_INLINE RenderTerrain::Patch* RenderTerrain::patch(int x, int y) {
 	if (x < 0 || y < 0 || x >= _patchCount.x || y >= _patchCount.y)
 		return nullptr;
 	return &_patches[y * _patchCount.x + x];
+}
+
+SGE_INLINE Vec3f RenderTerrain::Patch::worldCenterPos() {
+	auto s = _terrain->patchSize();
+	auto pos = (Vec2f::s_cast(_index) + 0.5f) * s;
+	auto o = _terrain->terrainPos() + Vec3f(pos.x, 0, pos.y);
+	return o;
 }
 
 } // namespace

@@ -256,7 +256,7 @@ struct VertexT_Pos : public VertexBase
 	static const RenderDataType	kPosType = RenderDataTypeUtil::get<POS_TYPE>();
 	static const VertexType kType = VertexTypeUtil::addPos(VertexBase::kType, kPosType);
 
-	static const VertexLayout* layout() {
+	static const VertexLayout* s_layout() {
 		static const VertexLayout* s = VertexLayoutManager::instance()->getLayout(kType);
 		return s;
 	}
@@ -276,7 +276,7 @@ struct VertexT_Color : public BASE
 	static const u8 kColorCount = COLOR_COUNT;
 	static const VertexType kType = VertexTypeUtil::addColor(BASE::kType, kColorType, kColorCount);
 
-	static const VertexLayout* layout() {
+	static const VertexLayout* s_layout() {
 		static const VertexLayout* s = VertexLayoutManager::instance()->getLayout(kType);
 		return s;
 	}
@@ -297,7 +297,7 @@ struct VertexT_Uv : public BASE
 	static const u8 kUvCount = UV_COUNT;
 	static const VertexType kType = VertexTypeUtil::addUv(BASE::kType, kUvType, kUvCount);
 
-	static const VertexLayout* layout() {
+	static const VertexLayout* s_layout() {
 		static const VertexLayout* s = VertexLayoutManager::instance()->getLayout(kType);
 		return s;
 	}
@@ -318,7 +318,7 @@ struct VertexT_Normal : public BASE
 	static const u8 kNormalCount = NORMAL_COUNT;
 	static const VertexType kType = VertexTypeUtil::addNormal(BASE::kType, kNormalType, kNormalCount);
 
-	static const VertexLayout* layout() {
+	static const VertexLayout* s_layout() {
 		static const VertexLayout* s = VertexLayoutManager::instance()->getLayout(kType);
 		return s;
 	}
@@ -339,7 +339,7 @@ struct VertexT_Tangent : public BASE
 	static const u8 kTangentCount = TANGENT_COUNT;
 	static const VertexType kType = VertexTypeUtil::addTangent(BASE::kType, kTangentCount); // kTangentType same as kNormalType
 
-	static const VertexLayout* layout() {
+	static const VertexLayout* s_layout() {
 		static const VertexLayout* s = VertexLayoutManager::instance()->getLayout(kType);
 		return s;
 	}
@@ -362,7 +362,7 @@ struct VertexT_Binormal : public BASE
 	static const u8 kBinormalCount = BINORMAL_COUNT;
 	static const VertexType kType = VertexTypeUtil::addBinormal(BASE::kType, kBinormalCount); // kBinormalType same as kNormalType
 
-	static const VertexLayout* layout() {
+	static const VertexLayout* s_layout() {
 		static const VertexLayout* s = VertexLayoutManager::instance()->getLayout(kType);
 		return s;
 	}
