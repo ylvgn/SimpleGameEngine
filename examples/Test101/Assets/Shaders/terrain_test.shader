@@ -41,8 +41,8 @@ int patchCellsPerRow;
 float4 calcPositionOS(float4 positionOS) {
 	//float padding = 0;
 	float padding = 1; // debug
-	positionOS.x += patchIndex.y * (patchCellsPerRow + padding);
-	positionOS.z += patchIndex.x * (patchCellsPerRow + padding);
+	positionOS.xz += patchIndex.yx * (patchCellsPerRow + padding);
+	positionOS.y += 10;
 	return positionOS;
 }
 

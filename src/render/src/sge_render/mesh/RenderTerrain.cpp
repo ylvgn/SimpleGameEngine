@@ -338,8 +338,8 @@ struct MyHelper {
 
 					//SGE_DUMP_VAR("big", _v0, _v1, _v2);
 					out.emplace_back(s_flatten(_v0, maxRowCount));
-					out.emplace_back(s_flatten(_v1, maxRowCount));
 					out.emplace_back(s_flatten(_v2, maxRowCount));
+					out.emplace_back(s_flatten(_v1, maxRowCount));
 
 					i += 2;
 					j = 0;
@@ -348,8 +348,8 @@ struct MyHelper {
 					moveNext(); // 2 -> 3, 3 -> 0
 					//SGE_DUMP_VAR("small", v0, v1, v2);
 					out.emplace_back(s_flatten(v0, maxRowCount));
-					out.emplace_back(s_flatten(v1, maxRowCount));
 					out.emplace_back(s_flatten(v2, maxRowCount));
+					out.emplace_back(s_flatten(v1, maxRowCount));
 					i++;
 					j++;
 				}
@@ -364,8 +364,8 @@ struct MyHelper {
 				moveNext();
 				//SGE_DUMP_VAR(v0, v1, v2);
 				out.emplace_back(s_flatten(v0, maxRowCount));
-				out.emplace_back(s_flatten(v1, maxRowCount));
 				out.emplace_back(s_flatten(v2, maxRowCount));
+				out.emplace_back(s_flatten(v1, maxRowCount));
 			}
 			maxTrangleCount -= 4;
 		}
@@ -541,12 +541,12 @@ void RenderTerrain::PatchIndices::create(Terrain* terrain, int level, ZoneMask z
 		indexData.resize(6);
 
 		indexData[0] = static_cast<VertexIndex>(v0);
-		indexData[1] = static_cast<VertexIndex>(v2);
-		indexData[2] = static_cast<VertexIndex>(v3);
+		indexData[1] = static_cast<VertexIndex>(v3);
+		indexData[2] = static_cast<VertexIndex>(v2);
 
 		indexData[3] = static_cast<VertexIndex>(v0);
-		indexData[4] = static_cast<VertexIndex>(v3);
-		indexData[5] = static_cast<VertexIndex>(v1);
+		indexData[4] = static_cast<VertexIndex>(v1);
+		indexData[5] = static_cast<VertexIndex>(v3);
 		SGE_DUMP_VAR(v0, v1, v2, v3);
 	}
 

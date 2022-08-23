@@ -27,7 +27,8 @@ public:
 			_renderContext = renderer->createContext(renderContextDesc);
 		}
 #if 1
-		_camera.setPos(0, 1200, 10);
+		_camera.setPos(0, 10, 10);
+		//_camera.setPos(0, 1200, 10);  // debug
 		_camera.setAim(0, 0, 0);
 #else
 		// just for test 5x5 terrain 

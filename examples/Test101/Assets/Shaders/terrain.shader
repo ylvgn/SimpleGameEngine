@@ -60,12 +60,13 @@ PixelIn vs_main(VertexIn i) {
 //	float2 patchPos = patchIndex * patchSize;
 	float2 patchPos = patchIndex * (patchSize + 1); // debug
 
-	float2 vertexPos2D = float2(patchPos + i.positionOS.yx);
+	float2 pos = i.positionOS.yx; // why ??
+	float2 vertexPos2D = float2(patchPos + pos);
 
-	float2 uv = (i.positionOS.yx + patchIndex * patchSize) / terrainSize;
+	float2 uv = (pos + patchIndex * patchSize) / terrainSize;
 
-	//float y = terrainHeight * terrainHeightMap.SampleLevel(terrainHeightMap_Sampler, uv, 0).r;
-	float y = terrainHeight; // debug
+	float y = terrainHeight * terrainHeightMap.SampleLevel(terrainHeightMap_Sampler, uv, 0).r;
+	//float y = terrainHeight; // debug
 
 	float4 positionOS = float4(	vertexPos2D.x, y, vertexPos2D.y, 1);
 
