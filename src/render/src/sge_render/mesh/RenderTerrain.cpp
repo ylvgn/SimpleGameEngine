@@ -305,7 +305,7 @@ void RenderTerrain::PatchLevelIndices::create(Terrain* terrain, int level) {
 struct MyHelper {
 	using ZoneMask = RenderTerrain3_ZoneMask;
 
-	static int s_flatten(const Vec2i& p, int col)	{ return p.x * col + p.y; }
+	static int s_flatten(const Vec2i& p, int col)	{ return p.y * col + p.x; }
 
 	static int maxRowVertexCount(int lod)			{ return (1 << lod) + 1; }
 
@@ -541,12 +541,12 @@ void RenderTerrain::PatchIndices::create(Terrain* terrain, int level, ZoneMask z
 		indexData.resize(6);
 
 		indexData[0] = static_cast<VertexIndex>(v0);
-		indexData[1] = static_cast<VertexIndex>(v3);
-		indexData[2] = static_cast<VertexIndex>(v2);
+		indexData[1] = static_cast<VertexIndex>(v2);
+		indexData[2] = static_cast<VertexIndex>(v3);
 
 		indexData[3] = static_cast<VertexIndex>(v0);
-		indexData[4] = static_cast<VertexIndex>(v1);
-		indexData[5] = static_cast<VertexIndex>(v3);
+		indexData[4] = static_cast<VertexIndex>(v3);
+		indexData[5] = static_cast<VertexIndex>(v1);
 		SGE_DUMP_VAR(v0, v1, v2, v3);
 	}
 
