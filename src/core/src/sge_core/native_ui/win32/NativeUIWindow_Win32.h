@@ -15,7 +15,10 @@ public:
 	virtual void onSetWindowTitle(StrView title) override;
 	virtual void onDrawNeeded() override;
 
-	HWND _hwnd;
+	const HWND hwnd() const { return _hwnd; }
+
+protected:
+	HWND _hwnd = nullptr;
 
 private:
 	static LRESULT WINAPI s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -30,6 +33,6 @@ private:
 	UIEventModifier _getWin32Modifier();
 };
 
-}
+} // namespace
 
-#endif
+#endif // SGE_OS_WINDOWS

@@ -12,7 +12,7 @@ RenderContext_DX11::RenderContext_DX11(CreateDesc& desc)
 	auto* dxgiFactory = _renderer->dxgiFactory();
 	auto* dev = _renderer->d3dDevice();
 	auto* win = static_cast<NativeUIWindow_Win32*>(desc.window);
-	auto* hWnd = win->_hwnd;
+	auto* hWnd = win->hwnd();
 
 	{
 		DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
@@ -126,7 +126,7 @@ void RenderContext_DX11::onCmd_DrawCall(RenderCommand_DrawCall& cmd) {
 }
 
 void RenderContext_DX11::onCmd_SwapBuffers(RenderCommand_SwapBuffers& cmd) {
-	HRESULT hr = _swapChain->Present(0, 0);
+	HRESULT hr = _swapChain->Present(_renderer->vsync() ? 1 : 0, 0);
 	Util::throwIfError(hr);
 }
 

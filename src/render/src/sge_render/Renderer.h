@@ -40,6 +40,7 @@ public:
 	const RenderAdapterInfo& adapterInfo() { return _adapterInfo; };
 
 	bool vsync() const { return _vsync; }
+	const ApiType apiType() const { return _apiType; }
 
 	SPtr<RenderContext>		createContext(RenderContext_CreateDesc& desc)		{ return onCreateContext(desc); }
 	SPtr<RenderGpuBuffer>	createGpuBuffer(RenderGpuBuffer_CreateDesc& desc)	{ return onCreateGpuBuffer(desc); }
@@ -61,6 +62,8 @@ public:
 
 	StockTextures stockTextures;
 
+	SPtr<Texture2D>	createSolidColorTexture2D(const Color4b& color);
+
 protected:
 	virtual SPtr<RenderContext>		onCreateContext(RenderContext_CreateDesc& desc) = 0;
 	virtual SPtr<RenderGpuBuffer>	onCreateGpuBuffer(RenderGpuBuffer_CreateDesc& desc) = 0;
@@ -74,6 +77,7 @@ protected:
 	RenderAdapterInfo _adapterInfo;
 
 	bool _vsync : 1;
+	ApiType _apiType = ApiType::None;
 }; // Renderer
 
 } // namespace

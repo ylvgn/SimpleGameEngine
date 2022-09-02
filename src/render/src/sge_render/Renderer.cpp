@@ -16,29 +16,35 @@ Renderer::CreateDesc::CreateDesc() {
 	multithread = false;
 }
 
-Renderer* Renderer::create(CreateDesc& desc)
-{
-	Renderer* ret = nullptr;
-	switch (desc.apiType)
-	{
+Renderer* Renderer::create(CreateDesc& desc) {
+	Renderer* p = nullptr;
+	switch (desc.apiType) {
 		case Renderer::ApiType::DX11: {
-			ret = new Renderer_DX11(desc);
+			p = new Renderer_DX11(desc);
 		}break;
-
-		case Renderer::ApiType::OpenGL: {
-			SGE_ASSERT("error: not support OpenGL api");
-		}break;
-
 		default: {
 			SGE_ASSERT("error: not support render api");
 		}break;
 	}
-	return ret;
+
+	{
+		p->stockTextures.white		= p->createSolidColorTexture2D(Color4b(255, 255, 255, 255));
+		p->stockTextures.black		= p->createSolidColorTexture2D(Color4b(0,   0,   0,   255));
+		p->stockTextures.red		= p->createSolidColorTexture2D(Color4b(255, 0,   0,   255));
+		p->stockTextures.green		= p->createSolidColorTexture2D(Color4b(0,   255, 0,   255));
+		p->stockTextures.blue		= p->createSolidColorTexture2D(Color4b(0,   0,   255, 255));
+		p->stockTextures.magenta	= p->createSolidColorTexture2D(Color4b(255, 0,   255, 255));
+		p->stockTextures.error		= p->createSolidColorTexture2D(Color4b(255, 0,   255, 255));
+	}
+
+	p->_apiType = desc.apiType;
+	return p;
 }
 
 Renderer::Renderer() {
 	SGE_ASSERT(s_instance == nullptr);
 	s_instance = this;
+	_vsync = true;
 }
 
 Renderer::~Renderer() {
@@ -61,6 +67,26 @@ SPtr<Shader> Renderer::createShader(StrView filename)
 
 void Renderer::onShaderDestory(Shader* shader) {
 	_shaders.erase(shader->filename().c_str());
+}
+
+SPtr<Texture2D> Renderer::createSolidColorTexture2D(const Color4b& color) {
+	int w = 4;
+	int h = 4;
+	Texture2D_CreateDesc texDesc;
+	texDesc.colorType = ColorType::RGBAb;
+	texDesc.mipmapCount = 1;
+	texDesc.size.set(w, h);
+
+	auto& image = texDesc.imageToUpload;
+	image.create(Color4b::kColorType, w, h);
+
+	for (int y = 0; y < w; y++) {
+		auto span = image.row<Color4b>(y);
+		for (int x = 0; x < h; x++) {
+			span[x] = color;
+		}
+	}
+	return createTexture2D(texDesc);
 }
 
 } // namespace
