@@ -38,10 +38,11 @@ float3		sge_light_color;
 
 int2 patchIndex;
 int patchCellsPerRow;
+float2	patchSize;
 float4 calcPositionOS(float4 positionOS) {
 	//float padding = 0;
 	float padding = 1; // debug
-	positionOS.xz += patchIndex.yx * (patchCellsPerRow + padding);
+	positionOS.xz += patchIndex * (patchCellsPerRow + padding);
 	positionOS.y += 10;
 	return positionOS;
 }

@@ -113,12 +113,6 @@ private:
 	SPtr<RenderGpuBuffer>	_vertexBuffer;
 
 	SPtr<Texture2D>			_heightMapTexture;
-
-	// ------
-	Vector<u16> calcN(int lod, bool isTjoint);
-	Vector<u16> calcE(int lod, bool isTjoint);
-	Vector<u16> calcS(int lod, bool isTjoint);
-	Vector<u16> calcW(int lod, bool isTjoint);
 };
 
 SGE_INLINE RenderTerrain::PatchIndices* RenderTerrain::patchIndices(int level, ZoneMask zoneMask) {
