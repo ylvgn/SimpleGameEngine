@@ -30,13 +30,8 @@ public:
 	using CreateDesc = RenderGpuBuffer_CreateDesc;
 
 	RenderGpuBuffer(CreateDesc& desc);
-
-	void uploadToGpu(ByteSpan data, size_t offset = 0) {
-		if (data.size() + offset > _desc.bufferSize) {
-			throw SGE_ERROR("out of range");
-		}
-		onUploadToGpu(data, offset);
-	}
+	size_t bufferSize() const { return _desc.bufferSize; }
+	void uploadToGpu(ByteSpan data, size_t offset = 0);
 
 protected:
 	virtual void onUploadToGpu(ByteSpan data, size_t offset) = 0;

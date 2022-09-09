@@ -37,7 +37,6 @@ Renderer* Renderer::create(CreateDesc& desc) {
 		p->stockTextures.error		= p->createSolidColorTexture2D(Color4b(255, 0,   255, 255));
 	}
 
-	p->_apiType = desc.apiType;
 	return p;
 }
 

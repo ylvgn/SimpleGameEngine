@@ -75,8 +75,10 @@ public:
 		return material ? material->getPass(materialPassIndex) : nullptr;
 	}
 
-	size_t vertexCount = 0;
-	size_t indexCount = 0;
+	size_t indexOffset	= 0;
+	size_t vertexOffset = 0;
+	size_t vertexCount	= 0;
+	size_t indexCount	= 0;
 }; // RenderCommand_DrawCall
 
 class RenderCommandBuffer : public NonCopyable {

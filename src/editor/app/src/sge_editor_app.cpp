@@ -11,7 +11,7 @@
 
 #include <sge_render/command/RenderRequest.h>
 
-#include <sge_render/imgui/ImGui_Base.h>
+#include <sge_render/imgui/NativeImGui.h>
 
 namespace sge {
 
@@ -148,8 +148,6 @@ public:
 		}
 	}
 
-	bool test = true; // test imgui
-
 	virtual void onDraw() {
 		Base::onDraw();
 		if (!_renderContext) return;
@@ -157,6 +155,7 @@ public:
 		_camera.setViewport(clientRect());
 
 		_renderContext->setFrameBufferSize(clientRect().size);
+		ImGui::NewFrame();
 		_renderContext->beginRender();
 
 		_renderRequest.reset();
@@ -176,14 +175,9 @@ public:
 //-----
 
 		_terrain.render(_renderRequest);
+		_imgui.render(_renderRequest);
 		_renderRequest.drawMesh(SGE_LOC, _renderMesh, _material);
-#if 1
-		auto* imgui = ImGui_Base::instance();
-		imgui->beginRender();
-		ImGui::ShowDemoWindow(&test); // test imgui
-		imgui->render();
-		imgui->endRender();
-#endif
+
 		_renderRequest.swapBuffers();
 
 		_renderContext->commit(_renderRequest.commandBuffer);
@@ -191,6 +185,8 @@ public:
 		_renderContext->endRender();
 		drawNeeded();
 	}
+
+	NativeImGui _imgui;
 
 	RenderTerrain _terrain;
 
@@ -250,12 +246,6 @@ public:
 			winDesc.isMainWindow = true;
 			_mainWin.create(winDesc);
 			_mainWin.setWindowTitle("SGE Editor");
-		}
-
-		{ // create imgui
-			ImGui_Base::CreateDesc imguiDesc;
-			imguiDesc.hwnd = _mainWin.hwnd();
-			ImGui_Base::create(imguiDesc);
 		}
 	}
 

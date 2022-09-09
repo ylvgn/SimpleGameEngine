@@ -40,7 +40,6 @@ public:
 	const RenderAdapterInfo& adapterInfo() { return _adapterInfo; };
 
 	bool vsync() const { return _vsync; }
-	const ApiType apiType() const { return _apiType; }
 
 	SPtr<RenderContext>		createContext(RenderContext_CreateDesc& desc)		{ return onCreateContext(desc); }
 	SPtr<RenderGpuBuffer>	createGpuBuffer(RenderGpuBuffer_CreateDesc& desc)	{ return onCreateGpuBuffer(desc); }
