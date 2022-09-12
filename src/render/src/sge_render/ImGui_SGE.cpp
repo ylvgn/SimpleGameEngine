@@ -2,10 +2,6 @@
 #include <sge_render/Renderer.h>
 #include <sge_render/vertex/Vertex.h>
 
-#if SGE_OS_WINDOWS
-	#include "imgui_impl_win32.h"
-#endif
-
 namespace sge {
 
 ImGui_SGE::~ImGui_SGE() {
@@ -14,19 +10,19 @@ ImGui_SGE::~ImGui_SGE() {
 
 void ImGui_SGE::create(CreateDesc& desc) {
 	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
+	_ctx = ImGui::CreateContext();
+	if (!_ctx) throw SGE_ERROR("ImGui error create context");
 
 	ImGuiIO& io = ImGui::GetIO();
+
+	io.BackendRendererUserData = this;
+	io.BackendRendererName = "ImGui_SGE";
 	io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;  // We can honor the ImDrawCmd::VtxOffset field, allowing for large meshes.
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;		// Enable Keyboard Controls
 
 	auto* renderer = Renderer::instance();
 
 	ImGui::StyleColorsDark();
-
-#if SGE_OS_WINDOWS
-	ImGui_ImplWin32_Init(desc.window);
-#endif
 
 	{ // vertex layout
 		Vertex vertex;
@@ -41,10 +37,12 @@ void ImGui_SGE::create(CreateDesc& desc) {
 }
 
 void ImGui_SGE::destroy() {
-#if SGE_OS_WINDOWS
-	ImGui_ImplWin32_Shutdown();
-#endif
-	ImGui::DestroyContext();
+	if (!_ctx) return;
+	ImGuiIO& io = ImGui::GetIO();
+	io.BackendRendererUserData = nullptr;
+	io.BackendRendererName = nullptr;
+	ImGui::DestroyContext(_ctx);
+	_ctx = nullptr;
 }
 
 void ImGui_SGE::_createFontsTexture() {
@@ -53,15 +51,17 @@ void ImGui_SGE::_createFontsTexture() {
 	ImGuiIO& io = ImGui::GetIO();
 	unsigned char* pixels;
 	int w, h;
-	io.Fonts->GetTexDataAsRGBA32(&pixels, &w, &h);
+	io.Fonts->GetTexDataAsAlpha8(&pixels, &w, &h);
+
+	using Color = ColorRb;
 
 	Texture2D_CreateDesc texDesc;
 	auto& image = texDesc.imageToUpload;
 	texDesc.size.set(w, h);
-	texDesc.colorType = ColorType::RGBAb;
+	texDesc.colorType = Color::kColorType;
 	texDesc.mipmapCount = 1;
-	image.create(Color4b::kColorType, w, h);
-	image.copyToPixelData(ByteSpan(reinterpret_cast<const u8*>(pixels), w * h));
+	image.create(Color::kColorType, w, h);
+	image.copyToPixelData(ByteSpan(pixels, w * h));
 
 	_fontsTexture = renderer->createTexture2D(texDesc);
 }
@@ -70,10 +70,6 @@ void ImGui_SGE::beginRender(RenderContext* renderContext) {
 	if (!_fontsTexture) {
 		_createFontsTexture();
 	}
-
-#if SGE_OS_WINDOWS
-	ImGui_ImplWin32_NewFrame();
-#endif
 
 	ImGuiIO& io = ImGui::GetIO();
 	auto s = renderContext->frameBufferSize();
@@ -188,6 +184,47 @@ void ImGui_SGE::render(RenderRequest& req) {
 }
 
 void ImGui_SGE::endRender() {
+}
+
+void ImGui_SGE::onUIMouseEvent(UIMouseEvent& ev) {
+	ImGuiIO& io = ImGui::GetIO();
+	
+	using Type = UIMouseEventType;
+	switch (ev.type) {
+		case Type::Move: {
+			io.AddMousePosEvent(ev.pos.x, ev.pos.y);
+		} break;
+
+		case Type::Down: {
+			io.AddMouseButtonEvent(_mouseButton(ev.pressedButtons), true);
+		} break;
+
+		case Type::Up: {
+			io.AddMouseButtonEvent(_mouseButton(ev.pressedButtons), false);
+		} break;
+
+		case Type::Scroll: {
+			io.AddMouseWheelEvent(ev.scroll.x, ev.scroll.y);
+		} break;
+	}
+}
+
+const bool ImGui_SGE::wantCaptureMouse() const
+{
+	auto io = ImGui::GetIO();
+	return io.WantCaptureMouse;
+}
+
+int ImGui_SGE::_mouseButton(UIMouseEventButton v) {
+	using Button = UIMouseEventButton;
+	switch (v) {
+		case Button::Left:		return 0;
+		case Button::Right:		return 1;
+		case Button::Middle:	return 2;
+		case Button::Button4:	return 3;
+		case Button::Button5:	return 4;
+	}
+	return 0;
 }
 
 } // namespace

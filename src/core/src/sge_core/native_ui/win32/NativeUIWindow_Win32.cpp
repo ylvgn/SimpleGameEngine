@@ -4,9 +4,6 @@
 
 #if SGE_OS_WINDOWS
 
-#include "imgui_impl_win32.h"
-extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
-
 namespace sge {
 
 void NativeUIWindow_Win32::onCreate(CreateDesc& desc) {
@@ -103,9 +100,6 @@ void NativeUIWindow_Win32::onDrawNeeded() {
 }
 
 LRESULT WINAPI NativeUIWindow_Win32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-	if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wParam, lParam))
-		return true;
-
 	switch (msg) {
 		case WM_CREATE: {
 			auto cs = reinterpret_cast<CREATESTRUCT*>(lParam);

@@ -21,6 +21,10 @@ public:
 	void render(RenderRequest& req);
 	void endRender();
 
+	void onUIMouseEvent(UIMouseEvent& ev);
+
+	const bool wantCaptureMouse() const;
+
 private:
 	SPtr<Material>			_material;
 	SPtr<Texture2D>			_fontsTexture;
@@ -35,6 +39,10 @@ private:
 	Vector<u8>	_indexData;
 
 	void _createFontsTexture();
+
+	int _mouseButton(UIMouseEventButton v);
+
+	ImGuiContext* _ctx;
 };
 
 } // namespace

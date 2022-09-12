@@ -29,9 +29,9 @@ public:
 		}
 
 		{ // imgui
-			ImGui_SGE_CreateDesc imgui_desc;
-			imgui_desc.window = this;
-			_imgui.create(imgui_desc);
+			ImGui_SGE_CreateDesc imguiDesc;
+			imguiDesc.window = this;
+			_imgui.create(imguiDesc);
 		}
 #if 1
 		_camera.setPos(0, 10, 10);
@@ -132,6 +132,9 @@ public:
 	}
 
 	virtual void onUIMouseEvent(UIMouseEvent& ev) override {
+		_imgui.onUIMouseEvent(ev);
+		if (_imgui.wantCaptureMouse()) return;
+
 		if (ev.isDragging()) {
 			using Button = UIMouseEventButton;
 			switch (ev.pressedButtons) {
@@ -181,6 +184,7 @@ public:
 //-----
 
 		_terrain.render(_renderRequest);
+
 		_renderRequest.drawMesh(SGE_LOC, _renderMesh, _material);
 		_imgui.render(_renderRequest);
 
