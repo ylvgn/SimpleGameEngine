@@ -69,8 +69,8 @@ void Material_DX11::MyPass::_bindRenderState(RenderContext_DX11* ctx) {
 		rasterDesc.DepthBiasClamp = 0.0f;
 		rasterDesc.DepthClipEnable = true;
 
-		//rasterDesc.FillMode = rs.wireframe ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID;
-		rasterDesc.FillMode = D3D11_FILL_WIREFRAME; // test terrain
+		rasterDesc.FillMode = rs.wireframe ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID;
+//		rasterDesc.FillMode = D3D11_FILL_WIREFRAME; // test terrain
 
 		rasterDesc.FrontCounterClockwise = true;
 		rasterDesc.MultisampleEnable = false;

@@ -1,7 +1,6 @@
 #include "ImGui_SGE.h"
-#include <sge_render.h>
+#include <sge_render/Renderer.h>
 #include <sge_render/vertex/Vertex.h>
-#include <sge_render/buffer/RenderGpuBuffer.h>
 
 #if SGE_OS_WINDOWS
 	#include "imgui_impl_win32.h"
@@ -9,29 +8,36 @@
 
 namespace sge {
 
-ImGui_SGE::ImGui_SGE() {
-	// Setup Dear ImGui context
-	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
-	ImGuiIO& io = ImGui::GetIO();
-
-	// Setup backend capabilities flags
-    //io.BackendRendererUserData = (void*)bd;
-    //io.BackendRendererName = "imgui_impl_dx11";
-    io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;  // We can honor the ImDrawCmd::VtxOffset field, allowing for large meshes.
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;		// Enable Keyboard Controls
-	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;		// Enable Gamepad Controls
+ImGui_SGE::~ImGui_SGE() {
+	destroy();
 }
 
 void ImGui_SGE::create(CreateDesc& desc) {
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+
+	ImGuiIO& io = ImGui::GetIO();
+	io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;  // We can honor the ImDrawCmd::VtxOffset field, allowing for large meshes.
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;		// Enable Keyboard Controls
+
+	auto* renderer = Renderer::instance();
+
 	ImGui::StyleColorsDark();
 
 #if SGE_OS_WINDOWS
 	ImGui_ImplWin32_Init(desc.window);
 #endif
 
-	_createDeviceObjects();
-	_createFontsTexture();
+	{ // vertex layout
+		Vertex vertex;
+		_vertexLayout = vertex.s_layout();
+	}
+
+	{ // material
+		auto shader = Renderer::instance()->createShader("Assets/Shaders/imgui.shader");
+		_material = renderer->createMaterial();
+		_material->setShader(shader);
+	}
 }
 
 void ImGui_SGE::destroy() {
@@ -58,28 +64,32 @@ void ImGui_SGE::_createFontsTexture() {
 	image.copyToPixelData(ByteSpan(reinterpret_cast<const u8*>(pixels), w * h));
 
 	_fontsTexture = renderer->createTexture2D(texDesc);
-
-	// Store our identifier
-	//io.Fonts->SetTexID((ImTextureID)bd->pFontTextureView); // ???
 }
 
-void ImGui_SGE::_createDeviceObjects()
-{
-	auto* renderer = Renderer::instance();
-
-	{ // vertex layout
-		Vertex vertex;
-		_vertexLayout = vertex.s_layout();
+void ImGui_SGE::beginRender(RenderContext* renderContext) {
+	if (!_fontsTexture) {
+		_createFontsTexture();
 	}
 
-	{ // material
-		auto shader = Renderer::instance()->createShader("Assets/Shaders/imgui.shader");
-		_material = renderer->createMaterial();
-		_material->setShader(shader);
-	}
+#if SGE_OS_WINDOWS
+	ImGui_ImplWin32_NewFrame();
+#endif
+
+	ImGuiIO& io = ImGui::GetIO();
+	auto s = renderContext->frameBufferSize();
+	io.DisplaySize = ImVec2(s.x, s.y);
+	io.DeltaTime = 1.0f / 60.0f;
+
+	ImGui::NewFrame();
+	ImGui::ShowDemoWindow(nullptr); // test demo
 }
 
-void ImGui_SGE::_renderDrawData(RenderRequest& req) {
+void ImGui_SGE::render(RenderRequest& req) {
+	// Rendering
+	ImGui::Render();
+	
+	if (!_material) return;
+
 	auto* data = ImGui::GetDrawData();
 	if (!data) return;
 
@@ -91,11 +101,24 @@ void ImGui_SGE::_renderDrawData(RenderRequest& req) {
 		return;
 
 	auto* renderer = Renderer::instance();
-	
-	if (!_material) { SGE_ASSERT(false); return; }
-	req.setMaterialCommonParams(_material);
 
-	_material->setParam("texture0", _fontsTexture);
+	{ // material
+		if (!_material) { SGE_ASSERT(false); return; }
+		req.setMaterialCommonParams(_material);
+
+		float L = data->DisplayPos.x;
+		float R = data->DisplayPos.x + data->DisplaySize.x;
+		float T = data->DisplayPos.y;
+		float B = data->DisplayPos.y + data->DisplaySize.y;
+		Mat4f mvp(
+			{ 2.0f/(R-L),   0.0f,           0.0f,       0.0f },
+			{ 0.0f,         2.0f/(T-B),     0.0f,       0.0f },
+			{ 0.0f,         0.0f,           0.5f,       0.0f },
+			{ (R+L)/(L-R),  (T+B)/(B-T),    0.5f,       1.0f }
+		);
+		_material->setParam("ProjectionMatrix", mvp);
+		_material->setParam("texture0", _fontsTexture);
+	}
 
 	auto vertexSize = sizeof(ImDrawVert);
 	auto indexSize = sizeof(ImDrawIdx);
@@ -141,7 +164,6 @@ void ImGui_SGE::_renderDrawData(RenderRequest& req) {
 #if _DEBUG
 			cmd->debugLoc = SGE_LOC;
 #endif
-
 			cmd->material			= _material;
 			cmd->materialPassIndex	= 0;
 			cmd->primitive			= RenderPrimitiveType::Triangles;
@@ -165,20 +187,7 @@ void ImGui_SGE::_renderDrawData(RenderRequest& req) {
 	}
 }
 
-bool show_demo_window = true; // test
-void ImGui_SGE::render(RenderRequest& req)
-{
-#if SGE_OS_WINDOWS
-	ImGui_ImplWin32_NewFrame();
-#endif
-	ImGui::NewFrame();
-
-	// demo
-	ImGui::ShowDemoWindow(&show_demo_window);
-
-	// Rendering
-	ImGui::Render();
-	_renderDrawData(req);
+void ImGui_SGE::endRender() {
 }
 
 } // namespace

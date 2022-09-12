@@ -23,6 +23,7 @@ public:
 	virtual ~RenderContext() = default;
 
 	void setFrameBufferSize(Vec2f newSize);
+	const Vec2f& frameBufferSize() const { return _frameBufferSize; }
 
 protected:
 	virtual void onBeginRender() {};

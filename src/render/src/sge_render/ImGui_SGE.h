@@ -10,14 +10,16 @@ struct ImGui_SGE_CreateDesc {
 
 class ImGui_SGE : public NonCopyable {
 	using CreateDesc	= ImGui_SGE_CreateDesc;
-	using Vertex		= Vertex_PosColorUv<1>;
+	using Vertex		= Vertex_ImGui;
 public:
-	ImGui_SGE();
-	~ImGui_SGE() { destroy(); };
+	~ImGui_SGE();
 
 	void create(CreateDesc& desc);
-	void render(RenderRequest& req);
 	void destroy();
+
+	void beginRender(RenderContext* renderContext);
+	void render(RenderRequest& req);
+	void endRender();
 
 private:
 	SPtr<Material>			_material;
@@ -33,8 +35,6 @@ private:
 	Vector<u8>	_indexData;
 
 	void _createFontsTexture();
-	void _createDeviceObjects();
-	void _renderDrawData(RenderRequest& req);
 };
 
 } // namespace

@@ -4,16 +4,20 @@ Shader {
 	}
 
 	Pass {
+		Cull		None
+
+		DepthTest	Always
+
+		BlendRGB 	Add One OneMinusSrcAlpha
+		BlendAlpha	Add One OneMinusSrcAlpha
+
 		VsFunc		vs_main
 		PsFunc		ps_main
 	}
 }
 #endif
 
-float4x4	sge_matrix_model;
-float4x4	sge_matrix_view;
-float4x4	sge_matrix_proj;
-float4x4	sge_matrix_mvp;
+float4x4 ProjectionMatrix;
 
 //sampler texture0_Sampler;
 SamplerState 	texture0_Sampler;
@@ -36,7 +40,7 @@ struct PixelIn
 PixelIn vs_main(VertexIn i)
 {
 	PixelIn o;
-	o.positionHCS = mul(sge_matrix_proj, float4(i.positionOS, 0.f, 1.f));
+	o.positionHCS = mul(ProjectionMatrix, float4(i.positionOS, 0.f, 1.f));
 	o.color = i.color;
 	o.uv = i.uv;
 	return o;

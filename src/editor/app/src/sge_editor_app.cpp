@@ -11,7 +11,7 @@
 
 #include <sge_render/command/RenderRequest.h>
 
-#include <sge_render/imgui/NativeImGui.h>
+#include <sge_render/ImGui_SGE.h>
 
 namespace sge {
 
@@ -26,6 +26,12 @@ public:
 			RenderContext::CreateDesc renderContextDesc;
 			renderContextDesc.window = this;
 			_renderContext = renderer->createContext(renderContextDesc);
+		}
+
+		{ // imgui
+			ImGui_SGE_CreateDesc imgui_desc;
+			imgui_desc.window = this;
+			_imgui.create(imgui_desc);
 		}
 #if 1
 		_camera.setPos(0, 10, 10);
@@ -155,8 +161,8 @@ public:
 		_camera.setViewport(clientRect());
 
 		_renderContext->setFrameBufferSize(clientRect().size);
-		ImGui::NewFrame();
 		_renderContext->beginRender();
+		_imgui.beginRender(_renderContext);
 
 		_renderRequest.reset();
 		_renderRequest.matrix_model = Mat4f::s_identity();
@@ -175,18 +181,19 @@ public:
 //-----
 
 		_terrain.render(_renderRequest);
-		_imgui.render(_renderRequest);
 		_renderRequest.drawMesh(SGE_LOC, _renderMesh, _material);
+		_imgui.render(_renderRequest);
 
 		_renderRequest.swapBuffers();
 
 		_renderContext->commit(_renderRequest.commandBuffer);
 
 		_renderContext->endRender();
+		_imgui.endRender();
 		drawNeeded();
 	}
 
-	NativeImGui _imgui;
+	ImGui_SGE _imgui;
 
 	RenderTerrain _terrain;
 
