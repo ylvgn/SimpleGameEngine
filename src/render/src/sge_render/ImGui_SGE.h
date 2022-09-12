@@ -4,16 +4,16 @@
 
 namespace sge {
 
-struct NativeImGui_CreateDesc {
+struct ImGui_SGE_CreateDesc {
 	NativeUIWindow* window = nullptr;
 };
 
-class NativeImGui : public NonCopyable {
-	using CreateDesc	= NativeImGui_CreateDesc;
+class ImGui_SGE : public NonCopyable {
+	using CreateDesc	= ImGui_SGE_CreateDesc;
 	using Vertex		= Vertex_PosColorUv<1>;
 public:
-	NativeImGui();
-	~NativeImGui() { destroy(); };
+	ImGui_SGE();
+	~ImGui_SGE() { destroy(); };
 
 	void create(CreateDesc& desc);
 	void render(RenderRequest& req);

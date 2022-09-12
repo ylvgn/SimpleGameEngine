@@ -1,4 +1,4 @@
-#include "NativeImGui.h"
+#include "ImGui_SGE.h"
 #include <sge_render.h>
 #include <sge_render/vertex/Vertex.h>
 #include <sge_render/buffer/RenderGpuBuffer.h>
@@ -9,7 +9,7 @@
 
 namespace sge {
 
-NativeImGui::NativeImGui() {
+ImGui_SGE::ImGui_SGE() {
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -23,7 +23,7 @@ NativeImGui::NativeImGui() {
 	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;		// Enable Gamepad Controls
 }
 
-void NativeImGui::create(CreateDesc& desc) {
+void ImGui_SGE::create(CreateDesc& desc) {
 	ImGui::StyleColorsDark();
 
 #if SGE_OS_WINDOWS
@@ -34,14 +34,14 @@ void NativeImGui::create(CreateDesc& desc) {
 	_createFontsTexture();
 }
 
-void NativeImGui::destroy() {
+void ImGui_SGE::destroy() {
 #if SGE_OS_WINDOWS
 	ImGui_ImplWin32_Shutdown();
 #endif
 	ImGui::DestroyContext();
 }
 
-void NativeImGui::_createFontsTexture() {
+void ImGui_SGE::_createFontsTexture() {
 	auto* renderer = Renderer::instance();
 
 	ImGuiIO& io = ImGui::GetIO();
@@ -63,7 +63,7 @@ void NativeImGui::_createFontsTexture() {
 	//io.Fonts->SetTexID((ImTextureID)bd->pFontTextureView); // ???
 }
 
-void NativeImGui::_createDeviceObjects()
+void ImGui_SGE::_createDeviceObjects()
 {
 	auto* renderer = Renderer::instance();
 
@@ -79,7 +79,7 @@ void NativeImGui::_createDeviceObjects()
 	}
 }
 
-void NativeImGui::_renderDrawData(RenderRequest& req) {
+void ImGui_SGE::_renderDrawData(RenderRequest& req) {
 	auto* data = ImGui::GetDrawData();
 	if (!data) return;
 
@@ -92,6 +92,11 @@ void NativeImGui::_renderDrawData(RenderRequest& req) {
 
 	auto* renderer = Renderer::instance();
 	
+	if (!_material) { SGE_ASSERT(false); return; }
+	req.setMaterialCommonParams(_material);
+
+	_material->setParam("texture0", _fontsTexture);
+
 	auto vertexSize = sizeof(ImDrawVert);
 	auto indexSize = sizeof(ImDrawIdx);
 
@@ -161,22 +166,15 @@ void NativeImGui::_renderDrawData(RenderRequest& req) {
 }
 
 bool show_demo_window = true; // test
-void NativeImGui::render(RenderRequest& req)
+void ImGui_SGE::render(RenderRequest& req)
 {
 #if SGE_OS_WINDOWS
 	ImGui_ImplWin32_NewFrame();
 #endif
 	ImGui::NewFrame();
 
-	if (!_material) { SGE_ASSERT(false); return; }
-	req.setMaterialCommonParams(_material);
-
-	_material->setParam("texture0", _fontsTexture);
-
-	{
-		// demo
-		ImGui::ShowDemoWindow(&show_demo_window);
-	}
+	// demo
+	ImGui::ShowDemoWindow(&show_demo_window);
 
 	// Rendering
 	ImGui::Render();
