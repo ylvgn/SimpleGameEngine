@@ -13,6 +13,10 @@
 
 #include <sge_render/ImGui_SGE.h>
 
+#include <sge_editor/ecs/TypeManager.h>
+#include <sge_editor/ecs/GameObject.h>
+#include <sge_editor/ecs/Transform.h>
+
 namespace sge {
 
 class MainWin : public NativeUIWindow {
@@ -21,6 +25,19 @@ public:
 	virtual void onCreate(CreateDesc& desc) {
 		Base::onCreate(desc);
 		auto* renderer = Renderer::instance();
+
+		TypeManager::instance()->Test();
+
+		{
+			GameObject obj;
+			obj.addComponent<Transform>();
+			obj.addComponent<Transform>();
+
+			Transform* t = obj.getComponent<Transform>();
+			t->localPosition.set(Vec3f(1, 2, 3));
+			t->localScale.set(Vec3f(10, 10,10));
+			SGE_DUMP_VAR(t->localPosition, t->localScale);
+		}
 
 		{ // create render context
 			RenderContext::CreateDesc renderContextDesc;
