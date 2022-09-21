@@ -73,7 +73,7 @@ inline void* operator new[](size_t size, size_t alignment, size_t alignmentOffse
 
 namespace sge {
 
-template<class T> inline constexpr typename std::underlying_type<T>::type     enumInt(T  value) { return       static_cast<typename std::underlying_type<T>::type>(value); }
+template<class T> inline constexpr typename std::underlying_type<T>::type  enumInt(T  value) { return static_cast<typename std::underlying_type<T>::type>(value); }
 template<class T> inline constexpr typename std::underlying_type<T>::type& enumIntRef(T& value) { return *reinterpret_cast<typename std::underlying_type<T>::type*>(&value); }
 template<class T> inline constexpr typename std::underlying_type<T>::type const& enumIntRef(const T& value) { return *reinterpret_cast<const typename std::underlying_type<T>::type*>(&value); }
 
