@@ -15,8 +15,8 @@ public:
 	T* addComponent() {
 		static_assert(std::is_base_of<Component, T>::value, "invalid addComponent");
 		UPtr<Component> c = UPtr<Component>(new T(this));
-		_components.emplace_back(std::move(c));
-		return nullptr;
+		auto& res = _components.emplace_back(std::move(c));
+		return sge_cast<T>(res.get());
 	}
 
 	template<class T> inline
@@ -32,27 +32,38 @@ public:
 	}
 
 	template<class T> inline
-	Vector<T*> getComponents() {
-		Vector<T*> res;
-		res.reserve(_components.size())
-		static_assert(std::is_base_of<Component, T>::value, "invalid getComponent");
+	void getComponents(Vector<T*>& out) {
+		static_assert(std::is_base_of<Component, T>::value, "invalid getComponents");
+		out.reserve(_components.size());
 		const auto* target = sge_typeof<T>();
 		for (auto& c : _components) {
 			if (c.get()->getType() == target) {
-				res.emplace_back(c);
+				out.emplace_back(sge_cast<T>(c.get()));
 			}
 		}
-		return res;
 	}
 
 	template<class T> inline
-	T* removeComponent() {
-		static_assert(std::is_base_of<Component, T>::value, "invalid getComponent");
+	void removeComponent() {
+		static_assert(std::is_base_of<Component, T>::value, "invalid removeComponent");
 		const auto* target = sge_typeof<T>();
-		for (auto& it = _components.begin(); it != _components.end(); it++) {
-			if (c.get()->getType() == target) {
+		for (auto* it = _components.begin(); it != _components.end(); ++it) {
+			if (it->get()->getType() == target) {
 				it = _components.erase(it);
 				return;
+			}
+		}
+	}
+
+	template<class T> inline
+	void removeComponents() {
+		static_assert(std::is_base_of<Component, T>::value, "invalid removeComponents");
+		const auto* target = sge_typeof<T>();
+		for (auto* it = _components.begin(); it != _components.end();) {
+			if (it->get()->getType() == target) {
+				it = _components.erase(it);
+			} else {
+				++it;
 			}
 		}
 	}

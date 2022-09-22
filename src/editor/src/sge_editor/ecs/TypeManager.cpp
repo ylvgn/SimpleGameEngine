@@ -1,5 +1,4 @@
 #include "TypeManager.h"
-#include "Transform.h" //test
 
 namespace sge {
 
@@ -12,32 +11,21 @@ const TypeInfo* TypeManager::getType(StrView typeName) {
 	return nullptr;
 }
 
-void TypeManager::Test() {
-	sge_typeof<u8>();
+TypeManager::TypeManager() {
+	registerType<u8>();
+	registerType<u16>();
+	registerType<u32>();
+	registerType<u64>();
 
-	sge_typeof<u16>();
-	sge_typeof<u32>();
-	sge_typeof<u64>();
-	sge_typeof<i8>();
-	sge_typeof<i16>();
-	sge_typeof<i32>();
-	sge_typeof<i64>();
-	sge_typeof<f32>();
-	sge_typeof<f64>();
-	sge_typeof<f128>();
+	registerType<i8>();
+	registerType<i16>();
+	registerType<i32>();
+	registerType<i64>();
 
-	sge_typeof<Vec3f>();
-	sge_typeof<Quat4f>();
-
-	// just for test
-	sge_typeof<Transform>();
-
-	for (auto& s : _table) {
-		SGE_DUMP_VAR(s.first, "==============");
-		SGE_DUMP_VAR(*s.second);
-	}
+	registerType<f32>();
+	registerType<f64>();
+	registerType<f128>();
 }
-
 
 TypeManager* TypeManager::instance() {
 	static TypeManager s;

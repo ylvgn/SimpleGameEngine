@@ -67,15 +67,12 @@ public:
 	void onFormat(fmt::format_context& ctx) const;
 };
 
-class TypeManager;
-
 template<class T>
 class TIBaseInitNoBase : public TypeInfo {
 public:
 	TIBaseInitNoBase(const char* name_) {
 		name = name_;
 		dataSize = sizeof(T);
-		TypeManager::instance()->registerType(this);
 	}
 };
 

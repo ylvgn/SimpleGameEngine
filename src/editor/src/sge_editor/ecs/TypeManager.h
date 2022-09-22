@@ -1,22 +1,28 @@
 #pragma once
-#include "Reflection.h"
+#include "TypeObject.h"
 
 namespace sge {
 
 class TypeManager : public NonCopyable {
 public:
+	TypeManager();
 	static TypeManager* instance();
 
-	void Test();
-
-	void registerType(const TypeInfo* ti) {
-		auto* p = getType(ti->name);
-		if (p) return;
+	inline
+	const TypeInfo* registerType(const TypeInfo* ti) {
+		SGE_ASSERT(ti != nullptr);
+		SGE_ASSERT(getType(ti->name) == nullptr);
 		_table[ti->name] = ti;
+		return ti;
+	}
+
+	template<class T> inline
+	const TypeInfo* registerType() {
+		const TypeInfo* ti = sge_typeof<T>();
+		return registerType(ti);
 	}
 
 	const TypeInfo* getType(StrView typeName);
-
 private:
 	StringMap<const TypeInfo*> _table;
 };

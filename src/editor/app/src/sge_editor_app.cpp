@@ -13,7 +13,6 @@
 
 #include <sge_render/ImGui_SGE.h>
 
-#include <sge_editor/ecs/TypeManager.h>
 #include <sge_editor/ecs/GameObject.h>
 #include <sge_editor/ecs/Transform.h>
 
@@ -26,18 +25,29 @@ public:
 		Base::onCreate(desc);
 		auto* renderer = Renderer::instance();
 
-		TypeManager::instance()->Test();
-
 		{
 			GameObject obj;
-			obj.addComponent<Transform>();
-			obj.addComponent<Transform>();
+			Transform* t1 = obj.addComponent<Transform>();
+			Transform* t2 = obj.addComponent<Transform>();
 
-			Transform* t = obj.getComponent<Transform>();
-			t->localPosition.set(Vec3f(1, 2, 3));
-			t->localScale.set(Vec3f(10, 10,10));
-			SGE_DUMP_VAR(t->localPosition, t->localScale);
+			t1->localPosition.set(Vec3f(1, 20, 30));
+			t1->localScale.set(Vec3f(10, 100, 100));
+
+			t2->localPosition.set(Vec3f(2, 2, 3));
+			t2->localScale.set(Vec3f(20, 10, 10));
+
+			Vector<Transform*> trans;
+			obj.getComponents<Transform>(trans);
+			for (auto& t : trans) {
+				SGE_DUMP_VAR(t->localPosition, t->localScale);
+			}
+
+			SGE_DUMP_VAR("cnt:", obj.components().size());
+			obj.removeComponents<Transform>();
+			SGE_DUMP_VAR("cnt:", obj.components().size());
 		}
+
+		TypeManager::instance(); // breakpoint debug
 
 		{ // create render context
 			RenderContext::CreateDesc renderContextDesc;

@@ -12,6 +12,7 @@ private: \
 		TI_Base() : TIBaseInit<T, BASE>(#T) {} \
 	}; \
 public: \
+	static constexpr const char* getTypeStr() { return #T; } \
 	static const TypeInfo* s_getType(); \
 	virtual const TypeInfo* getType() const override { return s_getType(); } \
 private: \
@@ -48,6 +49,7 @@ class TypeObject : public NonCopyable {
 		TI_Base() : TIBaseInitNoBase<This>("TypeObject") {}
 	};
 public:
+	static constexpr const char* getTypeStr() { return "TypeObject"; }
 	static const TypeInfo* s_getType();
 	virtual const TypeInfo* getType() const { return s_getType(); }
 };
@@ -60,7 +62,13 @@ const TypeInfo* sge_typeof(TypeObject& obj) {
 template<class DST> inline
 DST* sge_cast(TypeObject* obj) {
 	if (!obj) return nullptr;
-	const auto* ti = sge_typeof(*obj);
+	const auto* ti = TypeManager::instance()->getType(DST::getTypeStr());
+	if (!ti) {
+		ti = sge_typeof(*obj);
+		if (ti) {
+			TypeManager::instance()->registerType(ti);
+		}
+	}
 	if (!ti) return nullptr;
 	if (!ti->isKindOf<DST>()) return nullptr;
 	return static_cast<DST*>(obj);
