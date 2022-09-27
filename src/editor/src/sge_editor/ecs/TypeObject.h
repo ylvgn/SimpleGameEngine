@@ -42,7 +42,7 @@ const TypeInfo* T::s_getType() { \
 } \
 // --------
 
-class TypeObject : public NonCopyable {
+class TypeObject : public Object {
 	using This = TypeObject;
 	class TI_Base : public TIBaseInitNoBase<This> {
 	public:

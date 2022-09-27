@@ -25,29 +25,20 @@ public:
 		Base::onCreate(desc);
 		auto* renderer = Renderer::instance();
 
-		{
-			GameObject obj;
-			Transform* t1 = obj.addComponent<Transform>();
-			Transform* t2 = obj.addComponent<Transform>();
-
-			t1->localPosition.set(Vec3f(1, 20, 30));
-			t1->localScale.set(Vec3f(10, 100, 100));
-
-			t2->localPosition.set(Vec3f(2, 2, 3));
-			t2->localScale.set(Vec3f(20, 10, 10));
-
-			Vector<Transform*> trans;
-			obj.getComponents<Transform>(trans);
-			for (auto& t : trans) {
-				SGE_DUMP_VAR(t->localPosition, t->localScale);
+		{ // ecs
+			for (size_t i = 0; i < 10; i++) {
+				SPtr<GameObject> obj = new GameObject();
+				Transform* t = obj->addComponent<Transform>();
+				Vec3f tmp;
+				for (int j = 0; j < 3; j++) tmp[j] = 1.0f + std::rand() % 99;;
+				t->localPosition.set(tmp);
+				for (int j = 0; j < 3; j++) tmp[j] = 10.0f + std::rand() % 99;;
+				t->localScale.set(tmp);
+				objs.emplace_back(std::move(obj));
 			}
-
-			SGE_DUMP_VAR("cnt:", obj.components().size());
-			obj.removeComponents<Transform>();
-			SGE_DUMP_VAR("cnt:", obj.components().size());
 		}
 
-		TypeManager::instance(); // breakpoint debug
+		//TypeManager::instance(); // breakpoint debug
 
 		{ // create render context
 			RenderContext::CreateDesc renderContextDesc;
@@ -213,6 +204,35 @@ public:
 		_terrain.render(_renderRequest);
 
 		_renderRequest.drawMesh(SGE_LOC, _renderMesh, _material);
+
+#if 1 // imgui
+		ImGui::ShowDemoWindow(nullptr);
+#else
+
+		{ // Hierarchy
+			ImGui::Begin("Hierarchy", 0, 0);
+
+			int i = 1;
+			for (auto& obj : objs) {
+				auto components = obj->components();
+				auto tmp = components.size();
+				TempString name;
+				FmtTo(name, "GameObject{}-[{}]", i, tmp);
+				if (ImGui::TreeNodeEx(name.c_str())) { // no child --> ImGuiTreeNodeFlags_Leaf
+					//SGE_DUMP_VAR(i);
+					ImGui::TreePop();
+				}
+				i++;
+			}
+			ImGui::End();
+		}
+
+		{ // Inspector
+			ImGui::Begin("Inspector", 0, 0);
+
+			ImGui::End();
+		}
+#endif
 		_imgui.render(_renderRequest);
 
 		_renderRequest.swapBuffers();
@@ -223,6 +243,8 @@ public:
 		_imgui.endRender();
 		drawNeeded();
 	}
+
+	Vector<SPtr<GameObject>> objs;
 
 	ImGui_SGE _imgui;
 

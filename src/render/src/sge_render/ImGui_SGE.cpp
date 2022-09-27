@@ -77,7 +77,6 @@ void ImGui_SGE::beginRender(RenderContext* renderContext) {
 	io.DeltaTime = 1.0f / 60.0f;
 
 	ImGui::NewFrame();
-	ImGui::ShowDemoWindow(nullptr); // test demo
 }
 
 void ImGui_SGE::render(RenderRequest& req) {
