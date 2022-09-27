@@ -22,6 +22,7 @@ public:
 	void endRender();
 
 	void onUIMouseEvent(UIMouseEvent& ev);
+	void onUIMouseCursor(UIMouseEvent& ev);
 
 	const bool wantCaptureMouse() const;
 

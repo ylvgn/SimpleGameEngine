@@ -20,4 +20,9 @@ void NativeUIWindow_Base::onUINativeMouseEvent(UIMouseEvent& ev) {
 	onUIMouseEvent(ev);
 }
 
+void NativeUIWindow_Base::onUINativeMouseCursor(UIMouseEvent& ev) {
+	onUIMouseCursor(ev);
+	setCursor(ev.cursor);
+}
+
 }

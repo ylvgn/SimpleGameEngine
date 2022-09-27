@@ -42,8 +42,9 @@ public:
 		bool		alwaysOnTop		: 1;
 	};
 
-	void create			(CreateDesc& desc)	{ onCreate(desc); }
-	void setWindowTitle	(StrView title)		{ onSetWindowTitle(title); }
+	void create			(CreateDesc& desc)		{ onCreate(desc); }
+	void setWindowTitle	(StrView title)			{ onSetWindowTitle(title); }
+	void setCursor(UIMouseEvent::Cursor type)	{ onSetCursor(type); }
 
 	void drawNeeded() { onDrawNeeded(); }
 
@@ -56,9 +57,13 @@ public:
 	virtual void onUINativeMouseEvent(UIMouseEvent& ev);
 	virtual void onUIMouseEvent(UIMouseEvent& ev) {}
 
+	virtual void onUINativeMouseCursor(UIMouseEvent& ev);
+	virtual void onUIMouseCursor(UIMouseEvent& ev) {}
+
 protected:
 	virtual void onCreate(CreateDesc& desc) {}
 	virtual void onSetWindowTitle(StrView title) {}
+	virtual void onSetCursor(UIMouseEvent::Cursor type) {}
 	virtual void onClientRectChanged(const Rect2f& rc) { _clientRect = rc; }
 	virtual void onDrawNeeded() {}
 

@@ -11,7 +11,9 @@ ImGui_SGE::~ImGui_SGE() {
 void ImGui_SGE::create(CreateDesc& desc) {
 	IMGUI_CHECKVERSION();
 	_ctx = ImGui::CreateContext();
-	if (!_ctx) throw SGE_ERROR("ImGui error create context");
+
+	if (!_ctx)
+		throw SGE_ERROR("ImGui error create context");
 
 	ImGuiIO& io = ImGui::GetIO();
 
@@ -208,8 +210,7 @@ void ImGui_SGE::onUIMouseEvent(UIMouseEvent& ev) {
 	}
 }
 
-const bool ImGui_SGE::wantCaptureMouse() const
-{
+const bool ImGui_SGE::wantCaptureMouse() const {
 	auto io = ImGui::GetIO();
 	return io.WantCaptureMouse;
 }
@@ -224,6 +225,33 @@ int ImGui_SGE::_mouseButton(UIMouseEventButton v) {
 		case Button::Button5:	return 4;
 	}
 	return 0;
+}
+
+void ImGui_SGE::onUIMouseCursor(UIMouseEvent& ev) {
+	ImGuiIO& io = ImGui::GetIO();
+	if (io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange)
+		return;
+
+	using Cursor = UIMouseEvent::Cursor;
+
+	ImGuiMouseCursor cursor = ImGui::GetMouseCursor();
+	if (cursor == ImGuiMouseCursor_None || io.MouseDrawCursor) {
+		ev.cursor = Cursor::None;
+	} else {
+		ev.cursor = Cursor::Arrow;
+		switch (cursor)
+		{
+			case ImGuiMouseCursor_Arrow:        ev.cursor = Cursor::Arrow;		break;
+			case ImGuiMouseCursor_TextInput:    ev.cursor = Cursor::IBeam;		break;
+			case ImGuiMouseCursor_ResizeAll:    ev.cursor = Cursor::SizeAll;	break;
+			case ImGuiMouseCursor_ResizeEW:     ev.cursor = Cursor::SizeWE;		break;
+			case ImGuiMouseCursor_ResizeNS:     ev.cursor = Cursor::SizeNS;		break;
+			case ImGuiMouseCursor_ResizeNESW:   ev.cursor = Cursor::SizeNESW;	break;
+			case ImGuiMouseCursor_ResizeNWSE:   ev.cursor = Cursor::SizeNWSE;	break;
+			case ImGuiMouseCursor_Hand:         ev.cursor = Cursor::Hand;		break;
+			case ImGuiMouseCursor_NotAllowed:   ev.cursor = Cursor::No;			break;
+		}
+	}
 }
 
 } // namespace

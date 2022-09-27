@@ -95,6 +95,27 @@ void NativeUIWindow_Win32::onSetWindowTitle(StrView title) {
 	::SetWindowText(_hwnd, tmp.c_str());
 }
 
+void NativeUIWindow_Win32::onSetCursor(UIMouseCursorType type) {
+	if (!_hwnd) return;
+
+	using Cursor = UIMouseCursorType;
+	LPTSTR cursor = IDC_ARROW;
+	switch (type)
+	{
+	case Cursor::Arrow:		cursor = IDC_ARROW;		break;
+	case Cursor::IBeam:		cursor = IDC_IBEAM;		break;
+	case Cursor::SizeAll:	cursor = IDC_SIZEALL;	break;
+	case Cursor::SizeWE:	cursor = IDC_SIZEWE;	break;
+	case Cursor::SizeNS:	cursor = IDC_SIZENS;	break;
+	case Cursor::SizeNESW:	cursor = IDC_SIZENESW;	break;
+	case Cursor::SizeNWSE:	cursor = IDC_SIZENWSE;	break;
+	case Cursor::Hand:		cursor = IDC_HAND;		break;
+	case Cursor::No:		cursor = IDC_NO;		break;
+	case Cursor::None:		::SetCursor(NULL);		return;
+	}
+	::SetCursor(LoadCursor(0, cursor));
+}
+
 void NativeUIWindow_Win32::onDrawNeeded() {
 	::InvalidateRect(_hwnd, nullptr, false);
 }
@@ -216,6 +237,7 @@ bool NativeUIWindow_Win32::_handleNativeUIMouseEvent(HWND hwnd, UINT msg, WPARAM
 	}
 
 	onUINativeMouseEvent(ev);
+	onUINativeMouseCursor(ev);
 	return true;
 }
 
@@ -228,7 +250,7 @@ UIEventModifier NativeUIWindow_Win32::_getWin32Modifier() {
 	auto o = UIEventModifier::None;
 	if (::GetAsyncKeyState(VK_CONTROL)) o |= UIEventModifier::Ctrl;
 	if (::GetAsyncKeyState(VK_SHIFT  )) o |= UIEventModifier::Shift;
-	if (::GetAsyncKeyState(VK_MENU   )) o |= UIEventModifier::Atl;
+	if (::GetAsyncKeyState(VK_MENU   )) o |= UIEventModifier::Alt;
 	if (::GetAsyncKeyState(VK_LWIN) || ::GetAsyncKeyState(VK_RWIN)) {
 		o |= UIEventModifier::Cmd;
 	}

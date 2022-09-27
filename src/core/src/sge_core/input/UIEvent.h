@@ -27,16 +27,30 @@ enum class UIEventModifier {
 	None,
 	Shift	= 1 << 0,
 	Ctrl	= 1 << 1,
-	Atl		= 1 << 2,
+	Alt		= 1 << 2,
 	Cmd		= 1 << 3,
 	Fn		= 1 << 4,
 };
 SGE_ENUM_ALL_OPERATOR(UIEventModifier)
 
+enum class UIMouseCursorType {
+	None,
+	Arrow	 = 1 << 0,
+	IBeam	 = 1 << 1,
+	SizeAll	 = 1 << 2,
+	SizeWE	 = 1 << 3,
+	SizeNS	 = 1 << 4,
+	SizeNESW = 1 << 5,
+	SizeNWSE = 1 << 6,
+	Hand	 = 1 << 7,
+	No		 = 1 << 8,
+};
+
 struct UIMouseEvent {
 	using Type		= UIMouseEventType;
 	using Modifier	= UIEventModifier;
 	using Button	= UIMouseEventButton;
+	using Cursor	= UIMouseCursorType;
 
 	bool isUp() const		{ return type == Type::Up; }
 	bool isDown() const		{ return type == Type::Down; }
@@ -49,6 +63,7 @@ struct UIMouseEvent {
 	Modifier	modifier		= Modifier::None;
 	Button		button			= Button::None;
 	Button		pressedButtons	= Button::None;
+	Cursor      cursor			= Cursor::Arrow;
 
 	Vec2f		pos{0,0};
 	Vec2f		deltaPos{0,0};

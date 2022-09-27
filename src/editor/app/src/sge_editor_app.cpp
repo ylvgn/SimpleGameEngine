@@ -175,6 +175,10 @@ public:
 		}
 	}
 
+	virtual void onUIMouseCursor(UIMouseEvent& ev) override {
+		_imgui.onUIMouseCursor(ev);
+	}
+
 	virtual void onDraw() {
 		Base::onDraw();
 		if (!_renderContext) return;
