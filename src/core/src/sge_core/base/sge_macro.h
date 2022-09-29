@@ -103,11 +103,11 @@
 	} \
 //----
 
-#define SGE_ENUM_TRY_PARSE__CASE(V, ...) if (str == #V) { outValue = E::V; return true; }
+#define SGE_ENUM_TRY_PARSE__CASE(V, ...) if (str == #V) { outValue = E_::V; return true; }
 
 #define SGE_ENUM_TRY_PARSE(T) \
 	inline bool enumTryParse(T& outValue, StrView str) { \
-		using E = T; \
+		using E_ = T; \
 		T##_ENUM_LIST(SGE_ENUM_TRY_PARSE__CASE) \
 		return false; \
 	} \

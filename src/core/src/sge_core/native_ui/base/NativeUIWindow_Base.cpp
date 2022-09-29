@@ -25,4 +25,24 @@ void NativeUIWindow_Base::onUINativeMouseCursor(UIMouseEvent& ev) {
 	setCursor(ev.cursor);
 }
 
+void NativeUIWindow_Base::onUINativeKeyboardEvent(UIKeyboardEvent& ev) {
+	using Type = UIKeyboardEvent::Type;
+	using State = UIKeyboardEvent::State;
+
+	for (auto& k : _pressedkeyCodes) {
+		if (ev.isUp(k)) {
+			_pressedkeyCodes.erase(k);
+		} else {
+			ev.keyCodes[enumInt(k)] = State::Pressed;
+		}
+	}
+
+	for (Type k = Type::None; k != Type::_End; k += 1) {
+		if (_pressedkeyCodes.count(k) != 0) continue;
+		if (ev.keyCodes[enumInt(k)] == State::Down) _pressedkeyCodes.emplace(k);
+	}
+
+	onUIKeyboardEvent(ev);
+}
+
 }

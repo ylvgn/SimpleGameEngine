@@ -60,6 +60,9 @@ public:
 	virtual void onUINativeMouseCursor(UIMouseEvent& ev);
 	virtual void onUIMouseCursor(UIMouseEvent& ev) {}
 
+	virtual void onUINativeKeyboardEvent(UIKeyboardEvent& ev);
+	virtual void onUIKeyboardEvent(UIKeyboardEvent& ev) {}
+
 protected:
 	virtual void onCreate(CreateDesc& desc) {}
 	virtual void onSetWindowTitle(StrView title) {}
@@ -71,6 +74,8 @@ protected:
 
 	UIMouseEventButton _pressedMouseButtons = UIMouseEventButton::None;
 	Vec2f _mousePos{0,0};
+	
+	Set<UIKeyboardEventType> _pressedkeyCodes;
 };
 
 }

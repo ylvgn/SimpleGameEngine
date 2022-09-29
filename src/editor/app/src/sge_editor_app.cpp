@@ -179,6 +179,10 @@ public:
 		_imgui.onUIMouseCursor(ev);
 	}
 
+	virtual void onUIKeyboardEvent(UIKeyboardEvent& ev) override {
+		_imgui.onUIKeyboardEvent(ev);
+	}
+
 	virtual void onDraw() {
 		Base::onDraw();
 		if (!_renderContext) return;

@@ -241,8 +241,102 @@ bool NativeUIWindow_Win32::_handleNativeUIMouseEvent(HWND hwnd, UINT msg, WPARAM
 	return true;
 }
 
+bool NativeUIWindow_Win32::_handleNativeUIKeyboardEvent(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+	UIKeyboardEvent ev;
+
+	using Type = UIKeyboardEvent::Type;
+	using State = UIKeyboardEvent::State;
+
+	State state = State::None;
+	switch (msg) {
+		case WM_CHAR: {
+		/*
+			* VK_0 - VK_9 are the same as ASCII '0' - '9' (0x30 - 0x39)
+			* 0x3A - 0x40 : unassigned
+			* VK_A - VK_Z are the same as ASCII 'A' - 'Z' (0x41 - 0x5A)
+		*/
+		if (wParam >= 0x30 && wParam <= 0x39) { // 0x30 == 48
+			Type t = Type::Keypad0;
+			int offset = static_cast<int>(wParam - 0x30);
+			t += offset;
+			ev.keyCodes[enumInt(t)] = State::Down;
+			break;
+		}
+		if (wParam >= 0x41 && wParam <= 0x39) { // 0x41 == 65
+			Type t = Type::A;
+			int offset = static_cast<int>(wParam - 0x41);
+			t += offset;
+			ev.keyCodes[enumInt(t)] = State::Down;
+			break;
+		}
+		}break;
+
+		case WM_KEYDOWN:
+		case WM_KEYUP:
+		case WM_SYSKEYDOWN:
+		case WM_SYSKEYUP:
+			state = (msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN) ? State::Down : State::Up;
+			break;
+		default:
+			return false;
+	}
+
+	// https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
+	switch (wParam)
+	{
+#define CASE(K, T) \
+	case K: ev.keyCodes[enumInt(Type::T)] = state; break;\
+// ---------
+
+		//CASE(VK_PROCESSKEY, _End) // why always VK_PROCESSKEY ??
+
+		CASE(VK_BACK, Backspace)
+		CASE(VK_TAB, Tab)
+		CASE(VK_CAPITAL, CapsLock)
+		CASE(VK_PAUSE, Pause)
+		CASE(VK_ESCAPE, Escape)
+		CASE(VK_DELETE, Delete)
+		CASE(VK_CLEAR, Clear)
+		CASE(VK_RETURN, Enter) // Enter
+		CASE(VK_SPACE, Space)
+
+		CASE(VK_UP, UpArrow)
+		CASE(VK_DOWN, DownArrow)
+		CASE(VK_LEFT, LeftArrow)
+		CASE(VK_RIGHT, RightArrow)
+
+		CASE(VK_INSERT, Insert)
+		CASE(VK_HOME, Home)
+		CASE(VK_END, End)
+#if 0
+		//------------ need modifier??
+		CASE(VK_CONTROL, LeftControl)
+		CASE(VK_MENU, LeftAlt)
+		CASE(VK_SHIFT, LeftShift)
+		CASE(VK_LWIN, LeftCommand)
+#endif
+
+#undef CASE
+
+	default:
+		if (wParam >= 0x70 && wParam <= 0x87) { // F1 ~ F24
+			Type t = Type::F1;
+			int offset = static_cast<int>(wParam - 0x70);
+			t += offset;
+			ev.keyCodes[enumInt(t)] = state;
+			break;
+		}
+		throw SGE_ERROR("not support VK_ : {}", wParam);
+		return false;
+	}
+
+	onUINativeKeyboardEvent(ev);
+	return true;
+}
+
 LRESULT NativeUIWindow_Win32::_handleNativeEvent(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	if (_handleNativeUIMouseEvent(hwnd, msg, wParam, lParam)) return 0;
+	//if (_handleNativeUIKeyboardEvent(hwnd, msg, wParam, lParam)) return 0; // <--------------- something wrong
 	return ::DefWindowProc(hwnd, msg, wParam, lParam);
 }
 

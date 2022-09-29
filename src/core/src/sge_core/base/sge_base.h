@@ -42,6 +42,7 @@
 #include <EASTL/hash_map.h>
 #include <EASTL/vector_map.h>
 #include <EASTL/string_map.h>
+#include <EASTL/set.h>
 
 #include <EASTL/unique_ptr.h>
 #include <EASTL/shared_ptr.h>
@@ -230,6 +231,7 @@ struct WCharUtil {
 	wchar_t toWChar(Char    c) { return static_cast<wchar_t>(c); }
 };
 
+template<class T> using Set = eastl::set<T>;
 
 //! Source Location
 class SrcLoc {

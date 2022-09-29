@@ -23,6 +23,7 @@ public:
 
 	void onUIMouseEvent(UIMouseEvent& ev);
 	void onUIMouseCursor(UIMouseEvent& ev);
+	void onUIKeyboardEvent(UIKeyboardEvent& ev);
 
 	const bool wantCaptureMouse() const;
 
@@ -42,6 +43,7 @@ private:
 	void _createFontsTexture();
 
 	int _mouseButton(UIMouseEventButton v);
+	static ImGuiKey _keyCode(UIKeyboardEventType v);
 
 	ImGuiContext* _ctx;
 };
