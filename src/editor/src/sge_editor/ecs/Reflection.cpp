@@ -7,6 +7,7 @@ template<> const TypeInfo* sge_typeof<T>() { \
 	class TI : public TIBaseInitNoBase<T> { \
 	public: \
 		TI() : TIBaseInitNoBase<T>(#T) {} \
+		static constexpr const char* getTypeStr() { return #T; } \
 	}; \
 	static TI ti; \
 	return &ti; \

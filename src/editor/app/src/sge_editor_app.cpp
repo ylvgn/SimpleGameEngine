@@ -213,33 +213,71 @@ public:
 
 		_renderRequest.drawMesh(SGE_LOC, _renderMesh, _material);
 
-#if 1 // imgui
+#if 0 // imgui
 		ImGui::ShowDemoWindow(nullptr);
 #else
 
-		{ // Hierarchy
-			ImGui::Begin("Hierarchy", 0, 0);
-
-			int i = 1;
-			for (auto& obj : objs) {
-				auto components = obj->components();
-				auto tmp = components.size();
-				TempString name;
-				FmtTo(name, "GameObject{}-[{}]", i, tmp);
-				if (ImGui::TreeNodeEx(name.c_str())) { // no child --> ImGuiTreeNodeFlags_Leaf
-					//SGE_DUMP_VAR(i);
-					ImGui::TreePop();
+		static int selected_index = -1;
+		// Hierarchy
+		ImGui::Begin("Hierarchy", 0, 0);
+		{
+			int node_clicked = -1;
+			static ImGuiTreeNodeFlags base_flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
+			static int selection_mask = 0;
+			for (int i = 0; i < objs.size(); i++)
+			{
+				ImGuiTreeNodeFlags node_flags = base_flags;
+				const bool is_selected = (selection_mask & (1 << i)) != 0;
+				if (is_selected) {
+					node_flags |= ImGuiTreeNodeFlags_Selected;
+					selected_index = i;
 				}
-				i++;
+				
+				node_flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen; // ImGuiTreeNodeFlags_Bullet
+				ImGui::TreeNodeEx((void*)(intptr_t)i, node_flags, "GameObject %d", i);
+				if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen()) {
+					node_clicked = i;
+				}
 			}
-			ImGui::End();
-		}
 
-		{ // Inspector
-			ImGui::Begin("Inspector", 0, 0);
-
-			ImGui::End();
+			if (node_clicked != -1)
+			{
+				// Update selection state
+                // (process outside of tree loop to avoid visual inconsistencies during the clicking frame)
+                if (ImGui::GetIO().KeyCtrl)
+                    selection_mask ^= (1 << node_clicked);          // CTRL+click to toggle
+                else //if (!(selection_mask & (1 << node_clicked))) // Depending on selection behavior you want, may want to preserve selection when clicking on item that is part of the selection
+                    selection_mask = (1 << node_clicked);           // Click to single-select
+			}
 		}
+		ImGui::End();
+
+
+		// Inspector
+		ImGui::Begin("Inspector", 0, 0);
+		{
+			static float placeholder_members[8] = { 0.0f, 0.0f, 1.0f, 3.1416f, 100.0f, 999.0f };
+			if (selected_index != -1) {
+				ImGui::Text("GameObject %d", selected_index);
+				const auto& obj = objs[selected_index].ptr();
+				for (auto& c : obj->components()) {
+					const auto* ti = c->getType();
+					for (auto& fi : ti->fieldArray) {
+						TempString fieldName = fi.name;
+						const auto* fieldInfo = fi.fieldInfo;
+						TempString fieldTypeName = fieldInfo->name;
+						if (fieldTypeName == "Vec3f") {
+							ImGui::InputFloat("x", &placeholder_members[0], 1.0f);
+							ImGui::InputFloat("y", &placeholder_members[1], 1.0f);
+							ImGui::InputFloat("z", &placeholder_members[2], 1.0f);
+							ImGui::NewLine();
+						}
+					}
+				}
+			}
+		}
+		ImGui::End();
+
 #endif
 		_imgui.render(_renderRequest);
 

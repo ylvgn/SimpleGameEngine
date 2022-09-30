@@ -26,6 +26,7 @@ private: \
 		TI_Base() : TIBaseInitNoBase<T>(#T) {} \
 	}; \
 public: \
+	static constexpr const char* getTypeStr() { return #T; } \
 	static const MyTypeInfo* s_getType(); \
 	virtual const MyTypeInfo* getType() const { return s_getType(); } \
 private: \
