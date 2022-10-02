@@ -59,6 +59,8 @@ public:
 
 	Span<MyFieldInfo> fieldArray;
 
+	const MyTypeInfo* element = nullptr;
+
 	bool isKindOf(const MyTypeInfo* target) const {
 		if (!target) return nullptr;
 		const MyTypeInfo* p = this;
@@ -95,6 +97,14 @@ public:
 	}
 };
 
+template<class T, class ELEMENT>
+class TIElementInit : public TIBaseInitNoBase<T> {
+public:
+	TIElementInit(const char* name_) : TIBaseInitNoBase<T>(name_) {
+		element = my_typeof<ELEMENT>();
+	}
+};
+
 class MyObject {
 	MY_TYPEOF_TIBASEINITNOBASE_DEFINE(MyObject);
 };
@@ -128,6 +138,42 @@ my_typeof_define(i64)
 my_typeof_define(f32)
 my_typeof_define(f64)
 my_typeof_define(f128)
+
+// String
+my_typeof_define(TempStringA)
+my_typeof_define(TempStringW)
+my_typeof_define(StringA)
+my_typeof_define(StringW)
+
+// Vector
+my_typeof_define(Vector<u8>)
+my_typeof_define(Vector<u16>)
+my_typeof_define(Vector<u32>)
+my_typeof_define(Vector<u64>)
+
+my_typeof_define(Vector<i8>)
+my_typeof_define(Vector<i16>)
+my_typeof_define(Vector<i32>)
+my_typeof_define(Vector<i64>)
+
+my_typeof_define(Vector<f32>)
+my_typeof_define(Vector<f64>)
+my_typeof_define(Vector<f128>)
+
+// StringMap
+my_typeof_define(StringMap<u8>)
+my_typeof_define(StringMap<u16>)
+my_typeof_define(StringMap<u32>)
+my_typeof_define(StringMap<u64>)
+
+my_typeof_define(StringMap<i8>)
+my_typeof_define(StringMap<i16>)
+my_typeof_define(StringMap<i32>)
+my_typeof_define(StringMap<i64>)
+
+my_typeof_define(StringMap<f32>)
+my_typeof_define(StringMap<f64>)
+my_typeof_define(StringMap<f128>)
 
 SGE_FORMATTER(MyTypeInfo)
 SGE_FORMATTER(MyFieldInfo)

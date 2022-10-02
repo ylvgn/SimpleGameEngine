@@ -24,6 +24,9 @@ const MyTypeInfo* MyCircle::s_getType() {
 		TI() {
 			static MyFieldInfo fi[] = {
 				MyFieldInfo("r", &This::r),
+				MyFieldInfo("testVectorInt", &This::testVectorInt),
+				MyFieldInfo("testVectorStr", &This::testVectorStr),
+				//MyFieldInfo("testVectorVectorInt", &This::testVectorVectorInt), // not ok
 			};
 			fieldArray = fi;
 		}

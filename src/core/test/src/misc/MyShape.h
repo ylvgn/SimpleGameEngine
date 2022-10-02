@@ -14,6 +14,9 @@ class MyCircle : public MyShape {
 	MY_TYPEOF_TIBASEINIT_DEFINE(MyCircle, MyShape)
 public:
 	f64 r;
+	Vector<int> testVectorInt;
+	Vector<String> testVectorStr;
+	Vector<Vector<int>> testVectorVectorInt;
 };
 
 class MyRect : public MyShape {

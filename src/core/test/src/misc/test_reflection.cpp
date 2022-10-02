@@ -11,7 +11,11 @@ class Test_Reflection : public UnitTestBase {
 			TempString name = ti->name;
 			if (name == "MyCircle") {
 				MyCircle* c = my_cast<MyCircle>(&shape);
-				SGE_DUMP_VAR(c->r);
+				SGE_DUMP_VAR(c->r, c->testVectorInt, c->testVectorStr);
+
+				for (auto& item : c->testVectorVectorInt) {
+					SGE_DUMP_VAR(item);
+				}
 			}
 		}
 	}
@@ -27,6 +31,14 @@ public:
 
 		MyCircle c;
 		c.r = 1.2f;
+		c.testVectorInt.emplace_back(1);
+		c.testVectorInt.emplace_back(22);
+
+		c.testVectorStr.emplace_back("hello");
+		c.testVectorStr.emplace_back("world");
+
+		c.testVectorVectorInt.push_back({ 1 , 2, 3 });
+		c.testVectorVectorInt.push_back({ 11 , 22, 33 });
 		foo(c);
 		SGE_DUMP_VAR("=====================");
 
