@@ -12,6 +12,7 @@ public:
 	const TypeInfo* registerType(const TypeInfo* ti) {
 		SGE_ASSERT(ti != nullptr);
 		SGE_ASSERT(getType(ti->name) == nullptr);
+
 		_table[ti->name] = ti;
 		return ti;
 	}
@@ -23,6 +24,7 @@ public:
 	}
 
 	const TypeInfo* getType(StrView typeName);
+
 private:
 	StringMap<const TypeInfo*> _table;
 };

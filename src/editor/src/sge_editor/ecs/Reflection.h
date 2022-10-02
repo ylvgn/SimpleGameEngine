@@ -15,27 +15,12 @@ public:
 	const TypeInfo* fieldInfo = nullptr;
 	intptr_t offset = 0;
 
-	bool isArray = false;
-	Vector<const TypeInfo*> fieldArrayInfo;
-
 	template<class Obj, class Member>
 	FieldInfo(const char* name_, Member Obj::*ptr)
 		: name(name_)
 	{
-		if (std::is_array<Member>()) { // <--------------- todo
-			isArray = true;
-			size_t n = std::extent<Member>();
-			for (size_t i = 0; i < n; i++) {
-				using A = std::remove_extent<Member>::type; // how to handle Vector<UPtr<Component>> ?
-				const TypeInfo* ti = sge_typeof<A>();
-				fieldArrayInfo.emplace_back(ti);
-			}
-		}
-		else {
-			isArray = false;
-			fieldInfo = sge_typeof<Member>();
-			offset = memberOffset(ptr);
-		}
+		fieldInfo = sge_typeof<Member>();
+		offset = memberOffset(ptr);
 	}
 
 	void onFormat(fmt::format_context& ctx) const;
@@ -48,6 +33,12 @@ public:
 	size_t dataSize = 0;
 
 	Span<FieldInfo> fieldArray;
+	enum class Style {
+		Pod,
+		Struct,
+		Container,
+	};
+	Style style = Style::Pod;
 
 	bool isKindOf(const TypeInfo* target) const {
 		if (!target) return nullptr;
@@ -64,14 +55,24 @@ public:
 		return isKindOf(sge_typeof<DST>());
 	};
 
+	template<size_t N>
+	void setFieldInfo(FieldInfo (&fi)[N]) {
+		fieldArray = fi;
+	}
+
+	const bool isPod() const { return style == Style::Pod; }
+	const bool isStruct() const { return style == Style::Struct; }
+	const bool isContainer() const { return style == Style::Container; }
+
 	void onFormat(fmt::format_context& ctx) const;
 };
 
 template<class T>
 class TIBaseInitNoBase : public TypeInfo {
 public:
-	TIBaseInitNoBase(const char* name_) {
+	TIBaseInitNoBase(const char* name_, Style style_ = Style::Pod) {
 		name = name_;
+		style = style_;
 		dataSize = sizeof(T);
 	}
 };
@@ -79,7 +80,7 @@ public:
 template<class T, class BASE>
 class TIBaseInit : public TIBaseInitNoBase<T> {
 public:
-	TIBaseInit(const char* name_) : TIBaseInitNoBase<T>(name_) {
+	TIBaseInit(const char* name_, Style style_ = Style::Pod) : TIBaseInitNoBase<T>(name_, style_) {
 		static_assert(std::is_base_of<BASE, T>::value, "invalid base class");
 		base = sge_typeof<BASE>();
 	}
@@ -87,11 +88,6 @@ public:
 
 template<class T> inline
 const TypeInfo* sge_typeof<T>() {
-#if 0 // temp
-	if (std::is_array<T>::value) {
-		return nullptr;
-	}
-#endif
 	return T::s_getType();
 }
 
@@ -109,16 +105,6 @@ sge_typeof_define(i64)
 sge_typeof_define(f32)
 sge_typeof_define(f64)
 sge_typeof_define(f128)
-
-sge_typeof_define(Vec2d)
-sge_typeof_define(Vec3d)
-sge_typeof_define(Vec4d)
-
-sge_typeof_define(Vec2f)
-sge_typeof_define(Vec3f)
-sge_typeof_define(Vec4f)
-
-sge_typeof_define(Quat4f)
 
 SGE_FORMATTER(TypeInfo)
 SGE_FORMATTER(FieldInfo)

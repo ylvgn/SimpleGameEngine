@@ -29,16 +29,22 @@ public:
 			for (size_t i = 0; i < 10; i++) {
 				SPtr<GameObject> obj = new GameObject();
 				Transform* t = obj->addComponent<Transform>();
-				Vec3f tmp;
-				for (int j = 0; j < 3; j++) tmp[j] = 1.0f + std::rand() % 99;;
-				t->localPosition.set(tmp);
-				for (int j = 0; j < 3; j++) tmp[j] = 10.0f + std::rand() % 99;;
-				t->localScale.set(tmp);
+
+				Vec3f v3;
+				for (int j = 0; j < 3; j++) v3[j] = 1.0f + std::rand() % 99;;
+				t->localPosition.set(v3);
+
+				for (int j = 0; j < 3; j++) v3[j] = 10.0f + std::rand() % 99;;
+				t->localScale.set(v3);
+
+				Vec4f v4;
+				for (int j = 0; j < 4; j++) v4[j] = 0.0f + std::rand() % 99;
+				t->localRotation.set(v4.x, v4.y, v4.z, v4.w);
+
+				SGE_DUMP_VAR(i, *t);
 				objs.emplace_back(std::move(obj));
 			}
 		}
-
-		//TypeManager::instance(); // breakpoint debug
 
 		{ // create render context
 			RenderContext::CreateDesc renderContextDesc;
@@ -183,6 +189,35 @@ public:
 		_imgui.onUIKeyboardEvent(ev);
 	}
 
+	void drawUI(u8* p, const TypeInfo* ti, const FieldInfo* fi = nullptr) {
+		if (ti->isStruct()) {
+			ImGui::Text(ti->name);
+			for (const auto& field : ti->fieldArray) {
+				drawUI(p + field.offset, field.fieldInfo, &field);
+			}
+			return;
+		}
+
+		if (ti->isContainer()) {
+			// TODO
+		}
+
+		if (ti == TypeManager::instance()->getType("u8") || ti == TypeManager::instance()->getType("i8")
+			|| ti == TypeManager::instance()->getType("u16") || ti == TypeManager::instance()->getType("u16")
+			|| ti == TypeManager::instance()->getType("u16") || ti == TypeManager::instance()->getType("i16")
+			|| ti == TypeManager::instance()->getType("u32") || ti == TypeManager::instance()->getType("i32")
+			|| ti == TypeManager::instance()->getType("u64") || ti == TypeManager::instance()->getType("i64"))
+		{
+			ImGui::InputInt(fi->name, reinterpret_cast<i32*>(p));
+		}
+		else if (ti == TypeManager::instance()->getType("f32")
+			|| ti == TypeManager::instance()->getType("f64")
+			|| ti == TypeManager::instance()->getType("f128"))
+		{
+			ImGui::InputFloat(fi->name, reinterpret_cast<f32*>(p));
+		}
+	}
+
 	virtual void onDraw() {
 		Base::onDraw();
 		if (!_renderContext) return;
@@ -256,24 +291,14 @@ public:
 		// Inspector
 		ImGui::Begin("Inspector", 0, 0);
 		{
-			static float placeholder_members[8] = { 0.0f, 0.0f, 1.0f, 3.1416f, 100.0f, 999.0f };
 			if (selected_index != -1) {
 				ImGui::Text("GameObject %d", selected_index);
 				const auto& obj = objs[selected_index].ptr();
 				for (auto& c : obj->components()) {
 					const auto* ti = c->getType();
-					for (auto& fi : ti->fieldArray) {
-						TempString fieldName = fi.name;
-						const auto* fieldInfo = fi.fieldInfo;
-						TempString fieldTypeName = fieldInfo->name;
-						if (fieldTypeName == "Vec3f") {
-							ImGui::InputFloat("x", &placeholder_members[0], 1.0f);
-							ImGui::InputFloat("y", &placeholder_members[1], 1.0f);
-							ImGui::InputFloat("z", &placeholder_members[2], 1.0f);
-							ImGui::NewLine();
-						}
-					}
+					drawUI(reinterpret_cast<u8*>(c.get()), ti);
 				}
+				ImGui::NewLine();
 			}
 		}
 		ImGui::End();

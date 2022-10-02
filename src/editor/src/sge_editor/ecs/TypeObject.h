@@ -9,7 +9,7 @@ private: \
 	using Base = BASE; \
 	class TI_Base : public TIBaseInit<T, BASE> { \
 	public: \
-		TI_Base() : TIBaseInit<T, BASE>(#T) {} \
+		TI_Base() : TIBaseInit<T, BASE>(#T, TypeInfo::Style::Struct) {} \
 	}; \
 public: \
 	static constexpr const char* getTypeStr() { return #T; } \
@@ -23,36 +23,17 @@ private: \
 	using This = T; \
 	class TI_Base : public TIBaseInitNoBase<T> { \
 	public: \
-		TI_Base() : TIBaseInitNoBase<T>(#T) {} \
+		TI_Base() : TIBaseInitNoBase<T>(#T, TypeInfo::Style::Struct) {} \
 	}; \
 public: \
 	static constexpr const char* getTypeStr() { return #T; } \
-	static const MyTypeInfo* s_getType(); \
-	virtual const MyTypeInfo* getType() const { return s_getType(); } \
+	static const TypeInfo* s_getType(); \
+	virtual const TypeInfo* getType() const { return s_getType(); } \
 private: \
 // ------------
 
-#define SGE_TYPE_IMPL_s_getType(T) \
-const TypeInfo* T::s_getType() { \
-	class TI : public TIBaseInitNoBase<T> { \
-	public: \
-		TI() : TIBaseInitNoBase<T>(#T) {} \
-	}; \
-	static TI ti; \
-	return &ti; \
-} \
-// --------
-
 class TypeObject : public Object {
-	using This = TypeObject;
-	class TI_Base : public TIBaseInitNoBase<This> {
-	public:
-		TI_Base() : TIBaseInitNoBase<This>("TypeObject") {}
-	};
-public:
-	static constexpr const char* getTypeStr() { return "TypeObject"; }
-	static const TypeInfo* s_getType();
-	virtual const TypeInfo* getType() const { return s_getType(); }
+	SGE_TYPEOF_NOBASE_DEFINE(TypeObject)
 };
 
 inline

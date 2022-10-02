@@ -2,7 +2,7 @@
 
 namespace sge {
 
-#define my_typeof_pod_impl(T) \
+#define sge_typeof_pod_impl(T) \
 template<> const TypeInfo* sge_typeof<T>() { \
 	class TI : public TIBaseInitNoBase<T> { \
 	public: \
@@ -13,29 +13,59 @@ template<> const TypeInfo* sge_typeof<T>() { \
 	return &ti; \
 } \
 // -------
-my_typeof_pod_impl(u8)
-my_typeof_pod_impl(u16)
-my_typeof_pod_impl(u32)
-my_typeof_pod_impl(u64)
 
-my_typeof_pod_impl(i8)
-my_typeof_pod_impl(i16)
-my_typeof_pod_impl(i32)
-my_typeof_pod_impl(i64)
+sge_typeof_pod_impl(u8)
+sge_typeof_pod_impl(u16)
+sge_typeof_pod_impl(u32)
+sge_typeof_pod_impl(u64)
 
-my_typeof_pod_impl(f32)
-my_typeof_pod_impl(f64)
-my_typeof_pod_impl(f128)
+sge_typeof_pod_impl(i8)
+sge_typeof_pod_impl(i16)
+sge_typeof_pod_impl(i32)
+sge_typeof_pod_impl(i64)
 
-my_typeof_pod_impl(Vec2d)
-my_typeof_pod_impl(Vec3d)
-my_typeof_pod_impl(Vec4d)
+sge_typeof_pod_impl(f32)
+sge_typeof_pod_impl(f64)
+sge_typeof_pod_impl(f128)
 
-my_typeof_pod_impl(Vec2f)
-my_typeof_pod_impl(Vec3f)
-my_typeof_pod_impl(Vec4f)
+template<>
+const TypeInfo* sge_typeof<Vec3f>() {
+	class TI : public TIBaseInitNoBase<Vec3f> {
+	public:
+		TI() : TIBaseInitNoBase<Vec3f>("Vec3f", TypeInfo::Style::Struct) {
+			static FieldInfo fi[] = {
+				FieldInfo("x",	&Vec3f::x),
+				FieldInfo("y",	&Vec3f::y),
+				FieldInfo("z",	&Vec3f::z),
+			};
+			setFieldInfo(fi);
+		}
+		static constexpr const char* getTypeStr() { return "Vec3f"; }
+	};
+	static TI ti;
+	return &ti;
+}
+// ------- Vec3f
 
-my_typeof_pod_impl(Quat4f)
+template<>
+const TypeInfo* sge_typeof<Quat4f>() {
+	class TI : public TIBaseInitNoBase<Quat4f> {
+	public:
+		TI() : TIBaseInitNoBase<Quat4f>("Quat4f", TypeInfo::Style::Struct) {
+			static FieldInfo fi[] = {
+				FieldInfo("x",	&Quat4f::x),
+				FieldInfo("y",	&Quat4f::y),
+				FieldInfo("z",	&Quat4f::z),
+				FieldInfo("w",	&Quat4f::w),
+			};
+			setFieldInfo(fi);
+		}
+		static constexpr const char* getTypeStr() { return "Quat4f"; }
+	};
+	static TI ti;
+	return &ti;
+}
+// ------- Quat4f
 
 void FieldInfo::onFormat(fmt::format_context& ctx) const {
 	fmt::format_to(ctx.out(), "name={}, offset={}, type={}", name, offset, fieldInfo->name);
