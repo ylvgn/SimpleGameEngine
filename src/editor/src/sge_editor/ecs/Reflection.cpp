@@ -2,11 +2,11 @@
 
 namespace sge {
 
-#define sge_typeof_pod_impl(T) \
+#define sge_typeof_primitive_impl(T) \
 template<> const TypeInfo* sge_typeof<T>() { \
 	class TI : public TIBaseInitNoBase<T> { \
 	public: \
-		TI() : TIBaseInitNoBase<T>(#T) {} \
+		TI() : TIBaseInitNoBase<T>(#T, TypeInfo::Style::Primitive) {} \
 		static constexpr const char* getTypeStr() { return #T; } \
 	}; \
 	static TI ti; \
@@ -14,21 +14,21 @@ template<> const TypeInfo* sge_typeof<T>() { \
 } \
 // -------
 
-sge_typeof_pod_impl(u8)
-sge_typeof_pod_impl(u16)
-sge_typeof_pod_impl(u32)
-sge_typeof_pod_impl(u64)
+sge_typeof_primitive_impl(u8)
+sge_typeof_primitive_impl(u16)
+sge_typeof_primitive_impl(u32)
+sge_typeof_primitive_impl(u64)
 
-sge_typeof_pod_impl(i8)
-sge_typeof_pod_impl(i16)
-sge_typeof_pod_impl(i32)
-sge_typeof_pod_impl(i64)
+sge_typeof_primitive_impl(i8)
+sge_typeof_primitive_impl(i16)
+sge_typeof_primitive_impl(i32)
+sge_typeof_primitive_impl(i64)
 
-sge_typeof_pod_impl(f32)
-sge_typeof_pod_impl(f64)
-sge_typeof_pod_impl(f128)
+sge_typeof_primitive_impl(f32)
+sge_typeof_primitive_impl(f64)
+sge_typeof_primitive_impl(f128)
 
-template<>
+template<> // Vec3f
 const TypeInfo* sge_typeof<Vec3f>() {
 	class TI : public TIBaseInitNoBase<Vec3f> {
 	public:
@@ -45,9 +45,8 @@ const TypeInfo* sge_typeof<Vec3f>() {
 	static TI ti;
 	return &ti;
 }
-// ------- Vec3f
 
-template<>
+template<> // Quat4f
 const TypeInfo* sge_typeof<Quat4f>() {
 	class TI : public TIBaseInitNoBase<Quat4f> {
 	public:
@@ -65,7 +64,6 @@ const TypeInfo* sge_typeof<Quat4f>() {
 	static TI ti;
 	return &ti;
 }
-// ------- Quat4f
 
 void FieldInfo::onFormat(fmt::format_context& ctx) const {
 	fmt::format_to(ctx.out(), "name={}, offset={}, type={}", name, offset, fieldInfo->name);

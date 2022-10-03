@@ -46,6 +46,48 @@ public:
 			}
 		}
 
+		{ // test create primitive
+			const TypeInfo* ti = TypeManager::instance()->getType("u8");
+			auto t = ti->createPod<u8>();
+
+			SGE_DUMP_VAR(t);
+			t = 101;
+			SGE_DUMP_VAR(t);
+		}
+
+		{ // test create struct
+			const TypeInfo* ti = TypeManager::instance()->getType("Vec3f");
+			auto t = ti->createPod<Vec3f>();
+
+			SGE_DUMP_VAR(t.x,  t.y, t.z);
+			t.set(1, 2, 3);
+			SGE_DUMP_VAR(t.x, t.y, t.z);
+		}
+
+		{ // test create GameObject
+			const TypeInfo* ti = TypeManager::instance()->getType("GameObject");
+			if (!ti) {
+				ti = TypeManager::instance()->registerType<GameObject>();
+			}
+			auto obj = ti->createObject<GameObject>();
+
+			Transform* t = obj->addComponent<Transform>();
+			t->localPosition.set(999.0f, 99.0f, 9.0f);
+			objs.emplace_back(std::move(obj));
+		}
+
+		{ // test create Transform
+			const TypeInfo* ti = TypeManager::instance()->getType("Transform");
+			if (!ti) {
+				ti = TypeManager::instance()->registerType<Transform>();
+			}
+			auto* obj = objs.back().ptr();
+			Transform* t = ti->createObject<Transform>(obj);
+			obj->addComponent(t);
+
+			t->localPosition.set(888.0f, 88.0f, 8.0f);
+		}
+
 		{ // create render context
 			RenderContext::CreateDesc renderContextDesc;
 			renderContextDesc.window = this;
@@ -190,7 +232,7 @@ public:
 	}
 
 	void drawUI(u8* p, const TypeInfo* ti, const FieldInfo* fi = nullptr) {
-		if (ti->isStruct()) {
+		if (ti->isStruct() || ti->isObject()) {
 			ImGui::Text(ti->name);
 			for (const auto& field : ti->fieldArray) {
 				drawUI(p + field.offset, field.fieldInfo, &field);
@@ -290,16 +332,16 @@ public:
 		}
 		ImGui::End();
 
-
 		// Inspector
 		ImGui::Begin("Inspector", 0, 0);
 		{
 			if (selected_index != -1) {
-				ImGui::Text("GameObject %d", selected_index);
 				const auto& obj = objs[selected_index].ptr();
+				ImGui::Text("GameObject %d", selected_index);
 				for (auto& c : obj->components()) {
 					const auto* ti = c->getType();
 					drawUI(reinterpret_cast<u8*>(c.get()), ti);
+					//ImGui::Text("===============");
 				}
 				ImGui::NewLine();
 			}

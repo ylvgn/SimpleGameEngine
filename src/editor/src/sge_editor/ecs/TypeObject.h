@@ -9,7 +9,7 @@ private: \
 	using Base = BASE; \
 	class TI_Base : public TIBaseInit<T, BASE> { \
 	public: \
-		TI_Base() : TIBaseInit<T, BASE>(#T, TypeInfo::Style::Struct) {} \
+		TI_Base() : TIBaseInit<T, BASE>(#T, TypeInfo::Style::Object) {} \
 	}; \
 public: \
 	static constexpr const char* getTypeStr() { return #T; } \
@@ -23,14 +23,14 @@ private: \
 	using This = T; \
 	class TI_Base : public TIBaseInitNoBase<T> { \
 	public: \
-		TI_Base() : TIBaseInitNoBase<T>(#T, TypeInfo::Style::Struct) {} \
+		TI_Base() : TIBaseInitNoBase<T>(#T, TypeInfo::Style::Object) {} \
 	}; \
 public: \
 	static constexpr const char* getTypeStr() { return #T; } \
 	static const TypeInfo* s_getType(); \
 	virtual const TypeInfo* getType() const { return s_getType(); } \
 private: \
-// ------------
+// ------------ temp
 
 class TypeObject : public Object {
 	SGE_TYPEOF_NOBASE_DEFINE(TypeObject)
@@ -47,8 +47,10 @@ DST* sge_cast(TypeObject* obj) {
 	const auto* ti = TypeManager::instance()->getType(DST::getTypeStr());
 	if (!ti) {
 		ti = sge_typeof(*obj);
-		if (ti) {
-			TypeManager::instance()->registerType(ti);
+		for (auto p : ti->fieldArray) {
+			if (!TypeManager::instance()->getType(p.fieldInfo->name)) {
+				TypeManager::instance()->registerType(p.fieldInfo);
+			}
 		}
 	}
 	if (!ti) return nullptr;

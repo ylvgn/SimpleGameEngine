@@ -19,6 +19,12 @@ public:
 		return sge_cast<T>(res.get());
 	}
 
+	Component* addComponent(Component* c) {
+		if (!c) return nullptr;
+		_components.emplace_back(c);
+		return c;
+	}
+
 	template<class T> inline
 	T* getComponent() {
 		static_assert(std::is_base_of<Component, T>::value, "invalid getComponent");
