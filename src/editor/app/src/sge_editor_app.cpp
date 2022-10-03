@@ -210,11 +210,14 @@ public:
 		{
 			ImGui::InputInt(fi->name, reinterpret_cast<i32*>(p));
 		}
-		else if (ti == TypeManager::instance()->getType("f32")
-			|| ti == TypeManager::instance()->getType("f64")
-			|| ti == TypeManager::instance()->getType("f128"))
+		else if (ti == TypeManager::instance()->getType("f32"))
 		{
 			ImGui::InputFloat(fi->name, reinterpret_cast<f32*>(p));
+		}
+		else if (ti == TypeManager::instance()->getType("f64")
+			|| ti == TypeManager::instance()->getType("f128"))
+		{
+			ImGui::InputDouble(fi->name, reinterpret_cast<f64*>(p));
 		}
 	}
 
