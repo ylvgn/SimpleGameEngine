@@ -4,9 +4,7 @@
 namespace sge {
 
 class TypeInfo;
-
 template<class T> const TypeInfo* sge_typeof();
-template<class T, class... ARGS> T* sge_creator(ARGS&&... args);
 
 class FieldInfo {
 public:
@@ -25,13 +23,14 @@ public:
 	void onFormat(fmt::format_context& ctx) const;
 };
 
+template<class T, class... ARGS> T* sge_creator(ARGS&&... args);
 class TypeInfo {
 public:
 	const char* name = "";
 	const TypeInfo* base = nullptr;
 	size_t dataSize = 0;
-
 	Span<FieldInfo> fieldArray;
+
 	enum class Style {
 		None = 0,
 		Primitive,
@@ -125,6 +124,29 @@ sge_typeof_define(i64)
 sge_typeof_define(f32)
 sge_typeof_define(f64)
 sge_typeof_define(f128)
+
+#define sge_typeof_struct_impl(T) \
+template<> \
+const TypeInfo* sge_typeof<T>() { \
+	class TI : public TIBaseInitNoBase<T> { \
+		using This = T; \
+	public: \
+		TI() : TIBaseInitNoBase<T>(#T, TypeInfo::Style::Struct) { \
+			static FieldInfo fi[] = { \
+				T##_FieldInfo_LIST() \
+			}; \
+			setFieldInfo(fi); \
+		} \
+		static constexpr const char* getTypeStr() { return #T; } \
+	}; \
+	static TI ti; \
+	return &ti; \
+} \
+// ------------
+
+#define sge_field_info(MEMBER) \
+	FieldInfo(#MEMBER, &This::MEMBER) \
+// ------------
 
 SGE_FORMATTER(TypeInfo)
 SGE_FORMATTER(FieldInfo)

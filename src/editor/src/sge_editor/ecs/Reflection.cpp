@@ -28,42 +28,22 @@ sge_typeof_primitive_impl(f32)
 sge_typeof_primitive_impl(f64)
 sge_typeof_primitive_impl(f128)
 
-template<> // Vec3f
-const TypeInfo* sge_typeof<Vec3f>() {
-	class TI : public TIBaseInitNoBase<Vec3f> {
-	public:
-		TI() : TIBaseInitNoBase<Vec3f>("Vec3f", TypeInfo::Style::Struct) {
-			static FieldInfo fi[] = {
-				FieldInfo("x",	&Vec3f::x),
-				FieldInfo("y",	&Vec3f::y),
-				FieldInfo("z",	&Vec3f::z),
-			};
-			setFieldInfo(fi);
-		}
-		static constexpr const char* getTypeStr() { return "Vec3f"; }
-	};
-	static TI ti;
-	return &ti;
-}
 
-template<> // Quat4f
-const TypeInfo* sge_typeof<Quat4f>() {
-	class TI : public TIBaseInitNoBase<Quat4f> {
-	public:
-		TI() : TIBaseInitNoBase<Quat4f>("Quat4f", TypeInfo::Style::Struct) {
-			static FieldInfo fi[] = {
-				FieldInfo("x",	&Quat4f::x),
-				FieldInfo("y",	&Quat4f::y),
-				FieldInfo("z",	&Quat4f::z),
-				FieldInfo("w",	&Quat4f::w),
-			};
-			setFieldInfo(fi);
-		}
-		static constexpr const char* getTypeStr() { return "Quat4f"; }
-	};
-	static TI ti;
-	return &ti;
-}
+#define Vec3f_FieldInfo_LIST() \
+	sge_field_info(x), \
+	sge_field_info(y), \
+	sge_field_info(z), \
+// ------------
+sge_typeof_struct_impl(Vec3f)
+
+#define Quat4f_FieldInfo_LIST() \
+	sge_field_info(x), \
+	sge_field_info(y), \
+	sge_field_info(z), \
+	sge_field_info(w), \
+// ------------
+sge_typeof_struct_impl(Quat4f)
+
 
 void FieldInfo::onFormat(fmt::format_context& ctx) const {
 	fmt::format_to(ctx.out(), "name={}, offset={}, type={}", name, offset, fieldInfo->name);

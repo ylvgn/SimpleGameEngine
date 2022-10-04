@@ -210,12 +210,12 @@ public:
 				}break;
 
 				case Button::Middle: {
-					auto d = ev.deltaPos * 0.005f;
+					auto d = ev.deltaPos * 0.05f;
 					_camera.move(d.x, d.y, 0);
 				}break;
 
 				case Button::Right: {
-					auto d = ev.deltaPos * -0.005f;
+					auto d = ev.deltaPos * -0.05f;
 					_camera.dolly(d.x + d.y);
 				}break;
 			}
@@ -245,7 +245,6 @@ public:
 		}
 
 		if (ti == TypeManager::instance()->getType("u8") || ti == TypeManager::instance()->getType("i8")
-			|| ti == TypeManager::instance()->getType("u16") || ti == TypeManager::instance()->getType("u16")
 			|| ti == TypeManager::instance()->getType("u16") || ti == TypeManager::instance()->getType("i16")
 			|| ti == TypeManager::instance()->getType("u32") || ti == TypeManager::instance()->getType("i32")
 			|| ti == TypeManager::instance()->getType("u64") || ti == TypeManager::instance()->getType("i64"))
