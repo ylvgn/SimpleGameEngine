@@ -100,6 +100,49 @@ public:
 		StringW_<1> s5 = L"s5 - StringW_1";
 		foo(s5);
 	}
+
+	void test_5() {
+		char ch1[] = "char[]";
+		StrView s1(ch1);
+		SGE_LOG("{}, len={}", s1, s1.size());
+
+		char ch2[20];
+		ch2[0] = 'c';
+		ch2[1] = 'h';
+		ch2[2] = 'a';
+		ch2[3] = 'r';
+		ch2[4] = '[';
+		ch2[5] = ']';
+		ch2[6] = 0;
+
+		StrView s2(ch2);
+		SGE_LOG("{}, len={}", s2, s2.size());
+
+		const char* sz = "string literal";
+		StrView s3(sz);
+		SGE_LOG("{}, len={}", s3, s3.size());
+
+		std::string stdStr = "std::string";
+		StrView s4(stdStr.c_str());
+		SGE_LOG("{}, len={}", s4, s4.size());
+
+		TempString tmpStr = "TempString";
+		StrView s5(tmpStr);
+		SGE_LOG("{}, len={}", s5, s5.size());
+	}
+
+	template<size_t N> inline
+	static void foo2(const char (&ch)[N]) { SGE_LOG("{}, N={}", ch, N); }
+
+	void test_6() {
+		foo2("hello1");
+
+		const char s2[] = "hello2";
+		foo2(s2);
+
+		const char s3[20] = "hello3";
+		foo2(s3);
+	}
 };
 
 } // namespace 
@@ -109,5 +152,7 @@ void test_StringView() {
 	//SGE_TEST_CASE(Test_StringView, test_1());
 	//SGE_TEST_CASE(Test_StringView, test_2());
 	//SGE_TEST_CASE(Test_StringView, test_3());
-	SGE_TEST_CASE(Test_StringView, test_4());
+	//SGE_TEST_CASE(Test_StringView, test_4());
+	//SGE_TEST_CASE(Test_StringView, test_5());
+	SGE_TEST_CASE(Test_StringView, test_6());
 }
