@@ -1,6 +1,7 @@
 #pragma once
 
 #include <sge_render/Renderer.h>
+#include <sge_render/ImGui_SGE.h> // temp
 #include <sge_render/RenderContext.h>
 
 #include <sge_render/command/RenderCommand.h>

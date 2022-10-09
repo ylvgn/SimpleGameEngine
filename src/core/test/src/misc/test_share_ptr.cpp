@@ -1,5 +1,6 @@
 #include <sge_core/base/UnitTest.h>
 #include <sge_core/pointer/SPtr.h>
+#include <sge_core/base/Object.h>
 
 namespace sge {
 	class Test_SharePtr : public UnitTestBase {

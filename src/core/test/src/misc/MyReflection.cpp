@@ -4,9 +4,9 @@ namespace sge {
 
 #define my_typeof_impl(T) \
 template<> const MyTypeInfo* my_typeof<T>() { \
-	class TI : public TIBaseInitNoBase<T> { \
+	class TI : public MyTIBaseInitNoBase<T> { \
 	public: \
-		TI() : TIBaseInitNoBase<T>(#T) {} \
+		TI() : MyTIBaseInitNoBase<T>(#T) {} \
 	}; \
 	static TI ti; \
 	return &ti; \
@@ -34,9 +34,9 @@ my_typeof_impl(StringW)
 
 #define my_typeof_stl_container_impl(T, E) \
 template<> const MyTypeInfo* my_typeof<T>() { \
-	class TI : public TIElementInit<T, E> { \
+	class TI : public MyTIElementInit<T, E> { \
 		public: \
-			TI() : TIElementInit<T, E>(#T) {} \
+			TI() : MyTIElementInit<T, E>(#T) {} \
 	}; \
 	static TI ti; \
 	return &ti; \
@@ -81,9 +81,9 @@ my_typeof_stl_container_impl(StringMap<f128>, f128)
 
 #define my_typeof_impl_s_getType(T) \
 const MyTypeInfo* T::s_getType() { \
-	class TI : public TIBaseInitNoBase<T> { \
+	class TI : public MyTIBaseInitNoBase<T> { \
 	public: \
-		TI() : TIBaseInitNoBase<T>(#T) {} \
+		TI() : MyTIBaseInitNoBase<T>(#T) {} \
 	}; \
 	static TI ti; \
 	return &ti; \

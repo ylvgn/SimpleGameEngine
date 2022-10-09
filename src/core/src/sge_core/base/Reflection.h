@@ -4,7 +4,9 @@
 namespace sge {
 
 class TypeInfo;
-template<class T> const TypeInfo* sge_typeof();
+template<class T> const TypeInfo* TypeInfo_get();
+
+#define sge_type_info_get_define(T) template<> const TypeInfo* TypeInfo_get<T>();
 
 class FieldInfo {
 public:
@@ -16,7 +18,7 @@ public:
 	FieldInfo(const char* name_, Member Obj::*ptr)
 		: name(name_)
 	{
-		fieldInfo = sge_typeof<Member>();
+		fieldInfo = TypeInfo_get<Member>();
 		offset = memberOffset(ptr);
 	}
 
@@ -52,7 +54,7 @@ public:
 
 	template<class DST> inline
 	bool isKindOf() const {
-		return isKindOf(sge_typeof<DST>());
+		return isKindOf(TypeInfo_get<DST>());
 	};
 
 	template<size_t N> inline
@@ -95,58 +97,35 @@ class TIBaseInit : public TIBaseInitNoBase<T> {
 public:
 	TIBaseInit(const char* name_, Style style_) : TIBaseInitNoBase<T>(name_, style_) {
 		static_assert(std::is_base_of<BASE, T>::value, "invalid base class");
-		base = sge_typeof<BASE>();
+		base = TypeInfo_get<BASE>();
 	}
 };
 
+#if 0
 template<class T> inline
-const TypeInfo* sge_typeof<T>() {
+const TypeInfo* TypeInfo_get<T>() {
 	return T::s_getType();
 }
+#endif
 
 template<class T, class... ARGS> inline
 T* sge_creator(ARGS&&... args) {
 	return new T(SGE_FORWARD(args)...);
 }
 
-#define sge_typeof_define(T) template<> const TypeInfo* sge_typeof<T>();
+sge_type_info_get_define(u8)
+sge_type_info_get_define(u16)
+sge_type_info_get_define(u32)
+sge_type_info_get_define(u64)
 
-sge_typeof_define(u8)
-sge_typeof_define(u16)
-sge_typeof_define(u32)
-sge_typeof_define(u64)
+sge_type_info_get_define(i8)
+sge_type_info_get_define(i16)
+sge_type_info_get_define(i32)
+sge_type_info_get_define(i64)
 
-sge_typeof_define(i8)
-sge_typeof_define(i16)
-sge_typeof_define(i32)
-sge_typeof_define(i64)
-
-sge_typeof_define(f32)
-sge_typeof_define(f64)
-sge_typeof_define(f128)
-
-#define sge_typeof_struct_impl(T) \
-template<> \
-const TypeInfo* sge_typeof<T>() { \
-	class TI : public TIBaseInitNoBase<T> { \
-		using This = T; \
-	public: \
-		TI() : TIBaseInitNoBase<T>(#T, TypeInfo::Style::Struct) { \
-			static FieldInfo fi[] = { \
-				T##_FieldInfo_LIST() \
-			}; \
-			setFieldInfo(fi); \
-		} \
-		static constexpr const char* getTypeStr() { return #T; } \
-	}; \
-	static TI ti; \
-	return &ti; \
-} \
-// ------------
-
-#define sge_field_info(MEMBER) \
-	FieldInfo(#MEMBER, &This::MEMBER) \
-// ------------
+sge_type_info_get_define(f32)
+sge_type_info_get_define(f64)
+sge_type_info_get_define(f128)
 
 SGE_FORMATTER(TypeInfo)
 SGE_FORMATTER(FieldInfo)

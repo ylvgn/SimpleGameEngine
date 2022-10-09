@@ -42,6 +42,7 @@
 #include <EASTL/hash_map.h>
 #include <EASTL/vector_map.h>
 #include <EASTL/string_map.h>
+
 #include <EASTL/set.h>
 
 #include <EASTL/unique_ptr.h>
@@ -82,6 +83,8 @@ template<class T> inline bool constexpr enumHas(const T& a, const T& b) { return
 
 template<class T> SGE_INLINE T* constCast(const T* v) { return const_cast<T*>(v); }
 template<class T> SGE_INLINE T& constCast(const T& v) { return const_cast<T&>(v); }
+
+template<class T> SGE_INLINE void swap(T& a, T& b) { T tmp = a; a = b; b = tmp; }
 
 using u8  = uint8_t;
 using u16 = uint16_t;
@@ -155,6 +158,8 @@ template<class KEY, class VALUE> using Map = eastl::map<KEY, VALUE>;
 template<class KEY, class VALUE> using VectorMap = eastl::vector_map<KEY, VALUE>;
 template<class VALUE> using StringMap = eastl::string_map<VALUE>;
 
+template<class KEY> using Set = eastl::set<KEY>;
+
 template<class T> using Opt = eastl::optional<T>;
 
 template<class T> using StrViewT = eastl::basic_string_view<T>;
@@ -163,17 +168,17 @@ using StrViewW = StrViewT<wchar_t>;
 
 template<class T, size_t N, bool bEnableOverflow = true>
 struct StringT_Base {
-	using type = typename eastl::fixed_string<T, N, bEnableOverflow>;
+	using Type = typename eastl::fixed_string<T, N, bEnableOverflow>;
 };
 
 template<class T>
 struct StringT_Base<T, 0, true> {
-	using type = typename eastl::basic_string<T>;
+	using Type = typename eastl::basic_string<T>;
 };
 
 template<class T, size_t N, bool bEnableOverflow = true> // using FixedStringT = eastl::fixed_string<T, N, bEnableOverflow>;
-class StringT : public StringT_Base<T, N, bEnableOverflow>::type {
-	using Base = typename StringT_Base<T, N, bEnableOverflow>::type;
+class StringT : public StringT_Base<T, N, bEnableOverflow>::Type {
+	using Base = typename StringT_Base<T, N, bEnableOverflow>::Type;
 public:
 	StringT() = default;
 	StringT(const T* begin, const T* end) : Base(begin, end) {}
@@ -231,7 +236,6 @@ struct WCharUtil {
 	wchar_t toWChar(Char    c) { return static_cast<wchar_t>(c); }
 };
 
-template<class T> using Set = eastl::set<T>;
 
 //! Source Location
 class SrcLoc {
@@ -239,12 +243,12 @@ public:
 	SrcLoc() = default;
 	SrcLoc(const char* file_, int line_, const char* func_)
 		: file(file_)
+		, func(func_)
 		, line(line_)
-		, func(func_) {
-	}
+	{}
 
 	const char* file = "";
-	const char* func;
+	const char* func = "";
 	int line = 0;
 };
 
@@ -259,11 +263,6 @@ private:
 class RefCountBase : public NonCopyable {
 public:
 	std::atomic_int	_refCount = 0;
-};
-
-class Object : public RefCountBase {
-public:
-	virtual ~Object() = default;
 };
 
 template<class T> inline void sge_delete(T* p) noexcept { delete p; }

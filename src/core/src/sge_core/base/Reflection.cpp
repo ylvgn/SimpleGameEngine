@@ -2,8 +2,8 @@
 
 namespace sge {
 
-#define sge_typeof_primitive_impl(T) \
-template<> const TypeInfo* sge_typeof<T>() { \
+#define sge_type_info_primitive_impl(T) \
+template<> const TypeInfo* TypeInfo_get<T>() { \
 	class TI : public TIBaseInitNoBase<T> { \
 	public: \
 		TI() : TIBaseInitNoBase<T>(#T, TypeInfo::Style::Primitive) {} \
@@ -14,36 +14,19 @@ template<> const TypeInfo* sge_typeof<T>() { \
 } \
 // -------
 
-sge_typeof_primitive_impl(u8)
-sge_typeof_primitive_impl(u16)
-sge_typeof_primitive_impl(u32)
-sge_typeof_primitive_impl(u64)
+sge_type_info_primitive_impl(u8)
+sge_type_info_primitive_impl(u16)
+sge_type_info_primitive_impl(u32)
+sge_type_info_primitive_impl(u64)
 
-sge_typeof_primitive_impl(i8)
-sge_typeof_primitive_impl(i16)
-sge_typeof_primitive_impl(i32)
-sge_typeof_primitive_impl(i64)
+sge_type_info_primitive_impl(i8)
+sge_type_info_primitive_impl(i16)
+sge_type_info_primitive_impl(i32)
+sge_type_info_primitive_impl(i64)
 
-sge_typeof_primitive_impl(f32)
-sge_typeof_primitive_impl(f64)
-sge_typeof_primitive_impl(f128)
-
-
-#define Vec3f_FieldInfo_LIST() \
-	sge_field_info(x), \
-	sge_field_info(y), \
-	sge_field_info(z), \
-// ------------
-sge_typeof_struct_impl(Vec3f)
-
-#define Quat4f_FieldInfo_LIST() \
-	sge_field_info(x), \
-	sge_field_info(y), \
-	sge_field_info(z), \
-	sge_field_info(w), \
-// ------------
-sge_typeof_struct_impl(Quat4f)
-
+sge_type_info_primitive_impl(f32)
+sge_type_info_primitive_impl(f64)
+sge_type_info_primitive_impl(f128)
 
 void FieldInfo::onFormat(fmt::format_context& ctx) const {
 	fmt::format_to(ctx.out(), "name={}, offset={}, type={}", name, offset, fieldInfo->name);

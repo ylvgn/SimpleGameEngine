@@ -7,9 +7,9 @@ namespace sge {
 private: \
 	using This = T; \
 	using Base = BASE; \
-	class TI_Base : public TIBaseInit<T, BASE> { \
+	class TI_Base : public MyTIBaseInit<T, BASE> { \
 	public: \
-		TI_Base() : TIBaseInit<T, BASE>(#T) {} \
+		TI_Base() : MyTIBaseInit<T, BASE>(#T) {} \
 	}; \
 public: \
 	static const MyTypeInfo* s_getType(); \
@@ -20,9 +20,9 @@ private: \
 #define MY_TYPEOF_TIBASEINITNOBASE_DEFINE(T) \
 private: \
 	using This = T; \
-	class TI_Base : public TIBaseInitNoBase<T> { \
+	class TI_Base : public MyTIBaseInitNoBase<T> { \
 	public: \
-		TI_Base() : TIBaseInitNoBase<T>(#T) {} \
+		TI_Base() : MyTIBaseInitNoBase<T>(#T) {} \
 	}; \
 public: \
 	static const MyTypeInfo* s_getType(); \
@@ -80,27 +80,27 @@ public:
 };
 
 template<class T>
-class TIBaseInitNoBase : public MyTypeInfo {
+class MyTIBaseInitNoBase : public MyTypeInfo {
 public:
-	TIBaseInitNoBase(const char* name_) {
+	MyTIBaseInitNoBase(const char* name_) {
 		name = name_;
 		dataSize = sizeof(T);
 	}
 };
 
 template<class T, class BASE>
-class TIBaseInit : public TIBaseInitNoBase<T> {
+class MyTIBaseInit : public MyTIBaseInitNoBase<T> {
 public:
-	TIBaseInit(const char* name_) : TIBaseInitNoBase<T>(name_) {
+	MyTIBaseInit(const char* name_) : MyTIBaseInitNoBase<T>(name_) {
 		static_assert(std::is_base_of<BASE, T>::value, "invalid base class");
 		base = my_typeof<BASE>();
 	}
 };
 
 template<class T, class ELEMENT>
-class TIElementInit : public TIBaseInitNoBase<T> {
+class MyTIElementInit : public MyTIBaseInitNoBase<T> {
 public:
-	TIElementInit(const char* name_) : TIBaseInitNoBase<T>(name_) {
+	MyTIElementInit(const char* name_) : MyTIBaseInitNoBase<T>(name_) {
 		element = my_typeof<ELEMENT>();
 	}
 };

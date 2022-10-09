@@ -1,3 +1,3 @@
 #pragma once
 
-#include <sge_editor/ecs/TypeManager.h>
+#include <sge_engine.h>

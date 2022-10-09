@@ -1,9 +1,10 @@
-#include "Transform.h"
+#include "CTransform.h"
 
 namespace sge {
 
-const TypeInfo* Transform::s_getType() {
-	class Ti : public TI_Base {
+template<> const TypeInfo* TypeInfo_get<CTransform>() {
+	using This = CTransform;
+	class Ti : public CTransform::TI_Base {
 	public:
 		Ti() {
 			static FieldInfo fi[] = {
@@ -18,7 +19,7 @@ const TypeInfo* Transform::s_getType() {
 	return &ti;
 }
 
-void Transform::onFormat(fmt::format_context& ctx) const {
+void CTransform::onFormat(fmt::format_context& ctx) const {
 	fmt::format_to(ctx.out(), "localPosition=({},{}, {}), localScale=({}, {}, {}), localRotation=({}, {}, {}, {})",
 		localPosition.x, localPosition.y, localPosition.z,
 		localScale.x, localScale.y, localScale.z,

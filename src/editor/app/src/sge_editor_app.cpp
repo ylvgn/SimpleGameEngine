@@ -1,22 +1,21 @@
 #include <sge_editor.h>
 
-#include <sge_render.h>
-#include <sge_render/mesh/RenderMesh.h>
-#include <sge_render/mesh/WavefrontObjLoader.h>
-#include <sge_render/mesh/RenderTerrain.h>
-
-#include <sge_core/file/FilePath.h>
-#include <sge_render/vertex/Vertex.h>
-#include <sge_render/vertex/VertexLayoutManager.h>
-
-#include <sge_render/command/RenderRequest.h>
-
-#include <sge_render/ImGui_SGE.h>
-
-#include <sge_editor/ecs/GameObject.h>
-#include <sge_editor/ecs/Transform.h>
-
 namespace sge {
+
+#define Vec3f_FieldInfo_LIST() \
+	sge_field_info(x), \
+	sge_field_info(y), \
+	sge_field_info(z), \
+// ------------
+sge_type_info_get_struct_impl(Vec3f)
+
+#define Quat4f_FieldInfo_LIST() \
+	sge_field_info(x), \
+	sge_field_info(y), \
+	sge_field_info(z), \
+	sge_field_info(w), \
+// ------------
+sge_type_info_get_struct_impl(Quat4f)
 
 class MainWin : public NativeUIWindow {
 	using Base = NativeUIWindow;
@@ -27,8 +26,8 @@ public:
 
 		{ // ecs
 			for (size_t i = 0; i < 10; i++) {
-				SPtr<GameObject> obj = new GameObject();
-				Transform* t = obj->addComponent<Transform>();
+				SPtr<Entity> obj = new Entity(static_cast<EntityId>(i));
+				CTransform* t = obj->addComponent<CTransform>();
 
 				Vec3f v3;
 				for (int j = 0; j < 3; j++) v3[j] = 1.0f + std::rand() % 99;;
@@ -57,6 +56,9 @@ public:
 
 		{ // test create struct
 			const TypeInfo* ti = TypeManager::instance()->getType("Vec3f");
+			if (!ti) {
+				ti = TypeManager::instance()->registerType<Vec3f>();
+			}
 			auto t = ti->createPod<Vec3f>();
 
 			SGE_DUMP_VAR(t.x,  t.y, t.z);
@@ -64,25 +66,25 @@ public:
 			SGE_DUMP_VAR(t.x, t.y, t.z);
 		}
 
-		{ // test create GameObject
-			const TypeInfo* ti = TypeManager::instance()->getType("GameObject");
+		{ // test create Entity
+			const TypeInfo* ti = TypeManager::instance()->getType("Entity");
 			if (!ti) {
-				ti = TypeManager::instance()->registerType<GameObject>();
+				ti = TypeManager::instance()->registerType<Entity>();
 			}
-			auto obj = ti->createObject<GameObject>();
+			auto obj = ti->createObject<Entity>(static_cast<EntityId>(1));
 
-			Transform* t = obj->addComponent<Transform>();
+			CTransform* t = obj->addComponent<CTransform>();
 			t->localPosition.set(999.0f, 99.0f, 9.0f);
 			objs.emplace_back(std::move(obj));
 		}
 
-		{ // test create Transform
-			const TypeInfo* ti = TypeManager::instance()->getType("Transform");
+		{ // test create CTransform
+			const TypeInfo* ti = TypeManager::instance()->getType("CTransform");
 			if (!ti) {
-				ti = TypeManager::instance()->registerType<Transform>();
+				ti = TypeManager::instance()->registerType<CTransform>();
 			}
 			auto* obj = objs.back().ptr();
-			Transform* t = ti->createObject<Transform>(obj);
+			CTransform* t = ti->createObject<CTransform>(obj);
 			obj->addComponent(t);
 
 			t->localPosition.set(888.0f, 88.0f, 8.0f);
@@ -313,7 +315,7 @@ public:
 				}
 				
 				node_flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen; // ImGuiTreeNodeFlags_Bullet
-				ImGui::TreeNodeEx((void*)(intptr_t)i, node_flags, "GameObject %d", i);
+				ImGui::TreeNodeEx((void*)(intptr_t)i, node_flags, "Entity %d", i);
 				if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen()) {
 					node_clicked = i;
 				}
@@ -336,17 +338,16 @@ public:
 		{
 			if (selected_index != -1) {
 				const auto& obj = objs[selected_index].ptr();
-				ImGui::Text("GameObject %d", selected_index);
+				ImGui::Text("Entity %d", selected_index);
 				for (auto& c : obj->components()) {
 					const auto* ti = c->getType();
-					drawUI(reinterpret_cast<u8*>(c.get()), ti);
+					drawUI(reinterpret_cast<u8*>(c.ptr()), ti);
 					//ImGui::Text("===============");
 				}
 				ImGui::NewLine();
 			}
 		}
 		ImGui::End();
-
 #endif
 		_imgui.render(_renderRequest);
 
@@ -359,7 +360,7 @@ public:
 		drawNeeded();
 	}
 
-	Vector<SPtr<GameObject>> objs;
+	Vector<SPtr<Entity>> objs;
 
 	ImGui_SGE _imgui;
 
