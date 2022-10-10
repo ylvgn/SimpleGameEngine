@@ -8,29 +8,26 @@ ImGui_SGE::~ImGui_SGE() {
 	destroy();
 }
 
-void ImGui_SGE::create(CreateDesc& desc) {
-	IMGUI_CHECKVERSION();
+void ImGui_SGE::create() {
+	if (!IMGUI_CHECKVERSION())
+		throw SGE_ERROR("ImGui version error");
+
 	_ctx = ImGui::CreateContext();
 
 	if (!_ctx)
 		throw SGE_ERROR("ImGui error create context");
 
 	ImGuiIO& io = ImGui::GetIO();
-
 	io.BackendRendererUserData = this;
 	io.BackendRendererName = "ImGui_SGE";
 	io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;  // We can honor the ImDrawCmd::VtxOffset field, allowing for large meshes.
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;		// Enable Keyboard Controls
 
 	auto* renderer = Renderer::instance();
-
-	ImGui::StyleColorsDark();
-
 	{ // vertex layout
 		Vertex vertex;
 		_vertexLayout = vertex.s_layout();
 	}
-
 	{ // material
 		auto shader = Renderer::instance()->createShader("Assets/Shaders/imgui.shader");
 		_material = renderer->createMaterial();
@@ -40,9 +37,11 @@ void ImGui_SGE::create(CreateDesc& desc) {
 
 void ImGui_SGE::destroy() {
 	if (!_ctx) return;
+
 	ImGuiIO& io = ImGui::GetIO();
 	io.BackendRendererUserData = nullptr;
 	io.BackendRendererName = nullptr;
+
 	ImGui::DestroyContext(_ctx);
 	_ctx = nullptr;
 }
@@ -68,21 +67,23 @@ void ImGui_SGE::_createFontsTexture() {
 	_fontsTexture = renderer->createTexture2D(texDesc);
 }
 
-void ImGui_SGE::beginRender(RenderContext* renderContext) {
-	if (!_fontsTexture) {
-		_createFontsTexture();
-	}
-
+void ImGui_SGE::onBeginRender(RenderContext* renderContext) {
 	ImGuiIO& io = ImGui::GetIO();
 	auto s = renderContext->frameBufferSize();
 	io.DisplaySize = ImVec2(s.x, s.y);
 	io.DeltaTime = 1.0f / 60.0f;
 
+	if (!_fontsTexture) {
+		_createFontsTexture();
+	}
+
 	ImGui::NewFrame();
 }
 
-void ImGui_SGE::render(RenderRequest& req) {
-	// Rendering
+void ImGui_SGE::onEndRender(RenderContext* renderContext) {
+}
+
+void ImGui_SGE::onDrawUI(RenderRequest& req) {
 	ImGui::Render();
 	
 	if (!_material) return;
@@ -153,38 +154,65 @@ void ImGui_SGE::render(RenderRequest& req) {
 	{
 		_vertexData.clear();
 		_indexData.clear();
+
+		// Render command lists
+		// (Because we merged all buffers into a single one, we maintain our own offset into them)
+		int global_idx_offset = 0;
+		int global_vtx_offset = 0;
+
+		ImVec2 clip_off = data->DisplayPos;
 		for (int n = 0; n < data->CmdListsCount; n++)
 		{
-			const ImDrawList* src = data->CmdLists[n];
+			const ImDrawList* srcCmd = data->CmdLists[n];
+			for (int j = 0; j < srcCmd->CmdBuffer.Size; j++) {
+				const ImDrawCmd* srcBuf = &srcCmd->CmdBuffer[j];
 
-			auto* cmd = req.commandBuffer.newCommand<RenderCommand_DrawCall>();
-#if _DEBUG
-			cmd->debugLoc = SGE_LOC;
-#endif
-			cmd->material			= _material;
-			cmd->materialPassIndex	= 0;
-			cmd->primitive			= RenderPrimitiveType::Triangles;
+				// Project scissor/clipping rectangles into framebuffer space
+				ImVec2 clip_min(srcBuf->ClipRect.x - clip_off.x, srcBuf->ClipRect.y - clip_off.y);
+				ImVec2 clip_max(srcBuf->ClipRect.z - clip_off.x, srcBuf->ClipRect.w - clip_off.y);
 
-			cmd->vertexLayout		= _vertexLayout;
-			cmd->vertexBuffer		= _vertexBuffer;
-			cmd->vertexOffset		= _vertexData.size();
-			cmd->vertexCount		= src->VtxBuffer.Size;
+				if (clip_max.x <= clip_min.x || clip_max.y <= clip_min.y)
+					continue;
 
-			cmd->indexType			= RenderDataTypeUtil::get<ImDrawIdx>();
-			cmd->indexBuffer		= _indexBuffer;
-			cmd->indexOffset		= _indexData.size();
-			cmd->indexCount			= src->IdxBuffer.Size;
+				// Apply scissor/clipping rectangle
+				auto a = Vec2f_make(clip_min);
+				auto b = Vec2f_make(clip_max);
 
-			_vertexData.appendRange(Span<const u8>(reinterpret_cast<const u8*>(src->VtxBuffer.Data), src->VtxBuffer.Size * vertexSize));
-			 _indexData.appendRange(Span<const u8>(reinterpret_cast<const u8*>(src->IdxBuffer.Data), src->IdxBuffer.Size * indexSize));
+				req.setScissorRect({ a, b - a });
+
+				// Bind texture, Draw
+				//ID3D11ShaderResourceView* texture_srv = (ID3D11ShaderResourceView*)srcBuf->GetTexID();
+				//ctx->PSSetShaderResources(0, 1, &texture_srv);
+
+				//ctx->DrawIndexed(srcBuf->ElemCount, srcBuf->IdxOffset + global_idx_offset, srcBuf->VtxOffset + global_vtx_offset);
+				auto* cmd = req.addDrawCall();
+	#if _DEBUG
+				cmd->debugLoc = SGE_LOC;
+	#endif
+				cmd->material = _material;
+				cmd->materialPassIndex = 0;
+				cmd->primitive = RenderPrimitiveType::Triangles;
+
+				cmd->vertexLayout = _vertexLayout;
+				cmd->vertexBuffer = _vertexBuffer;
+				cmd->vertexOffset = (global_vtx_offset + srcBuf->VtxOffset) * vertexSize; 
+				cmd->vertexCount = 0;
+
+				cmd->indexType = RenderDataTypeUtil::get<ImDrawIdx>();
+				cmd->indexBuffer = _indexBuffer;
+				cmd->indexOffset = (global_idx_offset + srcBuf->IdxOffset) * indexSize;
+				cmd->indexCount = srcBuf->ElemCount;
+			}
+			global_idx_offset += srcCmd->IdxBuffer.Size;
+			global_vtx_offset += srcCmd->VtxBuffer.Size;
+
+			_vertexData.appendRange(Span<const u8>(reinterpret_cast<const u8*>(srcCmd->VtxBuffer.Data), srcCmd->VtxBuffer.Size * vertexSize));
+			_indexData.appendRange(Span<const u8>(reinterpret_cast<const u8*>(srcCmd->IdxBuffer.Data), srcCmd->IdxBuffer.Size * indexSize));
 		}
 
 		_vertexBuffer->uploadToGpu(_vertexData);
 		 _indexBuffer->uploadToGpu(_indexData);
 	}
-}
-
-void ImGui_SGE::endRender() {
 }
 
 void ImGui_SGE::onUIMouseEvent(UIMouseEvent& ev) {

@@ -55,7 +55,14 @@ void RenderContext_DX11::onBeginRender() {
 	viewport.MinDepth	= 0;
 	viewport.MaxDepth	= 1;
 
+	D3D11_RECT scissorRect = {};
+	scissorRect.left	= 0;
+	scissorRect.top		= 0;
+	scissorRect.right	= static_cast<LONG>(_frameBufferSize.x);
+	scissorRect.bottom	= static_cast<LONG>(_frameBufferSize.y);
+
 	dc->RSSetViewports(1, &viewport);
+	dc->RSSetScissorRects(1, &scissorRect);
 }
 
 void RenderContext_DX11::onEndRender() {
@@ -83,9 +90,9 @@ void RenderContext_DX11::onCmd_DrawCall(RenderCommand_DrawCall& cmd) {
 	if (!cmd.vertexLayout) { SGE_ASSERT(false); return; }
 
 	auto* vertexBuffer = static_cast<RenderGpuBuffer_DX11*>(cmd.vertexBuffer.ptr());
-	if (!vertexBuffer) { SGE_ASSERT(false); return; }
+//	if (!vertexBuffer) { SGE_ASSERT(false); return; }
 
-	if (cmd.vertexCount <= 0) { SGE_ASSERT(false); return; }
+//	if (cmd.vertexCount <= 0) { SGE_ASSERT(false); return; }
 	if (cmd.primitive == RenderPrimitiveType::None) { SGE_ASSERT(false); return; }
 
 	RenderGpuBuffer_DX11* indexBuffer = nullptr;
@@ -114,8 +121,10 @@ void RenderContext_DX11::onCmd_DrawCall(RenderCommand_DrawCall& cmd) {
 	UINT vertexCount = static_cast<UINT>(cmd.vertexCount);
 	UINT indexCount = static_cast<UINT>(cmd.indexCount);
 
-	DX11_ID3DBuffer* ppVertexBuffers[] = { vertexBuffer->d3dBuf() };
+	DX11_ID3DBuffer* ppVertexBuffers[] = { vertexBuffer ? vertexBuffer->d3dBuf() : nullptr };
 	dc->IASetVertexBuffers(0, 1, ppVertexBuffers, &stride, &vertexOffset);
+
+//	_renderer->validateContext();
 
 	if (indexCount > 0) {
 		auto indexType = Util::getDxFormat(cmd.indexType);
@@ -125,6 +134,13 @@ void RenderContext_DX11::onCmd_DrawCall(RenderCommand_DrawCall& cmd) {
 	else {
 		dc->Draw(vertexCount, 0);
 	}
+}
+
+void RenderContext_DX11::onCmd_SetScissorRect(RenderCommand_SetScissorRect& cmd) {
+	auto* ctx = _renderer->d3dDeviceContext();
+	auto s = cmd.rect;
+	auto d = Util::toD3DRect(s);
+	ctx->RSSetScissorRects(1, &d);
 }
 
 void RenderContext_DX11::onCmd_SwapBuffers(RenderCommand_SwapBuffers& cmd) {

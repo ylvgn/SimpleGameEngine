@@ -18,8 +18,23 @@ struct Win32Util {
 		o.y = static_cast<float>(i.y);
 	}
 
-	static Vec2f  toVec2f(const ::POINT& i) { Vec2f  o; convert(o, i); return o; }
-	static Rect2f toRect2f(const ::RECT& i) { Rect2f o; convert(o, i); return o; }
+	static void convert(::RECT& o, const Rect2f& i) {
+		o.left   = static_cast<LONG>(i.x);
+		o.top    = static_cast<LONG>(i.y);
+		o.right  = static_cast<LONG>(i.xMax());
+		o.bottom = static_cast<LONG>(i.yMax());
+	}
+
+	static void convert(::POINT& o, const Vec2f& i) {
+		o.x = static_cast<LONG>(i.x);
+		o.y = static_cast<LONG>(i.y);
+	}
+
+	static Rect2f toRect2f(const ::RECT& i)		{ Rect2f o; convert(o, i); return o; }
+	static	Vec2f  toVec2f(const ::POINT& i)	{ Vec2f  o; convert(o, i); return o; }
+
+	static ::POINT	toPoint(const Vec2f& i)		{ ::POINT o; convert(o, i); return o; }
+	static ::RECT	toRect(const Rect2f& i)		{ ::RECT o;  convert(o, i); return o; }
 
 }; // Win32Util
 

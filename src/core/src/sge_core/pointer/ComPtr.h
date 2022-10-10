@@ -7,11 +7,11 @@ class ComPtr : public NonCopyable {
 public:
 	ComPtr() = default;
 
-	ComPtr(const ComPtr& r)	{ reset(r._p); }
-	ComPtr(ComPtr && r)		{ _p = r._p; r._p = nullptr; }
+	ComPtr(const ComPtr& r)	noexcept { reset(r._p); }
+	ComPtr(ComPtr && r)		noexcept { _p = r.detach(); }
 
-	void operator=(const ComPtr& r) { reset(r._p); }
-	void operator=(ComPtr && r)		{ reset(nullptr); _p = r._p; r._p = nullptr; }
+	void operator=(const ComPtr& r) noexcept { reset(r._p); }
+	void operator=(ComPtr&& r)	noexcept { reset(nullptr); _p = r.detach(); }
 
 	~ComPtr() noexcept { reset(nullptr); }
 

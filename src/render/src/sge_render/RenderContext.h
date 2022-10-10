@@ -1,7 +1,8 @@
 #pragma once
 
+#include <sge_core/base/Object.h>
 #include "command/RenderCommand.h"
-#include <sge_core/native_ui/NativeUI.h>
+#include "ImGui_SGE.h"
 
 namespace sge {
 
@@ -14,20 +15,26 @@ class RenderContext : public Object {
 public:
 	using CreateDesc = RenderContext_CreateDesc;
 
-	void beginRender()	{ onBeginRender(); }
-	void endRender()	{ onEndRender(); }
+	void beginRender();
+	void endRender();
+
+	void setFrameBufferSize(Vec2f newSize);
+	const Vec2f& frameBufferSize() const { return _frameBufferSize; }
 
 	void commit(RenderCommandBuffer& cmdBuf) { onCommit(cmdBuf); }
 
 	RenderContext(CreateDesc& desc);
 	virtual ~RenderContext() = default;
 
-	void setFrameBufferSize(Vec2f newSize);
-	const Vec2f& frameBufferSize() const { return _frameBufferSize; }
+	void onPostCreate();
+	void drawUI(RenderRequest& req);
+	void onUIMouseEvent(UIMouseEvent& ev);
+	void onUIMouseCursor(UIMouseEvent& ev);
 
 protected:
-	virtual void onBeginRender() {};
-	virtual void onEndRender() {};
+	virtual void onBeginRender() {}
+	virtual void onEndRender() {}
+
 	virtual void onSetFrameBufferSize(Vec2f newSize) {};
 	virtual void onCommit(RenderCommandBuffer& cmdBuf) {};
 
@@ -45,8 +52,9 @@ protected:
 		for (auto* cmd : cmdBuf.commands()) {
 			switch (cmd->type()) {
 				CMD_CASE(ClearFrameBuffers)
-				CMD_CASE(SwapBuffers);
-				CMD_CASE(DrawCall);
+				CMD_CASE(SwapBuffers)
+				CMD_CASE(DrawCall)
+				CMD_CASE(SetScissorRect)
 				default:
 					throw SGE_ERROR("unhandled command");
 			}
@@ -56,7 +64,7 @@ protected:
 	}
 
 	Vec2f	_frameBufferSize {0, 0};
-
+	ImGui_SGE _imgui;
 }; // RenderContext_CreateDesc
 
 } // namespace

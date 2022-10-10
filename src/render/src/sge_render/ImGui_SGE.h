@@ -4,22 +4,17 @@
 
 namespace sge {
 
-struct ImGui_SGE_CreateDesc {
-	NativeUIWindow* window = nullptr;
-};
-
 class ImGui_SGE : public NonCopyable {
-	using CreateDesc	= ImGui_SGE_CreateDesc;
 	using Vertex		= Vertex_ImGui;
 public:
 	~ImGui_SGE();
 
-	void create(CreateDesc& desc);
+	void create();
 	void destroy();
 
-	void beginRender(RenderContext* renderContext);
-	void render(RenderRequest& req);
-	void endRender();
+	void onBeginRender(RenderContext* renderContext);
+	void onEndRender(RenderContext* renderContext);
+	void onDrawUI(RenderRequest& req);
 
 	void onUIMouseEvent(UIMouseEvent& ev);
 	void onUIMouseCursor(UIMouseEvent& ev);
@@ -47,5 +42,8 @@ private:
 
 	ImGuiContext* _ctx;
 };
+
+inline Vec2f Vec2f_make(const ImVec2& v) { return Vec2f(v.x, v.y); }
+inline Vec4f Vec4f_make(const ImVec4& v) { return Vec4f(v.x, v.y, v.z, v.w); }
 
 } // namespace

@@ -17,6 +17,7 @@ public:
 	void onCmd_ClearFrameBuffers(RenderCommand_ClearFrameBuffers& cmd);
 	void onCmd_SwapBuffers(RenderCommand_SwapBuffers& cmd);
 	void onCmd_DrawCall(RenderCommand_DrawCall& cmd);
+	void onCmd_SetScissorRect(RenderCommand_SetScissorRect& cmd);
 
 	Renderer_DX11* renderer() { return _renderer; }
 

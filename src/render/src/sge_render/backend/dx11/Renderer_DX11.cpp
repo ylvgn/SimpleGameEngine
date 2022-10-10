@@ -97,9 +97,11 @@ Renderer_DX11::Renderer_DX11(CreateDesc& desc) {
 }
 
 SPtr<RenderContext>	Renderer_DX11::onCreateContext(RenderContext_CreateDesc& desc) {
-	return new RenderContext_DX11(desc);
+	auto* p = new RenderContext_DX11(desc);
+	p->onPostCreate();
+	return p;
 }
-	
+
 SPtr<RenderGpuBuffer> Renderer_DX11::onCreateGpuBuffer(RenderGpuBuffer_CreateDesc& desc) {
 	return new RenderGpuBuffer_DX11(desc);
 };
@@ -114,6 +116,13 @@ SPtr<Shader> Renderer_DX11::onCreateShader(StrView filename) {
 
 SPtr<Material> Renderer_DX11::onCreateMaterial() {
 	return new Material_DX11();
+}
+
+void Renderer_DX11::validateContext()
+{
+	if (!_d3dDebug) return;
+	auto hr = _d3dDebug->ValidateContext(_d3dDeviceContext.ptr());
+	Util::throwIfError(hr);
 }
 
 } // namespace

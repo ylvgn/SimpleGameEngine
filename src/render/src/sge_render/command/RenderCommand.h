@@ -14,6 +14,7 @@ enum class RenderCommandType {
 	ClearFrameBuffers,
 	SwapBuffers,
 	DrawCall,
+	SetScissorRect,
 };
 
 class RenderCommand : NonCopyable {
@@ -81,15 +82,31 @@ public:
 	size_t indexCount	= 0;
 }; // RenderCommand_DrawCall
 
+class RenderCommand_SetScissorRect : public RenderCommand {
+	using Base = RenderCommand;
+public:
+	RenderCommand_SetScissorRect() : Base(Type::SetScissorRect) {}
+	Rect2f rect;
+}; // RenderCommand_SetScissorRect
+
 class RenderCommandBuffer : public NonCopyable {
 public:
-	RenderCommand_ClearFrameBuffers*	clearFrameBuffers()	{ return newCommand<RenderCommand_ClearFrameBuffers>();	}
-	RenderCommand_SwapBuffers*			swapBuffers()		{ return newCommand<RenderCommand_SwapBuffers>();		}
 
-	void drawMesh	(const SrcLoc& debugLoc, const RenderMesh&    mesh,		Material* material);
-	void drawSubMesh(const SrcLoc& debugLoc, const RenderSubMesh& subMesh,	Material* material);
+	void reset(RenderContext* ctx);
 
 	Span<RenderCommand*>	commands() { return _commands; }
+
+	const Rect2f& scissorRect() const { return _scissorRect; }
+
+	void setScissorRect(const Rect2f& rect) {
+		_scissorRect = rect;
+		auto* cmd = newCommand<RenderCommand_SetScissorRect>();
+		cmd->rect = rect;
+	}
+
+	RenderCommand_ClearFrameBuffers*	clearFrameBuffers()	{ return newCommand<RenderCommand_ClearFrameBuffers>();	}
+	RenderCommand_SwapBuffers*			swapBuffers()		{ return newCommand<RenderCommand_SwapBuffers>();		}
+	RenderCommand_DrawCall*				addDrawCall()		{ return newCommand<RenderCommand_DrawCall>();			}
 
 	template<class CMD>
 	CMD* newCommand() {
@@ -99,11 +116,10 @@ public:
 		return cmd;
 	}
 
-	void reset();
-
 private:
 	Vector<RenderCommand*, 64>	_commands;
 	LinearAllocator _allocator;
+	Rect2f _scissorRect;
 }; // RenderCommandBuffer
 
 } // namespace

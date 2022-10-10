@@ -86,6 +86,23 @@ struct DX11Util {
 	static ByteSpan toSpan(ID3DBlob* blob);
 	static StrView  toStrView(ID3DBlob* blob) { return StrView_make(toSpan(blob)); }
 
+	static void convert(Rect2f& o, const ::D3D11_RECT& i) {
+		o.x = static_cast<float>(i.left);
+		o.y = static_cast<float>(i.top);
+		o.w = static_cast<float>(i.right - i.left);
+		o.h = static_cast<float>(i.bottom - i.top);
+	}
+
+	static void convert(::D3D11_RECT& o, const Rect2f& i) {
+		o.left   = static_cast<LONG>(i.x);
+		o.top    = static_cast<LONG>(i.y);
+		o.right  = static_cast<LONG>(i.xMax());
+		o.bottom = static_cast<LONG>(i.yMax());
+	}
+
+	static Rect2f toRect2f(const ::D3D11_RECT& i)	{ Rect2f o;			convert(o, i);	return o; }
+	static ::D3D11_RECT toD3DRect(const Rect2f& i)	{ ::D3D11_RECT o;	convert(o, i);	return o; }
+
 private:
 	static bool _checkError(HRESULT hr) {
 		return FAILED(hr); // if got error, return true

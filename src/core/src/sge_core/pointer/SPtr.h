@@ -7,12 +7,13 @@ class SPtr : public NonCopyable {
 public:
 	SPtr() = default;
 
-	SPtr(T* p) noexcept			{ reset(p); }
-	SPtr(SPtr && r) noexcept	{ _p = r._p; r._p = nullptr; }
+	SPtr(T* p) noexcept					{ reset(p); }
+	SPtr(SPtr && r) noexcept			{ _p = r.detach(); }
+	SPtr(const SPtr& r) noexcept		{ reset(r._p); }
 
-	void operator=(T* p) noexcept		{ reset(p); }
-	void operator=(SPtr &  r) noexcept	{ reset(r.ptr()); }
-	void operator=(SPtr && r) noexcept	{ reset(nullptr); _p = r._p; r._p = nullptr; }
+	void operator=(T* p) noexcept			{ reset(p); }
+	void operator=(SPtr && r) noexcept		{ reset(nullptr); _p = r.detach(); }
+	void operator=(const SPtr& r) noexcept	{ reset(r._p); }
 
 	~SPtr() noexcept { reset(nullptr); }
 

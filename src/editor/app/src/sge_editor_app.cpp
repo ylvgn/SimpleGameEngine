@@ -96,11 +96,6 @@ public:
 			_renderContext = renderer->createContext(renderContextDesc);
 		}
 
-		{ // imgui
-			ImGui_SGE_CreateDesc imguiDesc;
-			imguiDesc.window = this;
-			_imgui.create(imguiDesc);
-		}
 #if 1
 		_camera.setPos(0, 10, 10);
 		//_camera.setPos(0, 1200, 10);  // debug
@@ -200,9 +195,8 @@ public:
 	}
 
 	virtual void onUIMouseEvent(UIMouseEvent& ev) override {
-		_imgui.onUIMouseEvent(ev);
-		if (_imgui.wantCaptureMouse()) return;
-
+		_renderContext->onUIMouseEvent(ev);
+		//if (_imgui.wantCaptureMouse()) return;  todo
 		if (ev.isDragging()) {
 			using Button = UIMouseEventButton;
 			switch (ev.pressedButtons) {
@@ -226,11 +220,11 @@ public:
 	}
 
 	virtual void onUIMouseCursor(UIMouseEvent& ev) override {
-		_imgui.onUIMouseCursor(ev);
+		_renderContext->onUIMouseCursor(ev);
 	}
 
 	virtual void onUIKeyboardEvent(UIKeyboardEvent& ev) override {
-		_imgui.onUIKeyboardEvent(ev);
+		//_renderContext.onUIKeyboardEvent(ev); todo
 	}
 
 	void drawUI(u8* p, const TypeInfo* ti, const FieldInfo* fi = nullptr) {
@@ -272,9 +266,8 @@ public:
 
 		_renderContext->setFrameBufferSize(clientRect().size);
 		_renderContext->beginRender();
-		_imgui.beginRender(_renderContext);
 
-		_renderRequest.reset();
+		_renderRequest.reset(_renderContext);
 		_renderRequest.matrix_model = Mat4f::s_identity();
 		_renderRequest.matrix_view = _camera.viewMatrix();
 		_renderRequest.matrix_proj = _camera.projMatrix();
@@ -290,9 +283,8 @@ public:
 		_material->setParam("test_color", Color4f(s, s, s, 1));
 //-----
 
-		_terrain.render(_renderRequest);
-
 		_renderRequest.drawMesh(SGE_LOC, _renderMesh, _material);
+		//_terrain.render(_renderRequest);
 
 #if 0 // imgui
 		ImGui::ShowDemoWindow(nullptr);
@@ -342,27 +334,21 @@ public:
 				for (auto& c : obj->components()) {
 					const auto* ti = c->getType();
 					drawUI(reinterpret_cast<u8*>(c.ptr()), ti);
-					//ImGui::Text("===============");
 				}
 				ImGui::NewLine();
 			}
 		}
 		ImGui::End();
 #endif
-		_imgui.render(_renderRequest);
-
+		_renderContext->drawUI(_renderRequest);
 		_renderRequest.swapBuffers();
-
 		_renderContext->commit(_renderRequest.commandBuffer);
 
 		_renderContext->endRender();
-		_imgui.endRender();
 		drawNeeded();
 	}
 
 	Vector<SPtr<Entity>> objs;
-
-	ImGui_SGE _imgui;
 
 	RenderTerrain _terrain;
 
