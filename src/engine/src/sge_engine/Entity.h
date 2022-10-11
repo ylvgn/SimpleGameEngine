@@ -4,7 +4,7 @@ namespace sge {
 
 class Component;
 
-enum EntityId : u64 { None = 0 };
+enum class EntityId : u64 { None = 0 };
 
 class Entity;
 template<> const TypeInfo* TypeInfo_get<Entity>();
@@ -14,10 +14,10 @@ class Entity : public Object {
 public:
 	Entity(EntityId id) { _id = id; }
 
-	void setName(StrView name) { _name = name; }
-	StrView name() const { return _name; }
+	EntityId id() const			{ return _id; }
 
-	EntityId	id() const { return _id; }
+	void setName(StrView name)	{ _name = name; }
+	StrView name() const		{ return _name; }
 
 	template<class C> inline
 	C* addComponent() {
@@ -80,8 +80,8 @@ public:
 	Span<SPtr<Component>> components() { return _components; }
 private:
 
-	String		_name;
 	EntityId	_id;
+	String		_name;
 
 	Vector<SPtr<Component>> _components;
 };

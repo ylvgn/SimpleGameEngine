@@ -14,12 +14,12 @@ public:
 	const TypeInfo* fieldInfo = nullptr;
 	intptr_t offset = 0;
 
-	template<class Obj, class Member>
-	FieldInfo(const char* name_, Member Obj::*ptr)
+	template<class OBJ, class FIELD>
+	FieldInfo(const char* name_, FIELD OBJ::* ptr)
 		: name(name_)
+		, fieldInfo(TypeInfo_get<FIELD>())
+		, offset(memberOffset(ptr))
 	{
-		fieldInfo = TypeInfo_get<Member>();
-		offset = memberOffset(ptr);
 	}
 
 	void onFormat(fmt::format_context& ctx) const;

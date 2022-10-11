@@ -26,7 +26,8 @@ public:
 
 		{ // ecs
 			for (size_t i = 0; i < 10; i++) {
-				SPtr<Entity> obj = new Entity(static_cast<EntityId>(i));
+				auto tmp = Fmt("Entity({})", i);
+				SPtr<Entity> obj = _scene.addEntity(tmp);
 				CTransform* t = obj->addComponent<CTransform>();
 
 				Vec3f v3;
@@ -41,7 +42,6 @@ public:
 				t->localRotation.set(v4.x, v4.y, v4.z, v4.w);
 
 				SGE_DUMP_VAR(i, *t);
-				objs.emplace_back(std::move(obj));
 			}
 		}
 
@@ -71,11 +71,9 @@ public:
 			if (!ti) {
 				ti = TypeManager::instance()->registerType<Entity>();
 			}
-			auto obj = ti->createObject<Entity>(static_cast<EntityId>(1));
-
+			auto* obj = _scene.addEntity();
 			CTransform* t = obj->addComponent<CTransform>();
 			t->localPosition.set(999.0f, 99.0f, 9.0f);
-			objs.emplace_back(std::move(obj));
 		}
 
 		{ // test create CTransform
@@ -83,10 +81,9 @@ public:
 			if (!ti) {
 				ti = TypeManager::instance()->registerType<CTransform>();
 			}
-			auto* obj = objs.back().ptr();
+			auto* obj = _scene.entities().back();
 			CTransform* t = ti->createObject<CTransform>(obj);
 			obj->addComponent(t);
-
 			t->localPosition.set(888.0f, 88.0f, 8.0f);
 		}
 
@@ -289,25 +286,25 @@ public:
 #if 0 // imgui
 		ImGui::ShowDemoWindow(nullptr);
 #else
-
-		static int selected_index = -1;
+		static EntityId selectedEntityId = EntityId::None;
 		// Hierarchy
 		ImGui::Begin("Hierarchy", 0, 0);
 		{
 			int node_clicked = -1;
 			static ImGuiTreeNodeFlags base_flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
 			static int selection_mask = 0;
+			auto objs = _scene.entities();
 			for (int i = 0; i < objs.size(); i++)
 			{
 				ImGuiTreeNodeFlags node_flags = base_flags;
 				const bool is_selected = (selection_mask & (1 << i)) != 0;
 				if (is_selected) {
 					node_flags |= ImGuiTreeNodeFlags_Selected;
-					selected_index = i;
+					selectedEntityId = objs[i]->id();
 				}
 				
 				node_flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen; // ImGuiTreeNodeFlags_Bullet
-				ImGui::TreeNodeEx((void*)(intptr_t)i, node_flags, "Entity %d", i);
+				ImGui::TreeNodeEx((void*)(intptr_t)i, node_flags, objs[i]->name().data());
 				if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen()) {
 					node_clicked = i;
 				}
@@ -328,9 +325,9 @@ public:
 		// Inspector
 		ImGui::Begin("Inspector", 0, 0);
 		{
-			if (selected_index != -1) {
-				const auto& obj = objs[selected_index].ptr();
-				ImGui::Text("Entity %d", selected_index);
+			if (selectedEntityId != EntityId::None) {
+				const auto& obj = _scene.findEntityById(selectedEntityId);
+				ImGui::Text("%s", obj->name().data());
 				for (auto& c : obj->components()) {
 					const auto* ti = c->getType();
 					drawUI(reinterpret_cast<u8*>(c.ptr()), ti);
@@ -348,8 +345,6 @@ public:
 		drawNeeded();
 	}
 
-	Vector<SPtr<Entity>> objs;
-
 	RenderTerrain _terrain;
 
 	SPtr<Material> _material;
@@ -361,6 +356,9 @@ public:
 	Math::Camera3f	_camera;
 
 	RenderRequest	_renderRequest;
+
+	Scene			_scene;
+
 };
 
 class EditorApp : public NativeUIApp {
