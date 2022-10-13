@@ -24,7 +24,7 @@ public:
 		Base::onCreate(desc);
 		auto* renderer = Renderer::instance();
 
-		{ // ecs
+		{ // ECS
 			for (size_t i = 0; i < 10; i++) {
 				auto tmp = Fmt("Entity({})", i);
 				SPtr<Entity> obj = _scene.addEntity(tmp);
@@ -43,48 +43,6 @@ public:
 
 				SGE_DUMP_VAR(i, *t);
 			}
-		}
-
-		{ // test create primitive
-			const TypeInfo* ti = TypeManager::instance()->getType("u8");
-			auto t = ti->createPod<u8>();
-
-			SGE_DUMP_VAR(t);
-			t = 101;
-			SGE_DUMP_VAR(t);
-		}
-
-		{ // test create struct
-			const TypeInfo* ti = TypeManager::instance()->getType("Vec3f");
-			if (!ti) {
-				ti = TypeManager::instance()->registerType<Vec3f>();
-			}
-			auto t = ti->createPod<Vec3f>();
-
-			SGE_DUMP_VAR(t.x,  t.y, t.z);
-			t.set(1, 2, 3);
-			SGE_DUMP_VAR(t.x, t.y, t.z);
-		}
-
-		{ // test create Entity
-			const TypeInfo* ti = TypeManager::instance()->getType("Entity");
-			if (!ti) {
-				ti = TypeManager::instance()->registerType<Entity>();
-			}
-			auto* obj = _scene.addEntity();
-			CTransform* t = obj->addComponent<CTransform>();
-			t->localPosition.set(999.0f, 99.0f, 9.0f);
-		}
-
-		{ // test create CTransform
-			const TypeInfo* ti = TypeManager::instance()->getType("CTransform");
-			if (!ti) {
-				ti = TypeManager::instance()->registerType<CTransform>();
-			}
-			auto* obj = _scene.entities().back();
-			CTransform* t = ti->createObject<CTransform>(obj);
-			obj->addComponent(t);
-			t->localPosition.set(888.0f, 88.0f, 8.0f);
 		}
 
 		{ // create render context
@@ -224,37 +182,6 @@ public:
 		//_renderContext.onUIKeyboardEvent(ev); todo
 	}
 
-	void drawUI(u8* p, const TypeInfo* ti, const FieldInfo* fi = nullptr) {
-		if (ti->isStruct() || ti->isObject()) {
-			ImGui::Text(ti->name);
-			for (const auto& field : ti->fieldArray) {
-				drawUI(p + field.offset, field.fieldInfo, &field);
-			}
-			return;
-		}
-
-		if (ti->isContainer()) {
-			// TODO
-		}
-
-		if (ti == TypeManager::instance()->getType("u8") || ti == TypeManager::instance()->getType("i8")
-			|| ti == TypeManager::instance()->getType("u16") || ti == TypeManager::instance()->getType("i16")
-			|| ti == TypeManager::instance()->getType("u32") || ti == TypeManager::instance()->getType("i32")
-			|| ti == TypeManager::instance()->getType("u64") || ti == TypeManager::instance()->getType("i64"))
-		{
-			ImGui::InputInt(fi->name, reinterpret_cast<i32*>(p));
-		}
-		else if (ti == TypeManager::instance()->getType("f32"))
-		{
-			ImGui::InputFloat(fi->name, reinterpret_cast<f32*>(p));
-		}
-		else if (ti == TypeManager::instance()->getType("f64")
-			|| ti == TypeManager::instance()->getType("f128"))
-		{
-			ImGui::InputDouble(fi->name, reinterpret_cast<f64*>(p));
-		}
-	}
-
 	virtual void onDraw() {
 		Base::onDraw();
 		if (!_renderContext) return;
@@ -283,60 +210,11 @@ public:
 		_renderRequest.drawMesh(SGE_LOC, _renderMesh, _material);
 		//_terrain.render(_renderRequest);
 
-#if 0 // imgui
-		ImGui::ShowDemoWindow(nullptr);
-#else
-		static EntityId selectedEntityId = EntityId::None;
-		// Hierarchy
-		ImGui::Begin("Hierarchy", 0, 0);
-		{
-			int node_clicked = -1;
-			static ImGuiTreeNodeFlags base_flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
-			static int selection_mask = 0;
-			auto objs = _scene.entities();
-			for (int i = 0; i < objs.size(); i++)
-			{
-				ImGuiTreeNodeFlags node_flags = base_flags;
-				const bool is_selected = (selection_mask & (1 << i)) != 0;
-				if (is_selected) {
-					node_flags |= ImGuiTreeNodeFlags_Selected;
-					selectedEntityId = objs[i]->id();
-				}
-				
-				node_flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen; // ImGuiTreeNodeFlags_Bullet
-				ImGui::TreeNodeEx((void*)(intptr_t)i, node_flags, objs[i]->name().data());
-				if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen()) {
-					node_clicked = i;
-				}
-			}
+		// ImGui::ShowDemoWindow(nullptr);
 
-			if (node_clicked != -1)
-			{
-				// Update selection state
-                // (process outside of tree loop to avoid visual inconsistencies during the clicking frame)
-                if (ImGui::GetIO().KeyCtrl)
-                    selection_mask ^= (1 << node_clicked);          // CTRL+click to toggle
-                else //if (!(selection_mask & (1 << node_clicked))) // Depending on selection behavior you want, may want to preserve selection when clicking on item that is part of the selection
-                    selection_mask = (1 << node_clicked);           // Click to single-select
-			}
-		}
-		ImGui::End();
+		_hierarchyWindow.draw(_scene, _renderRequest);
+		_inspectorWindow.draw(_scene, _renderRequest);
 
-		// Inspector
-		ImGui::Begin("Inspector", 0, 0);
-		{
-			if (selectedEntityId != EntityId::None) {
-				const auto& obj = _scene.findEntityById(selectedEntityId);
-				ImGui::Text("%s", obj->name().data());
-				for (auto& c : obj->components()) {
-					const auto* ti = c->getType();
-					drawUI(reinterpret_cast<u8*>(c.ptr()), ti);
-				}
-				ImGui::NewLine();
-			}
-		}
-		ImGui::End();
-#endif
 		_renderContext->drawUI(_renderRequest);
 		_renderRequest.swapBuffers();
 		_renderContext->commit(_renderRequest.commandBuffer);
@@ -359,6 +237,8 @@ public:
 
 	Scene			_scene;
 
+	EditorHierarchyWindow _hierarchyWindow;
+	EditorInspectorWindow _inspectorWindow;
 };
 
 class EditorApp : public NativeUIApp {
@@ -401,12 +281,19 @@ public:
 			Renderer::create(renderDesc);
 		}
 
+		EditorContext::createContext();
+
 		{ // create window
 			NativeUIWindow::CreateDesc winDesc;
 			winDesc.isMainWindow = true;
 			_mainWin.create(winDesc);
 			_mainWin.setWindowTitle("SGE Editor");
 		}
+	}
+
+	virtual void onQuit() {
+		EditorContext::destroyContext();
+		Base::onQuit();
 	}
 
 private:
