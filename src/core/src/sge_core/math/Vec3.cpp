@@ -15,4 +15,19 @@ namespace sge {
 	template Vec3_Basic<double>;
 #endif
 
+
+#define Vec3f_FieldInfo_LIST() \
+	SGE_FIELD_INFO(x), \
+	SGE_FIELD_INFO(y), \
+	SGE_FIELD_INFO(z), \
+// ------------
+SGE_STRUCT_TYPE_IMPL(Vec3f)
+
+#define Vec3d_FieldInfo_LIST() \
+	SGE_FIELD_INFO(x), \
+	SGE_FIELD_INFO(y), \
+	SGE_FIELD_INFO(z), \
+// ------------
+SGE_STRUCT_TYPE_IMPL(Vec3d)
+
 }

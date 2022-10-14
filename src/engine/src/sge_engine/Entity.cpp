@@ -2,10 +2,12 @@
 
 namespace sge {
 
-template<> const TypeInfo* TypeInfo_get<Entity>() {
+const TypeInfo* Entity::s_getType() {
 	class Ti : public Entity::TI_Base {
 	public:
-		Ti() {}
+		Ti() {
+
+		}
 	};
 	static Ti ti;
 	return &ti;

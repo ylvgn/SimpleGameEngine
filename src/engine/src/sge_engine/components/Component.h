@@ -1,17 +1,13 @@
 #pragma once
 
-#include "../Entity.h"
-
 namespace sge {
 
-class Component;
-template<> const TypeInfo* TypeInfo_get<Component>();
+class Entity;
 
 class Component : public Object {
-	SGE_TYPEOF_DEFINE(Component, Object)
+	SGE_OBJECT_TYPE(Component, Object)
 public:
-	Component(Entity* entity) : _entity(entity) {}
-
+	void internal_setEntity(Entity* e) { _entity = e; }
 protected:
 	Entity* _entity = nullptr;
 };

@@ -2,32 +2,21 @@
 
 namespace sge {
 
-#define sge_type_info_primitive_impl(T) \
-template<> const TypeInfo* TypeInfo_get<T>() { \
-	class TI : public TIBaseInitNoBase<T> { \
-	public: \
-		TI() : TIBaseInitNoBase<T>(#T, TypeInfo::Style::Primitive) {} \
-		static constexpr const char* getTypeStr() { return #T; } \
-	}; \
-	static TI ti; \
-	return &ti; \
-} \
-// -------
+SGE_TYPEOF_SIMPLE_IMP(u8)
+SGE_TYPEOF_SIMPLE_IMP(u16)
+SGE_TYPEOF_SIMPLE_IMP(u32)
+SGE_TYPEOF_SIMPLE_IMP(u64)
 
-sge_type_info_primitive_impl(u8)
-sge_type_info_primitive_impl(u16)
-sge_type_info_primitive_impl(u32)
-sge_type_info_primitive_impl(u64)
+SGE_TYPEOF_SIMPLE_IMP(i8)
+SGE_TYPEOF_SIMPLE_IMP(i16)
+SGE_TYPEOF_SIMPLE_IMP(i32)
+SGE_TYPEOF_SIMPLE_IMP(i64)
 
-sge_type_info_primitive_impl(i8)
-sge_type_info_primitive_impl(i16)
-sge_type_info_primitive_impl(i32)
-sge_type_info_primitive_impl(i64)
+SGE_TYPEOF_SIMPLE_IMP(f32)
+SGE_TYPEOF_SIMPLE_IMP(f64)
+SGE_TYPEOF_SIMPLE_IMP(f128)
 
-sge_type_info_primitive_impl(f32)
-sge_type_info_primitive_impl(f64)
-sge_type_info_primitive_impl(f128)
-
+//---------------------------------------------------------------------------------
 void FieldInfo::onFormat(fmt::format_context& ctx) const {
 	fmt::format_to(ctx.out(), "name={}, offset={}, type={}", name, offset, fieldInfo->name);
 }

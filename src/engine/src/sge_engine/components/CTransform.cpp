@@ -2,7 +2,7 @@
 
 namespace sge {
 
-template<> const TypeInfo* TypeInfo_get<CTransform>() {
+const TypeInfo* CTransform::s_getType() {
 	using This = CTransform;
 	class Ti : public CTransform::TI_Base {
 	public:

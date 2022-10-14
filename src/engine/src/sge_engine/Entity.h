@@ -1,16 +1,13 @@
 #pragma once
 
-namespace sge {
+#include <sge_engine/components/Component.h>
 
-class Component;
+namespace sge {
 
 enum class EntityId : u64 { None = 0 };
 
-class Entity;
-template<> const TypeInfo* TypeInfo_get<Entity>();
-
 class Entity : public Object {
-	SGE_TYPEOF_DEFINE(Entity, Object)
+	SGE_OBJECT_TYPE(Entity, Object)
 public:
 	Entity(EntityId id) { _id = id; }
 
@@ -21,20 +18,22 @@ public:
 
 	template<class C> inline
 	C* addComponent() {
-		auto* c = new C(this);
-		_components.emplace_back(c);
-		return c;
+		auto* p = new C();
+		p->internal_setEntity(this);
+		_components.emplace_back(p);
+		return p;
 	}
 
-	Component* addComponent(Component* c) {
-		if (!c) return nullptr;
-		_components.emplace_back(c);
-		return c;
+	Component* addComponent(Component* p) {
+		if (!p) return nullptr;
+		p->internal_setEntity(this);
+		_components.emplace_back(p);
+		return p;
 	}
 
 	template<class C> inline
 	C* getComponent() {
-		const auto* target = TypeInfo_get<C>();
+		const auto* target = TypeOf<C>();
 		for (auto& c : _components) {
 			if (c.get()->getType() == target) {
 				return sge_cast<C>(c.get());
@@ -46,7 +45,7 @@ public:
 	template<class C> inline
 	void getComponents(Vector<C*>& out) {
 		out.reserve(_components.size());
-		const auto* target = TypeInfo_get<C>();
+		const auto* target = TypeOf<C>();
 		for (auto& c : _components) {
 			if (c.get()->getType() == target) {
 				out.emplace_back(sge_cast<C>(c.get()));
@@ -56,7 +55,7 @@ public:
 
 	template<class C> inline
 	void removeComponent() {
-		const auto* target = TypeInfo_get<C>();
+		const auto* target = TypeOf<C>();
 		for (auto* it = _components.begin(); it != _components.end(); ++it) {
 			if (it->get()->getType() == target) {
 				it = _components.erase(it);
@@ -67,7 +66,7 @@ public:
 
 	template<class C> inline
 	void removeComponents() {
-		const auto* target = TypeInfo_get<C>();
+		const auto* target = TypeOf<C>();
 		for (auto* it = _components.begin(); it != _components.end();) {
 			if (it->get()->getType() == target) {
 				it = _components.erase(it);
@@ -80,7 +79,7 @@ public:
 	Span<SPtr<Component>> components() { return _components; }
 private:
 
-	EntityId	_id;
+	EntityId	_id = EntityId::None;
 	String		_name;
 
 	Vector<SPtr<Component>> _components;

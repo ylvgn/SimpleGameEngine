@@ -2,21 +2,6 @@
 
 namespace sge {
 
-#define Vec3f_FieldInfo_LIST() \
-	sge_field_info(x), \
-	sge_field_info(y), \
-	sge_field_info(z), \
-// ------------
-sge_type_info_get_struct_impl(Vec3f)
-
-#define Quat4f_FieldInfo_LIST() \
-	sge_field_info(x), \
-	sge_field_info(y), \
-	sge_field_info(z), \
-	sge_field_info(w), \
-// ------------
-sge_type_info_get_struct_impl(Quat4f)
-
 class MainWin : public NativeUIWindow {
 	using Base = NativeUIWindow;
 public:

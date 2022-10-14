@@ -1,12 +1,65 @@
 #pragma once
+#include "sge_base.h"
 #include <sge_core/log/Log.h>
+
+#define SGE_STRUCT_TYPE(T, BASE) \
+private: \
+	using This = T; \
+	using Base = BASE; \
+	class TI_Base : public TypeInfoInit<T, BASE> { \
+	public: \
+		TI_Base() : TypeInfoInit<T, BASE>(#T, TypeInfo::Style::Struct) {} \
+	}; \
+public: \
+	static const TypeInfo* s_getType(); \
+	virtual const TypeInfo* getType() const override { return s_getType(); } \
+	static constexpr const char* s_getTypeName() { return #T; } \
+//----
+
+#define SGE_OBJECT_TYPE(T, BASE) \
+private: \
+	using This = T; \
+	using Base = BASE; \
+	class TI_Base : public TypeInfoInit<T, BASE> { \
+	public: \
+		TI_Base() : TypeInfoInit<T, BASE>(#T, TypeInfo::Style::Object) {} \
+	}; \
+public: \
+	static const TypeInfo* s_getType(); \
+	virtual const TypeInfo* getType() const override { return s_getType(); } \
+	static constexpr const char* s_getTypeName() { return #T; } \
+private: \
+//-----
+
+#define SGE_STRUCT_TYPE_IMPL(T) \
+template<> const TypeInfo* TypeOf<T>() { \
+	class TI : public TypeInfoInitNoBase<T> { \
+		using This = T; \
+	public: \
+		TI() : TypeInfoInitNoBase<T>(#T, TypeInfo::Style::Struct) { \
+			static FieldInfo fi[] = { \
+				T##_FieldInfo_LIST() \
+			}; \
+			setFieldInfo(fi); \
+		} \
+		static constexpr const char* s_getTypeName() { return #T; } \
+	}; \
+	static TI ti; \
+	return &ti; \
+} \
+// ------------
+
+#define SGE_FIELD_INFO(MEMBER) \
+	FieldInfo(#MEMBER, &This::MEMBER) \
+// ------------
 
 namespace sge {
 
+class Object;
 class TypeInfo;
-template<class T> const TypeInfo* TypeInfo_get();
 
-#define sge_type_info_get_define(T) template<> const TypeInfo* TypeInfo_get<T>();
+template<class T> inline const TypeInfo* TypeOf()			{ return T::s_getType(); }
+template<class T> inline const TypeInfo* TypeOf(const T& v) { return TypeOf<T>(); }
 
 class FieldInfo {
 public:
@@ -17,7 +70,7 @@ public:
 	template<class OBJ, class FIELD>
 	FieldInfo(const char* name_, FIELD OBJ::* ptr)
 		: name(name_)
-		, fieldInfo(TypeInfo_get<FIELD>())
+		, fieldInfo(TypeOf<FIELD>())
 		, offset(memberOffset(ptr))
 	{
 	}
@@ -54,7 +107,7 @@ public:
 
 	template<class DST> inline
 	bool isKindOf() const {
-		return isKindOf(TypeInfo_get<DST>());
+		return isKindOf(TypeOf<DST>());
 	};
 
 	template<size_t N> inline
@@ -83,9 +136,9 @@ public:
 };
 
 template<class T>
-class TIBaseInitNoBase : public TypeInfo {
+class TypeInfoInitNoBase : public TypeInfo {
 public:
-	TIBaseInitNoBase(const char* name_, Style style_ = Style::Primitive) {
+	TypeInfoInitNoBase(const char* name_, Style style_ = Style::Primitive) {
 		name = name_;
 		style = style_;
 		dataSize = sizeof(T);
@@ -93,39 +146,71 @@ public:
 };
 
 template<class T, class BASE>
-class TIBaseInit : public TIBaseInitNoBase<T> {
+class TypeInfoInit : public TypeInfoInitNoBase<T> {
 public:
-	TIBaseInit(const char* name_, Style style_) : TIBaseInitNoBase<T>(name_, style_) {
+	TypeInfoInit(const char* name_, Style style_) : TypeInfoInitNoBase<T>(name_, style_) {
 		static_assert(std::is_base_of<BASE, T>::value, "invalid base class");
-		base = TypeInfo_get<BASE>();
+		base = TypeOf<BASE>();
 	}
 };
-
-#if 0
-template<class T> inline
-const TypeInfo* TypeInfo_get<T>() {
-	return T::s_getType();
-}
-#endif
 
 template<class T, class... ARGS> inline
 T* sge_creator(ARGS&&... args) {
 	return new T(SGE_FORWARD(args)...);
 }
 
-sge_type_info_get_define(u8)
-sge_type_info_get_define(u16)
-sge_type_info_get_define(u32)
-sge_type_info_get_define(u64)
+#if 0
+template<class DST> inline
+DST* sge_cast(Object* obj) {
+	if (!obj) return nullptr;
+	const auto* ti = TypeManager::instance()->getType(DST::s_getTypeName());
+	if (!ti) {
+		ti = TypeOf<DST>();
+		for (auto p : ti->fieldArray) {
+			if (!TypeManager::instance()->getType(p.fieldInfo->name)) {
+				TypeManager::instance()->registerType(p.fieldInfo);
+			}
+		}
+	}
+	if (!ti) return nullptr;
+	if (!ti->isKindOf<DST>()) return nullptr;
+	return static_cast<DST*>(obj);
+};
+#endif
 
-sge_type_info_get_define(i8)
-sge_type_info_get_define(i16)
-sge_type_info_get_define(i32)
-sge_type_info_get_define(i64)
+#define SGE_TYPEOF_SIMPLE(T) \
+	template<> const TypeInfo* TypeOf<T>(); \
+// -------
 
-sge_type_info_get_define(f32)
-sge_type_info_get_define(f64)
-sge_type_info_get_define(f128)
+#define SGE_TYPEOF_SIMPLE_IMP(T) \
+template<> const TypeInfo* TypeOf<T>() { \
+	class TI : public TypeInfoInitNoBase<T> { \
+	public: \
+		TI() : TypeInfoInitNoBase<T>(#T, TypeInfo::Style::Primitive) {} \
+		static constexpr const char* s_getTypeName() { return #T; } \
+	}; \
+	static TI ti; \
+	return &ti; \
+} \
+// -------
+
+SGE_TYPEOF_SIMPLE(float)
+SGE_TYPEOF_SIMPLE(double)
+
+SGE_TYPEOF_SIMPLE(int8_t)
+SGE_TYPEOF_SIMPLE(int16_t)
+SGE_TYPEOF_SIMPLE(int32_t)
+SGE_TYPEOF_SIMPLE(int64_t)
+
+SGE_TYPEOF_SIMPLE(uint8_t)
+SGE_TYPEOF_SIMPLE(uint16_t)
+SGE_TYPEOF_SIMPLE(uint32_t)
+SGE_TYPEOF_SIMPLE(uint64_t)
+
+SGE_TYPEOF_SIMPLE(char8_t) // c++20
+SGE_TYPEOF_SIMPLE(char16_t)
+SGE_TYPEOF_SIMPLE(char32_t)
+SGE_TYPEOF_SIMPLE(wchar_t)
 
 SGE_FORMATTER(TypeInfo)
 SGE_FORMATTER(FieldInfo)

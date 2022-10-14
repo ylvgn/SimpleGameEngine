@@ -29,13 +29,13 @@ namespace EditorUI {
 	};
 
 
-
 	inline bool IsItemToggledOpen() { return ImGui::IsItemToggledOpen(); }
 	inline bool IsItemClicked()		{ return ImGui::IsItemClicked(); }
 
 	inline bool IsKeyShift()		{ return ImGui::GetIO().KeyShift; }
 	inline bool IsKeyAlt()			{ return ImGui::GetIO().KeyAlt; }
 	inline bool IsKeyCtrl()			{ return ImGui::GetIO().KeyCtrl; }
-}
 
-}
+} // EditorUI
+
+} // sge
