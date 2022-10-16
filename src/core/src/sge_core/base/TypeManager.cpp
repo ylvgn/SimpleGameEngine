@@ -25,6 +25,11 @@ TypeManager::TypeManager() {
 	registerType<f32>();
 	registerType<f64>();
 	registerType<f128>();
+
+	registerType<char8_t>(); // c++20
+	registerType<char16_t>();
+	registerType<char32_t>();
+	registerType<wchar_t>();
 }
 
 TypeManager* TypeManager::instance() {

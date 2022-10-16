@@ -8,27 +8,7 @@ public:
 	virtual void onCreate(CreateDesc& desc) {
 		Base::onCreate(desc);
 		auto* renderer = Renderer::instance();
-
-		{ // ECS
-			for (size_t i = 0; i < 10; i++) {
-				auto tmp = Fmt("Entity({})", i);
-				SPtr<Entity> obj = _scene.addEntity(tmp);
-				CTransform* t = obj->addComponent<CTransform>();
-
-				Vec3f v3;
-				for (int j = 0; j < 3; j++) v3[j] = 1.0f + std::rand() % 99;;
-				t->localPosition.set(v3);
-
-				for (int j = 0; j < 3; j++) v3[j] = 10.0f + std::rand() % 99;;
-				t->localScale.set(v3);
-
-				Vec4f v4;
-				for (int j = 0; j < 4; j++) v4[j] = 0.0f + std::rand() % 99;
-				t->localRotation.set(v4.x, v4.y, v4.z, v4.w);
-
-				SGE_DUMP_VAR(i, *t);
-			}
-		}
+		auto* editor = EditorContext::instance();
 
 		{ // create render context
 			RenderContext::CreateDesc renderContextDesc;
@@ -128,6 +108,26 @@ public:
 				maxLod,
 				"Assets/Terrain/TerrainTest/TerrainHeight_Small.png");
 		}
+
+		{ // ECS
+			for (int i = 0; i < 10; i++) {
+				TempString s;
+				FmtTo(s, "Object {}", i);
+				auto* e = _scene.addEntity(s);
+				auto* t = e->addComponent<CTransform>();
+				t->position.set(static_cast<float>(i), 5, 10);
+				if (i && i % 4 == 0) {
+					auto* tmp = _scene.findEntityById(EntityId(1));
+					tmp->addChild(e);
+				} else if (i && i % 3 == 0) {
+					auto* tmp = _scene.findEntityById(EntityId(2));
+					tmp->addChild(e);
+				}
+			}
+
+			editor->entitySelection.add(EntityId(1));
+			//editor->entitySelection.add(EntityId(3));
+		}
 	}
 
 	virtual void onCloseButton() {
@@ -195,7 +195,7 @@ public:
 		_renderRequest.drawMesh(SGE_LOC, _renderMesh, _material);
 		//_terrain.render(_renderRequest);
 
-		// ImGui::ShowDemoWindow(nullptr);
+		ImGui::ShowDemoWindow(nullptr);
 
 		_hierarchyWindow.draw(_scene, _renderRequest);
 		_inspectorWindow.draw(_scene, _renderRequest);
@@ -266,6 +266,7 @@ public:
 			Renderer::create(renderDesc);
 		}
 
+		TypeManager::instance()->registerType<CTransform>();
 		EditorContext::createContext();
 
 		{ // create window

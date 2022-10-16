@@ -8,9 +8,9 @@ const TypeInfo* CTransform::s_getType() {
 	public:
 		Ti() {
 			static FieldInfo fi[] = {
-				FieldInfo("localPosition",	&This::localPosition),
-				FieldInfo("localScale",		&This::localScale),
-				FieldInfo("localRotation",	&This::localRotation),
+				FieldInfo("position", &This::position),
+				FieldInfo("rotate",	&This::rotate),
+				FieldInfo("scale", &This::scale),
 			};
 			setFieldInfo(fi);
 		}
@@ -20,10 +20,11 @@ const TypeInfo* CTransform::s_getType() {
 }
 
 void CTransform::onFormat(fmt::format_context& ctx) const {
-	fmt::format_to(ctx.out(), "localPosition=({},{}, {}), localScale=({}, {}, {}), localRotation=({}, {}, {}, {})",
-		localPosition.x, localPosition.y, localPosition.z,
-		localScale.x, localScale.y, localScale.z,
-		localRotation.x, localRotation.y, localRotation.z, localRotation.w);
+	fmt::format_to(ctx.out(), "position=({},{}, {}), rotate=({}, {}, {}, {}), scale=({}, {}, {})",
+		position.x, position.y, position.z,
+		rotate.x, rotate.y, rotate.z, rotate.w,
+		scale.x, scale.y, scale.z
+	);
 }
 
 } // namespace

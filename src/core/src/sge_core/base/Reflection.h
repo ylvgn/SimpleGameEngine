@@ -159,7 +159,6 @@ T* sge_creator(ARGS&&... args) {
 	return new T(SGE_FORWARD(args)...);
 }
 
-#if 0
 template<class DST> inline
 DST* sge_cast(Object* obj) {
 	if (!obj) return nullptr;
@@ -176,7 +175,6 @@ DST* sge_cast(Object* obj) {
 	if (!ti->isKindOf<DST>()) return nullptr;
 	return static_cast<DST*>(obj);
 };
-#endif
 
 #define SGE_TYPEOF_SIMPLE(T) \
 	template<> const TypeInfo* TypeOf<T>(); \
@@ -196,6 +194,7 @@ template<> const TypeInfo* TypeOf<T>() { \
 
 SGE_TYPEOF_SIMPLE(float)
 SGE_TYPEOF_SIMPLE(double)
+SGE_TYPEOF_SIMPLE(long double)
 
 SGE_TYPEOF_SIMPLE(int8_t)
 SGE_TYPEOF_SIMPLE(int16_t)

@@ -7,9 +7,9 @@ namespace sge {
 class CTransform : public Component {
 	SGE_OBJECT_TYPE(CTransform, Component)
 public:
-	Vec3f	localPosition{0,0,0};
-	Vec3f	localScale{0,0,0};
-	Quat4f	localRotation = Quat4f::s_identity();
+	Vec3f	position{ 0,0,0 };
+	Quat4f	rotate{ 0,0,0,0 };
+	Vec3f	scale{ 1,1,1 };
 
 	void onFormat(fmt::format_context& ctx) const;
 };
