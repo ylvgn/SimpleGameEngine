@@ -16,6 +16,15 @@ public:
 	void setName(StrView name)	{ _name = name; }
 	StrView name() const		{ return _name; }
 
+	Entity* parent() const		{ return _parent; }
+	void setParent(Entity* parent);
+
+	Span<SPtr<Entity>> children() { return _children; }
+	void addChild(Entity* child);
+	void removeChild(Entity* child);
+
+	Span<SPtr<Component>> components() { return _components; }
+
 	template<class C> inline
 	C* addComponent() {
 		auto* p = new C();
@@ -75,14 +84,14 @@ public:
 			}
 		}
 	}
-
-	Span<SPtr<Component>> components() { return _components; }
 private:
 
 	EntityId	_id = EntityId::None;
 	String		_name;
+	Entity*		_parent = nullptr;
 
 	Vector<SPtr<Component>> _components;
+	Vector<SPtr<Entity>> _children;
 };
 
 } // namespace

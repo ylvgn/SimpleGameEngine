@@ -11,25 +11,19 @@ void test(u8* p, const TypeInfo* ti, const FieldInfo* fi = nullptr) {
 		return;
 	}
 
-	if (ti->isContainer()) {
-		// TODO
-	}
+	if (ti->isContainer()) return; // TODO
 
-	if (ti == TypeManager::instance()->getType("u8") || ti == TypeManager::instance()->getType("i8")
-		|| ti == TypeManager::instance()->getType("u16") || ti == TypeManager::instance()->getType("i16")
-		|| ti == TypeManager::instance()->getType("u32") || ti == TypeManager::instance()->getType("i32")
-		|| ti == TypeManager::instance()->getType("u64") || ti == TypeManager::instance()->getType("i64"))
+	TempString s;
+	FmtTo(s, "{}: {}", fi->name, reinterpret_cast<intptr_t>(p));
+
+	if (ti == TypeManager::instance()->getType("int8_t")
+		|| ti == TypeManager::instance()->getType("int16_t")
+		|| ti == TypeManager::instance()->getType("int32_t")
+		|| ti == TypeManager::instance()->getType("int64_t"))
 	{
-		ImGui::InputInt(fi->name, reinterpret_cast<i32*>(p));
-	}
-	else if (ti == TypeManager::instance()->getType("f32"))
-	{
-		ImGui::InputFloat(fi->name, reinterpret_cast<f32*>(p));
-	}
-	else if (ti == TypeManager::instance()->getType("f64")
-		|| ti == TypeManager::instance()->getType("f128"))
-	{
-		ImGui::InputDouble(fi->name, reinterpret_cast<f64*>(p));
+		ImGui::DragInt(s.c_str(), reinterpret_cast<int*>(p));
+	} else if (ti == TypeManager::instance()->getType("float")) {
+		ImGui::DragFloat(s.c_str(), reinterpret_cast<float*>(p));
 	}
 }
 
