@@ -9,8 +9,9 @@ enum class EntityId : u64 { None = 0 };
 class Entity : public Object {
 	SGE_OBJECT_TYPE(Entity, Object)
 public:
-	Entity(EntityId id) { _id = id; }
+	Entity() = default;
 
+	void setId(EntityId id)		{ _id = id; }
 	EntityId id() const			{ return _id; }
 
 	void setName(StrView name)	{ _name = name; }

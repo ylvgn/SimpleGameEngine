@@ -3,7 +3,8 @@
 namespace sge {
 
 Entity* Scene::addEntity() {
-	auto* p = new Entity(static_cast<EntityId>(++_nextEntityId));
+	auto* p = new Entity();
+	p->setId(static_cast<EntityId>(++_nextEntityId));
 	_entityIdMap[p->id()] = p;
 	_entities.emplace_back(p);
 	return p;

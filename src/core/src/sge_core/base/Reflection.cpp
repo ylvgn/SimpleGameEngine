@@ -24,7 +24,7 @@ SGE_TYPEOF_SIMPLE_IMP(wchar_t)
 
 //---------------------------------------------------------------------------------
 void FieldInfo::onFormat(fmt::format_context& ctx) const {
-	fmt::format_to(ctx.out(), "name={}, offset={}, type={}", name, offset, fieldInfo->name);
+	fmt::format_to(ctx.out(), "name={}, offset={}, type={}", name, offset, fieldType->name);
 }
 
 void TypeInfo::onFormat(fmt::format_context& ctx) const {
@@ -32,11 +32,11 @@ void TypeInfo::onFormat(fmt::format_context& ctx) const {
 	if (base) {
 		fmt::format_to(ctx.out(), ", base=[{}]", *base);
 	}
-	if (!fieldArray.empty()) fmt::format_to(ctx.out(), "{}", ", fields={");
-	for (auto& f : fieldArray) {
+	if (!_fields.empty()) fmt::format_to(ctx.out(), "{}", ", fields={");
+	for (auto& f : _fields) {
 		fmt::format_to(ctx.out(), " [{}],", f);
 	}
-	if (!fieldArray.empty()) fmt::format_to(ctx.out(), " {}", '}');
+	if (!_fields.empty()) fmt::format_to(ctx.out(), " {}", '}');
 }
 
 } // namespace

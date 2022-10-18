@@ -12,7 +12,7 @@ const TypeInfo* CTransform::s_getType() {
 				FieldInfo("rotate",	&This::rotate),
 				FieldInfo("scale", &This::scale),
 			};
-			setFieldInfo(fi);
+			setFields(fi);
 		}
 	};
 	static Ti ti;

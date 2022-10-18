@@ -5,6 +5,28 @@
 namespace sge {
 
 namespace EditorUI {
+	static const char* mixedValueFormat = "--";
+	static const char* floatFormat = "%0.3f";
+	static bool showMixedValue = false;
+
+	inline bool DragFloat(
+		const char* label,
+		float* v,
+		float v_speed = 0.1f,
+		float v_min = std::numeric_limits<float>::lowest(),
+		float v_max = std::numeric_limits<float>::max(),
+		float v_power = 1.0f)
+	{
+		return ImGui::DragFloat(label, v, v_speed, v_min, v_max,
+			showMixedValue ? mixedValueFormat : floatFormat,
+			v_power);
+	}
+
+	inline float InputFloat(const char* label, float* v) {
+		return ImGui::InputFloat(label, v, 0, 0,
+			showMixedValue ? mixedValueFormat : floatFormat,
+			ImGuiInputTextFlags_EnterReturnsTrue);
+	}
 
 	class Window : public NonCopyable {
 	public:
@@ -50,12 +72,33 @@ namespace EditorUI {
 			_isOpen = ImGui::BeginDragDropTarget();
 		}
 
-		~DragDropTarget() { if (_isOpen) ImGui::EndDragDropTarget(); }
+		~DragDropTarget() { if(_isOpen) ImGui::EndDragDropTarget(); }
 
 		bool isOpen() const { return _isOpen; }
+		const ImGuiPayload* acceptDragDropPayload(const char* type, ImGuiDragDropFlags flags = 0) {
+			if (!_isOpen) return nullptr;
+			return ImGui::AcceptDragDropPayload(type, flags);
+		}
 	private:
 		bool _isOpen;
 	};
+
+	class CollapsingHeader : public NonCopyable {
+	public:
+		CollapsingHeader(const char* label) {
+			ImGui::CollapsingHeader(label, &_visiable);
+		}
+
+	private:
+		bool _visiable = true;
+	};
+
+	class PushID : public NonCopyable {
+	public:
+		PushID(const void* id) { ImGui::PushID(id); }
+		~PushID() { ImGui::PopID(); }
+	};
+
 
 	inline bool IsItemToggledOpen() { return ImGui::IsItemToggledOpen(); }
 	inline bool IsItemClicked()		{ return ImGui::IsItemClicked(); }

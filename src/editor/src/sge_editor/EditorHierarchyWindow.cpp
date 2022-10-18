@@ -2,8 +2,7 @@
 
 namespace sge {
 
-static const char* kDragFlag = "MOVE_ENTITY";
-void EditorHierarchyWindow::_drawinner(Scene& scene, RenderRequest& req, Entity* e) {
+void EditorHierarchyWindow::drawEntity(Scene& scene, RenderRequest& req, Entity* e) {
 
 	auto* ed = EditorContext::instance();
 	auto& sel = ed->entitySelection;
@@ -31,20 +30,18 @@ void EditorHierarchyWindow::_drawinner(Scene& scene, RenderRequest& req, Entity*
 	EditorUI::DragDropSource dragSrc;
 	if (dragSrc.isOpen()) {
 		EntityId sendEntityId = e->id();
-		ImGui::SetDragDropPayload(kDragFlag, &sendEntityId, sizeof(EntityId), ImGuiCond_Once);
+		ImGui::SetDragDropPayload(kDragDropEntityFlag, &sendEntityId, sizeof(EntityId), ImGuiCond_Once);
 	}
 
 	EditorUI::DragDropTarget dragTarget;
-	if (dragTarget.isOpen()) {
-		if (const auto* payload = ImGui::AcceptDragDropPayload(kDragFlag)) {
-			SGE_ASSERT(payload->DataSize == sizeof(EntityId));
+	if (const auto * payload = dragTarget.acceptDragDropPayload(kDragDropEntityFlag)) {
+		SGE_ASSERT(payload->DataSize == sizeof(EntityId));
 
-			EntityId recvEntityId = *reinterpret_cast<EntityId*>(payload->Data);
-			Entity* recvEntity = scene.findEntityById(recvEntityId);
-			if (recvEntity) {
-				//SGE_LOG("{} set parent {}", recvEntity->name(), e->name());
-				recvEntity->setParent(e);
-			}
+		EntityId recvEntityId = *reinterpret_cast<EntityId*>(payload->Data);
+		Entity* recvEntity = scene.findEntityById(recvEntityId);
+		if (recvEntity) {
+			//SGE_LOG("{} set parent {}", recvEntity->name(), e->name());
+			recvEntity->setParent(e);
 		}
 	}
 
@@ -53,7 +50,8 @@ void EditorHierarchyWindow::_drawinner(Scene& scene, RenderRequest& req, Entity*
 	}
 
 	for (auto& child : e->children()) {
-		if (child) _drawinner(scene, req, child);
+		if (!child) continue;
+		drawEntity(scene, req, child);
 	}
 }
 
@@ -62,7 +60,7 @@ void EditorHierarchyWindow::draw(Scene& scene, RenderRequest& req) {
 
 	for (auto& e : scene.entities()) {
 		if (e->parent()) continue;
-		_drawinner(scene, req, e);
+		drawEntity(scene, req, e);
 	}
 }
 

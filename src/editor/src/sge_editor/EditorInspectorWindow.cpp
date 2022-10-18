@@ -2,45 +2,66 @@
 
 namespace sge {
 
-void test(u8* p, const TypeInfo* ti, const FieldInfo* fi = nullptr) {
-	if (ti->isStruct() || ti->isObject()) {
-		ImGui::Text(ti->name);
-		for (const auto& field : ti->fieldArray) {
-			test(p + field.offset, field.fieldInfo, &field);
-		}
-		return;
-	}
-
-	if (ti->isContainer()) return; // TODO
-
-	TempString s;
-	FmtTo(s, "{}: {}", fi->name, reinterpret_cast<intptr_t>(p));
-
-	if (ti == TypeManager::instance()->getType("int8_t")
-		|| ti == TypeManager::instance()->getType("int16_t")
-		|| ti == TypeManager::instance()->getType("int32_t")
-		|| ti == TypeManager::instance()->getType("int64_t"))
-	{
-		ImGui::DragInt(s.c_str(), reinterpret_cast<int*>(p));
-	} else if (ti == TypeManager::instance()->getType("float")) {
-		ImGui::DragFloat(s.c_str(), reinterpret_cast<float*>(p));
-	}
-}
-
 void EditorInspectorWindow::draw(Scene& scene, RenderRequest& req) {
 	EditorUI::Window win("Inspector", &_active, 0);
 
 	auto* ed = EditorContext::instance();
 	auto& sel = ed->entitySelection;
 
+	_tempTypeList.clear();
+	_tempTypeMap.clear();
+
 	for (auto& id : sel.entities()) {
 		const auto& e = scene.findEntityById(id);
-		ImGui::Text("%s", e->name().data());
+		if (!e) continue;
 		for (auto& c : e->components()) {
-			const auto* ti = c->getType();
-			test(reinterpret_cast<u8*>(c.ptr()), ti);
+			if (!c) continue;
+			_addTempList(c);
 		}
-		ImGui::NewLine();
+	}
+
+	for (auto& objectList : _tempTypeList) {
+		drawComponent(req, *objectList);
+	}
+}
+
+void EditorInspectorWindow::_addTempList(Component* c) {
+	const auto* ti = c->getType();
+	auto it = _tempTypeMap.find(ti);
+
+	ObjectList* list;
+
+	if (it == _tempTypeMap.end()) {
+		list = &_tempTypeMap[ti];
+		_tempTypeList.emplace_back(list);
+	} else {
+		list = &_tempTypeMap[ti];
+	}
+
+	list->emplace_back(c);
+}
+
+void EditorInspectorWindow::drawComponent(RenderRequest& req, ObjectList& list) {
+	if (list.size() <= 0) return;
+	auto* ed = EditorContext::instance();
+	const auto* type = list[0]->getType();
+
+	EditorUI::CollapsingHeader header(type->name);
+
+	EditorPropertyDrawRequest dr;
+	dr.objectType = type;
+	dr.objects.clear();
+	dr.objects.reserve(list.size());
+	for (auto& o : list) {
+		dr.objects.emplace_back(o);
+	}
+
+	for (const auto& f : type->fields()) {
+		if (!f.fieldType) continue;
+		dr.field = &f;
+		if (auto* drawer = ed->getPropertyDrawer(f.fieldType)) {
+			drawer->draw(dr);
+		}
 	}
 }
 

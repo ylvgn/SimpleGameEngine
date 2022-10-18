@@ -126,7 +126,7 @@ public:
 			}
 
 			editor->entitySelection.add(EntityId(1));
-			//editor->entitySelection.add(EntityId(3));
+			editor->entitySelection.add(EntityId(3));
 		}
 	}
 

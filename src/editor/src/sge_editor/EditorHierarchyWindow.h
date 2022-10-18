@@ -9,7 +9,10 @@ public:
 	void draw(Scene& scene, RenderRequest& req);
 
 private:
-	void _drawinner(Scene& scene, RenderRequest& req, Entity* e);
+
+	static constexpr const char* kDragDropEntityFlag = "DRAG_DROP_ENTITY";
+
+	void drawEntity(Scene& scene, RenderRequest& req, Entity* e);
 	bool _active = true;
 };
 

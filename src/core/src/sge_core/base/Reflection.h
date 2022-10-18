@@ -40,7 +40,7 @@ template<> const TypeInfo* TypeOf<T>() { \
 			static FieldInfo fi[] = { \
 				T##_FieldInfo_LIST() \
 			}; \
-			setFieldInfo(fi); \
+			setFields(fi); \
 		} \
 		static constexpr const char* s_getTypeName() { return #T; } \
 	}; \
@@ -63,28 +63,52 @@ template<class T> inline const TypeInfo* TypeOf(const T& v) { return TypeOf<T>()
 
 class FieldInfo {
 public:
-	const char* name = "";
-	const TypeInfo* fieldInfo = nullptr;
-	intptr_t offset = 0;
-
 	template<class OBJ, class FIELD>
 	FieldInfo(const char* name_, FIELD OBJ::* ptr)
 		: name(name_)
-		, fieldInfo(TypeOf<FIELD>())
+		, fieldType(TypeOf<FIELD>())
 		, offset(memberOffset(ptr))
 	{
 	}
 
+		  void* getValuePtr(      void* obj) const { return reinterpret_cast<      u8*>(obj) + offset; }
+	const void* getValuePtr(const void* obj) const { return reinterpret_cast<const u8*>(obj) + offset; }
+
+	template<class T>
+	const T& getValue(const void* obj) const {
+		SGE_ASSERT(TypeOf<T>() == fieldType);
+		return *reinterpret_cast<const T*>(getValuePtr(obj));
+	}
+
+	template<class T>
+	void setValue(void* obj, const T& value) const {
+		SGE_ASSERT(TypeOf<T>() == fieldType);
+		*reinterpret_cast<T*>(getValuePtr(obj)) = value;
+	}
+
 	void onFormat(fmt::format_context& ctx) const;
+
+	const char* name = "";
+	const TypeInfo* fieldType = nullptr;
+	intptr_t offset = 0;
 };
 
-template<class T, class... ARGS> T* sge_creator(ARGS&&... args);
 class TypeInfo {
 public:
 	const char* name = "";
 	const TypeInfo* base = nullptr;
 	size_t dataSize = 0;
-	Span<FieldInfo> fieldArray;
+
+	Span<const FieldInfo> fields() const { return _fields; }
+
+	using Creator = Object * (*)();
+
+	Creator creator;
+
+	Object* createObject() const {
+		if (!creator) return nullptr;
+		return creator();
+	}
 
 	enum class Style {
 		None = 0,
@@ -94,6 +118,11 @@ public:
 		Container,
 	};
 	Style style = Style::None;
+
+	const bool isPrimitive()	const { return style == Style::Primitive; }
+	const bool isStruct()		const { return style == Style::Struct; }
+	const bool isObject()		const { return style == Style::Object; }
+	const bool isContainer()	const { return style == Style::Container; }
 
 	bool isKindOf(const TypeInfo* target) const {
 		if (!target) return nullptr;
@@ -110,29 +139,10 @@ public:
 		return isKindOf(TypeOf<DST>());
 	};
 
-	template<size_t N> inline
-	void setFieldInfo(FieldInfo (&fi)[N]) {
-		fieldArray = fi;
-	}
-
-	const bool isPrimitive()	const { return style == Style::Primitive; }
-	const bool isStruct()		const { return style == Style::Struct; }
-	const bool isObject()		const { return style == Style::Object; }
-	const bool isContainer()	const { return style == Style::Container; }
-
-	template<class DST, class... ARGS> inline
-		DST* createObject(ARGS... args) const {
-		SGE_ASSERT(isObject());
-		return sge_creator<DST>(SGE_FORWARD(args)...);
-	}
-
-	template<class DST, class... ARGS> inline
-	DST createPod(ARGS... args) const {
-		SGE_ASSERT(isPrimitive() || isStruct());
-		return DST(SGE_FORWARD(args)...);
-	}
-
 	void onFormat(fmt::format_context& ctx) const;
+
+protected:
+	Span<const FieldInfo> _fields;
 };
 
 template<class T>
@@ -143,7 +153,17 @@ public:
 		style = style_;
 		dataSize = sizeof(T);
 	}
+
+	template<size_t N>
+	void setFields(const FieldInfo(&fi)[N]) {
+		_fields = fi;
+	}
 };
+
+template<class T> inline
+static Object* TypeCreator() {
+	return new T();
+}
 
 template<class T, class BASE>
 class TypeInfoInit : public TypeInfoInitNoBase<T> {
@@ -151,13 +171,10 @@ public:
 	TypeInfoInit(const char* name_, Style style_) : TypeInfoInitNoBase<T>(name_, style_) {
 		static_assert(std::is_base_of<BASE, T>::value, "invalid base class");
 		base = TypeOf<BASE>();
+
+		this->creator = &TypeCreator<T>;
 	}
 };
-
-template<class T, class... ARGS> inline
-T* sge_creator(ARGS&&... args) {
-	return new T(SGE_FORWARD(args)...);
-}
 
 template<class DST> inline
 DST* sge_cast(Object* obj) {
@@ -166,7 +183,7 @@ DST* sge_cast(Object* obj) {
 	if (!ti) {
 		ti = TypeOf<DST>();
 		for (auto p : ti->fieldArray) {
-			if (!TypeManager::instance()->getType(p.fieldInfo->name)) {
+			if (!TypeManager::instance()->getType(p.fieldType->name)) {
 				TypeManager::instance()->registerType(p.fieldInfo);
 			}
 		}
