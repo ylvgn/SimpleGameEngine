@@ -64,6 +64,7 @@ public:
 		_material->setShader(shader);
 		_material->setParam("mainTex", _testTexture);
 
+#if 0
 		EditMesh editMesh;
 #if 1
 		WavefrontObjLoader::readFile(editMesh, "Assets/Mesh/test.obj");
@@ -94,6 +95,7 @@ public:
 		editMesh.indices.emplace_back(0);
 #endif
 		_renderMesh.create(editMesh);
+#endif
 
 		{
 			float size = 2048;
@@ -110,6 +112,40 @@ public:
 		}
 
 		{ // ECS
+			EditMesh editMesh;
+			for (int a = 0; a < 2; a++)
+				for (int b = 0; b < 2; b++)
+					for (int c = 0; c < 2; c++) {
+						editMesh.pos.emplace_back(a? a : -1, b? b : -1, c? c : -1);
+						editMesh.color.emplace_back(255, 0, 0, 255);
+						editMesh.normal.emplace_back(0, 0, 0);
+					}
+
+			Vector<u32> indexes = {
+				2,0,1, 2,1,3,
+
+				0,6,4, 0,2,6,
+
+				3,7,2, 7,6,2,
+
+				1,7,3, 1,5,7,
+
+				4,6,7, 4,7,5,
+
+				4,1,0, 4,5,1,
+			};
+
+			editMesh.uv[0].emplace_back(0, 0);
+			editMesh.uv[0].emplace_back(0, 1);
+			editMesh.uv[0].emplace_back(1, 0);
+			editMesh.uv[0].emplace_back(1, 1);
+			editMesh.uv[0].emplace_back(1, 1);
+			editMesh.uv[0].emplace_back(1, 0);
+			editMesh.uv[0].emplace_back(0, 1);
+			editMesh.uv[0].emplace_back(0, 0);
+
+			editMesh.indices = std::move(indexes);
+
 			for (int i = 0; i < 10; i++) {
 				TempString s;
 				FmtTo(s, "Object {}", i);
@@ -122,6 +158,12 @@ public:
 				} else if (i && i % 3 == 0) {
 					auto* tmp = _scene.findEntityById(EntityId(2));
 					tmp->addChild(e);
+				}
+				if (i < 3) {
+					auto* m = e->addComponent<CMeshRenderer>();
+					m->setMesh(editMesh);
+					//m->setMesh("Assets/Mesh/test.obj");
+					m->setMaterial(_material);
 				}
 			}
 
@@ -192,10 +234,12 @@ public:
 		_material->setParam("test_color", Color4f(s, s, s, 1));
 //-----
 
-		_renderRequest.drawMesh(SGE_LOC, _renderMesh, _material);
+		//_renderRequest.drawMesh(SGE_LOC, _renderMesh, _material);
 		//_terrain.render(_renderRequest);
 
-		ImGui::ShowDemoWindow(nullptr);
+		//ImGui::ShowDemoWindow(nullptr);
+
+		RendererSystem::instance()->render(_renderRequest);
 
 		_hierarchyWindow.draw(_scene, _renderRequest);
 		_inspectorWindow.draw(_scene, _renderRequest);
@@ -266,18 +310,22 @@ public:
 			Renderer::create(renderDesc);
 		}
 
-		TypeManager::instance()->registerType<CTransform>();
+		//TypeManager::instance()->registerType<CTransform>();
+		//TypeManager::instance()->registerType<CMeshRenderer>();
 		EditorContext::createContext();
+		RendererSystem::createSytem();
 
 		{ // create window
 			NativeUIWindow::CreateDesc winDesc;
 			winDesc.isMainWindow = true;
+			winDesc.rect = { 10, 10, 1040, 880 };
 			_mainWin.create(winDesc);
 			_mainWin.setWindowTitle("SGE Editor");
 		}
 	}
 
 	virtual void onQuit() {
+		RendererSystem::destroySystem();
 		EditorContext::destroyContext();
 		Base::onQuit();
 	}

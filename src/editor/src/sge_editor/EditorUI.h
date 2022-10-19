@@ -28,6 +28,32 @@ namespace EditorUI {
 			ImGuiInputTextFlags_EnterReturnsTrue);
 	}
 
+	inline bool DragFloat3(
+		const char* label,
+		float v[3],
+		float v_speed = 0.1f,
+		float v_min = std::numeric_limits<float>::lowest(),
+		float v_max = std::numeric_limits<float>::max(),
+		float v_power = 1.0f)
+	{
+		return ImGui::DragFloat3(label, v, v_speed, v_min, v_max,
+			showMixedValue ? mixedValueFormat : floatFormat,
+			v_power);
+	}
+
+	inline bool DragFloat4(
+		const char* label,
+		float v[4],
+		float v_speed = 0.1f,
+		float v_min = std::numeric_limits<float>::lowest(),
+		float v_max = std::numeric_limits<float>::max(),
+		float v_power = 1.0f)
+	{
+		return ImGui::DragFloat4(label, v, v_speed, v_min, v_max,
+			showMixedValue ? mixedValueFormat : floatFormat,
+			v_power);
+	}
+
 	class Window : public NonCopyable {
 	public:
 		Window(StrView name, bool* p_open = nullptr, ImGuiWindowFlags flags = ImGuiWindowFlags_MenuBar) {

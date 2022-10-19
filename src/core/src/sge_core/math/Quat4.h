@@ -69,6 +69,9 @@ public:
 	Quat4 operator/(const T&    v) const { return Quat4(x/v, y/v, z/v, w/v); }
 
 	Quat4 operator-() const { return Quat4(-x, -y, -z, -w); }
+
+	SGE_INLINE bool operator==(const Quat4& r) const { return x == r.x && y == r.y && z == r.z && w == r.w; }
+	SGE_INLINE bool operator!=(const Quat4& r) const { return x != r.x || y != r.y || z != r.z || w != r.w; }
 };
 
 namespace Math {

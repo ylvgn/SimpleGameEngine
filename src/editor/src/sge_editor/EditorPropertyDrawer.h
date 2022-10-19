@@ -48,4 +48,14 @@ public:
 	virtual void draw(DrawRequest& req) override;
 };
 
+class EditorPropertyDrawer_Vec3f : public EditorPropertyDrawer {
+public:
+	virtual void draw(DrawRequest& req) override;
+};
+
+class EditorPropertyDrawer_Quat4f : public EditorPropertyDrawer {
+public:
+	virtual void draw(DrawRequest& req) override;
+};
+
 }

@@ -45,5 +45,36 @@ void EditorPropertyDrawer_float::draw(DrawRequest& req) {
 	}
 }
 
+void EditorPropertyDrawer_Vec3f::draw(DrawRequest& req) {
+	bool isMixed = req.isMixedValue<Vec3f>();
+	auto mv = makeScopedValue(&EditorUI::showMixedValue, isMixed);
+
+	Vec3f oldV = req.getFirstObjectValue<Vec3f>();
+	float newV[3] = { oldV.x, oldV.y, oldV.z };
+
+	if (!EditorUI::DragFloat3(req.field->name, newV)) return;
+
+	if (isMixed) return;
+
+	for (auto& obj : req.objects) {
+		req.field->setValue<Vec3f>(obj, Vec3f{newV[0], newV[1], newV[2]});
+	}
+}
+
+void EditorPropertyDrawer_Quat4f::draw(DrawRequest& req) {
+	bool isMixed = req.isMixedValue<Quat4f>();
+	auto mv = makeScopedValue(&EditorUI::showMixedValue, isMixed);
+
+	Quat4f oldV = req.getFirstObjectValue<Quat4f>();
+	float newV[4] = { oldV.x, oldV.y, oldV.z, oldV.w };
+
+	if (!EditorUI::DragFloat4(req.field->name, newV)) return;
+
+	if (isMixed) return;
+
+	for (auto& obj : req.objects) {
+		req.field->setValue<Quat4f>(obj, Quat4f{newV[0], newV[1], newV[2], newV[3] });
+	}
+}
 
 }

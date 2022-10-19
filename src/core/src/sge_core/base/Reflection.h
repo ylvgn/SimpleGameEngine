@@ -13,7 +13,6 @@ private: \
 public: \
 	static const TypeInfo* s_getType(); \
 	virtual const TypeInfo* getType() const override { return s_getType(); } \
-	static constexpr const char* s_getTypeName() { return #T; } \
 //----
 
 #define SGE_OBJECT_TYPE(T, BASE) \
@@ -27,7 +26,6 @@ private: \
 public: \
 	static const TypeInfo* s_getType(); \
 	virtual const TypeInfo* getType() const override { return s_getType(); } \
-	static constexpr const char* s_getTypeName() { return #T; } \
 private: \
 //-----
 
@@ -42,7 +40,6 @@ template<> const TypeInfo* TypeOf<T>() { \
 			}; \
 			setFields(fi); \
 		} \
-		static constexpr const char* s_getTypeName() { return #T; } \
 	}; \
 	static TI ti; \
 	return &ti; \
@@ -63,11 +60,21 @@ template<class T> inline const TypeInfo* TypeOf(const T& v) { return TypeOf<T>()
 
 class FieldInfo {
 public:
+
+	//using Gettor = void* (*)(const void*);
+	template<class T> using Gettor = const T& (*)(const void*);
+	void* gettor = nullptr;
+
+	using Settor = void (*)(void*, const void*);
+	Settor settor = nullptr;
+
 	template<class OBJ, class FIELD>
-	FieldInfo(const char* name_, FIELD OBJ::* ptr)
+	FieldInfo(const char* name_, FIELD OBJ::* ptr, Gettor<FIELD> g = nullptr, Settor s = nullptr)
 		: name(name_)
 		, fieldType(TypeOf<FIELD>())
 		, offset(memberOffset(ptr))
+		, gettor(g)
+		, settor(s)
 	{
 	}
 
@@ -77,12 +84,16 @@ public:
 	template<class T>
 	const T& getValue(const void* obj) const {
 		SGE_ASSERT(TypeOf<T>() == fieldType);
+		if (gettor) {
+			return reinterpret_cast<Gettor<T>>(gettor)(obj);
+		}
 		return *reinterpret_cast<const T*>(getValuePtr(obj));
 	}
 
 	template<class T>
 	void setValue(void* obj, const T& value) const {
 		SGE_ASSERT(TypeOf<T>() == fieldType);
+		if (settor) { settor(obj, &value); return; }
 		*reinterpret_cast<T*>(getValuePtr(obj)) = value;
 	}
 
@@ -179,15 +190,7 @@ public:
 template<class DST> inline
 DST* sge_cast(Object* obj) {
 	if (!obj) return nullptr;
-	const auto* ti = TypeManager::instance()->getType(DST::s_getTypeName());
-	if (!ti) {
-		ti = TypeOf<DST>();
-		for (auto p : ti->fieldArray) {
-			if (!TypeManager::instance()->getType(p.fieldType->name)) {
-				TypeManager::instance()->registerType(p.fieldInfo);
-			}
-		}
-	}
+	const auto* ti = TypeOf<DST>();
 	if (!ti) return nullptr;
 	if (!ti->isKindOf<DST>()) return nullptr;
 	return static_cast<DST*>(obj);
@@ -202,7 +205,6 @@ template<> const TypeInfo* TypeOf<T>() { \
 	class TI : public TypeInfoInitNoBase<T> { \
 	public: \
 		TI() : TypeInfoInitNoBase<T>(#T, TypeInfo::Style::Primitive) {} \
-		static constexpr const char* s_getTypeName() { return #T; } \
 	}; \
 	static TI ti; \
 	return &ti; \
