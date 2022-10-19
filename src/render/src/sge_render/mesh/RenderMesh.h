@@ -62,4 +62,6 @@ private:
 
 }; // RenderMesh
 
+template<> const TypeInfo* TypeOf<RenderMesh>();
+
 } // namespace

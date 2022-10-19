@@ -2,8 +2,7 @@
 
 #include <sge_render.h>
 
-#include <sge_core/base/TypeManager.h>
-
+#include <sge_engine/RendererSystem.h>
 #include <sge_engine/Scene.h>
 
 #include <sge_engine/components/CTransform.h>

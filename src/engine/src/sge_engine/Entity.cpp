@@ -47,4 +47,9 @@ void Entity::removeChild(Entity* child) {
 	}
 }
 
+Entity::~Entity() {
+	_children.clear();
+	_components.clear();
+}
+
 } // namespace

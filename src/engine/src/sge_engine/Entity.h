@@ -10,6 +10,7 @@ class Entity : public Object {
 	SGE_OBJECT_TYPE(Entity, Object)
 public:
 	Entity() = default;
+	~Entity();
 
 	void setId(EntityId id)		{ _id = id; }
 	EntityId id() const			{ return _id; }
@@ -30,19 +31,22 @@ public:
 	C* addComponent() {
 		auto* p = new C();
 		p->internal_setEntity(this);
-		_components.emplace_back(p);
-		return p;
-	}
 
-	Component* addComponent(Component* p) {
-		if (!p) return nullptr;
-		p->internal_setEntity(this);
+		if (std::is_base_of<CRenderer, C>::value) {
+			RendererSystem::instance()->addComponent(reinterpret_cast<CRenderer*>(p));
+			return p;
+		}
+
 		_components.emplace_back(p);
 		return p;
 	}
 
 	template<class C> inline
 	C* getComponent() {
+		if (std::is_base_of<CRenderer, C>::value) {
+			return sge_cast<C>(RendererSystem::instance()->getComponent(this));
+		}
+
 		const auto* target = TypeOf<C>();
 		for (auto& c : _components) {
 			if (c.get()->getType() == target) {
@@ -53,18 +57,12 @@ public:
 	}
 
 	template<class C> inline
-	void getComponents(Vector<C*>& out) {
-		out.reserve(_components.size());
-		const auto* target = TypeOf<C>();
-		for (auto& c : _components) {
-			if (c.get()->getType() == target) {
-				out.emplace_back(sge_cast<C>(c.get()));
-			}
-		}
-	}
-
-	template<class C> inline
 	void removeComponent() {
+		if (std::is_base_of<CRenderer, C>::value) {
+			RendererSystem::instance()->removeComponent(this);
+			return;
+		}
+
 		const auto* target = TypeOf<C>();
 		for (auto* it = _components.begin(); it != _components.end(); ++it) {
 			if (it->get()->getType() == target) {
@@ -74,6 +72,19 @@ public:
 		}
 	}
 
+	// todo
+	template<class C> inline
+		void getComponents(Vector<C*>& out) {
+		out.reserve(_components.size());
+		const auto* target = TypeOf<C>();
+		for (auto& c : _components) {
+			if (c.get()->getType() == target) {
+				out.emplace_back(sge_cast<C>(c.get()));
+			}
+		}
+	}
+
+	// todo
 	template<class C> inline
 	void removeComponents() {
 		const auto* target = TypeOf<C>();
@@ -85,6 +96,7 @@ public:
 			}
 		}
 	}
+
 private:
 
 	EntityId	_id = EntityId::None;

@@ -7,6 +7,16 @@
 
 namespace sge {
 
+template<> const TypeInfo* TypeOf<RenderMesh>() {
+	class TI : public TypeInfoInitNoBase<RenderMesh> {
+	public:
+		TI() : TypeInfoInitNoBase<RenderMesh>("RenderMesh", TypeInfo::Style::Object) {
+		}
+	};
+	static TI ti;
+	return &ti;
+}
+
 struct RenderMesh_InternalHelper {
 
 static bool hasAttr(size_t arraySize, size_t vertexCount) {
