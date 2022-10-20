@@ -65,15 +65,17 @@ void EditorPropertyDrawer_Quat4f::draw(DrawRequest& req) {
 	bool isMixed = req.isMixedValue<Quat4f>();
 	auto mv = makeScopedValue(&EditorUI::showMixedValue, isMixed);
 
-	Quat4f oldV = req.getFirstObjectValue<Quat4f>();
+	auto oldV = req.getFirstObjectValue<Quat4f>();
 	float newV[4] = { oldV.x, oldV.y, oldV.z, oldV.w };
 
 	if (!EditorUI::DragFloat4(req.field->name, newV)) return;
 
 	if (isMixed) return;
 
+	//const Vec3f& v3 = Vec3f{ newV[0], newV[1], newV[2] };
+	//auto q = Quat4f::s_euler(v3); // not work
 	for (auto& obj : req.objects) {
-		req.field->setValue<Quat4f>(obj, Quat4f{newV[0], newV[1], newV[2], newV[3] });
+		req.field->setValue<Quat4f>(obj, Quat4f(newV[0], newV[1], newV[2], newV[3]));
 	}
 }
 

@@ -17,7 +17,7 @@ public:
 		}
 
 #if 1
-		_camera.setPos(0, 10, 10);
+		_camera.setPos(0, 10, 30);
 		//_camera.setPos(0, 1200, 10);  // debug
 		_camera.setAim(0, 0, 0);
 #else
@@ -112,58 +112,56 @@ public:
 		}
 
 		{ // ECS
-			EditMesh editMesh;
+			EditMesh cubeEditMesh;
+
+			// pos color normal
 			for (int a = 0; a < 2; a++)
 				for (int b = 0; b < 2; b++)
 					for (int c = 0; c < 2; c++) {
-						editMesh.pos.emplace_back(a? a : -1, b? b : -1, c? c : -1);
-						editMesh.color.emplace_back(255, 0, 0, 255);
-						editMesh.normal.emplace_back(0, 0, 0);
+						cubeEditMesh.pos.emplace_back(a? a : -1, b? b : -1, c? c : -1);
+						cubeEditMesh.color.emplace_back(255, 0, 0, 255);
+						cubeEditMesh.normal.emplace_back(0, 0, 0);
 					}
 
-			Vector<u32> indexes = {
+			// indexes
+			Vector<u32> cubeIndexes = {
 				2,0,1, 2,1,3,
-
 				0,6,4, 0,2,6,
-
 				3,7,2, 7,6,2,
-
 				1,7,3, 1,5,7,
-
 				4,6,7, 4,7,5,
-
 				4,1,0, 4,5,1,
 			};
+			cubeEditMesh.indices = std::move(cubeIndexes);
 
-			editMesh.uv[0].emplace_back(0, 0);
-			editMesh.uv[0].emplace_back(0, 1);
-			editMesh.uv[0].emplace_back(1, 0);
-			editMesh.uv[0].emplace_back(1, 1);
-			editMesh.uv[0].emplace_back(1, 1);
-			editMesh.uv[0].emplace_back(1, 0);
-			editMesh.uv[0].emplace_back(0, 1);
-			editMesh.uv[0].emplace_back(0, 0);
+			// uv
+			cubeEditMesh.uv[0].emplace_back(0, 0);
+			cubeEditMesh.uv[0].emplace_back(0, 1);
+			cubeEditMesh.uv[0].emplace_back(1, 0);
+			cubeEditMesh.uv[0].emplace_back(1, 1);
+			cubeEditMesh.uv[0].emplace_back(1, 1);
+			cubeEditMesh.uv[0].emplace_back(1, 0);
+			cubeEditMesh.uv[0].emplace_back(0, 1);
+			cubeEditMesh.uv[0].emplace_back(0, 0);
 
-			editMesh.indices = std::move(indexes);
+			auto test_shader = Renderer::instance()->createShader("Assets/Shaders/test.shader");
 
 			for (int i = 0; i < 10; i++) {
 				TempString s;
 				FmtTo(s, "Object {}", i);
 				auto* e = _scene.addEntity(s);
-				auto* t = e->addComponent<CTransform>();
-				t->position.set(static_cast<float>(i), 5, 10);
-				if (i && i % 4 == 0) {
-					auto* tmp = _scene.findEntityById(EntityId(1));
-					tmp->addChild(e);
-				} else if (i && i % 3 == 0) {
-					auto* tmp = _scene.findEntityById(EntityId(2));
-					tmp->addChild(e);
+
+				{ // CTransform
+					auto* t = e->addComponent<CTransform>();
+					t->setPosition(static_cast<float>(i * 5), -2, 0);
 				}
-				if (i < 3) {
-					auto* m = e->addComponent<CMeshRenderer>();
-					m->setMesh(editMesh);
-					//m->setMesh("Assets/Mesh/test.obj");
-					m->setMaterial(_material);
+
+				{ // CMeshRenderer
+					auto* meshRender = e->addComponent<CMeshRenderer>();
+					auto mat = Renderer::instance()->createMaterial();
+					mat->setShader(test_shader);
+					meshRender->setMesh(cubeEditMesh);
+					meshRender->setMaterial(mat);
 				}
 			}
 
@@ -178,7 +176,8 @@ public:
 
 	virtual void onUIMouseEvent(UIMouseEvent& ev) override {
 		_renderContext->onUIMouseEvent(ev);
-		//if (_imgui.wantCaptureMouse()) return;  todo
+		if (_renderContext->wantCaptureMouse()) return;  //tmp
+
 		if (ev.isDragging()) {
 			using Button = UIMouseEventButton;
 			switch (ev.pressedButtons) {
@@ -222,6 +221,7 @@ public:
 		_renderRequest.matrix_model = Mat4f::s_identity();
 		_renderRequest.matrix_view = _camera.viewMatrix();
 		_renderRequest.matrix_proj = _camera.projMatrix();
+		_renderRequest.matrix_vp = _camera.projMatrix() * _camera.viewMatrix();
 		_renderRequest.camera_pos = _camera.pos();
 
 		_renderRequest.clearFrameBuffers()->setColor({ 0, 0, 0.2f, 1 });
@@ -284,7 +284,7 @@ public:
 			SGE_LOG("current dir={}", curDir);
 		}
 
-	#if 1 // for quick testing
+	#if 0 // for quick testing (but not work for RenderDoc !!)
 		{ // compile shader
 			SHELLEXECUTEINFO ShExecInfo = {};
 			ShExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
@@ -301,7 +301,6 @@ public:
 			CloseHandle(ShExecInfo.hProcess);
 		}
 	#endif
-
 		Base::onCreate(desc);
 
 		{ // create renderer

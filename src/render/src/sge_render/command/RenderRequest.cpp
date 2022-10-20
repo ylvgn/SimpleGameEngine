@@ -1,5 +1,6 @@
 #include "RenderRequest.h"
 #include "../mesh/RenderMesh.h"
+#include "../RenderContext.h"
 
 namespace sge {
 
@@ -11,6 +12,7 @@ RenderRequest::RenderRequest() {
 }
 
 void RenderRequest::reset(RenderContext* ctx) {
+	_renderContext = ctx;
 	commandBuffer.reset(ctx);
 }
 
@@ -21,8 +23,7 @@ void RenderRequest::setMaterialCommonParams(Material* mtl) {
 	mtl->setParam("sge_matrix_view",	matrix_view);
 	mtl->setParam("sge_matrix_proj",	matrix_proj);
 
-	auto mvp = matrix_proj * matrix_view * matrix_model;
-	mtl->setParam("sge_matrix_mvp",		mvp);
+	mtl->setParam("sge_matrix_mvp",		matrix_vp * matrix_model);
 
 	mtl->setParam("sge_camera_pos",		camera_pos);
 
@@ -31,7 +32,6 @@ void RenderRequest::setMaterialCommonParams(Material* mtl) {
 	mtl->setParam("sge_light_power",	light_power);
 	mtl->setParam("sge_light_color",	light_color);
 }
-
 
 void RenderRequest::drawMesh(const SrcLoc& debugLoc, const RenderMesh& mesh, Material* material) {
 	for (auto& sm : mesh.subMeshes()) {

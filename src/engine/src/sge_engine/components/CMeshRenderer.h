@@ -8,7 +8,7 @@ class CMeshRenderer : public CRenderer {
 	SGE_OBJECT_TYPE(CMeshRenderer, CRenderer)
 public:
 	void setMesh(StrView filename);
-	void setMesh(EditMesh& mesh);
+	void setMesh(const EditMesh& mesh);
 	void setMaterial(Material* material);
 
 protected:

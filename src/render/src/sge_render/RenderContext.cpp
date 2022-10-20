@@ -40,4 +40,9 @@ void RenderContext::onUIMouseCursor(UIMouseEvent& ev) {
 	_imgui.onUIMouseCursor(ev);
 }
 
+const bool RenderContext::wantCaptureMouse() {
+	return _imgui.wantCaptureMouse();
+}
+
+
 } // namespace

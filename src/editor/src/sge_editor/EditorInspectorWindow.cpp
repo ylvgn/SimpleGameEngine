@@ -65,6 +65,41 @@ void EditorInspectorWindow::drawComponent(RenderRequest& req, ObjectList& list) 
 			drawer->draw(dr);
 		}
 	}
+
+#if 1 // just for debug ------------------------------------------
+	if (list.size() == 1 && type == TypeOf<CTransform>()) {
+		ImGui::NewLine();
+
+		auto* o = list[0];
+		CTransform* t = sge_cast<CTransform>(o);
+
+#define E(M, COL) { \
+			float v[4] = { M[COL].x, M[COL].y, M[COL].z, M[COL].w }; \
+			EditorUI::InputFloat4("COLOMN_" ## #COL, v); \
+		} \
+// ---------
+		{
+			ImGui::Text("Text LocalMatrix");
+			auto& m = t->localMatrix();
+			E(m, 0)
+			E(m, 1)
+			E(m, 2)
+			E(m, 3)
+			ImGui::NewLine();
+		}
+
+		{
+			ImGui::Text("Text WorldMatrix");
+			auto& m = t->worldMatrix();
+			E(m, 0)
+			E(m, 1)
+			E(m, 2)
+			E(m, 3)
+			ImGui::NewLine();
+		}
+#undef E
+#endif
+	}
 }
 
 } // namespace

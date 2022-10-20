@@ -30,6 +30,7 @@ public:
 	void drawUI(RenderRequest& req);
 	void onUIMouseEvent(UIMouseEvent& ev);
 	void onUIMouseCursor(UIMouseEvent& ev);
+	const bool wantCaptureMouse();
 
 protected:
 	virtual void onBeginRender() {}

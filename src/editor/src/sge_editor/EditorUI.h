@@ -22,10 +22,17 @@ namespace EditorUI {
 			v_power);
 	}
 
-	inline float InputFloat(const char* label, float* v) {
-		return ImGui::InputFloat(label, v, 0, 0,
+	inline bool DragFloat2(
+		const char* label,
+		float v[2],
+		float v_speed = 0.1f,
+		float v_min = std::numeric_limits<float>::lowest(),
+		float v_max = std::numeric_limits<float>::max(),
+		float v_power = 1.0f)
+	{
+		return ImGui::DragFloat2(label, v, v_speed, v_min, v_max,
 			showMixedValue ? mixedValueFormat : floatFormat,
-			ImGuiInputTextFlags_EnterReturnsTrue);
+			v_power);
 	}
 
 	inline bool DragFloat3(
@@ -52,6 +59,30 @@ namespace EditorUI {
 		return ImGui::DragFloat4(label, v, v_speed, v_min, v_max,
 			showMixedValue ? mixedValueFormat : floatFormat,
 			v_power);
+	}
+
+	inline float InputFloat(const char* label, float* v) {
+		return ImGui::InputFloat(label, v, 0, 0,
+			showMixedValue ? mixedValueFormat : floatFormat,
+			ImGuiInputTextFlags_EnterReturnsTrue);
+	}
+
+	inline float InputFloat2(const char* label, float v[2]) {
+		return ImGui::InputFloat2(label, v,
+			showMixedValue ? mixedValueFormat : floatFormat,
+			ImGuiInputTextFlags_EnterReturnsTrue);
+	}
+
+	inline float InputFloat3(const char* label, float v[3]) {
+		return ImGui::InputFloat3(label, v,
+			showMixedValue ? mixedValueFormat : floatFormat,
+			ImGuiInputTextFlags_EnterReturnsTrue);
+	}
+
+	inline float InputFloat4(const char* label, float v[4]) {
+		return ImGui::InputFloat4(label, v,
+			showMixedValue ? mixedValueFormat : floatFormat,
+			ImGuiInputTextFlags_EnterReturnsTrue);
 	}
 
 	class Window : public NonCopyable {

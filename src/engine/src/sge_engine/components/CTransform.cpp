@@ -1,5 +1,7 @@
 #include "CTransform.h"
 
+#include "../Entity.h"
+
 namespace sge {
 
 const TypeInfo* CTransform::s_getType() {
@@ -41,9 +43,9 @@ const TypeInfo* CTransform::s_getType() {
 
 		Ti() {
 			static FieldInfo fi[] = {
-				FieldInfo("position", &This::position, &getPosition, &setPosition),
-				FieldInfo("rotate",	&This::rotate, &getRotate, &setRotate),
-				FieldInfo("scale", &This::scale, &getScale, &setScale),
+				FieldInfo("position", &getPosition, &setPosition),
+				FieldInfo("rotate",   &getRotate,   &setRotate),
+				FieldInfo("scale",    &getScale,    &setScale),
 			};
 			setFields(fi);
 		}
@@ -52,12 +54,71 @@ const TypeInfo* CTransform::s_getType() {
 	return &ti;
 }
 
-void CTransform::onFormat(fmt::format_context& ctx) const {
-	fmt::format_to(ctx.out(), "position=({},{}, {}), rotate=({}, {}, {}, {}), scale=({}, {}, {})",
-		position.x, position.y, position.z,
-		rotate.x, rotate.y, rotate.z, rotate.w,
-		scale.x, scale.y, scale.z
-	);
+const Mat4f& CTransform::localMatrix() {
+	if (isLocalMatrixDirty()) {
+		Mat4f T = Mat4f::s_translate(_position);
+
+		const auto& q = _rotate;
+		float x2 = q.x * q.x;
+		float y2 = q.y * q.y;
+		float z2 = q.z * q.z;
+		float xy = q.x * q.y;
+		float xz = q.x * q.z;
+		float yz = q.y * q.z;
+		float wx = q.w * q.x;
+		float wy = q.w * q.y;
+		float wz = q.w * q.z;
+		Mat4f R = Mat4f({ 1 - 2 * (y2 + z2), 2 * (xy + wz),     2 * (xz - wy),     0 },
+						{ 2 * (xy - wz),     1 - 2 * (x2 + z2), 2 * (yz + wx),     0 },
+						{ 2 * (xz + wy),     2 * (yz - wx),     1 - 2 * (x2 + y2), 0 },
+						{ 0,                 0,                 0,                 1 });
+#if 1
+		R = R.transpose(); // tmp
+#endif
+
+		Mat4f S = Mat4f::s_scale(_scale);
+
+		_localMatrix = T * R * S;
+		_setLocalMatrixDirty(false);
+	}
+	return _localMatrix;
+}
+
+const Mat4f& CTransform::worldMatrix() {
+	auto* p = _entity->parent();
+	if (isWorldMatrixDirty()) {
+		if (!p) {
+			_worldMatrix = localMatrix();
+		} else {
+			_worldMatrix = p->transform()->worldMatrix() * localMatrix();
+		}
+		_setWorldMatrixDirty(false);
+	}
+	return _worldMatrix;
+}
+
+void CTransform::_setWorldMatrixDirty(bool is) {
+	if (!is) {
+		_dirty &= ~(1 << 1);
+		return;
+	}
+
+	_dirty |= 1 << 1;
+	for (auto& c : _entity->children()) {
+		auto* t = c->transform();
+		if (!t->isWorldMatrixDirty()) {
+			t->_setWorldMatrixDirty(true);
+		}
+	}
+}
+
+void CTransform::_setLocalMatrixDirty(bool is) {
+	if (!is) {
+		_dirty &= ~(1 << 0);
+		return;
+	}
+	_dirty |= 1 << 0;
+	_setWorldMatrixDirty(true);
 }
 
 } // namespace

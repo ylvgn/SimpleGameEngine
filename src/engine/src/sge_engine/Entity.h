@@ -6,26 +6,31 @@ namespace sge {
 
 enum class EntityId : u64 { None = 0 };
 
+class CTransform;
+
 class Entity : public Object {
 	SGE_OBJECT_TYPE(Entity, Object)
 public:
 	Entity() = default;
 	~Entity();
 
-	void setId(EntityId id)		{ _id = id; }
-	EntityId id() const			{ return _id; }
+	void setId(EntityId id)				{ _id = id; }
+	EntityId id() const					{ return _id; }
 
-	void setName(StrView name)	{ _name = name; }
-	StrView name() const		{ return _name; }
+	void setName(StrView name)			{ _name = name; }
+	StrView name() const				{ return _name; }
 
-	Entity* parent() const		{ return _parent; }
+	Entity* parent() const				{ return _parent; }
 	void setParent(Entity* parent);
 
-	Span<SPtr<Entity>> children() { return _children; }
+	Span<SPtr<Entity>> children()		{ return _children; }
+
+	Span<SPtr<Component>> components()	{ return _components; }
+
 	void addChild(Entity* child);
 	void removeChild(Entity* child);
 
-	Span<SPtr<Component>> components() { return _components; }
+	CTransform* transform();
 
 	template<class C> inline
 	C* addComponent() {
@@ -46,11 +51,10 @@ public:
 		if (std::is_base_of<CRenderer, C>::value) {
 			return sge_cast<C>(RendererSystem::instance()->getComponent(this));
 		}
-
 		const auto* target = TypeOf<C>();
 		for (auto& c : _components) {
-			if (c.get()->getType() == target) {
-				return sge_cast<C>(c.get());
+			if (c.ptr()->getType() == target) {
+				return sge_cast<C>(c.ptr());
 			}
 		}
 		return nullptr;
@@ -79,7 +83,7 @@ public:
 		const auto* target = TypeOf<C>();
 		for (auto& c : _components) {
 			if (c.get()->getType() == target) {
-				out.emplace_back(sge_cast<C>(c.get()));
+				out.emplace_back(sge_cast<C>(c.ptr()));
 			}
 		}
 	}
@@ -98,10 +102,10 @@ public:
 	}
 
 private:
-
 	EntityId	_id = EntityId::None;
 	String		_name;
 	Entity*		_parent = nullptr;
+	CTransform* _transform = nullptr;
 
 	Vector<SPtr<Component>> _components;
 	Vector<SPtr<Entity>> _children;

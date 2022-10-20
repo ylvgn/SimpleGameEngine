@@ -60,8 +60,6 @@ template<class T> inline const TypeInfo* TypeOf(const T& v) { return TypeOf<T>()
 
 class FieldInfo {
 public:
-
-	//using Gettor = void* (*)(const void*);
 	template<class T> using Gettor = const T& (*)(const void*);
 	void* gettor = nullptr;
 
@@ -69,10 +67,19 @@ public:
 	Settor settor = nullptr;
 
 	template<class OBJ, class FIELD>
-	FieldInfo(const char* name_, FIELD OBJ::* ptr, Gettor<FIELD> g = nullptr, Settor s = nullptr)
+	FieldInfo(const char* name_, FIELD OBJ::* ptr)
 		: name(name_)
 		, fieldType(TypeOf<FIELD>())
 		, offset(memberOffset(ptr))
+		, gettor(nullptr)
+		, settor(nullptr)
+	{
+	}
+
+	template<class FIELD>
+	FieldInfo(const char* name_, Gettor<FIELD> g, Settor s)
+		: name(name_)
+		, fieldType(TypeOf<FIELD>())
 		, gettor(g)
 		, settor(s)
 	{
@@ -179,7 +186,7 @@ static Object* TypeCreator() {
 template<class T, class BASE>
 class TypeInfoInit : public TypeInfoInitNoBase<T> {
 public:
-	TypeInfoInit(const char* name_, Style style_) : TypeInfoInitNoBase<T>(name_, style_) {
+	TypeInfoInit(const char* name, Style style_) : TypeInfoInitNoBase<T>(name, style_) {
 		static_assert(std::is_base_of<BASE, T>::value, "invalid base class");
 		base = TypeOf<BASE>();
 

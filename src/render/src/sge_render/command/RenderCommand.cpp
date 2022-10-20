@@ -1,4 +1,5 @@
 #include "RenderCommand.h"
+#include "../RenderContext.h"
 
 namespace sge {
 

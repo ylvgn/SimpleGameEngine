@@ -4,12 +4,15 @@
 
 namespace sge {
 
+class RenderContext;
+
 class RenderRequest : public Object {
 public:
 
 	Mat4f		matrix_model;
 	Mat4f		matrix_view;
 	Mat4f		matrix_proj;
+	Mat4f		matrix_vp;
 
 	Vec3f		camera_pos;
 
@@ -36,6 +39,8 @@ public:
 
 	//SGE_NODISCARD	RenderScissorRectScope	scissorRectScope()	{ return RenderScissorRectScope(&commandBuffer); }
 	SGE_INLINE		void setScissorRect(const Rect2f& rect) { commandBuffer.setScissorRect(rect); }
+private:
+	RenderContext* _renderContext = nullptr;
 };
 
 } // namespace
