@@ -8,11 +8,11 @@ const TypeInfo* CMeshRenderer::s_getType() {
 	class Ti : public CMeshRenderer::TI_Base {
 	public:
 		Ti() {
-			static FieldInfo fi[] = {
-				FieldInfo("renderMesh", &This::_renderMesh),
-				//FieldInfo("material",	&This::_material),
-			};
-			setFields(fi);
+			//static FieldInfo fi[] = {
+			//	FieldInfo("renderMesh", &This::_renderMesh),
+			//	FieldInfo("material",	&This::_material),
+			//};
+			//setFields(fi);
 		}
 	};
 	static Ti ti;

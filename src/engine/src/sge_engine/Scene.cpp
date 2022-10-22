@@ -2,6 +2,11 @@
 
 namespace sge {
 
+void Scene::destroy() {
+	_entityIdMap.clear();
+	_entities.clear();
+}
+
 Entity* Scene::addEntity() {
 	auto* p = new Entity();
 	p->setId(static_cast<EntityId>(++_nextEntityId));

@@ -19,6 +19,7 @@ void EditorPropertyDrawer_struct::draw(DrawRequest& req) {
 	}
 
 	for (const auto& f : type->fields()) {
+		if (!f.fieldType) continue;
 		dr.field = &f;
 		if (auto* drawer = ed->getPropertyDrawer(f.fieldType)) {
 			drawer->draw(dr);

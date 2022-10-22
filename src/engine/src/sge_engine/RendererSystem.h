@@ -1,8 +1,10 @@
 #pragma once
 
-#include "components/CRenderer.h"
+#include <sge_render/command/RenderRequest.h>
 
 namespace sge {
+
+class CRenderer;
 
 class RendererSystem : public NonCopyable {
 public:
@@ -11,23 +13,19 @@ public:
 	RendererSystem();
 	~RendererSystem();
 
-	static RendererSystem* createSytem();
+	static RendererSystem* createSystem();
 	static void destroySystem();
 
-	void addComponent(CRenderer* c);
-
-	void removeComponent(CRenderer* c);
-	void removeComponent(Entity* e);
-
-	CRenderer* getComponent(Entity* e);
+	void add(CRenderer* c);
+	void remove(CRenderer* c);
 
 	void render(RenderRequest& req);
 
-	Span<SPtr<CRenderer>> renderers() { return _renderers; }
+	Span<CRenderer*> renderers() { return _renderers; }
 
 private:
 	static RendererSystem* s_instance;
-	Vector<SPtr<CRenderer>>	_renderers;
+	Vector<CRenderer*>	_renderers;
 };
 
 }

@@ -47,10 +47,7 @@ void Entity::addChild(Entity* child) {
 void Entity::removeChild(Entity* child) {
 	for (auto* it = _children.begin(); it != _children.end(); it++) {
 		if ((*it)->id() == child->id()) {
-			//_children.erase(it);
-			std::swap(_children.back(), *it);
-			child->_parent = nullptr;
-			_children.pop_back();
+			_children.erase(it); // shoule be ordered
 			return;
 		}
 	}

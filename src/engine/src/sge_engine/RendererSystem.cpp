@@ -1,4 +1,5 @@
 #include "RendererSystem.h"
+#include "components/CRenderer.h"
 
 namespace sge {
 
@@ -11,7 +12,7 @@ RendererSystem::~RendererSystem() {
 	_renderers.clear();
 }
 
-RendererSystem* RendererSystem::createSytem() {
+RendererSystem* RendererSystem::createSystem() {
 	SGE_ASSERT(s_instance == nullptr);
 	s_instance = new RendererSystem();
 	return s_instance;
@@ -24,31 +25,20 @@ void RendererSystem::destroySystem() {
 	}
 }
 
-void RendererSystem::removeComponent(CRenderer* c) {
-	for (auto it = _renderers.begin(); it != _renderers.end(); it++) {
-		if (it->ptr() == c) {
-			_renderers.erase(it);
-			return;
+void RendererSystem::remove(CRenderer* c) {
+	int index = -1;
+	for (int i = 0; i < _renderers.size(); ++i) {
+		if (index > 0) {
+			_renderers[index++] = _renderers[i];
+			continue;
+		}
+		if (_renderers[i] == c) {
+			index = i;
 		}
 	}
-}
-
-void RendererSystem::removeComponent(Entity* e) {
-	for (auto it = _renderers.begin(); it != _renderers.end(); it++) {
-		if (it->ptr()->entity() == e) {
-			_renderers.erase(it);
-			return;
-		}
+	if (index > 0) {
+		_renderers.pop_back();
 	}
-}
-
-CRenderer* RendererSystem::getComponent(Entity* e) {
-	for (auto& r : renderers()) {
-		if (r->entity() == e) {
-			return r.ptr();
-		}
-	}
-	return nullptr;
 }
 
 void RendererSystem::render(RenderRequest& req) {
@@ -57,7 +47,7 @@ void RendererSystem::render(RenderRequest& req) {
 	}
 }
 
-void RendererSystem::addComponent(CRenderer* c) {
+void RendererSystem::add(CRenderer* c) {
 	_renderers.emplace_back(c);
 }
 

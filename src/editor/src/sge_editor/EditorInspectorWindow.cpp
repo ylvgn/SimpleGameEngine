@@ -18,9 +18,6 @@ void EditorInspectorWindow::draw(Scene& scene, RenderRequest& req) {
 			if (!c) continue;
 			_addTempList(c);
 		}
-		if (auto* c = RendererSystem::instance()->getComponent(e)) {
-			_addTempList(c);
-		}
 	}
 
 	for (auto& objectList : _tempTypeList) {
@@ -60,6 +57,7 @@ void EditorInspectorWindow::drawComponent(RenderRequest& req, ObjectList& list) 
 	}
 
 	for (const auto& f : type->fields()) {
+		if (!f.fieldType) continue;
 		dr.field = &f;
 		if (auto* drawer = ed->getPropertyDrawer(f.fieldType)) {
 			drawer->draw(dr);

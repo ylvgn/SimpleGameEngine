@@ -36,21 +36,12 @@ public:
 	C* addComponent() {
 		auto* p = new C();
 		p->internal_setEntity(this);
-
-		if (std::is_base_of<CRenderer, C>::value) {
-			RendererSystem::instance()->addComponent(reinterpret_cast<CRenderer*>(p));
-			return p;
-		}
-
 		_components.emplace_back(p);
 		return p;
 	}
 
 	template<class C> inline
 	C* getComponent() {
-		if (std::is_base_of<CRenderer, C>::value) {
-			return sge_cast<C>(RendererSystem::instance()->getComponent(this));
-		}
 		const auto* target = TypeOf<C>();
 		for (auto& c : _components) {
 			if (c.ptr()->getType() == target) {
@@ -62,11 +53,6 @@ public:
 
 	template<class C> inline
 	void removeComponent() {
-		if (std::is_base_of<CRenderer, C>::value) {
-			RendererSystem::instance()->removeComponent(this);
-			return;
-		}
-
 		const auto* target = TypeOf<C>();
 		for (auto* it = _components.begin(); it != _components.end(); ++it) {
 			if (it->get()->getType() == target) {
@@ -76,9 +62,8 @@ public:
 		}
 	}
 
-	// todo
 	template<class C> inline
-		void getComponents(Vector<C*>& out) {
+	void getComponents(Vector<C*>& out) {
 		out.reserve(_components.size());
 		const auto* target = TypeOf<C>();
 		for (auto& c : _components) {
@@ -88,7 +73,6 @@ public:
 		}
 	}
 
-	// todo
 	template<class C> inline
 	void removeComponents() {
 		const auto* target = TypeOf<C>();

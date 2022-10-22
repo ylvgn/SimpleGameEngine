@@ -112,6 +112,8 @@ public:
 		}
 
 		{ // ECS
+			RendererSystem::createSystem();
+
 			EditMesh cubeEditMesh;
 
 			// pos color normal
@@ -172,6 +174,10 @@ public:
 
 	virtual void onCloseButton() {
 		NativeUIApp::current()->quit(0);
+
+		// tmp
+		_scene.destroy();
+		RendererSystem::destroySystem();
 	}
 
 	virtual void onUIMouseEvent(UIMouseEvent& ev) override {
@@ -312,7 +318,6 @@ public:
 		//TypeManager::instance()->registerType<CTransform>();
 		//TypeManager::instance()->registerType<CMeshRenderer>();
 		EditorContext::createContext();
-		RendererSystem::createSytem();
 
 		{ // create window
 			NativeUIWindow::CreateDesc winDesc;
@@ -324,7 +329,6 @@ public:
 	}
 
 	virtual void onQuit() {
-		RendererSystem::destroySystem();
 		EditorContext::destroyContext();
 		Base::onQuit();
 	}

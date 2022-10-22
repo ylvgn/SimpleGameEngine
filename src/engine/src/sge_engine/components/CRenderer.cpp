@@ -1,4 +1,5 @@
 #include "CRenderer.h"
+#include "../RendererSystem.h"
 
 namespace sge {
 
@@ -11,6 +12,14 @@ const TypeInfo* CRenderer::s_getType() {
 	};
 	static Ti ti;
 	return &ti;
+}
+
+CRenderer::CRenderer() {
+	RendererSystem::instance()->add(this);
+}
+
+CRenderer::~CRenderer() {
+	RendererSystem::instance()->remove(this);
 }
 
 }

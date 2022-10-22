@@ -8,6 +8,9 @@ namespace sge {
 class CRenderer : public Component {
 	SGE_OBJECT_TYPE(CRenderer, Component)
 public:
+	CRenderer();
+	~CRenderer();
+
 	void render(RenderRequest& req) { onRender(req); }
 
 protected:

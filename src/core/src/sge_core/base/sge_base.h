@@ -270,7 +270,6 @@ template<class T> inline void sge_delete(T* p) noexcept { delete p; }
 template<class T>
 class ScopedValue : public NonCopyable {
 public:
-	ScopedValue() = default;
 	ScopedValue(T* p) : _p(p) { _oldValue = *p; }
 	ScopedValue(T* p, const T& newValue) : ScopedValue(p) { *p = newValue; }
 
