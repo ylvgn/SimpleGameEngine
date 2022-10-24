@@ -4,6 +4,13 @@
 
 namespace sge {
 
+enum class MatrixDirty {
+	None,
+	Local = 1 << 0,
+	World = 1 << 1,
+};
+SGE_ENUM_ALL_OPERATOR(MatrixDirty)
+
 class CTransform : public Component {
 	SGE_OBJECT_TYPE(CTransform, Component)
 public:
@@ -30,13 +37,13 @@ public:
 
 private:
 
-	const bool isWorldMatrixDirty() const { return (_dirty >> 1) & 1; }
-	const bool isLocalMatrixDirty() const { return (_dirty >> 0) & 1; }
+	const bool isWorldMatrixDirty() const { return enumInt(_dirty & MatrixDirty::World) > 0; }
+	const bool isLocalMatrixDirty() const { return enumInt(_dirty & MatrixDirty::Local) > 0; }
 
 	void _setWorldMatrixDirty(bool is);
 	void _setLocalMatrixDirty(bool is);
 
-	int _dirty = 2; // 00 01 10 11 --> dirty at first
+	MatrixDirty _dirty = MatrixDirty::None;
 
 	Vec3f	_position{ 0,0,0 };
 	Quat4f	_rotate{ 0,0,0,0 };

@@ -84,7 +84,7 @@ template<class T> inline bool constexpr enumHas(const T& a, const T& b) { return
 template<class T> SGE_INLINE T* constCast(const T* v) { return const_cast<T*>(v); }
 template<class T> SGE_INLINE T& constCast(const T& v) { return const_cast<T&>(v); }
 
-template<class T> SGE_INLINE void swap(T& a, T& b) { T tmp = a; a = b; b = tmp; }
+template<class T> SGE_INLINE void swap(T& a, T& b) { T tmp = ::std::move(a); a = b; b = tmp; }
 
 using u8  = uint8_t;
 using u16 = uint16_t;

@@ -99,11 +99,11 @@ const Mat4f& CTransform::worldMatrix() {
 
 void CTransform::_setWorldMatrixDirty(bool is) {
 	if (!is) {
-		_dirty &= ~(1 << 1);
+		_dirty &= ~(MatrixDirty::World);
 		return;
 	}
 
-	_dirty |= 1 << 1;
+	_dirty |= MatrixDirty::World;
 	for (auto& c : _entity->children()) {
 		auto* t = c->transform();
 		if (!t->isWorldMatrixDirty()) {
@@ -114,10 +114,10 @@ void CTransform::_setWorldMatrixDirty(bool is) {
 
 void CTransform::_setLocalMatrixDirty(bool is) {
 	if (!is) {
-		_dirty &= ~(1 << 0);
+		_dirty &= ~(MatrixDirty::Local);
 		return;
 	}
-	_dirty |= 1 << 0;
+	_dirty |= MatrixDirty::Local;
 	_setWorldMatrixDirty(true);
 }
 
