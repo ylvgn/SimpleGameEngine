@@ -20,4 +20,16 @@ using Vec3d = Vec3<double>;
 template<> const TypeInfo* TypeOf<Vec3f>();
 template<> const TypeInfo* TypeOf<Vec3d>();
 
+
+namespace Math {
+
+template<class T> SGE_INLINE
+void sincos(const Vec3<T> r, Vec3<T>& out_sin, Vec3<T>& out_cos) {
+	sincos(r.x, out_sin.x, out_cos.x);
+	sincos(r.y, out_sin.y, out_cos.y);
+	sincos(r.z, out_sin.z, out_cos.z);
+}
+
+} // Math
+
 }

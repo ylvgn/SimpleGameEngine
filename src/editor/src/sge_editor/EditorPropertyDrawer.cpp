@@ -57,8 +57,11 @@ void EditorPropertyDrawer_Vec3f::draw(DrawRequest& req) {
 
 	if (isMixed) return;
 
+	Vec3f delta{ newV[0] - oldV.x, newV[1] - oldV.y, newV[2] - oldV.z };
 	for (auto& obj : req.objects) {
-		req.field->setValue<Vec3f>(obj, Vec3f{newV[0], newV[1], newV[2]});
+		Vec3f v = req.field->getValue<Vec3f>(obj);
+		Vec3f nv = v + delta;
+		req.field->setValue<Vec3f>(obj, nv);
 	}
 }
 
@@ -66,17 +69,20 @@ void EditorPropertyDrawer_Quat4f::draw(DrawRequest& req) {
 	bool isMixed = req.isMixedValue<Quat4f>();
 	auto mv = makeScopedValue(&EditorUI::showMixedValue, isMixed);
 
-	auto oldV = req.getFirstObjectValue<Quat4f>();
-	float newV[4] = { oldV.x, oldV.y, oldV.z, oldV.w };
+	auto oldQuat = req.getFirstObjectValue<Quat4f>();
+	auto oldV = oldQuat.euler();
+	float newV[3] = { Math::degrees(oldV.x), Math::degrees(oldV.y), Math::degrees(oldV.z) };
 
-	if (!EditorUI::DragFloat4(req.field->name, newV)) return;
+	if (!EditorUI::DragFloat3(req.field->name, newV)) return;
 
 	if (isMixed) return;
 
-	//const Vec3f& v3 = Vec3f{ newV[0], newV[1], newV[2] };
-	//auto q = Quat4f::s_euler(v3); // not work
+	Quat4f newQuat = Quat4f::s_euler({ Math::radians(newV[0]), Math::radians(newV[1]), Math::radians(newV[2]) });
+	Quat4f delta { newQuat.x - oldQuat.x, newQuat.y - oldQuat.y, newQuat.z - oldQuat.z, newQuat.w - oldQuat.w };
 	for (auto& obj : req.objects) {
-		req.field->setValue<Quat4f>(obj, Quat4f(newV[0], newV[1], newV[2], newV[3]));
+		Quat4f v = req.field->getValue<Quat4f>(obj);
+		Quat4f nv = v + delta;
+		req.field->setValue<Quat4f>(obj, nv);
 	}
 }
 

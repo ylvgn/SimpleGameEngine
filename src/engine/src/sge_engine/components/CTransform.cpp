@@ -72,9 +72,6 @@ const Mat4f& CTransform::localMatrix() {
 						{ 2 * (xy - wz),     1 - 2 * (x2 + z2), 2 * (yz + wx),     0 },
 						{ 2 * (xz + wy),     2 * (yz - wx),     1 - 2 * (x2 + y2), 0 },
 						{ 0,                 0,                 0,                 1 });
-#if 1
-		R = R.transpose(); // tmp
-#endif
 
 		Mat4f S = Mat4f::s_scale(_scale);
 

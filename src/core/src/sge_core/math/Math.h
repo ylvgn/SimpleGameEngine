@@ -101,6 +101,12 @@ namespace Math {
 	SGE_INLINE float  tan(float  rad) { return ::tanf(rad); }
 	SGE_INLINE double tan(double rad) { return ::tan (rad); }
 
+	SGE_INLINE float  atan2(float  a, float  b) { return ::atan2f(a, b); }
+	SGE_INLINE double atan2(double a, double b) { return ::atan2 (a, b); }
+
+	SGE_INLINE float  asin(float  rad)	{ return ::asinf(rad); }
+	SGE_INLINE double asin(double rad)	{ return ::asin (rad); }
+
 #if SGE_OS_MACOSX
 	SGE_INLINE void sincos( float  rad, float  & out_sin, float  & out_cos ) { ::__sincosf(rad, &out_sin, &out_cos); }
 	SGE_INLINE void sincos( double rad, double & out_sin, double & out_cos ) { ::__sincos (rad, &out_sin, &out_cos); }
