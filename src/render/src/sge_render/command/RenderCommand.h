@@ -122,5 +122,33 @@ private:
 	Rect2f _scissorRect;
 }; // RenderCommandBuffer
 
+class RenderScissorRectScope : public NonCopyable {
+public:
+	RenderScissorRectScope() = default;
+	RenderScissorRectScope(RenderScissorRectScope && r) {
+		_cmdBuf = r._cmdBuf;
+		_rect = r._rect;
+		r._cmdBuf = nullptr;
+	}
+
+	RenderScissorRectScope(RenderCommandBuffer* cmdBuf) {
+		if (!cmdBuf) return;
+		_rect = cmdBuf->scissorRect();
+		_cmdBuf = cmdBuf;
+	}
+
+	~RenderScissorRectScope() { detach(); }
+
+	void detach() {
+		if (!_cmdBuf) return;
+		_cmdBuf->setScissorRect(_rect); 
+		_cmdBuf = nullptr;
+	}
+
+private:
+	RenderCommandBuffer* _cmdBuf = nullptr;
+	Rect2f	_rect;
+}; // RenderScissorRectScope
+
 } // namespace
 

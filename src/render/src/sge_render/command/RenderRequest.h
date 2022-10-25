@@ -37,8 +37,11 @@ public:
 	RenderCommand_SwapBuffers*			swapBuffers()		{ return commandBuffer.swapBuffers(); }
 	RenderCommand_DrawCall*				addDrawCall()		{ return commandBuffer.addDrawCall(); }
 
-	//SGE_NODISCARD	RenderScissorRectScope	scissorRectScope()	{ return RenderScissorRectScope(&commandBuffer); }
+	SGE_NODISCARD	RenderScissorRectScope	scissorRectScope()	{ return RenderScissorRectScope(&commandBuffer); }
 	SGE_INLINE		void setScissorRect(const Rect2f& rect) { commandBuffer.setScissorRect(rect); }
+
+	const RenderContext* renderContext() const { return _renderContext; }
+
 private:
 	RenderContext* _renderContext = nullptr;
 };

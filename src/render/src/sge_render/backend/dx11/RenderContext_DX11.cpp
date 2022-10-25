@@ -134,6 +134,10 @@ void RenderContext_DX11::onCmd_DrawCall(RenderCommand_DrawCall& cmd) {
 	else {
 		dc->Draw(vertexCount, 0);
 	}
+
+	// test
+	_statistics.drawCall++;
+	_statistics.verts += vertexBuffer->bufferSize() / stride;
 }
 
 void RenderContext_DX11::onCmd_SetScissorRect(RenderCommand_SetScissorRect& cmd) {

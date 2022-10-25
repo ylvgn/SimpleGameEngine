@@ -143,11 +143,14 @@ namespace EditorUI {
 	class CollapsingHeader : public NonCopyable {
 	public:
 		CollapsingHeader(const char* label) {
-			ImGui::CollapsingHeader(label, &_visiable);
+			_isOpen = ImGui::CollapsingHeader(label, &_visiable);
 		}
 
+		bool isVisible() const { return _visiable; }
+		bool isOpen() const { return _isOpen; }
 	private:
 		bool _visiable = true;
+		bool _isOpen;
 	};
 
 	class PushID : public NonCopyable {

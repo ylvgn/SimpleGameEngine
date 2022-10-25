@@ -10,10 +10,19 @@ struct RenderContext_CreateDesc {
 	NativeUIWindow* window = nullptr;
 };
 
+struct RenderContext_Statistics { // tmp
+	int drawCall = 0;
+	u64 verts = 0;
+	u64 tris = 0;
+
+	void clean() { std::memset(this, 0, sizeof(RenderContext_Statistics)); }
+};
+
 // abstruct class
 class RenderContext : public Object {
 public:
 	using CreateDesc = RenderContext_CreateDesc;
+	using Statistics = RenderContext_Statistics;
 
 	void beginRender();
 	void endRender();
@@ -21,7 +30,9 @@ public:
 	void setFrameBufferSize(Vec2f newSize);
 	const Vec2f& frameBufferSize() const { return _frameBufferSize; }
 
-	void commit(RenderCommandBuffer& cmdBuf) { onCommit(cmdBuf); }
+	const Statistics& statistics() const { return _statistics; }
+
+	void commit(RenderCommandBuffer& cmdBuf) { _statistics.clean(); onCommit(cmdBuf); }
 
 	RenderContext(CreateDesc& desc);
 	virtual ~RenderContext() = default;
@@ -66,6 +77,8 @@ protected:
 
 	Vec2f	_frameBufferSize {0, 0};
 	ImGui_SGE _imgui;
+
+	Statistics _statistics;
 }; // RenderContext_CreateDesc
 
 } // namespace

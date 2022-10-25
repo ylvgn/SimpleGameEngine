@@ -56,15 +56,17 @@ void EditorInspectorWindow::drawComponent(RenderRequest& req, ObjectList& list) 
 		dr.objects.emplace_back(o);
 	}
 
-	for (const auto& f : type->fields()) {
-		if (!f.fieldType) continue;
-		dr.field = &f;
-		if (auto* drawer = ed->getPropertyDrawer(f.fieldType)) {
-			drawer->draw(dr);
+	if (header.isOpen()) {
+		for (const auto& f : type->fields()) {
+			if (!f.fieldType) continue;
+			dr.field = &f;
+			if (auto* drawer = ed->getPropertyDrawer(f.fieldType)) {
+				drawer->draw(dr);
+			}
 		}
 	}
 
-#if 1 // just for debug ------------------------------------------
+#if 0 // just for debug ------------------------------------------
 	if (list.size() == 1 && type == TypeOf<CTransform>()) {
 		ImGui::NewLine();
 
@@ -96,8 +98,8 @@ void EditorInspectorWindow::drawComponent(RenderRequest& req, ObjectList& list) 
 			ImGui::NewLine();
 		}
 #undef E
-#endif
 	}
+#endif
 }
 
 } // namespace

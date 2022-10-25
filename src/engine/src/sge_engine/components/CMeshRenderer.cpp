@@ -39,6 +39,7 @@ void CMeshRenderer::setMaterial(Material* material) {
 void CMeshRenderer::onRender(RenderRequest& req) {
 	if (!_material) { SGE_ASSERT(false); return; }
 
+	// tmp
 	auto* t = _entity->transform();
 	req.setMaterialCommonParams(_material);
 
@@ -47,19 +48,14 @@ void CMeshRenderer::onRender(RenderRequest& req) {
 	_material->setParam("test_color", Color4f(1, 1, 1, 1));
 
 	for (auto& subMesh : _renderMesh.subMeshes()) {
-
-		//req.setMaterialCommonParams(_material); ??
 		auto passes = _material->passes();
-
 		for (size_t i = 0; i < passes.size(); i++) {
-			auto* cmd = req.commandBuffer.addDrawCall();
-			#if _DEBUG
-				cmd->debugLoc = SGE_LOC;
-			#endif
-
+			auto* cmd = req.addDrawCall();
+#if _DEBUG
+			cmd->debugLoc = SGE_LOC;
+#endif
 			cmd->material			= _material;
 			cmd->materialPassIndex	= i;
-
 			cmd->primitive			= subMesh.primitive();
 			cmd->vertexLayout		= subMesh.vertexLayout();
 			cmd->vertexBuffer		= subMesh.vertexBuffer();

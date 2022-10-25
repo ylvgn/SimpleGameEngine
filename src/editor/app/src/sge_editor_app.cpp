@@ -249,6 +249,7 @@ public:
 
 		_hierarchyWindow.draw(_scene, _renderRequest);
 		_inspectorWindow.draw(_scene, _renderRequest);
+		_statisticsWindow.draw(_scene, _renderRequest);
 
 		_renderContext->drawUI(_renderRequest);
 		_renderRequest.swapBuffers();
@@ -274,6 +275,7 @@ public:
 
 	EditorHierarchyWindow _hierarchyWindow;
 	EditorInspectorWindow _inspectorWindow;
+	EditorStatisticsWindow _statisticsWindow;
 };
 
 class EditorApp : public NativeUIApp {
