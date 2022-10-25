@@ -27,38 +27,38 @@ void Entity::setParent(Entity* parent) {
 		_parent->removeChild(this);
 	}
 	_parent = parent;
-	if (parent) {
-		parent->addChild(this);
 
-		auto* t = transform();
-		t->setPosition(t->getPosition() - _parent->transform()->getPosition());
-	}
+	if (!parent) return;
+
+	parent->addChild(this);
+	auto* pt = parent->transform();
+
+	auto* t = transform();
+	t->setPosition(t->getPosition() - pt->getPosition());
+	t->setRotate(t->getRotate() - pt->getRotate());
+	t->setScale(t->getScale() / pt->getScale());
 }
 
-void Entity::addChild(Entity* child) {
+bool Entity::addChild(Entity* child) {
 	for (auto* it = _children.begin(); it != _children.end(); it++) {
-		if ((*it)->id() == child->id())
-			return;
+		if ((*it)->id() == child->id()) {
+			return false;
+		}
 	}
-	_children.emplace_back(SPtr<Entity>(child));
+
+	_children.emplace_back(child);
 	child->_parent = this;
+	return true;
 }
 
-void Entity::removeChild(Entity* child) {
+bool Entity::removeChild(Entity* child) {
 	for (auto* it = _children.begin(); it != _children.end(); it++) {
 		if ((*it)->id() == child->id()) {
 			_children.erase(it); // shoule be ordered
-			return;
+			return true;
 		}
 	}
-}
-
-CTransform* Entity::transform() {
-	if (!_transform) {
-		_transform = getComponent<CTransform>();
-	}
-	SGE_ASSERT(_transform != nullptr);
-	return _transform;
+	return false;
 }
 
 } // namespace
