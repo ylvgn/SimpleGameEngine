@@ -43,7 +43,7 @@ public:
 	{}
 
 	Plane3(const Triangle3<T>&  tri) {
-		normal = (tri.v1 - tri.v0).cross(tri.v2 - tri.v0).normal();
+		normal = (tri.v1 - tri.v0).cross(tri.v2 - tri.v0).normalize();
 		distance = normal.dot(tri.v0);
 	}
 

@@ -38,16 +38,24 @@ struct Camera3 {
 	void setViewport(const Rect2& v) { _viewport = v; }
 	const Rect2& viewport() const { return _viewport; }
 
+	void setFov(const T& fov)			{ _fov = fov; }
+	void setNearClip(const T& nearClip) { _nearClip = nearClip; }
+	void setFarClip(const T& farClip)	{ _farClip = farClip; }
+
+	const T& fov()		const { return _fov; }
+	const T& nearClip() const { return _nearClip; }
+	const T& farClip()	const { return _farClip; }
+
 	Ray3	getRay(const Vec2& screenPos) const;
 
 	Mat4	viewMatrix() const;
 	Mat4	projMatrix() const;
 	Mat4	viewProjMatrix() const { return projMatrix() * viewMatrix(); }
 
-private:	
-	float _fov = 50.0f;
-	float _nearClip = 0.1f;
-	float _farClip = 10000.0f;
+private:
+	T _fov		= T(50.0);
+	T _nearClip = T(0.1);
+	T _farClip	= T(10000.0);
 	Rect2 _viewport;
 	Vec3 _pos {150, 150, 200};
 	Vec3 _aim {0,0,0};
