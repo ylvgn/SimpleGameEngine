@@ -4,54 +4,67 @@
 
 namespace sge {
 
-enum class MatrixDirty {
-	None,
-	Local = 1 << 0,
-	World = 1 << 1,
-};
-SGE_ENUM_ALL_OPERATOR(MatrixDirty)
-
 class CTransform : public Component {
 	SGE_OBJECT_TYPE(CTransform, Component)
 public:
 
-	void setPosition(const Vec3f& pos) { _setLocalMatrixDirty(true);  _position.set(pos); }
-	void setPosition(const float x, const float y, const float z) { _setLocalMatrixDirty(true); _position.set(x, y, z); }
+	void setLocalPos	(float x, float y, float z) { setLocalPos(Vec3f(x,y,z)); }
+	void setLocalPos	(const Vec3f&  v) { _localPos = v;		_setLocalMatrixDirty(); }
 
-	      Vec3f  getPosition()		 { return _position; }
-	const Vec3f& getPosition() const { return _position; }
+	void setLocalRotate	(const Quat4f& v) { _localRotate = v;	_setLocalMatrixDirty(); }
+	void setLocalScale	(const Vec3f&  v) { _localScale = v;	_setLocalMatrixDirty(); }
 
-	void setRotate(const float x, const float y, const float z, const float w) { _setLocalMatrixDirty(true);  _rotate.set(x, y, z, w); }
-	void setRotate(const Quat4f& q) { _setLocalMatrixDirty(true); _rotate.set(q.x, q.y, q.z, q.w); }
+	const Vec3f&	localPos()	const	{ return _localPos; }
+	const Quat4f&	localRotate() const	{ return _localRotate; }
+	const Vec3f&	localScale() const	{ return _localScale; }
 
-	      Quat4f  getRotate()		{ return _rotate; }
-	const Quat4f& getRotate() const { return _rotate; }
+	void setParent(CTransform* c);
+	void addChild(CTransform* c);
+	void removeChild(CTransform* c);
 
-	void setScale(const Vec3f& s) { _setLocalMatrixDirty(true); _scale.set(s); }
-
-	      Vec3f  getScale()       { return _scale; }
-	const Vec3f& getScale() const { return _scale; }
+	Span<CTransform*> children()	{ return _children; }
+	CTransform*	getChild(size_t i)	{ return (i >= 0 && i < _children.size()) ? _children[i] : nullptr; }
+	size_t childCount() const		{ return _children.size(); }
 
 	const Mat4f& localMatrix();
 	const Mat4f& worldMatrix();
 
+	void setWorldPos(const Vec3f& pos) {
+		if (!_parent) {
+			setLocalPos(pos);
+		} else {
+			setLocalPos(worldMatrix().inverse().mulPoint4x3(pos));
+		}
+	}
+	const Vec3f worldPos() { return worldMatrix().col(3).toVec3(); }
+
 private:
 
-	const bool isWorldMatrixDirty() const { return enumInt(_dirty & MatrixDirty::World) > 0; }
-	const bool isLocalMatrixDirty() const { return enumInt(_dirty & MatrixDirty::Local) > 0; }
+	void _computeLocalMatrix();
+	void _computeWorldMatrix();
 
-	void _setWorldMatrixDirty(bool is);
-	void _setLocalMatrixDirty(bool is);
+	void _setLocalMatrixDirty();
+	void _setWorldMatrixDirty();
 
-	MatrixDirty _dirty = MatrixDirty::None;
+	Vec3f	_localPos{ 0,0,0 };
+	Quat4f	_localRotate{ 0,0,0,0 };
+	Vec3f	_localScale{ 1,1,1 };
 
-	Vec3f	_position{ 0,0,0 };
-	Quat4f	_rotate{ 0,0,0,0 };
-	Vec3f	_scale{ 1,1,1 };
+	struct Dirty {
+		Dirty()
+			: localMatrix(true)
+			, worldMatrix(true)
+		{}
+		bool	localMatrix : 1;
+		bool	worldMatrix : 1;
+	};
 
-	Mat4f _localMatrix;
-	Mat4f _worldMatrix;
+	Dirty		_dirty;
+	CTransform*	_parent = nullptr;
+	Vector<CTransform*>	_children;
 
+	Mat4f	_localMatrix;
+	Mat4f	_worldMatrix;
 };
 
 } // namespace

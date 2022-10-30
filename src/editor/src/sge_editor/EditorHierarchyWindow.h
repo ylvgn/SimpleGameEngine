@@ -10,9 +10,17 @@ public:
 
 private:
 
+	struct DrawRequest {
+		RenderRequest&		req;
+		EntitySelection&	sel;
+		Scene&				scene;
+	};
+
 	static constexpr const char* kDragDropEntityFlag = "DRAG_DROP_ENTITY";
 
-	void drawEntity(Scene& scene, RenderRequest& req, Entity* e);
+	void drawEntity(DrawRequest dr, CTransform* tran);
+	void drawEntityChildren(DrawRequest& dr, CTransform* tran);
+
 	bool _active = true;
 };
 

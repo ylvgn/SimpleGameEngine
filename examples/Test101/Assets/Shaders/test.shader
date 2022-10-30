@@ -12,7 +12,7 @@ Shader {
 	
 	Pass {
 		// Queue	"Transparent"
-//		Cull		None
+		Cull		None
 
 		DepthTest	LessEqual
 
@@ -21,6 +21,8 @@ Shader {
 
 		BlendRGB 	Add One OneMinusSrcAlpha
 		BlendAlpha	Add One OneMinusSrcAlpha
+		
+		Wireframe	true
 		
 		VsFunc		vs_main
 		PsFunc		ps_main

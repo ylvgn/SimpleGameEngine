@@ -3,6 +3,8 @@
 namespace sge {
 
 void EntitySelection::add(EntityId id) {
+	if (has(id)) return;
+
 	_entities.emplace_back(id);
 	_entitiesSet.emplace(id);
 }
@@ -10,6 +12,12 @@ void EntitySelection::add(EntityId id) {
 void EntitySelection::select(EntityId id) {
 	deselectAll();
 	add(id);
+}
+
+void EntitySelection::deselect(EntityId id) {
+	if (!has(id)) return;
+	_entities.remove(id);
+	_entitiesSet.erase(id);
 }
 
 void EntitySelection::deselectAll() {

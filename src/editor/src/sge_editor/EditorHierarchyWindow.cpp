@@ -2,65 +2,64 @@
 
 namespace sge {
 
-void EditorHierarchyWindow::drawEntity(Scene& scene, RenderRequest& req, Entity* e) {
-
-	auto* ed = EditorContext::instance();
-	auto& sel = ed->entitySelection;
-
+void EditorHierarchyWindow::drawEntity(DrawRequest dr, CTransform* tran) {
 	const static ImGuiTreeNodeFlags s_flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
 
-	ImGuiTreeNodeFlags flags = e->children().size() > 0
+	auto* entity = tran->entity();
+	ImGuiTreeNodeFlags flags = tran->childCount() > 0
 		? s_flags
 		: s_flags | ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Leaf;
 
-	if (sel.has(e->id())) {
+	if (dr.sel.has(entity->id())) {
 		flags |= ImGuiTreeNodeFlags_Selected;
 	}
 
-	EditorUI::TreeNode node(e->name(), flags);
+	EditorUI::TreeNode node(entity->name(), flags);
 
 	if (EditorUI::IsItemClicked()) {
 		if (ImGui::GetIO().KeyCtrl) {
-			sel.add(e->id());
-		} else {
-			sel.select(e->id());
+			dr.sel.add(entity->id());
+		} else if (!dr.sel.has(entity->id())) {
+			dr.sel.select(entity->id());
 		}
 	}
 
 	EditorUI::DragDropSource dragSrc;
 	if (dragSrc.isOpen()) {
-		EntityId sendEntityId = e->id();
-		ImGui::SetDragDropPayload(kDragDropEntityFlag, &sendEntityId, sizeof(EntityId), ImGuiCond_Once);
+		ImGui::SetDragDropPayload(kDragDropEntityFlag, nullptr, 0, ImGuiCond_Once);
 	}
 
 	EditorUI::DragDropTarget dragTarget;
-	if (const auto * payload = dragTarget.acceptDragDropPayload(kDragDropEntityFlag)) {
-		SGE_ASSERT(payload->DataSize == sizeof(EntityId));
-
-		EntityId recvEntityId = *reinterpret_cast<EntityId*>(payload->Data);
-		Entity* recvEntity = scene.findEntityById(recvEntityId);
-		if (recvEntity) {
-			//SGE_LOG("{} set parent {}", recvEntity->name(), e->name());
-			recvEntity->setParent(e);
+	if (const auto* payload = dragTarget.acceptDragDropPayload(kDragDropEntityFlag)) {
+		for (const auto& id : dr.sel.entities()) {
+			Entity* e = dr.scene.findEntityById(id);
+			if (!e) continue;
+			e->transform()->setParent(tran);
 		}
 	}
-
 	if (!node.isOpen()) {
 		return;
 	}
+	drawEntityChildren(dr, tran);
+}
 
-	for (auto& child : e->children()) {
+void EditorHierarchyWindow::drawEntityChildren(DrawRequest& dr, CTransform* tran) {
+	for (auto& child : tran->children()) {
 		if (!child) continue;
-		drawEntity(scene, req, child);
+		drawEntity(dr, child);
 	}
 }
 
 void EditorHierarchyWindow::draw(Scene& scene, RenderRequest& req) {
 	EditorUI::Window win("Hierarchy", &_active, ImGuiWindowFlags_MenuBar);
 
-	for (auto& e : scene.entities()) {
-		if (e->parent()) continue;
-		drawEntity(scene, req, e);
+	auto* ed = EditorContext::instance();
+	auto& sel = ed->entitySelection;
+
+	DrawRequest dr{ req, sel, scene };
+	auto* root = scene.rootEntity();
+	if (root) {
+		drawEntityChildren(dr, root->transform());
 	}
 }
 

@@ -20,6 +20,7 @@ public:
 		_camera.setPos(0, 10, 30);
 		//_camera.setPos(0, 1200, 10);  // debug
 		_camera.setAim(0, 0, 0);
+		_camera.setFarClip(100);
 #else
 		// just for test 5x5 terrain 
 		_camera.setPos(58.932793f, 38.021767f, 3.6692433f);
@@ -154,8 +155,8 @@ public:
 				auto* e = _scene.addEntity(s);
 
 				{ // CTransform
-					auto* t = e->addComponent<CTransform>();
-					t->setPosition(static_cast<float>(i * 5), -2, 0);
+					auto* t = e->transform();
+					t->setLocalPos(static_cast<float>(i * 5), -2, 0);
 				}
 
 				{ // CMeshRenderer
@@ -167,17 +168,13 @@ public:
 				}
 			}
 
-			editor->entitySelection.add(EntityId(1));
+//			editor->entitySelection.add(EntityId(2));
 			editor->entitySelection.add(EntityId(3));
 		}
 	}
 
 	virtual void onCloseButton() {
 		NativeUIApp::current()->quit(0);
-
-		// tmp
-		_scene.destroy();
-		RendererSystem::destroySystem();
 	}
 
 	virtual void onUIMouseEvent(UIMouseEvent& ev) override {
@@ -202,7 +199,7 @@ public:
 					_camera.dolly(d.x + d.y);
 				}break;
 			}
-			//SGE_LOG("{}\t{}", _camera.pos(), _camera.aim());
+			//SGE_LOG("pos={}\taim={}", _camera.pos(), _camera.aim());
 		}
 	}
 
@@ -245,7 +242,7 @@ public:
 
 		//ImGui::ShowDemoWindow(nullptr);
 
-		RendererSystem::instance()->render(_renderRequest);
+		RendererSystem::instance()->render(_renderRequest, _camera);
 
 		_hierarchyWindow.draw(_scene, _renderRequest);
 		_inspectorWindow.draw(_scene, _renderRequest);
@@ -273,9 +270,9 @@ public:
 
 	Scene			_scene;
 
-	EditorHierarchyWindow _hierarchyWindow;
-	EditorInspectorWindow _inspectorWindow;
-	EditorStatisticsWindow _statisticsWindow;
+	EditorHierarchyWindow	_hierarchyWindow;
+	EditorInspectorWindow	_inspectorWindow;
+	EditorStatisticsWindow	_statisticsWindow;
 };
 
 class EditorApp : public NativeUIApp {
@@ -292,7 +289,7 @@ public:
 			SGE_LOG("current dir={}", curDir);
 		}
 
-	#if 0 // for quick testing (but not work for RenderDoc !!)
+	#if 1 // for quick testing (but not work for RenderDoc !!)
 		{ // compile shader
 			SHELLEXECUTEINFO ShExecInfo = {};
 			ShExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
@@ -332,6 +329,7 @@ public:
 
 	virtual void onQuit() {
 		EditorContext::destroyContext();
+		// RendererSystem::destroySystem(); tmp
 		Base::onQuit();
 	}
 

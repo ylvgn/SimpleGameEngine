@@ -8,11 +8,7 @@ const TypeInfo* CMeshRenderer::s_getType() {
 	class Ti : public CMeshRenderer::TI_Base {
 	public:
 		Ti() {
-			//static FieldInfo fi[] = {
-			//	FieldInfo("renderMesh", &This::_renderMesh),
-			//	FieldInfo("material",	&This::_material),
-			//};
-			//setFields(fi);
+
 		}
 	};
 	static Ti ti;
@@ -28,8 +24,9 @@ void CMeshRenderer::setMesh(StrView filename) {
 	setMesh(editMesh);
 }
 
-void CMeshRenderer::setMesh(const EditMesh& mesh) {
-	_renderMesh.create(mesh);
+void CMeshRenderer::setMesh(const EditMesh& editMesh) {
+	_renderMesh.create(editMesh);
+	_aabb = std::move(AABB(editMesh));
 }
 
 void CMeshRenderer::setMaterial(Material* material) {
@@ -65,6 +62,10 @@ void CMeshRenderer::onRender(RenderRequest& req) {
 			cmd->indexCount			= subMesh.indexCount();
 		}
 	}
+}
+
+const OBB CMeshRenderer::onGetOBB() const {
+	return OBB(_aabb, _entity->transform()->worldMatrix());
 }
 
 }

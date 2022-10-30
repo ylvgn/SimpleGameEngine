@@ -1,17 +1,22 @@
 #include "Scene.h"
+#include "Entity.h"
+#include "components/CTransform.h"
 
 namespace sge {
 
-void Scene::destroy() {
-	_entityIdMap.clear();
-	_entities.clear();
+Scene::Scene() {
+	_rootEntity = addEntity();
 }
 
 Entity* Scene::addEntity() {
 	auto* p = new Entity();
-	p->setId(static_cast<EntityId>(++_nextEntityId));
+	p->_internalInit(this, static_cast<EntityId>(++_nextEntityId));
 	_entityIdMap[p->id()] = p;
-	_entities.emplace_back(p);
+
+	if (_rootEntity) {
+		_rootEntity->transform()->addChild(p->transform());
+	}
+
 	return p;
 }
 

@@ -1,33 +1,28 @@
 #pragma once
 
-#include <sge_engine/components/Component.h>
-
 namespace sge {
 
-enum class EntityId : u64 { None = 0 };
-
+class Component;
 class CTransform;
+class Scene;
+
+enum class EntityId : u64 { None = 0 };
 
 class Entity : public Object {
 	SGE_OBJECT_TYPE(Entity, Object)
 public:
-	Entity() = default;
+	Entity();
 	~Entity();
-
-	void setId(EntityId id)				{ _id = id; }
-	EntityId id() const					{ return _id; }
 
 	void setName(StrView name)			{ _name = name; }
 	StrView name() const				{ return _name; }
 
-	Entity* parent() const				{ return _parent; }
-	void setParent(Entity* parent);
+	void		_internalInit(Scene* scene, EntityId id) { _scene = scene; _id = id; }
 
-	Span<SPtr<Entity>> children()		{ return _children; }
+	Scene*		scene() const { return _scene; }
+	EntityId	id() const	{ return _id; }
+
 	Span<SPtr<Component>> components()	{ return _components; }
-
-	bool addChild(Entity* child);
-	bool removeChild(Entity* child);
 
 	template<class C> inline
 	C* addComponent() {
@@ -39,10 +34,10 @@ public:
 
 	template<class C> inline
 	C* getComponent() {
-		const auto* target = TypeOf<C>();
+		const auto* type = TypeOf<C>();
 		for (auto& c : _components) {
-			if (c.ptr()->getType() == target) {
-				return sge_cast<C>(c.ptr());
+			if (c.ptr()->getType() == type) {
+				return c;
 			}
 		}
 		return nullptr;
@@ -67,7 +62,7 @@ public:
 		const auto* target = TypeOf<C>();
 		for (auto& c : _components) {
 			if (c.get()->getType() == target) {
-				out.emplace_back(sge_cast<C>(c.ptr()));
+				out.emplace_back(c.ptr());
 			}
 		}
 	}
@@ -84,15 +79,15 @@ public:
 		}
 	}
 
-	CTransform* transform() { return getComponent<CTransform>(); };
+	CTransform* transform() { return _transform.ptr(); };
 
 private:
-	EntityId	_id			= EntityId::None;
-	String		_name		= "";
-	Entity*		_parent		= nullptr;
+	Vector< SPtr<Component> >	_components;
 
-	Vector<SPtr<Component>> _components;
-	Vector<SPtr<Entity>>	_children;
+	String				_name;
+	Scene*				_scene = nullptr;
+	EntityId			_id = EntityId::None;
+	SPtr<CTransform>	_transform = nullptr;
 };
 
 } // namespace
