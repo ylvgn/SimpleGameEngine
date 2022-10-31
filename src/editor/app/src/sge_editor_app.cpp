@@ -18,87 +18,91 @@ public:
 
 #if 1
 		_camera.setPos(0, 10, 30);
-		//_camera.setPos(0, 1200, 10);  // debug
+		//_camera.setPos(0, 1200, 10);	// debug terrain
+		_camera.setFarClip(100);		// debug camera culling
 		_camera.setAim(0, 0, 0);
-		_camera.setFarClip(100);
 #else
 		// just for test 5x5 terrain 
 		_camera.setPos(58.932793f, 38.021767f, 3.6692433f);
 		_camera.setAim(0.79875153f, 0.8193707f, 1.8785787f);
 #endif
 
-		Texture2D_CreateDesc texDesc;
-		auto& image = texDesc.imageToUpload;
-#if 1
-		//image.loadFile("Assets/Textures/uvChecker.png");
-		//image.loadFile("Assets/Textures/uvChecker_BC1.dds");
-		//image.loadFile("Assets/Textures/uvChecker_BC2.dds");
-		//image.loadFile("Assets/Textures/uvChecker_BC3.dds");
-		image.loadFile("Assets/Textures/uvChecker_BC7.dds");
+		{ // texture
+			Texture2D_CreateDesc texDesc;
+			auto& image = texDesc.imageToUpload;
+	#if 1
+			//image.loadFile("Assets/Textures/uvChecker.png");
+			//image.loadFile("Assets/Textures/uvChecker_BC1.dds");
+			//image.loadFile("Assets/Textures/uvChecker_BC2.dds");
+			//image.loadFile("Assets/Textures/uvChecker_BC3.dds");
+			image.loadFile("Assets/Textures/uvChecker_BC7.dds");
 
-		texDesc.size = image.size();
-		texDesc.colorType = image.colorType();
-#else
-		int w = 256;
-		int h = 256;
+			texDesc.size = image.size();
+			texDesc.colorType = image.colorType();
+	#else
+			int w = 256;
+			int h = 256;
 
-		texDesc.size.set(w, h);
-		texDesc.colorType = ColorType::RGBAb;
+			texDesc.size.set(w, h);
+			texDesc.colorType = ColorType::RGBAb;
 
-		image.create(Color4b::kColorType, w, h);
+			image.create(Color4b::kColorType, w, h);
 
-		for (int y = 0; y < w; y++) {
-			auto span = image.row<Color4b>(y);
-			for (int x = 0; x < h; x++) {
-				span[x] = Color4b(static_cast<u8>(x),	// r, span[x] means row[x]
-					static_cast<u8>(y),					// g
-					0,									// b
-					255);								// a
+			for (int y = 0; y < w; y++) {
+				auto span = image.row<Color4b>(y);
+				for (int x = 0; x < h; x++) {
+					span[x] = Color4b(static_cast<u8>(x),	// r, span[x] means row[x]
+						static_cast<u8>(y),					// g
+						0,									// b
+						255);								// a
+				}
 			}
+	#endif
+			_testTexture = renderer->createTexture2D(texDesc);
 		}
-#endif
-		_testTexture = renderer->createTexture2D(texDesc);
 
-		auto shader = renderer->createShader("Assets/Shaders/test.shader");
+		{ // material
+			auto shader = renderer->createShader("Assets/Shaders/test.shader");
+			_material = renderer->createMaterial();
+			_material->setShader(shader);
+			_material->setParam("mainTex", _testTexture);
+		}
 
-		_material = renderer->createMaterial();
-		_material->setShader(shader);
-		_material->setParam("mainTex", _testTexture);
-
-#if 0
-		EditMesh editMesh;
+		{ // mesh
+			EditMesh editMesh;
 #if 1
-		WavefrontObjLoader::readFile(editMesh, "Assets/Mesh/test.obj");
-		// the current shader need color
-		for (size_t i = editMesh.color.size(); i < editMesh.pos.size(); i++) {
-			editMesh.color.emplace_back(255, 255, 255, 255);
-		}
+			WavefrontObjLoader::readFile(editMesh, "Assets/Mesh/test.obj");
+			// the current shader need color
+			for (size_t i = editMesh.color.size(); i < editMesh.pos.size(); i++) {
+				editMesh.color.emplace_back(255, 255, 255, 255);
+			}
 #else
-		editMesh.pos.emplace_back(0.0f, 0.5f, 0.0f);
-		editMesh.pos.emplace_back(0.5f, -0.5f, 0.0f);
-		editMesh.pos.emplace_back(-0.5f, -0.5f, 0.0f);
+			// triangle mesh
+			editMesh.pos.emplace_back(0.0f, 0.5f, 0.0f);
+			editMesh.pos.emplace_back(0.5f, -0.5f, 0.0f);
+			editMesh.pos.emplace_back(-0.5f, -0.5f, 0.0f);
 
-		editMesh.color.emplace_back(255, 0, 0, 255);
-		editMesh.color.emplace_back(0, 255, 0, 255);
-		editMesh.color.emplace_back(0, 0, 255, 255);
+			editMesh.color.emplace_back(255, 0, 0, 255);
+			editMesh.color.emplace_back(0, 255, 0, 255);
+			editMesh.color.emplace_back(0, 0, 255, 255);
 
-		editMesh.uv[0].emplace_back(0, 1);
-		editMesh.uv[0].emplace_back(1, 1);
-		editMesh.uv[0].emplace_back(1, 0);
+			editMesh.uv[0].emplace_back(0, 1);
+			editMesh.uv[0].emplace_back(1, 1);
+			editMesh.uv[0].emplace_back(1, 0);
 
-		editMesh.normal.emplace_back(0, 0, 0);
-		editMesh.normal.emplace_back(0, 0, 0);
-		editMesh.normal.emplace_back(0, 0, 0);
+			editMesh.normal.emplace_back(0, 0, 0);
+			editMesh.normal.emplace_back(0, 0, 0);
+			editMesh.normal.emplace_back(0, 0, 0);
 
-		// because CullMode = D3D11_CULL_BACK; 2->1->0
-		editMesh.indices.emplace_back(2);
-		editMesh.indices.emplace_back(1);
-		editMesh.indices.emplace_back(0);
+			// because CullMode = D3D11_CULL_BACK; 2->1->0
+			editMesh.indices.emplace_back(2);
+			editMesh.indices.emplace_back(1);
+			editMesh.indices.emplace_back(0);
 #endif
-		_renderMesh.create(editMesh);
-#endif
+			_renderMesh.create(editMesh);
+		}
 
-		{
+		{ // terrain
 			float size = 2048;
 			float pos = size / -2;
 			float y = -100;
@@ -115,15 +119,14 @@ public:
 		{ // ECS
 			RendererSystem::createSystem();
 
+			// cube mesh
 			EditMesh cubeEditMesh;
-
-			// pos color normal
 			for (int a = 0; a < 2; a++)
 				for (int b = 0; b < 2; b++)
 					for (int c = 0; c < 2; c++) {
-						cubeEditMesh.pos.emplace_back(a? a : -1, b? b : -1, c? c : -1);
-						cubeEditMesh.color.emplace_back(255, 0, 0, 255);
-						cubeEditMesh.normal.emplace_back(0, 0, 0);
+						cubeEditMesh.pos.emplace_back(a? a : -1, b? b : -1, c? c : -1); // pos
+						cubeEditMesh.color.emplace_back(255, 0, 0, 255);				// color
+						cubeEditMesh.normal.emplace_back(0, 0, 0);						// normal
 					}
 
 			// indexes
@@ -237,7 +240,7 @@ public:
 		_material->setParam("test_color", Color4f(s, s, s, 1));
 //-----
 
-		//_renderRequest.drawMesh(SGE_LOC, _renderMesh, _material);
+		_renderRequest.drawMesh(SGE_LOC, _renderMesh, _material);
 		//_terrain.render(_renderRequest);
 
 		//ImGui::ShowDemoWindow(nullptr);

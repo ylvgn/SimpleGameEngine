@@ -7,6 +7,7 @@ class CTransform;
 class Scene;
 
 enum class EntityId : u64 { None = 0 };
+SGE_FORMATTER_ENUM_AS_INT(EntityId)
 
 class Entity : public Object {
 	SGE_OBJECT_TYPE(Entity, Object)

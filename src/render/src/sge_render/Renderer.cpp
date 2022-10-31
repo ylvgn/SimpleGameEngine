@@ -82,7 +82,7 @@ SPtr<Texture2D> Renderer::createSolidColorTexture2D(const Color4b& color) {
 	for (int y = 0; y < w; y++) {
 		auto span = image.row<Color4b>(y);
 		for (int x = 0; x < h; x++) {
-			span[x] = color;
+			span[x] = color; // span[x] means row[x]
 		}
 	}
 	return createTexture2D(texDesc);

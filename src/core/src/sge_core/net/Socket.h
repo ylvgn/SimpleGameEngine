@@ -67,7 +67,7 @@ public:
 
 	void setNonBlocking(bool b);
 
-	SOCKET sock() { return _sock; }
+	NativeHandle sock() { return _sock; }
 
 	static	void platformInit();
 
@@ -76,7 +76,7 @@ public:
 	NativeHandle nativeHandle() { return _sock; }
 
 private:
-	SOCKET _sock = kInvalidHandle;
+	NativeHandle _sock = kInvalidHandle;
 	static const size_t kIntMax = static_cast<size_t>(std::numeric_limits<int>::max());
 
 	void _setsockopt(int level, int optname, const void* optval, SockLen optlen);
