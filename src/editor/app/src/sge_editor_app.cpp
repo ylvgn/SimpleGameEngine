@@ -117,8 +117,6 @@ public:
 		}
 
 		{ // ECS
-			RendererSystem::createSystem();
-
 			// cube mesh
 			EditMesh cubeEditMesh;
 			for (int a = 0; a < 2; a++)
@@ -160,6 +158,7 @@ public:
 				{ // CTransform
 					auto* t = e->transform();
 					t->setLocalPos(static_cast<float>(i * 5), -2, 0);
+					t->setLocalRotate(Quat4f(i * 0.02f, 0, 0, 0));
 				}
 
 				{ // CMeshRenderer
@@ -171,7 +170,7 @@ public:
 				}
 			}
 
-//			editor->entitySelection.add(EntityId(2));
+			editor->entitySelection.add(EntityId(2));
 			editor->entitySelection.add(EntityId(3));
 		}
 	}
@@ -240,12 +239,12 @@ public:
 		_material->setParam("test_color", Color4f(s, s, s, 1));
 //-----
 
-		_renderRequest.drawMesh(SGE_LOC, _renderMesh, _material);
+		//_renderRequest.drawMesh(SGE_LOC, _renderMesh, _material);
 		//_terrain.render(_renderRequest);
 
 		//ImGui::ShowDemoWindow(nullptr);
 
-		RendererSystem::instance()->render(_renderRequest, _camera);
+		EngineContext::rendererSystem()->render(_renderRequest, _camera);
 
 		_hierarchyWindow.draw(_scene, _renderRequest);
 		_inspectorWindow.draw(_scene, _renderRequest);
@@ -317,9 +316,8 @@ public:
 			Renderer::create(renderDesc);
 		}
 
-		//TypeManager::instance()->registerType<CTransform>();
-		//TypeManager::instance()->registerType<CMeshRenderer>();
-		EditorContext::createContext();
+		EditorContext::create();
+		EngineContext::create();
 
 		{ // create window
 			NativeUIWindow::CreateDesc winDesc;
@@ -331,8 +329,8 @@ public:
 	}
 
 	virtual void onQuit() {
-		EditorContext::destroyContext();
-		// RendererSystem::destroySystem(); tmp
+		EngineContext::destroy();
+		EditorContext::destroy();
 		Base::onQuit();
 	}
 

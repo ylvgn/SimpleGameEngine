@@ -1,21 +1,11 @@
 #include "RendererSystem.h"
-#include "components/CRenderer.h"
+
+#include <sge_engine/components/CRenderer.h>
 
 namespace sge {
 
-RendererSystem* RendererSystem::s_instance = nullptr;
-
-RendererSystem* RendererSystem::createSystem() {
-	SGE_ASSERT(s_instance == nullptr);
-	s_instance = new RendererSystem();
-	return s_instance;
-}
-
-void RendererSystem::destroySystem() {
-	if (s_instance) {
-		s_instance->~RendererSystem();
-		s_instance = nullptr;
-	}
+RendererSystem::~RendererSystem() {
+	_renderers.clear();
 }
 
 void RendererSystem::remove(CRenderer* c) {
@@ -63,6 +53,7 @@ void RendererSystem::render(RenderRequest& req, const Math::Camera3f& camera) {
 	};
 
 	for (auto& r : renderers()) {
+		if (!r) continue;
 		if (!CameraHelper::boxInFrustum(frustum, r->getOBB())) continue;
 		r->render(req);
 	}

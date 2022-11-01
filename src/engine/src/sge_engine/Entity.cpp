@@ -1,4 +1,5 @@
 #include "Entity.h"
+
 #include "components/CTransform.h"
 
 namespace sge {
@@ -12,9 +13,6 @@ const TypeInfo* Entity::s_getType() {
 	};
 	static Ti ti;
 	return &ti;
-}
-
-Entity::~Entity() {
 }
 
 Entity::Entity() {

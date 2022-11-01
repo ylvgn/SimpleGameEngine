@@ -90,6 +90,7 @@ Renderer_DX11::Renderer_DX11(CreateDesc& desc) {
 	hr = _dxgiAdapter->GetParent(IID_PPV_ARGS(_dxgiFactory.ptrForInit()));
 	Util::throwIfError(hr);
 
+
 	if (createDeviceFlags & D3D11_CREATE_DEVICE_DEBUG) {
 		hr = _d3dDevice->QueryInterface(_d3dDebug.ptrForInit());
 		Util::throwIfError(hr);
@@ -118,11 +119,30 @@ SPtr<Material> Renderer_DX11::onCreateMaterial() {
 	return new Material_DX11();
 }
 
-void Renderer_DX11::validateContext()
-{
+void Renderer_DX11::validateContext() {
 	if (!_d3dDebug) return;
 	auto hr = _d3dDebug->ValidateContext(_d3dDeviceContext.ptr());
 	Util::throwIfError(hr);
 }
+
+void Renderer_DX11::reportLiveDeviceObjects() {
+	if (!_d3dDebug) return;
+	auto hr = _d3dDebug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
+	Util::throwIfError(hr);
+}
+
+#if 0
+// https://learn.microsoft.com/en-us/windows/win32/api/dxgidebug/nf-dxgidebug-idxgidebug-reportliveobjects?redirectedfrom=MSDN
+void Renderer_DX11::reportLiveObjects() {
+
+	// linker error with 'DXGI_DEBUG_ALL;, even thought include following dependance.
+	// #include <DXGIDebug.h>
+	// #pragma comment(lib, "dxgi.lib")
+
+	if (!_dxgiDebug) return;
+	auto hr = _dxgiDebug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_ALL);
+	Util::throwIfError(hr);
+}
+#endif
 
 } // namespace

@@ -3,25 +3,20 @@
 
 namespace sge {
 
-void EditorPropertyDrawer_struct::draw(DrawRequest& req) {
+void EditorPropertyDrawer_struct::draw(DrawRequest& parentreq) {
 	auto* ed = EditorContext::instance();
-	auto* type = req.field->fieldType;
+	auto* type = parentreq.field->fieldType;
 
-	EditorUI::CollapsingHeader header(req.field->name);
-	EditorUI::PushID pushId(req.field);
+	EditorUI::CollapsingHeader header(parentreq.field->name);
+	EditorUI::PushID pushId(parentreq.field);
 
-	EditorPropertyDrawRequest dr;
-	dr.objectType = type;
-	dr.objects.clear();
-	dr.objects.reserve(req.objects.size());
-	for (auto& o : req.objects) {
-		dr.objects.emplace_back(req.field->getValuePtr(o));
-	}
+	DrawRequest dr;
+	parentreq.createChildRequest(dr);
 
 	for (const auto& f : type->fields()) {
 		if (!f.fieldType) continue;
-		dr.field = &f;
 		if (auto* drawer = ed->getPropertyDrawer(f.fieldType)) {
+			dr.field = &f;
 			drawer->draw(dr);
 		}
 	}
@@ -35,37 +30,97 @@ void EditorPropertyDrawer_float::draw(DrawRequest& req) {
 	float newV = oldV;
 
 	if (!EditorUI::DragFloat(req.field->name, &newV)) return;
-
 	if (isMixed) return;
 
-	float delta = newV - oldV;
 	for (auto& obj : req.objects) {
-		float v = req.field->getValue<float>(obj);
-		float nv = v + delta;
-		req.field->setValue<float>(obj, nv);
+		req.field->setValue<float>(obj, newV);
 	}
 }
 
 void EditorPropertyDrawer_Vec3f::draw(DrawRequest& req) {
-	bool isMixed = req.isMixedValue<Vec3f>();
-	auto mv = makeScopedValue(&EditorUI::showMixedValue, isMixed);
+	EditorUI::CollapsingHeader header(req.field->name);
+	EditorUI::PushID pushId(req.field);
 
-	Vec3f oldV = req.getFirstObjectValue<Vec3f>();
-	float newV[3] = { oldV.x, oldV.y, oldV.z };
+	auto value = req.getFirstObjectValue<Vec3f>();
 
-	if (!EditorUI::DragFloat3(req.field->name, newV)) return;
+	bool isMixedX = false;
+	bool isMixedY = false;
+	bool isMixedZ = false;
 
-	if (isMixed) return;
+	if (req.objects.size() > 1) {
+		for (auto& obj : req.objects) {
+			const auto& tmp = req.field->getValue<Vec3f>(obj);
+			if (tmp.x != value.x) isMixedX = true;
+			if (tmp.y != value.y) isMixedY = true;
+			if (tmp.z != value.z) isMixedZ = true;
+		}
+	}
 
-	Vec3f delta{ newV[0] - oldV.x, newV[1] - oldV.y, newV[2] - oldV.z };
+	struct Helper {
+		static bool drawField(const char* name, float& newV, bool& isMixed) {
+			auto mv = makeScopedValue(&EditorUI::showMixedValue, isMixed);
+			return EditorUI::DragFloat(name, &newV);
+		}
+	};
+
+	Vec3f newV(value);
+
+	bool updatedX = Helper::drawField("x", newV.x, isMixedX);
+	bool updatedY = Helper::drawField("y", newV.y, isMixedY);
+	bool updatedZ = Helper::drawField("z", newV.z, isMixedZ);
+	if (!(updatedX || updatedY || updatedZ)) return;
+
+	auto delta = newV - value;
 	for (auto& obj : req.objects) {
-		Vec3f v = req.field->getValue<Vec3f>(obj);
-		Vec3f nv = v + delta;
-		req.field->setValue<Vec3f>(obj, nv);
+		auto v = req.field->getValue<Vec3f>(obj);
+		req.field->setValue<Vec3f>(obj, v + delta);
 	}
 }
 
 void EditorPropertyDrawer_Quat4f::draw(DrawRequest& req) {
+#if 1
+	EditorUI::CollapsingHeader header(req.field->name);
+	EditorUI::PushID pushId(req.field);
+
+	auto value = req.getFirstObjectValue<Quat4f>();
+
+	bool isMixedX = false;
+	bool isMixedY = false;
+	bool isMixedZ = false;
+	bool isMixedW = false;
+
+	if (req.objects.size() > 1) {
+		for (auto& obj : req.objects) {
+			const auto& tmp = req.field->getValue<Quat4f>(obj);
+			if (tmp.x != value.x) isMixedX = true;
+			if (tmp.y != value.y) isMixedY = true;
+			if (tmp.z != value.z) isMixedZ = true;
+			if (tmp.w != value.w) isMixedW = true;
+		}
+}
+
+	struct Helper {
+		static bool drawField(const char* name, float& newV, bool& isMixed) {
+			auto mv = makeScopedValue(&EditorUI::showMixedValue, isMixed);
+			return EditorUI::DragFloat(name, &newV);
+		}
+	};
+
+	Quat4f newV(value);
+
+	bool updatedX = Helper::drawField("x", newV.x, isMixedX);
+	bool updatedY = Helper::drawField("y", newV.y, isMixedY);
+	bool updatedZ = Helper::drawField("z", newV.z, isMixedZ);
+	bool updatedW = Helper::drawField("w", newV.w, isMixedZ);
+	if (!(updatedX || updatedY || updatedZ || updatedW)) return;
+
+	auto delta = newV - value;
+	for (auto& obj : req.objects) {
+		auto v = req.field->getValue<Quat4f>(obj);
+		req.field->setValue<Quat4f>(obj, v + delta);
+	}
+
+#else
 	bool isMixed = req.isMixedValue<Quat4f>();
 	auto mv = makeScopedValue(&EditorUI::showMixedValue, isMixed);
 
@@ -84,6 +139,7 @@ void EditorPropertyDrawer_Quat4f::draw(DrawRequest& req) {
 		Quat4f nv = v + delta;
 		req.field->setValue<Quat4f>(obj, nv);
 	}
+#endif
 }
 
 }

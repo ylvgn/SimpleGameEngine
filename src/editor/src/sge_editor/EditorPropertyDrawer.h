@@ -30,6 +30,15 @@ struct EditorPropertyDrawRequest {
 			field->setValue<T>(o, v);
 		}
 	}
+
+	void createChildRequest(EditorPropertyDrawRequest& dr) {
+		dr.objectType = field->fieldType;
+		dr.objects.clear();
+		dr.objects.reserve(objects.size());
+		for (auto& o : objects) {
+			dr.objects.emplace_back(field->getValuePtr(o));
+		}
+	}
 };
 
 class EditorPropertyDrawer : NonCopyable {

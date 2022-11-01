@@ -11,8 +11,8 @@ public:
 
 	EditorContext();
 
-	static EditorContext* createContext();
-	static void destroyContext();
+	static EditorContext* create();
+	static void destroy();
 
 	void registerPropertyDrawer(const TypeInfo* type, EditorPropertyDrawer* drawer);
 	EditorPropertyDrawer* getPropertyDrawer(const TypeInfo* type);

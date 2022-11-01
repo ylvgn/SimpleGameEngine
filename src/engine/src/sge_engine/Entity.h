@@ -13,7 +13,6 @@ class Entity : public Object {
 	SGE_OBJECT_TYPE(Entity, Object)
 public:
 	Entity();
-	~Entity();
 
 	void setName(StrView name)			{ _name = name; }
 	StrView name() const				{ return _name; }
@@ -86,9 +85,9 @@ private:
 	Vector< SPtr<Component> >	_components;
 
 	String				_name;
-	Scene*				_scene = nullptr;
-	EntityId			_id = EntityId::None;
-	SPtr<CTransform>	_transform = nullptr;
+	Scene*				_scene		= nullptr;
+	EntityId			_id			= EntityId::None;
+	SPtr<CTransform>	_transform	= nullptr;
 };
 
 } // namespace

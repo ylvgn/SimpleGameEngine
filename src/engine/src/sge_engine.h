@@ -2,8 +2,9 @@
 
 #include <sge_render.h>
 
-#include <sge_engine/RendererSystem.h>
 #include <sge_engine/Scene.h>
+
+#include <sge_engine/EngineContext.h>
 
 #include <sge_engine/components/CTransform.h>
 #include <sge_engine/components/CMeshRenderer.h>

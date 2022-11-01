@@ -5,11 +5,10 @@
 #include <d3d11.h>
 #include <d3d11_4.h>
 #include <dxgi1_4.h>
-
-#include <d3dcompiler.h> // tmp
+#include <d3dcompiler.h>
 
 #pragma comment(lib, "d3d11.lib")
-#pragma comment(lib, "d3dcompiler.lib") // tmp
+#pragma comment(lib, "d3dcompiler.lib")
 
 #include <sge_render/Render_Common.h>
 #include <sge_render/vertex/Vertex.h>

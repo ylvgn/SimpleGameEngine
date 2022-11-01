@@ -1,17 +1,16 @@
 #pragma once
 
+#include "CSystem.h"
 #include <sge_render/command/RenderRequest.h>
 
 namespace sge {
 
 class CRenderer;
 
-class RendererSystem : public NonCopyable {
+class RendererSystem : public CSystem {
 public:
-	static RendererSystem* instance() { return s_instance; }
 
-	static RendererSystem* createSystem();
-	static void destroySystem();
+	~RendererSystem();
 
 	void add(CRenderer* c);
 	void remove(CRenderer* c);
@@ -21,7 +20,6 @@ public:
 	Span<CRenderer*> renderers() { return _renderers; }
 
 private:
-	static RendererSystem* s_instance;
 	Vector<CRenderer*>	_renderers;
 };
 

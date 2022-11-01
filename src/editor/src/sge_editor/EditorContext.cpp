@@ -17,13 +17,13 @@ EditorContext::EditorContext() {
 #undef E
 }
 
-EditorContext* EditorContext::createContext() {
+EditorContext* EditorContext::create() {
 	SGE_ASSERT(s_instance == nullptr);
 	s_instance = new EditorContext();
 	return s_instance;
 }
 
-void EditorContext::destroyContext() {
+void EditorContext::destroy() {
 	if (s_instance != nullptr) {
 		s_instance->~EditorContext();
 		s_instance = nullptr;

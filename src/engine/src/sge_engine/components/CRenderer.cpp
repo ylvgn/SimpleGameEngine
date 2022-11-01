@@ -1,5 +1,5 @@
 #include "CRenderer.h"
-#include "../RendererSystem.h"
+#include <sge_engine/EngineContext.h>
 
 namespace sge {
 
@@ -15,11 +15,13 @@ const TypeInfo* CRenderer::s_getType() {
 }
 
 CRenderer::CRenderer() {
-	RendererSystem::instance()->add(this);
+	EngineContext::rendererSystem()->add(this);
 }
 
 CRenderer::~CRenderer() {
-	RendererSystem::instance()->remove(this);
+	if (EngineContext::rendererSystem()) { // tmp
+		EngineContext::rendererSystem()->remove(this);
+	}
 }
 
 }

@@ -16,15 +16,16 @@ public:
 	Renderer_DX11(CreateDesc& desc);
 	static Renderer_DX11* instance() { return static_cast<Renderer_DX11*>(s_instance); }
 
-	DX11_IDXGIFactory*      dxgiFactory()      { return _dxgiFactory;      }
-	DX11_IDXGIDevice*       dxgiDevice()       { return _dxgiDevice;       }
-	DX11_IDXGIAdapter*      dxgiAdapter()      { return _dxgiAdapter;      }
+	DX11_IDXGIFactory*      dxgiFactory()		{ return _dxgiFactory;      }
+	DX11_IDXGIDevice*       dxgiDevice()		{ return _dxgiDevice;       }
+	DX11_IDXGIAdapter*      dxgiAdapter()		{ return _dxgiAdapter;      }
 
-	DX11_ID3DDevice*        d3dDevice()        { return _d3dDevice;        }
-	DX11_ID3DDeviceContext* d3dDeviceContext() { return _d3dDeviceContext; }
-	DX11_ID3DDebug*         d3dDebug()         { return _d3dDebug;         }
+	DX11_ID3DDevice*        d3dDevice()			{ return _d3dDevice;        }
+	DX11_ID3DDeviceContext* d3dDeviceContext()	{ return _d3dDeviceContext; }
+	DX11_ID3DDebug*         d3dDebug()			{ return _d3dDebug;         }
 
 	void validateContext();
+	void reportLiveDeviceObjects();
 
 protected:
 	virtual SPtr<RenderContext>		onCreateContext(RenderContext_CreateDesc& desc) override;
@@ -40,6 +41,8 @@ protected:
 	ComPtr<DX11_ID3DDevice>			_d3dDevice;
 	ComPtr<DX11_ID3DDeviceContext>	_d3dDeviceContext;
 	ComPtr<DX11_ID3DDebug>			_d3dDebug;
+
+
 }; // Renderer_DX11
 
 } // namespace

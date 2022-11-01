@@ -61,27 +61,18 @@ template<class T> inline const TypeInfo* TypeOf(const T& v) { return TypeOf<T>()
 class FieldInfo {
 public:
 	template<class T> using Gettor = const T& (*)(const void*);
-	void* gettor = nullptr;
-
 	using Settor = void (*)(void*, const void*);
-	Settor settor = nullptr;
 
 	template<class OBJ, class FIELD>
-	FieldInfo(const char* name_, FIELD OBJ::* ptr)
+	FieldInfo(	const char* name_,
+				FIELD OBJ::* ptr,
+				Gettor<FIELD> getter_ = nullptr,
+				Settor setter_ = nullptr)
 		: name(name_)
 		, fieldType(TypeOf<FIELD>())
 		, offset(memberOffset(ptr))
-		, gettor(nullptr)
-		, settor(nullptr)
-	{
-	}
-
-	template<class FIELD>
-	FieldInfo(const char* name_, Gettor<FIELD> g, Settor s)
-		: name(name_)
-		, fieldType(TypeOf<FIELD>())
-		, gettor(g)
-		, settor(s)
+		, getter(getter_)
+		, setter(setter_)
 	{
 	}
 
@@ -91,24 +82,30 @@ public:
 	template<class T>
 	const T& getValue(const void* obj) const {
 		SGE_ASSERT(TypeOf<T>() == fieldType);
-		if (gettor) {
-			return reinterpret_cast<Gettor<T>>(gettor)(obj);
+		if (getter) {
+			return reinterpret_cast<Gettor<T>>(getter)(obj);
+		} else {
+			return *reinterpret_cast<const T*>(getValuePtr(obj));
 		}
-		return *reinterpret_cast<const T*>(getValuePtr(obj));
 	}
 
 	template<class T>
 	void setValue(void* obj, const T& value) const {
 		SGE_ASSERT(TypeOf<T>() == fieldType);
-		if (settor) { settor(obj, &value); return; }
-		*reinterpret_cast<T*>(getValuePtr(obj)) = value;
+		if (setter) {
+			setter(obj, &value);
+		} else {
+			*reinterpret_cast<T*>(getValuePtr(obj)) = value;
+		}
 	}
 
 	void onFormat(fmt::format_context& ctx) const;
 
-	const char* name = "";
-	const TypeInfo* fieldType = nullptr;
-	intptr_t offset = 0;
+	const char* name			= "";
+	const TypeInfo* fieldType	= nullptr;
+	intptr_t offset				= 0;
+	void* getter				= nullptr;
+	Settor setter				= nullptr;
 };
 
 class TypeInfo {

@@ -43,9 +43,9 @@ const TypeInfo* CTransform::s_getType() {
 
 		Ti() {
 			static FieldInfo fi[] = {
-				FieldInfo("position", &getLocalPos,		&setLocalPos),
-				FieldInfo("rotate",   &getLocalRotate,	&setLocalRotate),
-				FieldInfo("scale",    &getLocalScale,	&setLocalScale),
+				FieldInfo("position", &This::_localPos,		&getLocalPos,		&setLocalPos),
+				FieldInfo("rotate",   &This::_localRotate,	&getLocalRotate,	&setLocalRotate),
+				FieldInfo("scale",    &This::_localScale,	&getLocalScale,		&setLocalScale),
 			};
 			setFields(fi);
 		}
