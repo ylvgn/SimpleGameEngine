@@ -9,6 +9,19 @@ namespace EditorUI {
 	static const char* floatFormat = "%0.3f";
 	static bool showMixedValue = false;
 
+	inline bool DragInt (
+		const char* label,
+		int* v,
+		float v_speed = 0.1f,
+		int v_min = std::numeric_limits<int>::lowest(),
+		int v_max = std::numeric_limits<int>::max(),
+		ImGuiSliderFlags flags = 0)
+	{
+		return ImGui::DragInt(label, v, v_speed, v_min, v_max,
+			showMixedValue ? mixedValueFormat : floatFormat,
+			flags);
+	}
+
 	inline bool DragFloat(
 		const char* label,
 		float* v,
@@ -142,8 +155,8 @@ namespace EditorUI {
 
 	class CollapsingHeader : public NonCopyable {
 	public:
-		CollapsingHeader(const char* label) {
-			_isOpen = ImGui::CollapsingHeader(label, &_visiable);
+		CollapsingHeader(const char* label, ImGuiTreeNodeFlags flags = 0) {
+			_isOpen = ImGui::CollapsingHeader(label, &_visiable, flags);
 		}
 
 		bool isVisible() const { return _visiable; }
@@ -155,7 +168,8 @@ namespace EditorUI {
 
 	class PushID : public NonCopyable {
 	public:
-		PushID(const void* id) { ImGui::PushID(id); }
+		PushID(const void* id)	{ ImGui::PushID(id); }
+		PushID(int id)			{ ImGui::PushID(id); }
 		~PushID() { ImGui::PopID(); }
 	};
 
@@ -164,6 +178,7 @@ namespace EditorUI {
 	inline bool IsItemClicked()		{ return ImGui::IsItemClicked(); }
 	inline bool IsItemActive()		{ return ImGui::IsItemActive(); }
 	inline bool IsItemHovered()		{ return ImGui::IsItemHovered(); }
+	inline bool IsMouseDragging(ImGuiMouseButton mouse = ImGuiMouseButton_Left, float lock_threshold = -1.0f) { return ImGui::IsMouseDragging(mouse, lock_threshold); }
 
 	inline bool IsKeyShift()		{ return ImGui::GetIO().KeyShift; }
 	inline bool IsKeyAlt()			{ return ImGui::GetIO().KeyAlt; }

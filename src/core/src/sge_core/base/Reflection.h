@@ -60,14 +60,14 @@ template<class T> inline const TypeInfo* TypeOf(const T& v) { return TypeOf<T>()
 
 class FieldInfo {
 public:
-	template<class T> using Gettor = const T& (*)(const void*);
-	using Settor = void (*)(void*, const void*);
+	template<class T> using Getter = const T& (*)(const void*);
+	using Setter = void (*)(void*, const void*);
 
 	template<class OBJ, class FIELD>
 	FieldInfo(	const char* name_,
 				FIELD OBJ::* ptr,
-				Gettor<FIELD> getter_ = nullptr,
-				Settor setter_ = nullptr)
+				Getter<FIELD> getter_ = nullptr,
+				Setter setter_ = nullptr)
 		: name(name_)
 		, fieldType(TypeOf<FIELD>())
 		, offset(memberOffset(ptr))
@@ -83,7 +83,7 @@ public:
 	const T& getValue(const void* obj) const {
 		SGE_ASSERT(TypeOf<T>() == fieldType);
 		if (getter) {
-			return reinterpret_cast<Gettor<T>>(getter)(obj);
+			return reinterpret_cast<Getter<T>>(getter)(obj);
 		} else {
 			return *reinterpret_cast<const T*>(getValuePtr(obj));
 		}
@@ -105,7 +105,7 @@ public:
 	const TypeInfo* fieldType	= nullptr;
 	intptr_t offset				= 0;
 	void* getter				= nullptr;
-	Settor setter				= nullptr;
+	Setter setter				= nullptr;
 };
 
 class TypeInfo {

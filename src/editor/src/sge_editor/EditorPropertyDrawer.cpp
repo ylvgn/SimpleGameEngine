@@ -7,7 +7,7 @@ void EditorPropertyDrawer_struct::draw(DrawRequest& parentreq) {
 	auto* ed = EditorContext::instance();
 	auto* type = parentreq.field->fieldType;
 
-	EditorUI::CollapsingHeader header(parentreq.field->name);
+	EditorUI::CollapsingHeader header(parentreq.field->name, ImGuiTreeNodeFlags_DefaultOpen);
 	EditorUI::PushID pushId(parentreq.field);
 
 	DrawRequest dr;
@@ -38,7 +38,7 @@ void EditorPropertyDrawer_float::draw(DrawRequest& req) {
 }
 
 void EditorPropertyDrawer_Vec3f::draw(DrawRequest& req) {
-	EditorUI::CollapsingHeader header(req.field->name);
+	EditorUI::CollapsingHeader header(req.field->name, ImGuiTreeNodeFlags_DefaultOpen);
 	EditorUI::PushID pushId(req.field);
 
 	auto value = req.getFirstObjectValue<Vec3f>();
@@ -78,68 +78,51 @@ void EditorPropertyDrawer_Vec3f::draw(DrawRequest& req) {
 }
 
 void EditorPropertyDrawer_Quat4f::draw(DrawRequest& req) {
-#if 1
-	EditorUI::CollapsingHeader header(req.field->name);
+	EditorUI::CollapsingHeader header(req.field->name, ImGuiTreeNodeFlags_DefaultOpen);
 	EditorUI::PushID pushId(req.field);
 
-	auto value = req.getFirstObjectValue<Quat4f>();
+	auto srcQuat = req.getFirstObjectValue<Quat4f>();
+	auto value = srcQuat.euler();
 
 	bool isMixedX = false;
 	bool isMixedY = false;
 	bool isMixedZ = false;
-	bool isMixedW = false;
 
 	if (req.objects.size() > 1) {
 		for (auto& obj : req.objects) {
-			const auto& tmp = req.field->getValue<Quat4f>(obj);
+			const auto& tmp = req.field->getValue<Quat4f>(obj).euler();
 			if (tmp.x != value.x) isMixedX = true;
 			if (tmp.y != value.y) isMixedY = true;
 			if (tmp.z != value.z) isMixedZ = true;
-			if (tmp.w != value.w) isMixedW = true;
 		}
-}
+	}
 
 	struct Helper {
 		static bool drawField(const char* name, float& newV, bool& isMixed) {
 			auto mv = makeScopedValue(&EditorUI::showMixedValue, isMixed);
-			return EditorUI::DragFloat(name, &newV);
+			auto tmpValue = Math::degrees(newV);
+			if (EditorUI::DragFloat(name, &tmpValue)) {
+				newV = Math::radians(tmpValue);
+				return true;
+			}
+			return false;
 		}
 	};
 
-	Quat4f newV(value);
+	auto newV(value);
 
 	bool updatedX = Helper::drawField("x", newV.x, isMixedX);
 	bool updatedY = Helper::drawField("y", newV.y, isMixedY);
 	bool updatedZ = Helper::drawField("z", newV.z, isMixedZ);
-	bool updatedW = Helper::drawField("w", newV.w, isMixedZ);
-	if (!(updatedX || updatedY || updatedZ || updatedW)) return;
+	if (!(updatedX || updatedY || updatedZ)) return;
 
-	auto delta = newV - value;
+	auto deltaValue = newV - value;
 	for (auto& obj : req.objects) {
 		auto v = req.field->getValue<Quat4f>(obj);
-		req.field->setValue<Quat4f>(obj, v + delta);
+		auto v3 = v.euler();
+		v.setEuler(v3 + deltaValue); // gimbal lock problem and floating point problem ..
+		req.field->setValue<Quat4f>(obj, v);
 	}
-
-#else
-	bool isMixed = req.isMixedValue<Quat4f>();
-	auto mv = makeScopedValue(&EditorUI::showMixedValue, isMixed);
-
-	auto oldQuat = req.getFirstObjectValue<Quat4f>();
-	auto oldV = oldQuat.euler();
-	float newV[3] = { Math::degrees(oldV.x), Math::degrees(oldV.y), Math::degrees(oldV.z) };
-
-	if (!EditorUI::DragFloat3(req.field->name, newV)) return;
-
-	if (isMixed) return;
-
-	Quat4f newQuat = Quat4f::s_euler({ Math::radians(newV[0]), Math::radians(newV[1]), Math::radians(newV[2]) });
-	Quat4f delta { newQuat.x - oldQuat.x, newQuat.y - oldQuat.y, newQuat.z - oldQuat.z, newQuat.w - oldQuat.w };
-	for (auto& obj : req.objects) {
-		Quat4f v = req.field->getValue<Quat4f>(obj);
-		Quat4f nv = v + delta;
-		req.field->setValue<Quat4f>(obj, nv);
-	}
-#endif
 }
 
 }

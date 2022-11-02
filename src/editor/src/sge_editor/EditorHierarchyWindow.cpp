@@ -19,8 +19,8 @@ void EditorHierarchyWindow::drawEntity(DrawRequest dr, CTransform* tran) {
 	if (EditorUI::IsItemClicked()) {
 		if (ImGui::GetIO().KeyCtrl) {
 			dr.sel.add(entity->id());
-		} else if (!dr.sel.has(entity->id())) {
-			dr.sel.select(entity->id());
+		} else {
+			dr.sel.select(entity->id()); // but it can not multi drag drop..
 		}
 	}
 

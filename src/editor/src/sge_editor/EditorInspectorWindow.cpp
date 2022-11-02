@@ -43,10 +43,11 @@ void EditorInspectorWindow::_addTempList(Component* c) {
 
 void EditorInspectorWindow::drawComponent(RenderRequest& req, ObjectList& list) {
 	if (list.size() <= 0) return;
+
 	auto* ed = EditorContext::instance();
 	const auto* type = list[0]->getType();
 
-	EditorUI::CollapsingHeader header(type->name);
+	EditorUI::CollapsingHeader header(type->name, ImGuiTreeNodeFlags_DefaultOpen);
 
 	EditorPropertyDrawRequest dr;
 	dr.objectType = type;

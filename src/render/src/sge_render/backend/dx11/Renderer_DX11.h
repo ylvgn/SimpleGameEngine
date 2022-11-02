@@ -41,8 +41,6 @@ protected:
 	ComPtr<DX11_ID3DDevice>			_d3dDevice;
 	ComPtr<DX11_ID3DDeviceContext>	_d3dDeviceContext;
 	ComPtr<DX11_ID3DDebug>			_d3dDebug;
-
-
 }; // Renderer_DX11
 
 } // namespace
