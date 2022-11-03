@@ -60,19 +60,19 @@ template<class T> inline const TypeInfo* TypeOf(const T& v) { return TypeOf<T>()
 
 class FieldInfo {
 public:
-	template<class T> using Getter = const T& (*)(const void*);
-	using Setter = void (*)(void*, const void*);
+	using Getter = const void* (*)(const void* obj);
+	using Setter = void (*)(void* obj, const void* value);
 
 	template<class OBJ, class FIELD>
 	FieldInfo(	const char* name_,
-				FIELD OBJ::* ptr,
-				Getter<FIELD> getter_ = nullptr,
-				Setter setter_ = nullptr)
+				FIELD OBJ::* ptr_,
+				const FIELD& (*getter_)(const OBJ& obj) = nullptr,
+				void (*setter_)(OBJ& obj, const FIELD& field) = nullptr)
 		: name(name_)
 		, fieldType(TypeOf<FIELD>())
-		, offset(memberOffset(ptr))
-		, getter(getter_)
-		, setter(setter_)
+		, offset(memberOffset(ptr_))
+		, getter(reinterpret_cast<Getter>(getter_))
+		, setter(reinterpret_cast<Setter>(setter_))
 	{
 	}
 
@@ -83,7 +83,7 @@ public:
 	const T& getValue(const void* obj) const {
 		SGE_ASSERT(TypeOf<T>() == fieldType);
 		if (getter) {
-			return reinterpret_cast<Getter<T>>(getter)(obj);
+			return *reinterpret_cast<const T*>(getter(obj));
 		} else {
 			return *reinterpret_cast<const T*>(getValuePtr(obj));
 		}
@@ -104,7 +104,7 @@ public:
 	const char* name			= "";
 	const TypeInfo* fieldType	= nullptr;
 	intptr_t offset				= 0;
-	void* getter				= nullptr;
+	Getter getter				= nullptr;
 	Setter setter				= nullptr;
 };
 

@@ -5,47 +5,21 @@
 namespace sge {
 
 const TypeInfo* CTransform::s_getType() {
-	using This = CTransform;
 	class Ti : public CTransform::TI_Base {
 	public:
-		static const Vec3f& getLocalPos(const void* obj) {
-			const auto* c = reinterpret_cast<const CTransform*>(obj);
-			return c->localPos();
-		}
+		static void setLocalPos		(This& obj, const Vec3f&  v) { obj.setLocalPos(v); }
+		static void setLocalRotate	(This& obj, const Quat4f& v) { obj.setLocalRotate(v); }
+		static void setLocalScale	(This& obj, const Vec3f&  v) { obj.setLocalScale(v); }
 
-		static void setLocalPos(void* obj, const void* value) {
-			auto* c = reinterpret_cast<CTransform*>(obj);
-			auto& v = *reinterpret_cast<const Vec3f*>(value);
-			c->setLocalPos(v);
-		}
-
-		static const Quat4f& getLocalRotate(const void* obj) {
-			const auto* c = reinterpret_cast<const CTransform*>(obj);
-			return c->localRotate();
-		}
-
-		static void setLocalRotate(void* obj, const void* value) {
-			auto* c = reinterpret_cast<CTransform*>(obj);
-			auto& v = *reinterpret_cast<const Quat4f*>(value);
-			c->setLocalRotate(v);
-		}
-
-		static const Vec3f& getLocalScale(const void* obj) {
-			const auto* c = reinterpret_cast<const CTransform*>(obj);
-			return c->localScale();
-		}
-
-		static void setLocalScale(void* obj, const void* value) {
-			auto* c = reinterpret_cast<CTransform*>(obj);
-			auto& v = *reinterpret_cast<const Vec3f*>(value);
-			c->setLocalScale(v);
-		}
+		static const Vec3f&		getLocalPos		(const This& obj) { return obj.localPos(); }
+		static const Quat4f&	getLocalRotate	(const This& obj) { return obj.localRotate(); }
+		static const Vec3f&		getLocalScale	(const This& obj) { return obj.localScale(); }
 
 		Ti() {
 			static FieldInfo fi[] = {
-				FieldInfo("position", &This::_localPos,		&getLocalPos,		&setLocalPos),
-				FieldInfo("rotate",   &This::_localRotate,	&getLocalRotate,	&setLocalRotate),
-				FieldInfo("scale",    &This::_localScale,	&getLocalScale,		&setLocalScale),
+				{"position", &This::_localPos,		getLocalPos,	&setLocalPos},
+				{"rotate",   &This::_localRotate,	getLocalRotate,	&setLocalRotate},
+				{"scale",    &This::_localScale,	getLocalScale,	&setLocalScale},
 			};
 			setFields(fi);
 		}
