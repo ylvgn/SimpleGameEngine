@@ -15,19 +15,23 @@ namespace sge {
 	template Vec3_Basic<double>;
 #endif
 
+template<> const TypeInfo* TypeOf<Vec3f>() {
+	using This = Vec3f;
+	using TI_Base = TypeInfoInitNoBase<This>;
 
-#define Vec3f_FieldInfo_LIST() \
-	SGE_FIELD_INFO(x), \
-	SGE_FIELD_INFO(y), \
-	SGE_FIELD_INFO(z), \
-// ------------
-SGE_STRUCT_TYPE_IMPL(Vec3f)
-
-#define Vec3d_FieldInfo_LIST() \
-	SGE_FIELD_INFO(x), \
-	SGE_FIELD_INFO(y), \
-	SGE_FIELD_INFO(z), \
-// ------------
-SGE_STRUCT_TYPE_IMPL(Vec3d)
+	class TI : public TI_Base {
+	public:
+		TI() : TI_Base("Vec3f") {
+			static FieldInfo fi[] = {
+				FieldInfo("x", &This::x),
+				FieldInfo("y", &This::y),
+				FieldInfo("z", &This::z),
+			};
+			setFields(fi);
+		}
+	};
+	static TI ti;
+	return &ti;
+}
 
 }

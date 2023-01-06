@@ -32,17 +32,12 @@ void RenderContext::drawUI(RenderRequest& req) {
 	_imgui.onDrawUI(req);
 }
 
-void RenderContext::onUIMouseEvent(UIMouseEvent& ev) {
-	_imgui.onUIMouseEvent(ev);
+bool RenderContext::onUIMouseEvent(UIMouseEvent& ev) {
+	return _imgui.onUIMouseEvent(ev);
 }
 
 void RenderContext::onUIMouseCursor(UIMouseEvent& ev) {
 	_imgui.onUIMouseCursor(ev);
 }
-
-const bool RenderContext::wantCaptureMouse() {
-	return _imgui.wantCaptureMouse();
-}
-
 
 } // namespace

@@ -16,11 +16,9 @@ public:
 	void onEndRender(RenderContext* renderContext);
 	void onDrawUI(RenderRequest& req);
 
-	void onUIMouseEvent(UIMouseEvent& ev);
+	bool onUIMouseEvent(UIMouseEvent& ev);
 	void onUIMouseCursor(UIMouseEvent& ev);
 	void onUIKeyboardEvent(UIKeyboardEvent& ev);
-
-	const bool wantCaptureMouse() const;
 
 private:
 	SPtr<Material>			_material;

@@ -22,7 +22,7 @@ Shader {
 		BlendRGB 	Add One OneMinusSrcAlpha
 		BlendAlpha	Add One OneMinusSrcAlpha
 		
-		Wireframe	true // debug camera culling
+//		Wireframe	true // debug camera culling
 		
 		VsFunc		vs_main
 		PsFunc		ps_main

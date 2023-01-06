@@ -1,6 +1,6 @@
 #pragma once
-#include "../command/RenderCommand.h"
-#include "../shader/Material.h"
+
+#include "RenderMesh.h"
 #include "../command/RenderRequest.h"
 
 namespace sge {

@@ -215,7 +215,7 @@ void ImGui_SGE::onDrawUI(RenderRequest& req) {
 	}
 }
 
-void ImGui_SGE::onUIMouseEvent(UIMouseEvent& ev) {
+bool ImGui_SGE::onUIMouseEvent(UIMouseEvent& ev) {
 	ImGuiIO& io = ImGui::GetIO();
 	
 	using Type = UIMouseEventType;
@@ -236,10 +236,6 @@ void ImGui_SGE::onUIMouseEvent(UIMouseEvent& ev) {
 			io.AddMouseWheelEvent(ev.scroll.x, ev.scroll.y);
 		} break;
 	}
-}
-
-const bool ImGui_SGE::wantCaptureMouse() const {
-	auto io = ImGui::GetIO();
 	return io.WantCaptureMouse;
 }
 
