@@ -5,7 +5,7 @@
 namespace sge {
 
 const TypeInfo* CTransform::s_getType() {
-	class Ti : public CTransform::TI_Base {
+	class TI : public TI_Base {
 	public:
 		static void setLocalPos		(This& obj, const Vec3f&  v) { obj.setLocalPos(v); }
 		static void setLocalRotate	(This& obj, const Quat4f& v) { obj.setLocalRotate(v); }
@@ -15,7 +15,7 @@ const TypeInfo* CTransform::s_getType() {
 		static const Quat4f&	getLocalRotate	(const This& obj) { return obj.localRotate(); }
 		static const Vec3f&		getLocalScale	(const This& obj) { return obj.localScale(); }
 
-		Ti() {
+		TI() {
 			static FieldInfo fi[] = {
 				{"position", &This::_localPos,		getLocalPos,	&setLocalPos},
 				{"rotate",   &This::_localRotate,	getLocalRotate,	&setLocalRotate},
@@ -24,8 +24,33 @@ const TypeInfo* CTransform::s_getType() {
 			setFields(fi);
 		}
 	};
-	static Ti ti;
+	static TI ti;
 	return &ti;
+}
+
+CTransform::CTransform() {
+	_isRoot = false;
+}
+
+void CTransform::addChild(CTransform* c) {
+	if (c->_parent) {
+		c->_parent->removeChild(c);
+	}
+
+	c->_parent = _isRoot ? nullptr : this;
+	c->_setWorldMatrixDirty();
+	_children.emplace_back(c);
+}
+
+void CTransform::removeChild(CTransform* c) {
+	for (auto* it = _children.begin(); it != _children.end(); it++) {
+		if (*it == c) {
+			_children.erase(it); // shoule be ordered
+			c->_parent = nullptr;
+			c->_setWorldMatrixDirty();
+			return;
+		}
+	}
 }
 
 const Mat4f& CTransform::localMatrix() {
@@ -44,6 +69,14 @@ const Mat4f& CTransform::worldMatrix() {
 	return _worldMatrix;
 }
 
+const Mat4f& CTransform::worldInvMatrix() {
+	if (_dirty.worldInvMatrix) {
+		_dirty.worldInvMatrix = false;
+		_computeWorldInvMatrix();
+	}
+	return _worldInvMatrix;
+}
+
 void CTransform::_setLocalMatrixDirty() {
 	if (_dirty.localMatrix) return;
 	_dirty.localMatrix = true;
@@ -53,6 +86,7 @@ void CTransform::_setLocalMatrixDirty() {
 void CTransform::_setWorldMatrixDirty() {
 	if (_dirty.worldMatrix) return;
 	_dirty.worldMatrix = true;
+	_dirty.worldInvMatrix = true;
 
 	for (auto& c : children()) {
 		if (!c) continue;
@@ -72,41 +106,48 @@ void CTransform::_computeWorldMatrix() {
 	}
 }
 
-void CTransform::setParent(CTransform* parent) {
-	if (parent == this) return;
-	if (_parent == parent) return;
-
-	if (_parent) {
-		_parent->removeChild(this);
-	}
-
-	_parent = parent;
-	if (!parent) return;
-
-	parent->addChild(this);
-	setLocalPos(_localPos - _parent->localPos());
-	setLocalRotate(_localRotate - _parent->localRotate());
-	setLocalScale(_localScale / _parent->localScale());
+void CTransform::_computeWorldInvMatrix() {
+	_worldInvMatrix = worldMatrix().inverse();
 }
 
-void CTransform::addChild(CTransform* c) {
-	for (auto* it = _children.begin(); it != _children.end(); it++) {
-		if (*it == c) {
-			return;
-		}
+void CTransform::setWorldPos(const Vec3f& pos) {
+	if (!_parent) {
+		setLocalPos(pos);
+	} else {
+		setLocalPos(_parent->worldInvMatrix().mulPoint4x3(pos));
 	}
-
-	_children.emplace_back(c);
-	c->_parent = this;
 }
 
-void CTransform::removeChild(CTransform* c) {
-	for (auto* it = _children.begin(); it != _children.end(); it++) {
-		if (*it == c) {
-			_children.erase(it); // shoule be ordered
-			return;
-		}
+void CTransform::setWorldRotate(const Quat4f& q) {
+	if (!_parent) {
+		setLocalRotate(q);
+	} else {
+		setLocalRotate(_parent->worldRotate().inverse() * q);
 	}
+}
+
+void CTransform::setWorldScale(const Vec3f& scale) {
+	if (!_parent) {
+		setLocalScale(scale);
+	} else {
+		setLocalScale(_parent->worldInvMatrix().mulPoint4x3(scale));
+	}
+}
+
+Vec3f CTransform::worldPos() {
+	return worldMatrix().col(3).toVec3();
+}
+
+Quat4f CTransform::worldRotate() {
+	if (!_parent) {
+		return _localRotate;
+	} else {
+		return _parent->worldRotate() * _localRotate;
+	}
+}
+
+Vec3f CTransform::worldScale() {
+	return worldMatrix().mulPoint4x3(_localScale);
 }
 
 } // namespace

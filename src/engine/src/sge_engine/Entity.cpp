@@ -1,17 +1,14 @@
 #include "Entity.h"
 
-#include "components/CTransform.h"
-
 namespace sge {
 
 const TypeInfo* Entity::s_getType() {
-	class Ti : public Entity::TI_Base {
+	class TI : public TI_Base {
 	public:
-		Ti() {
-
+		TI() {
 		}
 	};
-	static Ti ti;
+	static TI ti;
 	return &ti;
 }
 

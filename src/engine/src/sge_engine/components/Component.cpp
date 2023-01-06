@@ -3,12 +3,12 @@
 namespace sge {
 
 const TypeInfo* Component::s_getType() {
-	class Ti : public Component::TI_Base {
+	class TI : public TI_Base {
 	public:
-		Ti() {
+		TI() {
 		}
 	};
-	static Ti ti;
+	static TI ti;
 	return &ti;
 }
 

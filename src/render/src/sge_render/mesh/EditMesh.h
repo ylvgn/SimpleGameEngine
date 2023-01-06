@@ -20,6 +20,7 @@ public:
 	Vector<Tuple3f>	binormal;
 
 	void clear();
+	void addColors(const Color4b& color);
 	void onFormat(fmt::format_context& ctx) const;
 
 }; // EditMesh

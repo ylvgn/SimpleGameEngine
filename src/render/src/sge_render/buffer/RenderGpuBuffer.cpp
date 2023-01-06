@@ -1,10 +1,10 @@
 #include "RenderGpuBuffer.h"
 
 namespace sge {
-RenderGpuBuffer::RenderGpuBuffer(CreateDesc& desc)
-	: _desc(desc)
-{
 
+void RenderGpuBuffer::create(CreateDesc& desc) {
+	_desc = desc;
+	onCreate(desc);
 }
 
 void RenderGpuBuffer::uploadToGpu(ByteSpan data, size_t offset)

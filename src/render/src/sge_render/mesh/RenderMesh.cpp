@@ -7,16 +7,6 @@
 
 namespace sge {
 
-template<> const TypeInfo* TypeOf<RenderMesh>() {
-	class TI : public TypeInfoInitNoBase<RenderMesh> {
-	public:
-		TI() : TypeInfoInitNoBase<RenderMesh>("RenderMesh", TypeInfo::Style::Object) {
-		}
-	};
-	static TI ti;
-	return &ti;
-}
-
 struct RenderMesh_InternalHelper {
 
 static bool hasAttr(size_t arraySize, size_t vertexCount) {
@@ -141,7 +131,20 @@ void RenderSubMesh::create(const EditMesh& src) {
 		}
 
 		switch (e.semantic) {
-		case S::POSITION:	Helper::copyVertexData(pData, vc, e, stride, src.pos.data()); break;
+		case S::POSITION: {
+//			Helper::copyVertexData(pData, vc, e, stride, src.pos.data());
+			const Tuple3f* srcData = src.pos.data();
+
+			u8* dstData = pData + e.offset;
+			for (size_t i = 0; i < vc; i++) {
+				*reinterpret_cast<Tuple3f*>(dstData) = *srcData;
+
+				_boundingBox.encapsulate(*srcData);
+
+				srcData++;
+				dstData += stride;
+			}
+		} break;
 		case S::COLOR0:		Helper::copyVertexData(pData, vc, e, stride, src.color.data()); break;
 		case S::NORMAL:		Helper::copyVertexData(pData, vc, e, stride, src.normal.data()); break;
 		case S::TANGENT:	Helper::copyVertexData(pData, vc, e, stride, src.tangent.data()); break;

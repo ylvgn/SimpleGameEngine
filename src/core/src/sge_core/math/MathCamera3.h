@@ -2,6 +2,7 @@
 
 #include "Quat4.h"
 #include "Ray3.h"
+#include "Frustum3.h"
 
 namespace sge {
 namespace Math {
@@ -15,6 +16,7 @@ struct Camera3 {
 	using Quat4 = Quat4<T>;
 	using Rect2 = Rect2<T>;
 	using Ray3	= Ray3<T>;
+	using Frustum3 = Frustum3<T>;
 
 	void pan	(T x, T y);
 	void orbit	(T x, T y);
@@ -31,20 +33,16 @@ struct Camera3 {
 	void setAim(const Vec3& aim)	{ _aim = aim; }
 	void setUp (const Vec3& up)		{ _up  = up;  }
 
+	void setFov(const T& fov)		{ _fov = fov; }
+
 	const Vec3& pos() const { return _pos; }
 	const Vec3& aim() const { return _aim; }
 	const Vec3& up () const { return _up;  }
+	const T&	fov() const { return _fov; }
 
 	void setViewport(const Rect2& v) { _viewport = v; }
 	const Rect2& viewport() const { return _viewport; }
 
-	void setFov(const T& fov)			{ _fov = fov; }
-	void setNearClip(const T& nearClip) { _nearClip = nearClip; }
-	void setFarClip(const T& farClip)	{ _farClip = farClip; }
-
-	const T& fov()		const { return _fov; }
-	const T& nearClip() const { return _nearClip; }
-	const T& farClip()	const { return _farClip; }
 
 	Ray3	getRay(const Vec2& screenPos) const;
 
@@ -52,10 +50,12 @@ struct Camera3 {
 	Mat4	projMatrix() const;
 	Mat4	viewProjMatrix() const { return projMatrix() * viewMatrix(); }
 
-private:
-	T _fov		= T(50.0);
+	Frustum3 frustum() const { Frustum3 o; o.setByViewProjMatrix(viewProjMatrix()); return o; };
+
+private:	
+	T _fov = T(50.0);
 	T _nearClip = T(0.1);
-	T _farClip	= T(10000.0);
+	T _farClip = T(10000.0);
 	Rect2 _viewport;
 	Vec3 _pos {150, 150, 200};
 	Vec3 _aim {0,0,0};

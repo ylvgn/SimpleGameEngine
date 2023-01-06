@@ -17,9 +17,8 @@ public:
 		}
 
 #if 1
-		_camera.setPos(0, 10, 30);
+		_camera.setPos(0, 10, 10);
 		//_camera.setPos(0, 1200, 10);	// debug terrain
-		_camera.setFarClip(100);		// debug camera culling
 		_camera.setAim(0, 0, 0);
 #else
 		// just for test 5x5 terrain 
@@ -61,14 +60,19 @@ public:
 			_testTexture = renderer->createTexture2D(texDesc);
 		}
 
-		{ // material
-			auto shader = renderer->createShader("Assets/Shaders/test.shader");
-			_material = renderer->createMaterial();
-			_material->setShader(shader);
-			_material->setParam("mainTex", _testTexture);
+		{ // line material
+			auto lineShader = renderer->createShader("Assets/Shaders/line.shader");
+			_lineMaterial = renderer->createMaterial();
+			_lineMaterial->setShader(lineShader);
 		}
 
-		{ // mesh
+		{ // material
+			_shader = renderer->createShader("Assets/Shaders/test.shader");
+
+			_material = renderer->createMaterial();
+			_material->setShader(_shader);
+			_material->setParam("mainTex", _testTexture);
+
 			EditMesh editMesh;
 #if 1
 			WavefrontObjLoader::readFile(editMesh, "Assets/Mesh/test.obj");
@@ -117,60 +121,47 @@ public:
 		}
 
 		{ // ECS
-			// cube mesh
-			EditMesh cubeEditMesh;
-			for (int a = 0; a < 2; a++)
-				for (int b = 0; b < 2; b++)
-					for (int c = 0; c < 2; c++) {
-						cubeEditMesh.pos.emplace_back(a? a : -1, b? b : -1, c? c : -1); // pos
-						cubeEditMesh.color.emplace_back(255, 0, 0, 255);				// color
-						cubeEditMesh.normal.emplace_back(0, 0, 0);						// normal
-					}
+			EditMesh editMesh;
+			WavefrontObjLoader::readFile(editMesh, "Assets/Mesh/box.obj");
+			editMesh.addColors(Color4b(255, 255, 255, 255));
 
-			// indexes
-			Vector<u32> cubeIndexes = {
-				2,0,1, 2,1,3,
-				0,6,4, 0,2,6,
-				3,7,2, 7,6,2,
-				1,7,3, 1,5,7,
-				4,6,7, 4,7,5,
-				4,1,0, 4,5,1,
-			};
-			cubeEditMesh.indices = std::move(cubeIndexes);
+			_meshAsset = new MeshAsset();
+			_meshAsset->mesh.create(editMesh);
 
-			// uv
-			cubeEditMesh.uv[0].emplace_back(0, 0);
-			cubeEditMesh.uv[0].emplace_back(0, 1);
-			cubeEditMesh.uv[0].emplace_back(1, 0);
-			cubeEditMesh.uv[0].emplace_back(1, 1);
-			cubeEditMesh.uv[0].emplace_back(1, 1);
-			cubeEditMesh.uv[0].emplace_back(1, 0);
-			cubeEditMesh.uv[0].emplace_back(0, 1);
-			cubeEditMesh.uv[0].emplace_back(0, 0);
+			Vector<Entity*> entities;
 
-			auto test_shader = Renderer::instance()->createShader("Assets/Shaders/test.shader");
+			for (int i = 0; i < 25; i++) {
+				auto* e = _scene.addEntity("Entity");
+				auto* t = e->transform();
 
-			for (int i = 0; i < 10; i++) {
-				TempString s;
-				FmtTo(s, "Object {}", i);
-				auto* e = _scene.addEntity(s);
-
-				{ // CTransform
-					auto* t = e->transform();
-					t->setLocalPos(static_cast<float>(i * 5), -2, 0);
-					t->setLocalRotate(Quat4f(i * 0.02f, 0, 0, 0));
-				}
+				entities.emplace_back(e);
 
 				{ // CMeshRenderer
-					auto* meshRender = e->addComponent<CMeshRenderer>();
-					auto mat = Renderer::instance()->createMaterial();
-					mat->setShader(test_shader);
-					meshRender->setMesh(cubeEditMesh);
-					meshRender->setMaterial(mat);
+					auto* mr = e->addComponent<CMeshRenderer>();
+					mr->mesh = _meshAsset;
+					auto mtl = renderer->createMaterial();
+					mtl->setShader(_shader);
+					mtl->setParam("test_color", Color4f(1, 1, 1, 1));
+					mtl->setParam("mainTex", _testTexture);
+					mr->material = mtl;
+				}
+
+				{ // CTransform
+					const int col = 5;
+					int x = i % col;
+					int z = i / col;
+
+					if (x == 0) {
+						t->setLocalPos(0, 4, static_cast<float>(z));
+					} else {
+						auto* parent = entities[z * col]->transform();
+						parent->addChild(t);
+						t->setLocalPos(static_cast<float>(x), 0, 0);
+					}
 				}
 			}
 
-			editor->entitySelection.add(EntityId(2));
+//			editor->entitySelection.add(EntityId(2));
 			editor->entitySelection.add(EntityId(3));
 		}
 	}
@@ -180,8 +171,8 @@ public:
 	}
 
 	virtual void onUIMouseEvent(UIMouseEvent& ev) override {
-		_renderContext->onUIMouseEvent(ev);
-		if (_renderContext->wantCaptureMouse()) return;  //tmp
+		if (_renderContext->onUIMouseEvent(ev))
+			return;
 
 		if (ev.isDragging()) {
 			using Button = UIMouseEventButton;
@@ -222,12 +213,19 @@ public:
 		_renderContext->setFrameBufferSize(clientRect().size);
 		_renderContext->beginRender();
 
-		_renderRequest.reset(_renderContext);
-		_renderRequest.matrix_model = Mat4f::s_identity();
-		_renderRequest.matrix_view = _camera.viewMatrix();
-		_renderRequest.matrix_proj = _camera.projMatrix();
-		_renderRequest.matrix_vp = _camera.projMatrix() * _camera.viewMatrix();
-		_renderRequest.camera_pos = _camera.pos();
+		_renderRequest.reset(_renderContext, _camera);
+
+		{// debug culling
+			auto fov = _camera.fov();
+			_camera.setFov(fov / 2);
+			_renderRequest.cameraFrustum = _camera.frustum();
+			_camera.setFov(fov);
+		}
+
+		_renderRequest.debug.drawBoundingBox = true;
+
+		_renderRequest.lineMaterial = _lineMaterial;
+//		_renderRequest.matrix_model = Mat4f::s_identity();
 
 		_renderRequest.clearFrameBuffers()->setColor({ 0, 0, 0.2f, 1 });
 
@@ -239,12 +237,14 @@ public:
 		_material->setParam("test_color", Color4f(s, s, s, 1));
 //-----
 
-		//_renderRequest.drawMesh(SGE_LOC, _renderMesh, _material);
+		_renderRequest.drawFrustum(_renderRequest.cameraFrustum, Color4b(100, 255, 100, 255));
+
+		_renderRequest.drawMesh(SGE_LOC, _renderMesh, _material);
 		//_terrain.render(_renderRequest);
 
-		//ImGui::ShowDemoWindow(nullptr);
+		ImGui::ShowDemoWindow(nullptr);
 
-		EngineContext::rendererSystem()->render(_renderRequest, _camera);
+		CRendererSystem::instance()->render(_renderRequest);
 
 		_hierarchyWindow.draw(_scene, _renderRequest);
 		_inspectorWindow.draw(_scene, _renderRequest);
@@ -252,29 +252,34 @@ public:
 
 		_renderContext->drawUI(_renderRequest);
 		_renderRequest.swapBuffers();
-		_renderContext->commit(_renderRequest.commandBuffer);
+		_renderRequest.commit();
 
 		_renderContext->endRender();
 		drawNeeded();
 	}
 
-	RenderTerrain _terrain;
+	SPtr<Shader>		_shader;
 
-	SPtr<Material> _material;
-	SPtr<Texture2D> _testTexture;
+	SPtr<Material>		_lineMaterial;
+
+	SPtr<Material>		_material;
+	SPtr<Texture2D>		_testTexture;
 
 	SPtr<RenderContext>	_renderContext;
-	RenderMesh _renderMesh;
+	RenderMesh			_renderMesh;
 
-	Math::Camera3f	_camera;
+	SPtr<MeshAsset>		_meshAsset;
 
-	RenderRequest	_renderRequest;
+	RenderTerrain		_terrain;
 
-	Scene			_scene;
+	Math::Camera3f		_camera;
+	Scene				_scene;
 
-	EditorHierarchyWindow	_hierarchyWindow;
-	EditorInspectorWindow	_inspectorWindow;
-	EditorStatisticsWindow	_statisticsWindow;
+	RenderRequest		_renderRequest;
+
+	EditorHierarchyWindow		_hierarchyWindow;
+	EditorInspectorWindow		_inspectorWindow;
+	EditorStatisticsWindow		_statisticsWindow;
 };
 
 class EditorApp : public NativeUIApp {

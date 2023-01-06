@@ -7,6 +7,7 @@ namespace sge {
 class CTransform : public Component {
 	SGE_OBJECT_TYPE(CTransform, Component)
 public:
+	CTransform();
 
 	void setLocalPos	(float x, float y, float z) { setLocalPos(Vec3f(x,y,z)); }
 	void setLocalPos	(const Vec3f&  v) { _localPos = v;		_setLocalMatrixDirty(); }
@@ -18,9 +19,9 @@ public:
 	const Quat4f&	localRotate() const	{ return _localRotate; }
 	const Vec3f&	localScale() const	{ return _localScale; }
 
-	void setParent(CTransform* c);
 	void addChild(CTransform* c);
 	void removeChild(CTransform* c);
+	void setParent(CTransform* c) { c->addChild(this); };
 
 	Span<CTransform*> children()	{ return _children; }
 	CTransform*	getChild(size_t i)	{ return (i >= 0 && i < _children.size()) ? _children[i] : nullptr; }
@@ -28,20 +29,23 @@ public:
 
 	const Mat4f& localMatrix();
 	const Mat4f& worldMatrix();
+	const Mat4f& worldInvMatrix();
 
-	void setWorldPos(const Vec3f& pos) {
-		if (!_parent) {
-			setLocalPos(pos);
-		} else {
-			setLocalPos(worldMatrix().inverse().mulPoint4x3(pos));
-		}
-	}
-	const Vec3f worldPos() { return worldMatrix().col(3).toVec3(); }
+	void setWorldPos(const Vec3f& pos);
+	void setWorldRotate(const Quat4f& q);
+	void setWorldScale(const Vec3f& scale);
+
+	Vec3f worldPos();
+	Vec3f worldScale();
+	Quat4f worldRotate();
+
+	void _setIsRoot(bool b) { _isRoot = b; }
 
 private:
 
 	void _computeLocalMatrix();
 	void _computeWorldMatrix();
+	void _computeWorldInvMatrix();
 
 	void _setLocalMatrixDirty();
 	void _setWorldMatrixDirty();
@@ -54,10 +58,14 @@ private:
 		Dirty()
 			: localMatrix(true)
 			, worldMatrix(true)
+			, worldInvMatrix(true)
 		{}
-		bool	localMatrix : 1;
-		bool	worldMatrix : 1;
+		bool	localMatrix		: 1;
+		bool	worldMatrix		: 1;
+		bool	worldInvMatrix	: 1;
 	};
+
+	bool _isRoot : 1;
 
 	Dirty		_dirty;
 	CTransform*	_parent = nullptr;
@@ -65,6 +73,7 @@ private:
 
 	Mat4f	_localMatrix;
 	Mat4f	_worldMatrix;
+	Mat4f	_worldInvMatrix;
 };
 
 } // namespace

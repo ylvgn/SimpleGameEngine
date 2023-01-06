@@ -23,6 +23,7 @@ protected:
 		compile("Assets/Shaders/terrain.shader");
 		compile("Assets/Shaders/terrain_test.shader"); // just for test 5x5 terrain
 		compile("Assets/Shaders/imgui.shader");
+		compile("Assets/Shaders/line.shader");
 
 		SGE_LOG("---- end ----");
 	}

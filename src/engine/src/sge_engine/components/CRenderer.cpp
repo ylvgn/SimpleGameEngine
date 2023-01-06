@@ -1,27 +1,26 @@
 #include "CRenderer.h"
-#include <sge_engine/EngineContext.h>
+#include "CRendererSystem.h"
 
 namespace sge {
 
 const TypeInfo* CRenderer::s_getType() {
-	class Ti : public CRenderer::TI_Base {
+	class TI : public TI_Base {
 	public:
-		Ti() {
-
+		TI() {
 		}
 	};
-	static Ti ti;
+	static TI ti;
 	return &ti;
 }
 
 CRenderer::CRenderer() {
-	EngineContext::rendererSystem()->add(this);
+	auto* sys = CRendererSystem::instance();
+	sys->_internalAddComponent(this);
 }
 
 CRenderer::~CRenderer() {
-	if (EngineContext::rendererSystem()) { // tmp
-		EngineContext::rendererSystem()->remove(this);
-	}
+	auto* sys = CRendererSystem::instance();
+	sys->_internalRemoveComponent(this);
 }
 
 }

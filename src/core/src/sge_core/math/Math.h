@@ -34,6 +34,16 @@ namespace Math {
 	template < class T > constexpr bool	isInf	( const T& v )	{ return std::numeric_limits<T>::has_infinity && v == inf<T>(); }
 
 //--------
+	constexpr u64 nextPow2(u64 x) {
+		x -= 1;
+		x |= (x >> 1);
+		x |= (x >> 2);
+		x |= (x >> 4);
+		x |= (x >> 8);
+		x |= (x >> 16);
+		x |= (x >> 32);
+		return x + 1;
+	}
 
 	//Splits a floating-point value into fractional and integer parts
 	SGE_INLINE float	modf	( float  v, float  *i ) { return std::modf( v, i ); }
@@ -106,6 +116,9 @@ namespace Math {
 
 	SGE_INLINE float  asin(float  rad)	{ return ::asinf(rad); }
 	SGE_INLINE double asin(double rad)	{ return ::asin (rad); }
+
+	SGE_INLINE float  acos(float  rad) { return ::acosf(rad); }
+	SGE_INLINE double acos(double rad) { return ::acos(rad); }
 
 #if SGE_OS_MACOSX
 	SGE_INLINE void sincos( float  rad, float  & out_sin, float  & out_cos ) { ::__sincosf(rad, &out_sin, &out_cos); }

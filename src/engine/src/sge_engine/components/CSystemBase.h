@@ -2,7 +2,7 @@
 
 namespace sge {
 
-class CSystem : public NonCopyable {
+class CSystemBase : public NonCopyable {
 public:
 
 };

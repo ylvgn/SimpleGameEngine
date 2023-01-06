@@ -171,7 +171,7 @@ void RenderTerrain::Patch::setDisplayLevelByViewPos(const Vec3f& viewPos) {
 void RenderTerrain::render(RenderRequest& req) {
 #if !ENABLE_MY_TEST
 	for (auto& p : _patches) {
-		p.setDisplayLevelByViewPos(req.camera_pos);
+		p.setDisplayLevelByViewPos(req.cameraPos);
 	}
 #endif
 

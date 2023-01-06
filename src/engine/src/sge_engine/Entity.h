@@ -1,10 +1,11 @@
 #pragma once
 
+#include <sge_engine/components/Component.h>
+
 namespace sge {
 
-class Component;
-class CTransform;
 class Scene;
+class CTransform;
 
 enum class EntityId : u64 { None = 0 };
 SGE_FORMATTER_ENUM_AS_INT(EntityId)
@@ -20,14 +21,12 @@ public:
 	void		_internalInit(Scene* scene, EntityId id) { _scene = scene; _id = id; }
 
 	Scene*		scene() const { return _scene; }
-	EntityId	id() const	{ return _id; }
-
-	Span<SPtr<Component>> components()	{ return _components; }
+	EntityId	id() const { return _id; }
 
 	template<class C> inline
 	C* addComponent() {
 		auto* p = new C();
-		p->internal_setEntity(this);
+		p->_internalSetEntity(this);
 		_components.emplace_back(p);
 		return p;
 	}
@@ -78,6 +77,8 @@ public:
 			}
 		}
 	}
+
+	Span< SPtr<Component> > components() { return _components; }
 
 	CTransform* transform() { return _transform.ptr(); };
 

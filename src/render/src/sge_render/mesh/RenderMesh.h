@@ -26,6 +26,8 @@ public:
 	RenderPrimitiveType primitive() const;
 	const VertexLayout* vertexLayout() const;
 
+	const BBox3f& boundingBox() const { return _boundingBox; }
+
 friend class RenderMesh;
 protected:
 	RenderMesh* _mesh = nullptr;
@@ -38,6 +40,7 @@ protected:
 	size_t _vertexCount = 0;
 	size_t _indexCount = 0;
 
+	BBox3f _boundingBox;
 }; // RenderSubMesh
 
 class RenderMesh {
