@@ -1,4 +1,9 @@
 [SearchableFiles.ignore]
+*.exe
+*.pdb
+*.ilk
+*.sln
+*.user
 
 [SearchableFiles.include]
 /src/
