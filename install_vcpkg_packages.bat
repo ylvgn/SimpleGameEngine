@@ -11,7 +11,7 @@ externals\vcpkg\vcpkg install eastl:x64-windows --recurse
 externals\vcpkg\vcpkg install glew:x64-windows --recurse
 externals\vcpkg\vcpkg install nlohmann-json:x64-windows --recurse
 externals\vcpkg\vcpkg install libpng:x64-windows --recurse
-@REM externals\vcpkg\vcpkg install imgui[core,dx11-binding,win32-binding]:x64-windows --recurse
 externals\vcpkg\vcpkg install imgui:x64-windows --recurse
+externals\vcpkg\vcpkg install glad[gl-api-33]:x64-windows --recurse
 
 @pause

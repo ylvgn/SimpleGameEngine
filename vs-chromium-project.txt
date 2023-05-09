@@ -4,6 +4,12 @@
 *.ilk
 *.sln
 *.user
+*.filters
+*.vcxproj
+*.log
+*.recipe
+*.lib
+*.lastbuildstate
 
 [SearchableFiles.include]
 /src/
@@ -11,3 +17,14 @@
 /externals/vcpkg/buildtrees/imgui
 
 [SourceExplorer.ignore]
+*.exe
+*.pdb
+*.ilk
+*.sln
+*.user
+*.filters
+*.vcxproj
+*.log
+*.recipe
+*.lib
+*.lastbuildstate
