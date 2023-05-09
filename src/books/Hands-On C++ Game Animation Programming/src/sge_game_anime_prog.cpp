@@ -1,5 +1,6 @@
 #include <sge_core/native_ui/win32/Win32Util.h>
 
+// https://registry.khronos.org/OpenGL/api/GL/wglext.h
 #define WGL_CONTEXT_MAJOR_VERSION_ARB     0x2091
 #define WGL_CONTEXT_MINOR_VERSION_ARB     0x2092
 #define WGL_CONTEXT_FLAGS_ARB             0x2094
@@ -54,23 +55,9 @@ public:
 		wndclass.lpszClassName	= clsName;
 		RegisterClassEx(&wndclass);
 
-		//int screenWidth = GetSystemMetrics(SM_CXSCREEN);
-		//int screenHeight = GetSystemMetrics(SM_CYSCREEN);
-		//int clientWidth = desc.rect.size.x;
-		//int clientHeight = desc.rect.size.y;
-		//RECT windowRect;
-		//SetRect(&windowRect,
-		//	(screenWidth / 2) - (clientWidth / 2),
-		//	(screenHeight / 2) - (clientHeight / 2),
-		//	(screenWidth / 2) + (clientWidth / 2),
-		//	(screenHeight / 2) + (clientHeight / 2)
-		//);
-
 		DWORD dwStyle = (WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX); // WS_THICKFRAME to resize
-		//AdjustWindowRectEx(&windowRect, dwStyle, FALSE, 0);
 
 		_hwnd = CreateWindowEx(0, clsName, clsName, dwStyle,
-			//windowRect.left, windowRect.top, windowRect.right - windowRect.left, windowRect.bottom - windowRect.top,
 			static_cast<int>(desc.rect.x),
 			static_cast<int>(desc.rect.y),
 			static_cast<int>(desc.rect.w),
@@ -82,11 +69,12 @@ public:
 		}
 
 		ShowWindow(_hwnd, SW_SHOW);
-		UpdateWindow(_hwnd);
+		//UpdateWindow(_hwnd);
 	}
 
 	const HWND hwnd() { return _hwnd; }
 	const Rect2f& clientRect() const { return _clientRect; }
+	const HDC hdc() { return GetDC(_hwnd); }
 
 protected:
 	virtual void onClientRectChanged(const Rect2f& rc) { _clientRect = rc; }
@@ -124,51 +112,54 @@ public:
 			_mainWin.create(desc);
 		}
 
-		{ // opengl render context
+		{ // create opengl render context
 
-			HDC hdc = GetDC(_mainWin.hwnd());
-
+			HDC hdc = _mainWin.hdc();
 			PIXELFORMATDESCRIPTOR pfd;
-			memset(&pfd, 0, sizeof(PIXELFORMATDESCRIPTOR));
-			pfd.nSize = sizeof(PIXELFORMATDESCRIPTOR);
-			pfd.nVersion = 1;
-			pfd.dwFlags = PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW | PFD_DOUBLEBUFFER;
-			pfd.iPixelType = PFD_TYPE_RGBA;
-			pfd.cColorBits = 24;
-			pfd.cDepthBits = 32;
-			pfd.cStencilBits = 8;
-			pfd.iLayerType = PFD_MAIN_PLANE;
-			int pixelFormat = ChoosePixelFormat(hdc, &pfd);
+			pfd					= {}; // memset(&pfd, 0, sizeof(PIXELFORMATDESCRIPTOR));
+			pfd.nSize			= sizeof(PIXELFORMATDESCRIPTOR);
+			pfd.nVersion		= 1;
+			pfd.dwFlags			= PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW | PFD_DOUBLEBUFFER;
+			pfd.iPixelType		= PFD_TYPE_RGBA;
+			pfd.cColorBits		= 24;
+			pfd.cDepthBits		= 32;
+			pfd.cStencilBits	= 8;
+			pfd.iLayerType		= PFD_MAIN_PLANE;
+			int pixelFormat		= ChoosePixelFormat(hdc, &pfd);
 			SetPixelFormat(hdc, pixelFormat, &pfd);
 
+			// legacy render context
 			HGLRC tempRC = wglCreateContext(hdc);
 			wglMakeCurrent(hdc, tempRC);
+
+			// legacy render context just for get function pointer of 'wglCreateContextAttribsARB'
 			PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;
 			wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)wglGetProcAddress("wglCreateContextAttribsARB");
-
 			const int attribList[] = {
 				WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
 				WGL_CONTEXT_MINOR_VERSION_ARB, 3,
 				WGL_CONTEXT_FLAGS_ARB, 0,
-				WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+				WGL_CONTEXT_PROFILE_MASK_ARB,
+				WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
 				0,
 			};
 
+			// modern render context
 			HGLRC hglrc = wglCreateContextAttribsARB(hdc, 0, attribList);
 
 			wglMakeCurrent(NULL, NULL);
 			wglDeleteContext(tempRC);
 			wglMakeCurrent(hdc, hglrc);
 
+			// use 'glad' to load all opengl core function
 			if (!gladLoadGL()) {
-				SGE_LOG("Could not initialize GLAD\n");
-			}
-			else {
-				sge::TempString s;
-				FmtTo(s, "OpenGL Version: {}.{} loaded", GLVersion.major, GLVersion.minor);
-				SGE_LOG("{}", s);
+				throw SGE_ERROR("Could not initialize GLAD\n");
 			}
 
+			SGE_LOG("OpenGL Version: {}.{} loaded", GLVersion.major, GLVersion.minor);
+		}
+
+		{ // vsynch: https://www.khronos.org/opengl/wiki/Swap_Interval
 			PFNWGLGETEXTENSIONSSTRINGEXTPROC _wglGetExtensionsStringEXT = (PFNWGLGETEXTENSIONSSTRINGEXTPROC)wglGetProcAddress("wglGetExtensionsStringEXT");
 			bool swapControlSupported = strstr(_wglGetExtensionsStringEXT(), "WGL_EXT_swap_control") != 0;
 
@@ -201,8 +192,7 @@ public:
 
 protected:
 	void onRun() {
-		HWND hwnd = _mainWin.hwnd();
-		HDC hdc = GetDC(hwnd);
+		HDC hdc = _mainWin.hdc();
 
 		_lastTick = GetTickCount();
 		while (GetMessage(&_win32_msg, NULL, 0, 0)) {
@@ -266,22 +256,21 @@ LRESULT CALLBACK MyGameAnimationProgrammingMainWin::s_WndProc(HWND hwnd, UINT iM
 	switch (iMsg) {
 	case WM_CLOSE:
 		MyGameAnimationProgrammingApp::instance()->Shutdown();
-		//DestroyWindow(hwnd);
 		break;
 	case WM_DESTROY:
 		if (gVertexArrayObject != 0) {
 			HDC hdc = GetDC(hwnd);
 			HGLRC hglrc = wglGetCurrentContext();
 
+			// delete VAO
 			glBindVertexArray(0);
 			glDeleteVertexArrays(1, &gVertexArrayObject);
 			gVertexArrayObject = 0;
 
+			// delete render context
 			wglMakeCurrent(NULL, NULL);
 			wglDeleteContext(hglrc);
 			ReleaseDC(hwnd, hdc);
-
-			PostQuitMessage(0);
 		}
 		else {
 			SGE_LOG("Got multiple destroy messages\n");
@@ -292,7 +281,6 @@ LRESULT CALLBACK MyGameAnimationProgrammingMainWin::s_WndProc(HWND hwnd, UINT iM
 			RECT clientRect;
 			::GetClientRect(hwnd, &clientRect);
 			Rect2f newClientRect = Win32Util::toRect2f(clientRect);
-
 			thisObj->onClientRectChanged(newClientRect);
 			return 0;
 		}
