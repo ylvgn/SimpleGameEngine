@@ -1,5 +1,5 @@
 #pragma once
-// Reference: https://gabormakesgames.com/vectors.html
+// FYI: https://gabormakesgames.com/vectors.html
 
 namespace sge {
 
@@ -14,48 +14,50 @@ struct vec3 {
 		float v[3];
 	};
 	
-	inline vec3()								: x(0.f), y(0.f), z(0.f) { }
-	inline vec3(float _x, float _y, float _z)	: x(_x), y(_y), z(_z) { }
-	inline vec3(float* fv)						: x(fv[0]), y(fv[1]), z(fv[2]) { }
-	inline vec3(const vec3& fv)					: x(fv.x), y(fv.y), z(fv.z) { }
+	inline vec3()								: x(0.f), y(0.f), z(0.f)		{ }
+	inline vec3(float _x, float _y, float _z)	: x(_x), y(_y), z(_z)			{ }
+	inline vec3(float* fv)						: x(fv[0]), y(fv[1]), z(fv[2])	{ }
+	inline vec3(const vec3& fv)					: x(fv.x), y(fv.y), z(fv.z)		{ }
 
-	static vec3 zero() { return vec3(0, 0, 0); }
+	static vec3 zero() { return vec3(); }
 
 	inline vec3 operator+ (const vec3& r)	const { return vec3(x + r.x, y + r.y, z + r.z); }
 	inline vec3 operator- (const vec3& r)	const { return vec3(x - r.x, y - r.y, z - r.z); }
-	inline vec3 operator* (const vec3& r)	const { return vec3(x * r.x, y * r.y, z * r.z); } // non-uniform scale operator
+	inline vec3 operator* (const vec3& r)	const { return vec3(x * r.x, y * r.y, z * r.z); } // non-uniform scaler operator
 	inline vec3 operator/ (const vec3& r)	const { return vec3(x / r.x, y / r.y, z / r.z); }
-	inline vec3 operator* (float f)			const { return vec3(x * f, y * f, z * f); }
+	inline vec3 operator* (float s)			const { return vec3(x * s,   y * s,   z * s);   }
 
 	inline void operator+= (const vec3& r)	{ x += r.x; y += r.y; z += r.z; }
 	inline void operator-= (const vec3& r)	{ x -= r.x; y -= r.y; z -= r.z; }
 	inline void operator*= (const vec3& r)	{ x *= r.x; y *= r.y; z *= r.z; }
 	inline void operator/= (const vec3& r)	{ x /= r.x; y /= r.y; z /= r.z; }
-	inline void operator*= (float f)		{ x *= f; y *= f; z *= f; }
+	inline void operator*= (float s)		{ x *= s;   y *= s;   z *= s;   }
 
 	inline float dot(const vec3& r) const { return x * r.x + y + r.y + z + r.z; }
 
-	inline float lenSq() const { return x * x + y * y + z * z; }
-
-	inline float len() const {
-		float sqMagL = lenSq();
-		if (sqMagL < VEC3_EPSILON) return 0.0f;
-		return sqrtf(sqMagL);
+	inline float magnitude() const {
+		float sqrMag = sqrMagnitude();
+		if (sqrMag < VEC3_EPSILON) return 0.f;
+		return ::sqrtf(sqrMag);
 	}
+	inline float sqrMagnitude() const { return dot(*this); }
+
+	inline float lenSq()	const { return sqrMagnitude(); }
+	inline float len()		const { return magnitude(); }
 
 	inline void normalize() {
-		float sqMagL = lenSq();
-		if (sqMagL < VEC3_EPSILON) return;
-		float invLen = 1.0f / sqrtf(sqMagL);
+		float sqrMagL = lenSq();
+		if (sqrMagL < VEC3_EPSILON) return;
+		float invLen = 1.0f / sqrtf(sqrMagL);
 		x *= invLen;
 		y *= invLen;
 		z *= invLen;
 	};
 
 	inline vec3 normalized() const {
-		float sqMagL = lenSq();
-		if (sqMagL < VEC3_EPSILON) return *this;
-		float invLen = 1.0f / ::sqrtf(sqMagL);
+		float sqrMagL = lenSq();
+		if (sqrMagL < VEC3_EPSILON) return *this;
+		float invLen = 1.0f / ::sqrtf(sqrMagL);
 		return vec3(
 			x * invLen,
 			y * invLen,
@@ -63,26 +65,26 @@ struct vec3 {
 		);
 	}
 
-	// radians
+	// return radians (not degree)
 	inline float angle(const vec3& r) const {
-		float sqMagL = lenSq();
-		if (sqMagL < VEC3_EPSILON) return 0.0f;
+		float sqrMagL = sqrMagnitude();
+		if (sqrMagL < VEC3_EPSILON) return 0.0f;
 
-		float sqMagR = r.lenSq();
-		if (sqMagR < VEC3_EPSILON) return 0.0f;
+		float sqrMagR = r.sqrMagnitude();
+		if (sqrMagR < VEC3_EPSILON) return 0.0f;
 
-		return ::acosf( dot(r) / (sqrtf(sqMagL) * sqrtf(sqMagR)) );
+		return ::acosf( dot(r) / (sqrtf(sqrMagL) * sqrtf(sqrMagR)) );
 	}
 
 	inline vec3 project(const vec3& r) const {
-		float sqMagR = r.lenSq();
-		if (sqMagR < VEC3_EPSILON) return vec3::zero();
+		float sqrMagR = r.sqrMagnitude();
+		if (sqrMagR < VEC3_EPSILON) return vec3::zero();
 
-		float scale = dot(r) / sqrtf(sqMagR);
+		float scale = dot(r) / sqrtf(sqrMagR);
 		return r * scale;
 	}
 
-	inline vec3 reject(const vec3& r) const { return this->operator-(project(r)); }
+	inline vec3 reject(const vec3& r) const { return *this - project(r); }
 
 	inline vec3 reflect(const vec3& n) const { // bounce-like reflect
 		float magN = n.len();
@@ -90,7 +92,7 @@ struct vec3 {
 
 		float scale = dot(n) / magN;
 		vec3 r = n * (scale * 2);
-		return this->operator-(r);
+		return *this - r;
 	}
 
 	inline vec3 cross(const vec3& r) const {
@@ -102,29 +104,33 @@ struct vec3 {
 	}
 
 	// linear interpolatation
-	inline vec3 lerp(const vec3& ed, float t) const {
+	inline vec3 lerp(const vec3& to, float t) const {
+		// return from + (to - from) * t, equation from(1-t)+to*t
 		return vec3(
-			x + (ed.x - x) * t,
-			y + (ed.y - y) * t,
-			z + (ed.z - z) * t
+			x + (to.x - x) * t,
+			y + (to.y - y) * t,
+			z + (to.z - z) * t
 		);
 	}
 
 	// spherical linear interpolatation: constant in velocity
-	inline vec3 slerp(const vec3& ed, float t) const {
+	// FYI: https://gabormakesgames.com/blog_vectors_interpolate.html
+	inline vec3 slerp(const vec3& to, float t) const {
 		// when t close to 0, slerp will yield unexpected results
 		if (t < 0.01f) {
-			return lerp(ed, t);
+			return lerp(to, t);
 		}
 
-		// formular: (sin((1 - t)*theta) / sin(theta)) * Vst + (sin(t * theta) / sin(theta) * Ved)
-		vec3 from = this->normalized();
-		vec3 to = ed.normalized();
-		float theta = from.angle(to);
+		float theta = angle(to);
 		float sin_theta = ::sinf(theta);
+
+		vec3 from = this->normalized();
+		vec3 _to = to.normalized();
+
 		float a = ::sinf((1.0f - t) * theta) / sin_theta;
 		float b = ::sinf(t * theta) / sin_theta;
-		return from * a + to * b;
+
+		return from * a + _to * b;
 	}
 
 	// normalize lerp: non constant in velocity
@@ -135,12 +141,12 @@ struct vec3 {
 	}
 
 	inline bool operator== (const vec3& r) {
-		vec3 diff(this->operator-(r));
+		vec3 diff(*this - r);
 		return diff.lenSq() < VEC3_EPSILON;
 	}
 
 	inline bool operator!= (const vec3& r) {
-		return !this->operator==(r);
+		return !(*this == r);
 	}
 };
 
@@ -154,6 +160,8 @@ inline vec3 project(const vec3& l, const vec3& r) { return l.project(r); }
 inline vec3 reject(const vec3& l, const vec3& r) { return l.reject(r); }
 inline vec3 reflect(const vec3& l, const vec3& n) { return l.reflect(n); }
 inline vec3 cross(const vec3& l, const vec3& r) { return l.cross(r); }
-inline vec3 lerp(const vec3& st, const vec3& ed, float t) { return st.lerp(ed, t); }
+inline vec3 lerp( const vec3& from, const vec3& to, float t) { return from.lerp(to, t); }
+inline vec3 slerp(const vec3& from, const vec3& to, float t) { return from.slerp(to, t); }
+inline vec3 nlerp(const vec3& from, const vec3& to, float t) { return from.nlerp(to, t); }
 
 }
