@@ -34,19 +34,19 @@ struct TVec2 {
 	inline void operator*= (const T& s)			{ x *= s; y *= s; }
 	inline void operator/= (const T& s)			{ x /= s; y /= s; }
 
-	inline TVec2 operator-()			const	{ return TVec2(-x, -y); }
+	inline TVec2 operator-() const { return TVec2(-x,-y); }
 
 	inline bool operator== (const TVec2& r) const { return x == r.x && y == r.y; }
 	inline bool operator!= (const TVec2& r) const { return !(this->operator==(r)); }
 };
 
-template<typename T>
-inline bool TVec2<T>::equals(const TVec2<T>& r, const T& epsilon) const {
+template<class T> inline
+bool TVec2<T>::equals(const TVec2<T>& r, const T& epsilon) const {
 	return Math::equals(x, r.x, epsilon) && Math::equals(y, r.y, epsilon);
 }
 
-template<typename T>
-inline bool TVec2<T>::equals0(const T& epsilon) const {
+template<class T> inline
+bool TVec2<T>::equals0(const T& epsilon) const {
 	return Math::equals0(x, epsilon) && Math::equals0(y, epsilon);
 }
 
@@ -59,7 +59,7 @@ struct TVec2<int> {
 		T v[2];
 	};
 
-	inline TVec2(const T& x_, const T& y_) : x(x_), y(y_) { }
+	inline TVec2(const T& x_, const T& y_) : x(x_), y(y_) {}
 };
 
 template<>
@@ -71,11 +71,14 @@ struct TVec2<unsigned int> {
 		T v[2];
 	};
 
-	inline TVec2(const T& x_, const T& y_) : x(x_), y(y_) { }
+	inline TVec2(const T& x_, const T& y_) : x(x_), y(y_) {}
 };
 
-using vec2		= TVec2<float>;
-using ivec2		= TVec2<int>;
-using uivec2	= TVec2<unsigned int>;
+using vec2f		= TVec2<float>;
+using vec2d		= TVec2<double>;
+using vec2i		= TVec2<int>;
+using vec2ui	= TVec2<unsigned int>;
+
+using vec2		= vec2f;
 
 }

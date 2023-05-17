@@ -33,27 +33,27 @@ struct TVec3 {
 	inline bool equals(const TVec3& r, const T& epsilon = Math::epsilon<T>()) const;
 	inline bool equals0(               const T& epsilon = Math::epsilon<T>()) const;
 
-	inline TVec3 operator+ (const TVec3& r) const { return TVec3(x + r.x, y + r.y, z + r.z); }
-	inline TVec3 operator- (const TVec3& r) const { return TVec3(x - r.x, y - r.y, z - r.z); }
-	inline TVec3 operator* (const TVec3& r) const { return TVec3(x * r.x, y * r.y, z * r.z); } // non-uniform scale operator
-	inline TVec3 operator/ (const TVec3& r) const { return TVec3(x / r.x, y / r.y, z / r.z); }
+	inline TVec3 operator+ (const TVec3& r) const { return TVec3(x+r.x, y+r.y, z+r.z); }
+	inline TVec3 operator- (const TVec3& r) const { return TVec3(x-r.x, y-r.y, z-r.z); }
+	inline TVec3 operator* (const TVec3& r) const { return TVec3(x*r.x, y*r.y, z*r.z); } // non-uniform scale operator
+	inline TVec3 operator/ (const TVec3& r) const { return TVec3(x/r.x, y/r.y, z/r.z); }
 
 	inline void operator+= (const TVec3& r) { x += r.x; y += r.y; z += r.z; }
 	inline void operator-= (const TVec3& r) { x -= r.x; y -= r.y; z -= r.z; }
 	inline void operator*= (const TVec3& r) { x *= r.x; y *= r.y; z *= r.z; }
 	inline void operator/= (const TVec3& r) { x /= r.x; y /= r.y; z /= r.z; }
 
-	inline TVec3 operator+	(const T& s)	const { return TVec3(x + s, y + s, z + s); }
-	inline TVec3 operator-	(const T& s)	const { return TVec3(x - s, y - s, z - s); }
-	inline TVec3 operator*	(const T& s)	const { return TVec3(x * s, y * s, z * s); }
-	inline TVec3 operator/	(const T& s)	const { return TVec3(x / s, y / s, z / s); }
+	inline TVec3 operator+ (const T& s) const { return TVec3(x+s, y+s, z+s); }
+	inline TVec3 operator- (const T& s) const { return TVec3(x-s, y-s, z-s); }
+	inline TVec3 operator* (const T& s) const { return TVec3(x*s, y*s, z*s); }
+	inline TVec3 operator/ (const T& s) const { return TVec3(x/s, y/s, z/s); }
 
-	inline void operator+=	(const T& s)	{ x += s; y += s; z += s; }
-	inline void operator-=	(const T& s)	{ x -= s; y -= s; z -= s; }
-	inline void operator*=	(const T& s)	{ x *= s; y *= s; z *= s; }
-	inline void operator/=	(const T& s)	{ x /= s; y /= s; z /= s; }
+	inline void operator+= (const T& s) { x += s; y += s; z += s; }
+	inline void operator-= (const T& s) { x -= s; y -= s; z -= s; }
+	inline void operator*= (const T& s) { x *= s; y *= s; z *= s; }
+	inline void operator/= (const T& s) { x /= s; y /= s; z /= s; }
 
-	inline TVec3 operator-()				const { return TVec3<T>(-x, -y, -z); }
+	inline TVec3 operator-() const { return TVec3(-x,-y,-z); }
 
 	inline			T& operator[](int i)		{ return v[i]; }
 	inline const	T& operator[](int i) const	{ return v[i]; }
@@ -65,19 +65,16 @@ struct TVec3 {
 	inline T		dot(const TVec3& r)		const { return (x*r.x) + (y*r.y) + (z*r.z); }
 	inline TVec3	cross(const TVec3& r)	const { return TVec3(y*r.z - z*r.y, z*r.x - x*r.z, x*r.y - y*r.x); }
 
-	inline T	magnitude()		const { return Math::sqrt(sqrMagnitude()); }
-	inline T	sqrMagnitude()	const { return dot(*this); }
+	inline T		magnitude()				const { return Math::sqrt(sqrMagnitude()); }
+	inline T		sqrMagnitude()			const { return dot(*this); }
+	inline T		lenSq()					const { return sqrMagnitude(); }
+	inline T		len()					const { return magnitude(); }
 
-	inline T	lenSq()			const { return sqrMagnitude(); }
-	inline T	len()			const { return magnitude(); }
+	inline TVec3 normalize() const { T m = magnitude(); return Math::equals0(m) ? s_zero() : (*this / m); }
 
-	inline TVec3 normalize() const {
-		T m = magnitude();
-		return Math::equals0(m) ? s_zero() : (*this / m);
-	}
-
-	// radians
+	// angle always means radian, not degree
 	inline T angle(const TVec3& r) const {
+		// Finding the angle between the two vectors would be expensive
 		T m1 = magnitude();
 		T m2 = r.magnitude();
 
@@ -136,15 +133,14 @@ struct TVec3 {
 			return lerp(to_, t);
 		}
 
-		TVec3 from = this->normalize();
-		TVec3 to   = to_.normalize();
+		TVec3 from  = this->normalize();
+		TVec3 to    = to_.normalize();
 
 		T theta		= from.angle(to);
 		T sin_theta = Math::sin(theta);
 
 		T a = Math::sin( (1.0f-t)*theta ) / sin_theta;
 		T b = Math::sin(t*theta) / sin_theta;
-
 		return (from*a) + (to*b);
 	}
 
@@ -178,7 +174,7 @@ struct TVec3<int> {
 		T v[3];
 	};
 
-	inline TVec3(const T& x_, const T& y_, const T& z_) : x(x_), y(y_), z(z_) { }
+	inline TVec3(const T& x_, const T& y_, const T& z_) : x(x_), y(y_), z(z_) {}
 };
 
 template<>
@@ -190,11 +186,14 @@ struct TVec3<unsigned int> {
 		T v[3];
 	};
 
-	inline TVec3(const T& x_, const T& y_, const T& z_) : x(x_), y(y_), z(z_) { }
+	inline TVec3(const T& x_, const T& y_, const T& z_) : x(x_), y(y_), z(z_) {}
 };
 
-using vec3		= TVec3<float>;
-using ivec3		= TVec3<int>;
-using uivec3	= TVec3<unsigned int>;
+using vec3f		= TVec3<float>;
+using vec3d		= TVec3<double>;
+using vec3i		= TVec3<int>;
+using vec3ui	= TVec3<unsigned int>;
+
+using vec3		= vec3f;
 
 }
