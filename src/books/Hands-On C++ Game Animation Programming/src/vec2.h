@@ -12,7 +12,6 @@ struct TVec2 {
 
 	inline TVec2() : x(0), y(0) {}
 	inline TVec2(const T& x_, const T& y_) : x(x_), y(y_) {}
-	inline TVec2(const TVec2& fv) : x(fv.x), y(fv.y) {}
 
 	inline			T& operator[](int i)		{ return v[i]; }
 	inline const	T& operator[](int i) const	{ return v[i]; }

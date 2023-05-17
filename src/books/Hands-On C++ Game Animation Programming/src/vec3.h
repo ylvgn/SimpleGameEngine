@@ -9,14 +9,15 @@ namespace sge {
 template<typename T>
 struct TVec3 {
 
+	using vec2 = TVec2<T>;
+
 	union {
 		struct { T x, y, z; };
 		T v[3];
 	};
 
 	inline TVec3() : x(0), y(0), z(0) {}
-	inline TVec3(const T& x_, const T& y_, const T& z_) : x(x_),y(y_), z(z_) {}
-	inline TVec3(const TVec3& fv) : x(fv.x), y(fv.y), z(fv.z)  {}
+	inline TVec3(const T& x_, const T& y_, const T& z_) : x(x_), y(y_), z(z_) {}
 	inline TVec3(const vec2& fv, const T& z_) : x(fv.x), y(fv.y), z(z_) {}
 
 	inline static TVec3 s_zero()	{ return TVec3(0,0,0); }
