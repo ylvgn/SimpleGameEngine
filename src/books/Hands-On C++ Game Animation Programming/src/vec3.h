@@ -14,11 +14,10 @@ struct TVec3 {
 		T v[3];
 	};
 
-	inline TVec3()					: x(0), y(0), z(0)   { }
-	inline TVec3(const T& x_, const T& y_, const T& z_) : x(x_),y(y_), z(z_) { }
-	inline TVec3(const T* fv)		: x(fv[0]), y(fv[1]), z(fv[2]) { }
-	inline TVec3(const TVec3& fv)	: x(fv.x), y(fv.y), z(fv.z)  { }
-	inline TVec3(const vec2& fv, const T& z_) : x(fv.x), y(fv.y), z(z_) { }
+	inline TVec3() : x(0), y(0), z(0) {}
+	inline TVec3(const T& x_, const T& y_, const T& z_) : x(x_),y(y_), z(z_) {}
+	inline TVec3(const TVec3& fv) : x(fv.x), y(fv.y), z(fv.z)  {}
+	inline TVec3(const vec2& fv, const T& z_) : x(fv.x), y(fv.y), z(z_) {}
 
 	inline static TVec3 s_zero()	{ return TVec3(0,0,0); }
 	inline static TVec3 s_one()		{ return TVec3(1,1,1); }
@@ -79,10 +78,10 @@ struct TVec3 {
 	// radians
 	inline T angle(const TVec3& r) const {
 		T m1 = magnitude();
-		if (Math::equals0(m1)) return 0;
-
 		T m2 = r.magnitude();
-		if (Math::equals0(m2)) return 0;
+
+		if (Math::equals0(m1) || Math::equals0(m2))
+			return 0;
 
 		T cos_theta = dot(r) / (m1 * m2);
 		return Math::acos(cos_theta);
@@ -91,7 +90,8 @@ struct TVec3 {
 	// project *this onto r
 	inline TVec3 project(const TVec3& r) const {
 		T m = r.magnitude();
-		if (Math::equals0(m)) return s_zero();
+		if (Math::equals0(m))
+			return s_zero();
 
 		// *this is hypotenuse
 		// so, s = ||hypotenuse|| * cos(theta) = dot(r) / ||r||
@@ -109,7 +109,8 @@ struct TVec3 {
 	// bounce-like reflect
 	inline TVec3 reflect(const TVec3& r) const {
 		TVec3 proj = project(r);
-		if (proj.equals0()) return TVec3::s_zero();
+		if (proj.equals0())
+			return s_zero();
 
 		TVec3 projx2 = proj+proj;
 		return *this - projx2;
@@ -122,8 +123,8 @@ struct TVec3 {
 //		return TVec3(x + ( (to.x-x)*t ), y + ( (to.y-y)*t ), z + ( (to.z-z)*t ));
 
 		return TVec3(Math::lerp(x, to.x, t),
-					Math::lerp(y, to.y, t),
-					Math::lerp(z, to.z, t));
+					 Math::lerp(y, to.y, t),
+					 Math::lerp(z, to.z, t));
 	}
 
 	// spherical linear interpolatation: constant in velocity
@@ -149,7 +150,7 @@ struct TVec3 {
 	// normalize lerp: non constant in velocity
 	inline TVec3 nlerp(const TVec3& to, const T& t) const { return lerp(to, t).normalize(); }
 
-	inline bool operator== (const TVec3& r) const { return equals(r); }
+	inline bool operator== (const TVec3& r) const { return x == r.x && y == r.y && z == r.z; }
 	inline bool operator!= (const TVec3& r) const { return !(this->operator==(r)); }
 };
 
@@ -176,7 +177,7 @@ struct TVec3<int> {
 		T v[3];
 	};
 
-	inline TVec3(T x_, T y_, T z_) : x(x_), y(y_), z(z_) { }
+	inline TVec3(const T& x_, const T& y_, const T& z_) : x(x_), y(y_), z(z_) { }
 };
 
 template<>
@@ -188,7 +189,7 @@ struct TVec3<unsigned int> {
 		T v[3];
 	};
 
-	inline TVec3(T x_, T y_, T z_) : x(x_), y(y_), z(z_) { }
+	inline TVec3(const T& x_, const T& y_, const T& z_) : x(x_), y(y_), z(z_) { }
 };
 
 using vec3		= TVec3<float>;
