@@ -38,20 +38,20 @@ struct TVec3 {
 	inline TVec3 operator* (const TVec3& r) const { return TVec3(x*r.x, y*r.y, z*r.z); } // non-uniform scale operator
 	inline TVec3 operator/ (const TVec3& r) const { return TVec3(x/r.x, y/r.y, z/r.z); }
 
-	inline void operator+= (const TVec3& r) { x += r.x; y += r.y; z += r.z; }
-	inline void operator-= (const TVec3& r) { x -= r.x; y -= r.y; z -= r.z; }
-	inline void operator*= (const TVec3& r) { x *= r.x; y *= r.y; z *= r.z; }
-	inline void operator/= (const TVec3& r) { x /= r.x; y /= r.y; z /= r.z; }
+	inline TVec3 operator+ (const T& s)		const { return TVec3(x+s, y+s, z+s); }
+	inline TVec3 operator- (const T& s)		const { return TVec3(x-s, y-s, z-s); }
+	inline TVec3 operator* (const T& s)		const { return TVec3(x*s, y*s, z*s); }
+	inline TVec3 operator/ (const T& s)		const { return TVec3(x/s, y/s, z/s); }
 
-	inline TVec3 operator+ (const T& s) const { return TVec3(x+s, y+s, z+s); }
-	inline TVec3 operator- (const T& s) const { return TVec3(x-s, y-s, z-s); }
-	inline TVec3 operator* (const T& s) const { return TVec3(x*s, y*s, z*s); }
-	inline TVec3 operator/ (const T& s) const { return TVec3(x/s, y/s, z/s); }
+	inline void operator+= (const TVec3& r) { x+=r.x; y+=r.y; z+=r.z; }
+	inline void operator-= (const TVec3& r) { x-=r.x; y-=r.y; z-=r.z; }
+	inline void operator*= (const TVec3& r) { x*=r.x; y*=r.y; z*=r.z; }
+	inline void operator/= (const TVec3& r) { x/=r.x; y/=r.y; z/=r.z; }
 
-	inline void operator+= (const T& s) { x += s; y += s; z += s; }
-	inline void operator-= (const T& s) { x -= s; y -= s; z -= s; }
-	inline void operator*= (const T& s) { x *= s; y *= s; z *= s; }
-	inline void operator/= (const T& s) { x /= s; y /= s; z /= s; }
+	inline void operator+= (const T& s)		{ x+=s; y+=s; z+=s; }
+	inline void operator-= (const T& s)		{ x-=s; y-=s; z-=s; }
+	inline void operator*= (const T& s)		{ x*=s; y*=s; z*=s; }
+	inline void operator/= (const T& s)		{ x/=s; y/=s; z/=s; }
 
 	inline TVec3 operator-() const { return TVec3(-x,-y,-z); }
 
@@ -65,14 +65,14 @@ struct TVec3 {
 	inline T		dot(const TVec3& r)		const { return (x*r.x) + (y*r.y) + (z*r.z); }
 	inline TVec3	cross(const TVec3& r)	const { return TVec3(y*r.z - z*r.y, z*r.x - x*r.z, x*r.y - y*r.x); }
 
+	inline TVec3	normalize() const { T m = magnitude(); return Math::equals0(m) ? s_zero() : (*this / m); }
+
 	inline T		magnitude()				const { return Math::sqrt(sqrMagnitude()); }
 	inline T		sqrMagnitude()			const { return dot(*this); }
 	inline T		lenSq()					const { return sqrMagnitude(); }
 	inline T		len()					const { return magnitude(); }
 
-	inline TVec3 normalize() const { T m = magnitude(); return Math::equals0(m) ? s_zero() : (*this / m); }
-
-	// angle always means radian, not degree
+	// angle means radians, not degrees
 	inline T angle(const TVec3& r) const {
 		// Finding the angle between the two vectors would be expensive
 		T m1 = magnitude();
@@ -91,7 +91,7 @@ struct TVec3 {
 		if (Math::equals0(m))
 			return s_zero();
 
-		// *this is hypotenuse
+		// *this is considered as hypotenuse
 		// so, s = ||hypotenuse|| * cos(theta) = dot(r) / ||r||
 
 		T s = dot(r) / m;
@@ -128,7 +128,7 @@ struct TVec3 {
 	// spherical linear interpolatation: constant in velocity
 	inline TVec3 slerp(const TVec3& to_, const T& t) const {
 
-		// when t close to 0, slerp will yield unexpected results
+		// when t is close to 0, slerp will yield unexpected results
 		if (Math::equals0(Math::abs(t - 0.01))) {
 			return lerp(to_, t);
 		}
@@ -144,7 +144,7 @@ struct TVec3 {
 		return (from*a) + (to*b);
 	}
 
-	// normalize lerp: non constant in velocity
+	// normalize lerp: non-constant in velocity
 	inline TVec3 nlerp(const TVec3& to, const T& t) const { return lerp(to, t).normalize(); }
 
 	inline bool operator== (const TVec3& r) const { return x == r.x && y == r.y && z == r.z; }

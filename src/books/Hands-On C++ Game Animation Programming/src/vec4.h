@@ -17,6 +17,7 @@ struct TVec4 {
 
 	inline TVec4() : x(0), y(0), z(0), w(0) {}
 	inline TVec4(const T& x_, const T& y_, const T& z_, const T& w_) : x(x_), y(y_), z(z_), w(w_) {}
+	inline TVec4(const vec2& fv, const T& z_, const T& w_) : x(fv.x), y(fv.y), z(z_), w(w_) {}
 	inline TVec4(const vec3& fv, const T& w_) : x(fv.x), y(fv.y), z(fv.z), w(w_) {}
 
 	inline static TVec4 s_zero()	{ return TVec4(0,0,0,0); }
@@ -33,22 +34,25 @@ struct TVec4 {
 	inline TVec4 operator* (const TVec4& r) const { return TVec4(x*r.x, y*r.y, z*r.z, w*r.w); } // non-uniform scale operator
 	inline TVec4 operator/ (const TVec4& r) const { return TVec4(x/r.x, y/r.y, z/r.z, w/r.w); }
 
-	inline void operator+= (const TVec4& r) { x += r.x; y += r.y; z += r.z; w += r.w; }
-	inline void operator-= (const TVec4& r) { x -= r.x; y -= r.y; z -= r.z; w -= r.w; }
-	inline void operator*= (const TVec4& r) { x *= r.x; y *= r.y; z *= r.z; w *= r.w; }
-	inline void operator/= (const TVec4& r) { x /= r.x; y /= r.y; z /= r.z; w /= r.w; }
+	inline TVec4 operator+ (const T& s)		const { return TVec4(x+s, y+s, z+s, w+s); }
+	inline TVec4 operator- (const T& s)		const { return TVec4(x-s, y-s, z-s, w-s); }
+	inline TVec4 operator* (const T& s)		const { return TVec4(x*s, y*s, z*s, w*s); }
+	inline TVec4 operator/ (const T& s)		const { return TVec4(x/s, y/s, z/s, w/s); }
 
-	inline TVec4 operator* (const T& s) const	{ return TVec4(x*s, y*s, z*s, w*s); }
-	inline TVec4 operator/ (const T& s) const	{ return TVec4(x/s, y/s, z/s, w/s); }
-	inline void operator*= (const T& s)			{ x *= s; y *= s; z *= s; w *= s; }
-	inline void operator/= (const T& s)			{ x /= s; y /= s; z /= s; w /= s; }
+	inline void operator+= (const TVec4& r) { x+=r.x; y+=r.y; z+=r.z; w+=r.w; }
+	inline void operator-= (const TVec4& r) { x-=r.x; y-=r.y; z-=r.z; w-=r.w; }
+	inline void operator*= (const TVec4& r) { x*=r.x; y*=r.y; z*=r.z; w*=r.w; }
+	inline void operator/= (const TVec4& r) { x/=r.x; y/=r.y; z/=r.z; w/=r.w; }
+
+	inline void operator+= (const T& s)		{ x+=s; y+=s; z+=s; w+=s; }
+	inline void operator-= (const T& s)		{ x-=s; y-=s; z-=s; w-=s; }
+	inline void operator*= (const T& s)		{ x*=s; y*=s; z*=s; w*=s; }
+	inline void operator/= (const T& s)		{ x/=s; y/=s; z/=s; w/=s; }
 
 	inline TVec4 operator-() const { return TVec4(-x,-y,-z,-w); }
 
 	inline bool operator== (const TVec4& r) const { return x == r.x && y == r.y && z == r.z && w == r.w; }
 	inline bool operator!= (const TVec4& r) const { return !(this->operator==(r)); }
-
-	inline T dot(const TVec4& r) const { return (x*r.x) + (y*r.y) + (z*r.z) + (w*r.w); }
 
 	inline vec2 xy()		const { return vec2(x,y); }
 	inline vec2 xz()		const { return vec2(x,z); }
@@ -57,6 +61,8 @@ struct TVec4 {
 	inline vec3 xyz()		const { return vec3(x,y,z); }
 	inline vec3 xy0()		const { return vec3(x,y,0); }
 	inline vec3 x0z()		const { return vec3(x,0,z); }
+
+	inline T dot(const TVec4& r) const { return (x * r.x) + (y * r.y) + (z * r.z) + (w * r.w); }
 };
 
 template<class T> inline

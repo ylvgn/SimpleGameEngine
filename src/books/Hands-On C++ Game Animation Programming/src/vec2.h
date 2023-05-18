@@ -24,15 +24,20 @@ struct TVec2 {
 	inline TVec2 operator* (const TVec2& r) const { return TVec2(x*r.x, y*r.y); }
 	inline TVec2 operator/ (const TVec2& r) const { return TVec2(x/r.x, y/r.y); }
 
-	inline void operator+= (const TVec2& r) { x += r.x; y += r.y; }
-	inline void operator-= (const TVec2& r) { x -= r.x; y -= r.y; }
-	inline void operator*= (const TVec2& r) { x *= r.x; y *= r.y; }
-	inline void operator/= (const TVec2& r) { x /= r.x; y /= r.y; }
-
+	inline TVec2 operator+ (const T& s) const	{ return TVec2(x+s, y+s); }
+	inline TVec2 operator- (const T& s) const	{ return TVec2(x-s, y-s); }
 	inline TVec2 operator* (const T& s) const	{ return TVec2(x*s, y*s); }
 	inline TVec2 operator/ (const T& s) const	{ return TVec2(x/s, y/s); }
-	inline void operator*= (const T& s)			{ x *= s; y *= s; }
-	inline void operator/= (const T& s)			{ x /= s; y /= s; }
+
+	inline void operator+= (const TVec2& r) { x+=r.x; y+=r.y; }
+	inline void operator-= (const TVec2& r) { x-=r.x; y-=r.y; }
+	inline void operator*= (const TVec2& r) { x*=r.x; y*=r.y; }
+	inline void operator/= (const TVec2& r) { x/=r.x; y/=r.y; }
+
+	inline void operator+= (const T& s)		{ x+=s; y+=s; }
+	inline void operator-= (const T& s)		{ x-=s; y-=s; }
+	inline void operator*= (const T& s)		{ x*=s; y*=s; }
+	inline void operator/= (const T& s)		{ x/=s; y/=s; }
 
 	inline TVec2 operator-() const { return TVec2(-x,-y); }
 
@@ -42,12 +47,14 @@ struct TVec2 {
 
 template<class T> inline
 bool TVec2<T>::equals(const TVec2<T>& r, const T& epsilon) const {
-	return Math::equals(x, r.x, epsilon) && Math::equals(y, r.y, epsilon);
+	return Math::equals(x, r.x, epsilon)
+		&& Math::equals(y, r.y, epsilon);
 }
 
 template<class T> inline
 bool TVec2<T>::equals0(const T& epsilon) const {
-	return Math::equals0(x, epsilon) && Math::equals0(y, epsilon);
+	return Math::equals0(x, epsilon)
+		&& Math::equals0(y, epsilon);
 }
 
 template<>
