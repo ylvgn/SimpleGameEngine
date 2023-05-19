@@ -81,8 +81,8 @@ struct TVec3 {
 		if (Math::equals0(m1) || Math::equals0(m2))
 			return 0;
 
-		T cos_theta = dot(r) / (m1 * m2);
-		return Math::acos(cos_theta);
+		T cosTheta = dot(r) / (m1 * m2);
+		return Math::acos(cosTheta);
 	}
 
 	// project *this onto r
@@ -137,10 +137,10 @@ struct TVec3 {
 		TVec3 to    = to_.normalize();
 
 		T theta		= from.angle(to);
-		T sin_theta = Math::sin(theta);
+		T sinTheta	= Math::sin(theta);
 
-		T a = Math::sin( (1.0f-t)*theta ) / sin_theta;
-		T b = Math::sin(t*theta) / sin_theta;
+		T a = Math::sin( (1.0f-t)*theta ) / sinTheta;
+		T b = Math::sin(t*theta) / sinTheta;
 		return (from*a) + (to*b);
 	}
 
