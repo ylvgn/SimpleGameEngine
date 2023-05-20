@@ -67,7 +67,9 @@ quat quat::s_lookRotation(const vec3& dir, const vec3& up) {
 }
 
 mat4 quat::s_mat4(const quat& q) {
-#if 1
+	// FYI: https://gabormakesgames.com/blog_quats_to_matrix.html
+#if 0
+	// It's less efficient, but easier to understand quaternion to matrix conversion if we think about basis vectors. 
 	vec3 r = q * vec3::s_right();
 	vec3 u = q * vec3::s_up();
 	vec3 f = q * vec3::s_forward();
@@ -77,21 +79,45 @@ mat4 quat::s_mat4(const quat& q) {
 				f.x, f.y, f.z, 0,  // z basis vector (No scale)
 				0,   0,   0,   1); // w basis vector (No scale)
 #else
-	// FYI: http://www.songho.ca/math/quaternion/quaternion.html#matrix
-	float qxx(q.x * q.x);
-	float qyy(q.y * q.y);
-	float qzz(q.z * q.z);
-	float qxz(q.x * q.z);
-	float qxy(q.x * q.y);
-	float qyz(q.y * q.z);
-	float qwx(q.w * q.x);
-	float qwy(q.w * q.y);
-	float qwz(q.w * q.z);
 
-	return mat4({ 1.0f - 2.0f * (qyy + qzz), 2.f * (qxy + qwz),       2.f * (qxz - qwy),       0.f },
-		{ 2.f * (qxy - qwz),         1.f - 2.f * (qxx + qzz), 2.f * (qyz + qwx),       0.f },
-		{ 2.f * (qxz + qwy),         2.f * (qyz - qwx),       1.f - 2.f * (qxx + qyy), 0.f },
-		{ 0.f,					     0.f,					  0.f,                     1.f });
+#if 0
+	float ww = q.w*q.w;
+	float xx = q.x*q.x;
+	float yy = q.y*q.y;
+	float zz = q.z*q.z;
+	float wx = q.w*q.x;
+	float wy = q.w*q.y;
+	float wz = q.w*q.z;
+	float xy = q.x*q.y;
+	float xz = q.x*q.z;
+	float yz = q.y*q.z;
+
+	return Matrix4(
+		ww + xx - yy - zz, 2 * xy - 2 * wz, 2 * xz + 2 * wy, 0,
+		2 * xy + 2 * wz, ww - xx + yy - zz, 2 * yz - 2 * wx, 0,
+		2 * xz - 2 * wy, 2 * yz + 2 * wx, ww - xx - yy + zz, 0,
+		0, 0, 0, ww + xx + yy + zz
+	);
+#else
+	// since q is a unit quaternion, so ww+xx+yy+zz=1
+	// FYI: http://www.songho.ca/math/quaternion/quaternion.html#matrix
+	float xx = q.x * q.x;
+	float yy = q.y * q.y;
+	float zz = q.z * q.z;
+	float wx = q.w * q.x;
+	float wy = q.w * q.y;
+	float wz = q.w * q.z;
+	float xy = q.x * q.y;
+	float xz = q.x * q.z;
+	float yz = q.y * q.z;
+
+	return mat4(1.f-2.0f*(yy+zz), 2.f*(xy-wz),     2.f*(xz+wy),     0.f,
+		        2.f*(xy+wz),      1.f-2.f*(xx+zz), 2.f*(yz-wx),     0.f,
+		        2.f*(xz-wy),      2.f*(yz+wx),     1.f-2.f*(xx+yy), 0.f,
+		        0.f,              0.f,             0.f,             1.f
+	);
+#endif
+
 #endif
 	/*
 	Being able to convert quaternions to matrices will be useful later when you need to pass rotation data to a shader.

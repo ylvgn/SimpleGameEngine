@@ -1,10 +1,9 @@
 #pragma once
 
 #include "vec4.h"
+#include "quat.h"
 
 namespace sge {
-
-struct quat;
 
 struct mat4 {
 
@@ -36,17 +35,18 @@ struct mat4 {
 		struct { vec4 cx, cy, cz, cw; };
 
 		struct {
-			float xx, xy, xz, xw; // x basis vector
-			float yx, yy, yz, yw; // y basis vector
-			float zx, zy, zz, zw; // z basis vector
-			float wx, wy, wz, ww; // w basis vector
+			float xx, xy, xz, xw; // x-basis vector or cx
+			float yx, yy, yz, yw; // y-basis vector or cy
+			float zx, zy, zz, zw; // z-basis vector or cz
+			float wx, wy, wz, ww; // w-basis vector or cw
 		};
 
 		struct {
-			float c0r0, c0r1, c0r2, c0r3; // column 0
-			float c1r0, c1r1, c1r2, c1r3; // column 1
-			float c2r0, c2r1, c2r2, c2r3; // column 2
-			float c3r0, c3r1, c3r2, c3r3; // column 3
+			//    row0  row1  row2  row3
+			float c0r0, c0r1, c0r2, c0r3; // column0
+			float c1r0, c1r1, c1r2, c1r3; // column1
+			float c2r0, c2r1, c2r2, c2r3; // column2
+			float c3r0, c3r1, c3r2, c3r3; // column3
 		};
 
 		struct {
@@ -100,14 +100,14 @@ struct mat4 {
 	inline void setRow(int i, const vec4& v_) { cx[i] = v_.x; cy[i] = v_.y; cz[i] = v_.z; cw[i] = v_.w; }
 
 	inline bool operator==(const mat4& r) const { return cx == r.cx && cy == r.cy && cz == r.cz && cw == r.cw; }
-	inline bool operator!=(const mat4& r) const { return !this->operator==(r); }
+	inline bool operator!=(const mat4& r) const { return !(this->operator==(r)); }
 
 	// Matrix addition can be used with scalar multiplication to interpolate or blend between multiple matrices.Later, you will learn how to use this property to implement animation skinning.
 	inline mat4 operator+(const mat4& r) const { return mat4(cx+r.cx, cy+r.cy, cz+r.cz, cw+r.cw); }
 
 	//Scaling matricesand then adding them allows you to "lerp" or "mix" between two matrices, so long as both matrices represent a linear transform.
-	inline mat4 operator*(float s) const { return mat4(cx * s, cy * s, cz * s, cw * s); }
-	inline mat4 operator/(float s) const { return mat4(cx / s, cy / s, cz / s, cw / s); }
+	inline mat4 operator*(float s) const { return mat4(cx*s, cy*s, cz*s, cw*s); }
+	inline mat4 operator/(float s) const { return mat4(cx/s, cy/s, cz/s, cw/s); }
 
 	// The resulting value for any element is the dot product of that row from the left matrix and that column forms the right matrix.
 	// For example, suppose you want to find the value of the element in row 2 column 3 when multiplying two matrices.
@@ -193,15 +193,6 @@ struct mat4 {
 	}
 
 	inline mat4 transposed() const {
-		/*
-		mat4 m;
-		m.setRow(0, cx);
-		m.setRow(1, cy);
-		m.setRow(2, cz);
-		m.setRow(3, cw);
-		return m;
-		*/
-
 		return mat4(
 			xx, yx, zx, wx,
 			xy, yy, zy, wy,
@@ -211,7 +202,7 @@ struct mat4 {
 	}
 
 	// convert a matrix from row-major to column-major
-	void transpose() {
+	inline void transpose() {
 		swap(yx, xy);
 		swap(zx, xz);
 		swap(wx, xw);
@@ -221,10 +212,11 @@ struct mat4 {
 	}
 
 #define M4_3X3MINOR(c0, c1, c2, r0, r1, r2) \
-	( v[c0*4+r0]*(v[c1*4+r1]*v[c2*4+r2]-v[c1*4+r2]*v[c2*4+r1]) - \
-	v[c1*4+r0]*(v[c0*4+r1]*v[c2*4+r2]-v[c0*4+r2]*v[c2*4+r1]) + \
-	v[c2*4+r0]*(v[c0*4+r1]*v[c1*4+r2]-v[c0*4+r2]*v[c1*4+r1]) ) \
+	(v[c0*4+r0] * (v[c1*4+r1]*v[c2*4+r2] - v[c1*4+r2]*v[c2*4+r1]) - \
+	 v[c1*4+r0] * (v[c0*4+r1]*v[c2*4+r2] - v[c0*4+r2]*v[c2*4+r1]) + \
+	 v[c2*4+r0] * (v[c0*4+r1]*v[c1*4+r2] - v[c0*4+r2]*v[c1*4+r1]) ) \
 // ---- c*4+r = v array flatten index
+	// why c*4? because mat4 is column-major
 
 	inline float determinant() const {
 		return v[0]  * M4_3X3MINOR(1,2,3, 1,2,3)
@@ -268,7 +260,7 @@ struct mat4 {
 		
 		// inverse(M) = adjugate(M) / determinant(M)
 		float det = determinant();
-		if (det == 0.0f) { // Epsilon check would need to be REALLY small
+		if (Math::equals0(det)) { // Epsilon check would need to be REALLY small
 			SGE_ERROR("Trying to invert a matrix with a zero determinant\n");
 			return mat4();
 		}
@@ -278,9 +270,10 @@ struct mat4 {
 		return adj*oneOverDet;
 	}
 
+	// invert=inverse self
 	void invert() {
 		float det = determinant();
-		if (det == 0.0f) {
+		if (Math::equals0(det)) {
 			SGE_ERROR("Trying to invert a matrix with a zero determinant\n");
 		}
 		float oneOverDet = 1.0f/det;
@@ -290,17 +283,14 @@ struct mat4 {
 	inline float determinant3x3() const {
 		return xx*(yy*zz - zy*yz)
 			 - yx*(xy*zz - zy*xz)
-			 + zx*(xy*yz - yy*xz
-		);
+			 + zx*(xy*yz - yy*xz);
 	}
 
-	// Inverting matrices is a relatively expensive function.
-	// Matrices that only encode the position and rotation can be inverted faster because the inverse of a 3 x 3 rotation matrix is the same as its transpose.
+	// inverse3x3(M)=adjugate3x3(M)/determinant3x3(M)
 	inline mat4 inverse3x3() const {
-		// inverse3x3(M) = adjugate3x3(M) / determinant3x3(M)
-
 		float det = determinant3x3();
 		float oneOverDet = 1.0f / det;
+
 		return mat4(
 			// x basis vector
 			(yy*zz-yz*zy) * oneOverDet,		// xx
@@ -320,6 +310,11 @@ struct mat4 {
 			// w basis vector
 			0,0,0,1
 		);
+		/*
+		Inverting matrices is a relatively expensive function.
+		Matrices that only encode the position and rotation can be inverted faster
+		because the inverse of a 3x3 rotation matrix is the same as its transpose.
+		*/
 	}
 
 	// A frustum represents everything that is visible to the camera.
@@ -333,28 +328,27 @@ struct mat4 {
 		}
 
 		return mat4(
-			(2.0f*n)/(r-l), 0,              0,              0,
-			0,              (2.0f*n)/(t-b), 0,              0,
-			(r+l)/(r-l),    (t+b)/(t-b),    (-(f+n))/(f-n), -1,
-			0,              0,              (-2*f*n)/(f-n), 0
+			(2.0f*n)/(r-l), 0.f,            0.f,             0.f,
+			0.f,            (2.0f*n)/(t-b), 0.f,             0.f,
+			(r+l)/(r-l),    (t+b)/(t-b),    (-(f+n))/(f-n), -1.f,
+			0.f,            0.f,            (-2*f*n)/(f-n),  0.f
 		);
 	}
 
 	// A perspective matrix is built from
-	// a field of view (fov typically in degrees),
-	// an aspect ratio (the ratio of 'x:y')
-	// and near and far distances.
-	// It serves as an easy way to create a view frustum.
+		// a field of view (fov typically in degrees),
+		// an aspect ratio (the ratio of 'x:y')
+		// and near and far distances.
 	inline static mat4 s_perspective(float fov, float aspect, float znear, float zfar) {
 		if (Math::equals0(aspect)) {
 			return mat4::s_identity();
 		}
 
-//		float ymax = znear * tanf(fov * 3.14159265359f / 360.0f);
 		float ymax = znear * tanf(Math::radians(fov / 2.0f));
 		float xmax = ymax * aspect;
 
 		return s_frustum(-xmax, xmax, -ymax, ymax, znear, zfar);
+//		It serves as an easy way to create a view frustum.
 	}
 
 	// An orthographic projection maps linearly to NDC space.
@@ -364,11 +358,12 @@ struct mat4 {
 			SGE_ERROR("Trying to create invalid ortho\n");
 			return mat4();
 		}
+
 		return mat4(
-			2.0f/(r-l),     0,              0,              0,
-			0,              2.0f/(t-b),     0,              0,
-			0,              0,              -2.0f/(f-n),    0,
-			-((r+l)/(r-l)), -((t+b)/(t-b)), -((f+n)/(f-n)), 1
+			2.0f/(r-l),     0.f,            0.f,            0.f,
+			0.f,            2.0f/(t-b),     0.f,            0.f,
+			0.f,            0.f,            -2.0f/(f-n),    0.f,
+			-((r+l)/(r-l)), -((t+b)/(t-b)), -((f+n)/(f-n)), 1.f
 		);
 	}
 
@@ -378,11 +373,11 @@ struct mat4 {
 		// The rest of the work is finding the inverted basis vectors and figuring out where the position is.
 
 		// finding the inverted basis vectors: rotating the scene with reverse orientation
-		/*
-			Mview = Mr*Mt = [r0, r4, r8,  0]*[1, 0, 0, tx]=[r0, r4, r8,  r0*tx + r4*ty + r8*tz ]
-							[r1, r5, r9,  0] [0, 1, 0, ty] [r1, r5, r9,  r1*tx + r5*ty + r9*tz ]
-							[r2, r6, r10, 0] [0, 0, 1, tz] [r2, r6, r10, r2*tx + r6*ty + r10*tz]
-							[0,  0,  0,   1] [0, 0, 0, 1 ] [0,  0,  0,   1                     ]
+		/* Mview = Mrotation*Mtranslation
+		         = [r0, r4, r8,  0]*[1, 0, 0, tx]=[r0, r4, r8,  r0*tx + r4*ty + r8*tz ]
+			       [r1, r5, r9,  0] [0, 1, 0, ty] [r1, r5, r9,  r1*tx + r5*ty + r9*tz ]
+			       [r2, r6, r10, 0] [0, 0, 1, tz] [r2, r6, r10, r2*tx + r6*ty + r10*tz]
+			       [0,  0,  0,   1] [0, 0, 0, 1 ] [0,  0,  0,   1                     ]
 		*/
 		vec3 f = (target - eye).normalize();
 		vec3 r = f.cross(up); // right handed
@@ -410,7 +405,8 @@ struct mat4 {
 			r.z, u.z, -f.z, 0,
 			t.x, t.y,  t.z, 1
 		);
-		/* mat4::s_lookAt equivalent to view matrix
+		/* 
+		mat4::s_lookAt equivalent to view matrix
 			The view matrix is the inverse of the camera's transformation (the position, rotation, and scale of the camera).
 			Instead of having to create the camera's transform matrix and then invert it,
 			you will be implementing a lookAt function that generates this matrix directly.
