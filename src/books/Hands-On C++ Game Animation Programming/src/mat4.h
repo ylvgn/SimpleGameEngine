@@ -4,6 +4,8 @@
 
 namespace sge {
 
+struct quat;
+
 struct mat4 {
 
 	using vec3 = TVec3<float>;
@@ -416,7 +418,8 @@ struct mat4 {
 			ex: s_lookAt(camera.position, {0,0,0}, {0,1,0})
 		*/
 	}
-};
 
+	static quat s_quat(const mat4& m);
+};
 
 }
