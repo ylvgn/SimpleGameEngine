@@ -91,6 +91,46 @@ public:
 			glGenVertexArrays(1, &_vertexArrayObject);
 			glBindVertexArray(_vertexArrayObject);
 		}
+
+		{ // test1
+			_testShader = UPtr<Shader>(new Shader(
+				"Assets/Shaders/static.vert",
+				"Assets/Shaders/lit.frag"
+			));
+			
+			_testTexture = UPtr<Texture>(new Texture("Assets/Textures/uvChecker.png"));
+
+			_vertexPositions	= UPtr< Attribute<vec3> >(new Attribute<vec3>());
+			_vertexNormals		= UPtr< Attribute<vec3> >(new Attribute<vec3>());
+			_vertexTexCoords	= UPtr< Attribute<vec2> >(new Attribute<vec2>());
+			_indexBuffer		= UPtr<IndexBuffer>(new IndexBuffer());
+
+			Vector<vec3> positions{
+				vec3(-1, -1, 0),
+				vec3(-1,  1, 0),
+				vec3( 1, -1, 0),
+				vec3( 1,  1, 0),
+			};
+			_vertexPositions->set(positions);
+
+			Vector<vec3> normals;
+			normals.resize(4, vec3::s_forward());
+			_vertexNormals->set(normals);
+
+			Vector<vec2> uvs = {
+				vec2(0,0),
+				vec2(0,1),
+				vec2(1,0),
+				vec2(1,1),
+			};
+			_vertexTexCoords->set(uvs);
+
+			Vector<u32> indices = {
+				0,1,2,
+				2,1,3
+			};
+			_indexBuffer->set(indices);
+		}
 	}
 
 	virtual void onCloseButton() override {
@@ -113,21 +153,28 @@ public:
 	}
 
 	virtual void onDraw() override {
-		Base::onDraw();
-
-		{
-			HDC dc = hdc();
+		{ // update frame
 			DWORD thisTick = GetTickCount();
-			_lastTick = GetTickCount();
-			//float deltaTime = float(thisTick - _lastTick) * 0.001f;
+			float deltaTime = float(thisTick - _lastTick) * 0.001f;
 			_lastTick = thisTick;
-			// onUpdate(deltaTime);
+			
+			{
+				_testRotation += deltaTime * 45.0f;
+				while (_testRotation > 360.0f) {
+					_testRotation -= 360.0f;
+				}
+			}
+		}
 
+		{ // render frame
+			Base::onDraw();
+			HDC dc = hdc();
+
+			// viewport
 			float clientWidth = _clientRect.size.x;
 			float clientHeight = _clientRect.size.y;
-			//float aspect = clientWidth / clientHeight;
-
 			glViewport(0, 0, static_cast<GLsizei>(clientWidth), static_cast<GLsizei>(clientHeight));
+
 			glEnable(GL_DEPTH_TEST);
 			glEnable(GL_CULL_FACE);
 			glPointSize(5.0f);
@@ -136,25 +183,79 @@ public:
 			glClearColor(0.5f, 0.6f, 0.7f, 1.0f);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
+			{
+				float aspect = clientWidth / clientHeight;
+				mat4 projection = mat4::s_perspective(60.0f, aspect, 0.01f, 1000.0f);
+				mat4 view = mat4::s_lookAt(vec3(0, 0, -5), vec3(0, 0, 0), vec3(0, 1, 0));
+				mat4 model = quat::s_mat4(quat::s_angleAxis(Math::radians(_testRotation), vec3(0, 0, 1)));
+				
+				_testShader->bind();
+				{
+					_vertexPositions->bind(_testShader->findAttributeByName("position"));
+					_vertexNormals->bind(_testShader->findAttributeByName("normal"));
+					_vertexTexCoords->bind(_testShader->findAttributeByName("texCoord"));
+
+					{
+						Uniform<mat4>::set(_testShader->findUniformByName("model"), model);
+						Uniform<mat4>::set(_testShader->findUniformByName("view"), view);
+						Uniform<mat4>::set(_testShader->findUniformByName("projection"), projection);
+
+						Uniform<vec3>::set(_testShader->findUniformByName("light"), vec3(0, 0, 1));
+
+						_testTexture->set(_testShader->findUniformByName("tex0"), 0);
+						{
+							g_Draw(*_indexBuffer.get(), DrawMode::Triangles);
+						}
+						_testTexture->unset(0);
+					}
+
+					_vertexPositions->unbind(_testShader->findAttributeByName("position"));
+					_vertexNormals->unbind(_testShader->findAttributeByName("normal"));
+					_vertexTexCoords->unbind(_testShader->findAttributeByName("texCoord"));
+
+				}
+				_testShader->unbind();
+
+			}
+
 			SwapBuffers(dc);
 			if (_vsynch != 0) {
 				glFinish();
 			}
+			drawNeeded();
 		}
-
-		drawNeeded();
 	}
 
 private:
 	int _vsynch = 0;
 	DWORD _lastTick = 0;
 	GLuint _vertexArrayObject = 0;
+
+	float _testRotation = 0.0f;
+	UPtr<Shader> _testShader;
+	UPtr<Texture> _testTexture;
+
+	UPtr<Attribute<vec3>>	_vertexPositions;
+	UPtr<Attribute<vec3>>	_vertexNormals;
+	UPtr<Attribute<vec2>>	_vertexTexCoords;
+	UPtr<IndexBuffer>		_indexBuffer;
 };
 
 class GameAnimeProgApp : public NativeUIApp {
 	using Base = NativeUIApp;
 protected:
 	virtual void onCreate(CreateDesc& desc) override {
+
+		{ // set working dir
+			auto exeFilePath = getExecutableFilename();
+			String workingDir = FilePath::dirname(exeFilePath);
+			workingDir.append("/../../../../../../examples/Test102");
+
+			Directory::setCurrent(workingDir);
+			auto curDir = Directory::getCurrent();
+			SGE_LOG("current dir={}", curDir);
+		}
+
 		Base::onCreate(desc);
 
 		{ // create window

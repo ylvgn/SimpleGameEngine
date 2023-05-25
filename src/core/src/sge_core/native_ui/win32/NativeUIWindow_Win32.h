@@ -17,6 +17,7 @@ public:
 	virtual void onDrawNeeded() override;
 
 	const HWND hwnd() const { return _hwnd; }
+	const HDC hdc() const { return GetDC(_hwnd); }
 
 protected:
 	HWND _hwnd = nullptr;
