@@ -94,7 +94,7 @@ Transform g_mat4ToTransform(const mat4& m) {
 	/*
 	It is possible to decompose a matrix into translation, rotation, scale, skew, and the sign of the determinant.
 	However, this decomposition is expensive and not well suited to real-time applications.
-	FYI: https://research.cs.wisc.edu/graphics/Courses/838-s2002/Papers/polar-decomp.pdf
+	FYI: https://gabormakesgames.com/blog_decomposition.html
 	*/
 }
 
