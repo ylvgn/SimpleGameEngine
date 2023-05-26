@@ -41,8 +41,8 @@ GLenum DrawUtil::getGLEnum(DrawMode mode) {
 	}
 }
 
-void g_Draw(u32 vertexCount, DrawMode mode);
-void g_DrawInstanced(u32 vertexCount, DrawMode mode, u32 numInstances);
+void g_Draw(size_t vertexCount, DrawMode mode);
+void g_DrawInstanced(size_t vertexCount, DrawMode mode, u32 numInstances);
 
 void g_Draw(const IndexBuffer& indexBuf, DrawMode mode);
 void g_DrawInstanced(const IndexBuffer& indexBuf, DrawMode mode, u32 instanceCount);

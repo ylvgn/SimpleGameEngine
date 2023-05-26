@@ -2,12 +2,12 @@
 
 namespace sge {
 
-void g_Draw(u32 vertexCount, DrawMode mode) {
-	glDrawArrays(DrawUtil::getGLEnum(mode), 0, vertexCount);
+void g_Draw(size_t vertexCount, DrawMode mode) {
+	glDrawArrays(DrawUtil::getGLEnum(mode), 0, static_cast<GLsizei>(vertexCount));
 }
 
-void g_DrawInstanced(u32 vertexCount, DrawMode mode, u32 numInstances) {
-	glDrawArraysInstanced(DrawUtil::getGLEnum(mode), 0, vertexCount, numInstances);
+void g_DrawInstanced(size_t vertexCount, DrawMode mode, u32 numInstances) {
+	glDrawArraysInstanced(DrawUtil::getGLEnum(mode), 0, static_cast<GLsizei>(vertexCount), numInstances);
 }
 
 void g_Draw(const IndexBuffer& indexBuf, DrawMode mode) {

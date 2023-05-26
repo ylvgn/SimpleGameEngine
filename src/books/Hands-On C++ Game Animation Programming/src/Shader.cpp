@@ -25,17 +25,27 @@ Shader::~Shader() {
 void Shader::load(StrView vertex, StrView fragment) {
 	// This function takes two strings, which are either filenames or inline shader definitions.
 	// what is inline shader definitions???
-
-	u32 v_shader = _compileVertexShader(_readFile(vertex));
+	
+	u32 v_shader, f_shader;
+	if (File::exists(vertex)) {
+		v_shader = _compileVertexShader(_readFile(vertex));
+	} else {
+		v_shader = _compileVertexShader(vertex);
+	}
 	SGE_ASSERT(v_shader != 0);
 
-	u32 f_shader = _compileFragmentShader(_readFile(fragment));
+	if (File::exists(fragment)) {
+		f_shader = _compileFragmentShader(_readFile(fragment));
+	} else {
+		f_shader = _compileFragmentShader(fragment);
+	}
 	SGE_ASSERT(f_shader != 0);
 
-	if (_linkShaders(v_shader, f_shader)) {
-		_populateAttributes();
-		_populateUniforms();
+	if (!_linkShaders(v_shader, f_shader)) {
+		SGE_LOG("_linkShaders");
 	}
+	_populateAttributes();
+	_populateUniforms();
 }
 
 void Shader::bind() {
@@ -117,7 +127,7 @@ bool Shader::_linkShaders(u32 vertex, u32 fragment) {
 	glAttachShader(_handle, vertex);
 	glAttachShader(_handle, fragment);
 
-	// Link the shaders by calling glLinkProgramand
+	// Link the shaders by calling glLinkProgram
 	glLinkProgram(_handle);
 
 	// check for errors with glGetProgramiv

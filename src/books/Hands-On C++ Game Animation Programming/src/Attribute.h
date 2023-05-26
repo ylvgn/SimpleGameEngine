@@ -20,21 +20,21 @@ public:
 
 	// it will upload an array of data to the GPU.
 	// Each element in the array represents the attribute for one vertex.
-	void set(T* inputArray, u32 arrayLength);
+	void set(const T* inputArray, size_t arrayLength);
 	void set(std::vector<T>& input);
-	void set(Vector<T>& input);
+	void set(const Vector<T>& input);
 
 	// We need a way of binding and unbinding attributes from bind slots defined by the shader.
 	// bind and unbind the attribute to a slot specified in the Shader class.
 	void bind(u32 slot);
 	void unbind(u32 slot);
 
-	inline u32 handle() const { return _handle; }
-	inline u32 count()  const { return _count; }
+	inline u32		handle() const { return _handle; }
+	inline size_t	count()  const { return _count; }
 
 protected:
 	u32 _handle; // OpenGL buffer handle
-	u32 _count;  // The count represents how many total attributes there are
+	size_t _count;  // The count represents how many total attributes there are
 
 private:
 

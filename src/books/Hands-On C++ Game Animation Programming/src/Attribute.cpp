@@ -34,13 +34,13 @@ Attribute<T>::~Attribute() {
 }
 
 template<typename T>
-void Attribute<T>::set(T* inputArray, u32 arrayLength) {
+void Attribute<T>::set(const T* inputArray, size_t arrayLength) {
 	_count = arrayLength;
-	unsigned int size = sizeof(T);
+	size_t size = sizeof(T);
 
 	glBindBuffer(GL_ARRAY_BUFFER, _handle);
 	{
-		// uses glBufferData to fill the buffer with data.
+		// use glBufferData to fill the buffer with data
 		glBufferData(GL_ARRAY_BUFFER, size * _count, inputArray, GL_STREAM_DRAW);
 	}
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -48,13 +48,13 @@ void Attribute<T>::set(T* inputArray, u32 arrayLength) {
 
 template<typename T>
 void Attribute<T>::set(std::vector<T>& input) {
-	set(&input[0], static_cast<u32>(input.size()));
+	set(&input[0], input.size());
 }
 
 template<typename T>
-void Attribute<T>::set(Vector<T>& input) {
+void Attribute<T>::set(const Vector<T>& input) {
 	auto s = input.span();
-	set(s.data(), static_cast<u32>(s.size()));
+	set(s.data(), s.size());
 }
 
 template<>
