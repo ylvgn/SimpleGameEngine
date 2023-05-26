@@ -1,4 +1,5 @@
 #include "common.h"
+#include "DebugDraw.h"
 
 namespace sge {
 
@@ -92,8 +93,8 @@ public:
 
 		_lastTick = GetTickCount();
 
-		{ // test lit Texture
-			_testShader = UPtr<Shader>(new Shader(
+		{ // test lit texture
+			_testShader = UPtr<Shader> (new Shader(
 				"Assets/Shaders/static.vert",
 				"Assets/Shaders/lit.frag"
 			));
@@ -105,6 +106,8 @@ public:
 			_vertexTexCoords	= UPtr< Attribute<vec2> >(new Attribute<vec2>());
 			_indexBuffer		= UPtr<IndexBuffer>(new IndexBuffer());
 
+			_debugPoints = UPtr<DebugDraw>(new DebugDraw());
+			_debugLines = UPtr<DebugDraw>(new DebugDraw());
 			Vector<vec3> positions{
 				vec3(-1, -1, 0),
 				vec3(-1,  1, 0),
@@ -130,6 +133,23 @@ public:
 				2,1,3
 			};
 			_indexBuffer->set(indices);
+
+			_debugPoints->push_back(positions);
+
+			SGE_ASSERT(indices.size() == 6);
+			for (int i = 0; i < indices.size(); i+=3) {
+				_debugLines->push_back(positions[indices[i]]);
+				_debugLines->push_back(positions[indices[i+1]]);
+
+				_debugLines->push_back(positions[indices[i+1]]);
+				_debugLines->push_back(positions[indices[i+2]]);
+
+				_debugLines->push_back(positions[indices[i+2]]);
+				_debugLines->push_back(positions[indices[i]]);
+			}
+
+			_debugPoints->uploadToGpu();
+			_debugLines->uploadToGpu();
 		}
 	}
 
@@ -184,14 +204,14 @@ public:
 			glClearColor(0.5f, 0.6f, 0.7f, 1.0f);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-			{ // test lit Texture
-				float aspect = clientWidth / clientHeight;
+			float aspect = clientWidth / clientHeight;
+			mat4 projection = mat4::s_perspective(60.0f, aspect, 0.01f, 1000.0f);
+			mat4 view = mat4::s_lookAt(vec3(0, 0, -5), vec3::s_zero(), vec3::s_up());
 
-				// mvp
-				mat4 projection = mat4::s_perspective(60.0f, aspect, 0.01f, 1000.0f);
-				mat4 view = mat4::s_lookAt(vec3(0, 0, -5), vec3::s_zero(), vec3::s_up());
+			{ // test lit texture
 				mat4 model = quat::s_mat4(quat::s_angleAxis(Math::radians(_testRotation), vec3(0,0,1))); // or mat4::s_identity();
-				
+				mat4 mvp = projection * view * model;
+
 				_testShader->bind();
 				{
 					{ // bind attributes
@@ -210,6 +230,9 @@ public:
 
 					g_Draw(*_indexBuffer.get(), DrawMode::Triangles);
 
+					_debugLines->draw(DebugDrawMode::Lines, mvp);
+					_debugPoints->draw(DebugDrawMode::Points, mvp, vec3(0, 0, 1));
+
 					{ // unbind/deactive
 						_testTexture->unset(0);
 
@@ -220,7 +243,6 @@ public:
 
 				}
 				_testShader->unbind();
-
 			}
 
 			SwapBuffers(dc);
@@ -245,6 +267,9 @@ private:
 	UPtr<Attribute<vec3>>	_vertexNormals;
 	UPtr<Attribute<vec2>>	_vertexTexCoords;
 	UPtr<IndexBuffer>		_indexBuffer;
+
+	UPtr<DebugDraw> _debugPoints;
+	UPtr<DebugDraw> _debugLines;
 };
 
 class GameAnimeProgApp : public NativeUIApp {
