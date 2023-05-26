@@ -30,14 +30,14 @@ struct DrawUtil {
 GLenum DrawUtil::getGLEnum(DrawMode mode) {
 	switch (mode)
 	{
-		case DrawMode::Points:			return GL_POINT;
+		case DrawMode::Points:			return GL_POINTS;
 		case DrawMode::LineStrip:		return GL_LINE_STRIP;
 		case DrawMode::LineLoop:		return GL_LINE_LOOP;
-		case DrawMode::Lines:			return GL_LINE;
+		case DrawMode::Lines:			return GL_LINES;
 		case DrawMode::Triangles:		return GL_TRIANGLES;
 		case DrawMode::TriangleStrip:	return GL_TRIANGLE_STRIP;
 		case DrawMode::TriangleFan:		return GL_TRIANGLE_FAN;
-		default:						throw SGE_ERROR("unsupported DrawMode");
+		default:						throw  SGE_ERROR("unsupported DrawMode");
 	}
 }
 
