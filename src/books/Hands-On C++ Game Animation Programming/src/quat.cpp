@@ -15,18 +15,18 @@ quat quat::s_fromTo(const vec3& from, const vec3& to) {
 	if (f.equals(t)) {
 		return quat::s_identity(); // no rotation
 	}
-	else if (f.equals(t * -1.0f)) { // 180 degree rotation
+	else if (f.equals(-t)) { // 180 degree rotation
 		// when opposites of each other, the most orthogonal axis of the from vector can be used to create a pure quaternion
 
-		vec3 ortho(1, 0, 0); // x-axis is the most orthogonal axis of f vector
+		vec3 ortho = vec3::s_right(); // x-axis is the most orthogonal axis of f vector
 
 		if (fabsf(f.y) < fabsf(f.x)) {
-			ortho = vec3(0, 1, 0); // y-axis is the most orthogonal axis of f vector
+			ortho = vec3::s_up(); // y-axis is the most orthogonal axis of f vector
 		}
 
 		// when from vector is close to XOY-plane
 		if (fabsf(f.z) < fabs(f.y) && fabs(f.z) < fabsf(f.x)) {
-			ortho = vec3(0, 0, 1); // z-axis is the most orthogonal axis of f vector
+			ortho = vec3::s_forward(); // z-axis is the most orthogonal axis of f vector
 		}
 
 		vec3 axis = f.cross(ortho).normalize();
@@ -70,6 +70,7 @@ mat4 quat::s_mat4(const quat& q) {
 	// FYI: https://gabormakesgames.com/blog_quats_to_matrix.html
 #if 0
 	// It's less efficient, but easier to understand quaternion to matrix conversion if we think about basis vectors. 
+	// there is bug, because positive angle measures represent a counterclockwise rotation, but the following is wrong!!?????
 	vec3 r = q * vec3::s_right();
 	vec3 u = q * vec3::s_up();
 	vec3 f = q * vec3::s_forward();
@@ -77,7 +78,8 @@ mat4 quat::s_mat4(const quat& q) {
 	return mat4(r.x, r.y, r.z, 0,  // x basis vector (No scale)
 				u.x, u.y, u.z, 0,  // y basis vector (No scale)
 				f.x, f.y, f.z, 0,  // z basis vector (No scale)
-				0,   0,   0,   1); // w basis vector (No scale)
+				0,   0,   0,   1   // w basis vector (No scale)
+	);
 #else
 
 #if 0
@@ -92,11 +94,10 @@ mat4 quat::s_mat4(const quat& q) {
 	float xz = q.x*q.z;
 	float yz = q.y*q.z;
 
-	return Matrix4(
-		ww + xx - yy - zz, 2 * xy - 2 * wz, 2 * xz + 2 * wy, 0,
-		2 * xy + 2 * wz, ww - xx + yy - zz, 2 * yz - 2 * wx, 0,
-		2 * xz - 2 * wy, 2 * yz + 2 * wx, ww - xx - yy + zz, 0,
-		0, 0, 0, ww + xx + yy + zz
+	return Matrix4(ww+xx-yy-zz, 2*xy-2*wz,   2*xz+2*wy,   0,
+		           2*xy+2*wz,   ww-xx+yy-zz, 2*yz-2*wx,   0,
+		           2*xz-2*wy,   2*yz + 2*wx, ww-xx-yy+zz, 0,
+		           0,           0,           0,           ww+xx+yy+zz
 	);
 #else
 	// since q is a unit quaternion, so ww+xx+yy+zz=1

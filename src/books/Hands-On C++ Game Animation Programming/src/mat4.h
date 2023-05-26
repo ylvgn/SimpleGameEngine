@@ -330,8 +330,8 @@ struct mat4 {
 		return mat4(
 			(2.0f*n)/(r-l), 0.f,            0.f,             0.f,
 			0.f,            (2.0f*n)/(t-b), 0.f,             0.f,
-			(r+l)/(r-l),    (t+b)/(t-b),    (-(f+n))/(f-n), -1.f,
-			0.f,            0.f,            (-2*f*n)/(f-n),  0.f
+			(r+l)/(r-l),    (t+b)/(t-b),    -(f+n)/(f-n),    -1.f,
+			0.f,            0.f,            -2.0f*f*n/(f-n), 0.f
 		);
 	}
 
@@ -339,15 +339,15 @@ struct mat4 {
 		// a field of view (fov typically in degrees),
 		// an aspect ratio (the ratio of 'x:y')
 		// and near and far distances.
-	inline static mat4 s_perspective(float fov, float aspect, float znear, float zfar) {
+	inline static mat4 s_perspective(float fov, float aspect, float zNear, float zFar) {
 		if (Math::equals0(aspect)) {
 			return mat4::s_identity();
 		}
 
-		float ymax = znear * tanf(Math::radians(fov / 2.0f));
+		float ymax = zNear * tanf(Math::radians(fov / 2.0f));
 		float xmax = ymax * aspect;
 
-		return s_frustum(-xmax, xmax, -ymax, ymax, znear, zfar);
+		return s_frustum(-xmax, xmax, -ymax, ymax, zNear, zFar);
 //		It serves as an easy way to create a view frustum.
 	}
 
@@ -363,7 +363,7 @@ struct mat4 {
 			2.0f/(r-l),     0.f,            0.f,            0.f,
 			0.f,            2.0f/(t-b),     0.f,            0.f,
 			0.f,            0.f,            -2.0f/(f-n),    0.f,
-			-((r+l)/(r-l)), -((t+b)/(t-b)), -((f+n)/(f-n)), 1.f
+			-(r+l)/(r-l),   -(t+b)/(t-b),   -(f+n)/(f-n),   1.f
 		);
 	}
 
@@ -380,13 +380,12 @@ struct mat4 {
 			       [0,  0,  0,   1] [0, 0, 0, 1 ] [0,  0,  0,   1                     ]
 		*/
 		vec3 f = (target - eye).normalize();
-		vec3 r = f.cross(up); // right handed
+		vec3 r = f.cross(up).normalize(); // right
 		if (r == vec3::s_zero()) {
 			SGE_ERROR("Trying to create invalid s_lookAt\n");
 			return mat4();
 		}
-		r = r.normalize();
-		vec3 u = r.cross(f).normalize(); // up handed
+		vec3 u = r.cross(f); // up
 
 		// figuring out where the position is: translating the whole scene inversely from the eye position to the origin
 		// The position can be calculated by negating the dot product of the position column vector with the inverted basis vectors.
