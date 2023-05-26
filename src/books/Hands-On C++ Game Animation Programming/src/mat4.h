@@ -118,21 +118,6 @@ struct mat4 {
 		This is useful because you can pre-multiply certain matrices to perform fewer multiplications per frame.
 	*/
 	inline mat4 operator*(const mat4& r) const {
-		mat4 m;
-		for (int i = 0; i < 4; i++) {
-			const vec4 lhs = col(i);
-			vec4 c;
-			for (int j = 0; j < 4; j++) {
-				const vec4 rhs = r.row(j);
-				c[j] = lhs.dot(rhs);
-			}
-			m.setCol(i, c);
-		}
-		return m;
-	}
-
-	// same as operator* (const mat4& r)
-	inline mat4 mul(const mat4& r) const {
 	#define E(ROW, COL) \
 		v[0*4+ROW] * r.v[4*COL+0] + \
 		v[1*4+ROW] * r.v[4*COL+1] + \
