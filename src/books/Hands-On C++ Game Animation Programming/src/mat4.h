@@ -391,8 +391,8 @@ struct mat4 {
 		// figuring out where the position is: translating the whole scene inversely from the eye position to the origin
 		// The position can be calculated by negating the dot product of the position column vector with the inverted basis vectors.
 		vec3 t = vec3(
-			r.dot(eye),
-			u.dot(eye),
+			-r.dot(eye),
+			-u.dot(eye),
 			f.dot(eye)
 		);
 
