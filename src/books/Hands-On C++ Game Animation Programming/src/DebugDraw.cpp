@@ -4,7 +4,7 @@
 
 namespace sge {
 
-void DebugDraw::draw(DebugDrawMode mode, const mat4& mvp, const vec3& color /*= vec3(1,0,0)*/) {
+void DebugDraw::draw(DebugDrawMode mode, const mat4& mvp, const Color4f& color /*= Color4f(1,0,0,1)*/) {
 	_shader->bind();
 
 	_attribs.bind(_shader->findAttributeByName("position"));
@@ -16,7 +16,7 @@ void DebugDraw::draw(DebugDrawMode mode, const mat4& mvp, const vec3& color /*= 
 	Uniform<mat4>::set(_shader->findUniformByName("projection"), projection);
 #endif
 
-	Uniform<vec3>::set(_shader->findUniformByName("color"), color);
+	Uniform<Color4f>::set(_shader->findUniformByName("color"), color);
 
 	switch (mode)
 	{
@@ -39,10 +39,6 @@ void DebugDraw::draw(DebugDrawMode mode, const mat4& mvp, const vec3& color /*= 
 
 	_attribs.unbind(_shader->findAttributeByName("position"));
 	_shader->unbind();
-}
-
-void DebugDraw::draw(DebugDrawMode mode, const mat4& model, const mat4& view, const mat4& projection, const vec3& color /*= vec3(1, 0, 0)*/) {
-	draw(mode, projection * view * model, color);
 }
 
 }

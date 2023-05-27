@@ -19,6 +19,39 @@ class MainWin : public NativeUIWindow {
 	using Base = NativeUIWindow;
 public:
 	virtual void onCreate(CreateDesc& desc) override {
+
+#if 1
+		{ // test mat4
+			mat4 m1{2, 3, 2, 5,
+				    1, 4, 6, 2,
+				    3, 3, 5, 2,
+				    4, 6, 2, 7};
+			m1.transpose();
+
+			mat4 m2{2, 3, 1, 2,
+				    2, 3, 5, 3,
+				    2, 3, 3, 1,
+				    1, 1, 4, 3};
+			m2.transpose();
+
+			// test mat4*mat4
+			mat4 m1mulm2{19, 26, 43, 30,
+				         24, 35, 47, 26,
+				         24, 35, 41, 26,
+				         31, 43, 68, 49};
+			m1mulm2.transpose();
+			SGE_ASSERT(m1mulm2 == (m1 * m2));
+
+			// test mat4*vec4
+			vec4 m1mulv4{ 19,24,24,31 };
+			SGE_ASSERT(m1mulv4 == (m1 * vec4(2,2,2,1)));
+
+			//test inverse
+			mat4 m1Inv = m1.inverse();
+			SGE_ASSERT(mat4::s_identity().equals(m1 * m1Inv, 0.000001f));
+		}
+#endif
+
 		Base::onCreate(desc);
 
 		{ // create opengl render context
@@ -180,6 +213,9 @@ public:
 	}
 
 	virtual void onDraw() override {
+		if (_vertexArrayObject == 0) return;
+		if (_testShader == nullptr) return;
+
 		{ // update frame
 			DWORD thisTick = GetTickCount();
 			float dt = float(thisTick - _lastTick) * 0.001f;
@@ -231,7 +267,7 @@ public:
 					g_Draw(*_indexBuffer.get(), DrawMode::Triangles);
 
 					_debugLines->draw(DebugDrawMode::Lines, mvp);
-					_debugPoints->draw(DebugDrawMode::Points, mvp, vec3(0, 0, 1));
+					_debugPoints->draw(DebugDrawMode::Points, mvp, Color4f(0, 0, 1, 1));
 
 					{ // unbind/deactive
 						_testTexture->unset(0);
@@ -268,8 +304,8 @@ private:
 	UPtr<Attribute<vec2>>	_vertexTexCoords;
 	UPtr<IndexBuffer>		_indexBuffer;
 
-	UPtr<DebugDraw> _debugPoints;
-	UPtr<DebugDraw> _debugLines;
+	UPtr<DebugDraw>			_debugPoints;
+	UPtr<DebugDraw>			_debugLines;
 };
 
 class GameAnimeProgApp : public NativeUIApp {

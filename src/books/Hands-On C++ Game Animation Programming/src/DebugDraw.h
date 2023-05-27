@@ -5,11 +5,12 @@
 #include "Shader.h"
 #include "Attribute.h"
 
+// The DebugDraw class is not very efficient;
+// it's only meant to be used for debugging.
+
 namespace sge {
 
 enum class DebugDrawMode { Lines, Loop, Strip, Points };
-
-// The DebugDraw class is not very efficient; it's only meant to be used for debugging.
 
 class DebugDraw : public NonCopyable {
 
@@ -21,10 +22,10 @@ class DebugDraw : public NonCopyable {
 		"}";
 
 	static constexpr const char* kFrag = "#version 330 core\n"
-		"uniform vec3 color;\n"
+		"uniform vec4 color;\n"
 		"out vec4 FragColor;\n"
 		"void main() {\n"
-		"	FragColor = vec4(color, 1.0);\n"
+		"	FragColor = color;\n"
 		"}";
 
 public:
@@ -48,8 +49,7 @@ public:
 
 	inline void uploadToGpu() { _attribs.set(_points); }
 
-	void draw(DebugDrawMode mode, const mat4& mvp, const vec3& color = vec3(1,0,0));
-	void draw(DebugDrawMode mode, const mat4& model, const mat4& view, const mat4& projection, const vec3& color = vec3(1,0,0));
+	void draw(DebugDrawMode mode, const mat4& mvp, const Color4f& color = Color4f(1,1,0,1));
 
 private:
 	Vector<vec3>	_points;

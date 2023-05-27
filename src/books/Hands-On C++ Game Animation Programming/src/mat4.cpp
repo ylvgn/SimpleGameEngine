@@ -18,4 +18,8 @@ quat mat4::s_quat(const mat4& m) {
 	*/
 }
 
+void mat4::onFormat(fmt::format_context& ctx) const {
+	fmt::format_to(ctx.out(), "{}\n{}\n{}\n{}", cx, cy, cz, cw);
+}
+
 }

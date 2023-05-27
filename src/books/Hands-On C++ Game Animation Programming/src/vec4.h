@@ -62,7 +62,11 @@ struct TVec4 {
 	inline vec3 xy0()		const { return vec3(x,y,0); }
 	inline vec3 x0z()		const { return vec3(x,0,z); }
 
-	inline T dot(const TVec4& r) const { return (x * r.x) + (y * r.y) + (z * r.z) + (w * r.w); }
+	inline T dot(const TVec4& r) const { return (x*r.x) + (y*r.y) + (z*r.z) + (w*r.w); }
+
+	void onFormat(fmt::format_context& ctx) const {
+		fmt::format_to(ctx.out(), "[{}, {}, {}, {}]", x, y, z, w);
+	}
 };
 
 template<class T> inline
@@ -105,6 +109,7 @@ struct TVec4<unsigned int> {
 	inline TVec4(const T& x_, const T& y_, const T& z_, const T& w_) : x(x_), y(y_), z(z_), w(w_) {}
 };
 
+
 using vec4f		= TVec4<float>;
 using vec4d		= TVec4<double>;
 using vec4i		= TVec4<int>;
@@ -112,4 +117,5 @@ using vec4ui	= TVec4<unsigned int>;
 
 using vec4		= vec4f;
 
+SGE_FORMATTER_T(class T, TVec4<T>)
 }

@@ -82,22 +82,23 @@ struct mat4 {
 	inline mat4(const mat4& r) : cx(r.cx), cy(r.cy), cz(r.cz), cw(r.cw) {}
 
 	inline static mat4 s_identity() {
-		return mat4(
-			1,0,0,0,
-			0,1,0,0,
-			0,0,1,0,
-			0,0,0,1
-		);
+		return mat4(1,0,0,0,
+			        0,1,0,0,
+			        0,0,1,0,
+			        0,0,0,1);
 	}
 
 	inline			vec4& operator[](int i)			{ return _columns[i]; }
 	inline const	vec4& operator[](int i) const	{ return _columns[i]; }
 
-	inline vec4 col(int i) const	{ return _columns[i]; }
-	inline vec4 row(int i) const	{ return vec4(cx[i], cy[i], cz[i], cw[i]); }
+	inline vec4 col(int i) const { return _columns[i]; }
+	inline vec4 row(int i) const { return vec4(cx[i], cy[i], cz[i], cw[i]); }
 
 	inline void setCol(int i, const vec4& v_) { _columns[i] = v_; }
 	inline void setRow(int i, const vec4& v_) { cx[i] = v_.x; cy[i] = v_.y; cz[i] = v_.z; cw[i] = v_.w; }
+
+	inline bool equals(const mat4& r, float epsilon = Math::epsilon<float>()) const { return cx.equals(r.cx, epsilon) && cy.equals(r.cy, epsilon) && cz.equals(r.cz, epsilon) && cw.equals(r.cw, epsilon); }
+	inline bool equals0(              float epsilon = Math::epsilon<float>()) const { return cx.equals0(epsilon) && cy.equals0(epsilon) && cz.equals0(epsilon) && cw.equals0(epsilon); }
 
 	inline bool operator==(const mat4& r) const { return cx == r.cx && cy == r.cy && cz == r.cz && cw == r.cw; }
 	inline bool operator!=(const mat4& r) const { return !(this->operator==(r)); }
@@ -109,7 +110,7 @@ struct mat4 {
 	inline mat4 operator*(float s) const { return mat4(cx*s, cy*s, cz*s, cw*s); }
 	inline mat4 operator/(float s) const { return mat4(cx/s, cy/s, cz/s, cw/s); }
 
-	// The resulting value for any element is the dot product of that row from the left matrix and that column forms the right matrix.
+	// The resulting value for any element is the dot product of that row from the left matrix and that column form the right matrix.
 	// For example, suppose you want to find the value of the element in row 2 column 3 when multiplying two matrices.
 	// This means taking the dot product of row 2 from the left-hand side matrix and column 3 from the right-hand side matrix.
 	/*
@@ -118,19 +119,45 @@ struct mat4 {
 		This is useful because you can pre-multiply certain matrices to perform fewer multiplications per frame.
 	*/
 	inline mat4 operator*(const mat4& r) const {
+#if 1
 	#define E(ROW, COL) \
 		v[0*4+ROW] * r.v[4*COL+0] + \
 		v[1*4+ROW] * r.v[4*COL+1] + \
 		v[2*4+ROW] * r.v[4*COL+2] + \
 		v[3*4+ROW] * r.v[4*COL+3] \
-	// -------
-		return mat4(
-			E(0,0), E(1,0), E(2,0), E(3,0), // Column 0
-			E(0,1), E(1,1), E(2,1), E(3,1), // Column 1
-			E(0,2), E(1,2), E(2,2), E(3,2), // Column 2
-			E(0,3), E(1,3), E(2,3), E(3,3)  // Column 3
+// -------
+//                  row0    row1    row2    row3
+		return mat4(E(0,0), E(1,0), E(2,0), E(3,0), // column0
+			        E(0,1), E(1,1), E(2,1), E(3,1), // column1
+			        E(0,2), E(1,2), E(2,2), E(3,2), // column2
+			        E(0,3), E(1,3), E(2,3), E(3,3)  // column3
 		);
 	#undef E
+#else
+		mat4 m;
+#if 1 // per-row
+		for (int i = 0; i < 4; ++i) {
+			vec4 res;
+			auto lr = row(i);
+			for (int j = 0; j < 4; ++j) {
+				auto rc = r.col(j);
+				res[j] = lr.dot(rc);
+			}
+			m.setRow(i, res);
+		}
+#else // or per-col
+		for (int i = 0; i < 4; ++i) {
+			vec4 res;
+			auto rc = r.col(i);
+			for (int j = 0; j < 4; ++j) {
+				auto lr = row(j);
+				res[j] = lr.dot(rc);
+			}
+			m.setCol(i, res);
+		}
+#endif
+		return m;
+#endif
 	}
 
 #define M4V4D(ROW, x, y, z, w) \
@@ -143,14 +170,14 @@ struct mat4 {
 	inline vec4 operator* (const vec4& r) const {
 		vec4 v4;
 		for (int i = 0; i < 4; i++) {
-			v4[i] = col(i).dot(r);
+			v4[i] = row(i).dot(r);
 		}
 		return v4;
 	}
 
 	inline vec4 mul(const vec4& r) const {
 	#define E(ROW, V4) M4V4D(ROW, V4.x, V4.y, V4.z, V4.w)
-		return vec4(E(0, r), E(1, r), E(2, r), E(3, r));
+		return vec4(E(0,r), E(1,r), E(2,r), E(3,r));
 	#undef E
 	}
 
@@ -162,7 +189,7 @@ struct mat4 {
 	*/
 	inline vec3 transformVector(const vec3& r) const {
 #define E(ROW, V3) M4V4D(ROW, V3.x, V3.y, V3.z, 1)
-		return vec3(E(0, r), E(1, r), E(2, r));
+		return vec3(E(0,r), E(1,r), E(2,r));
 #undef E
 	}
 
@@ -173,7 +200,7 @@ struct mat4 {
 		float _w = w;
 		w = M4V4D(3, r.x, r.y, r.z, _w);
 #define E(ROW, V3) M4V4D(ROW, V3.x, V3.y, V3.z, _w)
-		return vec3(E(0, r), E(1, r), E(2, r));
+		return vec3(E(0,r), E(1,r), E(2,r));
 #undef E
 	}
 
@@ -234,7 +261,8 @@ struct mat4 {
 		cofactor.v[15] =  M4_3X3MINOR(0,1,2, 0,1,2);
 
 		// Adj(M[i,j]) = Cofactor(M[j,i])
-		return cofactor.transposed();
+		cofactor.transpose();
+		return cofactor;
 	}
 
 	// Not all matrices have an inverse. Only matrices with a non-zero determinant can be inverted.
@@ -250,19 +278,8 @@ struct mat4 {
 			return mat4();
 		}
 
-		mat4 adj = adjugate();
 		float oneOverDet = 1.0f/det;
-		return adj*oneOverDet;
-	}
-
-	// invert=inverse self
-	void invert() {
-		float det = determinant();
-		if (Math::equals0(det)) {
-			SGE_ERROR("Trying to invert a matrix with a zero determinant\n");
-		}
-		float oneOverDet = 1.0f/det;
-		*this = std::move(adjugate()*oneOverDet);
+		return adjugate()*oneOverDet;
 	}
 
 	inline float determinant3x3() const {
@@ -312,12 +329,10 @@ struct mat4 {
 			return mat4();
 		}
 
-		return mat4(
-			(2.0f*n)/(r-l), 0.f,            0.f,             0.f,
-			0.f,            (2.0f*n)/(t-b), 0.f,             0.f,
-			(r+l)/(r-l),    (t+b)/(t-b),    -(f+n)/(f-n),    -1.f,
-			0.f,            0.f,            -2.0f*f*n/(f-n), 0.f
-		);
+		return mat4(2*n/(r-l),   0,           0,            0,
+			        0,           2*n/(t-b),   0,            0,
+			        (r+l)/(r-l), (t+b)/(t-b), -(f+n)/(f-n), -1,
+			        0,           0,           -2*f*n/(f-n), 0);
 	}
 
 	// A perspective matrix is built from
@@ -344,12 +359,10 @@ struct mat4 {
 			return mat4();
 		}
 
-		return mat4(
-			2.0f/(r-l),     0.f,            0.f,            0.f,
-			0.f,            2.0f/(t-b),     0.f,            0.f,
-			0.f,            0.f,            -2.0f/(f-n),    0.f,
-			-(r+l)/(r-l),   -(t+b)/(t-b),   -(f+n)/(f-n),   1.f
-		);
+		return mat4(2/(r-l),      0,            0,            0,
+			        0,            2/(t-b),      0,            0,
+			        0,            0,            -2/(f-n),     0,
+			        -(r+l)/(r-l), -(t+b)/(t-b), -(f+n)/(f-n), 1);
 	}
 
 	// FYI: http://www.songho.ca/opengl/gl_camera.html#lookat
@@ -372,34 +385,29 @@ struct mat4 {
 		}
 		vec3 u = r.cross(f); // up
 
+		// Since the basis vectors are orthonormal, their inverse is the same as their transpose.
+		// Remember, forward is negative z
+		// Transpose upper 3x3 matrix to invert it
 		// figuring out where the position is: translating the whole scene inversely from the eye position to the origin
 		// The position can be calculated by negating the dot product of the position column vector with the inverted basis vectors.
-		vec3 t = vec3(
-			-r.dot(eye),
-			-u.dot(eye),
-			f.dot(eye)
-		);
-
-		// Since the basis vectors are orthonormal, their inverse is the same as their transpose.
-		return mat4(
-			// Remember, forward is negative z
-			// Transpose upper 3x3 matrix to invert it
-			r.x, u.x, -f.x, 0,
-			r.y, u.y, -f.y, 0,
-			r.z, u.z, -f.z, 0,
-			t.x, t.y,  t.z, 1
-		);
+		return mat4( r.x,         u.x,        -f.x,        0,
+			         r.y,         u.y,        -f.y,        0,
+			         r.z,         u.z,        -f.z,        0,
+			        -r.dot(eye), -u.dot(eye),  f.dot(eye), 1);
 		/* 
 		mat4::s_lookAt equivalent to view matrix
 			The view matrix is the inverse of the camera's transformation (the position, rotation, and scale of the camera).
 			Instead of having to create the camera's transform matrix and then invert it,
-			you will be implementing a lookAt function that generates this matrix directly.
-			The lookAt function is the most convenient way of constructing a view matrix.
+			you will be implementing a s_lookAt function that generates this matrix directly.
+			The s_lookAt function is the most convenient way of constructing a view matrix.
 			ex: s_lookAt(camera.position, {0,0,0}, {0,1,0})
 		*/
 	}
 
 	static quat s_quat(const mat4& m);
+
+	void onFormat(fmt::format_context& ctx) const;
 };
 
+SGE_FORMATTER(mat4)
 }

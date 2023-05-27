@@ -149,6 +149,10 @@ struct TVec3 {
 
 	inline bool operator== (const TVec3& r) const { return x == r.x && y == r.y && z == r.z; }
 	inline bool operator!= (const TVec3& r) const { return !(this->operator==(r)); }
+
+	inline void onFormat(fmt::format_context& ctx) const {
+		fmt::format_to(ctx.out(), "[{}, {}, {}]", x, y, z);
+	}
 };
 
 template<class T> inline
@@ -195,5 +199,7 @@ using vec3i		= TVec3<int>;
 using vec3ui	= TVec3<unsigned int>;
 
 using vec3		= vec3f;
+
+SGE_FORMATTER_T(class T, TVec3<T>)
 
 }
