@@ -51,6 +51,18 @@ public:
 			SGE_ASSERT(mat4::s_identity().equals(m1 * m1Inv, 0.000001f));
 		}
 #endif
+		{ // test GLTFLoader
+			{
+				cgltf_data* data = g_LoadGLTFFile("Assets/Mesh/test.glb");
+				SGE_ASSERT(data->file_type == cgltf_file_type_glb);
+				g_FreeGLTFFile(data);
+			}
+			{
+				cgltf_data* data = g_LoadGLTFFile("Assets/Mesh/test.gltf");
+				SGE_ASSERT(data->file_type == cgltf_file_type_gltf);
+				g_FreeGLTFFile(data);
+			}
+		}
 
 		Base::onCreate(desc);
 

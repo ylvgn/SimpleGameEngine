@@ -11,3 +11,5 @@
 #include "Uniform.h"
 #include "Draw.h"
 #include "Texture.h"
+
+#include "GLTFLoader.h"
