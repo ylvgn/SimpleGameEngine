@@ -2,6 +2,7 @@
 
 /*
 	IndexBuffer is bound to GL_ELEMENT_ARRAY_BUFFER and can be used to draw primitives.
+	IndexBuffer aka index buffer (GPU buffer), similar to Attribute
 */
 namespace sge {
 
@@ -10,16 +11,17 @@ public:
 	IndexBuffer();
 	~IndexBuffer();
 
-	void set(u32* inputArray, u32 arrLen);
-	void set(Vector<u32>& input);
-	void set(std::vector<u32>& input);
+	void uploadToGpu(const u32* data, size_t len);
+	void uploadToGpu(const Vector<u32>& data);
+	void uploadToGpu(const std::vector<u32>& data);
+	void uploadToGpu(ByteSpan data);
 
-	inline u32 handle() const { return _handle; }
-	inline u32 count()  const { return _count; }
+	inline u32		handle() const { return _handle; }
+	inline size_t	count()  const { return _count; }
 
 private:
-	u32 _handle; // OpenGL handle
-	u32 _count;
+	u32 _handle;   // OpenGL buffer handle
+	size_t _count; // The count represents how many total indexbuffer there are
 };
 
 }

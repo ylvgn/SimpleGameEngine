@@ -8,7 +8,7 @@ For example, a vertex has a position and a normal, which are both attributes.
 start implementing an Attribute class to hold vertex data that is passed to shaders.
 Attributes can have different data types.
 
-Attributes aka vertex data (GPU buffer)
+Attributes aka vertex buffer (GPU buffer)
 */
 namespace sge {
 
@@ -20,9 +20,10 @@ public:
 
 	// it will upload an array of data to the GPU.
 	// Each element in the array represents the attribute for one vertex.
-	void set(const T* inputArray, size_t arrayLength);
-	void set(std::vector<T>& input);
-	void set(const Vector<T>& input);
+	void uploadToGpu(const T* data, size_t len);
+	void uploadToGpu(const std::vector<T>& data);
+	void uploadToGpu(const Vector<T>& data);
+	void uploadToGpu(ByteSpan data);
 
 	// We need a way of binding and unbinding attributes from bind slots defined by the shader.
 	// bind and unbind the attribute to a slot specified in the Shader class.
@@ -33,8 +34,8 @@ public:
 	inline size_t	count()  const { return _count; }
 
 protected:
-	u32 _handle; // OpenGL buffer handle
-	size_t _count;  // The count represents how many total attributes there are
+	u32 _handle;   // OpenGL buffer handle
+	size_t _count; // The count represents how many total attributes there are
 
 private:
 

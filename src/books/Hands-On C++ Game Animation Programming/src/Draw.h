@@ -6,6 +6,7 @@
 	You have classes for dealing with vertex data, uniforms, and index buffers, but no code to draw any of it.
 	Drawing will be handled by four global functions.
 	You will have two Draw functions and two DrawInstanced functions.
+	ps: Draw.h is provided helper function only.
 */
 
 namespace sge {

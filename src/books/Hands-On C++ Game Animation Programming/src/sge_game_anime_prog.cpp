@@ -20,7 +20,7 @@ class MainWin : public NativeUIWindow {
 public:
 	virtual void onCreate(CreateDesc& desc) override {
 
-#if 1
+#if 0
 		{ // test mat4
 			mat4 m1{2, 3, 2, 5,
 				    1, 4, 6, 2,
@@ -102,10 +102,10 @@ public:
 
 		{ // vsynch: https://www.khronos.org/opengl/wiki/Swap_Interval
 			PFNWGLGETEXTENSIONSSTRINGEXTPROC _wglGetExtensionsStringEXT = (PFNWGLGETEXTENSIONSSTRINGEXTPROC)wglGetProcAddress("wglGetExtensionsStringEXT");
-			bool swapControlSupported = strstr(_wglGetExtensionsStringEXT(), "WGL_EXT_swap_control") != 0;
+			bool isSwapControlSupported = strstr(_wglGetExtensionsStringEXT(), "WGL_EXT_swap_control") != 0;
 
 			_vsynch = 0;
-			if (swapControlSupported) {
+			if (isSwapControlSupported) {
 				PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
 				PFNWGLGETSWAPINTERVALEXTPROC wglGetSwapIntervalEXT = (PFNWGLGETSWAPINTERVALEXTPROC)wglGetProcAddress("wglGetSwapIntervalEXT");
 
@@ -127,62 +127,66 @@ public:
 		_lastTick = GetTickCount();
 
 		{ // test lit texture
-			_testShader = UPtr<Shader> (new Shader(
-				"Assets/Shaders/static.vert",
-				"Assets/Shaders/lit.frag"
-			));
-			
-			_testTexture = UPtr<Texture>(new Texture("Assets/Textures/uvChecker.png"));
-
+			_testShader			= UPtr<Shader> (new Shader("Assets/Shaders/static.vert", "Assets/Shaders/lit.frag"));
+			_testTexture		= UPtr<Texture>(new Texture("Assets/Textures/uvChecker.png"));
 			_vertexPositions	= UPtr< Attribute<vec3> >(new Attribute<vec3>());
 			_vertexNormals		= UPtr< Attribute<vec3> >(new Attribute<vec3>());
 			_vertexTexCoords	= UPtr< Attribute<vec2> >(new Attribute<vec2>());
 			_indexBuffer		= UPtr<IndexBuffer>(new IndexBuffer());
 
 			_debugPoints = UPtr<DebugDraw>(new DebugDraw());
-			_debugLines = UPtr<DebugDraw>(new DebugDraw());
-			Vector<vec3> positions{
-				vec3(-1, -1, 0),
-				vec3(-1,  1, 0),
-				vec3( 1, -1, 0),
-				vec3( 1,  1, 0),
-			};
-			_vertexPositions->set(positions);
+			_debugLines  = UPtr<DebugDraw>(new DebugDraw());
 
-			Vector<vec3> normals;
-			normals.resize(4, vec3::s_forward());
-			_vertexNormals->set(normals);
+			{ // pos
+				Vector<vec3> positions{
+					vec3(-1, -1, 0),
+					vec3(-1,  1, 0),
+					vec3( 1, -1, 0),
+					vec3( 1,  1, 0),
+				};
 
-			Vector<vec2> uvs = {
-				vec2(0,0),
-				vec2(0,1),
-				vec2(1,0),
-				vec2(1,1),
-			};
-			_vertexTexCoords->set(uvs);
+				// indices
+				Vector<u32> indices = {
+					0,1,2,
+					2,1,3
+				};
 
-			Vector<u32> indices = {
-				0,1,2,
-				2,1,3
-			};
-			_indexBuffer->set(indices);
+				_debugPoints->push_back(positions);
 
-			_debugPoints->push_back(positions);
+				SGE_ASSERT(indices.size() == 6);
+				for (int i = 0; i < indices.size(); i += 3) {
+					_debugLines->push_back(positions[indices[i]]);
+					_debugLines->push_back(positions[indices[i+1]]);
 
-			SGE_ASSERT(indices.size() == 6);
-			for (int i = 0; i < indices.size(); i+=3) {
-				_debugLines->push_back(positions[indices[i]]);
-				_debugLines->push_back(positions[indices[i+1]]);
+					_debugLines->push_back(positions[indices[i+1]]);
+					_debugLines->push_back(positions[indices[i+2]]);
 
-				_debugLines->push_back(positions[indices[i+1]]);
-				_debugLines->push_back(positions[indices[i+2]]);
+					_debugLines->push_back(positions[indices[i+2]]);
+					_debugLines->push_back(positions[indices[i]]);
+				}
 
-				_debugLines->push_back(positions[indices[i+2]]);
-				_debugLines->push_back(positions[indices[i]]);
+				_vertexPositions->uploadToGpu(positions);
+				_indexBuffer->uploadToGpu(indices);
+
+				_debugPoints->uploadToGpu();
+				_debugLines->uploadToGpu();
 			}
 
-			_debugPoints->uploadToGpu();
-			_debugLines->uploadToGpu();
+			{ // normal
+				Vector<vec3> normals;
+				normals.resize(4, vec3::s_forward());
+				_vertexNormals->uploadToGpu(normals);
+			}
+
+			{ // uv
+				Vector<vec2> uvs = {
+					vec2(0,0),
+					vec2(0,1),
+					vec2(1,0),
+					vec2(1,1),
+				};
+				_vertexTexCoords->uploadToGpu(uvs);
+			}			
 		}
 	}
 
@@ -291,9 +295,11 @@ public:
 
 private:
 	int _vsynch = 0;
+
 	GLuint _vertexArrayObject = 0;
 
 	DWORD _lastTick = 0;
+
 	float _testRotation = 0.0f;
 
 	UPtr<Shader>  _testShader;
@@ -331,7 +337,6 @@ protected:
 			_mainWin.setWindowTitle("SGE Game Anime Prog Window");
 		}
 	}
-
 private:
 	MainWin _mainWin;
 };

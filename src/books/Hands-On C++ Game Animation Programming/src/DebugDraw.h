@@ -44,10 +44,10 @@ public:
 	inline void push_back(const vec3& v) { _points.push_back(v); }
 	inline void push_back(Span<vec3> v)  { for (auto& s : v) _points.push_back(s); }
 
+	inline void uploadToGpu()            { _attribs.uploadToGpu(_points); }
+
 	inline       vec3& operator[] (u32 index)       { return _points[index]; }
 	inline const vec3& operator[] (u32 index) const { return _points[index]; }
-
-	inline void uploadToGpu() { _attribs.set(_points); }
 
 	void draw(DebugDrawMode mode, const mat4& mvp, const Color4f& color = Color4f(1,1,0,1));
 
