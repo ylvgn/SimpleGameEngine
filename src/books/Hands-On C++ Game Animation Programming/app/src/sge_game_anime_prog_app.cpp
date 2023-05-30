@@ -1,4 +1,5 @@
 #include <sge_game_anime_prog.h>
+#include <sge_game_anime_prog/animation/CubicCurveExample.h>
 
 namespace sge {
 
@@ -166,6 +167,62 @@ public:
 		}
 #endif
 
+#if 1
+		{
+			{ // test bezier curve
+				CubicCurveExample::Bezier curve(
+					vec3(-5, 0, 0), // p1
+					vec3(-2, 1, 0), // c1
+					vec3(2, 1, 0),  // c2
+					vec3(5, 0, 0)   // p2
+				);
+
+				_debugPoints->push_back(curve.p1());
+				_debugPoints->push_back(curve.c1());
+				_debugPoints->push_back(curve.c2());
+				_debugPoints->push_back(curve.p2());
+
+				for (int i = 0; i < 199; i++) {
+					float t1 = static_cast<float>(i) / 199.f;
+					float t2 = static_cast<float>(i+1) / 199.f;
+
+					_debugLines->push_back(curve.lerp(t1));
+					_debugLines->push_back(curve.lerp(t2));
+
+					curve.factor(t1, _debugPoints);
+				}
+
+				curve.factor(1, _debugPoints);
+			}
+
+			{ // test hermite spline
+				CubicCurveExample::Hermite curve(
+					vec3(-5, 0, 0), // p1
+					vec3(5, 0, 0),  // p1
+					0.2f,  // tan1
+					-3.f   // tan2
+				);
+
+				_debugPoints->push_back(curve.p1());
+				_debugPoints->push_back(curve.p2());
+
+				for (int i = 0; i < 199; i++) {
+					float t1 = static_cast<float>(i) / 199.f;
+					float t2 = static_cast<float>(i + 1) / 199.f;
+
+					_debugLines->push_back(curve.lerp(t1));
+					_debugLines->push_back(curve.lerp(t2));
+
+					curve.factor(t1, _debugPoints);
+				}
+
+				curve.factor(1, _debugPoints);
+			}
+
+			_debugPoints->uploadToGpu();
+			_debugLines->uploadToGpu();
+		}
+#endif
 	}
 
 	virtual void onCloseButton() override {
@@ -265,6 +322,13 @@ public:
 			}
 #endif
 
+#if 1
+			{ // test bezier curve or hermite spline
+				mat4 mvp = projection * view * mat4::s_identity();
+				_debugLines->draw(DebugDrawMode::Lines, mvp);
+				_debugPoints->draw(DebugDrawMode::Points, mvp, Color4f(0, 0, 1, 1));
+			}
+#endif
 			SwapBuffers(dc);
 			if (_vsynch != 0) {
 				glFinish();
