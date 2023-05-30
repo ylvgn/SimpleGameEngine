@@ -40,4 +40,5 @@ void g_DrawInstanced(const IndexBuffer& indexBuf, DrawMode mode, u32 instanceCou
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
+
 }

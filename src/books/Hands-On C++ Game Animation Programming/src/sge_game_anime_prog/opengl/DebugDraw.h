@@ -1,9 +1,13 @@
 #pragma once
 
-#include "vec3.h"
-#include "mat4.h"
-#include "Shader.h"
-#include "Attribute.h"
+#include <sge_core/pointer/SPtr.h>
+#include <sge_core/graph/Color.h>
+
+#include <sge_game_anime_prog/math/vec3.h>
+#include <sge_game_anime_prog/math/mat4.h>
+
+#include <sge_game_anime_prog/opengl/Shader.h>
+#include <sge_game_anime_prog/opengl/Attribute.h>
 
 // The DebugDraw class is not very efficient;
 // it's only meant to be used for debugging.
@@ -14,6 +18,7 @@ enum class DebugDrawMode { Lines, Loop, Strip, Points };
 
 class DebugDraw : public NonCopyable {
 
+#if 0
 	static constexpr const char* kVert = "#version 330 core\n"
 		"uniform mat4 mvp;\n"
 		"in vec3 position;\n"
@@ -27,6 +32,7 @@ class DebugDraw : public NonCopyable {
 		"void main() {\n"
 		"	FragColor = color;\n"
 		"}";
+#endif
 
 public:
 #if 0

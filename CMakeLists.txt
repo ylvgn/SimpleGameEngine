@@ -91,5 +91,7 @@ add_subdirectory(src/editor/app)
 set_property (DIRECTORY PROPERTY VS_STARTUP_PROJECT sge_editor_app)
 
 
-#-- books
+#-- Hands-On C++ Game Animation Programming
 add_subdirectory(src/books/Hands-On\ C++\ Game\ Animation\ Programming)
+add_subdirectory(src/books/Hands-On\ C++\ Game\ Animation\ Programming/app)
+add_subdirectory(src/books/Hands-On\ C++\ Game\ Animation\ Programming/test)

@@ -1,9 +1,10 @@
 #include "Attribute.h"
 #include "glad/glad.h"
-#include "vec2.h"
-#include "vec3.h"
-#include "vec4.h"
-#include "quat.h"
+
+#include <sge_game_anime_prog/math/vec2.h>
+#include <sge_game_anime_prog/math/vec3.h>
+#include <sge_game_anime_prog/math/vec4.h>
+#include <sge_game_anime_prog/math/quat.h>
 
 /*
 	The Attribute class is templated, but none of its functions are marked as inline.

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <sge_core/math/Math.h>
 #include "vec3.h"
 
 namespace sge {

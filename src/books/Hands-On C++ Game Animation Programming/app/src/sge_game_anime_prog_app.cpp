@@ -1,5 +1,4 @@
-#include "common.h"
-#include "DebugDraw.h"
+#include <sge_game_anime_prog.h>
 
 namespace sge {
 
@@ -21,36 +20,6 @@ public:
 	virtual void onCreate(CreateDesc& desc) override {
 
 #if 0
-		{ // test mat4
-			mat4 m1{2, 3, 2, 5,
-				    1, 4, 6, 2,
-				    3, 3, 5, 2,
-				    4, 6, 2, 7};
-			m1.transpose();
-
-			mat4 m2{2, 3, 1, 2,
-				    2, 3, 5, 3,
-				    2, 3, 3, 1,
-				    1, 1, 4, 3};
-			m2.transpose();
-
-			// test mat4*mat4
-			mat4 m1mulm2{19, 26, 43, 30,
-				         24, 35, 47, 26,
-				         24, 35, 41, 26,
-				         31, 43, 68, 49};
-			m1mulm2.transpose();
-			SGE_ASSERT(m1mulm2 == (m1 * m2));
-
-			// test mat4*vec4
-			vec4 m1mulv4{ 19,24,24,31 };
-			SGE_ASSERT(m1mulv4 == (m1 * vec4(2,2,2,1)));
-
-			//test inverse
-			mat4 m1Inv = m1.inverse();
-			SGE_ASSERT(mat4::s_identity().equals(m1 * m1Inv, 0.000001f));
-		}
-#endif
 		{ // test GLTFLoader
 			{
 				cgltf_data* data = g_LoadGLTFFile("Assets/Mesh/test.glb");
@@ -63,6 +32,7 @@ public:
 				g_FreeGLTFFile(data);
 			}
 		}
+#endif
 
 		Base::onCreate(desc);
 
@@ -138,68 +108,64 @@ public:
 
 		_lastTick = GetTickCount();
 
+		_debugPoints		= UPtr<DebugDraw>(new DebugDraw());
+		_debugLines			= UPtr<DebugDraw>(new DebugDraw());
+
+		_testTexture		= UPtr<Texture>(new Texture("Assets/Textures/uvChecker.png"));
+#if 0
 		{ // test lit texture
+
 			_testShader			= UPtr<Shader> (new Shader("Assets/Shaders/static.vert", "Assets/Shaders/lit.frag"));
-			_testTexture		= UPtr<Texture>(new Texture("Assets/Textures/uvChecker.png"));
 			_vertexPositions	= UPtr< Attribute<vec3> >(new Attribute<vec3>());
 			_vertexNormals		= UPtr< Attribute<vec3> >(new Attribute<vec3>());
 			_vertexTexCoords	= UPtr< Attribute<vec2> >(new Attribute<vec2>());
 			_indexBuffer		= UPtr<IndexBuffer>(new IndexBuffer());
 
-			_debugPoints = UPtr<DebugDraw>(new DebugDraw());
-			_debugLines  = UPtr<DebugDraw>(new DebugDraw());
+			Vector<vec3> positions{
+				vec3(-1, -1, 0),
+				vec3(-1,  1, 0),
+				vec3( 1, -1, 0),
+				vec3( 1,  1, 0),
+			};
+			Vector<u32> indices = {
+				0,1,2,
+				2,1,3
+			};
 
-			{ // pos
-				Vector<vec3> positions{
-					vec3(-1, -1, 0),
-					vec3(-1,  1, 0),
-					vec3( 1, -1, 0),
-					vec3( 1,  1, 0),
-				};
+			_debugPoints->push_back(positions);
 
-				// indices
-				Vector<u32> indices = {
-					0,1,2,
-					2,1,3
-				};
+			SGE_ASSERT(indices.size() == 6);
+			for (int i = 0; i < indices.size(); i += 3) {
+				_debugLines->push_back(positions[indices[i]]);
+				_debugLines->push_back(positions[indices[i+1]]);
 
-				_debugPoints->push_back(positions);
+				_debugLines->push_back(positions[indices[i+1]]);
+				_debugLines->push_back(positions[indices[i+2]]);
 
-				SGE_ASSERT(indices.size() == 6);
-				for (int i = 0; i < indices.size(); i += 3) {
-					_debugLines->push_back(positions[indices[i]]);
-					_debugLines->push_back(positions[indices[i+1]]);
-
-					_debugLines->push_back(positions[indices[i+1]]);
-					_debugLines->push_back(positions[indices[i+2]]);
-
-					_debugLines->push_back(positions[indices[i+2]]);
-					_debugLines->push_back(positions[indices[i]]);
-				}
-
-				_vertexPositions->uploadToGpu(positions);
-				_indexBuffer->uploadToGpu(indices);
-
-				_debugPoints->uploadToGpu();
-				_debugLines->uploadToGpu();
+				_debugLines->push_back(positions[indices[i+2]]);
+				_debugLines->push_back(positions[indices[i]]);
 			}
 
-			{ // normal
-				Vector<vec3> normals;
-				normals.resize(4, vec3::s_forward());
-				_vertexNormals->uploadToGpu(normals);
-			}
+			_vertexPositions->uploadToGpu(positions);
+			_indexBuffer->uploadToGpu(indices);
 
-			{ // uv
-				Vector<vec2> uvs = {
-					vec2(0,0),
-					vec2(0,1),
-					vec2(1,0),
-					vec2(1,1),
-				};
-				_vertexTexCoords->uploadToGpu(uvs);
-			}			
+			_debugPoints->uploadToGpu();
+			_debugLines->uploadToGpu();
+
+			Vector<vec3> normals;
+			normals.resize(4, vec3::s_forward());
+			_vertexNormals->uploadToGpu(normals);
+
+			Vector<vec2> uvs = {
+				vec2(0,0),
+				vec2(0,1),
+				vec2(1,0),
+				vec2(1,1),
+			};
+			_vertexTexCoords->uploadToGpu(uvs);
 		}
+#endif
+
 	}
 
 	virtual void onCloseButton() override {
@@ -230,7 +196,7 @@ public:
 
 	virtual void onDraw() override {
 		if (_vertexArrayObject == 0) return;
-		if (_testShader == nullptr) return;
+		if (_testTexture == nullptr) return;
 
 		{ // update frame
 			DWORD thisTick = GetTickCount();
@@ -260,6 +226,7 @@ public:
 			mat4 projection = mat4::s_perspective(60.0f, aspect, 0.01f, 1000.0f);
 			mat4 view = mat4::s_lookAt(vec3(0, 0, -5), vec3::s_zero(), vec3::s_up());
 
+#if 0
 			{ // test lit texture
 				mat4 model = quat::s_mat4(quat::s_angleAxis(Math::radians(_testRotation), vec3(0,0,1))); // or mat4::s_identity();
 				mat4 mvp = projection * view * model;
@@ -296,6 +263,7 @@ public:
 				}
 				_testShader->unbind();
 			}
+#endif
 
 			SwapBuffers(dc);
 			if (_vsynch != 0) {
@@ -333,7 +301,7 @@ protected:
 		{ // set working dir
 			auto exeFilePath = getExecutableFilename();
 			String workingDir = FilePath::dirname(exeFilePath);
-			workingDir.append("/../../../../../../examples/Test102");
+			workingDir.append("/../../../../../../../examples/Test102");
 
 			Directory::setCurrent(workingDir);
 			auto curDir = Directory::getCurrent();
@@ -345,6 +313,7 @@ protected:
 		{ // create window
 			NativeUIWindow::CreateDesc winDesc;
 			winDesc.isMainWindow = true;
+			winDesc.rect = { 10, 10, 1040, 880 };
 			_mainWin.create(winDesc);
 			_mainWin.setWindowTitle("SGE Game Anime Prog Window");
 		}

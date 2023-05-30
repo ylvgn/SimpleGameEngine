@@ -1,6 +1,7 @@
 #pragma once
 
 #include "IndexBuffer.h"
+#include "glad/glad.h"
 
 /*
 	You have classes for dealing with vertex data, uniforms, and index buffers, but no code to draw any of it.
@@ -25,9 +26,16 @@ enum class DrawMode {
 
 struct DrawUtil {
 	DrawUtil() = delete;
-	static GLenum getGLEnum(DrawMode mode);
+	static GLenum getGLEnum(sge::DrawMode mode);
 };
 
+void g_Draw(size_t vertexCount, DrawMode mode);
+void g_DrawInstanced(size_t vertexCount, DrawMode mode, u32 numInstances);
+
+void g_Draw(const IndexBuffer& indexBuf, DrawMode mode);
+void g_DrawInstanced(const IndexBuffer& indexBuf, DrawMode mode, u32 instanceCount);
+
+inline
 GLenum DrawUtil::getGLEnum(DrawMode mode) {
 	switch (mode)
 	{
@@ -41,11 +49,5 @@ GLenum DrawUtil::getGLEnum(DrawMode mode) {
 		default:						throw  SGE_ERROR("unsupported DrawMode");
 	}
 }
-
-void g_Draw(size_t vertexCount, DrawMode mode);
-void g_DrawInstanced(size_t vertexCount, DrawMode mode, u32 numInstances);
-
-void g_Draw(const IndexBuffer& indexBuf, DrawMode mode);
-void g_DrawInstanced(const IndexBuffer& indexBuf, DrawMode mode, u32 instanceCount);
 
 }

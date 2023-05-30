@@ -1,5 +1,8 @@
 #pragma once
 
+#include <sge_core/base/Error.h>
+#include <sge_core/log/Log.h>
+#include <sge_core/math/Math.h>
 #include "vec2.h"
 
 namespace sge {
@@ -150,7 +153,7 @@ struct TVec3 {
 	inline bool operator== (const TVec3& r) const { return x == r.x && y == r.y && z == r.z; }
 	inline bool operator!= (const TVec3& r) const { return !(this->operator==(r)); }
 
-	inline void onFormat(fmt::format_context& ctx) const {
+	void onFormat(fmt::format_context& ctx) const {
 		fmt::format_to(ctx.out(), "[{}, {}, {}]", x, y, z);
 	}
 };
