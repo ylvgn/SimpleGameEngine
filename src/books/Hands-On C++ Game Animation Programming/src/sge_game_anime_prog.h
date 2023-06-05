@@ -14,3 +14,8 @@
 #include <sge_game_anime_prog/opengl/DebugDraw.h>
 
 #include <sge_game_anime_prog/gltf/GLTFLoader.h>
+
+#include <sge_game_anime_prog/animation/Interpolation.h>
+#include <sge_game_anime_prog/animation/Frame.h>
+#include <sge_game_anime_prog/animation/Track.h>
+#include <sge_game_anime_prog/animation/TransformTrack.h>

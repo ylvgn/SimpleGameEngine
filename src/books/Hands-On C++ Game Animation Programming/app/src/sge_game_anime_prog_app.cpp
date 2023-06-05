@@ -109,18 +109,23 @@ public:
 
 		_lastTick = GetTickCount();
 
-		_debugPoints		= UPtr<DebugDraw>(new DebugDraw());
-		_debugLines			= UPtr<DebugDraw>(new DebugDraw());
+		_debugPoints		= eastl::make_unique<DebugDraw>();
+		_debugLines			= eastl::make_unique<DebugDraw>();
 
-		_testTexture		= UPtr<Texture>(new Texture("Assets/Textures/uvChecker.png"));
+		_referenceLines		= eastl::make_unique<DebugDraw>();
+		_scalarTrackLines	= eastl::make_unique<DebugDraw>();
+		_handlePoints		= eastl::make_unique<DebugDraw>();
+		_handleLines		= eastl::make_unique<DebugDraw>();
+
+		_testTexture		= eastl::make_unique<Texture>("Assets/Textures/uvChecker.png");
 #if 0
 		{ // test lit texture
 
-			_testShader			= UPtr<Shader> (new Shader("Assets/Shaders/static.vert", "Assets/Shaders/lit.frag"));
-			_vertexPositions	= UPtr< Attribute<vec3> >(new Attribute<vec3>());
-			_vertexNormals		= UPtr< Attribute<vec3> >(new Attribute<vec3>());
-			_vertexTexCoords	= UPtr< Attribute<vec2> >(new Attribute<vec2>());
-			_indexBuffer		= UPtr<IndexBuffer>(new IndexBuffer());
+			_testShader			= eastl::make_unique<Shader>("Assets/Shaders/static.vert", "Assets/Shaders/lit.frag");
+			_vertexPositions	= eastl::make_unique< Attribute<vec3> >();
+			_vertexNormals		= eastl::make_unique< Attribute<vec3> >();
+			_vertexTexCoords	= eastl::make_unique< Attribute<vec2> >();
+			_indexBuffer		= eastl::make_unique<IndexBuffer>();
 
 			Vector<vec3> positions{
 				vec3(-1, -1, 0),
@@ -167,7 +172,7 @@ public:
 		}
 #endif
 
-#if 1
+#if 0
 		{
 			{ // test bezier curve
 				CubicCurveExample::Bezier curve(
@@ -221,6 +226,227 @@ public:
 
 			_debugPoints->uploadToGpu();
 			_debugLines->uploadToGpu();
+		}
+#endif
+
+#if 1 // test track
+		float height = 1.8f;
+		float left   = 1.0f;
+		float right  = 12.f;
+		float xRange = right - left;
+		float paddingX = xRange + 1.f;
+
+		{ // xy-coordinate figure
+			// Range in both X and Y is 0 to 20, according to mat4::s_ortho
+			// l=b=0, r=t=22f
+			for (int i = 0; i < 10; ++i) {
+				float originY = (i * 2.f) + (i * 0.2f) + 0.1f;
+
+				for (int j = 0; j < 2; ++j) {
+					float originX = left;
+					if (j % 2 != 0) {
+						originX += paddingX;
+					}
+
+					vec3f o(originX, originY, 0);
+					_referenceLines->push_back(o);
+					_referenceLines->push_back(vec3(o.x, o.y + height, 0));
+
+					_referenceLines->push_back(o);
+					_referenceLines->push_back(vec3(o.x + xRange, o.y, 0));
+				}
+			}
+
+			_referenceLines->uploadToGpu();
+		}
+
+		{ // linear interpolate
+			_scalarTracks.push_back(ScalarTrack::s_createTrack(
+				Interpolation::Linear, 2,
+				FrameUtil::createFrame(0.0f, 0.0f),
+				FrameUtil::createFrame(1.0f, 1.0f)));
+			_scalarTracksIsLoop.push_back(false);
+
+			_scalarTracks.push_back(ScalarTrack::s_createTrack(
+				Interpolation::Linear, 2,
+				FrameUtil::createFrame(0.0f, 0.0f),
+				FrameUtil::createFrame(0.5f, 1.0f)));
+			_scalarTracksIsLoop.push_back(false);
+
+			{
+				const auto keyFrame1 = FrameUtil::createFrame(0.25f, 0.f);
+				const auto keyFrame2 = FrameUtil::createFrame(0.5f,  1.f);
+				const auto keyFrame3 = FrameUtil::createFrame(0.75f, 0.f);
+
+				const auto linearTrack = ScalarTrack::s_createTrack(Interpolation::Linear, 3,
+					                                                keyFrame1,
+					                                                keyFrame2,
+					                                                keyFrame3);
+				_scalarTracks.push_back(linearTrack);
+				_scalarTracksIsLoop.push_back(true);
+
+				_scalarTracks.push_back(linearTrack);
+				_scalarTracksIsLoop.push_back(false);
+			}
+		}
+
+		{ // step interpolate
+			const auto stepTrack = ScalarTrack::s_createTrack(Interpolation::Constant, 5,
+				                                              FrameUtil::createFrame(0.20f, 1.f),
+				                                              FrameUtil::createFrame(0.25f, 0.f),
+				                                              FrameUtil::createFrame(0.30f, 1.f),
+				                                              FrameUtil::createFrame(0.35f, 0.f),
+				                                              FrameUtil::createFrame(0.40f, 1.f));
+			_scalarTracks.push_back(stepTrack);
+			_scalarTracksIsLoop.push_back(true);
+
+			_scalarTracks.push_back(stepTrack);
+			_scalarTracksIsLoop.push_back(false);
+		}
+
+		{ // cubic interpolate
+			{
+				_scalarTracks.push_back(ScalarTrack::s_createTrack(
+					Interpolation::Cubic, 2,
+					FrameUtil::createFrame(0.25f, 0.0f),
+					FrameUtil::createFrame(0.75f, 1.0f)));
+				_scalarTracksIsLoop.push_back(false);
+
+				_scalarTracks.push_back(ScalarTrack::s_createTrack(
+					Interpolation::Cubic, 2,
+					FrameUtil::createFrame(0.25f, 0.676221f, 0.0f, 0.676221f),
+					FrameUtil::createFrame(0.75f, 4.043837f, 1.0f, 4.043837f)));
+				_scalarTracksIsLoop.push_back(false);
+			}
+
+			{
+				const auto cubicTrack = ScalarTrack::s_createTrack(Interpolation::Cubic, 3,
+					                                               FrameUtil::createFrame(0.25f, 0, 0.f, 0),
+					                                               FrameUtil::createFrame(0.5f,  0, 1.f, 0),
+					                                               FrameUtil::createFrame(0.75f, 0, 0.f, 0));
+				_scalarTracks.push_back(cubicTrack);
+				_scalarTracksIsLoop.push_back(false);
+				_scalarTracks.push_back(cubicTrack);
+				_scalarTracksIsLoop.push_back(true);
+			}
+
+			{
+				const auto cubicTrack = ScalarTrack::s_createTrack(Interpolation::Cubic, 5,
+					                                               FrameUtil::createFrame(0.25f,      0,          0,          0         ),
+					                                               FrameUtil::createFrame(0.3833333f, -10.11282f, 0.5499259f, -10.11282f),
+					                                               FrameUtil::createFrame(0.5f,       25.82528f,  1,          25.82528f ),
+					                                               FrameUtil::createFrame(0.6333333f, 7.925411f,  0.4500741f, 7.925411f ),
+					                                               FrameUtil::createFrame(0.75f,      0,          0,          0         ));
+				_scalarTracks.push_back(cubicTrack);
+				_scalarTracksIsLoop.push_back(false);
+
+				_scalarTracks.push_back(cubicTrack);
+				_scalarTracksIsLoop.push_back(true);
+			}
+
+			{
+				const auto cubicTrack = ScalarTrack::s_createTrack(Interpolation::Cubic, 5,
+				                                                   FrameUtil::createFrame(0.25f, 0,              0,          0         ),
+				                                                   FrameUtil::createFrame(0.3833333f, 13.25147f, 0.5499259f, -10.11282f),
+				                                                   FrameUtil::createFrame(0.5f,       10.2405f,  1,          -5.545671f),
+				                                                   FrameUtil::createFrame(0.6333333f, 7.925411f, 0.4500741f, -11.40672f),
+				                                                   FrameUtil::createFrame(0.75f,      0,         0,          0         ));
+				_scalarTracks.push_back(cubicTrack);
+				_scalarTracksIsLoop.push_back(false);
+
+				_scalarTracks.push_back(cubicTrack);
+				_scalarTracksIsLoop.push_back(true);
+			}
+		}
+
+		{
+			// Safe to assume that _scalarTracks has a size of 10 (10 xy-coordinate figure)
+
+			SGE_ASSERT(_scalarTracks.size() == _scalarTracksIsLoop.size());
+
+			Track_SampleRequest sr;
+			bool isRightSide = false;
+			for (int i = 0; i < _scalarTracks.size(); ++i) {
+
+				int tmp = i/2;
+				float originY = ((9 - tmp) * 2.f) + ((9 - tmp) * 0.2f) + 0.1f;
+				vec3f o(left, originY, 0);
+				if (isRightSide) {
+					o.x += paddingX;
+				}
+				isRightSide = !isRightSide;
+
+				const auto& track = _scalarTracks[i];
+				sr.isLoop = _scalarTracksIsLoop[i];
+
+				// 0~149 count frame remap to 0~1 time in x-axis
+				for (int j = 1; j < 150; ++j) { // j goes from 0 to 149
+					float thisJNorm = (j - 1) / 149.0f;
+					float nextJNorm = j / 149.0f;
+
+					float thisX = o.x + (thisJNorm * xRange);
+					float nextX = o.x + (nextJNorm * xRange);
+
+					sr.time = thisJNorm;
+					float thisY = o.y + (track.sample(sr) * height);
+
+					sr.time = nextJNorm;
+					float nextY = o.y + (track.sample(sr) * height);
+
+					_scalarTrackLines->push_back(vec3(thisX, thisY, 0.1f));
+					_scalarTrackLines->push_back(vec3(nextX, nextY, 0.1f));
+				}
+
+				{ // key frame display
+					size_t numFrames = track.size();
+					for (int j = 0; j < numFrames; ++j) {
+						const auto& keyFrame = track[j];
+						const float thisTime = keyFrame.time;
+						sr.time = thisTime;
+
+						float thisX = o.x + (thisTime * xRange);
+						float thisY = o.y + (track.sample(sr) * height);
+
+						// key frame point
+						vec3 thisPoint(thisX, thisY, 0.3f);
+						_handlePoints->push_back(thisPoint);
+
+						static const float tangentScale = 0.5f;
+
+						// incoming tangent
+						if (j > 0) {
+							const float preTime = thisTime - 0.0005f; // sample the point near the handle point is approximate to tangent!
+							float prevX = o.x + (preTime * xRange);
+
+							sr.time = preTime;
+							float prevY = o.y + (track.sample(sr) * height);
+							vec3 prePoint(prevX, prevY, thisPoint.z);
+
+							_handleLines->push_back(thisPoint);
+							_handleLines->push_back(thisPoint + (prePoint-thisPoint).normalize() * tangentScale);
+						}
+
+						// outgoing tangent
+						if (j < numFrames - 1 && track.type() != Interpolation::Constant) {
+							const float postTime = thisTime + 0.0005f;
+							float postX = o.x + (postTime * xRange);
+
+							sr.time = postTime;
+							float postY = o.y + (track.sample(sr) * height);
+							vec3 postPoint(postX, postY, thisPoint.z);
+
+							_handleLines->push_back(thisPoint);
+							_handleLines->push_back(thisPoint + (postPoint - thisPoint).normalize() * tangentScale);
+						}
+
+					}
+				}
+
+			}
+
+			_scalarTrackLines->uploadToGpu();
+			_handlePoints->uploadToGpu();
+			_handleLines->uploadToGpu();
 		}
 #endif
 	}
@@ -280,8 +506,8 @@ public:
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 			float aspect = clientWidth / clientHeight;
-			mat4 projection = mat4::s_perspective(60.0f, aspect, 0.01f, 1000.0f);
-			mat4 view = mat4::s_lookAt(vec3(0, 0, -5), vec3::s_zero(), vec3::s_up());
+//			mat4 projection = mat4::s_perspective(60.0f, aspect, 0.01f, 1000.0f);
+//			mat4 view = mat4::s_lookAt(vec3(0, 0, -5), vec3::s_zero(), vec3::s_up());
 
 #if 0
 			{ // test lit texture
@@ -322,11 +548,32 @@ public:
 			}
 #endif
 
-#if 1
+#if 0
 			{ // test bezier curve or hermite spline
 				mat4 mvp = projection * view * mat4::s_identity();
 				_debugLines->draw(DebugDrawMode::Lines, mvp);
 				_debugPoints->draw(DebugDrawMode::Points, mvp, Color4f(0, 0, 1, 1));
+			}
+#endif
+
+#if 1
+			{ // test track
+				float l = 0;
+				float b = 0;
+				float t = 22.f;
+				float r = aspect * t;
+				float n = 0.01f;
+				float f = 5.f;
+				mat4 view = mat4::s_lookAt(vec3(0,0,(n+f)/2), vec3::s_zero(), vec3::s_up());
+
+				//mat4 projection = mat4::s_ortho(0, aspect * 22.0f, 0, 22, 0.01f, 5);
+				mat4 projection = mat4::s_ortho(l, r, b, t, n, f);
+
+				mat4 mvp = projection * view * mat4::s_identity();
+				_referenceLines->draw(DebugDrawMode::Lines, mvp);
+				_scalarTrackLines->draw(DebugDrawMode::Lines, mvp, Color4f(0,1,0,1));
+				_handlePoints->draw(DebugDrawMode::Points, mvp, Color4f(0,0,1,1));
+				_handleLines->draw(DebugDrawMode::Lines, mvp, Color4f(1,0,1,1));
 			}
 #endif
 			SwapBuffers(dc);
@@ -356,6 +603,15 @@ private:
 
 	UPtr<DebugDraw>			_debugPoints;
 	UPtr<DebugDraw>			_debugLines;
+
+	Vector<ScalarTrack>		_scalarTracks;
+	Vector<bool>			_scalarTracksIsLoop;
+
+	UPtr<DebugDraw>			_scalarTrackLines;
+	UPtr<DebugDraw>			_handlePoints;
+	UPtr<DebugDraw>			_handleLines;
+	UPtr<DebugDraw>			_referenceLines;
+
 };
 
 class GameAnimeProgApp : public NativeUIApp {
