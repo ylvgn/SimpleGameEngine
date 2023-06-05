@@ -38,12 +38,20 @@ void CubicCurveExample::Bezier::factor(float t, UPtr<DebugDraw>& outPoints) cons
 }
 
 vec3f CubicCurveExample::Hermite::lerp(float t) const {
+#if 0
 	float u  = 1 - t;
 	float uu = u * u;
 	float tt = t * t;
 	float t2 = 2 * t;
-
 	return (_p1 * (1+t2)*uu) + (_tan1*t*uu) + (_p2*tt*(3-t2)) + (_tan2*tt*(t-1));
+#else
+	float tt = t * t;
+	float tt2 = tt * 2;
+	float tt3 = tt * 3;
+	float ttt = tt * t;
+	float ttt2 = ttt * 2;
+	return _p1*(ttt2-tt3+1) + _tan1*(ttt-tt2+t) + _p2*(-ttt2+tt3) + _tan2*(ttt-tt);
+#endif
 }
 
 void CubicCurveExample::Hermite::factor(float t, UPtr<DebugDraw>& outPoints) const {

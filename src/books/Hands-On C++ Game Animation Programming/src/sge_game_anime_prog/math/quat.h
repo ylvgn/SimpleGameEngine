@@ -37,6 +37,7 @@ struct quat {
 	inline quat(const vec3& fv, float w_) : x(fv.x), y(fv.y), z(fv.z), w(w_) {}
 
 	inline static quat s_identity() { return quat(0,0,0,1); }
+	inline static quat s_zero()		{ return quat(0,0,0,0); }
 
 	inline static quat s_angleAxis(float angle, const vec3& axis) {
 		/*

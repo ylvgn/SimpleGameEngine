@@ -274,8 +274,7 @@ struct mat4 {
 		// inverse(M) = adjugate(M) / determinant(M)
 		float det = determinant();
 		if (Math::equals0(det)) { // Epsilon check would need to be REALLY small
-			SGE_ERROR("Trying to invert a matrix with a zero determinant\n");
-			return mat4();
+			throw SGE_ERROR("Trying to invert a matrix with a zero determinant\n");
 		}
 
 		float oneOverDet = 1.0f/det;
@@ -325,8 +324,7 @@ struct mat4 {
 	inline static mat4 s_frustum(float l, float r, float b, float t, float n, float f) {
 		// FYI: http://www.songho.ca/opengl/gl_projectionmatrix.html
 		if (l == r || t == b || n == f) {
-			SGE_ERROR("Trying to create invalid frustum\n");
-			return mat4();
+			throw SGE_ERROR("Trying to create invalid frustum\n");
 		}
 
 		return mat4(2*n/(r-l),   0,           0,            0,
@@ -355,8 +353,7 @@ struct mat4 {
 	// Orthographic view projections are generally useful for displaying UI or other two-dimensional elements.
 	inline static mat4 s_ortho(float l, float r, float b, float t, float n, float f) {
 		if (l == r || t == b || n == f) {
-			SGE_ERROR("Trying to create invalid ortho\n");
-			return mat4();
+			throw SGE_ERROR("Trying to create invalid ortho\n");
 		}
 
 		return mat4(2/(r-l),      0,            0,            0,
@@ -377,12 +374,11 @@ struct mat4 {
 			       [r2, r6, r10, 0] [0, 0, 1, tz] [r2, r6, r10, r2*tx + r6*ty + r10*tz]
 			       [0,  0,  0,   1] [0, 0, 0, 1 ] [0,  0,  0,   1                     ]
 		*/
+		SGE_ASSERT(target != eye);
 		vec3 f = (target - eye).normalize();
 		vec3 r = f.cross(up).normalize(); // right
-		if (r == vec3::s_zero()) {
-			SGE_ERROR("Trying to create invalid s_lookAt\n");
-			return mat4();
-		}
+		SGE_ASSERT(r != vec3::s_zero());
+
 		vec3 u = r.cross(f); // up
 
 		// Since the basis vectors are orthonormal, their inverse is the same as their transpose.
