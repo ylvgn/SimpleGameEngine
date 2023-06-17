@@ -1,12 +1,14 @@
 #pragma once
 
-namespace sge {
+/*
+	specialized frameand curve types, such as a scalar frame, a vector frame, and a quaternion frame
+	Similarly, you could create separate classes to represent a scalar curve, a vector curve, and a quaternion curve
+	for example, a vec3 track contains the Frame<3> type frames
+	The Frame class you just implemented is used to store keyframes in an animation track
+	If the interpolation type doesn't need tangents, you can simply ignore them
+*/
 
-// specialized frameand curve types, such as a scalar frame, a vector frame, and a quaternion frame
-// Similarly, you could create separate classes to represent a scalar curve, a vector curve, and a quaternion curve
-// for example, a vec3 track contains the Frame<3> type frames
-// The Frame class you just implemented is used to store keyframes in an animation track
-// If the interpolation type doesn't need tangents, you can simply ignore them
+namespace sge {
 
 template<size_t N>
 struct Frame {
@@ -76,7 +78,6 @@ struct FrameUtil {
 	static QuaternionFrame createFrame(float time, const quat& value) {
 		return createFrame(time, quat::s_zero(), value, quat::s_zero());
 	}
-
 };
 
 }

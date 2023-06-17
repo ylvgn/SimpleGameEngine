@@ -3,35 +3,36 @@
 namespace sge {
 
 template Track <float, 1>;
-template Track <vec3, 3>;
-template Track <quat, 4>;
+template Track <vec3,  3>;
+template Track <quat,  4>;
 
 namespace TrackHelpers {
-	/*
-		These helper functions are not a part of the Track class;
-		they rely on function overloading to make sure the right version of the helper function is called.
-		One of the key responsibilities of these helper classes is to 
-			- make sure quaternions are normalized
-			- and are in the right neighborhood.
-	*/
+/*
+	These helper functions are not a part of the Track class;
+	they rely on function overloading to make sure the right version of the helper function is called.
+	One of the key responsibilities of these helper classes is to 
+		- make sure quaternions are normalized
+		- and are in the right neighborhood.
+*/
 
-	inline float interpolate(float a, float b, float t) { return a + (b-a)*t; }
-	inline vec3  interpolate(const vec3& a, const vec3& b, float t) { return a.lerp(b, t); }
-	inline quat  interpolate(const quat& a, const quat& b, float t) { // nlerp
-		quat q = a.mix(b, t);
-		if (a.dot(b) < 0) { // neighborhood
-			q = a.mix(-b, t);
-		}
-		return q.normalize();
+inline float interpolate(float a, float b, float t) { return a + (b-a)*t; }
+inline vec3  interpolate(const vec3& a, const vec3& b, float t) { return a.lerp(b, t); }
+inline quat  interpolate(const quat& a, const quat& b, float t) { // nlerp
+	quat q = a.mix(b, t);
+	if (a.dot(b) < 0) { // neighborhood
+		q = a.mix(-b, t);
 	}
+	return q.normalize();
+}
 
-	inline float adjustHermiteResult(float f) { return f; }
-	inline vec3  adjustHermiteResult(const vec3& v) { return v; }
-	inline quat  adjustHermiteResult(const quat& q) { return q.normalize(); }
+inline float adjustHermiteResult(float f) { return f; }
+inline vec3  adjustHermiteResult(const vec3& v) { return v; }
+inline quat  adjustHermiteResult(const quat& q) { return q.normalize(); }
 
-	inline void neighborhood(const float& a, float& b) { }
-	inline void neighborhood(const vec3& a, vec3& b) { }
-	inline void neighborhood(const quat& a, quat& b) { if (a.dot(b) < 0) b = -b; }
+inline void neighborhood(const float& a, float& b) { }
+inline void neighborhood(const vec3& a, vec3& b) { }
+inline void neighborhood(const quat& a, quat& b) { if (a.dot(b) < 0) b = -b; }
+
 } // TrackHelpers namespace
 
 template<>

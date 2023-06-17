@@ -1,4 +1,5 @@
 #pragma once
+
 #include "Interpolation.h"
 #include "Frame.h"
 #include <sge_game_anime_prog/math/vec3.h>
@@ -6,10 +7,12 @@
 
 namespace sge {
 
-// An animation track is a collection of keyframes.
-// Interpolating a track returns the data type of the track;
-// the result is the value along whatever curve the track defines at a specific point in time.
-// A track must have at least two frames to interpolate between.
+/*
+	An animation track is a collection of keyframes.
+	Interpolating a track returns the data type of the track;
+	the result is the value along whatever curve the track defines at a specific point in time.
+	A track must have at least two frames to interpolate between.
+*/
 
 struct Track_SampleRequest {
 	float time = 0.f;
@@ -17,7 +20,7 @@ struct Track_SampleRequest {
 };
 
 template<typename T, size_t N>
-class Track /*: public NonCopyable*/ {
+class Track {
 	using SampleRequest = Track_SampleRequest;
 public:
 
@@ -27,9 +30,9 @@ public:
 
 	Track() = default;
 
-	inline size_t size() const { return _frames.size(); }
-	void clear() { _frames.clear(); }
-	void resize(size_t size) { _frames.resize(size); }
+	inline size_t size() const		{ return _frames.size(); }
+	void clear()					{ _frames.clear(); }
+	void resize(size_t frameCount)	{ _frames.resize(frameCount); }
 
 	inline float getStartTime()		const { SGE_ASSERT(isValid()); return _frames[0].time; };
 	inline float getEndTime()		const { SGE_ASSERT(isValid()); return _frames[_frames.size() - 1].time; };
@@ -57,17 +60,18 @@ public:
 	inline void setInterpolation(Interpolation type) { _type = type; }
 
 	static Track<T, N> s_createTrack(Interpolation type, int numFrames, ...) {
+		
 		using VA_ARG_Type = Frame<N>;
+
 		Track<T, N> result;
 		result.setInterpolation(type);
 		result.resize(numFrames);
+
 		va_list args;
 		va_start(args, numFrames);
-
 		for (int i = 0; i < numFrames; ++i) {
 			result[i] = va_arg(args, VA_ARG_Type);
 		}
-
 		va_end(args);
 
 		return result;
@@ -86,7 +90,7 @@ private:
 };
 
 using ScalarTrack		= Track<float, 1>;
-using VectorTrack		= Track<vec3, 3>;
-using QuaternionTrack	= Track<quat, 4>;
+using VectorTrack		= Track<vec3,  3>;
+using QuaternionTrack	= Track<quat,  4>;
 
 }

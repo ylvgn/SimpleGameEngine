@@ -63,7 +63,7 @@ struct mat4 {
 		, zx(0), zy(0), zz(1), zw(0)
 		, wx(0), wy(0), wz(0), ww(1) {}
 
-	inline mat4(float* fv)
+	inline mat4(const float* fv)
 		: xx(fv[0]),  xy(fv[1]),  xz(fv[2]),  xw(fv[3])
 		, yx(fv[4]),  yy(fv[5]),  yz(fv[6]),  yw(fv[7])
 		, zx(fv[8]),  zy(fv[9]),  zz(fv[10]), zw(fv[11])

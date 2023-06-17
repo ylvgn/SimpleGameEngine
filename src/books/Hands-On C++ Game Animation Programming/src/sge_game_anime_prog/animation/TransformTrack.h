@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Track.h"
 #include <sge_game_anime_prog/math/Transform.h>
+#include "Track.h"
 
 namespace sge {
 
@@ -15,7 +15,7 @@ namespace sge {
 		- scale track
 */
 
-class TransformTrack : public NonCopyable {
+class TransformTrack {
 public:
 	using SampleRequest = Track_SampleRequest;
 
@@ -30,9 +30,12 @@ public:
 	// valid means at least one component track is valid.
 	inline bool isValid() const { return _position.isValid() || _rotation.isValid() || _scale.isValid(); }
 
-	Transform sample(const Transform& t, const SampleRequest& sr);
+	Transform sample(const Transform& t, const SampleRequest& sr) const;
 
-	inline u32 id() const { return _id; }
+	inline u32 id() const					{ return _id; }
+	const VectorTrack& position() const		{ return _position; }
+	const QuaternionTrack& rotation() const { return _rotation; }
+	const VectorTrack& scale() const		{ return _scale; }
 
 private:
 	u32 _id = 0; // boneId aka jointId

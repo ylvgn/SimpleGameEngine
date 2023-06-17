@@ -72,7 +72,7 @@ struct Transform {
 //		transformVector aka rotate vectors
 	}
 
-	// Consider a skeleton, as an example.At each joint, you could place a transform to describe the motion of the joint.
+	// Consider a skeleton, as an example. At each joint, you could place a transform to describe the motion of the joint.
 	// When you rotate your shoulder, the elbow attached to that shoulder also moves.
 	// To apply the shoulder transformation to all connected joints, the transform on each joint must be combined with its parent joint's transform.
 	static Transform s_combine(const Transform& a, const Transform& b);

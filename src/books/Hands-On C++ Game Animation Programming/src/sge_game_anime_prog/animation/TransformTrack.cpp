@@ -2,16 +2,15 @@
 
 namespace sge {
 
-Transform TransformTrack::sample(const Transform& t, const SampleRequest& sr) {
+Transform TransformTrack::sample(const Transform& t, const SampleRequest& sr) const {
 	Transform res = constCast(t);
+
 	if (_position.isValid2()) {
 		res.position = _position.sample(sr);
 	}
-
 	if (_rotation.isValid2()) {
 		res.rotation = _rotation.sample(sr);
 	}
-
 	if (_scale.isValid2()) {
 		res.scale = _scale.sample(sr);
 	}
