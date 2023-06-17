@@ -148,7 +148,7 @@ int Track<T, N>::getFrameIndex(const SampleRequest& sr) const {
 		return kInvalidFrameIndex;
 	}
 
-#if 1
+#if 0
 	float time = sr.time;
 	float startTime = getStartTime();
 	float endTime = getEndTime();

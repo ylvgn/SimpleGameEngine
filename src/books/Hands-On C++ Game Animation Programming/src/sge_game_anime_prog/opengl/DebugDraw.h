@@ -9,10 +9,14 @@
 #include <sge_game_anime_prog/opengl/Shader.h>
 #include <sge_game_anime_prog/opengl/Attribute.h>
 
-// The DebugDraw class is not very efficient;
-// it's only meant to be used for debugging.
+#include <sge_game_anime_prog/animation/Pose.h>
 
 namespace sge {
+
+/*
+	The DebugDraw class is not very efficient;
+	it's only meant to be used for debugging.
+*/
 
 enum class DebugDrawMode { Lines, Loop, Strip, Points };
 
@@ -56,6 +60,8 @@ public:
 	inline const vec3& operator[] (u32 index) const { return _points[index]; }
 
 	void draw(DebugDrawMode mode, const mat4& mvp, const Color4f& color = Color4f(1,1,0,1));
+
+	void fromPose(const Pose& pose);
 
 private:
 	Vector<vec3>	_points;

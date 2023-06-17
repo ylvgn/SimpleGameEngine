@@ -19,22 +19,6 @@ class MainWin : public NativeUIWindow {
 	using Base = NativeUIWindow;
 public:
 	virtual void onCreate(CreateDesc& desc) override {
-
-#if 0
-		{ // test GLTFLoader
-			{
-				cgltf_data* data = g_LoadGLTFFile("Assets/Mesh/test.glb");
-				SGE_ASSERT(data->file_type == cgltf_file_type_glb);
-				g_FreeGLTFFile(data);
-			}
-			{
-				cgltf_data* data = g_LoadGLTFFile("Assets/Mesh/test.gltf");
-				SGE_ASSERT(data->file_type == cgltf_file_type_gltf);
-				g_FreeGLTFFile(data);
-			}
-		}
-#endif
-
 		Base::onCreate(desc);
 
 		{ // create opengl render context
@@ -116,6 +100,9 @@ public:
 		_scalarTrackLines	= eastl::make_unique<DebugDraw>();
 		_handlePoints		= eastl::make_unique<DebugDraw>();
 		_handleLines		= eastl::make_unique<DebugDraw>();
+
+		_restPoseVisual		= eastl::make_unique<DebugDraw>();
+		_currentPoseVisual	= eastl::make_unique<DebugDraw>();
 
 		_testTexture		= eastl::make_unique<Texture>("Assets/Textures/uvChecker.png");
 #if 0
@@ -229,7 +216,7 @@ public:
 		}
 #endif
 
-#if 1 // test track
+#if 0 // test track
 		float height = 1.8f;
 		float left   = 1.0f;
 		float right  = 12.f;
@@ -449,6 +436,30 @@ public:
 			_handleLines->uploadToGpu();
 		}
 #endif
+
+#if 1 // test animation clip
+		cgltf_data* gltf_data = g_loadGLTFFile("Assets/Mesh/Woman.gltf");
+		_restPose = g_loadRestPose(gltf_data);
+		_clips = g_loadAnimationClips(gltf_data);
+		g_freeGLTFFile(gltf_data);
+
+		_restPoseVisual->fromPose(_restPose);
+		_restPoseVisual->uploadToGpu();
+
+		_currentClip = 0;
+		_playbackTime = 0.f;
+		_currentPose = _restPose;
+		_currentPoseVisual->fromPose(_currentPose);
+		_currentPoseVisual->uploadToGpu();
+
+		// play 'Walking' animation clip
+		for (int i = 0; i < _clips.size(); ++i) {
+			if (_clips[i].name() == "Walking") {
+				_currentClip = i;
+				break;
+			}
+		}
+#endif
 	}
 
 	virtual void onCloseButton() override {
@@ -471,10 +482,29 @@ public:
 	}
 
 	void update(float dt) {
+#if 0 // test texture
 		_testRotation += dt * 45.0f;
 		while (_testRotation > 360.0f) {
 			_testRotation -= 360.0f;
 		}
+#endif
+
+#if 1 // test animation clip
+		static float s_clipLoopingTime = 0.f;
+		static const float k_clipMaxLoopTime = 4.f;
+
+		const Clip& clip = _clips[_currentClip];
+		_playbackTime = clip.sample(_currentPose, _playbackTime + dt);
+
+		s_clipLoopingTime += dt;
+		if (s_clipLoopingTime >= k_clipMaxLoopTime) {
+			s_clipLoopingTime = 0.f;
+			_currentClip = (_currentClip + 1) % _clips.size();
+			_playbackTime = 0.f;
+			_currentPose = _restPose;
+		}
+		_currentPoseVisual->fromPose(_currentPose);
+#endif
 	}
 
 	virtual void onDraw() override {
@@ -506,11 +536,11 @@ public:
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 			float aspect = clientWidth / clientHeight;
-//			mat4 projection = mat4::s_perspective(60.0f, aspect, 0.01f, 1000.0f);
-//			mat4 view = mat4::s_lookAt(vec3(0, 0, -5), vec3::s_zero(), vec3::s_up());
 
 #if 0
 			{ // test lit texture
+//				mat4 projection = mat4::s_perspective(60.0f, aspect, 0.01f, 1000.0f);
+//				mat4 view = mat4::s_lookAt(vec3(0, 0, -5), vec3::s_zero(), vec3::s_up());
 				mat4 model = quat::s_mat4(quat::s_angleAxis(Math::radians(_testRotation), vec3(0,0,1))); // or mat4::s_identity();
 				mat4 mvp = projection * view * model;
 
@@ -556,7 +586,7 @@ public:
 			}
 #endif
 
-#if 1
+#if 0
 			{ // test track
 				float l = 0;
 				float b = 0;
@@ -576,6 +606,17 @@ public:
 				_handleLines->draw(DebugDrawMode::Lines, mvp, Color4f(1,0,1,1));
 			}
 #endif
+
+#if 1 // test animation clip
+			mat4 projection = mat4::s_perspective(60.0f, aspect, 0.01f, 10.f);
+			mat4 view = mat4::s_lookAt(vec3(0,4,7), vec3(0,4,0), vec3::s_up());
+			mat4 mvp = projection * view * mat4::s_identity();
+
+			_restPoseVisual->draw(DebugDrawMode::Lines, mvp, Color4f(0,0,1,1));
+			_currentPoseVisual->uploadToGpu();
+			_currentPoseVisual->draw(DebugDrawMode::Lines, mvp, Color4f(0,1,0,1));
+#endif
+
 			SwapBuffers(dc);
 			if (_vsynch != 0) {
 				glFinish();
@@ -596,9 +637,9 @@ private:
 	UPtr<Shader>  _testShader;
 	UPtr<Texture> _testTexture;
 
-	UPtr<Attribute<vec3>>	_vertexPositions;
-	UPtr<Attribute<vec3>>	_vertexNormals;
-	UPtr<Attribute<vec2>>	_vertexTexCoords;
+	UPtr< Attribute<vec3> >	_vertexPositions;
+	UPtr< Attribute<vec3> >	_vertexNormals;
+	UPtr< Attribute<vec2> >	_vertexTexCoords;
 	UPtr<IndexBuffer>		_indexBuffer;
 
 	UPtr<DebugDraw>			_debugPoints;
@@ -612,6 +653,14 @@ private:
 	UPtr<DebugDraw>			_handleLines;
 	UPtr<DebugDraw>			_referenceLines;
 
+	Pose					_restPose;
+	Pose					_currentPose;
+	Vector<Clip>			_clips;
+	int						_currentClip;
+	float					_playbackTime;
+
+	UPtr<DebugDraw>			_restPoseVisual;
+	UPtr<DebugDraw>			_currentPoseVisual;
 };
 
 class GameAnimeProgApp : public NativeUIApp {
