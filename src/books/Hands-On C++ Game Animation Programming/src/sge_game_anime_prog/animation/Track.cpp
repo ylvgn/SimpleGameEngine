@@ -15,7 +15,7 @@ namespace TrackHelpers {
 		- and are in the right neighborhood.
 */
 
-inline float interpolate(float a, float b, float t) { return a + (b-a)*t; }
+inline float interpolate(float a, float b, float t)				{ return a + (b-a)*t; }
 inline vec3  interpolate(const vec3& a, const vec3& b, float t) { return a.lerp(b, t); }
 inline quat  interpolate(const quat& a, const quat& b, float t) { // nlerp
 	quat q = a.mix(b, t);
@@ -25,13 +25,13 @@ inline quat  interpolate(const quat& a, const quat& b, float t) { // nlerp
 	return q.normalize();
 }
 
-inline float adjustHermiteResult(float f) { return f; }
+inline float adjustHermiteResult(float f)		{ return f; }
 inline vec3  adjustHermiteResult(const vec3& v) { return v; }
 inline quat  adjustHermiteResult(const quat& q) { return q.normalize(); }
 
-inline void neighborhood(const float& a, float& b) { }
-inline void neighborhood(const vec3& a, vec3& b) { }
-inline void neighborhood(const quat& a, quat& b) { if (a.dot(b) < 0) b = -b; }
+inline void neighborhood(const float& a, float& b)	{ }
+inline void neighborhood(const vec3& a, vec3& b)	{ }
+inline void neighborhood(const quat& a, quat& b)	{ if (a.dot(b) < 0) b = -b; }
 
 } // TrackHelpers namespace
 
@@ -89,7 +89,7 @@ T Track<T, N>::_sampleLinear(const SampleRequest& sr) const {
 		return T();
 	}
 
-	float curTrackTime = adjustTimeToFitTrack(sr);
+	float curTrackTime = _adjustTimeToFitTrack(sr);
 	float t = (curTrackTime - trackStartTime) / trackDeltaTime;
 
 	T a = Track<T, N>::s_toValue(thisFrame.value);
@@ -118,7 +118,7 @@ T Track<T, N>::_sampleCubic(const SampleRequest& sr) const {
 	if (trackDeltaTime <= 0.0f) {
 		return T();
 	}
-	float curTrackTime = adjustTimeToFitTrack(sr);
+	float curTrackTime = _adjustTimeToFitTrack(sr);
 	float t = (curTrackTime - trackStartTime) / trackDeltaTime;
 
 	T p1 = Track<T, N>::s_toValue(thisFrame.value);
@@ -148,7 +148,7 @@ int Track<T, N>::getFrameIndex(const SampleRequest& sr) const {
 		return kInvalidFrameIndex;
 	}
 
-#if 0
+#if 1
 	float time = sr.time;
 	float startTime = getStartTime();
 	float endTime = getEndTime();
@@ -174,7 +174,7 @@ int Track<T, N>::getFrameIndex(const SampleRequest& sr) const {
 		}
 	}
 #else
-	float time = adjustTimeToFitTrack(sr);
+	float time = _adjustTimeToFitTrack(sr);
 	if (!sr.isLoop) {
 		float secondToLastTime = _frames[_frames.size() - 2].time;
 		if (time >= secondToLastTime) {
@@ -182,6 +182,7 @@ int Track<T, N>::getFrameIndex(const SampleRequest& sr) const {
 		}
 	}
 #endif
+
 	// This frame can be found by looping through the frames of the track backwardand returning the first index
 	// whose time is less than the time that is looked up
 	for (int i = frameCount - 1; i >= 0; --i) {
@@ -193,7 +194,7 @@ int Track<T, N>::getFrameIndex(const SampleRequest& sr) const {
 }
 
 template<typename T, size_t N>
-float Track<T, N>::adjustTimeToFitTrack(const SampleRequest& sr) const {
+float Track<T, N>::_adjustTimeToFitTrack(const SampleRequest& sr) const {
 	int frameCount = static_cast<int>(_frames.size());
 
 	if (frameCount <= 1) {
@@ -215,8 +216,7 @@ float Track<T, N>::adjustTimeToFitTrack(const SampleRequest& sr) const {
 			time += duration;
 		}
 		time += startTime;
-	}
-	else {
+	} else {
 		time = Math::clamp(time, startTime, endTime);
 	}
 	

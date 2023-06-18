@@ -51,7 +51,7 @@ public:
 	inline void		setName(StrView name)  { _name = name; }
 
 private:
-	float adjustTimeToFitRange(float time) const;
+	float _adjustTimeToFitRange(float time) const;
 
 	Vector<TransformTrack>	_tracks; // aka joints
 	String					_name;

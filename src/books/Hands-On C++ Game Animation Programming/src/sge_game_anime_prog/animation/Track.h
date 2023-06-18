@@ -23,7 +23,7 @@ template<typename T, size_t N>
 class Track {
 	using SampleRequest = Track_SampleRequest;
 public:
-
+	using Type = Interpolation;
 	static constexpr int kInvalidFrameIndex = -1;
 
 	static T s_hermite(float t, const T& p1, const T& s1, const T& p2, const T& s2);
@@ -51,25 +51,22 @@ public:
 	      Frame<N>& operator[] (int i)       { return _frames[i]; }
 	const Frame<N>& operator[] (int i) const { return _frames[i]; }
 
-	// keeps the animation sampling time in the valid range between startTime~endTime
-	float adjustTimeToFitTrack(const SampleRequest& sr) const;
-
 	int getFrameIndex(const SampleRequest& sr) const;
 
-	inline Interpolation type()	const { return _type; }
-	inline void setInterpolation(Interpolation type) { _type = type; }
+	inline Type type() const		{ return _type; }
+	inline void setType(Type type)  { _type = type; }
 
-	static Track<T, N> s_createTrack(Interpolation type, int numFrames, ...) {
+	static Track<T, N> s_createTrack(Interpolation type, size_t frameCount, ...) {
 		
 		using VA_ARG_Type = Frame<N>;
 
 		Track<T, N> result;
-		result.setInterpolation(type);
-		result.resize(numFrames);
+		result.setType(type);
+		result.resize(frameCount);
 
 		va_list args;
-		va_start(args, numFrames);
-		for (int i = 0; i < numFrames; ++i) {
+		va_start(args, frameCount);
+		for (int i = 0; i < frameCount; ++i) {
 			result[i] = va_arg(args, VA_ARG_Type);
 		}
 		va_end(args);
@@ -78,8 +75,10 @@ public:
 	}
 
 private:
-
 	static T s_toValue(const float* v);
+
+	// keeps the animation sampling time in the valid range between startTime~endTime
+	float _adjustTimeToFitTrack(const SampleRequest& sr) const;
 
 	T _sampleConstant(const SampleRequest& sr) const;
 	T _sampleLinear  (const SampleRequest& sr) const;

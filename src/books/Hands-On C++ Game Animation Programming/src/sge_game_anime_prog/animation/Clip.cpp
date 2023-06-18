@@ -2,8 +2,8 @@
 
 namespace sge {
 
-float Clip::adjustTimeToFitRange(float time) const {
-	// same logic as Track.h 's adjustTimeToFitTrack function
+float Clip::_adjustTimeToFitRange(float time) const {
+	// same logic as Track.h 's _adjustTimeToFitTrack function
 
 	float duration = getDuration();
 	if (duration <= 0) {
@@ -16,8 +16,7 @@ float Clip::adjustTimeToFitRange(float time) const {
 			time += duration;
 		}
 		time += _startTime;
-	}
-	else {
+	} else {
 		time = Math::clamp(time, _startTime, _endTime);
 	}
 
@@ -26,20 +25,17 @@ float Clip::adjustTimeToFitRange(float time) const {
 
 void Clip::recalculateDuration() {
 	_startTime = 0.f;
-	_endTime = 0.f;
+	_endTime   = 0.f;
 
-	if (_tracks.size() == 0) {
-		return;
-	}
-	
+	if (_tracks.size() == 0) return;
+
 	_startTime = _tracks[0].getStartTime();
-	_endTime = _tracks[0].getEndTime();
+	_endTime   = _tracks[0].getEndTime();
 
 	for (int i = 1; i < _tracks.size(); ++i) {
 		_startTime	= Math::min(_startTime, _tracks[i].getStartTime());
 		_endTime	= Math::max(_endTime, _tracks[i].getEndTime());
 	}
-
 /*
 	The start time of a clip might not be 0;
 	it's possible to have a clip that starts at an arbitrary point in time
@@ -52,7 +48,7 @@ float Clip::sample(Pose& out, float time) const {
 	}
 
 	// make sure the clip is valid and that the time is in the range of the clip.
-	time = adjustTimeToFitRange(time);
+	time = _adjustTimeToFitRange(time);
 
 	Track_SampleRequest sr;
 	sr.isLoop = _isLoop;
@@ -84,7 +80,7 @@ TransformTrack& Clip::operator[] (u32 jointId) {
 		}
 	}
 
-	_tracks.push_back(std::move(TransformTrack()));
+	_tracks.push_back(TransformTrack());
 	auto& res = _tracks.back();
 	res.setId(jointId);
 	return res;

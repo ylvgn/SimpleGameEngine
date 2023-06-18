@@ -5,7 +5,6 @@
 namespace sge {
 
 namespace GLTFHelpers {
-
 /*
 	These functions are internal to the glTF loaderand should not be exposed in the header file.
 */
@@ -31,20 +30,18 @@ Transform getLocalTransform(const cgltf_node& node) {
 	return res;
 }
 
-int getNodeIndex(const cgltf_node* target, cgltf_node* allNodes, size_t numNodes) {
-	// perform a simple linear lookup by looping through all the nodes in a.gltf file
+int getNodeIndex(const cgltf_node* target, cgltf_node* allNodes, size_t nodeCount) {
+	// perform a simple linear lookup by looping through all the nodes in a .gltf file
 	// let say, you can find the parent of a node using the getNodeIndex helper function, which returns -1 if a node has no parent
 
 	if (target == nullptr) {
 		return -1; // invalid index
 	}
-
-	for (int i = 0; i < numNodes; ++i) {
+	for (int i = 0; i < nodeCount; ++i) {
 		if (target == &allNodes[i]) {
 			return i;
 		}
 	}
-
 	return -1; // invalid index
 }
 
@@ -71,7 +68,7 @@ void getTrackFromChannel(Track<T, N>& out, const cgltf_animation_channel& channe
 	else if (sampler->interpolation == cgltf_interpolation_type_cubic_spline) {
 		interpolation = Interpolation::Cubic;
 	}
-	out.setInterpolation(interpolation);
+	out.setType(interpolation);
 
 	// The sampler input is an accessor to the animation timeline.
 	Vector<float> timelineFloats;
@@ -119,127 +116,107 @@ void getTrackFromChannel(Track<T, N>& out, const cgltf_animation_channel& channe
 		}
 	}
 }
-
 } // GLTFHelpers namespace
 
-cgltf_data* g_loadGLTFFile(StrView path) {
+void GLTFLoader::s_readFile(Info& outInfo, StrView filename) {
+	MemMapFile mm;
+	mm.open(filename);
+	s_readMem(outInfo, mm, filename);
+}
+
+void GLTFLoader::s_readMem(Info& outInfo, ByteSpan data, StrView filename) {
+	GLTFLoader inst;
+	inst._readMem(outInfo, data, filename);
+}
+
+void GLTFLoader::_readMem(Info& outInfo, ByteSpan data, StrView filename) {
+	outInfo.clear();
+	_outInfo = &outInfo;
+
+	TempString s = filename;
+
 	// To load a file, you need to create an instance of cgltf_options.
 	// You won't need to set any option flags; just instantiate the cgltf_options struct with 0 for all member values.
 	cgltf_options options;
 	memset(&options, 0, sizeof(cgltf_options));
-
-	TempString s = path;
-	cgltf_data* data = NULL;
-
-	// load the glTF data from the file
-	cgltf_result result = cgltf_parse_file(&options, s.c_str(), &data);
+	
+	SGE_ASSERT(_data == nullptr);
+	// load the glTF data
+	cgltf_result result = cgltf_parse(&options, data.data(), data.size(), &_data);
 	if (result != cgltf_result_success) {
-		SGE_LOG("Could not load input file: {}\n", s);
-		return 0;
+		throw SGE_ERROR("Could not load input file: {}\n", s);
 	}
+	
 	// cgltf_load_buffers is used to load any external buffer data
-	result = cgltf_load_buffers(&options, data, s.c_str());
+	result = cgltf_load_buffers(&options, _data, s.c_str());
 	if (result != cgltf_result_success) {
-		cgltf_free(data);
-		SGE_LOG("Could not load buffers for: {}\n", s);
-		return 0;
+		throw SGE_ERROR ("Could not load buffers for: {}\n", s);
 	}
+	
 	// cgltf_validate makes sure that the glTF file that was just loaded was valid
-	result = cgltf_validate(data);
+	result = cgltf_validate(_data);
 	if (result != cgltf_result_success) {
-		cgltf_free(data);
-		SGE_LOG("Invalid gltf file: {}\n", s);
-		return 0;
+		throw SGE_ERROR ("Invalid gltf file: {}\n", s);
 	}
-	return data;
+
+	_loadRestPose();
+	_loadJointNames();
+	_loadAnimationClips();
 }
 
-void g_freeGLTFFile(cgltf_data* data) {
-	if (data == 0) {
-		SGE_LOG("WARNING: Can't free null data");
-	} else {
-		cgltf_free(data);
+GLTFLoader::~GLTFLoader() {
+	if (_data) {
+		cgltf_free(_data);
+		_data = nullptr;
 	}
 }
 
-Pose g_loadRestPose(cgltf_data* data) {
+void GLTFLoader::_loadRestPose() {
 	// The animation system you will build in this book does not support joint lookup by name, only index.
-
-	cgltf_size boneCount = data->nodes_count;
-	Pose res(boneCount);
-
-	for (int i = 0; i < boneCount; ++i) {
-		const cgltf_node& node = data->nodes[i];
-
-		Transform transform = GLTFHelpers::getLocalTransform(data->nodes[i]);
-		res.setLocalTransform(i, transform);
-
-		int parentIndex = GLTFHelpers::getNodeIndex(node.parent, data->nodes, boneCount);
-		res.setParent(i, parentIndex);
-	}
-
-	return res;
-}
-
-Vector<String> g_loadJointNames(cgltf_data* data) {
-	// At some point, you might want to know the name assigned to each joint that is loaded.This can help make debugging or building tools easier.
-
-	size_t boneCount = data->nodes_count;
-	Vector<String> res;
-	res.resize(boneCount);
+	cgltf_size boneCount = _data->nodes_count;
+	auto& o = _outInfo->restPose;
+	o.resize(boneCount);
 
 	for (int i = 0; i < boneCount; ++i) {
-		cgltf_node* node = &data->nodes[i];
-		if (node->name == 0) {
-			res[i] = "EMPTY NODE";
-		} else {
-			res[i] = node->name;
-		}
+		const cgltf_node& node = _data->nodes[i];
+		Transform transform = GLTFHelpers::getLocalTransform(node);
+		o.setLocalTransform(i, transform);
+		int parentIndex = GLTFHelpers::getNodeIndex(node.parent, _data->nodes, boneCount);
+		o.setParent(i, parentIndex);
 	}
-	return res;
 }
 
-Vector<Clip> g_loadAnimationClips(cgltf_data* data) {
+void GLTFLoader::_loadJointNames() {
+	// At some point, you might want to know the name assigned to each joint that is loaded.
+	// This can help make debugging or building tools easier.
 
-	/*
-	loop through all the clips in the provided gltf_data its "animation" node
-	let say a .gltf file (json format), like
+	size_t boneCount = _data->nodes_count;
+	auto& o = _outInfo->jointNames;
+	o.clear();
+	o.resize(boneCount);
 
-		{
-			"nodes" : [
-				...
-			],
-			...
-			"animation" : [
-				{
-					"name" : "Walking",
-					"channels" : [
-						{
-							"sampler" : 0,
-							"target" : {
-								"node" : 40,
-								"path" : "rotation"
-							},
-						},
-						...
-					],
-					"samplers" : [
-						...
-					]
-				}
-			],
-			...
+	for (int i = 0; i < boneCount; ++i) {
+		const cgltf_node& node = _data->nodes[i];
+		if (node.name == 0) {
+			o[i] = "EMPTY NODE";
 		}
-	*/
-	cgltf_size clipCount = data->animations_count;
-	cgltf_size nodeCount = data->nodes_count;
+		else {
+			o[i] = node.name;
+		}
+	}
+}
 
-	Vector<Clip> res;
-	res.resize(clipCount);
+void GLTFLoader::_loadAnimationClips() {
+	cgltf_size clipCount = _data->animations_count;
+	cgltf_size nodeCount = _data->nodes_count;
+	auto& o = _outInfo->animationClips;
+
+	o.clear();
+	o.resize(clipCount);
+
 	for (int i = 0; i < clipCount; ++i) {
-		const cgltf_animation& animation = data->animations[i];
-		// For every clip, set its name. 
-		res[i].setName(animation.name);
+		const cgltf_animation& animation = _data->animations[i];
+		o[i].setName(animation.name);
 
 		// loop through all of the channels in the clip, each channel of a glTF file is an animation track.
 		cgltf_size channelCount = animation.channels_count;
@@ -248,26 +225,25 @@ Vector<Clip> g_loadAnimationClips(cgltf_data* data) {
 
 			// find the index of the node that the current channel affects
 			const cgltf_node* target = channel.target_node;
-			int nodeIndex = GLTFHelpers::getNodeIndex(target, data->nodes, nodeCount);
+			int nodeIndex = GLTFHelpers::getNodeIndex(target, _data->nodes, nodeCount);
 
-			// The[] operator of the Clip class either retrieves the current track or creates a new one.This means the TransformTrack function for the node that you are parsing is always valid 
+			// The[] operator of the Clip class either retrieves the current track or creates a new one.
+			// This means the TransformTrack function for the node that you are parsing is always valid
 			if (channel.target_path == cgltf_animation_path_type_translation) {
-				VectorTrack& track = constCast(res[i][nodeIndex].position());
+				VectorTrack& track = constCast(o[i][nodeIndex].position());
 				GLTFHelpers::getTrackFromChannel<vec3, 3>(track, channel);
 			}
 			else if (channel.target_path == cgltf_animation_path_type_rotation) {
-				QuaternionTrack& track = constCast(res[i][nodeIndex].rotation());
+				QuaternionTrack& track = constCast(o[i][nodeIndex].rotation());
 				GLTFHelpers::getTrackFromChannel<quat, 4>(track, channel);
 			}
 			else if (channel.target_path == cgltf_animation_path_type_scale) {
-				VectorTrack& track = constCast(res[i][nodeIndex].scale());
+				VectorTrack& track = constCast(o[i][nodeIndex].scale());
 				GLTFHelpers::getTrackFromChannel<vec3, 3>(track, channel);
 			}
 		}
-		res[i].recalculateDuration();
+		o[i].recalculateDuration();
 	}
-
-	return res;
 }
 
 }

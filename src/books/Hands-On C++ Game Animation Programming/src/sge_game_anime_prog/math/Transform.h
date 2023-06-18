@@ -53,22 +53,23 @@ struct Transform {
 		inv.scale = vec3(sx, sy, sz);
 
 		vec3 invTranslation = -position;
+		// first, apply the scale, then rotation, and finally, the translation
 		inv.position = inv.rotation * (inv.scale * invTranslation);
 
 		return inv;
 	}
 
 	// same as multiplying a matrix and a point, but just step by step (SRT) in function transformPoint.
-	inline vec3 transformPoint(const vec3& r) {
+	inline vec3 transformPoint(const vec3& pos) {
 		// first, apply the scale, then rotation, and finally, the translation
-		return position + (rotation * (scale*r));
+		return position + (rotation * (scale * pos));
 //		transformPoint aka move points
 	}
 
-	// same as multiplying a matrix and a vector
-	inline vec3 transformVector(const vec3& r) {
+	// same as multiplying a matrix and a vector, just like transformPoint but no need add position
+	inline vec3 transformVector(const vec3& dir) {
 		// first, apply the scale, then rotation, and finally, the translation, but don't add the position
-		return rotation * (scale * r);
+		return rotation * (scale * dir);
 //		transformVector aka rotate vectors
 	}
 
