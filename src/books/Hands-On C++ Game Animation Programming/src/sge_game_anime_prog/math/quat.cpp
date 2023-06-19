@@ -83,25 +83,7 @@ mat4 quat::s_mat4(const quat& q) {
 #else
 
 #if 0
-	float ww = q.w*q.w;
-	float xx = q.x*q.x;
-	float yy = q.y*q.y;
-	float zz = q.z*q.z;
-	float wx = q.w*q.x;
-	float wy = q.w*q.y;
-	float wz = q.w*q.z;
-	float xy = q.x*q.y;
-	float xz = q.x*q.z;
-	float yz = q.y*q.z;
-
-	return Matrix4(ww+xx-yy-zz, 2*xy-2*wz,   2*xz+2*wy,   0,
-		           2*xy+2*wz,   ww-xx+yy-zz, 2*yz-2*wx,   0,
-		           2*xz-2*wy,   2*yz + 2*wx, ww-xx-yy+zz, 0,
-		           0,           0,           0,           ww+xx+yy+zz
-	);
-#else
-	// since q is a unit quaternion, so ww+xx+yy+zz=1
-	// FYI: http://www.songho.ca/math/quaternion/quaternion.html#matrix
+	float ww = q.w * q.w;
 	float xx = q.x * q.x;
 	float yy = q.y * q.y;
 	float zz = q.z * q.z;
@@ -112,18 +94,36 @@ mat4 quat::s_mat4(const quat& q) {
 	float xz = q.x * q.z;
 	float yz = q.y * q.z;
 
-	return mat4(1.f-2.0f*(yy+zz), 2.f*(xy-wz),     2.f*(xz+wy),     0.f,
-		        2.f*(xy+wz),      1.f-2.f*(xx+zz), 2.f*(yz-wx),     0.f,
-		        2.f*(xz-wy),      2.f*(yz+wx),     1.f-2.f*(xx+yy), 0.f,
-		        0.f,              0.f,             0.f,             1.f
+	return mat4(ww+xx-yy-zz, 2*xy+2*wz,   2*xz-2*wy,   0,
+		        2*xy-2*wz,   ww-xx+yy-zz, 2*yz+2*wx,   0,
+		        2*xz+2*wy,   2*yz-2*wx,   ww-xx-yy+zz, 0,
+		        0,           0,           0,           ww+xx+yy+zz
+	);
+#else
+	// since q is a unit quaternion, so ww+xx+yy+zz=1
+	// FYI: http://www.songho.ca/opengl/gl_quaternion.html
+	float xx = q.x * q.x;
+	float yy = q.y * q.y;
+	float zz = q.z * q.z;
+	float wx = q.w * q.x;
+	float wy = q.w * q.y;
+	float wz = q.w * q.z;
+	float xy = q.x * q.y;
+	float xz = q.x * q.z;
+	float yz = q.y * q.z;
+
+	return mat4(1-2*(yy+zz),    2*(xy+wz),     2*(xz-wy),     0,
+		        2*(xy-wz),      1-2*(xx+zz),   2*(yz+wx),     0,
+		        2*(xz+wy),      2*(yz-wx),     1-2*(xx+yy),   0,
+		        0,              0,             0,             1
 	);
 #endif
 
 #endif
-	/*
+/*
 	Being able to convert quaternions to matrices will be useful later when you need to pass rotation data to a shader.
 	Shaders don't know what a quaternion is, but they have built-in functionality to deal with matrices.
-	*/
+*/
 }
 
 }
