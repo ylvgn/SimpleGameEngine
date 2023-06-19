@@ -19,5 +19,6 @@
 #include <sge_game_anime_prog/animation/TransformTrack.h>
 #include <sge_game_anime_prog/animation/Pose.h>
 #include <sge_game_anime_prog/animation/Clip.h>
+#include <sge_game_anime_prog/animation/Skeleton.h>
 
 #include <sge_game_anime_prog/gltf/GLTFLoader.h>

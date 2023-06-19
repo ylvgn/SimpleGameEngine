@@ -39,7 +39,7 @@ int getNodeIndex(const cgltf_node* target, cgltf_node* allNodes, size_t nodeCoun
 	}
 	for (int i = 0; i < nodeCount; ++i) {
 		if (target == &allNodes[i]) {
-			return i;
+			return i; // it will be a unit index in allNodes, so it is jointId
 		}
 	}
 	return -1; // invalid index
@@ -159,8 +159,7 @@ void GLTFLoader::_readMem(Info& outInfo, ByteSpan data, StrView filename) {
 		throw SGE_ERROR ("Invalid gltf file: {}\n", s);
 	}
 
-	_loadRestPose();
-	_loadJointNames();
+	_loadSkeleton();
 	_loadAnimationClips();
 }
 
@@ -174,16 +173,18 @@ GLTFLoader::~GLTFLoader() {
 void GLTFLoader::_loadRestPose() {
 	// The animation system you will build in this book does not support joint lookup by name, only index.
 	cgltf_size boneCount = _data->nodes_count;
-	auto& o = _outInfo->restPose;
+	Pose o;
 	o.resize(boneCount);
 
 	for (int i = 0; i < boneCount; ++i) {
 		const cgltf_node& node = _data->nodes[i];
 		Transform transform = GLTFHelpers::getLocalTransform(node);
 		o.setLocalTransform(i, transform);
-		int parentIndex = GLTFHelpers::getNodeIndex(node.parent, _data->nodes, boneCount);
-		o.setParent(i, parentIndex);
+
+		int parent = GLTFHelpers::getNodeIndex(node.parent, _data->nodes, boneCount);
+		o.setParent(i, parent); // when parent == -1, means no parent
 	}
+	_outInfo->skeleton.setRestPose(o);
 }
 
 void GLTFLoader::_loadJointNames() {
@@ -191,19 +192,17 @@ void GLTFLoader::_loadJointNames() {
 	// This can help make debugging or building tools easier.
 
 	size_t boneCount = _data->nodes_count;
-	auto& o = _outInfo->jointNames;
-	o.clear();
+	Vector<String> o;
 	o.resize(boneCount);
-
 	for (int i = 0; i < boneCount; ++i) {
 		const cgltf_node& node = _data->nodes[i];
 		if (node.name == 0) {
 			o[i] = "EMPTY NODE";
-		}
-		else {
+		} else {
 			o[i] = node.name;
 		}
 	}
+	_outInfo->skeleton.setJointNames(o);
 }
 
 void GLTFLoader::_loadAnimationClips() {
@@ -244,6 +243,78 @@ void GLTFLoader::_loadAnimationClips() {
 		}
 		o[i].recalculateDuration();
 	}
+}
+
+void GLTFLoader::_loadBindPose() {
+/*
+	glTF files don't store the bind pose.
+	Reconstructing the bind pose is not ideal.
+*/
+
+	const auto& restPose = _outInfo->restPose();
+	size_t boneCount = restPose.size();
+	SGE_ASSERT(boneCount > 0);
+
+	Vector<Transform> worldBindPose;
+	worldBindPose.resize(boneCount);
+
+	for (int i = 0; i < boneCount; ++i) {
+		// This makes sure that if a skin didn't provide an inverse bind pose matrix for a joint, a good default value is available.
+		// By using the rest pose as the default joint values,
+		// any joint that does not have an inverse bind pose matrix still has a valid default orientation and size.
+		worldBindPose[i] = restPose.getGlobalTransform(i); // default value
+	}
+
+	// for each skin that a glTF file contains,
+	// it stores a matrix array that holds the inverse bind pose matrix for each joint that affects the skin.
+	cgltf_size skinCount = _data->skins_count;
+	for (int i = 0; i < skinCount; ++i) {
+		const cgltf_skin& skin = _data->skins[i];
+
+		Vector<float> invBindPoseMat4s;
+		GLTFHelpers::getScalarValues(invBindPoseMat4s, 16, *skin.inverse_bind_matrices);
+
+		cgltf_size jointCount = skin.joints_count;
+		for (int j = 0; j < jointCount; ++j) {
+			const cgltf_node* joint = skin.joints[j];
+
+			// Read the ivnerse bind matrix of the joint
+			const float* matrix = &(invBindPoseMat4s[j * 16]);
+			const mat4 invBindPoseMat4 = mat4(matrix);
+
+			// Invert the inverse bind pose matrix to get the bind pose matrix.
+			const mat4 bindPoseMat4 = invBindPoseMat4.inverse();
+			Transform bindPoseTrans = g_mat4ToTransform(bindPoseMat4);
+
+			// Set that transform in the worldBindPose.
+			int nodeIndex = GLTFHelpers::getNodeIndex(joint, _data->nodes, boneCount);
+			SGE_ASSERT(nodeIndex != -1); // no need ???
+			worldBindPose[nodeIndex] = bindPoseTrans;
+		}
+	}
+
+	// Convert each joint so that it is relative to its parent.
+	Pose o(restPose);
+	for (int i = 0; i < boneCount; ++i) {
+		Transform world = worldBindPose[i];
+		int parent = restPose.getParent(i);
+
+		// we assump call _loadRestPose first, so parent maybe come up -1
+		if (parent >= 0) { // Bring into parent space, world/global space -> local space
+			Transform parentTrans = worldBindPose[parent];
+			world = Transform::s_combine(parentTrans.inverse(), world);
+		}
+		o.setLocalTransform(i, world); // when no parent, worldTrans==localTrans
+	}
+	_outInfo->skeleton.setBindPose(o);
+}
+
+void GLTFLoader::_loadSkeleton() {
+//	This is a convenience function that loads a skeleton
+//	without having to call three separate functions.
+	_loadRestPose();
+	_loadBindPose();
+	_loadJointNames();
 }
 
 }

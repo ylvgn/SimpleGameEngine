@@ -102,6 +102,7 @@ public:
 		_handleLines		= eastl::make_unique<DebugDraw>();
 
 		_restPoseVisual		= eastl::make_unique<DebugDraw>();
+		_bindPoseVisual		= eastl::make_unique<DebugDraw>();
 		_currentPoseVisual	= eastl::make_unique<DebugDraw>();
 
 		_testTexture		= eastl::make_unique<Texture>("Assets/Textures/uvChecker.png");
@@ -438,25 +439,30 @@ public:
 #endif
 
 #if 1 // test animation clip
-		cgltf_data* gltf_data = g_loadGLTFFile("Assets/Mesh/Woman.gltf");
-		_restPose = g_loadRestPose(gltf_data);
-		_clips = g_loadAnimationClips(gltf_data);
-		g_freeGLTFFile(gltf_data);
+		{
+			GLTFInfo info;
+			GLTFLoader::s_readFile(info, "Assets/Mesh/Woman.gltf");
+			_skeleton.create(info);
+			_clips = std::move(info.animationClips);
 
-		_restPoseVisual->fromPose(_restPose);
-		_restPoseVisual->uploadToGpu();
+			_restPoseVisual->fromPose(info.restPose());
+			_restPoseVisual->uploadToGpu();
 
-		_currentClip = 0;
-		_playbackTime = 0.f;
-		_currentPose = _restPose;
-		_currentPoseVisual->fromPose(_currentPose);
-		_currentPoseVisual->uploadToGpu();
+			_bindPoseVisual->fromPose(info.bindPose());
+			_bindPoseVisual->uploadToGpu();
 
-		// play 'Walking' animation clip
-		for (int i = 0; i < _clips.size(); ++i) {
-			if (_clips[i].name() == "Walking") {
-				_currentClip = i;
-				break;
+			_currentClip = 0;
+			_playbackTime = 0.f;
+			_currentPose = info.restPose();
+			_currentPoseVisual->fromPose(_currentPose);
+			_currentPoseVisual->uploadToGpu();
+
+			// play 'Walking' animation clip
+			for (int i = 0; i < _clips.size(); ++i) {
+				if (_clips[i].name() == "Walking") {
+					_currentClip = i;
+					break;
+				}
 			}
 		}
 #endif
@@ -501,7 +507,7 @@ public:
 			s_clipLoopingTime = 0.f;
 			_currentClip = (_currentClip + 1) % _clips.size();
 			_playbackTime = 0.f;
-			_currentPose = _restPose;
+			_currentPose = _skeleton.restPose();
 		}
 		_currentPoseVisual->fromPose(_currentPose);
 #endif
@@ -536,6 +542,7 @@ public:
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 			float aspect = clientWidth / clientHeight;
+			(void)aspect;
 
 #if 0
 			{ // test lit texture
@@ -609,14 +616,15 @@ public:
 
 #if 1 // test animation clip
 			mat4 projection = mat4::s_perspective(60.0f, aspect, 0.01f, 10.f);
-			mat4 view = mat4::s_lookAt(vec3(0,4,7), vec3(0,4,0), vec3::s_up());
-			mat4 mvp = projection * view * mat4::s_identity();
+			mat4 view = mat4::s_lookAt(vec3(0,4,-7), vec3(0,4,0), vec3::s_up());
+			mat4 mvp = projection * view;
 
-			_restPoseVisual->draw(DebugDrawMode::Lines, mvp, Color4f(0,0,1,1));
+			_restPoseVisual->draw(DebugDrawMode::Lines, mvp, Color4f(1,0,0,1));
 			_currentPoseVisual->uploadToGpu();
-			_currentPoseVisual->draw(DebugDrawMode::Lines, mvp, Color4f(0,1,0,1));
-#endif
+			_currentPoseVisual->draw(DebugDrawMode::Lines, mvp, Color4f(0,0,1,1));
 
+			_bindPoseVisual->draw(DebugDrawMode::Lines, mvp, Color4f(0,1,0,1));
+#endif
 			SwapBuffers(dc);
 			if (_vsynch != 0) {
 				glFinish();
@@ -653,13 +661,14 @@ private:
 	UPtr<DebugDraw>			_handleLines;
 	UPtr<DebugDraw>			_referenceLines;
 
-	Pose					_restPose;
+	Skeleton				_skeleton;
 	Pose					_currentPose;
 	Vector<Clip>			_clips;
 	int						_currentClip;
 	float					_playbackTime;
 
 	UPtr<DebugDraw>			_restPoseVisual;
+	UPtr<DebugDraw>			_bindPoseVisual;
 	UPtr<DebugDraw>			_currentPoseVisual;
 };
 
@@ -682,7 +691,7 @@ protected:
 		{ // create window
 			NativeUIWindow::CreateDesc winDesc;
 			winDesc.isMainWindow = true;
-			winDesc.rect = { 10, 10, 1040, 880 };
+			winDesc.rect = { 10, 10, 800, 600 };
 			_mainWin.create(winDesc);
 			_mainWin.setWindowTitle("SGE Game Anime Prog Window");
 		}
