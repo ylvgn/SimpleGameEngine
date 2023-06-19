@@ -53,7 +53,7 @@ public:
 private:
 	float _adjustTimeToFitRange(float time) const;
 
-	Vector<TransformTrack>	_tracks; // aka joints
+	Vector<TransformTrack>	_tracks;
 	String					_name;
 	float					_startTime;
 	float					_endTime;

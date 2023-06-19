@@ -2,6 +2,40 @@
 
 namespace sge {
 
+Transform Transform::mix(const Transform& r, float t) const {
+	quat rRot = r.rotation;
+	if (rotation.dot(rRot) < 0.0f) { // neighborhood
+		rRot = -rRot;
+	}
+
+	return Transform(position.lerp(r.position, t),
+		rotation.nlerp(rRot, t),
+		scale.lerp(r.scale, t));
+}
+
+Transform Transform::inverse() const {
+	Transform inv;
+
+	float sx, sy, sz;
+	sx = sy = sz = 0.f;
+
+	inv.rotation = rotation.inverse();
+
+	// When inverting scale, keep in mind that 0 can't be inverted.
+	// The case where scale is 0 will need to be treated specially
+	if (!Math::equals0(scale.x)) { sx = 1.f / scale.x; }
+	if (!Math::equals0(scale.y)) { sy = 1.f / scale.y; }
+	if (!Math::equals0(scale.z)) { sz = 1.f / scale.z; }
+
+	inv.scale = vec3(sx, sy, sz);
+
+	vec3 invTranslation = -position;
+	// first, apply the scale, then rotation, and finally, the translation
+	inv.position = inv.rotation * (inv.scale * invTranslation);
+
+	return inv;
+}
+
 // To keep things consistent, combining transforms should maintain a right - to - left combination order.
 Transform Transform::s_combine(const Transform& a, const Transform& b) {
 	Transform out;
@@ -57,15 +91,14 @@ mat4 Transform::s_mat4(const Transform& t) {
 }
 
 Transform g_mat4ToTransform(const mat4& m) {
-	/*
+/*
 	It's important that you're able to convert matrices to transforms
 	because you don't always control what format the data you are dealing with comes in.
 	For example, a model format might store matrices instead of transforms.
-	*/
+*/
 
 	Transform out;
-	//out.position = vec3(m.v[12], m.v[13], m.v[14]);
-	out.position = m.cw.xyz(); //wx, wy, wz
+	out.position = m.cw.xyz(); // wx, wy, wz, same as vec3(m.v[12], m.v[13], m.v[14]);
 	out.rotation = mat4::s_quat(m);
 
 	// To find the scale, first, ignore the translation part of the matrix,
@@ -91,11 +124,11 @@ Transform g_mat4ToTransform(const mat4& m) {
 		             scaleSkewMat.v[10]); // lossy scale
 
 	return out;
-	/*
+/*
 	It is possible to decompose a matrix into translation, rotation, scale, skew, and the sign of the determinant.
 	However, this decomposition is expensive and not well suited to real-time applications.
 	FYI: https://gabormakesgames.com/blog_decomposition.html
-	*/
+*/
 }
 
 }

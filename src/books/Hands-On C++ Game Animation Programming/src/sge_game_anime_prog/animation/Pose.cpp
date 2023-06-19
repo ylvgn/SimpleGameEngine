@@ -6,17 +6,10 @@ Pose& Pose::operator=(const Pose& r) {
 	if (&r == this) {
 		return *this;
 	}
-#if 1
-	if (_parents.size() != r._parents.size()) {
-		_parents.resize(r._parents.size());
-	}
-	if (_joints.size() != r._joints.size()) {
-		_joints.resize(r._joints.size());
-	}
-#else
+
 	_parents.resize(r._parents.size());
 	_joints.resize(r._joints.size());
-#endif
+
 	if (_parents.size() != 0) {
 		std::memcpy(_parents.data(),
 			        r._parents.data(),
@@ -29,14 +22,17 @@ Pose& Pose::operator=(const Pose& r) {
 			        sizeof(Transform) * _joints.size()
 		);
 	}
+
 	SGE_ASSERT(_parents.size() == _joints.size());
 	return *this;
 }
 
 Transform Pose::getGlobalTransform(int i) const {
 	Transform result = getLocalTransform(i);
-	// Not all joints have parents; if a joint doesn't have a parent, its parent value is negative.
-	for (int p = _parents[i]; p > 0; p = _parents[p]) {
+	// Not all joints have parents;
+	// if a joint doesn't have a parent, its parent value is negative.
+	// negative means parent index < 0
+	for (int p = _parents[i]; p >= 0; p = _parents[p]) {
 		result = Transform::s_combine(_joints[p], result);
 	}
 	return result;
@@ -46,7 +42,6 @@ void Pose::getMatrixPalette(Vector<mat4>& out) const {
 	// For every transform, find the global transform, convert it into a matrix
 
 	size_t jointCount = size();
-	out.clear();
 	out.resize(jointCount);
 
 	for (int i = 0; i < jointCount; ++i) {

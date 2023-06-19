@@ -18,46 +18,16 @@ struct Transform {
 	vec3 scale {1,1,1};
 
 	Transform() = default;
-	Transform(const vec3& p, const quat& r, const vec3& s) : position(p), rotation(r), scale(s) {}
+	Transform(const vec3& p, const quat& r, const vec3& s) : position(p), rotation(r), scale(s) { }
 
 	inline bool operator==(const Transform& r) const { return position == r.position && rotation == r.rotation && scale == r.scale; }
 	inline bool operator!=(const Transform& r) const { return !(this->operator==(r)); }
 
 	// Instead of interpolation, this operation is typically called blend or mix.
 	// Being able to mix transformations together is important for creating smooth transitions between animations.
-	inline Transform mix(const Transform& r, float t) const {
-		quat rRot = r.rotation;
-		if (rotation.dot(rRot) < 0.0f) { // neighborhood
-			rRot = -rRot;
-		}
+	Transform mix(const Transform& r, float t) const;
 
-		return Transform(position.lerp(r.position, t),
-			             rotation.nlerp(rRot, t),
-			             scale.lerp(r.scale, t));
-	}
-
-	inline Transform inverse() const {
-		Transform inv;
-
-		float sx, sy, sz;
-		sx = sy = sz = 0.f;
-
-		inv.rotation = rotation.inverse();
-
-		// When inverting scale, keep in mind that 0 can't be inverted.
-		// The case where scale is 0 will need to be treated specially
-		if (!Math::equals0(scale.x)) { sx = 1.f/scale.x; }
-		if (!Math::equals0(scale.y)) { sy = 1.f/scale.y; }
-		if (!Math::equals0(scale.z)) { sz = 1.f/scale.z; }
-
-		inv.scale = vec3(sx, sy, sz);
-
-		vec3 invTranslation = -position;
-		// first, apply the scale, then rotation, and finally, the translation
-		inv.position = inv.rotation * (inv.scale * invTranslation);
-
-		return inv;
-	}
+	Transform inverse() const;
 
 	// same as multiplying a matrix and a point, but just step by step (SRT) in function transformPoint.
 	inline vec3 transformPoint(const vec3& pos) {

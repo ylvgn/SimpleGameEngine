@@ -28,9 +28,10 @@ public:
 	Pose& operator=(const Pose& r);
 
 	// Since the parent and joint vectors are parallel, the resize function needs to set the size of both.
-	inline void resize(size_t size) {
-		_parents.resize(size);
-		_joints.resize(size);
+	inline void resize(size_t jointCount) {
+		_parents.resize(jointCount);
+		_joints.resize(jointCount);
+		// at initialization, joint's parent is self
 	}
 
 	inline size_t size() const { return _joints.size(); }
@@ -41,7 +42,7 @@ public:
 	inline Transform getLocalTransform(int i) const          { return _joints[i]; }
 	inline void setLocalTransform(int i, const Transform& t) { _joints[i] = t; }
 
-	Transform getGlobalTransform(int index) const;
+	Transform getGlobalTransform(int i) const;
 
 	      Transform operator[] (int i)       { return getGlobalTransform(i); };
 	const Transform operator[] (int i) const { return getGlobalTransform(i); };
@@ -52,6 +53,8 @@ public:
 
 	bool operator== (const Pose& r) const;
 	bool operator!= (const Pose& r) const;
+
+	inline void clear() { resize(0); }
 
 private:
 	// To store a parent-child hierarchy between transforms, you need to maintain two parallel vectors

@@ -12,10 +12,10 @@ quat mat4::s_quat(const mat4& m) {
 	vec3 right = up.cross(forward);
 	up = forward.cross(right);
 	return quat::s_lookRotation(forward, up);
-	/*
+/*
 	Converting matrices to quaternions is going to be useful for debugging
 	and in the case where an external data source only provides rotations as matrices.
-	*/
+*/
 }
 
 void mat4::onFormat(fmt::format_context& ctx) const {

@@ -22,11 +22,11 @@ void DebugDraw::draw(DebugDrawMode mode, const mat4& mvp, const Color4f& color /
 
 	switch (mode)
 	{
-		case sge::DebugDrawMode::Lines:		g_Draw(vertexCount, DrawMode::Lines); break;
-		case sge::DebugDrawMode::Loop:		g_Draw(vertexCount, DrawMode::LineLoop); break;
-		case sge::DebugDrawMode::Strip:		g_Draw(vertexCount, DrawMode::LineStrip); break;
-		case sge::DebugDrawMode::Points:	g_Draw(vertexCount, DrawMode::Points); break;
-		default:							throw SGE_ERROR("not supported"); break;
+		case sge::DebugDrawMode::Lines:		g_Draw(vertexCount, DrawMode::Lines);		break;
+		case sge::DebugDrawMode::Loop:		g_Draw(vertexCount, DrawMode::LineLoop);	break;
+		case sge::DebugDrawMode::Strip:		g_Draw(vertexCount, DrawMode::LineStrip);	break;
+		case sge::DebugDrawMode::Points:	g_Draw(vertexCount, DrawMode::Points);		break;
+		default:							throw SGE_ERROR("not supported");			break;
 	}
 
 	_attribs.unbind(_shader->findAttributeByName("position"));
@@ -34,24 +34,21 @@ void DebugDraw::draw(DebugDrawMode mode, const mat4& mvp, const Color4f& color /
 }
 
 void DebugDraw::fromPose(const Pose& pose) {
-	size_t requiredVerts = 0;
 	size_t jointCount = pose.size();
+
+	_points.clear();
+	_points.reserve(jointCount);
+
 	for (int i = 0; i < jointCount; ++i) {
-		if (pose.getParent(i) < 0) {
+		int p = pose.getParent(i);
+		if (p < 0) {
+			// p == -1 means no parent
 			continue;
 		}
-		requiredVerts += 2; // when come up 1 parent, need 2 points(verts) to draw a line
-	}
-
-	_points.resize(requiredVerts);
-	for (int i = 0; i < jointCount; ++i) {
-		if (pose.getParent(i) < 0) {
-			continue;
-		}
-
-		// To draw a bone using debug lines, draw a line from the position of the joint to the position of its parent.
+		// To draw a bone using debug lines
+		// draw a line from the position of the joint to the position of its parent.
 		_points.push_back(pose.getGlobalTransform(i).position);
-		_points.push_back(pose.getGlobalTransform(pose.getParent(i)).position);
+		_points.push_back(pose.getGlobalTransform(p).position);
 	}
 }
 

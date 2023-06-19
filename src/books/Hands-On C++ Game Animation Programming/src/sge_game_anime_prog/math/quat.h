@@ -40,15 +40,14 @@ struct quat {
 	inline static quat s_zero()		{ return quat(0,0,0,0); }
 
 	inline static quat s_angleAxis(float angle, const vec3& axis) {
-		/*
-			A quaternion can track two full rotations, which is 4π or 720 degrees.
-			This makes the period of a quaternion 720 degrees.
-			The period of sin/cos is 360 degrees.
-			Dividing θ by 2 maps the range of a quaternion to the range of sin/cos.
-		*/
+/*
+		A quaternion can track two full rotations, which is 4π or 720 degrees.
+		This makes the period of a quaternion 720 degrees.
+		The period of sin/cos is 360 degrees.
+		Dividing θ by 2 maps the range of a quaternion to the range of sin/cos.
 
-		// angle is radians, not degrees
-
+		angle is radians, not degrees
+*/
 		vec3 na = axis.normalize();
 		float s = ::sinf(angle * 0.5f);
 		float c = ::cosf(angle * 0.5f);
@@ -111,10 +110,10 @@ struct quat {
 						  && Math::equals0(y+r.y)
 						  && Math::equals0(z+r.z)
 						  && Math::equals0(w+r.w));
-		/*
+/*
 		The sameOrientation function is not as useful
 		because the rotation that a quaternion takes can be changed if the quaternion is inverted.
-		*/
+*/
 	}
 
 	// Like with vectors, the dot product measures how similar two quaternions are.
@@ -144,6 +143,7 @@ struct quat {
 	// This function achieves the same result as lerp does, but it's not really a lerp function as the quaternion still travels on an arc, and arc is not linear.
 	// To avoid any confusion, this function will be called mix, not lerp.
 	inline quat mix(const quat& to, float t) const { return *this + (to-*this)*t; }
+	inline quat lerp(const quat& to, float t) const { return mix(to, t); }
 
 	inline quat nlerp(const quat& to, float t) const { return mix(to, t).normalize(); }
 
