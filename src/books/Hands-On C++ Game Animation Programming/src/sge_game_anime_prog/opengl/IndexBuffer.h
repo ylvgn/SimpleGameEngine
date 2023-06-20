@@ -1,11 +1,11 @@
 #pragma once
 
+namespace sge {
+
 /*
 	IndexBuffer is bound to GL_ELEMENT_ARRAY_BUFFER and can be used to draw primitives.
 	IndexBuffer aka index buffer (GPU buffer), similar to Attribute
 */
-namespace sge {
-
 class IndexBuffer : public NonCopyable {
 public:
 	IndexBuffer();

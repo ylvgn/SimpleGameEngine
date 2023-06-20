@@ -176,18 +176,26 @@ struct mat4 {
 	}
 
 	inline vec4 mul(const vec4& r) const {
-	#define E(ROW, V4) M4V4D(ROW, V4.x, V4.y, V4.z, V4.w)
+#define E(ROW, V4) M4V4D(ROW, V4.x, V4.y, V4.z, V4.w)
 		return vec4(E(0,r), E(1,r), E(2,r), E(3,r));
-	#undef E
+#undef E
 	}
 
-	// Most of the data will be stored as three-component vectors, not four.
-	// There is no need to create a new four-component vector every time one needs to be transformed by a matrix;
 	/*
-		No need to declare 'inline vec3 operator* (const vec3& r) const', and use transformVector/transformPoint instead.
+		Most of the data will be stored as three-component vectors, not four.
+		There is no need to create a new four-component vector every time one needs to be transformed by a matrix.
+
+		No need to declare 'inline vec3 operator* (const vec3& r) const',
+		and use transformVector/transformPoint instead.
 		This should help reduce ambiguity as to what the data being transformed is.
 	*/
 	inline vec3 transformVector(const vec3& r) const {
+#define E(ROW, V3) M4V4D(ROW, V3.x, V3.y, V3.z, 0)
+		return vec3(E(0,r), E(1,r), E(2,r));
+#undef E
+	}
+
+	vec3 transformPoint(const vec3& r) {
 #define E(ROW, V3) M4V4D(ROW, V3.x, V3.y, V3.z, 1)
 		return vec3(E(0,r), E(1,r), E(2,r));
 #undef E

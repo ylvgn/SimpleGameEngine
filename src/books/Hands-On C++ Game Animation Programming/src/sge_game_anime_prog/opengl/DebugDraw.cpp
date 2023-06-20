@@ -22,11 +22,11 @@ void DebugDraw::draw(DebugDrawMode mode, const mat4& mvp, const Color4f& color /
 
 	switch (mode)
 	{
-		case sge::DebugDrawMode::Lines:		g_Draw(vertexCount, DrawMode::Lines);		break;
-		case sge::DebugDrawMode::Loop:		g_Draw(vertexCount, DrawMode::LineLoop);	break;
-		case sge::DebugDrawMode::Strip:		g_Draw(vertexCount, DrawMode::LineStrip);	break;
-		case sge::DebugDrawMode::Points:	g_Draw(vertexCount, DrawMode::Points);		break;
-		default:							throw SGE_ERROR("not supported");			break;
+		case DebugDrawMode::Lines:	DrawUtil::draw(vertexCount, DrawMode::Lines); break;
+		case DebugDrawMode::Loop:	DrawUtil::draw(vertexCount, DrawMode::LineLoop); break;
+		case DebugDrawMode::Strip:	DrawUtil::draw(vertexCount, DrawMode::LineStrip); break;
+		case DebugDrawMode::Points:	DrawUtil::draw(vertexCount, DrawMode::Points); break;
+		default:					throw SGE_ERROR("not supported"); break;
 	}
 
 	_attribs.unbind(_shader->findAttributeByName("position"));

@@ -3,11 +3,6 @@
 #include "cgltf.h"
 #include "GLTFInfo.h"
 
-#define M4_3X3MINOR2(c0, c1, c2, r0, r1, r2) \
-    (m.v[c0 * 4 + r0] * (m.v[c1 * 4 + r1] * m.v[c2 * 4 + r2] - m.v[c1 * 4 + r2] * m.v[c2 * 4 + r1]) - \
-     m.v[c1 * 4 + r0] * (m.v[c0 * 4 + r1] * m.v[c2 * 4 + r2] - m.v[c0 * 4 + r2] * m.v[c2 * 4 + r1]) + \
-     m.v[c2 * 4 + r0] * (m.v[c0 * 4 + r1] * m.v[c1 * 4 + r2] - m.v[c0 * 4 + r2] * m.v[c1 * 4 + r1]))
-
 namespace sge {
 
 class GLTFLoader : public NonCopyable {

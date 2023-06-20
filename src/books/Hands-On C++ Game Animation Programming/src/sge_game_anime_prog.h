@@ -8,10 +8,10 @@
 
 #include <sge_game_anime_prog/opengl/Shader.h>
 #include <sge_game_anime_prog/opengl/Attribute.h>
+#include <sge_game_anime_prog/opengl/IndexBuffer.h>
 #include <sge_game_anime_prog/opengl/Uniform.h>
 #include <sge_game_anime_prog/opengl/Draw.h>
 #include <sge_game_anime_prog/opengl/Texture.h>
-#include <sge_game_anime_prog/opengl/DebugDraw.h>
 
 #include <sge_game_anime_prog/animation/Interpolation.h>
 #include <sge_game_anime_prog/animation/Frame.h>
@@ -22,3 +22,5 @@
 #include <sge_game_anime_prog/animation/Skeleton.h>
 
 #include <sge_game_anime_prog/gltf/GLTFLoader.h>
+
+#include <sge_game_anime_prog/opengl/DebugDraw.h>

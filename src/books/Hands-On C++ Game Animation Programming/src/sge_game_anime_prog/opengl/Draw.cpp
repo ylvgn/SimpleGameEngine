@@ -2,15 +2,15 @@
 
 namespace sge {
 
-void g_Draw(size_t vertexCount, DrawMode mode) {
+void DrawUtil::draw(size_t vertexCount, DrawMode mode/*= DrawMode::Triangles*/) {
 	glDrawArrays(DrawUtil::getGLEnum(mode), 0, static_cast<GLuint>(vertexCount));
 }
 
-void g_DrawInstanced(size_t vertexCount, DrawMode mode, u32 numInstances) {
-	glDrawArraysInstanced(DrawUtil::getGLEnum(mode), 0, static_cast<GLuint>(vertexCount), numInstances);
+void DrawUtil::drawInstanced(size_t vertexCount, u32 instanceCount, DrawMode mode/*=DrawMode::Triangles*/) {
+	glDrawArraysInstanced(DrawUtil::getGLEnum(mode), 0, static_cast<GLuint>(vertexCount), instanceCount);
 }
 
-void g_Draw(const IndexBuffer& indexBuf, DrawMode mode) {
+void DrawUtil::draw(const IndexBuffer& indexBuf, DrawMode mode/*=DrawMode::Triangles*/) {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuf.handle());
 	{
 		glDrawElements(DrawUtil::getGLEnum(mode), static_cast<GLuint>(indexBuf.count()), GL_UNSIGNED_INT, 0);
@@ -31,7 +31,7 @@ void g_Draw(const IndexBuffer& indexBuf, DrawMode mode) {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-void g_DrawInstanced(const IndexBuffer& indexBuf, DrawMode mode, u32 instanceCount) {
+void DrawUtil::drawInstanced(const IndexBuffer& indexBuf, u32 instanceCount, DrawMode mode/*=DrawMode::Triangles*/) {
 	// This instanceCount variable controls how many instances of the geometry will be rendered
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuf.handle());
 	{

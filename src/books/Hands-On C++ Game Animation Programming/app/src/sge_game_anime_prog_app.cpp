@@ -438,7 +438,7 @@ public:
 		}
 #endif
 
-#if 1 // test animation clip
+#if 0 // test animation clip
 		{
 			GLTFInfo info;
 			GLTFLoader::s_readFile(info, "Assets/Mesh/Woman.gltf");
@@ -495,7 +495,7 @@ public:
 		}
 #endif
 
-#if 1 // test animation clip
+#if 0 // test animation clip
 		static float s_clipLoopingTime = 0.f;
 		static const float k_clipMaxLoopTime = 4.f;
 
@@ -567,7 +567,7 @@ public:
 						_testTexture->set(_testShader->findUniformByName("tex0"), 0);
 					}
 
-					g_Draw(*_indexBuffer.get(), DrawMode::Triangles);
+					DrawUtil::draw(*_indexBuffer.get());
 
 					_debugLines->draw(DebugDrawMode::Lines, mvp);
 					_debugPoints->draw(DebugDrawMode::Points, mvp, Color4f(0, 0, 1, 1));
@@ -614,7 +614,7 @@ public:
 			}
 #endif
 
-#if 1 // test animation clip
+#if 0 // test animation clip
 			mat4 projection = mat4::s_perspective(60.0f, aspect, 0.01f, 10.f);
 			mat4 view = mat4::s_lookAt(vec3(0,4,-7), vec3(0,4,0), vec3::s_up());
 			mat4 mvp = projection * view;

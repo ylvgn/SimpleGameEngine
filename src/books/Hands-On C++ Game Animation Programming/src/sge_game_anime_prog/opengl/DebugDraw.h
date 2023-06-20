@@ -48,11 +48,12 @@ public:
 	)) { }
 #endif
 
-	inline size_t size() const			 { return _points.size(); }
-	inline void resize(size_t newSize)   { _points.resize(newSize); }
-	inline void clear()					 { _points.clear(); }
-	inline void push_back(const vec3& v) { _points.push_back(v); }
-	inline void push_back(Span<vec3> v)  { for (auto& s : v) _points.push_back(s); }
+	inline size_t size() const			  { return _points.size(); }
+	inline void resize(size_t newSize)    { _points.resize(newSize); }
+	inline void clear()					  { _points.clear(); }
+	inline void push_back(const vec3f& v) { _points.push_back(v); }
+	inline void push_back(Span<vec3f>& v) { for (auto& s : v) _points.push_back(s); }
+	inline void push_back(const Span<const vec3f>& v) { for (auto& s : v) _points.push_back(s); }
 
 	inline void uploadToGpu()            { _attribs.uploadToGpu(_points); }
 
