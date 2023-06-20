@@ -2,8 +2,6 @@
 
 #include "Interpolation.h"
 #include "Frame.h"
-#include <sge_game_anime_prog/math/vec3.h>
-#include <sge_game_anime_prog/math/quat.h>
 
 namespace sge {
 
@@ -56,24 +54,6 @@ public:
 	inline Type type() const		{ return _type; }
 	inline void setType(Type type)  { _type = type; }
 
-	static Track<T, N> s_createTrack(Interpolation type, size_t frameCount, ...) {
-		
-		using VA_ARG_Type = Frame<N>;
-
-		Track<T, N> result;
-		result.setType(type);
-		result.resize(frameCount);
-
-		va_list args;
-		va_start(args, frameCount);
-		for (int i = 0; i < frameCount; ++i) {
-			result[i] = va_arg(args, VA_ARG_Type);
-		}
-		va_end(args);
-
-		return result;
-	}
-
 private:
 	static T s_toValue(const float* v);
 
@@ -91,5 +71,42 @@ private:
 using ScalarTrack		= Track<float, 1>;
 using VectorTrack		= Track<vec3,  3>;
 using QuaternionTrack	= Track<quat,  4>;
+
+struct TrackUtil {
+	TrackUtil() = delete;
+
+	template<typename T, size_t N>
+	static Track<T, N> createTrack(Interpolation type, size_t frameCount, ...) {
+		using VA_ARG_Type = Frame<N>;
+
+		Track<T, N> result;
+		result.setType(type);
+		result.resize(frameCount);
+
+		va_list args;
+		va_start(args, frameCount);
+		for (int i = 0; i < frameCount; ++i) {
+			result[i] = va_arg(args, VA_ARG_Type);
+		}
+		va_end(args);
+
+		return result;
+	}
+
+	template<class... Args>
+	static ScalarTrack createScalarTrack(Interpolation type, size_t frameCount, Args&&... args) {
+		return TrackUtil::createTrack<float, 1>(type, frameCount, SGE_FORWARD(args)...);
+	}
+
+	template<class... Args>
+	static VectorTrack createVectorTrack(Interpolation type, size_t frameCount, Args&&... args) {
+		return TrackUtil::createTrack<vec3, 3>(type, frameCount, SGE_FORWARD(args)...);
+	}
+
+	template<class... Args>
+	static QuaternionTrack createQuaternionTrack(Interpolation type, size_t frameCount, Args&&... args) {
+		return TrackUtil::createTrack<quat, 4>(type, frameCount, SGE_FORWARD(args)...);
+	}
+};
 
 }

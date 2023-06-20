@@ -1,5 +1,7 @@
 #pragma once
 
+namespace sge {
+
 /*
 	specialized frameand curve types, such as a scalar frame, a vector frame, and a quaternion frame
 	Similarly, you could create separate classes to represent a scalar curve, a vector curve, and a quaternion curve
@@ -8,13 +10,11 @@
 	If the interpolation type doesn't need tangents, you can simply ignore them
 */
 
-namespace sge {
-
 template<size_t N>
 struct Frame {
 	float value[N];
-	float in[N];	// incoming tangent
-	float out[N];	// outgoing tangent
+	float in[N];	// in-coming tangent
+	float out[N];	// out-going tangent
 	float time;
 };
 

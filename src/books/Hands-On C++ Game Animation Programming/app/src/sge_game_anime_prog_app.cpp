@@ -17,6 +17,11 @@ typedef int (WINAPI* PFNWGLGETSWAPINTERVALEXTPROC) (void);
 
 class MainWin : public NativeUIWindow {
 	using Base = NativeUIWindow;
+	const Color4f k_red		{1,0,0,1};
+	const Color4f k_green	{0,1,0,1};
+	const Color4f k_blue	{0,0,1,1};
+	const Color4f k_yellow	{1,1,0,1};
+	const Color4f k_purple	{1,0,1,1};
 public:
 	virtual void onCreate(CreateDesc& desc) override {
 		Base::onCreate(desc);
@@ -217,7 +222,7 @@ public:
 		}
 #endif
 
-#if 0 // test track
+#if 1 // test track
 		float height = 1.8f;
 		float left   = 1.0f;
 		float right  = 12.f;
@@ -249,27 +254,27 @@ public:
 		}
 
 		{ // linear interpolate
-			_scalarTracks.push_back(ScalarTrack::s_createTrack(
+			_scalarTracks.push_back(TrackUtil::createScalarTrack(
 				Interpolation::Linear, 2,
 				FrameUtil::createFrame(0.0f, 0.0f),
-				FrameUtil::createFrame(1.0f, 1.0f)));
+				FrameUtil::createFrame(1.0f, 1.0f))
+			);
 			_scalarTracksIsLoop.push_back(false);
 
-			_scalarTracks.push_back(ScalarTrack::s_createTrack(
+			_scalarTracks.push_back(TrackUtil::createScalarTrack(
 				Interpolation::Linear, 2,
 				FrameUtil::createFrame(0.0f, 0.0f),
-				FrameUtil::createFrame(0.5f, 1.0f)));
+				FrameUtil::createFrame(0.5f, 1.0f))
+			);
 			_scalarTracksIsLoop.push_back(false);
 
 			{
-				const auto keyFrame1 = FrameUtil::createFrame(0.25f, 0.f);
-				const auto keyFrame2 = FrameUtil::createFrame(0.5f,  1.f);
-				const auto keyFrame3 = FrameUtil::createFrame(0.75f, 0.f);
-
-				const auto linearTrack = ScalarTrack::s_createTrack(Interpolation::Linear, 3,
-					                                                keyFrame1,
-					                                                keyFrame2,
-					                                                keyFrame3);
+				const auto linearTrack = TrackUtil::createScalarTrack(
+					Interpolation::Linear, 3,
+					FrameUtil::createFrame(0.25f, 0.f),
+					FrameUtil::createFrame(0.5f,  1.f),
+					FrameUtil::createFrame(0.75f, 0.f)
+				);
 				_scalarTracks.push_back(linearTrack);
 				_scalarTracksIsLoop.push_back(true);
 
@@ -279,12 +284,14 @@ public:
 		}
 
 		{ // step interpolate
-			const auto stepTrack = ScalarTrack::s_createTrack(Interpolation::Constant, 5,
-				                                              FrameUtil::createFrame(0.20f, 1.f),
-				                                              FrameUtil::createFrame(0.25f, 0.f),
-				                                              FrameUtil::createFrame(0.30f, 1.f),
-				                                              FrameUtil::createFrame(0.35f, 0.f),
-				                                              FrameUtil::createFrame(0.40f, 1.f));
+			const auto stepTrack = TrackUtil::createScalarTrack(
+				Interpolation::Constant, 5,
+				FrameUtil::createFrame(0.20f, 1.f),
+				FrameUtil::createFrame(0.25f, 0.f),
+				FrameUtil::createFrame(0.30f, 1.f),
+				FrameUtil::createFrame(0.35f, 0.f),
+				FrameUtil::createFrame(0.40f, 1.f)
+			);
 			_scalarTracks.push_back(stepTrack);
 			_scalarTracksIsLoop.push_back(true);
 
@@ -294,24 +301,28 @@ public:
 
 		{ // cubic interpolate
 			{
-				_scalarTracks.push_back(ScalarTrack::s_createTrack(
+				_scalarTracks.push_back(TrackUtil::createScalarTrack(
 					Interpolation::Cubic, 2,
-					FrameUtil::createFrame(0.25f, 0.0f),
-					FrameUtil::createFrame(0.75f, 1.0f)));
+					FrameUtil::createFrame(0.25f, 0),
+					FrameUtil::createFrame(0.75f, 1))
+				);
 				_scalarTracksIsLoop.push_back(false);
 
-				_scalarTracks.push_back(ScalarTrack::s_createTrack(
+				_scalarTracks.push_back(TrackUtil::createScalarTrack(
 					Interpolation::Cubic, 2,
 					FrameUtil::createFrame(0.25f, 0.676221f, 0.0f, 0.676221f),
-					FrameUtil::createFrame(0.75f, 4.043837f, 1.0f, 4.043837f)));
+					FrameUtil::createFrame(0.75f, 4.043837f, 1.0f, 4.043837f))
+				);
 				_scalarTracksIsLoop.push_back(false);
 			}
 
 			{
-				const auto cubicTrack = ScalarTrack::s_createTrack(Interpolation::Cubic, 3,
-					                                               FrameUtil::createFrame(0.25f, 0, 0.f, 0),
-					                                               FrameUtil::createFrame(0.5f,  0, 1.f, 0),
-					                                               FrameUtil::createFrame(0.75f, 0, 0.f, 0));
+				const auto cubicTrack = TrackUtil::createScalarTrack(
+					Interpolation::Cubic, 3,
+					FrameUtil::createFrame(0.25f, 0, 0, 0),
+					FrameUtil::createFrame(0.50f, 0, 1, 0),
+					FrameUtil::createFrame(0.75f, 0, 0, 0)
+				);
 				_scalarTracks.push_back(cubicTrack);
 				_scalarTracksIsLoop.push_back(false);
 				_scalarTracks.push_back(cubicTrack);
@@ -319,12 +330,14 @@ public:
 			}
 
 			{
-				const auto cubicTrack = ScalarTrack::s_createTrack(Interpolation::Cubic, 5,
-					                                               FrameUtil::createFrame(0.25f,      0,          0,          0         ),
-					                                               FrameUtil::createFrame(0.3833333f, -10.11282f, 0.5499259f, -10.11282f),
-					                                               FrameUtil::createFrame(0.5f,       25.82528f,  1,          25.82528f ),
-					                                               FrameUtil::createFrame(0.6333333f, 7.925411f,  0.4500741f, 7.925411f ),
-					                                               FrameUtil::createFrame(0.75f,      0,          0,          0         ));
+				const auto cubicTrack = TrackUtil::createScalarTrack(
+					Interpolation::Cubic, 5,
+					FrameUtil::createFrame(0.25f,      0,          0,          0         ),
+					FrameUtil::createFrame(0.3833333f, -10.11282f, 0.5499259f, -10.11282f),
+					FrameUtil::createFrame(0.5f,       25.82528f,  1,          25.82528f ),
+					FrameUtil::createFrame(0.6333333f, 7.925411f,  0.4500741f, 7.925411f ),
+					FrameUtil::createFrame(0.75f,      0,          0,          0         )
+				);
 				_scalarTracks.push_back(cubicTrack);
 				_scalarTracksIsLoop.push_back(false);
 
@@ -333,12 +346,14 @@ public:
 			}
 
 			{
-				const auto cubicTrack = ScalarTrack::s_createTrack(Interpolation::Cubic, 5,
-				                                                   FrameUtil::createFrame(0.25f, 0,              0,          0         ),
-				                                                   FrameUtil::createFrame(0.3833333f, 13.25147f, 0.5499259f, -10.11282f),
-				                                                   FrameUtil::createFrame(0.5f,       10.2405f,  1,          -5.545671f),
-				                                                   FrameUtil::createFrame(0.6333333f, 7.925411f, 0.4500741f, -11.40672f),
-				                                                   FrameUtil::createFrame(0.75f,      0,         0,          0         ));
+				const auto cubicTrack = TrackUtil::createScalarTrack(
+					Interpolation::Cubic, 5,
+				    FrameUtil::createFrame(0.25f,      0,         0,          0         ),
+				    FrameUtil::createFrame(0.3833333f, 13.25147f, 0.5499259f, -10.11282f),
+				    FrameUtil::createFrame(0.5f,       10.2405f,  1,          -5.545671f),
+				    FrameUtil::createFrame(0.6333333f, 7.925411f, 0.4500741f, -11.40672f),
+				    FrameUtil::createFrame(0.75f,      0,         0,          0         )
+				);
 				_scalarTracks.push_back(cubicTrack);
 				_scalarTracksIsLoop.push_back(false);
 
@@ -543,12 +558,12 @@ public:
 
 			float aspect = clientWidth / clientHeight;
 			(void)aspect;
-
+			
 #if 0
 			{ // test lit texture
 //				mat4 projection = mat4::s_perspective(60.0f, aspect, 0.01f, 1000.0f);
 //				mat4 view = mat4::s_lookAt(vec3(0, 0, -5), vec3::s_zero(), vec3::s_up());
-				mat4 model = quat::s_mat4(quat::s_angleAxis(Math::radians(_testRotation), vec3(0,0,1))); // or mat4::s_identity();
+				mat4 model = quat::s_mat4(quat::s_angleAxis(Math::radians(_testRotation), vec3::s_forward())); // or mat4::s_identity();
 				mat4 mvp = projection * view * model;
 
 				_testShader->bind();
@@ -563,14 +578,14 @@ public:
 						Uniform<mat4>::set(_testShader->findUniformByName("model"), model);
 						Uniform<mat4>::set(_testShader->findUniformByName("view"), view);
 						Uniform<mat4>::set(_testShader->findUniformByName("projection"), projection);
-						Uniform<vec3>::set(_testShader->findUniformByName("light"), vec3(0, 0, 1));
+						Uniform<vec3>::set(_testShader->findUniformByName("light"), vec3::s_forward());
 						_testTexture->set(_testShader->findUniformByName("tex0"), 0);
 					}
 
 					DrawUtil::draw(*_indexBuffer.get());
 
 					_debugLines->draw(DebugDrawMode::Lines, mvp);
-					_debugPoints->draw(DebugDrawMode::Points, mvp, Color4f(0, 0, 1, 1));
+					_debugPoints->draw(DebugDrawMode::Points, mvp, k_blue);
 
 					{ // unbind/deactive
 						_testTexture->unset(0);
@@ -589,11 +604,11 @@ public:
 			{ // test bezier curve or hermite spline
 				mat4 mvp = projection * view * mat4::s_identity();
 				_debugLines->draw(DebugDrawMode::Lines, mvp);
-				_debugPoints->draw(DebugDrawMode::Points, mvp, Color4f(0, 0, 1, 1));
+				_debugPoints->draw(DebugDrawMode::Points, mvp, k_blue);
 			}
 #endif
 
-#if 0
+#if 1
 			{ // test track
 				float l = 0;
 				float b = 0;
@@ -607,10 +622,10 @@ public:
 				mat4 projection = mat4::s_ortho(l, r, b, t, n, f);
 
 				mat4 mvp = projection * view * mat4::s_identity();
-				_referenceLines->draw(DebugDrawMode::Lines, mvp);
-				_scalarTrackLines->draw(DebugDrawMode::Lines, mvp, Color4f(0,1,0,1));
-				_handlePoints->draw(DebugDrawMode::Points, mvp, Color4f(0,0,1,1));
-				_handleLines->draw(DebugDrawMode::Lines, mvp, Color4f(1,0,1,1));
+				_referenceLines->draw(DebugDrawMode::Lines, mvp, k_yellow);
+				_scalarTrackLines->draw(DebugDrawMode::Lines, mvp, k_green);
+				_handlePoints->draw(DebugDrawMode::Points, mvp, k_blue);
+				_handleLines->draw(DebugDrawMode::Lines, mvp, k_purple);
 			}
 #endif
 
@@ -619,11 +634,10 @@ public:
 			mat4 view = mat4::s_lookAt(vec3(0,4,-7), vec3(0,4,0), vec3::s_up());
 			mat4 mvp = projection * view;
 
-			_restPoseVisual->draw(DebugDrawMode::Lines, mvp, Color4f(1,0,0,1));
+			_restPoseVisual->draw(DebugDrawMode::Lines, mvp, k_red);
+			_bindPoseVisual->draw(DebugDrawMode::Lines, mvp, k_green);
 			_currentPoseVisual->uploadToGpu();
-			_currentPoseVisual->draw(DebugDrawMode::Lines, mvp, Color4f(0,0,1,1));
-
-			_bindPoseVisual->draw(DebugDrawMode::Lines, mvp, Color4f(0,1,0,1));
+			_currentPoseVisual->draw(DebugDrawMode::Lines, mvp, k_blue);
 #endif
 			SwapBuffers(dc);
 			if (_vsynch != 0) {

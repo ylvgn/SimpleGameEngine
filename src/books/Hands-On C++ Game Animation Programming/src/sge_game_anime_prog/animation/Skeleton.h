@@ -4,7 +4,6 @@
 
 namespace sge {
 /*
-
 	The Skeleton class contains
 		- the rest pose
 		- and bind pose of a character,
@@ -17,7 +16,7 @@ namespace sge {
 	Some engines call the skeleton an armature or a rig.
 */
 
-class GLTFInfo;
+struct GLTFInfo;
 
 class Skeleton : public NonCopyable {
 public:

@@ -5,10 +5,9 @@
 
 namespace sge {
 
-class GLTFInfo : public NonCopyable {
-public:
-	Skeleton skeleton;
-	Vector<Clip> animationClips;
+struct GLTFInfo {
+	Skeleton		skeleton;
+	Vector<Clip>	animationClips;
 
 	inline const Pose& restPose() const { return skeleton.restPose(); }
 	inline const Pose& bindPose() const { return skeleton.bindPose(); }
