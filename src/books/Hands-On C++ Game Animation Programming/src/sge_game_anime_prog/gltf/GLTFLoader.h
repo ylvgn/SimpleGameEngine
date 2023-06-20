@@ -4,7 +4,9 @@
 #include "GLTFInfo.h"
 
 namespace sge {
-
+/*
+	The GLTFLoader presented here assumes that a file contains a single model only.
+*/
 class GLTFLoader : public NonCopyable {
 public:
 	using Info = GLTFInfo;
@@ -25,6 +27,7 @@ private:
 	void _loadBindPose();
 	void _loadJointNames();
 	void _loadSkeleton();
+	void _loadMeshes();
 
 	cgltf_data* _data	= nullptr;
 	Info* _outInfo		= nullptr;

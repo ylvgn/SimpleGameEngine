@@ -15,6 +15,14 @@ typedef const char* (WINAPI* PFNWGLGETEXTENSIONSSTRINGEXTPROC) (void);
 typedef BOOL(WINAPI* PFNWGLSWAPINTERVALEXTPROC) (int);
 typedef int (WINAPI* PFNWGLGETSWAPINTERVALEXTPROC) (void);
 
+struct AnimationInstance {
+	Pose animatedPose;
+	Vector<mat4> posePalette;
+	int clip = 0;
+	float playback = 0.f;
+	Transform model;
+};
+
 class MainWin : public NativeUIWindow {
 	using Base = NativeUIWindow;
 	const Color4f k_red		{1,0,0,1};
@@ -222,7 +230,7 @@ public:
 		}
 #endif
 
-#if 1 // test track
+#if 0 // test track
 		float height = 1.8f;
 		float left   = 1.0f;
 		float right  = 12.f;
@@ -481,6 +489,29 @@ public:
 			}
 		}
 #endif
+
+#if 1 // test cpu skinning
+		{
+			_diffuseTexture		= eastl::make_unique<Texture>("Assets/Textures/Woman.png");
+			_staticShader		= eastl::make_unique<Shader>("Assets/Shaders/static.vert", "Assets/Shaders/lit.frag");
+
+			GLTFInfo info;
+			GLTFLoader::s_readFile(info, "Assets/Mesh/Woman.gltf");
+			_skeleton.create(info);
+			_clips = std::move(info.animationClips);
+			_cpuMeshes = info.meshes;
+
+			_cpuAnimInfo.animatedPose = info.restPose();
+			_cpuAnimInfo.posePalette.resize(info.restPose().size());
+
+			for (int i = 0; i < _clips.size(); ++i) {
+				if (_clips[i].name() == "Walking") {
+					_cpuAnimInfo.clip = i;
+					break;
+				}
+			}
+		}
+#endif
 	}
 
 	virtual void onCloseButton() override {
@@ -526,6 +557,15 @@ public:
 		}
 		_currentPoseVisual->fromPose(_currentPose);
 #endif
+
+#if 1 // test cpu skinning
+		auto& clip = _clips[_cpuAnimInfo.clip];
+		_cpuAnimInfo.playback = clip.sample(_cpuAnimInfo.animatedPose, _cpuAnimInfo.playback + dt);
+
+		for (int i = 0; i < _cpuMeshes.size(); ++i) {
+			_cpuMeshes[i].cpuSkin(_skeleton, _cpuAnimInfo.animatedPose);
+		}
+#endif
 	}
 
 	virtual void onDraw() override {
@@ -559,8 +599,8 @@ public:
 			float aspect = clientWidth / clientHeight;
 			(void)aspect;
 			
-#if 0
-			{ // test lit texture
+#if 0 // test lit texture
+			{
 //				mat4 projection = mat4::s_perspective(60.0f, aspect, 0.01f, 1000.0f);
 //				mat4 view = mat4::s_lookAt(vec3(0, 0, -5), vec3::s_zero(), vec3::s_up());
 				mat4 model = quat::s_mat4(quat::s_angleAxis(Math::radians(_testRotation), vec3::s_forward())); // or mat4::s_identity();
@@ -579,65 +619,108 @@ public:
 						Uniform<mat4>::set(_testShader->findUniformByName("view"), view);
 						Uniform<mat4>::set(_testShader->findUniformByName("projection"), projection);
 						Uniform<vec3>::set(_testShader->findUniformByName("light"), vec3::s_forward());
-						_testTexture->set(_testShader->findUniformByName("tex0"), 0);
 					}
+					// bind texture
+					_testTexture->set(_testShader->findUniformByName("tex0"), 0);
 
 					DrawUtil::draw(*_indexBuffer.get());
-
 					_debugLines->draw(DebugDrawMode::Lines, mvp);
 					_debugPoints->draw(DebugDrawMode::Points, mvp, k_blue);
 
-					{ // unbind/deactive
+					{ // unbind
 						_testTexture->unset(0);
 
 						_vertexPositions->unbind(_testShader->findAttributeByName("position"));
 						_vertexNormals->unbind(_testShader->findAttributeByName("normal"));
 						_vertexTexCoords->unbind(_testShader->findAttributeByName("texCoord"));
 					}
-
 				}
 				_testShader->unbind();
 			}
 #endif
 
-#if 0
-			{ // test bezier curve or hermite spline
+#if 0 // test bezier curve or hermite spline
+			{
 				mat4 mvp = projection * view * mat4::s_identity();
 				_debugLines->draw(DebugDrawMode::Lines, mvp);
 				_debugPoints->draw(DebugDrawMode::Points, mvp, k_blue);
 			}
 #endif
 
-#if 1
-			{ // test track
-				float l = 0;
-				float b = 0;
-				float t = 22.f;
-				float r = aspect * t;
-				float n = 0.01f;
-				float f = 5.f;
-				mat4 view = mat4::s_lookAt(vec3(0,0,(n+f)/2), vec3::s_zero(), vec3::s_up());
+#if 0 // test track
+		{
+			float l = 0;
+			float b = 0;
+			float t = 22.f;
+			float r = aspect * t;
+			float n = 0.01f;
+			float f = 5.f;
+			mat4 view = mat4::s_lookAt(vec3(0,0,(n+f)/2), vec3::s_zero(), vec3::s_up());
 
-				//mat4 projection = mat4::s_ortho(0, aspect * 22.0f, 0, 22, 0.01f, 5);
-				mat4 projection = mat4::s_ortho(l, r, b, t, n, f);
+			//mat4 projection = mat4::s_ortho(0, aspect * 22.0f, 0, 22, 0.01f, 5);
+			mat4 projection = mat4::s_ortho(l, r, b, t, n, f);
 
-				mat4 mvp = projection * view * mat4::s_identity();
-				_referenceLines->draw(DebugDrawMode::Lines, mvp, k_yellow);
-				_scalarTrackLines->draw(DebugDrawMode::Lines, mvp, k_green);
-				_handlePoints->draw(DebugDrawMode::Points, mvp, k_blue);
-				_handleLines->draw(DebugDrawMode::Lines, mvp, k_purple);
-			}
+			mat4 mvp = projection * view * mat4::s_identity();
+			_referenceLines->draw(DebugDrawMode::Lines, mvp, k_yellow);
+			_scalarTrackLines->draw(DebugDrawMode::Lines, mvp, k_green);
+			_handlePoints->draw(DebugDrawMode::Points, mvp, k_blue);
+			_handleLines->draw(DebugDrawMode::Lines, mvp, k_purple);
+		}
 #endif
 
 #if 0 // test animation clip
+		{
 			mat4 projection = mat4::s_perspective(60.0f, aspect, 0.01f, 10.f);
-			mat4 view = mat4::s_lookAt(vec3(0,4,-7), vec3(0,4,0), vec3::s_up());
+			mat4 view = mat4::s_lookAt(vec3(0, 4, -7), vec3(0, 4, 0), vec3::s_up());
 			mat4 mvp = projection * view;
 
 			_restPoseVisual->draw(DebugDrawMode::Lines, mvp, k_red);
 			_bindPoseVisual->draw(DebugDrawMode::Lines, mvp, k_green);
 			_currentPoseVisual->uploadToGpu();
 			_currentPoseVisual->draw(DebugDrawMode::Lines, mvp, k_blue);
+		}
+#endif
+
+#if 1 // test cpu skinning
+		{
+			mat4 projection = mat4::s_perspective(60.0f, aspect, 0.01f, 10.f);
+			mat4 view = mat4::s_lookAt(vec3(0,5,7), vec3(0,3,0), vec3::s_up());
+			mat4 model = Transform::s_mat4(_cpuAnimInfo.model);
+			//mat4 mvp = projection * view * model;
+
+			_staticShader->bind();
+			{
+				{ // bind uniforms
+					Uniform<mat4>::set(_staticShader->findUniformByName("model"), model);
+					Uniform<mat4>::set(_staticShader->findUniformByName("view"), view);
+					Uniform<mat4>::set(_staticShader->findUniformByName("projection"), projection);
+					Uniform<vec3>::set(_staticShader->findUniformByName("light"), vec3::s_one());
+				}
+
+				_diffuseTexture->set(_staticShader->findUniformByName("tex0"), 0);
+
+				for (int i = 0; i < _cpuMeshes.size(); ++i) {
+					// bind attributes
+					_cpuMeshes[i].bind(
+						_staticShader->findAttributeByName("position"),
+						_staticShader->findAttributeByName("normal"),
+						_staticShader->findAttributeByName("texCoord"),
+						-1, -1
+					);
+					
+					_cpuMeshes[i].draw();
+
+					_cpuMeshes[i].unbind(
+						_staticShader->findAttributeByName("position"),
+						_staticShader->findAttributeByName("normal"),
+						_staticShader->findAttributeByName("texCoord"),
+						-1, -1
+					);
+				}
+				_diffuseTexture->unset(0);
+			}
+			_staticShader->unbind();
+		}
 #endif
 			SwapBuffers(dc);
 			if (_vsynch != 0) {
@@ -684,6 +767,11 @@ private:
 	UPtr<DebugDraw>			_restPoseVisual;
 	UPtr<DebugDraw>			_bindPoseVisual;
 	UPtr<DebugDraw>			_currentPoseVisual;
+
+	UPtr<Texture>			_diffuseTexture;
+	UPtr<Shader>			_staticShader;
+	Vector<Mesh>			_cpuMeshes;
+	AnimationInstance		_cpuAnimInfo;
 };
 
 class GameAnimeProgApp : public NativeUIApp {

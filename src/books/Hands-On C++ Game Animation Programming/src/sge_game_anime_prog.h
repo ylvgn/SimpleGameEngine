@@ -21,6 +21,8 @@
 #include <sge_game_anime_prog/animation/Clip.h>
 #include <sge_game_anime_prog/animation/Skeleton.h>
 
+#include <sge_game_anime_prog/rendering/Mesh.h>
+
 #include <sge_game_anime_prog/gltf/GLTFLoader.h>
 
 #include <sge_game_anime_prog/opengl/DebugDraw.h>
