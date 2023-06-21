@@ -17,10 +17,14 @@ typedef int (WINAPI* PFNWGLGETSWAPINTERVALEXTPROC) (void);
 
 struct AnimationInstance {
 	Pose animatedPose;
-	Vector<mat4> posePalette;
+	Transform model;
+
+	// cpu skinning
 	int clip = 0;
 	float playback = 0.f;
-	Transform model;
+
+	// gpu skinning
+	Vector<mat4> posePalette;
 };
 
 class MainWin : public NativeUIWindow {
@@ -103,8 +107,6 @@ public:
 			glGenVertexArrays(1, &_vertexArrayObject);
 			glBindVertexArray(_vertexArrayObject);
 		}
-
-		_lastTick = GetTickCount();
 
 		_debugPoints		= eastl::make_unique<DebugDraw>();
 		_debugLines			= eastl::make_unique<DebugDraw>();
@@ -490,25 +492,44 @@ public:
 		}
 #endif
 
-#if 1 // test cpu skinning
-		{
-			_diffuseTexture		= eastl::make_unique<Texture>("Assets/Textures/Woman.png");
-			_staticShader		= eastl::make_unique<Shader>("Assets/Shaders/static.vert", "Assets/Shaders/lit.frag");
+#if 1
+		_diffuseTexture	= eastl::make_unique<Texture>("Assets/Textures/Woman.png");
+		GLTFInfo info;
+		GLTFLoader::s_readFile(info, "Assets/Mesh/Woman.gltf");
 
-			GLTFInfo info;
-			GLTFLoader::s_readFile(info, "Assets/Mesh/Woman.gltf");
-			_skeleton.create(info);
-			_clips = std::move(info.animationClips);
+		_skeleton.create(info);
+		_clips = std::move(info.animationClips);
+
+		{ // test cpu skinning
+			_staticShader = eastl::make_unique<Shader>(
+				"Assets/Shaders/static.vert",
+				"Assets/Shaders/lit.frag"
+			);
 			_cpuMeshes = info.meshes;
-
 			_cpuAnimInfo.animatedPose = info.restPose();
-			_cpuAnimInfo.posePalette.resize(info.restPose().size());
+		}
 
-			for (int i = 0; i < _clips.size(); ++i) {
-				if (_clips[i].name() == "Walking") {
-					_cpuAnimInfo.clip = i;
-					break;
-				}
+		{ // test gpu skinning
+			_skinnedShader = eastl::make_unique<Shader>(
+				"Assets/Shaders/skinned.vert",
+				"Assets/Shaders/lit.frag"
+			);
+			_gpuMeshes = info.meshes;
+			_gpuAnimInfo.animatedPose = info.restPose();
+			_gpuAnimInfo.posePalette.resize(info.restPose().size());
+			_gpuAnimInfo.animatedPose.getMatrixPalette(_gpuAnimInfo.posePalette);
+		}
+
+		_cpuAnimInfo.model.position = vec3(-2, 0, 0);
+		_gpuAnimInfo.model.position = vec3( 2, 0, 0);
+
+		for (int i = 0; i < _clips.size(); ++i) {
+			StrView clipName = _clips[i].name();
+			if (clipName == "Walking") {
+				_cpuAnimInfo.clip = i;
+			}
+			if (clipName == "Walking") {
+				_gpuAnimInfo.clip = i;
 			}
 		}
 #endif
@@ -558,12 +579,20 @@ public:
 		_currentPoseVisual->fromPose(_currentPose);
 #endif
 
-#if 1 // test cpu skinning
-		auto& clip = _clips[_cpuAnimInfo.clip];
-		_cpuAnimInfo.playback = clip.sample(_cpuAnimInfo.animatedPose, _cpuAnimInfo.playback + dt);
+#if 1
+		{ // test cpu skinning
+			auto& clip = _clips[_cpuAnimInfo.clip];
+			_cpuAnimInfo.playback = clip.sample(_cpuAnimInfo.animatedPose, _cpuAnimInfo.playback + dt);
 
-		for (int i = 0; i < _cpuMeshes.size(); ++i) {
-			_cpuMeshes[i].cpuSkin(_skeleton, _cpuAnimInfo.animatedPose);
+			for (int i = 0; i < _cpuMeshes.size(); ++i) {
+				_cpuMeshes[i].cpuSkin(_skeleton, _cpuAnimInfo.animatedPose);
+			}
+		}
+
+		{ // test gpu skinning
+			auto& clip = _clips[_gpuAnimInfo.clip];
+			_gpuAnimInfo.playback = clip.sample(_gpuAnimInfo.animatedPose, _gpuAnimInfo.playback + dt);
+			_gpuAnimInfo.animatedPose.getMatrixPalette(_gpuAnimInfo.posePalette);
 		}
 #endif
 	}
@@ -571,13 +600,6 @@ public:
 	virtual void onDraw() override {
 		if (_vertexArrayObject == 0) return;
 		if (_testTexture == nullptr) return;
-
-		{ // update frame
-			DWORD thisTick = GetTickCount();
-			float dt = float(thisTick - _lastTick) * 0.001f;
-			_lastTick = thisTick;
-			update(dt);
-		}
 
 		{ // render frame
 			Base::onDraw();
@@ -608,28 +630,27 @@ public:
 
 				_testShader->bind();
 				{
-					{ // bind attributes
-						_vertexPositions->bind(_testShader->findAttributeByName("position"));
-						_vertexNormals->bind(_testShader->findAttributeByName("normal"));
-						_vertexTexCoords->bind(_testShader->findAttributeByName("texCoord"));
-					}
 
 					{ // bind uniforms
 						Uniform<mat4>::set(_testShader->findUniformByName("model"), model);
 						Uniform<mat4>::set(_testShader->findUniformByName("view"), view);
 						Uniform<mat4>::set(_testShader->findUniformByName("projection"), projection);
 						Uniform<vec3>::set(_testShader->findUniformByName("light"), vec3::s_forward());
+						_testTexture->set(_testShader->findUniformByName("tex0"), 0);
 					}
-					// bind texture
-					_testTexture->set(_testShader->findUniformByName("tex0"), 0);
+
+					{ // bind attributes
+						_vertexPositions->bind(_testShader->findAttributeByName("position"));
+						_vertexNormals->bind(_testShader->findAttributeByName("normal"));
+						_vertexTexCoords->bind(_testShader->findAttributeByName("texCoord"));
+					}
 
 					DrawUtil::draw(*_indexBuffer.get());
 					_debugLines->draw(DebugDrawMode::Lines, mvp);
 					_debugPoints->draw(DebugDrawMode::Points, mvp, k_blue);
 
-					{ // unbind
+					{ // unbind uniforms
 						_testTexture->unset(0);
-
 						_vertexPositions->unbind(_testShader->findAttributeByName("position"));
 						_vertexNormals->unbind(_testShader->findAttributeByName("normal"));
 						_vertexTexCoords->unbind(_testShader->findAttributeByName("texCoord"));
@@ -681,12 +702,11 @@ public:
 		}
 #endif
 
-#if 1 // test cpu skinning
-		{
-			mat4 projection = mat4::s_perspective(60.0f, aspect, 0.01f, 10.f);
-			mat4 view = mat4::s_lookAt(vec3(0,5,7), vec3(0,3,0), vec3::s_up());
+#if 1
+		mat4 projection = mat4::s_perspective(60.0f, aspect, 0.01f, 10.f);
+		mat4 view = mat4::s_lookAt(vec3(0,5,7), vec3(0,3,0), vec3::s_up());
+		{ // test cpu skinning
 			mat4 model = Transform::s_mat4(_cpuAnimInfo.model);
-			//mat4 mvp = projection * view * model;
 
 			_staticShader->bind();
 			{
@@ -695,31 +715,56 @@ public:
 					Uniform<mat4>::set(_staticShader->findUniformByName("view"), view);
 					Uniform<mat4>::set(_staticShader->findUniformByName("projection"), projection);
 					Uniform<vec3>::set(_staticShader->findUniformByName("light"), vec3::s_one());
+					_diffuseTexture->set(_staticShader->findUniformByName("tex0"), 0);
 				}
 
-				_diffuseTexture->set(_staticShader->findUniformByName("tex0"), 0);
-
+				u32 pos		= _skinnedShader->findAttributeByName("position");
+				u32 normal	= _skinnedShader->findAttributeByName("normal");
+				u32 uv		= _skinnedShader->findAttributeByName("texCoord");
 				for (int i = 0; i < _cpuMeshes.size(); ++i) {
-					// bind attributes
-					_cpuMeshes[i].bind(
-						_staticShader->findAttributeByName("position"),
-						_staticShader->findAttributeByName("normal"),
-						_staticShader->findAttributeByName("texCoord"),
-						-1, -1
-					);
-					
-					_cpuMeshes[i].draw();
-
-					_cpuMeshes[i].unbind(
-						_staticShader->findAttributeByName("position"),
-						_staticShader->findAttributeByName("normal"),
-						_staticShader->findAttributeByName("texCoord"),
-						-1, -1
-					);
+					auto& mesh = _cpuMeshes[i];
+					mesh.bind(pos, normal, uv, -1, -1);
+					mesh.draw();
+					mesh.unbind(pos, normal, uv, -1, -1);
 				}
 				_diffuseTexture->unset(0);
 			}
 			_staticShader->unbind();
+		}
+		{ // test gpu skinning
+			mat4 model = Transform::s_mat4(_gpuAnimInfo.model);
+			
+			// bind uniform
+			_skinnedShader->bind();
+			{
+				{ // bind uniforms
+					Uniform<mat4>::set(_skinnedShader->findUniformByName("model"), model);
+					Uniform<mat4>::set(_skinnedShader->findUniformByName("view"), view);
+					Uniform<mat4>::set(_skinnedShader->findUniformByName("projection"), projection);
+					Uniform<vec3>::set(_skinnedShader->findUniformByName("light"), vec3::s_one());
+
+					Uniform<mat4>::set(_skinnedShader->findUniformByName("invBindPose"), _skeleton.invBindPose());
+					Uniform<mat4>::set(_skinnedShader->findUniformByName("pose"), _gpuAnimInfo.posePalette);
+
+					_diffuseTexture->set(_skinnedShader->findUniformByName("tex0"), 0);
+				}
+
+				for (int i = 0; i < _gpuMeshes.size(); ++i) {
+					auto& mesh = _gpuMeshes[i];
+
+					u32 pos		= _skinnedShader->findAttributeByName("position");
+					u32 normal	= _skinnedShader->findAttributeByName("normal");
+					u32 uv		= _skinnedShader->findAttributeByName("texCoord");
+					u32 weights = _skinnedShader->findAttributeByName("weights");
+					u32 joints	= _skinnedShader->findAttributeByName("joints");
+
+					mesh.bind(pos, normal, uv, weights, joints);
+					mesh.draw();
+					mesh.unbind(pos, normal, uv, weights, joints);
+				}
+				_diffuseTexture->unset(0);
+			}
+			_skinnedShader->unbind();
 		}
 #endif
 			SwapBuffers(dc);
@@ -734,8 +779,6 @@ private:
 	int _vsynch = 0;
 
 	GLuint _vertexArrayObject = 0;
-
-	DWORD _lastTick = 0;
 
 	float _testRotation = 0.0f;
 
@@ -769,9 +812,14 @@ private:
 	UPtr<DebugDraw>			_currentPoseVisual;
 
 	UPtr<Texture>			_diffuseTexture;
+
 	UPtr<Shader>			_staticShader;
 	Vector<Mesh>			_cpuMeshes;
 	AnimationInstance		_cpuAnimInfo;
+
+	UPtr<Shader>			_skinnedShader;
+	Vector<Mesh>			_gpuMeshes;
+	AnimationInstance		_gpuAnimInfo;
 };
 
 class GameAnimeProgApp : public NativeUIApp {
@@ -790,6 +838,8 @@ protected:
 
 		Base::onCreate(desc);
 
+		_lastTick = GetTickCount();
+
 		{ // create window
 			NativeUIWindow::CreateDesc winDesc;
 			winDesc.isMainWindow = true;
@@ -798,8 +848,26 @@ protected:
 			_mainWin.setWindowTitle("SGE Game Anime Prog Window");
 		}
 	}
+
+	virtual void onRun() override {
+		NativeUIApp_Base::onRun();
+
+		while (GetMessage(&_win32_msg, NULL, 0, 0)) {
+			TranslateMessage(&_win32_msg);
+			DispatchMessage(&_win32_msg);
+
+			DWORD thisTick = GetTickCount();
+			float dt = float(thisTick - _lastTick) * 0.001f;
+			_lastTick = thisTick;
+			_mainWin.update(dt);
+		}
+
+		willQuit();
+	}
+
 private:
 	MainWin _mainWin;
+	DWORD _lastTick = 0;
 };
 
 } // namespace
