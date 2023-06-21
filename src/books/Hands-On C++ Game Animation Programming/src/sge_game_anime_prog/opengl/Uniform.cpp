@@ -10,43 +10,46 @@
 namespace sge {
 
 template Uniform<int>;
-template Uniform<vec4i>;
-template Uniform<vec2i>;
 template Uniform<float>;
-template Uniform<vec2>;
-template Uniform<vec3>;
-template Uniform<vec4>;
+
+template Uniform<vec2i>;
+template Uniform<vec4i>;
+
+template Uniform<vec2f>;
+template Uniform<vec3f>;
+template Uniform<vec4f>;
+
 template Uniform<quat>;
 template Uniform<mat4>;
 template Uniform<Color4f>;
 
-#define UNIFORM_IMPL(gl_func, tType, dType) \
+#define UNIFORM_IMPL(gl_func, T, dType) \
 template<> \
-void Uniform<tType>::set(u32 slot, tType* data, u32 length) { \
-    gl_func(slot, static_cast<GLsizei>(length), reinterpret_cast<dType*>(&data[0])); \
+void Uniform<T>::set(u32 slot, const T* data, size_t dataSize) { \
+    gl_func(slot, static_cast<GLsizei>(dataSize), reinterpret_cast<const dType*>(&data[0])); \
 } \
 // ------
 UNIFORM_IMPL(glUniform1iv, int,     int)
-UNIFORM_IMPL(glUniform4iv, vec4i,   int)
-UNIFORM_IMPL(glUniform2iv, vec2i,   int)
 UNIFORM_IMPL(glUniform1fv, float,   float)
-UNIFORM_IMPL(glUniform2fv, vec2,    float)
-UNIFORM_IMPL(glUniform3fv, vec3,    float)
-UNIFORM_IMPL(glUniform4fv, vec4,    float)
+UNIFORM_IMPL(glUniform2iv, vec2i,   int)
+UNIFORM_IMPL(glUniform4iv, vec4i,   int)
+UNIFORM_IMPL(glUniform2fv, vec2f,   float)
+UNIFORM_IMPL(glUniform3fv, vec3f,   float)
+UNIFORM_IMPL(glUniform4fv, vec4f,   float)
 UNIFORM_IMPL(glUniform4fv, quat,    float)
 UNIFORM_IMPL(glUniform4fv, Color4f, float)
 
 template<>
-void Uniform<mat4>::set(u32 slot, mat4* inputArray, u32 len) {
+void Uniform<mat4>::set(u32 slot, const mat4* data, size_t dataSize) {
 	// The set function for matrices needs to be specified manually;
 	// otherwise, the UNIFORM_IMPL macro won't work.
 	// This is because the glUniformMatrix4fv function takes an additional Boolean argument
 	// asking whether the matrix should be transposed or not.
 	glUniformMatrix4fv(
 		slot,
-		static_cast<GLsizei>(len),
+		static_cast<GLsizei>(dataSize),
 		false, // set the transposed Boolean to false
-		(float*)&inputArray[0]
+		(float*)&data[0]
 	);
 }
 
@@ -56,14 +59,18 @@ void Uniform<T>::set(u32 slot, const T& value) {
 }
 
 template <typename T>
-void Uniform<T>::set(u32 slot, Vector<T>& value) {
-	auto span = value.span();
-	set(slot, span.data(), static_cast<u32>(span.size()));
+void Uniform<T>::set(u32 slot, const Vector<T>& value) {
+	set(slot, value.span());
 }
 
 template <typename T>
-void Uniform<T>::set(u32 slot, std::vector<T>& value) {
-	set(slot, &value[0], static_cast<u32>(value.size()));
+void Uniform<T>::set(u32 slot, const std::vector<T>& value) {
+	set(slot, &value[0], value.size());
+}
+
+template <typename T>
+void Uniform<T>::set(u32 slot, const Span<const T>& value) {
+	set(slot, value.data(), value.size());
 }
 
 }

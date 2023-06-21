@@ -42,7 +42,7 @@ void Shader::load(StrView vertex, StrView fragment) {
 	SGE_ASSERT(f_shader != 0);
 
 	if (!_linkShaders(v_shader, f_shader)) {
-		SGE_LOG("_linkShaders");
+		throw SGE_ERROR("_linkShaders");
 	}
 	_populateAttributes();
 	_populateUniforms();

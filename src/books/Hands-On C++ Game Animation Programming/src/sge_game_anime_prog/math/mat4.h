@@ -319,11 +319,11 @@ struct mat4 {
 			// w basis vector
 			0,0,0,1
 		);
-		/*
+/*
 		Inverting matrices is a relatively expensive function.
 		Matrices that only encode the position and rotation can be inverted faster
 		because the inverse of a 3x3 rotation matrix is the same as its transpose.
-		*/
+*/
 	}
 
 	// A frustum represents everything that is visible to the camera.
@@ -376,12 +376,12 @@ struct mat4 {
 		// The rest of the work is finding the inverted basis vectors and figuring out where the position is.
 
 		// finding the inverted basis vectors: rotating the scene with reverse orientation
-		/* Mview = Mrotation*Mtranslation
+/*		Mview = Mrotation*Mtranslation
 		         = [r0, r4, r8,  0]*[1, 0, 0, tx]=[r0, r4, r8,  r0*tx + r4*ty + r8*tz ]
 			       [r1, r5, r9,  0] [0, 1, 0, ty] [r1, r5, r9,  r1*tx + r5*ty + r9*tz ]
 			       [r2, r6, r10, 0] [0, 0, 1, tz] [r2, r6, r10, r2*tx + r6*ty + r10*tz]
 			       [0,  0,  0,   1] [0, 0, 0, 1 ] [0,  0,  0,   1                     ]
-		*/
+*/
 		SGE_ASSERT(target != eye);
 		vec3 f = (target - eye).normalize();
 		vec3 r = f.cross(up).normalize(); // right
@@ -398,14 +398,14 @@ struct mat4 {
 			         r.y,         u.y,        -f.y,        0,
 			         r.z,         u.z,        -f.z,        0,
 			        -r.dot(eye), -u.dot(eye),  f.dot(eye), 1);
-		/* 
+/*
 		mat4::s_lookAt equivalent to view matrix
 			The view matrix is the inverse of the camera's transformation (the position, rotation, and scale of the camera).
 			Instead of having to create the camera's transform matrix and then invert it,
 			you will be implementing a s_lookAt function that generates this matrix directly.
 			The s_lookAt function is the most convenient way of constructing a view matrix.
 			ex: s_lookAt(camera.position, {0,0,0}, {0,1,0})
-		*/
+*/
 	}
 
 	static quat s_quat(const mat4& m);
