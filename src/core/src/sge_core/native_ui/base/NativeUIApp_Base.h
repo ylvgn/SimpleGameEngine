@@ -15,6 +15,7 @@ public:
 protected:
 	virtual void onCreate(CreateDesc& desc) {}
 	virtual void onRun() {}
+	virtual void onUpdate(float dt) {}
 	virtual	void onQuit() {}
 
 	int _exitCode = 0;
