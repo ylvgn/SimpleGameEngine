@@ -17,24 +17,10 @@ struct quat {
 
 	using vec3 = TVec3<float>;
 
-	union {
+	float x, y, z, w;
 
-		// x = sin(θ/2) * axisX
-		// y = sin(θ/2) * axisY
-		// z = sin(θ/2) * axisZ
-		// w = cos(θ/2)
-
-		struct { float x, y, z, w; };
-		struct {
-			vec3  vector; // vector part
-			float scalar; // scalar/real part
-		};
-		
-	};
-
-	inline quat() : x(0), y(0), z(0), w(1) {}
+	inline quat() = default;
 	inline quat(float x_, float y_, float z_, float w_) : x(x_), y(y_), z(z_), w(w_) {}
-	inline quat(const vec3& fv, float w_) : x(fv.x), y(fv.y), z(fv.z), w(w_) {}
 
 	inline static quat s_identity() { return quat(0,0,0,1); }
 	inline static quat s_zero()		{ return quat(0,0,0,0); }
@@ -48,24 +34,23 @@ struct quat {
 
 		angle is radians, not degrees
 */
-		vec3 na = axis.normalize();
-		float s = ::sinf(angle * 0.5f);
-		float c = ::cosf(angle * 0.5f);
-		return quat(na.x * s, na.y * s, na.z * s, c);
+		float s, c;
+		Math::sincos(angle * 0.5f, s, c);
+		const vec3 a = axis.normalize();
+		return quat(a.x*s, a.y*s, a.z*s, c);
 	}
 
 	// To retrieve the axis of rotation, normalize the vector part of the quaternion.
-	inline vec3 axis() const { return vector.normalize(); }
+	inline vec3 axis() const { return vec3(x,y,z).normalize(); }
 
 	// The angle of rotation is double the inverse cosine of the real component.
-	inline float angle() const { return 2.0f * ::acosf(w); }
+	inline float angle() const { return 2.0f*::acosf(w); }
 
 	inline bool equals(const quat& r, float epsilon = Math::epsilon<float>()) const;
 	inline bool equals0(              float epsilon = Math::epsilon<float>()) const;
 
 	inline quat operator+ (const quat& r) const { return quat(x+r.x, y+r.y, z+r.z, w+r.z); }
 	inline quat operator- (const quat& r) const { return quat(x-r.x, y-r.y, z-r.z, w-r.z); }
-
 	inline quat operator* (const quat& r) const {
 #if 1
 		// This implementation is a bit more performant
@@ -75,26 +60,38 @@ struct quat {
 					 r.x*y - r.y*x + r.z*w + r.w*z,
 					-r.x*x - r.y*y - r.z*z + r.w*w
 		);
-//		NOT commutative: q1*q2 != q2*q1
-// 		Quaternion multiplication is reversed (left side multiply)
-//			let say combine 2 quat (q1 and q2) to 1 quat
-//			if you want to apply q1 first, it would be "result=q2*q1"
+/*
+		NOT commutative: q1*q2 != q2*q1
+ 		Quaternion multiplication is reversed (left side multiply)
+			let say combine 2 quat (q1 and q2) to 1 quat
+			if you want to apply q1 first, it would be "result=q2*q1"
+*/
 #else
+		// FYI: https://gabormakesgames.com/blog_quats_multiply_quat.html
+		vec3 lv = vec3(x,y,z);
+		vec3 rv = vec3(r.x, r.y, r.z);
+		float lw = w;
+		float rw = r.w;
+
+		float scalar = lw*rw - lv.dot(rv);
+		vec3 vector = (lv*rw) + (rv*lw) + rv.cross(lv);
+
 		quat result;
-		result.scalar = r.scalar * scalar - r.vector.dot(vector);
-		result.vector = (vector * r.scalar) + (r.vector * scalar) + r.vector.cross(vector);
+		result.w = scalar;
+		result.x = vector.x;
+		result.y = vector.y;
+		result.z = vector.z;
 		return result;
 #endif
 	}
 
 	// Multiplying a vector by a quaternion will always yield a vector that is rotated by the quaternion.
-	inline vec3 operator* (const vec3& v) const {
-		const vec3& qv = vector;
-		const float& s = w;
+	inline vec3 operator* (const vec3& r) const {
+		vec3 qv(x,y,z);
 
-		return (qv * 2.0f*qv.dot(v)) +
-			(v * (s*s - qv.dot(qv))) +
-			(qv.cross(v) * 2.0f * s);
+		return (qv * 2.0f*qv.dot(r)) +
+			(r * (w*w - qv.dot(qv))) +
+			(qv.cross(r) * 2.0f * w);
 	}
 
 	inline quat operator* (float s)	const { return quat(x*s, y*s, z*s, w*s); }
@@ -102,8 +99,8 @@ struct quat {
 
 	inline quat operator- () const { return quat(-x,-y,-z,-w); }
 
-	inline bool operator== (const quat& r) const { return x == r.x && y == r.y && z == r.z && w == r.w; }
-	inline bool operator!= (const quat& r) const { return !(this->operator==(r)); }
+	inline bool operator== (const quat& r) const { return x==r.x && y==r.y && z==r.z && w==r.w; }
+	inline bool operator!= (const quat& r) const { return !this->operator==(r); }
 
 	inline bool sameOrientation(const quat& r) const {
 		return equals(r) || (Math::equals0(x+r.x)
@@ -162,17 +159,12 @@ struct quat {
 	// v means the axis of quat, θ menas the angle of quat
 	inline quat operator^(float t) const {
 		float theta = angle();
-		vec3 _axis = axis();
+		vec3 a = axis();
 
-		float halfCosTheta = ::cosf(t * theta*0.5f);
-		float halfSinTheta = ::sinf(t * theta*0.5f);
+		float s, c;
+		Math::sincos(t * theta*0.5f, s, c);
 
-		return quat(
-			_axis.x * halfSinTheta,
-			_axis.y * halfSinTheta,
-			_axis.z * halfSinTheta,
-			halfCosTheta
-		);
+		return quat(a.x*s, a.y*s, a.z*s, c);
 	}
 
 	// FYI: https://gabormakesgames.com/blog_quats_interpolate.html
@@ -186,14 +178,18 @@ struct quat {
 		
 		quat delta = inverse() * to;
 		return ( quat(delta^t) * (*this) ).normalize();
-//		1. create a delta quaternion between the two
-//		2. adjust the angle of the delta quaternion, which means that raise it to the desired power.
-//		3. then concatenate it with the starting quaternion using quaternion multiplication.
+/*
+		1. create a delta quaternion between the two
+		2. adjust the angle of the delta quaternion, which means that raise it to the desired power.
+		3. then concatenate it with the starting quaternion using quaternion multiplication.
+*/
 	}
 
 	static quat s_fromTo(const vec3& from, const vec3& to);
 	static quat s_lookRotation(const vec3& dir, const vec3& up);
-	static mat4 s_mat4(const quat& q);
+	static quat s_mat4(const mat4& m);
+
+	void onFormat(fmt::format_context& ctx) const;
 };
 
 inline bool quat::equals(const quat& r, float epsilon) const {
@@ -210,4 +206,5 @@ inline bool quat::equals0(float epsilon) const {
 		&& Math::equals0(w, epsilon);
 }
 
+SGE_FORMATTER(quat)
 }

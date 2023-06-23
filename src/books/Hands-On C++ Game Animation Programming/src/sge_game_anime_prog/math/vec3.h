@@ -12,16 +12,13 @@ namespace sge {
 template<typename T>
 struct TVec3 {
 
-	using vec2 = TVec2<T>;
-
 	union {
 		struct { T x, y, z; };
 		T v[3];
 	};
 
-	inline TVec3() : x(0), y(0), z(0) {}
+	inline TVec3() = default;
 	inline TVec3(const T& x_, const T& y_, const T& z_) : x(x_), y(y_), z(z_) {}
-	inline TVec3(const vec2& fv, const T& z_) : x(fv.x), y(fv.y), z(z_) {}
 
 	inline static TVec3 s_zero()	{ return TVec3(0,0,0); }
 	inline static TVec3 s_one()		{ return TVec3(1,1,1); }
@@ -61,9 +58,9 @@ struct TVec3 {
 	inline			T& operator[](int i)		{ return v[i]; }
 	inline const	T& operator[](int i) const	{ return v[i]; }
 
-	inline	vec2	xy() const { return vec2(x,y); }
-	inline	vec2	xz() const { return vec2(x,z); }
-	inline	vec2	yz() const { return vec2(y,z); }
+	inline	TVec2<T> xy() const { return TVec2<T>(x,y); }
+	inline	TVec2<T> xz() const { return TVec2<T>(x,z); }
+	inline	TVec2<T> yz() const { return TVec2<T>(y,z); }
 
 	inline T		dot(const TVec3& r)		const { return (x*r.x) + (y*r.y) + (z*r.z); }
 	inline TVec3	cross(const TVec3& r)	const { return TVec3(y*r.z - z*r.y, z*r.x - x*r.z, x*r.y - y*r.x); }

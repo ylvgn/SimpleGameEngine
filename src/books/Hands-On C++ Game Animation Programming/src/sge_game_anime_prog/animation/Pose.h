@@ -28,19 +28,19 @@ public:
 	Pose& operator=(const Pose& r);
 
 	// Since the parent and joint vectors are parallel, the resize function needs to set the size of both.
+	// at initialization, joint's parent is self, -1 means no parent
 	inline void resize(size_t jointCount) {
-		_parents.resize(jointCount);
-		_joints.resize(jointCount);
-		// at initialization, joint's parent is self
+		_parentIds.resize(jointCount);
+		_jointTrans.resize(jointCount);
 	}
 
-	inline size_t size() const { return _joints.size(); }
+	inline size_t size() const { return _jointTrans.size(); }
 
-	inline int getParent(int i) const   { return _parents[i]; }
-	inline void setParent(int i, int p) { _parents[i] = p; }
+	inline int getParent(int i) const   { return _parentIds[i]; }
+	inline void setParent(int i, int p) { _parentIds[i] = p; }
 
-	inline Transform getLocalTransform(int i) const          { return _joints[i]; }
-	inline void setLocalTransform(int i, const Transform& t) { _joints[i] = t; }
+	inline Transform getLocalTransform(int i) const          { return _jointTrans[i]; }
+	inline void setLocalTransform(int i, const Transform& t) { _jointTrans[i] = t; }
 
 	Transform getGlobalTransform(int i) const;
 
@@ -60,8 +60,8 @@ private:
 	// To store a parent-child hierarchy between transforms, you need to maintain two parallel vectors
 	// one filled with transformsand one filled with integers.
 	// The integer array contains the index of the parent transform for each joint.
-	Vector<Transform> _joints; // aka bones
-	Vector<int> _parents;
+	Vector<Transform> _jointTrans;
+	Vector<int> _parentIds;
 };
 
 

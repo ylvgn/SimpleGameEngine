@@ -39,8 +39,9 @@ quat quat::s_fromTo(const vec3& from, const vec3& to) {
 //	The s_fromTo function is one of the most intuitive ways of creating a quaternion.
 }
 
-// FYI: https://gabormakesgames.com/blog_quats_create.html#:~:text=%7D-,Look%20At,-To%20implement%20a
 quat quat::s_lookRotation(const vec3& dir, const vec3& up) {
+	// FYI: https://gabormakesgames.com/blog_quats_create.html#:~:text=%7D-,Look%20At,-To%20implement%20a
+
 	vec3 f = dir.normalize();	// object space forward vector
 	vec3 u = up.normalize();	// desired up vector
 	vec3 r = u.cross(f);		// object space right vector
@@ -67,64 +68,24 @@ quat quat::s_lookRotation(const vec3& dir, const vec3& up) {
 */
 }
 
-mat4 quat::s_mat4(const quat& q) {
-	// FYI: https://gabormakesgames.com/blog_quats_to_matrix.html
-#if 0
-	// It's less efficient, but easier to understand quaternion to matrix conversion if we think about basis vectors. 
-	// there is bug, because positive angle measures represent a counterclockwise rotation, but the following is wrong!!?????
-	vec3 r = q * vec3::s_right();
-	vec3 u = q * vec3::s_up();
-	vec3 f = q * vec3::s_forward();
+quat quat::s_mat4(const mat4& m) {
+	// FYI: https://gabormakesgames.com/blog_quats_to_matrix.html#:~:text=%7D-,From%20Matrix,-Similar%20to%20how
+	// Using only the forward and up vectors,
+	// the quat::s_lookRotation function can be used to convert a matrix into a quaternion.
 
-	return mat4(r.x, r.y, r.z, 0,  // x basis vector (No scale)
-				u.x, u.y, u.z, 0,  // y basis vector (No scale)
-				f.x, f.y, f.z, 0,  // z basis vector (No scale)
-				0,   0,   0,   1   // w basis vector (No scale)
-	);
-#else
-
-#if 0
-	float ww = q.w * q.w;
-	float xx = q.x * q.x;
-	float yy = q.y * q.y;
-	float zz = q.z * q.z;
-	float wx = q.w * q.x;
-	float wy = q.w * q.y;
-	float wz = q.w * q.z;
-	float xy = q.x * q.y;
-	float xz = q.x * q.z;
-	float yz = q.y * q.z;
-
-	return mat4(ww+xx-yy-zz, 2*xy+2*wz,   2*xz-2*wy,   0,
-		        2*xy-2*wz,   ww-xx+yy-zz, 2*yz+2*wx,   0,
-		        2*xz+2*wy,   2*yz-2*wx,   ww-xx-yy+zz, 0,
-		        0,           0,           0,           ww+xx+yy+zz
-	);
-#else
-	// since q is a unit quaternion, so ww+xx+yy+zz=1
-	// FYI: http://www.songho.ca/opengl/gl_quaternion.html
-	float xx = q.x * q.x;
-	float yy = q.y * q.y;
-	float zz = q.z * q.z;
-	float wx = q.w * q.x;
-	float wy = q.w * q.y;
-	float wz = q.w * q.z;
-	float xy = q.x * q.y;
-	float xz = q.x * q.z;
-	float yz = q.y * q.z;
-
-	return mat4(1-2*(yy+zz),    2*(xy+wz),     2*(xz-wy),     0,
-		        2*(xy-wz),      1-2*(xx+zz),   2*(yz+wx),     0,
-		        2*(xz+wy),      2*(yz-wx),     1-2*(xx+yy),   0,
-		        0,              0,             0,             1
-	);
-#endif
-
-#endif
+	vec3 up		 = m.up().xyz().normalize();
+	vec3 forward = m.forward().xyz().normalize();
+	vec3 right	 = up.cross(forward);
+	up = forward.cross(right);
+	return quat::s_lookRotation(forward, up);
 /*
-	Being able to convert quaternions to matrices will be useful later when you need to pass rotation data to a shader.
-	Shaders don't know what a quaternion is, but they have built-in functionality to deal with matrices.
+	Converting matrices to quaternions is going to be useful for debugging
+	and in the case where an external data source only provides rotations as matrices.
 */
+}
+
+void quat::onFormat(fmt::format_context& ctx) const {
+	fmt::format_to(ctx.out(), "({},{},{},{})", x,y,z,w);
 }
 
 }

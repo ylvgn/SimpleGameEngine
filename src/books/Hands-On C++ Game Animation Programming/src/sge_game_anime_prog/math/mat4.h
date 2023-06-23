@@ -10,8 +10,7 @@ struct mat4 {
 	using vec3 = TVec3<float>;
 	using vec4 = TVec4<float>;
 
-	union
-	{
+	union {
 		/* v[0 1 2 3 4 5 6 7 8 9 10 ...] in mat4
 		    r0 r1 r2 r3
 			0  1  2  3   c0
@@ -31,22 +30,19 @@ struct mat4 {
 		float v[16];
 		vec4 _columns[4]; // colomn-major
 
-		struct { vec4 right, up, forward, projection; };
-		struct { vec4 cx, cy, cz, cw; };
-
 		struct {
-			float xx, xy, xz, xw; // x-basis vector or cx
-			float yx, yy, yz, yw; // y-basis vector or cy
-			float zx, zy, zz, zw; // z-basis vector or cz
-			float wx, wy, wz, ww; // w-basis vector or cw
+			float xx, xy, xz, xw; // x-basis vector aka cx
+			float yx, yy, yz, yw; // y-basis vector aka cy
+			float zx, zy, zz, zw; // z-basis vector aka cz
+			float wx, wy, wz, ww; // w-basis vector aka cw
 		};
 
 		struct {
-			//    row0  row1  row2  row3
-			float c0r0, c0r1, c0r2, c0r3; // column0
-			float c1r0, c1r1, c1r2, c1r3; // column1
-			float c2r0, c2r1, c2r2, c2r3; // column2
-			float c3r0, c3r1, c3r2, c3r3; // column3
+			//    r0    r1    r2    r3
+			float c0r0, c0r1, c0r2, c0r3; // c0
+			float c1r0, c1r1, c1r2, c1r3; // c1
+			float c2r0, c2r1, c2r2, c2r3; // c2
+			float c3r0, c3r1, c3r2, c3r3; // c3
 		};
 
 		struct {
@@ -57,11 +53,7 @@ struct mat4 {
 		};
 	};
 
-	inline mat4()
-		: xx(1), xy(0), xz(0), xw(0)
-		, yx(0), yy(1), yz(0), yw(0)
-		, zx(0), zy(0), zz(1), zw(0)
-		, wx(0), wy(0), wz(0), ww(1) {}
+	inline mat4() = default;
 
 	inline mat4(const float* fv)
 		: xx(fv[0]),  xy(fv[1]),  xz(fv[2]),  xw(fv[3])
@@ -78,8 +70,22 @@ struct mat4 {
 		, zx(_20), zy(_21), zz(_22), zw(_23)
 		, wx(_30), wy(_31), wz(_32), ww(_33) {}
 
-	inline mat4(vec4 cx_, vec4 cy_, vec4 cz_, vec4 cw_) : cx(cx_), cy(cy_), cz(cz_), cw(cw_) {}
-	inline mat4(const mat4& r) : cx(r.cx), cy(r.cy), cz(r.cz), cw(r.cw) {}
+	inline mat4(const vec4f& cx, const vec4f& cy, const vec4f& cz, const vec4f& cw) {
+		_columns[0] = cx;
+		_columns[1] = cy;
+		_columns[2] = cz;
+		_columns[3] = cw;
+	}
+
+	const vec4& right()			const { return _columns[0]; }
+	const vec4& up()			const { return _columns[1]; }
+	const vec4& forward()		const { return _columns[2]; }
+	const vec4& projection()	const { return _columns[3]; }
+
+	const vec4& cx()			const { return _columns[0]; }
+	const vec4& cy()			const { return _columns[1]; }
+	const vec4& cz()			const { return _columns[2]; }
+	const vec4& cw()			const { return _columns[3]; }
 
 	inline static mat4 s_identity() {
 		return mat4(1,0,0,0,
@@ -92,23 +98,23 @@ struct mat4 {
 	inline const	vec4& operator[](int i) const	{ return _columns[i]; }
 
 	inline vec4 col(int i) const { return _columns[i]; }
-	inline vec4 row(int i) const { return vec4(cx[i], cy[i], cz[i], cw[i]); }
+	inline vec4 row(int i) const { return vec4(v[4*0+i], v[4*1+i], v[4*2+i], v[4*3+i]); }
 
 	inline void setCol(int i, const vec4& v_) { _columns[i] = v_; }
-	inline void setRow(int i, const vec4& v_) { cx[i] = v_.x; cy[i] = v_.y; cz[i] = v_.z; cw[i] = v_.w; }
+	inline void setRow(int i, const vec4& v_) { v[4*0+i] = v_.x; v[4*1+i] = v_.y; v[4*2+i] = v_.z; v[4*3+i] = v_.w; }
 
-	inline bool equals(const mat4& r, float epsilon = Math::epsilon<float>()) const { return cx.equals(r.cx, epsilon) && cy.equals(r.cy, epsilon) && cz.equals(r.cz, epsilon) && cw.equals(r.cw, epsilon); }
-	inline bool equals0(              float epsilon = Math::epsilon<float>()) const { return cx.equals0(epsilon) && cy.equals0(epsilon) && cz.equals0(epsilon) && cw.equals0(epsilon); }
+	inline bool equals(const mat4& r, float epsilon = Math::epsilon<float>()) const { return cx().equals(r.cx(), epsilon) && cy().equals(r.cy(), epsilon) && cz().equals(r.cz(), epsilon) && cw().equals(r.cw(), epsilon); }
+	inline bool equals0(              float epsilon = Math::epsilon<float>()) const { return cx().equals0(epsilon) && cy().equals0(epsilon) && cz().equals0(epsilon) && cw().equals0(epsilon); }
 
-	inline bool operator==(const mat4& r) const { return cx == r.cx && cy == r.cy && cz == r.cz && cw == r.cw; }
+	inline bool operator==(const mat4& r) const { return cx()==r.cx() && cy()==r.cy() && cz()==r.cz() && cw()==r.cw(); }
 	inline bool operator!=(const mat4& r) const { return !(this->operator==(r)); }
 
 	// Matrix addition can be used with scalar multiplication to interpolate or blend between multiple matrices.Later, you will learn how to use this property to implement animation skinning.
-	inline mat4 operator+(const mat4& r) const { return mat4(cx+r.cx, cy+r.cy, cz+r.cz, cw+r.cw); }
+	inline mat4 operator+(const mat4& r) const { return mat4(cx()+r.cx(), cy()+r.cy(), cz()+r.cz(), cw()+r.cw()); }
 
 	//Scaling matricesand then adding them allows you to "lerp" or "mix" between two matrices, so long as both matrices represent a linear transform.
-	inline mat4 operator*(float s) const { return mat4(cx*s, cy*s, cz*s, cw*s); }
-	inline mat4 operator/(float s) const { return mat4(cx/s, cy/s, cz/s, cw/s); }
+	inline mat4 operator*(float s) const { return mat4(cx()*s, cy()*s, cz()*s, cw()*s); }
+	inline mat4 operator/(float s) const { return mat4(cx()/s, cy()/s, cz()/s, cw()/s); }
 
 	// The resulting value for any element is the dot product of that row from the left matrix and that column form the right matrix.
 	// For example, suppose you want to find the value of the element in row 2 column 3 when multiplying two matrices.
@@ -126,11 +132,11 @@ struct mat4 {
 		v[2*4+ROW] * r.v[4*COL+2] + \
 		v[3*4+ROW] * r.v[4*COL+3] \
 // -------
-//                  row0    row1    row2    row3
-		return mat4(E(0,0), E(1,0), E(2,0), E(3,0), // column0
-			        E(0,1), E(1,1), E(2,1), E(3,1), // column1
-			        E(0,2), E(1,2), E(2,2), E(3,2), // column2
-			        E(0,3), E(1,3), E(2,3), E(3,3)  // column3
+//                  r0      r1      r2      r3
+		return mat4(E(0,0), E(1,0), E(2,0), E(3,0), // c0
+			        E(0,1), E(1,1), E(2,1), E(3,1), // c1
+			        E(0,2), E(1,2), E(2,2), E(3,2), // c2
+			        E(0,3), E(1,3), E(2,3), E(3,3)  // c3
 		);
 	#undef E
 #else
@@ -168,17 +174,17 @@ struct mat4 {
 // --------
 
 	inline vec4 operator* (const vec4& r) const {
-		vec4 v4;
-		for (int i = 0; i < 4; i++) {
-			v4[i] = row(i).dot(r);
-		}
-		return v4;
-	}
-
-	inline vec4 mul(const vec4& r) const {
-#define E(ROW, V4) M4V4D(ROW, V4.x, V4.y, V4.z, V4.w)
+#if 1
+	#define E(ROW, V4) M4V4D(ROW, V4.x, V4.y, V4.z, V4.w)
 		return vec4(E(0,r), E(1,r), E(2,r), E(3,r));
-#undef E
+	#undef E
+#else
+		vec4 res;
+		for (int i = 0; i < 4; ++i) {
+			res[i] = row(i).dot(r);
+		}
+		return res;
+#endif
 	}
 
 	/*
@@ -195,7 +201,7 @@ struct mat4 {
 #undef E
 	}
 
-	vec3 transformPoint(const vec3& r) {
+	inline vec3 transformPoint(const vec3& r) const {
 #define E(ROW, V3) M4V4D(ROW, V3.x, V3.y, V3.z, 1)
 		return vec3(E(0,r), E(1,r), E(2,r));
 #undef E
@@ -204,7 +210,7 @@ struct mat4 {
 	// The W component is a reference — it is a read-write.
 	// After the function is executed,
 	// the w component holds the value for W, if the input vector had been vec4
-	inline vec3 transformPoint(const vec3& r, float& w) {
+	inline vec3 transformPoint(const vec3& r, float& w) const {
 		float _w = w;
 		w = M4V4D(3, r.x, r.y, r.z, _w);
 #define E(ROW, V3) M4V4D(ROW, V3.x, V3.y, V3.z, _w)
@@ -213,12 +219,10 @@ struct mat4 {
 	}
 
 	inline mat4 transposed() const {
-		return mat4(
-			xx, yx, zx, wx,
-			xy, yy, zy, wy,
-			xz, yz, zz, wz,
-			xw, yw, zw, ww
-		);
+		return mat4(xx, yx, zx, wx,
+			        xy, yy, zy, wy,
+			        xz, yz, zz, wz,
+			        xw, yw, zw, ww);
 	}
 
 	// convert a matrix from row-major to column-major
@@ -273,68 +277,21 @@ struct mat4 {
 		return cofactor;
 	}
 
-	// Not all matrices have an inverse. Only matrices with a non-zero determinant can be inverted.
-	// ex1: the view matrix that is used to transform three - dimensional objects to be displayed on - screen is the inverse of the camera's position and rotation.
-	// ex2: Mesh Skinning.
-	inline mat4 inverse() const {
-		// Finding the inverse of a matrix is rather complicated as it needs other support functions(such as transpose and adjugate).
-		
-		// inverse(M) = adjugate(M) / determinant(M)
-		float det = determinant();
-		if (Math::equals0(det)) { // Epsilon check would need to be REALLY small
-			throw SGE_ERROR("Trying to invert a matrix with a zero determinant\n");
-		}
-
-		float oneOverDet = 1.0f/det;
-		return adjugate()*oneOverDet;
-	}
-
 	inline float determinant3x3() const {
 		return xx*(yy*zz - zy*yz)
 			 - yx*(xy*zz - zy*xz)
 			 + zx*(xy*yz - yy*xz);
 	}
 
-	// inverse3x3(M)=adjugate3x3(M)/determinant3x3(M)
-	inline mat4 inverse3x3() const {
-		float det = determinant3x3();
-		float oneOverDet = 1.0f / det;
-
-		return mat4(
-			// x basis vector
-			(yy*zz-yz*zy) * oneOverDet,		// xx
-			(xy*zz-xz*zy) * -oneOverDet,	// xy
-			(xy*yz-xz*yy) * oneOverDet,		// xz
-			0,								// xw
-			// y basis vector
-			(yx*zz-zx*yz) * -oneOverDet,	// yx
-			(xx*zz-xz*zx) * oneOverDet,		// yy
-			(xx*yz-xz*yx) * -oneOverDet,	// yz
-			0,								// yw
-			// z basis vector
-			(yx*zy-zx*yy) * oneOverDet,		// zx
-			(xx*zy-xy*zx) * -oneOverDet,	// zy
-			(xx*yy-xy*yx) * oneOverDet,		// zz
-			0,								// zw
-			// w basis vector
-			0,0,0,1
-		);
-/*
-		Inverting matrices is a relatively expensive function.
-		Matrices that only encode the position and rotation can be inverted faster
-		because the inverse of a 3x3 rotation matrix is the same as its transpose.
-*/
-	}
+	mat4 inverse() const;
+	mat4 inverse3x3() const;
 
 	// A frustum represents everything that is visible to the camera.
 	// The frustum function can be used to construct a view frustum,
 	// but the function parameters are not intuitive.
 	inline static mat4 s_frustum(float l, float r, float b, float t, float n, float f) {
 		// FYI: http://www.songho.ca/opengl/gl_projectionmatrix.html
-		if (l == r || t == b || n == f) {
-			throw SGE_ERROR("Trying to create invalid frustum\n");
-		}
-
+		SGE_ASSERT(l != r && t != b && n != f);
 		return mat4(2*n/(r-l),   0,           0,            0,
 			        0,           2*n/(t-b),   0,            0,
 			        (r+l)/(r-l), (t+b)/(t-b), -(f+n)/(f-n), -1,
@@ -360,18 +317,15 @@ struct mat4 {
 	// An orthographic projection maps linearly to NDC space.
 	// Orthographic view projections are generally useful for displaying UI or other two-dimensional elements.
 	inline static mat4 s_ortho(float l, float r, float b, float t, float n, float f) {
-		if (l == r || t == b || n == f) {
-			throw SGE_ERROR("Trying to create invalid ortho\n");
-		}
-
+		SGE_ASSERT(l != r && t != b && n != f);
 		return mat4(2/(r-l),      0,            0,            0,
 			        0,            2/(t-b),      0,            0,
 			        0,            0,            -2/(f-n),     0,
 			        -(r+l)/(r-l), -(t+b)/(t-b), -(f+n)/(f-n), 1);
 	}
 
-	// FYI: http://www.songho.ca/opengl/gl_camera.html#lookat
 	inline static mat4 s_lookAt(const vec3& eye, const vec3& target, const vec3& up) {
+		// FYI: http://www.songho.ca/opengl/gl_camera.html#lookat
 		// The eye position and target are defined in world space.
 		// The rest of the work is finding the inverted basis vectors and figuring out where the position is.
 
@@ -384,10 +338,10 @@ struct mat4 {
 */
 		SGE_ASSERT(target != eye);
 		vec3 f = (target - eye).normalize();
-		vec3 r = f.cross(up).normalize(); // right
+		vec3 r = f.cross(up).normalize();
 		SGE_ASSERT(r != vec3::s_zero());
 
-		vec3 u = r.cross(f); // up
+		vec3 u = r.cross(f);
 
 		// Since the basis vectors are orthonormal, their inverse is the same as their transpose.
 		// Remember, forward is negative z
@@ -408,7 +362,7 @@ struct mat4 {
 */
 	}
 
-	static quat s_quat(const mat4& m);
+	static mat4 s_quat(const quat& q);
 
 	void onFormat(fmt::format_context& ctx) const;
 };

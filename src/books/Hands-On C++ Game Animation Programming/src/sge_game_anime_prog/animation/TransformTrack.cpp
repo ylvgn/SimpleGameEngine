@@ -3,7 +3,7 @@
 namespace sge {
 
 Transform TransformTrack::sample(const Transform& t, const SampleRequest& sr) const {
-	Transform res = constCast(t);
+	Transform res = t;
 
 	if (_position.isValid2()) {
 		res.position = _position.sample(sr);

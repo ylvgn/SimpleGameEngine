@@ -1,4 +1,6 @@
 #include "Track.h"
+#include <sge_game_anime_prog/math/vec3.h>
+#include <sge_game_anime_prog/math/quat.h>
 
 namespace sge {
 
@@ -125,13 +127,13 @@ T Track<T, N>::_sampleCubic(const SampleRequest& sr) const {
 	T p2 = Track<T, N>::s_toValue(nextFrame.value);
 
 	// slopes are not meant to be quaternions, use memcpy directly instead of s_toValue avoiding normalization.
-	// Both slopes need to be scaled by the frame delta ???
+	// Both slopes need to be scaled by the frame delta
 	// slope1 = p1.out * frameDelta
 	T slope1;
 	std::memcpy(&slope1, thisFrame.out, N * sizeof(float));
 	slope1 = slope1 * trackDeltaTime;
 
-	// s2 = p2.in * frameDelta 
+	// slope2 = p2.in * frameDelta 
 	T slope2;
 	std::memcpy(&slope2, nextFrame.in, N * sizeof(float));
 	slope2 = slope2 * trackDeltaTime;
