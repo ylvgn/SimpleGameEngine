@@ -108,131 +108,125 @@ public:
 			glBindVertexArray(_vertexArrayObject);
 		}
 
+#if 0 // test lit texture
 		_debugPoints		= eastl::make_unique<DebugDraw>();
 		_debugLines			= eastl::make_unique<DebugDraw>();
 
+		_testTexture		= eastl::make_unique<Texture>("Assets/Textures/uvChecker.png");
+		_testShader			= eastl::make_unique<Shader>("Assets/Shaders/static.vert", "Assets/Shaders/lit.frag");
+		_vertexPositions	= eastl::make_unique< Attribute<vec3> >();
+		_vertexNormals		= eastl::make_unique< Attribute<vec3> >();
+		_vertexTexCoords	= eastl::make_unique< Attribute<vec2> >();
+		_indexBuffer		= eastl::make_unique<IndexBuffer>();
+
+		Vector<vec3> positions{
+			vec3(-1, -1, 0),
+			vec3(-1,  1, 0),
+			vec3( 1, -1, 0),
+			vec3( 1,  1, 0),
+		};
+		Vector<u32> indices = {
+			0,1,2,
+			2,1,3
+		};
+
+		_debugPoints->push_back(positions);
+
+		SGE_ASSERT(indices.size() == 6);
+		for (int i = 0; i < indices.size(); i += 3) {
+			_debugLines->push_back(positions[indices[i]]);
+			_debugLines->push_back(positions[indices[i+1]]);
+
+			_debugLines->push_back(positions[indices[i+1]]);
+			_debugLines->push_back(positions[indices[i+2]]);
+
+			_debugLines->push_back(positions[indices[i+2]]);
+			_debugLines->push_back(positions[indices[i]]);
+		}
+
+		_vertexPositions->uploadToGpu(positions);
+		_indexBuffer->uploadToGpu(indices);
+
+		_debugPoints->uploadToGpu();
+		_debugLines->uploadToGpu();
+
+		Vector<vec3> normals;
+		normals.resize(4, vec3::s_forward());
+		_vertexNormals->uploadToGpu(normals);
+
+		Vector<vec2> uvs = {
+			vec2(0,0),
+			vec2(0,1),
+			vec2(1,0),
+			vec2(1,1),
+		};
+		_vertexTexCoords->uploadToGpu(uvs);
+#endif
+
+#if 0 // test bezier curve or hermite spline
+
+		_debugPoints = eastl::make_unique<DebugDraw>();
+		_debugLines  = eastl::make_unique<DebugDraw>();
+		{ // test bezier curve
+			CubicCurveExample::Bezier curve(
+				vec3(-5, 0, 0), // p1
+				vec3(-2, 1, 0), // c1
+				vec3(2, 1, 0),  // c2
+				vec3(5, 0, 0)   // p2
+			);
+
+			_debugPoints->push_back(curve.p1());
+			_debugPoints->push_back(curve.c1());
+			_debugPoints->push_back(curve.c2());
+			_debugPoints->push_back(curve.p2());
+
+			for (int i = 0; i < 199; i++) {
+				float t1 = static_cast<float>(i) / 199.f;
+				float t2 = static_cast<float>(i+1) / 199.f;
+
+				_debugLines->push_back(curve.lerp(t1));
+				_debugLines->push_back(curve.lerp(t2));
+
+				curve.factor(t1, _debugPoints);
+			}
+
+			curve.factor(1, _debugPoints);
+		}
+
+		{ // test hermite spline
+			CubicCurveExample::Hermite curve(
+				vec3(-5, 0, 0), // p1
+				vec3(5, 0, 0),  // p1
+				0.2f,  // tan1
+				-3.f   // tan2
+			);
+
+			_debugPoints->push_back(curve.p1());
+			_debugPoints->push_back(curve.p2());
+
+			for (int i = 0; i < 199; i++) {
+				float t1 = static_cast<float>(i) / 199.f;
+				float t2 = static_cast<float>(i + 1) / 199.f;
+
+				_debugLines->push_back(curve.lerp(t1));
+				_debugLines->push_back(curve.lerp(t2));
+
+				curve.factor(t1, _debugPoints);
+			}
+
+			curve.factor(1, _debugPoints);
+		}
+
+		_debugPoints->uploadToGpu();
+		_debugLines->uploadToGpu();
+#endif
+
+#if 0 // test track
 		_referenceLines		= eastl::make_unique<DebugDraw>();
 		_scalarTrackLines	= eastl::make_unique<DebugDraw>();
 		_handlePoints		= eastl::make_unique<DebugDraw>();
 		_handleLines		= eastl::make_unique<DebugDraw>();
 
-		_restPoseVisual		= eastl::make_unique<DebugDraw>();
-		_bindPoseVisual		= eastl::make_unique<DebugDraw>();
-		_currentPoseVisual	= eastl::make_unique<DebugDraw>();
-
-		_testTexture		= eastl::make_unique<Texture>("Assets/Textures/uvChecker.png");
-#if 0
-		{ // test lit texture
-
-			_testShader			= eastl::make_unique<Shader>("Assets/Shaders/static.vert", "Assets/Shaders/lit.frag");
-			_vertexPositions	= eastl::make_unique< Attribute<vec3> >();
-			_vertexNormals		= eastl::make_unique< Attribute<vec3> >();
-			_vertexTexCoords	= eastl::make_unique< Attribute<vec2> >();
-			_indexBuffer		= eastl::make_unique<IndexBuffer>();
-
-			Vector<vec3> positions{
-				vec3(-1, -1, 0),
-				vec3(-1,  1, 0),
-				vec3( 1, -1, 0),
-				vec3( 1,  1, 0),
-			};
-			Vector<u32> indices = {
-				0,1,2,
-				2,1,3
-			};
-
-			_debugPoints->push_back(positions);
-
-			SGE_ASSERT(indices.size() == 6);
-			for (int i = 0; i < indices.size(); i += 3) {
-				_debugLines->push_back(positions[indices[i]]);
-				_debugLines->push_back(positions[indices[i+1]]);
-
-				_debugLines->push_back(positions[indices[i+1]]);
-				_debugLines->push_back(positions[indices[i+2]]);
-
-				_debugLines->push_back(positions[indices[i+2]]);
-				_debugLines->push_back(positions[indices[i]]);
-			}
-
-			_vertexPositions->uploadToGpu(positions);
-			_indexBuffer->uploadToGpu(indices);
-
-			_debugPoints->uploadToGpu();
-			_debugLines->uploadToGpu();
-
-			Vector<vec3> normals;
-			normals.resize(4, vec3::s_forward());
-			_vertexNormals->uploadToGpu(normals);
-
-			Vector<vec2> uvs = {
-				vec2(0,0),
-				vec2(0,1),
-				vec2(1,0),
-				vec2(1,1),
-			};
-			_vertexTexCoords->uploadToGpu(uvs);
-		}
-#endif
-
-#if 0
-		{
-			{ // test bezier curve
-				CubicCurveExample::Bezier curve(
-					vec3(-5, 0, 0), // p1
-					vec3(-2, 1, 0), // c1
-					vec3(2, 1, 0),  // c2
-					vec3(5, 0, 0)   // p2
-				);
-
-				_debugPoints->push_back(curve.p1());
-				_debugPoints->push_back(curve.c1());
-				_debugPoints->push_back(curve.c2());
-				_debugPoints->push_back(curve.p2());
-
-				for (int i = 0; i < 199; i++) {
-					float t1 = static_cast<float>(i) / 199.f;
-					float t2 = static_cast<float>(i+1) / 199.f;
-
-					_debugLines->push_back(curve.lerp(t1));
-					_debugLines->push_back(curve.lerp(t2));
-
-					curve.factor(t1, _debugPoints);
-				}
-
-				curve.factor(1, _debugPoints);
-			}
-
-			{ // test hermite spline
-				CubicCurveExample::Hermite curve(
-					vec3(-5, 0, 0), // p1
-					vec3(5, 0, 0),  // p1
-					0.2f,  // tan1
-					-3.f   // tan2
-				);
-
-				_debugPoints->push_back(curve.p1());
-				_debugPoints->push_back(curve.p2());
-
-				for (int i = 0; i < 199; i++) {
-					float t1 = static_cast<float>(i) / 199.f;
-					float t2 = static_cast<float>(i + 1) / 199.f;
-
-					_debugLines->push_back(curve.lerp(t1));
-					_debugLines->push_back(curve.lerp(t2));
-
-					curve.factor(t1, _debugPoints);
-				}
-
-				curve.factor(1, _debugPoints);
-			}
-
-			_debugPoints->uploadToGpu();
-			_debugLines->uploadToGpu();
-		}
-#endif
-
-#if 0 // test track
 		float height = 1.8f;
 		float left   = 1.0f;
 		float right  = 12.f;
@@ -464,35 +458,37 @@ public:
 #endif
 
 #if 0 // test animation clip
-		{
-			GLTFInfo info;
-			GLTFLoader::s_readFile(info, "Assets/Mesh/Woman.gltf");
-			_skeleton.create(info);
-			_clips = std::move(info.animationClips);
+		_restPoseVisual		= eastl::make_unique<DebugDraw>();
+		_bindPoseVisual		= eastl::make_unique<DebugDraw>();
+		_currentPoseVisual	= eastl::make_unique<DebugDraw>();
 
-			_restPoseVisual->fromPose(info.restPose());
-			_restPoseVisual->uploadToGpu();
+		GLTFInfo info;
+		GLTFLoader::s_readFile(info, "Assets/Mesh/Woman.gltf");
+		_skeleton.create(info);
+		_clips = std::move(info.animationClips);
 
-			_bindPoseVisual->fromPose(info.bindPose());
-			_bindPoseVisual->uploadToGpu();
+		_restPoseVisual->fromPose(info.restPose());
+		_restPoseVisual->uploadToGpu();
 
-			_currentClip = 0;
-			_playbackTime = 0.f;
-			_currentPose = info.restPose();
-			_currentPoseVisual->fromPose(_currentPose);
-			_currentPoseVisual->uploadToGpu();
+		_bindPoseVisual->fromPose(info.bindPose());
+		_bindPoseVisual->uploadToGpu();
 
-			// play 'Walking' animation clip
-			for (int i = 0; i < _clips.size(); ++i) {
-				if (_clips[i].name() == "Walking") {
-					_currentClip = i;
-					break;
-				}
+		_currentClip = 0;
+		_playbackTime = 0.f;
+		_currentPose = info.restPose();
+		_currentPoseVisual->fromPose(_currentPose);
+		_currentPoseVisual->uploadToGpu();
+
+		// play 'Walking' animation clip
+		for (int i = 0; i < _clips.size(); ++i) {
+			if (_clips[i].name() == "Walking") {
+				_currentClip = i;
+				break;
 			}
 		}
 #endif
 
-#if 1
+#if 1 // test skinning
 		_diffuseTexture	= eastl::make_unique<Texture>("Assets/Textures/Woman.png");
 		GLTFInfo info;
 		GLTFLoader::s_readFile(info, "Assets/Mesh/Woman.gltf");
@@ -505,7 +501,7 @@ public:
 				"Assets/Shaders/static.vert",
 				"Assets/Shaders/lit.frag"
 			);
-			_cpuMeshes = info.meshes;
+			_cpuMeshes.appendRange(info.meshes);
 			_cpuAnimInfo.animatedPose = info.restPose();
 		}
 
@@ -514,7 +510,7 @@ public:
 				"Assets/Shaders/skinned.vert",
 				"Assets/Shaders/lit.frag"
 			);
-			_gpuMeshes = info.meshes;
+			_gpuMeshes.appendRange(info.meshes); // trigger Mesh::operator= and will uploadToGpu
 			_gpuAnimInfo.animatedPose = info.restPose();
 			_gpuAnimInfo.posePalette.resize(info.restPose().size());
 			_gpuAnimInfo.animatedPose.getMatrixPalette(_gpuAnimInfo.posePalette);
@@ -528,7 +524,7 @@ public:
 			if (clipName == "Walking") {
 				_cpuAnimInfo.clip = i;
 			}
-			if (clipName == "Walking") {
+			if (clipName == "Running") {
 				_gpuAnimInfo.clip = i;
 			}
 		}
@@ -555,7 +551,7 @@ public:
 	}
 
 	void update(float dt) {
-#if 0 // test texture
+#if 0 // test lit texture
 		_testRotation += dt * 45.0f;
 		while (_testRotation > 360.0f) {
 			_testRotation -= 360.0f;
@@ -597,114 +593,104 @@ public:
 #endif
 	}
 
-	virtual void onDraw() override {
-		if (_vertexArrayObject == 0) return;
-		if (_testTexture == nullptr) return;
+	void render() {
+		HDC dc = hdc();
 
-		{ // render frame
-			Base::onDraw();
-			HDC dc = hdc();
+		// set viewport
+		float clientWidth  = _clientRect.size.x;
+		float clientHeight = _clientRect.size.y;
+		glViewport(0, 0, static_cast<GLsizei>(clientWidth), static_cast<GLsizei>(clientHeight));
 
-			// set viewport
-			float clientWidth = _clientRect.size.x;
-			float clientHeight = _clientRect.size.y;
-			glViewport(0, 0, static_cast<GLsizei>(clientWidth), static_cast<GLsizei>(clientHeight));
+		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_CULL_FACE);
+		glPointSize(5.0f);
 
-			glEnable(GL_DEPTH_TEST);
-			glEnable(GL_CULL_FACE);
-			glPointSize(5.0f);
+		glBindVertexArray(_vertexArrayObject);
+		glClearColor(0.5f, 0.6f, 0.7f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-			glBindVertexArray(_vertexArrayObject);
-			glClearColor(0.5f, 0.6f, 0.7f, 1.0f);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		float aspect = clientWidth / clientHeight;
+		(void)aspect;
 
-			float aspect = clientWidth / clientHeight;
-			(void)aspect;
-			
 #if 0 // test lit texture
-			{
-//				mat4 projection = mat4::s_perspective(60.0f, aspect, 0.01f, 1000.0f);
-//				mat4 view = mat4::s_lookAt(vec3(0, 0, -5), vec3::s_zero(), vec3::s_up());
-				mat4 model = quat::s_mat4(quat::s_angleAxis(Math::radians(_testRotation), vec3::s_forward())); // or mat4::s_identity();
-				mat4 mvp = projection * view * model;
+		mat4 projection = mat4::s_perspective(60.0f, aspect, 0.01f, 1000.0f);
+		mat4 view = mat4::s_lookAt(vec3(0, 0, -5), vec3::s_zero(), vec3::s_up());
+		mat4 model = mat4::s_quat(quat::s_angleAxis(Math::radians(_testRotation), vec3::s_forward())); // or mat4::s_identity();
+		mat4 mvp = projection * view * model;
 
-				_testShader->bind();
-				{
+		_testShader->bind();
+		{
 
-					{ // bind uniforms
-						Uniform<mat4>::set(_testShader->findUniformByName("model"), model);
-						Uniform<mat4>::set(_testShader->findUniformByName("view"), view);
-						Uniform<mat4>::set(_testShader->findUniformByName("projection"), projection);
-						Uniform<vec3>::set(_testShader->findUniformByName("light"), vec3::s_forward());
-						_testTexture->set(_testShader->findUniformByName("tex0"), 0);
-					}
-
-					{ // bind attributes
-						_vertexPositions->bind(_testShader->findAttributeByName("position"));
-						_vertexNormals->bind(_testShader->findAttributeByName("normal"));
-						_vertexTexCoords->bind(_testShader->findAttributeByName("texCoord"));
-					}
-
-					DrawUtil::draw(*_indexBuffer.get());
-					_debugLines->draw(DebugDrawMode::Lines, mvp);
-					_debugPoints->draw(DebugDrawMode::Points, mvp, k_blue);
-
-					{ // unbind uniforms
-						_testTexture->unset(0);
-						_vertexPositions->unbind(_testShader->findAttributeByName("position"));
-						_vertexNormals->unbind(_testShader->findAttributeByName("normal"));
-						_vertexTexCoords->unbind(_testShader->findAttributeByName("texCoord"));
-					}
-				}
-				_testShader->unbind();
+			{ // bind uniforms
+				Uniform<mat4>::set(_testShader->findUniformByName("model"), model);
+				Uniform<mat4>::set(_testShader->findUniformByName("view"), view);
+				Uniform<mat4>::set(_testShader->findUniformByName("projection"), projection);
+				Uniform<vec3>::set(_testShader->findUniformByName("light"), vec3::s_forward());
+				_testTexture->set(_testShader->findUniformByName("tex0"), 0);
 			}
+
+			{ // bind attributes
+				_vertexPositions->bind(_testShader->findAttributeByName("position"));
+				_vertexNormals->bind(_testShader->findAttributeByName("normal"));
+				_vertexTexCoords->bind(_testShader->findAttributeByName("texCoord"));
+			}
+
+			DrawUtil::draw(*_indexBuffer.get());
+			_debugLines->draw(DebugDrawMode::Lines, mvp);
+			_debugPoints->draw(DebugDrawMode::Points, mvp, k_blue);
+
+			{ // unbind uniforms
+				_testTexture->unset(0);
+				_vertexPositions->unbind(_testShader->findAttributeByName("position"));
+				_vertexNormals->unbind(_testShader->findAttributeByName("normal"));
+				_vertexTexCoords->unbind(_testShader->findAttributeByName("texCoord"));
+			}
+		}
+		_testShader->unbind();
 #endif
 
 #if 0 // test bezier curve or hermite spline
-			{
-				mat4 mvp = projection * view * mat4::s_identity();
-				_debugLines->draw(DebugDrawMode::Lines, mvp);
-				_debugPoints->draw(DebugDrawMode::Points, mvp, k_blue);
-			}
+		mat4 projection = mat4::s_perspective(60.0f, aspect, 0.01f, 1000.0f);
+		mat4 view = mat4::s_lookAt(vec3(0, 0, -5), vec3::s_zero(), vec3::s_up());
+		mat4 mvp = projection * view * mat4::s_identity();
+		_debugLines->draw(DebugDrawMode::Lines, mvp);
+		_debugPoints->draw(DebugDrawMode::Points, mvp, k_blue);
 #endif
 
 #if 0 // test track
-		{
-			float l = 0;
-			float b = 0;
-			float t = 22.f;
-			float r = aspect * t;
-			float n = 0.01f;
-			float f = 5.f;
-			mat4 view = mat4::s_lookAt(vec3(0,0,(n+f)/2), vec3::s_zero(), vec3::s_up());
+		float l = 0;
+		float b = 0;
+		float t = 22.f;
+		float r = aspect * t;
+		float n = 0.01f;
+		float f = 5.f;
+		mat4 view = mat4::s_lookAt(vec3(0, 0, (n + f) / 2), vec3::s_zero(), vec3::s_up());
 
-			//mat4 projection = mat4::s_ortho(0, aspect * 22.0f, 0, 22, 0.01f, 5);
-			mat4 projection = mat4::s_ortho(l, r, b, t, n, f);
+		//mat4 projection = mat4::s_ortho(0, aspect * 22.0f, 0, 22, 0.01f, 5);
+		mat4 projection = mat4::s_ortho(l, r, b, t, n, f);
 
-			mat4 mvp = projection * view * mat4::s_identity();
-			_referenceLines->draw(DebugDrawMode::Lines, mvp, k_yellow);
-			_scalarTrackLines->draw(DebugDrawMode::Lines, mvp, k_green);
-			_handlePoints->draw(DebugDrawMode::Points, mvp, k_blue);
-			_handleLines->draw(DebugDrawMode::Lines, mvp, k_purple);
-		}
+		mat4 mvp = projection * view * mat4::s_identity();
+		_referenceLines->draw(DebugDrawMode::Lines, mvp, k_yellow);
+		_scalarTrackLines->draw(DebugDrawMode::Lines, mvp, k_green);
+		_handlePoints->draw(DebugDrawMode::Points, mvp, k_blue);
+		_handleLines->draw(DebugDrawMode::Lines, mvp, k_purple);
 #endif
 
 #if 0 // test animation clip
-		{
-			mat4 projection = mat4::s_perspective(60.0f, aspect, 0.01f, 10.f);
-			mat4 view = mat4::s_lookAt(vec3(0, 4, -7), vec3(0, 4, 0), vec3::s_up());
-			mat4 mvp = projection * view;
+		mat4 projection = mat4::s_perspective(60.0f, aspect, 0.01f, 10.f);
+		mat4 view = mat4::s_lookAt(vec3(0, 4, -7), vec3(0, 4, 0), vec3::s_up());
+		mat4 mvp = projection * view;
 
-			_restPoseVisual->draw(DebugDrawMode::Lines, mvp, k_red);
-			_bindPoseVisual->draw(DebugDrawMode::Lines, mvp, k_green);
-			_currentPoseVisual->uploadToGpu();
-			_currentPoseVisual->draw(DebugDrawMode::Lines, mvp, k_blue);
-		}
+		_restPoseVisual->draw(DebugDrawMode::Lines, mvp, k_red);
+		_bindPoseVisual->draw(DebugDrawMode::Lines, mvp, k_green);
+		_currentPoseVisual->uploadToGpu();
+		_currentPoseVisual->draw(DebugDrawMode::Lines, mvp, k_blue);
 #endif
 
-#if 1
+#if 1 // test skinning
 		mat4 projection = mat4::s_perspective(60.0f, aspect, 0.01f, 10.f);
 		mat4 view = mat4::s_lookAt(vec3(0,5,7), vec3(0,3,0), vec3::s_up());
+
 		{ // test cpu skinning
 			mat4 model = Transform::s_mat4(_cpuAnimInfo.model);
 
@@ -731,6 +717,7 @@ public:
 			}
 			_staticShader->unbind();
 		}
+
 		{ // test gpu skinning
 			mat4 model = Transform::s_mat4(_gpuAnimInfo.model);
 			
@@ -767,11 +754,9 @@ public:
 			_skinnedShader->unbind();
 		}
 #endif
-			SwapBuffers(dc);
-			if (_vsynch != 0) {
-				glFinish();
-			}
-			drawNeeded();
+		SwapBuffers(dc);
+		if (_vsynch != 0) {
+			glFinish();
 		}
 	}
 
@@ -838,8 +823,6 @@ protected:
 
 		Base::onCreate(desc);
 
-		_lastTick = GetTickCount();
-
 		{ // create window
 			NativeUIWindow::CreateDesc winDesc;
 			winDesc.isMainWindow = true;
@@ -849,29 +832,24 @@ protected:
 		}
 	}
 
-	virtual void onRun() override {
-		NativeUIApp_Base::onRun();
-
-		while (GetMessage(&_win32_msg, NULL, 0, 0)) {
-			TranslateMessage(&_win32_msg);
-			DispatchMessage(&_win32_msg);
-
-			DWORD thisTick = GetTickCount();
-			float dt = float(thisTick - _lastTick) * 0.001f;
-			_lastTick = thisTick;
-			_mainWin.update(dt);
+	virtual void onUpdate(float dt) override {
+		Base::onUpdate(dt);
+		_deltaTime += dt;
+		if (_deltaTime < k_fps) {
+			return;
 		}
-
-		willQuit();
+		_mainWin.update(Math::min(k_fps, _deltaTime));
+		_mainWin.render();
+		_deltaTime -= k_fps;
 	}
 
 private:
 	MainWin _mainWin;
-	DWORD _lastTick = 0;
+	float _deltaTime = 0.f;
+	const float k_fps = 1 / 60.0f;
 };
 
 } // namespace
-
 
 int main(int argc, const char** argv) {
 	sge::GameAnimeProgApp app;
