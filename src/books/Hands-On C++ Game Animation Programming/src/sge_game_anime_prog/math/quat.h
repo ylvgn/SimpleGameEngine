@@ -49,8 +49,8 @@ struct quat {
 	inline bool equals(const quat& r, float epsilon = Math::epsilon<float>()) const;
 	inline bool equals0(              float epsilon = Math::epsilon<float>()) const;
 
-	inline quat operator+ (const quat& r) const { return quat(x+r.x, y+r.y, z+r.z, w+r.z); }
-	inline quat operator- (const quat& r) const { return quat(x-r.x, y-r.y, z-r.z, w-r.z); }
+	inline quat operator+ (const quat& r) const { return quat(x+r.x, y+r.y, z+r.z, w+r.w); }
+	inline quat operator- (const quat& r) const { return quat(x-r.x, y-r.y, z-r.z, w-r.w); }
 	inline quat operator* (const quat& r) const {
 #if 1
 		// This implementation is a bit more performant
