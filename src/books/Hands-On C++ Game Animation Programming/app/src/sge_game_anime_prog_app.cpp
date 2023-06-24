@@ -506,10 +506,17 @@ public:
 		}
 
 		{ // test gpu skinning
+#if 1 // test pre-multiplied skin matrix
+			_skinnedShader = eastl::make_unique<Shader>(
+				"Assets/Shaders/preskinned.vert",
+				"Assets/Shaders/lit.frag"
+			);
+#else
 			_skinnedShader = eastl::make_unique<Shader>(
 				"Assets/Shaders/skinned.vert",
 				"Assets/Shaders/lit.frag"
 			);
+#endif
 			_gpuMeshes.appendRange(info.meshes); // trigger Mesh::operator= and will uploadToGpu
 			_gpuAnimInfo.animatedPose = info.restPose();
 			_gpuAnimInfo.posePalette.resize(info.restPose().size());
@@ -575,13 +582,23 @@ public:
 		_currentPoseVisual->fromPose(_currentPose);
 #endif
 
-#if 1
+#if 1 // test skinning
 		{ // test cpu skinning
 			auto& clip = _clips[_cpuAnimInfo.clip];
 			_cpuAnimInfo.playback = clip.sample(_cpuAnimInfo.animatedPose, _cpuAnimInfo.playback + dt);
-
+			#if 1 // test pre-multiplied skin matrix
+				_cpuAnimInfo.animatedPose.getMatrixPalette(_cpuAnimInfo.posePalette);
+				const auto& invBindPose = _skeleton.invBindPose();
+				for (int i = 0; i < _cpuAnimInfo.posePalette.size(); ++i) {
+					_cpuAnimInfo.posePalette[i] = _cpuAnimInfo.posePalette[i] * invBindPose[i];
+				}
+			#endif
 			for (int i = 0; i < _cpuMeshes.size(); ++i) {
+			#if 1 // test pre-multiplied skin matrix
+				_cpuMeshes[i].cpuSkin(_cpuAnimInfo.posePalette);
+			#else
 				_cpuMeshes[i].cpuSkin(_skeleton, _cpuAnimInfo.animatedPose);
+			#endif
 			}
 		}
 
@@ -589,6 +606,12 @@ public:
 			auto& clip = _clips[_gpuAnimInfo.clip];
 			_gpuAnimInfo.playback = clip.sample(_gpuAnimInfo.animatedPose, _gpuAnimInfo.playback + dt);
 			_gpuAnimInfo.animatedPose.getMatrixPalette(_gpuAnimInfo.posePalette);
+		#if 1 // test pre-multiplied skin matrix
+			const auto& invBindPose = _skeleton.invBindPose();
+			for (int i = 0; i < _gpuAnimInfo.posePalette.size(); ++i) {
+				_gpuAnimInfo.posePalette[i] = _gpuAnimInfo.posePalette[i] * invBindPose[i];
+			}
+		#endif
 		}
 #endif
 	}
@@ -704,14 +727,14 @@ public:
 					_diffuseTexture->set(_staticShader->findUniformByName("tex0"), 0);
 				}
 
-				u32 pos		= _skinnedShader->findAttributeByName("position");
-				u32 normal	= _skinnedShader->findAttributeByName("normal");
-				u32 uv		= _skinnedShader->findAttributeByName("texCoord");
+				u32 pos		= _staticShader->findAttributeByName("position");
+				u32 normal	= _staticShader->findAttributeByName("normal");
+				u32 uv		= _staticShader->findAttributeByName("texCoord");
 				for (int i = 0; i < _cpuMeshes.size(); ++i) {
 					auto& mesh = _cpuMeshes[i];
-					mesh.bind(pos, normal, uv, -1, -1);
+					mesh.bind(pos, normal, uv);
 					mesh.draw();
-					mesh.unbind(pos, normal, uv, -1, -1);
+					mesh.unbind(pos, normal, uv);
 				}
 				_diffuseTexture->unset(0);
 			}
@@ -729,22 +752,22 @@ public:
 					Uniform<mat4>::set(_skinnedShader->findUniformByName("view"), view);
 					Uniform<mat4>::set(_skinnedShader->findUniformByName("projection"), projection);
 					Uniform<vec3>::set(_skinnedShader->findUniformByName("light"), vec3::s_one());
-
-					Uniform<mat4>::set(_skinnedShader->findUniformByName("invBindPose"), _skeleton.invBindPose());
-					Uniform<mat4>::set(_skinnedShader->findUniformByName("pose"), _gpuAnimInfo.posePalette);
-
+					#if 1 // test pre-multiplied skin matrix
+						Uniform<mat4>::set(_skinnedShader->findUniformByName("animated"), _gpuAnimInfo.posePalette);
+					#else
+						Uniform<mat4>::set(_skinnedShader->findUniformByName("invBindPose"), _skeleton.invBindPose());
+						Uniform<mat4>::set(_skinnedShader->findUniformByName("pose"), _gpuAnimInfo.posePalette);
+					#endif
 					_diffuseTexture->set(_skinnedShader->findUniformByName("tex0"), 0);
 				}
 
+				u32 pos		= _skinnedShader->findAttributeByName("position");
+				u32 normal	= _skinnedShader->findAttributeByName("normal");
+				u32 uv		= _skinnedShader->findAttributeByName("texCoord");
+				u32 weights = _skinnedShader->findAttributeByName("weights");
+				u32 joints	= _skinnedShader->findAttributeByName("joints");
 				for (int i = 0; i < _gpuMeshes.size(); ++i) {
 					auto& mesh = _gpuMeshes[i];
-
-					u32 pos		= _skinnedShader->findAttributeByName("position");
-					u32 normal	= _skinnedShader->findAttributeByName("normal");
-					u32 uv		= _skinnedShader->findAttributeByName("texCoord");
-					u32 weights = _skinnedShader->findAttributeByName("weights");
-					u32 joints	= _skinnedShader->findAttributeByName("joints");
-
 					mesh.bind(pos, normal, uv, weights, joints);
 					mesh.draw();
 					mesh.unbind(pos, normal, uv, weights, joints);

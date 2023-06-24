@@ -19,6 +19,10 @@ namespace sge {
 	The intended use of this class is to edit the CPU-side vertices,
 	then sync the changes to the GPU with the 'uploadToGpu' functions.
 
+	1.static vertex pipeline: vertex->MVP
+	2.rigid skinned vertex pipeline: vertex->skinned vertex->MVP
+	3.smooth skinned vertex pipeline: vertex->skinned vertex with weights->MVP
+
 	This Mesh class is not production-ready, but it's easy to work with
 */
 
@@ -37,13 +41,12 @@ public:
 	inline Vector<vec4f>& jointWeights()	{ return _jointWeights; }
 	inline Vector<vec4i>& jointInfluences()	{ return _jointInfluences; }
 
-	// static vertex pipeline : vertex->MVP
-	// rigid skinned vertex pipeline : vertex->skinned vertex->MVP
 	void cpuSkin(const Skeleton& skeleton, const Pose& pose);
+	void cpuSkin(const Span<const mat4>& animatedPose);
 	void uploadToGpu();
 
-	void bind(  int pos, int normal, int uv, int jointWeight, int jointInflucence);
-	void unbind(int pos, int normal, int uv, int jointWeight, int jointInflucence);
+	void bind(  int pos, int normal, int uv, int jointWeight = -1, int jointInflucence = -1);
+	void unbind(int pos, int normal, int uv, int jointWeight = -1, int jointInflucence = -1);
 
 	void draw();
 	void drawInstanced(u32 instanceCount);

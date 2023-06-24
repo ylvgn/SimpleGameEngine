@@ -129,6 +129,35 @@ void Mesh::cpuSkin(const Skeleton& skeleton, const Pose& pose) {
 	_normalAttrib->uploadToGpu(_skinnedNormal);
 }
 
+void Mesh::cpuSkin(const Span<const mat4>& animatedPose) {
+	// animatedPose = _posePalette * invPosePalette
+	size_t vertexCount = _pos.size();
+	if (vertexCount == 0) return;
+
+	_skinnedPos.resize(vertexCount);
+	_skinnedNormal.resize(vertexCount);
+
+	for (int i = 0; i < vertexCount; ++i) {
+		const vec4i& j = _jointInfluences[i];
+		const vec4f& w = _jointWeights[i];
+
+		vec3f p0 = animatedPose[j.x].transformPoint(_pos[i]);
+		vec3f p1 = animatedPose[j.y].transformPoint(_pos[i]);
+		vec3f p2 = animatedPose[j.z].transformPoint(_pos[i]);
+		vec3f p3 = animatedPose[j.w].transformPoint(_pos[i]);
+		_skinnedPos[i] = (p0*w.x) + (p1*w.y) + (p2*w.z) + (p3*w.w);
+
+		vec3f n0 = animatedPose[j.x].transformVector(_normal[i]);
+		vec3f n1 = animatedPose[j.y].transformVector(_normal[i]);
+		vec3f n2 = animatedPose[j.z].transformVector(_normal[i]);
+		vec3f n3 = animatedPose[j.w].transformVector(_normal[i]);
+		_skinnedNormal[i] = (n0*w.x) + (n1*w.y) + (n2*w.z) + (n3*w.w);
+	}
+
+	_posAttrib->uploadToGpu(_skinnedPos);
+	_normalAttrib->uploadToGpu(_skinnedNormal);
+}
+
 void Mesh::uploadToGpu() {
 	// syncs the vectors holding data to the GPU
 	// If one of the CPU-side vectors has a size of 0, then there is nothing to set
@@ -140,7 +169,7 @@ void Mesh::uploadToGpu() {
 	if (_jointInfluences.size() > 0)	{ _jointInfluencesAttrib->uploadToGpu(_jointInfluences); }
 }
 
-void Mesh::bind(int pos, int normal, int uv, int jointWeight, int jointInflucence) {
+void Mesh::bind(int pos, int normal, int uv, int jointWeight/*=-1*/, int jointInflucence/*=-1*/) {
 	// This takes integers that are bind slot indices.
 	// If the bind slot is valid, valid means slot >= 0, call the 'bind' function of attribute/
 		// why not pass a slot always >= 0 ???
