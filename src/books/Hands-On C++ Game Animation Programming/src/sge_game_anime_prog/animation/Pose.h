@@ -1,6 +1,7 @@
 #pragma once
 
 #include <sge_game_anime_prog/math/Transform.h>
+#include <sge_game_anime_prog/math/mat4.h>
 
 /*
 	The Pose class is used to hold the transformation of every bone in an animated hierarchy.

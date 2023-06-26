@@ -1,4 +1,5 @@
 #include "mat4.h"
+#include "Transform.h"
 
 namespace sge {
 
@@ -106,6 +107,43 @@ mat4 mat4::s_quat(const quat& q) {
 	Being able to convert quaternions to matrices will be useful later when you need to pass rotation data to a shader.
 	Shaders don't know what a quaternion is, but they have built-in functionality to deal with matrices.
 */
+}
+
+mat4 mat4::s_transform(const Transform& t) {
+#if 0
+	// First, extract the rotation basis of the transform
+	vec3 r = t.rotation * vec3::s_right();
+	vec3 u = t.rotation * vec3::s_up();
+	vec3 f = t.rotation * vec3::s_forward();
+
+	// Next, scale the basis vectors
+	r = r * t.scale.x;
+	u = u * t.scale.y;
+	f = f * t.scale.z;
+
+	return mat4(
+		r.x,          r.y,          r.z,          0, // X basis (& scale)
+		u.x,          u.y,          u.z,          0, // Y basis (& scale)
+		f.x,          f.y,          f.z,          0, // Z basis (& scale)
+		t.position.x, t.position.y, t.position.z, 1  // Position
+	);
+#else
+
+	mat4 translate = mat4(1,            0,            0,            0,
+				          0,            1,            0,            0,
+				          0,            0,            1,            0,
+				          t.position.x, t.position.y, t.position.z, 1);
+
+	mat4 rotate = mat4::s_quat(t.rotation);
+
+	mat4 scale  = mat4(t.scale.x, 0,         0,         0,
+				       0,         t.scale.y, 0,         0,
+				       0,         0,         t.scale.z, 0,
+				       0,         0,         0,         1);
+
+	// M = SRT, so apply scale first, then rotate, last is translate
+	return translate * rotate * scale;
+#endif
 }
 
 void mat4::onFormat(fmt::format_context& ctx) const {

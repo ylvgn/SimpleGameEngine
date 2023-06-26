@@ -5,6 +5,8 @@
 
 namespace sge {
 
+struct Transform;
+
 struct mat4 {
 
 	using vec3 = TVec3<float>;
@@ -363,6 +365,7 @@ struct mat4 {
 	}
 
 	static mat4 s_quat(const quat& q);
+	static mat4 s_transform(const Transform& t);
 
 	void onFormat(fmt::format_context& ctx) const;
 };

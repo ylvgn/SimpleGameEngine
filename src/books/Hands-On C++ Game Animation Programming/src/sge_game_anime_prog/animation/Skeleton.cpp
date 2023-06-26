@@ -47,7 +47,7 @@ void Skeleton::_updateInverseBindPose() {
 		// you don't have to convert the transform into a matrix and then invert it; you could invert the transform
 		// and then convert it into a matrix.
 		// The performance delta between the two is minimal.
-		_invBindPose[i] = Transform::s_mat4(world.inverse());
+		_invBindPose[i] = mat4::s_transform(world.inverse());
 #endif
 	}
 }

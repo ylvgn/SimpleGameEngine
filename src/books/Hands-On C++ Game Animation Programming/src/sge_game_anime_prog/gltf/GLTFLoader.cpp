@@ -15,7 +15,7 @@ Transform getLocalTransform(const cgltf_node& node) {
 	Transform res;
 	if (node.has_matrix) {
 		mat4 mat(&node.matrix[0]);
-		res = g_mat4ToTransform(mat);
+		res = Transform::s_mat(mat);
 	}
 
 	if (node.has_translation) {
@@ -311,6 +311,7 @@ void GLTFLoader::_loadAnimationClips() {
 			// find the index of the node that the current channel affects
 			const cgltf_node* target = channel.target_node;
 			int nodeIndex = GLTFHelpers::getNodeIndex(target, _data->nodes, nodeCount);
+			SGE_ASSERT(nodeIndex != -1);
 
 			// The[] operator of the Clip class either retrieves the current track or creates a new one.
 			// This means the TransformTrack function for the node that you are parsing is always valid
@@ -366,11 +367,11 @@ void GLTFLoader::_loadBindPose() {
 
 			// Read the ivnerse bind matrix of the joint
 			const float* matrix = &(invBindPoseMat4s[j * 16]);
-			const mat4 invBindPoseMat4 = mat4(matrix);
+			const mat4 invBindPoseMat4(matrix);
 
 			// Invert the inverse bind pose matrix to get the bind pose matrix.
 			const mat4 bindPoseMat4 = invBindPoseMat4.inverse();
-			Transform bindPoseTrans = g_mat4ToTransform(bindPoseMat4);
+			Transform bindPoseTrans = Transform::s_mat(bindPoseMat4);
 
 			// Set that transform in the worldBindPose.
 			int nodeIndex = GLTFHelpers::getNodeIndex(joint, _data->nodes, boneCount);

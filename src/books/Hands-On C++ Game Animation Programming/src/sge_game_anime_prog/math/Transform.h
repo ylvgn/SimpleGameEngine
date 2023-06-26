@@ -2,7 +2,6 @@
 
 #include "vec3.h"
 #include "quat.h"
-#include "mat4.h"
 
 namespace sge {
 
@@ -11,6 +10,8 @@ namespace sge {
 	Interpolating transforms is very important for animation. 
 	It's how you create in-between poses to display two given keyframes.
 */
+
+struct mat4;
 
 struct Transform {
 	vec3 position	{0,0,0};
@@ -48,10 +49,7 @@ struct Transform {
 	// To apply the shoulder transformation to all connected joints, the transform on each joint must be combined with its parent joint's transform.
 	// To keep things consistent, combining transforms should maintain a right-to- left combination order.
 	static Transform s_combine(const Transform& a, const Transform& b);
-
-	static mat4 s_mat4(const Transform& t);
+	static Transform s_mat(const mat4& m);
 };
-
-Transform g_mat4ToTransform(const mat4& m);
 
 }

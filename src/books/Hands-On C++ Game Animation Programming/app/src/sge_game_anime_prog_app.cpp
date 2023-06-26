@@ -715,7 +715,7 @@ public:
 		mat4 view = mat4::s_lookAt(vec3(0,5,7), vec3(0,3,0), vec3::s_up());
 
 		{ // test cpu skinning
-			mat4 model = Transform::s_mat4(_cpuAnimInfo.model);
+			mat4 model = mat4::s_transform(_cpuAnimInfo.model);
 
 			_staticShader->bind();
 			{
@@ -742,7 +742,7 @@ public:
 		}
 
 		{ // test gpu skinning
-			mat4 model = Transform::s_mat4(_gpuAnimInfo.model);
+			mat4 model = mat4::s_transform(_gpuAnimInfo.model);
 			
 			// bind uniform
 			_skinnedShader->bind();

@@ -39,14 +39,15 @@ Transform Pose::getGlobalTransform(int i) const {
 }
 
 void Pose::getMatrixPalette(Vector<mat4>& out) const {
+	// converts a pose into a linear array of matrices
 	// For every transform, find the global transform, convert it into a matrix
 
 	size_t jointCount = size();
 	out.resize(jointCount);
 
 	for (int i = 0; i < jointCount; ++i) {
-		Transform t = getGlobalTransform(i);
-		out[i] = Transform::s_mat4(t);
+		Transform global = getGlobalTransform(i);
+		out[i] = mat4::s_transform(global);
 	}
 }
 
