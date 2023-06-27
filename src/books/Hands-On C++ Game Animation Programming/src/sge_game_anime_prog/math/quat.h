@@ -55,6 +55,8 @@ struct quat {
 #if 1
 		// This implementation is a bit more performant
 		// since it doesn't need to invoke other functions.
+		// Rotating by the product lhs*rhs is the same as applying the two rotations in sequence:
+			// lhs first and then rhs, relative to the reference frame resulting from lhs rotation
 		return quat( r.x*w + r.y*z - r.z*y + r.w*x,
 					-r.x*z + r.y*w + r.z*x + r.w*y,
 					 r.x*y - r.y*x + r.z*w + r.w*z,

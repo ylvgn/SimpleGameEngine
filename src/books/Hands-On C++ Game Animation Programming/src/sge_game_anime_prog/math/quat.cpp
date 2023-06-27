@@ -40,31 +40,21 @@ quat quat::s_fromTo(const vec3& from, const vec3& to) {
 }
 
 quat quat::s_lookRotation(const vec3& dir, const vec3& up) {
-	// FYI: https://gabormakesgames.com/blog_quats_create.html#:~:text=%7D-,Look%20At,-To%20implement%20a
+	vec3 f = dir.normalize();		 // object space forward vector
+	vec3 desiredUp = up.normalize(); // desired up vector
+	vec3 r = desiredUp.cross(f);	 // object space right vector
+	desiredUp = f.cross(r);			 // object space up vector(incorrect)
 
-	vec3 f = dir.normalize();	// object space forward vector
-	vec3 u = up.normalize();	// desired up vector
-	vec3 r = u.cross(f);		// object space right vector
-	u = f.cross(r);				// object space up vector(incorrect)
-
-	// From world forward to object forward
-	quat f2d = s_fromTo(vec3::s_forward(), f);
-
-	// what direction is the new object up?
-	vec3 objectUp = f2d * vec3::s_up();
-
-	// From object up to desired up
-	quat u2u = s_fromTo(objectUp, u);
+	quat f2d = s_fromTo(vec3::s_forward(), f); // From world forward to object forward
+	vec3 objectUp = f2d * vec3::s_up();        // what direction is the new object up?
+	quat u2u = s_fromTo(objectUp, desiredUp);  // From object up to desired up
 
 	// Rotate to forward direction first, then twist to correct up.
-	// Combine rotations (in reverse! forward applied first, then up)
 	quat result = f2d * u2u;
-
-	// should be: quat result = u2u * f2d; why ??????????
 	return result.normalize();
 /*
 	The matrix lookAt function creates a view matrix, which is the inverse of the camera transform.
-	This means the rotation of lookAt and the result of lookRotation are going to be the inverse of each other.
+	This means the rotation of lookAt and the result of s_lookRotation are going to be the inverse of each other.
 */
 }
 
@@ -73,11 +63,11 @@ quat quat::s_mat4(const mat4& m) {
 	// Using only the forward and up vectors,
 	// the quat::s_lookRotation function can be used to convert a matrix into a quaternion.
 
-	vec3 up		 = m.up().xyz().normalize();
-	vec3 forward = m.forward().xyz().normalize();
-	vec3 right	 = up.cross(forward);
-	up = forward.cross(right);
-	return quat::s_lookRotation(forward, up);
+	vec3 u = m.up().xyz().normalize();
+	vec3 f = m.forward().xyz().normalize();
+	vec3 r = u.cross(f);
+	u = f.cross(r);
+	return quat::s_lookRotation(f, u);
 /*
 	Converting matrices to quaternions is going to be useful for debugging
 	and in the case where an external data source only provides rotations as matrices.
