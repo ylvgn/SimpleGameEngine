@@ -490,6 +490,7 @@ public:
 
 #if 1 // test skinning
 		_diffuseTexture	= eastl::make_unique<Texture>("Assets/Textures/Woman.png");
+
 		GLTFInfo info;
 		GLTFLoader::s_readFile(info, "Assets/Mesh/Woman.gltf");
 
@@ -502,6 +503,7 @@ public:
 
 		_skeleton.create(info);
 		_clips = std::move(info.animationClips);
+		RearrangeBones::s_rearrange(_skeleton, info.meshes, _fastClips.span());
 
 		{ // test cpu skinning
 			_staticShader = eastl::make_unique<Shader>(
@@ -509,7 +511,7 @@ public:
 				"Assets/Shaders/lit.frag"
 			);
 			_cpuMeshes.appendRange(info.meshes);
-			_cpuAnimInfo.animatedPose = info.restPose();
+			_cpuAnimInfo.animatedPose = _skeleton.restPose();
 		}
 
 		{ // test gpu skinning
@@ -525,8 +527,8 @@ public:
 			);
 #endif
 			_gpuMeshes.appendRange(info.meshes); // trigger Mesh::operator= and will uploadToGpu
-			_gpuAnimInfo.animatedPose = info.restPose();
-			_gpuAnimInfo.posePalette.resize(info.restPose().size());
+			_gpuAnimInfo.animatedPose = _skeleton.restPose();
+			_gpuAnimInfo.posePalette.resize(_gpuAnimInfo.animatedPose.size());
 			_gpuAnimInfo.animatedPose.getMatrixPalette(_gpuAnimInfo.posePalette);
 		}
 

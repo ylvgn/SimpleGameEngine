@@ -20,8 +20,6 @@ struct GLTFInfo;
 
 class Skeleton : public NonCopyable {
 public:
-	Skeleton() = default;
-
 	const Pose& restPose() const { return _restPose; }
 	const Pose& bindPose() const { return _bindPose; }
 
@@ -33,21 +31,20 @@ public:
 
 	inline StrView getJointName(int i) const { return _jointNames[i]; }
 
-	void clear();
-
 	void setRestPose(const Pose& p);
 	void setBindPose(const Pose& p);
 	void setJointNames(const Span<const String>& names);
 
 	void create(const GLTFInfo& src);
+	void clear();
 
 private:
 
 	// This function updates the inverse bind pose matrix any time that the bind pose is set
-	// Any time the bind pose of the skeleton is updated, the inverse bind pose should be re - calculated as well.
+	// Any time the bind pose of the skeleton is updated, the inverse bind pose should be re-calculated as well.
 	void _updateInverseBindPose();
 
-	Pose _restPose; // aka internal pose
+	Pose _restPose;
 	Pose _bindPose;
 	Vector<mat4> _invBindPose;
 	Vector<String> _jointNames;
