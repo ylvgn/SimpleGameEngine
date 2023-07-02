@@ -1,8 +1,10 @@
 #include "Clip.h"
+#include "TransformTrack.h"
 
 namespace sge {
 
-float Clip::_adjustTimeToFitRange(float time) const {
+template<typename TRACK>
+float TClip<TRACK>::_adjustTimeToFitRange(float time) const {
 	// same logic as Track.h 's _adjustTimeToFitTrack function
 
 	float duration = getDuration();
@@ -23,7 +25,8 @@ float Clip::_adjustTimeToFitRange(float time) const {
 	return time;
 }
 
-void Clip::recalculateDuration() {
+template<typename TRACK>
+void TClip<TRACK>::recalculateDuration() {
 	_startTime = 0.f;
 	_endTime   = 0.f;
 
@@ -42,7 +45,8 @@ void Clip::recalculateDuration() {
 */
 }
 
-float Clip::sample(Pose& out, float time) const {
+template<typename TRACK>
+float TClip<TRACK>::sample(Pose& out, float time) const {
 	if (getDuration() == 0.f) {
 		return 0;
 	}
@@ -71,7 +75,8 @@ float Clip::sample(Pose& out, float time) const {
 
 // returns a transform track for the specified track(joint).
 // If no track exists for the specified track(joint), one is created and returned.
-TransformTrack& Clip::operator[] (u32 jointId) {
+template<typename TRACK>
+TRACK& TClip<TRACK>::operator[] (u32 jointId) {
 	// This function is mainly used by whatever code loads the animation clip from a file.
 
 	for (int i = 0; i < _tracks.size(); ++i) {
@@ -80,9 +85,24 @@ TransformTrack& Clip::operator[] (u32 jointId) {
 		}
 	}
 
-	_tracks.push_back(TransformTrack());
+	_tracks.push_back(TRACK());
 	auto& res = _tracks.back();
 	res.setId(jointId);
+	return res;
+}
+
+template TClip<TransformTrack>;
+template TClip<FastTransformTrack>;
+
+FastClip ClipUtil::optimizeClip(const Clip& src) {
+	FastClip res;
+	res.setName(src.name());
+	res.setIsLoop(src.isLoop());
+
+	for (const auto& t : src.tracks()) {
+		res.appendTrack(TransformTrackUtil::optimizeTransformTrack(t));
+	}
+	res.recalculateDuration();
 	return res;
 }
 

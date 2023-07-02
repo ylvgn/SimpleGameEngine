@@ -19,10 +19,11 @@ struct Track_SampleRequest {
 
 template<typename T, size_t N>
 class Track {
-	using SampleRequest = Track_SampleRequest;
 public:
+	using SampleRequest = Track_SampleRequest;
 	using Type = Interpolation;
-	static constexpr int kInvalidFrameIndex = -1;
+
+	constexpr static int kInvalidFrameIndex = -1;
 
 	static T s_hermite(float t, const T& p1, const T& s1, const T& p2, const T& s2);
 
@@ -49,12 +50,12 @@ public:
 	      Frame<N>& operator[] (int i)       { return _frames[i]; }
 	const Frame<N>& operator[] (int i) const { return _frames[i]; }
 
-	int getFrameIndex(const SampleRequest& sr) const;
-
 	inline Type type() const		{ return _type; }
 	inline void setType(Type type)  { _type = type; }
 
-private:
+protected:
+	virtual int getFrameIndex(const SampleRequest& sr) const;
+
 	static T s_toValue(const float* v);
 
 	// keeps the animation sampling time in the valid range between startTime~endTime
@@ -71,6 +72,32 @@ private:
 using ScalarTrack		= Track<float, 1>;
 using VectorTrack		= Track<vec3,  3>;
 using QuaternionTrack	= Track<quat,  4>;
+
+template<typename T, size_t N>
+class FastTrack : public Track<T, N> {
+	using Base = Track<T, N>;
+	constexpr static int kFrameCountPerSecond = 60;
+public:
+	void updateIndexLookupTable();
+protected:
+	// track sampling this way is greater when the animation in question has more frames.
+	virtual int getFrameIndex(const SampleRequest& sr) const override;
+private:
+
+//	inline constexpr int kFrameCountPerSecond() const { return 60; }
+
+	inline constexpr int _getSampleCount() const {
+		float duration = getDuration();
+		SGE_ASSERT(duration >= 0);
+		return kFrameCountPerSecond + (static_cast<int>(duration * kFrameCountPerSecond));
+	}
+
+	Vector<int> _sampled2FrameIndex;
+};
+
+using FastScalarTrack		= FastTrack<float, 1>;
+using FastVectorTrack		= FastTrack<vec3,  3>;
+using FastQuaternionTrack	= FastTrack<quat,  4>;
 
 struct TrackUtil {
 	TrackUtil() = delete;
@@ -107,6 +134,9 @@ struct TrackUtil {
 	static QuaternionTrack createQuaternionTrack(Interpolation type, size_t frameCount, Args&&... args) {
 		return TrackUtil::createTrack<quat, 4>(type, frameCount, SGE_FORWARD(args)...);
 	}
+
+	template<typename T, size_t N>
+	static FastTrack<T, N> optimizeTrack(const Track<T, N>& src);
 };
 
 }

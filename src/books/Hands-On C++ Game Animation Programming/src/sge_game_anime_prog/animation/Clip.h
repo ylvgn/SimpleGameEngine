@@ -17,18 +17,14 @@
 
 namespace sge {
 
-class Clip {
+template<typename TRACK>
+class TClip {
 public:
-	inline Clip() :
+	inline TClip() :
 		_name(""),
 		_startTime(0.f),
 		_endTime(0.f),
 		_isLoop(true) { }
-
-	inline void setIdAtIndex(int i, u32 jointId) { _tracks[i].setId(jointId); }
-	inline u32 getJointIdAtIndex(int i) const { return _tracks[i].id(); }
-
-	inline size_t size()		const { return _tracks.size(); }
 
 	// a public helper function to figure out the start and end times of the animation clip.
 	// This function is intended to be called by the code that loads the animation clip from a file format.
@@ -38,7 +34,7 @@ public:
 	float sample(Pose& out, float time) const;
 
 	// []operator is meant to retrieve the TransformTrack object for a specific joint in the clip.
-	TransformTrack& operator[](u32 jointId);
+	TRACK& operator[](u32 jointId);
 
 	inline float	getStartTime()  const  { return _startTime; }
 	inline float	getEndTime()	const  { return _endTime; }
@@ -50,14 +46,30 @@ public:
 	inline StrView	name()			const  { return _name; }
 	inline void		setName(StrView name)  { _name = name; }
 
+	inline void setJointIdAtIndex(int i, u32 jointId) { _tracks[i].setId(jointId); }
+	inline u32 getJointIdAtIndex(int i) const { return _tracks[i].id(); }
+
+	inline size_t size() const { return _tracks.size(); }
+	inline const Span<const TRACK> tracks() const { return _tracks; }
+	inline void appendTrack(const TRACK& t) { _tracks.push_back(t); }
+
 private:
 	float _adjustTimeToFitRange(float time) const;
 
-	Vector<TransformTrack>	_tracks;
-	String					_name;
-	float					_startTime;
-	float					_endTime;
-	bool					_isLoop;
+	Vector<TRACK>	_tracks;
+	String			_name;
+	float			_startTime;
+	float			_endTime;
+	bool			_isLoop;
+};
+
+using Clip		= TClip<TransformTrack>;
+using FastClip	= TClip<FastTransformTrack>;
+
+struct ClipUtil {
+	ClipUtil() = delete;
+
+	static FastClip optimizeClip(const Clip& src);
 };
 
 }

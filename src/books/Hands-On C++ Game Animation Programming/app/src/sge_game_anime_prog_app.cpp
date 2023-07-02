@@ -493,6 +493,13 @@ public:
 		GLTFInfo info;
 		GLTFLoader::s_readFile(info, "Assets/Mesh/Woman.gltf");
 
+#if 1 // test optimize clip
+		_fastClips.resize(info.animationClips.size());
+		for (int i = 0; i < info.animationClips.size(); ++i) {
+			_fastClips[i] = ClipUtil::optimizeClip(info.animationClips[i]);
+		}
+#endif
+
 		_skeleton.create(info);
 		_clips = std::move(info.animationClips);
 
@@ -584,7 +591,11 @@ public:
 
 #if 1 // test skinning
 		{ // test cpu skinning
-			auto& clip = _clips[_cpuAnimInfo.clip];
+			#if 1 // test optimize clip
+				auto& clip = _fastClips[_cpuAnimInfo.clip];
+			#else
+				auto& clip = _clips[_cpuAnimInfo.clip];
+			#endif
 			_cpuAnimInfo.playback = clip.sample(_cpuAnimInfo.animatedPose, _cpuAnimInfo.playback + dt);
 			#if 1 // test pre-multiplied skin matrix
 				_cpuAnimInfo.animatedPose.getMatrixPalette(_cpuAnimInfo.posePalette);
@@ -603,7 +614,11 @@ public:
 		}
 
 		{ // test gpu skinning
+		#if 1 // test optimize clip
+			auto& clip = _fastClips[_gpuAnimInfo.clip];
+		#else
 			auto& clip = _clips[_gpuAnimInfo.clip];
+		#endif
 			_gpuAnimInfo.playback = clip.sample(_gpuAnimInfo.animatedPose, _gpuAnimInfo.playback + dt);
 			_gpuAnimInfo.animatedPose.getMatrixPalette(_gpuAnimInfo.posePalette);
 		#if 1 // test pre-multiplied skin matrix
@@ -828,6 +843,8 @@ private:
 	UPtr<Shader>			_skinnedShader;
 	Vector<Mesh>			_gpuMeshes;
 	AnimationInstance		_gpuAnimInfo;
+
+	Vector<FastClip>		_fastClips;
 };
 
 class GameAnimeProgApp : public NativeUIApp {
@@ -858,18 +875,18 @@ protected:
 	virtual void onUpdate(float dt) override {
 		Base::onUpdate(dt);
 		_deltaTime += dt;
-		if (_deltaTime < k_fps) {
+		if (_deltaTime < kFPS) {
 			return;
 		}
-		_mainWin.update(Math::min(k_fps, _deltaTime));
+		_mainWin.update(Math::min(kFPS, _deltaTime));
 		_mainWin.render();
-		_deltaTime -= k_fps;
+		_deltaTime -= kFPS;
 	}
 
 private:
 	MainWin _mainWin;
 	float _deltaTime = 0.f;
-	const float k_fps = 1 / 60.0f;
+	const float kFPS = 1 / 60.0f;
 };
 
 } // namespace

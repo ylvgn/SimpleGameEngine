@@ -8,6 +8,10 @@ template Track <float, 1>;
 template Track <vec3,  3>;
 template Track <quat,  4>;
 
+template FastTrack <float, 1>;
+template FastTrack <vec3,  3>;
+template FastTrack <quat,  4>;
+
 namespace TrackHelpers {
 /*
 	These helper functions are not a part of the Track class;
@@ -144,16 +148,16 @@ T Track<T, N>::_sampleCubic(const SampleRequest& sr) const {
 
 template<typename T, size_t N>
 int Track<T, N>::getFrameIndex(const SampleRequest& sr) const {
-	int frameCount = static_cast<int>(_frames.size());
+	size_t frameCount = _frames.size();
 
 	if (frameCount <= 1) {
 		return kInvalidFrameIndex;
 	}
 
 #if 1
-	float time = sr.time;
+	float time      = sr.time;
 	float startTime = getStartTime();
-	float endTime = getEndTime();
+	float endTime   = getEndTime();
 
 	if (sr.isLoop) {
 		float duration = endTime - startTime;
@@ -172,7 +176,7 @@ int Track<T, N>::getFrameIndex(const SampleRequest& sr) const {
 		float secondToLastTime = _frames[_frames.size() - 2].time;
 		if (time >= secondToLastTime) {
 			// The sample function always needs a currentand next frame, and the next frame is found by adding 1 to the result of the FrameIndex function.
-			return frameCount - 2;
+			return static_cast<int>(frameCount) - 2;
 		}
 	}
 #else
@@ -180,16 +184,16 @@ int Track<T, N>::getFrameIndex(const SampleRequest& sr) const {
 	if (!sr.isLoop) {
 		float secondToLastTime = _frames[_frames.size() - 2].time;
 		if (time >= secondToLastTime) {
-			return frameCount - 2;
+			return static_cast<int>(frameCount) - 2;
 		}
 	}
 #endif
 
 	// This frame can be found by looping through the frames of the track backwardand returning the first index
 	// whose time is less than the time that is looked up
-	for (int i = frameCount - 1; i >= 0; --i) {
+	for (size_t i = frameCount - 1; i >= 0; --i) {
 		if (time >= _frames[i].time)
-			return i;
+			return static_cast<int>(i);
 	}
 
 	throw SGE_ERROR("Invalid code, we should not reach here!");
@@ -237,6 +241,106 @@ T Track<T, N>::s_hermite(float t, const T& p1, const T& s1, const T& p2_, const 
 	TrackHelpers::neighborhood(p1, p2);
 
 	return p1*(ttt2-tt3+1) + s1*(ttt-tt2+t) + p2*(-ttt2+tt3) + s2*(ttt-tt);
+}
+
+template<typename T, size_t N>
+void FastTrack<T, N>::updateIndexLookupTable() {
+/*
+	The updateIndexLookupTable function is intended to be called at load time.
+
+	How many samples should the FastTrack class contain?
+	This question is very context-dependent as different games have different requirements.
+	For the context of this book, 60 samples per second should be enough
+*/
+	size_t frameCount = _frames.size();
+	if (frameCount <= 1) return;
+
+	float startTime = getStartTime();
+	float endTime   = getEndTime();
+	float duration  = endTime - startTime;
+
+	// Since the class has 60 samples for every second of animation, multiply the duration by 60
+	const int sampleCount = _getSampleCount();
+	_sampled2FrameIndex.resize(sampleCount);
+
+	for (int i = 0; i < sampleCount; ++i) {
+		float t = static_cast<float>(i) / static_cast<float>(sampleCount - 1); // normalized sample time
+		float time = startTime + (t*duration);
+
+		size_t frameIndex = 0;
+		for (size_t j = frameCount - 1; j >= 0; --j) {
+			const Frame<N>& frame = _frames[j];
+			if (time >= frame.time) {
+				frameIndex = j;
+				break;
+			}
+		}
+
+		_sampled2FrameIndex[i] = static_cast<int>(Math::min(frameIndex, frameCount - 2));
+	}
+}
+
+template<typename T, size_t N>
+int FastTrack<T, N>::getFrameIndex(const SampleRequest& sr) const {
+	// The optimized FastTrack class uses a lookup array instead of looping through every frame of the track.
+	size_t frameCount = _frames.size();
+	if (frameCount <= 1) return kInvalidFrameIndex;
+
+	float time      = sr.time;
+	float startTime = getStartTime();
+	float endTime   = getEndTime();
+	float duration  = endTime - startTime;
+
+	if (sr.isLoop) {
+		SGE_ASSERT(duration > 0);
+		time = Math::fmod(time - startTime, duration);
+		if (time < 0) {
+			time += duration;
+		}
+		time += startTime;
+	}
+	else {
+		if (time <= startTime) {
+			return 0;
+		}
+
+		float secondToLastTime = _frames[_frames.size() - 2].time;
+		if (time >= secondToLastTime) {
+			// The sample function always needs a currentand next frame, and the next frame is found by adding 1 to the result of the FrameIndex function.
+			return static_cast<int>(frameCount) - 2;
+		}
+	}
+
+	float t = time / duration; // normalized sample time
+	int index = static_cast<int>(t * _getSampleCount());
+	if (index >= _sampled2FrameIndex.size()) {
+		return kInvalidFrameIndex;
+	}
+	return _sampled2FrameIndex[index];
+}
+
+#if 0
+// explicit instantiation why no need???
+// Declare the template specializations of the optimizeTrack function for all three types
+// This means declaring specializations that work with the scalar, vector 3, and quaternion tracks
+template FastTrack<float, 1> TrackUtil::optimizeTrack(const Track<float, 1>& src);
+template FastTrack<vec3,  3> TrackUtil::optimizeTrack(const Track<vec3,  3>& src);
+template FastTrack<quat,  4> TrackUtil::optimizeTrack(const Track<quat,  4>& src);
+#endif
+
+template<typename T, size_t N>
+FastTrack<T, N> TrackUtil::optimizeTrack(const Track<T, N>& src) {
+	FastTrack<T, N> res;
+
+	res.setType(src.type());
+	size_t frameCount = src.size();
+	res.resize(frameCount);
+	for (int i = 0; i < frameCount; ++i) {
+		res[i] = src[i];
+	}
+
+	res.updateIndexLookupTable();
+	return res;
 }
 
 }
