@@ -15,7 +15,6 @@
 	This data is kept in two parallel vectors.
 
 	In this context a joint is expressed as a Transform object.
-	jointCount aka boneCount
 */
 
 namespace sge {
@@ -25,13 +24,13 @@ public:
 	inline Pose() = default;
 	inline Pose(size_t jointCount) { resize(jointCount); };
 
-	inline Pose(const Pose& r) { *this = r; };
+	inline Pose(const Pose& r) { *this = r; }; // will also call operator=
 	Pose& operator=(const Pose& r);
 
 	void clear();
-	void resize(size_t jointCount);
+	void resize(size_t newJointCount);
 
-	inline size_t size() const { return _jointTrans.size(); }
+	inline size_t getJointCount() const { return _jointTrans.size(); }
 
 	inline int getParent(int i) const   { return _parentIds[i]; }
 	inline void setParent(int i, int p) { _parentIds[i] = p; }
@@ -52,7 +51,7 @@ public:
 
 private:
 	// To store a parent-child hierarchy between transforms, you need to maintain two parallel vectors
-	// one filled with transformsand one filled with integers.
+	// one filled with transforms and one filled with integers.
 	// The integer array contains the index of the parent transform for each joint.
 	Vector<Transform> _jointTrans;
 	Vector<int> _parentIds;

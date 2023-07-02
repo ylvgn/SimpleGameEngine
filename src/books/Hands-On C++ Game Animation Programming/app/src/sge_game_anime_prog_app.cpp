@@ -528,7 +528,7 @@ public:
 #endif
 			_gpuMeshes.appendRange(info.meshes); // trigger Mesh::operator= and will uploadToGpu
 			_gpuAnimInfo.animatedPose = _skeleton.restPose();
-			_gpuAnimInfo.posePalette.resize(_gpuAnimInfo.animatedPose.size());
+			_gpuAnimInfo.posePalette.resize(_gpuAnimInfo.animatedPose.getJointCount());
 			_gpuAnimInfo.animatedPose.getMatrixPalette(_gpuAnimInfo.posePalette);
 		}
 

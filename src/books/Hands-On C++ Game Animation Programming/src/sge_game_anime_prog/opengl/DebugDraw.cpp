@@ -34,7 +34,7 @@ void DebugDraw::draw(DebugDrawMode mode, const mat4& mvp, const Color4f& color /
 }
 
 void DebugDraw::fromPose(const Pose& pose) {
-	size_t jointCount = pose.size();
+	size_t jointCount = pose.getJointCount();
 
 	_points.clear();
 	_points.reserve(jointCount);

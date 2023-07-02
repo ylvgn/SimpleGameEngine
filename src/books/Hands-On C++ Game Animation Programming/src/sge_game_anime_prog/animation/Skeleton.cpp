@@ -35,7 +35,7 @@ void Skeleton::setJointNames(const Span<const String>& names) {
 }
 
 void Skeleton::_updateInverseBindPose() {
-	size_t jointCount = _bindPose.size();
+	size_t jointCount = _bindPose.getJointCount();
 	_invBindPose.resize(jointCount);
 
 	for (int i = 0; i < jointCount; ++i) {

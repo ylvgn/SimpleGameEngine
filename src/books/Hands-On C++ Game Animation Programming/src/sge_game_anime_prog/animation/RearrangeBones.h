@@ -39,9 +39,6 @@ public:
 #endif
 
 private:
-
-	size_t _jointCount() const;
-
 	int _rearrangeIdx(int oldJointIndex) const;
 	int _originalIdx(int newJointIndex) const;
 

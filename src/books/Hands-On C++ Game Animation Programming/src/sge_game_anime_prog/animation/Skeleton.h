@@ -31,6 +31,8 @@ public:
 
 	inline StrView getJointName(int i) const { return _jointNames[i]; }
 
+	inline size_t getJointCount() const { return _restPose.getJointCount(); }
+
 	void setRestPose(const Pose& p);
 	void setBindPose(const Pose& p);
 	void setJointNames(const Span<const String>& names);

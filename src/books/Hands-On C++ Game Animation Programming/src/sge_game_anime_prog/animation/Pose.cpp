@@ -2,11 +2,11 @@
 
 namespace sge {
 
-void Pose::resize(size_t jointCount) {
+void Pose::resize(size_t newJointCount) {
 	// Since the parent and joint vectors are parallel, the resize function needs to set the size of both.
 	// at initialization, joint's parent is self, parentIds[i]==-1 means no parent
-	_parentIds.resize(jointCount);
-	_jointTrans.resize(jointCount);
+	_parentIds.resize(newJointCount);
+	_jointTrans.resize(newJointCount);
 }
 
 void Pose::clear() {
@@ -14,7 +14,7 @@ void Pose::clear() {
 }
 
 Pose& Pose::operator=(const Pose& r) {
-	// overload operator=, cuz use std::memcpy for quick copy
+	// overload operator=, use std::memcpy for quick copy
 
 	if (&r == this) {
 		return *this;
@@ -53,7 +53,7 @@ Transform Pose::getGlobalTransform(int i) const {
 
 #if 1
 void Pose::getMatrixPalette(Vector<mat4>& out) const {
-	size_t jointCount = size();
+	size_t jointCount = getJointCount();
 	out.resize(jointCount);
 
 	int i = 0;

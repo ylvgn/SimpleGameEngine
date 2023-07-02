@@ -58,7 +58,7 @@ void RearrangeBones::create(const Skeleton& skeleton) {
 	const auto& bindPose = skeleton.bindPose();
 	const auto& restPose = skeleton.restPose();
 
-	size_t jointCount = restPose.size();
+	size_t jointCount = restPose.getJointCount();
 	if (jointCount == 0) {
 		return;
 	}
@@ -101,13 +101,8 @@ void RearrangeBones::create(const Skeleton& skeleton) {
 	_o2n[-1] = -1;
 }
 
-size_t RearrangeBones::_jointCount() const {
-	const auto& p = _skeleton.restPose();
-	return p.size();
-}
-
 void RearrangeBones::rearrangeSkeleton(Skeleton& out) {
-	size_t jointCount = _jointCount();
+	size_t jointCount = _skeleton.getJointCount();
 	if (jointCount == 0) {
 		return;
 	}
@@ -118,21 +113,18 @@ void RearrangeBones::rearrangeSkeleton(Skeleton& out) {
 
 	Pose newRestPose (jointCount);
 	Pose newBindPose (jointCount);
-	Vector<String> newNames;
-	newNames.resize(jointCount);
+	Vector<String> newJointNames;
+	newJointNames.resize(jointCount);
 
-	// from _skeleton's point of view to see jointId
-	// for _skeleton: i is new jointId
-	// for new pose: i is old jointId(need to calc)
 	for (int i = 0; i < jointCount; ++i) {
 		int oldJointId = _originalIdx(i);
-		int oldParent = bindPose.getParent(oldJointId);
-		int newParent = _rearrangeIdx(oldParent);
+		int oldParent  = bindPose.getParent(oldJointId);
+		int newParent  = _rearrangeIdx(oldParent);
+
+		newJointNames[i] = jointNames[oldJointId];
 
 		newRestPose.setLocalTransform(i, restPose.getLocalTransform(oldJointId));
 		newBindPose.setLocalTransform(i, bindPose.getLocalTransform(oldJointId));
-
-		newNames[i] = jointNames[oldJointId];
 
 		newRestPose.setParent(i, newParent);
 		newBindPose.setParent(i, newParent);
@@ -140,7 +132,7 @@ void RearrangeBones::rearrangeSkeleton(Skeleton& out) {
 
 	out.setRestPose(newRestPose);
 	out.setBindPose(newBindPose);
-	out.setJointNames(newNames);
+	out.setJointNames(newJointNames);
 }
 
 void RearrangeBones::rearrangeMesh(Mesh& out) {

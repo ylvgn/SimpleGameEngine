@@ -339,7 +339,7 @@ void GLTFLoader::_loadBindPose() {
 */
 
 	const auto& restPose = _outInfo->restPose();
-	size_t boneCount = restPose.size();
+	size_t boneCount = restPose.getJointCount();
 	SGE_ASSERT(boneCount > 0);
 
 	Vector<Transform> worldBindPose;
@@ -361,8 +361,7 @@ void GLTFLoader::_loadBindPose() {
 		Vector<float> invBindPoseMat4s;
 		GLTFHelpers::getScalarValues(invBindPoseMat4s, 16, *skin.inverse_bind_matrices);
 
-		cgltf_size jointCount = skin.joints_count;
-		for (int j = 0; j < jointCount; ++j) {
+		for (int j = 0; j < skin.joints_count; ++j) {
 			const cgltf_node* joint = skin.joints[j];
 
 			// Read the ivnerse bind matrix of the joint
