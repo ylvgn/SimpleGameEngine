@@ -19,7 +19,7 @@ namespace sge {
 	// the type of vector track and the type of quaternion
 	// use the same code and accommodate for FastTrack
 template<typename VTRACK, typename QTRACK>
-class TTransformTrack {
+class TransformTrackT : public NonCopyable {
 public:
 	using SampleRequest = Track_SampleRequest;
 
@@ -48,19 +48,20 @@ private:
 	u32 _id = 0; // jointId
 
 	// Not all of the component tracks in a transform track need to be valid.
-	// For example, if only the position of a transform is animated, the rotationand scale component tracks can be left as invalid.
+	// For example, if only the position of a transform is animated,
+	// the rotation and scale component tracks can be left as invalid.
 	VTRACK	_position;
 	QTRACK	_rotation;
 	VTRACK	_scale;
 };
 
-using TransformTrack	 = TTransformTrack<VectorTrack, QuaternionTrack>;
-using FastTransformTrack = TTransformTrack<FastVectorTrack, FastQuaternionTrack>;
+using TransformTrack	 = TransformTrackT<VectorTrack, QuaternionTrack>;
+using FastTransformTrack = TransformTrackT<FastVectorTrack, FastQuaternionTrack>;
 
 struct TransformTrackUtil {
 	TransformTrackUtil() = delete;
 
-	static FastTransformTrack optimizeTransformTrack(const TransformTrack& src);
+	static UPtr<FastTransformTrack> optimizeTransformTrack(const TransformTrack& src);
 };
 
 

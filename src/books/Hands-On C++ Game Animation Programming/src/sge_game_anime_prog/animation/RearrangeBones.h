@@ -12,7 +12,7 @@ namespace sge {
 	any clips or meshes that reference this skeleton are now broken.
 */
 
-#define MYTEST 1
+#define MYTEST 0
 
 class RearrangeBones : public NonCopyable {
 public:

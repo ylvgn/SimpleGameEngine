@@ -142,7 +142,7 @@ T Track<T, N>::_sampleCubic(const SampleRequest& sr) const {
 	std::memcpy(&slope2, nextFrame.in, N * sizeof(float));
 	slope2 = slope2 * trackDeltaTime;
 
-	T result = Track<T, N>::s_hermite(t, p1, slope1, p2, slope2);
+	T result = TrackUtil::hermite(t, p1, slope1, p2, slope2);
 	return TrackHelpers::adjustHermiteResult(result);
 }
 
@@ -230,20 +230,6 @@ float Track<T, N>::_adjustTimeToFitTrack(const SampleRequest& sr) const {
 }
 
 template<typename T, size_t N>
-T Track<T, N>::s_hermite(float t, const T& p1, const T& s1, const T& p2_, const T& s2) {
-	float tt   = t * t;
-	float tt2  = tt * 2;
-	float tt3  = tt * 3;
-	float ttt  = tt * t;
-	float ttt2 = ttt * 2;
-
-	T p2 = constCast(p2_);
-	TrackHelpers::neighborhood(p1, p2);
-
-	return p1*(ttt2-tt3+1) + s1*(ttt-tt2+t) + p2*(-ttt2+tt3) + s2*(ttt-tt);
-}
-
-template<typename T, size_t N>
 void FastTrack<T, N>::updateIndexLookupTable() {
 /*
 	The updateIndexLookupTable function is intended to be called at load time.
@@ -319,6 +305,20 @@ int FastTrack<T, N>::getFrameIndex(const SampleRequest& sr) const {
 	return _sampled2FrameIndex[index];
 }
 
+template<typename T>
+T TrackUtil::hermite(float t, const T& p1, const T& s1, const T& p2_, const T& s2) {
+	float tt = t * t;
+	float tt2 = tt * 2;
+	float tt3 = tt * 3;
+	float ttt = tt * t;
+	float ttt2 = ttt * 2;
+
+	T p2 = constCast(p2_);
+	TrackHelpers::neighborhood(p1, p2);
+
+	return p1 * (ttt2 - tt3 + 1) + s1 * (ttt - tt2 + t) + p2 * (-ttt2 + tt3) + s2 * (ttt - tt);
+}
+
 #if 0
 // explicit instantiation why no need???
 // Declare the template specializations of the optimizeTrack function for all three types
@@ -333,7 +333,7 @@ FastTrack<T, N> TrackUtil::optimizeTrack(const Track<T, N>& src) {
 	FastTrack<T, N> res;
 
 	res.setType(src.type());
-	size_t frameCount = src.size();
+	size_t frameCount = src.getFrameCount();
 	res.resize(frameCount);
 	for (int i = 0; i < frameCount; ++i) {
 		res[i] = src[i];

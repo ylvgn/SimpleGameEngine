@@ -4,7 +4,7 @@
 namespace sge {
 
 template<typename VTRACK, typename QTRACK>
-Transform TTransformTrack<VTRACK, QTRACK>::sample(const Transform& t, const SampleRequest& sr) const {
+Transform TransformTrackT<VTRACK, QTRACK>::sample(const Transform& t, const SampleRequest& sr) const {
 	Transform res = t;
 
 	if (_position.isValid2()) {
@@ -20,15 +20,15 @@ Transform TTransformTrack<VTRACK, QTRACK>::sample(const Transform& t, const Samp
 	return res;
 }
 
-template TTransformTrack<VectorTrack, QuaternionTrack>;
-template TTransformTrack<FastVectorTrack, FastQuaternionTrack>;
+template TransformTrackT<VectorTrack, QuaternionTrack>;
+template TransformTrackT<FastVectorTrack, FastQuaternionTrack>;
 
-FastTransformTrack TransformTrackUtil::optimizeTransformTrack(const TransformTrack& src) {
-	FastTransformTrack res;
-	res.setId(src.id());
-	res.setPosition(TrackUtil::optimizeTrack(src.position()));
-	res.setRotation(TrackUtil::optimizeTrack(src.rotation()));
-	res.setScale(TrackUtil::optimizeTrack(src.scale()));
+UPtr<FastTransformTrack> TransformTrackUtil::optimizeTransformTrack(const TransformTrack& src) {
+	UPtr<FastTransformTrack> res(new FastTransformTrack());
+	res->setId(src.id());
+	res->setPosition(TrackUtil::optimizeTrack(src.position()));
+	res->setRotation(TrackUtil::optimizeTrack(src.rotation()));
+	res->setScale(TrackUtil::optimizeTrack(src.scale()));
 	return res;
 }
 

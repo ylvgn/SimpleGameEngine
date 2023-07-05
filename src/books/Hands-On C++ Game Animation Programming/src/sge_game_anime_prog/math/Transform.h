@@ -14,12 +14,12 @@ namespace sge {
 struct mat4;
 
 struct Transform {
-	vec3 position	{0,0,0};
-	quat rotation	{0,0,0,1};
-	vec3 scale		{1,1,1};
+	vec3 position {0,0,0};
+	quat rotation {0,0,0,1}; // do not set {0,0,0,0}!! but no reason ???
+	vec3 scale	  {1,1,1};
 
-	Transform() = default;
-	Transform(const vec3& p, const quat& r, const vec3& s) : position(p), rotation(r), scale(s) { }
+	inline Transform() = default;
+	inline Transform(const vec3& p, const quat& r, const vec3& s) : position(p), rotation(r), scale(s) { }
 
 	inline bool operator==(const Transform& r) const { return position == r.position && rotation == r.rotation && scale == r.scale; }
 	inline bool operator!=(const Transform& r) const { return !this->operator==(r); }
@@ -27,6 +27,7 @@ struct Transform {
 	// Instead of interpolation, this operation is typically called blend or mix.
 	// Being able to mix transformations together is important for creating smooth transitions between animations.
 	Transform mix(const Transform& r, float t) const;
+	Transform lerp(const Transform& r, float t) const { return mix(r, t); }
 
 	Transform inverse() const;
 

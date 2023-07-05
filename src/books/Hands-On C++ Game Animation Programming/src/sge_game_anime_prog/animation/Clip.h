@@ -18,9 +18,9 @@
 namespace sge {
 
 template<typename TRACK>
-class TClip {
+class ClipT {
 public:
-	inline TClip() :
+	inline ClipT() :
 		_name(""),
 		_startTime(0.f),
 		_endTime(0.f),
@@ -46,25 +46,27 @@ public:
 	inline StrView	name()			const  { return _name; }
 	inline void		setName(StrView name)  { _name = name; }
 
-	inline void setJointIdAtIndex(int i, u32 jointId) { _tracks[i].setId(jointId); }
-	inline u32 getJointIdAtIndex(int i) const { return _tracks[i].id(); }
+	inline void setJointIdAtIndex(int i, u32 jointId) { _tracks[i]->setId(jointId); }
+	inline u32 getJointIdAtIndex(int i) const { return _tracks[i]->id(); }
 
-	inline size_t size() const { return _tracks.size(); }
-	inline const Span<const TRACK> tracks() const { return _tracks; }
-	inline void appendTrack(const TRACK& t) { _tracks.push_back(t); }
+	inline size_t getTrackCount() const { return _tracks.size(); }
 
+	const Span<const UPtr<TRACK>> tracks() const { return _tracks; }
+	void reserve(size_t size) { _tracks.reserve(size); }
+	inline void appendTrack(UPtr<TRACK>&& t) { _tracks.emplace_back(std::move(t)); }
+	
 private:
 	float _adjustTimeToFitRange(float time) const;
 
-	Vector<TRACK>	_tracks;
-	String			_name;
-	float			_startTime;
-	float			_endTime;
-	bool			_isLoop;
+	Vector< UPtr<TRACK> > _tracks;
+	String			      _name;
+	float			      _startTime;
+	float			      _endTime;
+	bool			      _isLoop;
 };
 
-using Clip		= TClip<TransformTrack>;
-using FastClip	= TClip<FastTransformTrack>;
+using Clip		= ClipT<TransformTrack>;
+using FastClip	= ClipT<FastTransformTrack>;
 
 struct ClipUtil {
 	ClipUtil() = delete;

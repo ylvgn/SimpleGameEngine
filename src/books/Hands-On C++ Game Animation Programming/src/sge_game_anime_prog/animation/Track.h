@@ -18,20 +18,17 @@ struct Track_SampleRequest {
 };
 
 template<typename T, size_t N>
-class Track {
+struct Track {
 public:
 	using SampleRequest = Track_SampleRequest;
 	using Type = Interpolation;
 
 	constexpr static int kInvalidFrameIndex = -1;
 
-	static T s_hermite(float t, const T& p1, const T& s1, const T& p2, const T& s2);
-
-	Track() = default;
-
-	inline size_t size() const		{ return _frames.size(); }
 	void clear()					{ _frames.clear(); }
 	void resize(size_t frameCount)	{ _frames.resize(frameCount); }
+
+	inline size_t getFrameCount() const { return _frames.size(); }
 
 	inline float getStartTime()		const { SGE_ASSERT(isValid()); return _frames[0].time; };
 	inline float getEndTime()		const { SGE_ASSERT(isValid()); return _frames[_frames.size() - 1].time; };
@@ -74,7 +71,7 @@ using VectorTrack		= Track<vec3,  3>;
 using QuaternionTrack	= Track<quat,  4>;
 
 template<typename T, size_t N>
-class FastTrack : public Track<T, N> {
+struct FastTrack : public Track<T, N> {
 	using Base = Track<T, N>;
 	constexpr static int kFrameCountPerSecond = 60;
 public:
@@ -84,7 +81,7 @@ protected:
 	virtual int getFrameIndex(const SampleRequest& sr) const override;
 private:
 
-//	inline constexpr int kFrameCountPerSecond() const { return 60; }
+//	inline constexpr int kFrameCountPerSecond() const { return 60; } not good ???
 
 	inline constexpr int _getSampleCount() const {
 		float duration = getDuration();
@@ -101,6 +98,9 @@ using FastQuaternionTrack	= FastTrack<quat,  4>;
 
 struct TrackUtil {
 	TrackUtil() = delete;
+
+	template<typename T>
+	static T hermite(float t, const T& p1, const T& s1, const T& p2, const T& s2);
 
 	template<typename T, size_t N>
 	static Track<T, N> createTrack(Interpolation type, size_t frameCount, ...) {

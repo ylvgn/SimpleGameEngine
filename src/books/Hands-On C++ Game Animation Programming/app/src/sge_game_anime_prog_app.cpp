@@ -497,7 +497,7 @@ public:
 #if 1 // test optimize clip
 		_fastClips.resize(info.animationClips.size());
 		for (int i = 0; i < info.animationClips.size(); ++i) {
-			_fastClips[i] = ClipUtil::optimizeClip(info.animationClips[i]);
+			_fastClips[i] = std::move(ClipUtil::optimizeClip(info.animationClips[i]));
 		}
 #endif
 
@@ -846,7 +846,7 @@ private:
 	Vector<Mesh>			_gpuMeshes;
 	AnimationInstance		_gpuAnimInfo;
 
-	Vector<FastClip>		_fastClips;
+	Vector<FastClip>	    _fastClips;
 };
 
 class GameAnimeProgApp : public NativeUIApp {

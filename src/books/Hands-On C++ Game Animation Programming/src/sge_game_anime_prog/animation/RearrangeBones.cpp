@@ -164,7 +164,7 @@ void RearrangeBones::rearrangeClip(TClip<T>& out) {
 }
 #else
 void RearrangeBones::rearrangeClip(Clip& out) {
-	for (int i = 0; i < out.size(); ++i) {
+	for (int i = 0; i < out.getTrackCount(); ++i) {
 		int oldJointId = out.getJointIdAtIndex(i);
 		int newJointId = _rearrangeIdx(oldJointId);
 		out.setJointIdAtIndex(i, newJointId);
@@ -172,7 +172,7 @@ void RearrangeBones::rearrangeClip(Clip& out) {
 }
 
 void RearrangeBones::rearrangeClip(FastClip& out) {
-	for (int i = 0; i < out.size(); ++i) {
+	for (int i = 0; i < out.getTrackCount(); ++i) {
 		int oldJointId = out.getJointIdAtIndex(i);
 		int newJointId = _rearrangeIdx(oldJointId);
 		out.setJointIdAtIndex(i, newJointId);
