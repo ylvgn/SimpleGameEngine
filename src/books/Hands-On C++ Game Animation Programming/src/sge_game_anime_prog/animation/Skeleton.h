@@ -18,7 +18,7 @@ namespace sge {
 
 struct GLTFInfo;
 
-class Skeleton : public NonCopyable {
+class Skeleton : public RefCountBase {
 public:
 	const Pose& restPose() const { return _restPose; }
 	const Pose& bindPose() const { return _bindPose; }

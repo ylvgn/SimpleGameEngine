@@ -112,8 +112,8 @@ public:
 		_debugPoints		= eastl::make_unique<DebugDraw>();
 		_debugLines			= eastl::make_unique<DebugDraw>();
 
-		_testTexture		= eastl::make_unique<Texture>("Assets/Textures/uvChecker.png");
-		_testShader			= eastl::make_unique<Shader>("Assets/Shaders/static.vert", "Assets/Shaders/lit.frag");
+		_testTexture		= new Texture ("Assets/Textures/uvChecker.png");
+		_testShader			= new Shader ("Assets/Shaders/static.vert", "Assets/Shaders/lit.frag");
 		_vertexPositions	= eastl::make_unique< Attribute<vec3> >();
 		_vertexNormals		= eastl::make_unique< Attribute<vec3> >();
 		_vertexTexCoords	= eastl::make_unique< Attribute<vec2> >();
@@ -368,7 +368,6 @@ public:
 
 		{
 			// Safe to assume that _scalarTracks has a size of 10 (10 xy-coordinate figure)
-
 			SGE_ASSERT(_scalarTracks.size() == _scalarTracksIsLoop.size());
 
 			Track_SampleRequest sr;
@@ -405,8 +404,8 @@ public:
 				}
 
 				{ // key frame display
-					size_t numFrames = track.size();
-					for (int j = 0; j < numFrames; ++j) {
+					size_t frameCount = track.getFrameCount();
+					for (int j = 0; j < frameCount; ++j) {
 						const auto& keyFrame = track[j];
 						const float thisTime = keyFrame.time;
 						sr.time = thisTime;
@@ -420,7 +419,7 @@ public:
 
 						static const float tangentScale = 0.5f;
 
-						// incoming tangent
+						// in-coming tangent
 						if (j > 0) {
 							const float preTime = thisTime - 0.0005f; // sample the point near the handle point is approximate to tangent!
 							float prevX = o.x + (preTime * xRange);
@@ -433,8 +432,8 @@ public:
 							_handleLines->push_back(thisPoint + (prePoint-thisPoint).normalize() * tangentScale);
 						}
 
-						// outgoing tangent
-						if (j < numFrames - 1 && track.type() != Interpolation::Constant) {
+						// out-going tangent
+						if (j < frameCount - 1 && track.type() != Interpolation::Constant) {
 							const float postTime = thisTime + 0.0005f;
 							float postX = o.x + (postTime * xRange);
 
@@ -448,9 +447,7 @@ public:
 
 					}
 				}
-
 			}
-
 			_scalarTrackLines->uploadToGpu();
 			_handlePoints->uploadToGpu();
 			_handleLines->uploadToGpu();
@@ -489,7 +486,7 @@ public:
 #endif
 
 #if 0 // test skinning
-		_diffuseTexture	= eastl::make_unique<Texture>("Assets/Textures/Woman.png");
+		_diffuseTexture	= new Texture("Assets/Textures/Woman.png");
 
 		GLTFInfo info;
 		GLTFLoader::s_readFile(info, "Assets/Mesh/Woman.gltf");
@@ -500,13 +497,12 @@ public:
 			_fastClips[i] = std::move(ClipUtil::optimizeClip(info.animationClips[i]));
 		}
 #endif
-
 		_skeleton.create(info);
 		_clips = std::move(info.animationClips);
 		RearrangeBones::s_rearrange(_skeleton, info.meshes, _fastClips.span());
 
 		{ // test cpu skinning
-			_staticShader = eastl::make_unique<Shader>(
+			_staticShader = new Shader(
 				"Assets/Shaders/static.vert",
 				"Assets/Shaders/lit.frag"
 			);
@@ -516,7 +512,7 @@ public:
 
 		{ // test gpu skinning
 #if 1 // test pre-multiplied skin matrix
-			_skinnedShader = eastl::make_unique<Shader>(
+			_skinnedShader = new Shader(
 				"Assets/Shaders/preskinned.vert",
 				"Assets/Shaders/lit.frag"
 			);
@@ -547,7 +543,7 @@ public:
 #endif
 
 #if 1 // test animation blend
-		_diffuseTexture = eastl::make_unique<Texture>("Assets/Textures/Woman.png");
+		_diffuseTexture = new Texture ("Assets/Textures/Woman.png");
 
 		GLTFInfo info;
 		GLTFLoader::s_readFile(info, "Assets/Mesh/Woman.gltf");
@@ -556,7 +552,7 @@ public:
 		_clips = std::move(info.animationClips);
 		_gpuMeshes = std::move(info.meshes);
 		
-		_skinnedShader = eastl::make_unique<Shader>(
+		_skinnedShader = new Shader (
 			"Assets/Shaders/skinned.vert",
 			"Assets/Shaders/lit.frag"
 		);
@@ -589,6 +585,7 @@ public:
 			++i;
 		}
 #endif
+
 	}
 
 	virtual void onCloseButton() override {
@@ -898,6 +895,7 @@ public:
 		}
 		_skinnedShader->unbind();
 #endif
+
 		SwapBuffers(dc);
 		if (_vsynch != 0) {
 			glFinish();
@@ -911,8 +909,8 @@ private:
 
 	float _testRotation = 0.0f;
 
-	UPtr<Shader>  _testShader;
-	UPtr<Texture> _testTexture;
+	SPtr<Shader>  _testShader;
+	SPtr<Texture> _testTexture;
 
 	UPtr< Attribute<vec3> >	_vertexPositions;
 	UPtr< Attribute<vec3> >	_vertexNormals;
@@ -940,22 +938,22 @@ private:
 	UPtr<DebugDraw>			_bindPoseVisual;
 	UPtr<DebugDraw>			_currentPoseVisual;
 
-	UPtr<Texture>			_diffuseTexture;
+	SPtr<Texture>			_diffuseTexture;
 
-	UPtr<Shader>			_staticShader;
+	SPtr<Shader>			_staticShader;
 	Vector<Mesh>			_cpuMeshes;
 	AnimationInstance		_cpuAnimInfo;
 
-	UPtr<Shader>			_skinnedShader;
+	SPtr<Shader>			_skinnedShader;
 	Vector<Mesh>			_gpuMeshes;
 	AnimationInstance		_gpuAnimInfo;
 
 	Vector<FastClip>	    _fastClips;
 
-	AnimationInstance _blendAnimA;
-	AnimationInstance _blendAnimB;
-	float _elapsedBlendTime;
-	bool  _isInvertBlend;
+	AnimationInstance		_blendAnimA;
+	AnimationInstance		_blendAnimB;
+	float					_elapsedBlendTime;
+	bool					_isInvertBlend;
 };
 
 class GameAnimeProgApp : public NativeUIApp {
