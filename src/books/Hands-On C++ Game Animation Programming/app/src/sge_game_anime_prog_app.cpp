@@ -488,7 +488,7 @@ public:
 		}
 #endif
 
-#if 1 // test skinning
+#if 0 // test skinning
 		_diffuseTexture	= eastl::make_unique<Texture>("Assets/Textures/Woman.png");
 
 		GLTFInfo info;
@@ -545,6 +545,50 @@ public:
 			}
 		}
 #endif
+
+#if 1 // test animation blend
+		_diffuseTexture = eastl::make_unique<Texture>("Assets/Textures/Woman.png");
+
+		GLTFInfo info;
+		GLTFLoader::s_readFile(info, "Assets/Mesh/Woman.gltf");
+
+		_skeleton.create(info);
+		_clips = std::move(info.animationClips);
+		_gpuMeshes = std::move(info.meshes);
+		
+		_skinnedShader = eastl::make_unique<Shader>(
+			"Assets/Shaders/skinned.vert",
+			"Assets/Shaders/lit.frag"
+		);
+
+		_gpuAnimInfo.model.position = vec3::s_zero();
+		_gpuAnimInfo.playback = 0.f;
+		_gpuAnimInfo.animatedPose = _skeleton.restPose();
+		_gpuAnimInfo.animatedPose.getMatrixPalette(_gpuAnimInfo.posePalette);
+
+		_blendAnimA.animatedPose = _skeleton.restPose();
+		_blendAnimA.playback = 0.f;
+
+		_blendAnimB.animatedPose = _skeleton.restPose();
+		_blendAnimB.playback = 0.f;
+
+		_elapsedBlendTime = 0.f;
+		_isInvertBlend = false;
+
+		int i = 0;
+		for (auto& clip : _clips) {
+			StrView clipName = clip.name();
+			if (clipName == "Walking") {
+				_blendAnimA.clip = i;
+				_blendAnimA.playback = clip.getStartTime();
+			}
+			if (clipName == "Running") {
+				_blendAnimB.clip = i;
+				_blendAnimB.playback = clip.getStartTime();
+			}
+			++i;
+		}
+#endif
 	}
 
 	virtual void onCloseButton() override {
@@ -591,7 +635,7 @@ public:
 		_currentPoseVisual->fromPose(_currentPose);
 #endif
 
-#if 1 // test skinning
+#if 0 // test skinning
 		{ // test cpu skinning
 			#if 1 // test optimize clip
 				auto& clip = _fastClips[_cpuAnimInfo.clip];
@@ -629,6 +673,32 @@ public:
 				_gpuAnimInfo.posePalette[i] = _gpuAnimInfo.posePalette[i] * invBindPose[i];
 			}
 		#endif
+		}
+#endif
+
+#if 1 // test animation blend
+		{
+			auto& clip = _clips[_blendAnimA.clip];
+			_blendAnimA.playback = clip.sample(_blendAnimA.animatedPose, _blendAnimA.playback + dt);
+		}
+		{
+			auto& clip = _clips[_blendAnimB.clip];
+			_blendAnimB.playback = clip.sample(_blendAnimB.animatedPose, _blendAnimB.playback + dt);
+		}
+
+		float bt = Math::clamp01(_elapsedBlendTime);
+		if (_isInvertBlend) {
+			bt = 1.0f - bt;
+		}
+
+		Blending::blend(_gpuAnimInfo.animatedPose, _blendAnimA.animatedPose, _blendAnimB.animatedPose, bt, -1);
+		_gpuAnimInfo.animatedPose.getMatrixPalette(_gpuAnimInfo.posePalette);
+
+		_elapsedBlendTime += dt;
+		if (_elapsedBlendTime >= 3.0f) { // each 3s switch animation between _blendAnimA and _blendAnimB
+			_elapsedBlendTime = 0.f;
+			_isInvertBlend = !_isInvertBlend;
+			_gpuAnimInfo.animatedPose = _skeleton.restPose();
 		}
 #endif
 	}
@@ -727,7 +797,7 @@ public:
 		_currentPoseVisual->draw(DebugDrawMode::Lines, mvp, k_blue);
 #endif
 
-#if 1 // test skinning
+#if 0 // test skinning
 		mat4 projection = mat4::s_perspective(60.0f, aspect, 0.01f, 10.f);
 		mat4 view = mat4::s_lookAt(vec3(0,5,7), vec3(0,3,0), vec3::s_up());
 
@@ -794,6 +864,40 @@ public:
 			_skinnedShader->unbind();
 		}
 #endif
+
+#if 1 // test animation blend
+		mat4 projection = mat4::s_perspective(60.0f, aspect, 0.01f, 10.f);
+		mat4 view = mat4::s_lookAt(vec3(0, 3, 5), vec3(0, 3, 0), vec3::s_up());
+		mat4 model = mat4::s_transform(_gpuAnimInfo.model);
+
+		// bind uniform
+		_skinnedShader->bind();
+		{
+			{ // bind uniforms
+				Uniform<mat4>::set(_skinnedShader->findUniformByName("model"), model);
+				Uniform<mat4>::set(_skinnedShader->findUniformByName("view"), view);
+				Uniform<mat4>::set(_skinnedShader->findUniformByName("projection"), projection);
+				Uniform<mat4>::set(_skinnedShader->findUniformByName("invBindPose"), _skeleton.invBindPose());
+				Uniform<mat4>::set(_skinnedShader->findUniformByName("pose"), _gpuAnimInfo.posePalette);
+				Uniform<vec3>::set(_skinnedShader->findUniformByName("light"), vec3::s_one());
+				_diffuseTexture->set(_skinnedShader->findUniformByName("tex0"), 0);
+			}
+
+			u32 pos		= _skinnedShader->findAttributeByName("position");
+			u32 normal	= _skinnedShader->findAttributeByName("normal");
+			u32 uv		= _skinnedShader->findAttributeByName("texCoord");
+			u32 weights = _skinnedShader->findAttributeByName("weights");
+			u32 joints	= _skinnedShader->findAttributeByName("joints");
+			for (int i = 0; i < _gpuMeshes.size(); ++i) {
+				auto& mesh = _gpuMeshes[i];
+				mesh.bind(pos, normal, uv, weights, joints);
+				mesh.draw();
+				mesh.unbind(pos, normal, uv, weights, joints);
+			}
+			_diffuseTexture->unset(0);
+		}
+		_skinnedShader->unbind();
+#endif
 		SwapBuffers(dc);
 		if (_vsynch != 0) {
 			glFinish();
@@ -847,6 +951,11 @@ private:
 	AnimationInstance		_gpuAnimInfo;
 
 	Vector<FastClip>	    _fastClips;
+
+	AnimationInstance _blendAnimA;
+	AnimationInstance _blendAnimB;
+	float _elapsedBlendTime;
+	bool  _isInvertBlend;
 };
 
 class GameAnimeProgApp : public NativeUIApp {

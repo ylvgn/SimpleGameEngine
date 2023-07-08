@@ -22,6 +22,8 @@
 #include <sge_game_anime_prog/animation/Skeleton.h>
 #include <sge_game_anime_prog/animation/RearrangeBones.h>
 
+#include <sge_game_anime_prog/animation/blending/Blending.h>
+
 #include <sge_game_anime_prog/rendering/Mesh.h>
 
 #include <sge_game_anime_prog/gltf/GLTFLoader.h>
