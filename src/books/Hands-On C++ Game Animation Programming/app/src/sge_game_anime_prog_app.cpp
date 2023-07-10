@@ -701,8 +701,6 @@ public:
 	}
 
 	void render() {
-		HDC dc = hdc();
-
 		// set viewport
 		float clientWidth  = _clientRect.size.x;
 		float clientHeight = _clientRect.size.y;
@@ -896,7 +894,7 @@ public:
 		_skinnedShader->unbind();
 #endif
 
-		SwapBuffers(dc);
+		SwapBuffers(hdc());
 		if (_vsynch != 0) {
 			glFinish();
 		}
@@ -982,20 +980,12 @@ protected:
 	}
 
 	virtual void onUpdate(float dt) override {
-		Base::onUpdate(dt);
-		_deltaTime += dt;
-		if (_deltaTime < kFPS) {
-			return;
-		}
-		_mainWin.update(Math::min(kFPS, _deltaTime));
+		_mainWin.update(_deltaTime);
 		_mainWin.render();
-		_deltaTime -= kFPS;
 	}
 
 private:
 	MainWin _mainWin;
-	float _deltaTime = 0.f;
-	const float kFPS = 1 / 60.0f;
 };
 
 } // namespace
