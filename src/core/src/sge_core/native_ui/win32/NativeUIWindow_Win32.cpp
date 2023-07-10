@@ -86,6 +86,7 @@ void NativeUIWindow_Win32::onCreate(CreateDesc& desc) {
 		throw SGE_ERROR("cannot create native window");
 	}
 
+	_hdc = GetDC(_hwnd);
 	ShowWindow(_hwnd, SW_SHOW);
 }
 

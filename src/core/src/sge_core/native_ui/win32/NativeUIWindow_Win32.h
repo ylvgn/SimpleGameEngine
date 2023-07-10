@@ -16,11 +16,12 @@ public:
 	virtual void onSetCursor(UIMouseCursorType type) override;
 	virtual void onDrawNeeded() override;
 
-	const HWND hwnd() const { return _hwnd; }
-	const HDC hdc() const { return GetDC(_hwnd); }
+	const HWND	hwnd()	const	{ return _hwnd; }
+	const HDC	hdc()	const	{ return _hdc;  }
 
 protected:
 	HWND _hwnd = nullptr;
+	HDC  _hdc  = nullptr;
 
 private:
 	static LRESULT WINAPI s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
