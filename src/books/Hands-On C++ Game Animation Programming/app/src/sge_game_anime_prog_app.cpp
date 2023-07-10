@@ -164,7 +164,6 @@ public:
 #endif
 
 #if 0 // test bezier curve or hermite spline
-
 		_debugPoints = eastl::make_unique<DebugDraw>();
 		_debugLines  = eastl::make_unique<DebugDraw>();
 		{ // test bezier curve
@@ -459,20 +458,17 @@ public:
 		_bindPoseVisual		= eastl::make_unique<DebugDraw>();
 		_currentPoseVisual	= eastl::make_unique<DebugDraw>();
 
-		GLTFInfo info;
-		GLTFLoader::s_readFile(info, "Assets/Mesh/Woman.gltf");
-		_skeleton.create(info);
-		_clips = std::move(info.animationClips);
-
-		_restPoseVisual->fromPose(info.restPose());
+		_loadExampleAsset();
+		
+		_restPoseVisual->fromPose(_skeleton.restPose());
 		_restPoseVisual->uploadToGpu();
 
-		_bindPoseVisual->fromPose(info.bindPose());
+		_bindPoseVisual->fromPose(_skeleton.bindPose());
 		_bindPoseVisual->uploadToGpu();
 
 		_currentClip = 0;
 		_playbackTime = 0.f;
-		_currentPose = info.restPose();
+		_currentPose = _skeleton.restPose();
 		_currentPoseVisual->fromPose(_currentPose);
 		_currentPoseVisual->uploadToGpu();
 
@@ -487,7 +483,6 @@ public:
 
 #if 0 // test skinning
 		_diffuseTexture	= new Texture("Assets/Textures/Woman.png");
-
 		GLTFInfo info;
 		GLTFLoader::s_readFile(info, "Assets/Mesh/Woman.gltf");
 
@@ -517,10 +512,7 @@ public:
 				"Assets/Shaders/lit.frag"
 			);
 #else
-			_skinnedShader = eastl::make_unique<Shader>(
-				"Assets/Shaders/skinned.vert",
-				"Assets/Shaders/lit.frag"
-			);
+			_createExampleShader();
 #endif
 			_gpuMeshes.appendRange(info.meshes); // trigger Mesh::operator= and will uploadToGpu
 			_gpuAnimInfo.animatedPose = _skeleton.restPose();
@@ -542,25 +534,10 @@ public:
 		}
 #endif
 
-#if 1 // test animation blend
-		_diffuseTexture = new Texture ("Assets/Textures/Woman.png");
-
-		GLTFInfo info;
-		GLTFLoader::s_readFile(info, "Assets/Mesh/Woman.gltf");
-
-		_skeleton.create(info);
-		_clips = std::move(info.animationClips);
-		_gpuMeshes = std::move(info.meshes);
-		
-		_skinnedShader = new Shader (
-			"Assets/Shaders/skinned.vert",
-			"Assets/Shaders/lit.frag"
-		);
-
-		_gpuAnimInfo.model.position = vec3::s_zero();
-		_gpuAnimInfo.playback = 0.f;
-		_gpuAnimInfo.animatedPose = _skeleton.restPose();
-		_gpuAnimInfo.animatedPose.getMatrixPalette(_gpuAnimInfo.posePalette);
+#if 0 // test animation blend
+		_loadExampleAsset();
+		_createExampleShader();
+		_defaultSetAnimInfo();
 
 		_blendAnimA.animatedPose = _skeleton.restPose();
 		_blendAnimA.playback = 0.f;
@@ -586,6 +563,17 @@ public:
 		}
 #endif
 
+#if 1 // test crossfading animtion
+		_loadExampleAsset();
+		_createExampleShader();
+		_defaultSetAnimInfo();
+
+		CrossFadeController* fadeController = new CrossFadeController();
+		fadeController->setSkeleton(&_skeleton);
+		fadeController->play(&_clips[0]);
+
+		_fadeTimer = 2.0f;
+#endif
 	}
 
 	virtual void onCloseButton() override {
@@ -673,7 +661,7 @@ public:
 		}
 #endif
 
-#if 1 // test animation blend
+#if 0 // test animation blend
 		{
 			auto& clip = _clips[_blendAnimA.clip];
 			_blendAnimA.playback = clip.sample(_blendAnimA.animatedPose, _blendAnimA.playback + dt);
@@ -698,23 +686,33 @@ public:
 			_gpuAnimInfo.animatedPose = _skeleton.restPose();
 		}
 #endif
+
+#if 1 // test crossfading animtion
+		CrossFadeController* fadeController = CrossFadeController::instance();
+		fadeController->update(dt);
+
+		_fadeTimer -= dt;
+		if (_fadeTimer < 0.0f) {
+			_fadeTimer = 2.0f;
+
+			int clip = _gpuAnimInfo.clip;
+			while (clip == _gpuAnimInfo.clip) {
+				clip = rand() % _clips.size();
+			}
+			SGE_LOG("{} -> {}", _clips[_gpuAnimInfo.clip].name(), _clips[clip].name());
+			_gpuAnimInfo.clip = clip;
+
+			fadeController->fadeTo(&_clips[clip], 0.5f);
+		}
+
+		fadeController->curPose().getMatrixPalette(_gpuAnimInfo.posePalette);
+#endif
 	}
 
 	void render() {
-		// set viewport
-		float clientWidth  = _clientRect.size.x;
-		float clientHeight = _clientRect.size.y;
-		glViewport(0, 0, static_cast<GLsizei>(clientWidth), static_cast<GLsizei>(clientHeight));
+		_setViewport();
 
-		glEnable(GL_DEPTH_TEST);
-		glEnable(GL_CULL_FACE);
-		glPointSize(5.0f);
-
-		glBindVertexArray(_vertexArrayObject);
-		glClearColor(0.5f, 0.6f, 0.7f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-		float aspect = clientWidth / clientHeight;
+		float aspect = _clientRect.size.x / _clientRect.size.y;
 		(void)aspect;
 
 #if 0 // test lit texture
@@ -860,7 +858,7 @@ public:
 		}
 #endif
 
-#if 1 // test animation blend
+#if 1 // test animation blend || test crossfading animtion
 		mat4 projection = mat4::s_perspective(60.0f, aspect, 0.01f, 10.f);
 		mat4 view = mat4::s_lookAt(vec3(0, 3, 5), vec3(0, 3, 0), vec3::s_up());
 		mat4 model = mat4::s_transform(_gpuAnimInfo.model);
@@ -894,13 +892,70 @@ public:
 		_skinnedShader->unbind();
 #endif
 
-		SwapBuffers(hdc());
-		if (_vsynch != 0) {
-			glFinish();
-		}
+		_swapbuffers();
 	}
 
 private:
+
+	void _setViewport() {
+		float clientWidth = _clientRect.size.x;
+		float clientHeight = _clientRect.size.y;
+		glViewport(0, 0, static_cast<GLsizei>(clientWidth), static_cast<GLsizei>(clientHeight));
+
+		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_CULL_FACE);
+		glPointSize(5.0f);
+
+		glBindVertexArray(_vertexArrayObject);
+		glClearColor(0.5f, 0.6f, 0.7f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	}
+
+	void _swapbuffers() {
+		SwapBuffers(hdc());
+		if (_vsynch != 0) glFinish();
+	}
+
+	void _loadExampleAsset() {
+		GLTFInfo info;
+		GLTFLoader::s_readFile(info, "Assets/Mesh/Woman.gltf");
+
+		_skeleton.create(info);
+		_clips.reserve(info.animationClips.size());
+		_clips = std::move(info.animationClips);
+
+		_cpuMeshes.reserve(info.meshes.size());
+		_cpuMeshes.appendRange(info.meshes);
+
+		_gpuMeshes.reserve(info.meshes.size());
+		_gpuMeshes.appendRange(info.meshes);
+
+		_diffuseTexture = new Texture("Assets/Textures/Woman.png");
+	}
+
+	void _createExampleShader() {
+		_staticShader = new Shader (
+			"Assets/Shaders/static.vert",
+			"Assets/Shaders/lit.frag"
+		);
+
+		_skinnedShader = new Shader (
+			"Assets/Shaders/skinned.vert",
+			"Assets/Shaders/lit.frag"
+		);
+	}
+
+	void _defaultSetAnimInfo() {
+		_cpuAnimInfo.animatedPose = _skeleton.restPose();
+
+		_gpuAnimInfo.playback = 0.f;
+		_gpuAnimInfo.animatedPose = _skeleton.restPose();
+		_gpuAnimInfo.animatedPose.getMatrixPalette(_gpuAnimInfo.posePalette);
+
+		_cpuAnimInfo.model.position = vec3(-2,0,0);
+		_gpuAnimInfo.model.position = vec3( 2,0,0);
+	}
+
 	int _vsynch = 0;
 
 	GLuint _vertexArrayObject = 0;
@@ -952,6 +1007,8 @@ private:
 	AnimationInstance		_blendAnimB;
 	float					_elapsedBlendTime;
 	bool					_isInvertBlend;
+
+	float					_fadeTimer;
 };
 
 class GameAnimeProgApp : public NativeUIApp {
