@@ -15,11 +15,11 @@ namespace EditorUI {
 		float v_speed = 0.1f,
 		int v_min = std::numeric_limits<int>::lowest(),
 		int v_max = std::numeric_limits<int>::max(),
-		ImGuiSliderFlags flags = 0)
+		ImGuiSliderFlags flags = ImGuiSliderFlags_None)
 	{
-		return ImGui::DragInt(label, v, v_speed, v_min, v_max,
-			showMixedValue ? mixedValueFormat : floatFormat,
-			flags);
+		return ImGui::DragInt(	label, v, v_speed, v_min, v_max,
+								showMixedValue ? mixedValueFormat : floatFormat,
+								flags);
 	}
 
 	inline bool DragFloat(
@@ -28,11 +28,11 @@ namespace EditorUI {
 		float v_speed = 0.1f,
 		float v_min = std::numeric_limits<float>::lowest(),
 		float v_max = std::numeric_limits<float>::max(),
-		float v_power = 1.0f)
+		ImGuiSliderFlags flags = ImGuiSliderFlags_None)
 	{
-		return ImGui::DragFloat(label, v, v_speed, v_min, v_max,
-			showMixedValue ? mixedValueFormat : floatFormat,
-			v_power);
+		return ImGui::DragFloat(	label, v, v_speed, v_min, v_max,
+									showMixedValue ? mixedValueFormat : floatFormat,
+									flags);
 	}
 
 	inline bool DragFloat2(
@@ -41,11 +41,11 @@ namespace EditorUI {
 		float v_speed = 0.1f,
 		float v_min = std::numeric_limits<float>::lowest(),
 		float v_max = std::numeric_limits<float>::max(),
-		float v_power = 1.0f)
+		ImGuiSliderFlags flags = ImGuiSliderFlags_None)
 	{
-		return ImGui::DragFloat2(label, v, v_speed, v_min, v_max,
-			showMixedValue ? mixedValueFormat : floatFormat,
-			v_power);
+		return ImGui::DragFloat2(	label, v, v_speed, v_min, v_max,
+									showMixedValue ? mixedValueFormat : floatFormat,
+									flags);
 	}
 
 	inline bool DragFloat3(
@@ -54,11 +54,11 @@ namespace EditorUI {
 		float v_speed = 0.1f,
 		float v_min = std::numeric_limits<float>::lowest(),
 		float v_max = std::numeric_limits<float>::max(),
-		float v_power = 1.0f)
+		ImGuiSliderFlags flags = ImGuiSliderFlags_None)
 	{
-		return ImGui::DragFloat3(label, v, v_speed, v_min, v_max,
-			showMixedValue ? mixedValueFormat : floatFormat,
-			v_power);
+		return ImGui::DragFloat3(	label, v, v_speed, v_min, v_max,
+									showMixedValue ? mixedValueFormat : floatFormat,
+									flags);
 	}
 
 	inline bool DragFloat4(
@@ -67,11 +67,11 @@ namespace EditorUI {
 		float v_speed = 0.1f,
 		float v_min = std::numeric_limits<float>::lowest(),
 		float v_max = std::numeric_limits<float>::max(),
-		float v_power = 1.0f)
+		ImGuiSliderFlags flags = ImGuiSliderFlags_None)
 	{
 		return ImGui::DragFloat4(label, v, v_speed, v_min, v_max,
 			showMixedValue ? mixedValueFormat : floatFormat,
-			v_power);
+			flags);
 	}
 
 	inline float InputFloat(const char* label, float* v) {

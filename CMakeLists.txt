@@ -35,6 +35,7 @@ function(sge_set_target_warning_level target_name)
 	  target_compile_options(${target_name} PRIVATE /wd4100) #warning C4100: unreferenced formal parameter in function
 	  target_compile_options(${target_name} PRIVATE /wd4201) #warning C4201: nonstandard extension used: nameless struct/union
 	  target_compile_options(${target_name} PRIVATE /wd4127) #warning C4127: conditional expression is constant
+	  target_compile_options(${target_name} PRIVATE /wd4275) #warning C4275: non dll-interface class 'std::runtime_error' used as base for dll-interface class 'fmt::v10::format_error'
 	else()
 	  target_compile_options(${target_name} PRIVATE -Wall -Wextra -Wpedantic -Werror)
 	endif()
@@ -95,3 +96,8 @@ set_property (DIRECTORY PROPERTY VS_STARTUP_PROJECT sge_editor_app)
 add_subdirectory(src/books/Hands-On\ C++\ Game\ Animation\ Programming)
 add_subdirectory(src/books/Hands-On\ C++\ Game\ Animation\ Programming/app)
 add_subdirectory(src/books/Hands-On\ C++\ Game\ Animation\ Programming/test)
+
+#-- Programming Windows 5th - Charles Petzold
+add_subdirectory(src/books/Programming\ Windows\ 5th\ -\ Charles\ Petzold)
+add_subdirectory(src/books/Programming\ Windows\ 5th\ -\ Charles\ Petzold/app)
+#add_subdirectory(src/books/Programming\ Windows\ 5th\ -\ Charles\ Petzold/test)
