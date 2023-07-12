@@ -14,8 +14,8 @@ public:
 	void bind();   // call it before a shader is used
 	void unbind(); // call it after a shader no longer in use
 
-	u32 findAttributeByName(StrView name);
-	u32 findUniformByName(StrView name);
+	u32 findAttributeByName(StrView name) const;
+	u32 findUniformByName(StrView name) const;
 
 	u32 handle() const { return _handle; }
 
@@ -44,7 +44,7 @@ private:
 	StringMap<u32> _uniforms;
 };
 
-inline u32 Shader::findAttributeByName(StrView name) {
+inline u32 Shader::findAttributeByName(StrView name) const {
 	auto it = _attributes.find(TempString(name).c_str());
 	if (it == _attributes.end()) {
 		SGE_LOG("Retrieving bad attribute index: {}\n", name);
@@ -53,7 +53,7 @@ inline u32 Shader::findAttributeByName(StrView name) {
 	return it->second;
 }
 
-inline u32 Shader::findUniformByName(StrView name) {
+inline u32 Shader::findUniformByName(StrView name) const {
 	auto it = _uniforms.find(TempString(name).c_str());
 	if (it == _uniforms.end()) {
 		SGE_LOG("Retrieving bad uniform index: {}\n", name);

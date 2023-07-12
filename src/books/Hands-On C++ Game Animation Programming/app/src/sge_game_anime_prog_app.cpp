@@ -15,6 +15,33 @@ typedef const char* (WINAPI* PFNWGLGETEXTENSIONSSTRINGEXTPROC) (void);
 typedef BOOL(WINAPI* PFNWGLSWAPINTERVALEXTPROC) (int);
 typedef int (WINAPI* PFNWGLGETSWAPINTERVALEXTPROC) (void);
 
+struct AnimationAttribLocation {
+
+	AnimationAttribLocation() = default;
+
+	void setBySkinnedShader(const Shader* shader) {
+		pos		= shader->findAttributeByName("position");
+		normal	= shader->findAttributeByName("normal");
+		uv		= shader->findAttributeByName("texCoord");
+		weights = shader->findAttributeByName("weights");
+		joints	= shader->findAttributeByName("joints");
+	}
+
+	void setByStaticShader(const Shader* shader) {
+		pos		= shader->findAttributeByName("position");
+		normal	= shader->findAttributeByName("normal");
+		uv		= shader->findAttributeByName("texCoord");
+		weights = -1;
+		joints  = -1;
+	}
+
+	int pos;
+	int normal;
+	int uv;
+	int weights;
+	int joints;
+};
+
 struct AnimationInstance {
 	Pose animatedPose;
 	Transform model;
@@ -29,12 +56,22 @@ struct AnimationInstance {
 
 class MainWin : public NativeUIWindow {
 	using Base = NativeUIWindow;
+public:
+	void update(float dt) { onUpdate(dt); };
+
+	void render() {
+		beginRender();
+		onRender();
+		endRender();
+	}
+
+protected:
 	const Color4f k_red		{1,0,0,1};
 	const Color4f k_green	{0,1,0,1};
 	const Color4f k_blue	{0,0,1,1};
 	const Color4f k_yellow	{1,1,0,1};
 	const Color4f k_purple	{1,0,1,1};
-public:
+
 	virtual void onCreate(CreateDesc& desc) override {
 		Base::onCreate(desc);
 
@@ -107,17 +144,116 @@ public:
 			glGenVertexArrays(1, &_vertexArrayObject);
 			glBindVertexArray(_vertexArrayObject);
 		}
+	}
+	virtual void onUpdate(float dt) {}
+	virtual void onRender() {}
 
-#if 0 // test lit texture
-		_debugPoints		= eastl::make_unique<DebugDraw>();
-		_debugLines			= eastl::make_unique<DebugDraw>();
+	virtual void onCloseButton() override {
+		if (_vertexArrayObject != 0) {
+			HDC dc = hdc();
+			HGLRC hglrc = wglGetCurrentContext();
 
-		_testTexture		= new Texture ("Assets/Textures/uvChecker.png");
-		_testShader			= new Shader ("Assets/Shaders/static.vert", "Assets/Shaders/lit.frag");
-		_vertexPositions	= eastl::make_unique< Attribute<vec3> >();
-		_vertexNormals		= eastl::make_unique< Attribute<vec3> >();
-		_vertexTexCoords	= eastl::make_unique< Attribute<vec2> >();
-		_indexBuffer		= eastl::make_unique<IndexBuffer>();
+			// delete VAO
+			glBindVertexArray(0);
+			glDeleteVertexArrays(1, &_vertexArrayObject);
+			_vertexArrayObject = 0;
+
+			// delete render context
+			wglMakeCurrent(NULL, NULL);
+			wglDeleteContext(hglrc);
+			ReleaseDC(_hwnd, dc);
+		}
+
+		NativeUIApp::current()->quit(0);
+	}
+
+	virtual void beginRender() {
+		float clientWidth = _clientRect.size.x;
+		float clientHeight = _clientRect.size.y;
+		glViewport(0, 0, static_cast<GLsizei>(clientWidth), static_cast<GLsizei>(clientHeight));
+
+		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_CULL_FACE);
+		glPointSize(5.0f);
+
+		glBindVertexArray(_vertexArrayObject);
+		glClearColor(0.5f, 0.6f, 0.7f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+		_aspect = _clientRect.size.x / _clientRect.size.y;
+	}
+
+	virtual void endRender() {
+		SwapBuffers(hdc());
+		if (_vsynch != 0) {
+			glFinish();
+		}
+	}
+
+protected:
+
+	int		_vsynch = 0;
+	GLuint	_vertexArrayObject = 0;
+	float	_aspect = 0;
+};
+
+#define MyCaseType_ENUM_LIST(E) \
+	E(LitTexture,) \
+	E(AnimationScalarTrack,) \
+	E(AnimationClip,) \
+	E(MeshSkinning,) \
+	E(AnimationBlending,) \
+	E(AnimationCrossfading,) \
+//----
+SGE_ENUM_CLASS(MyCaseType, u8)
+
+class MyExampleMainWin : public MainWin {
+	using Base = MainWin;
+
+	MyCaseType _caseType = MyCaseType::AnimationCrossfading;
+
+#define MY_CASE(E, SGE_FN, ...) \
+	case MyCaseType::E: { \
+		test_ ## E ## _ ## SGE_FN(__VA_ARGS__); \
+	} break; \
+// ----------
+#define WINMAIN_onCreate(E, ...) MY_CASE(E, onCreate)
+#define WINMAIN_onUpdate(E, ...) MY_CASE(E, onUpdate, dt)
+#define WINMAIN_onRender(E, ...) MY_CASE(E, onRender)
+
+#define RUN_CASE(SGE_FN, ...) \
+	switch (_caseType) { \
+		MyCaseType##_ENUM_LIST(WINMAIN_##SGE_FN) \
+	default: \
+		throw SGE_ERROR("unhandled test case"); \
+	} \
+// ----------
+
+protected:
+	virtual void onCreate(CreateDesc& desc) override {
+		Base::onCreate(desc);
+		RUN_CASE(onCreate)
+	}
+
+	virtual void onUpdate(float dt) override {
+		RUN_CASE(onUpdate)
+	}
+
+	virtual void onRender() override {
+		RUN_CASE(onRender)
+	}
+
+private:
+	void test_LitTexture_onCreate() {
+		_debugPoints = eastl::make_unique<DebugDraw>();
+		_debugLines = eastl::make_unique<DebugDraw>();
+
+		_testTexture = new Texture("Assets/Textures/uvChecker.png");
+		_testShader = new Shader("Assets/Shaders/static.vert", "Assets/Shaders/lit.frag");
+		_vertexPositions = eastl::make_unique< Attribute<vec3> >();
+		_vertexNormals = eastl::make_unique< Attribute<vec3> >();
+		_vertexTexCoords = eastl::make_unique< Attribute<vec2> >();
+		_indexBuffer = eastl::make_unique<IndexBuffer>();
 
 		Vector<vec3> positions{
 			vec3(-1, -1, 0),
@@ -161,70 +297,12 @@ public:
 			vec2(1,1),
 		};
 		_vertexTexCoords->uploadToGpu(uvs);
-#endif
-
-#if 0 // test bezier curve or hermite spline
-		_debugPoints = eastl::make_unique<DebugDraw>();
-		_debugLines  = eastl::make_unique<DebugDraw>();
-		{ // test bezier curve
-			CubicCurveExample::Bezier curve(
-				vec3(-5, 0, 0), // p1
-				vec3(-2, 1, 0), // c1
-				vec3(2, 1, 0),  // c2
-				vec3(5, 0, 0)   // p2
-			);
-
-			_debugPoints->push_back(curve.p1());
-			_debugPoints->push_back(curve.c1());
-			_debugPoints->push_back(curve.c2());
-			_debugPoints->push_back(curve.p2());
-
-			for (int i = 0; i < 199; i++) {
-				float t1 = static_cast<float>(i) / 199.f;
-				float t2 = static_cast<float>(i+1) / 199.f;
-
-				_debugLines->push_back(curve.lerp(t1));
-				_debugLines->push_back(curve.lerp(t2));
-
-				curve.factor(t1, _debugPoints);
-			}
-
-			curve.factor(1, _debugPoints);
-		}
-
-		{ // test hermite spline
-			CubicCurveExample::Hermite curve(
-				vec3(-5, 0, 0), // p1
-				vec3(5, 0, 0),  // p1
-				0.2f,  // tan1
-				-3.f   // tan2
-			);
-
-			_debugPoints->push_back(curve.p1());
-			_debugPoints->push_back(curve.p2());
-
-			for (int i = 0; i < 199; i++) {
-				float t1 = static_cast<float>(i) / 199.f;
-				float t2 = static_cast<float>(i + 1) / 199.f;
-
-				_debugLines->push_back(curve.lerp(t1));
-				_debugLines->push_back(curve.lerp(t2));
-
-				curve.factor(t1, _debugPoints);
-			}
-
-			curve.factor(1, _debugPoints);
-		}
-
-		_debugPoints->uploadToGpu();
-		_debugLines->uploadToGpu();
-#endif
-
-#if 0 // test track
-		_referenceLines		= eastl::make_unique<DebugDraw>();
-		_scalarTrackLines	= eastl::make_unique<DebugDraw>();
-		_handlePoints		= eastl::make_unique<DebugDraw>();
-		_handleLines		= eastl::make_unique<DebugDraw>();
+	}
+	void test_AnimationScalarTrack_onCreate() {
+		_referenceLines 	= eastl::make_unique<DebugDraw>();
+		_scalarTrackLines 	= eastl::make_unique<DebugDraw>();
+		_handlePoints 		= eastl::make_unique<DebugDraw>();
+		_handleLines 		= eastl::make_unique<DebugDraw>();
 
 		float height = 1.8f;
 		float left   = 1.0f;
@@ -451,15 +529,70 @@ public:
 			_handlePoints->uploadToGpu();
 			_handleLines->uploadToGpu();
 		}
-#endif
+	}
+	void test_BezierAndHermiteCurve_onCreate() {
+		_debugPoints = eastl::make_unique<DebugDraw>();
+		_debugLines = eastl::make_unique<DebugDraw>();
+		{ // test bezier curve
+			CubicCurveExample::Bezier curve(
+				vec3(-5, 0, 0), // p1
+				vec3(-2, 1, 0), // c1
+				vec3(2, 1, 0),  // c2
+				vec3(5, 0, 0)   // p2
+			);
 
-#if 0 // test animation clip
-		_restPoseVisual		= eastl::make_unique<DebugDraw>();
-		_bindPoseVisual		= eastl::make_unique<DebugDraw>();
-		_currentPoseVisual	= eastl::make_unique<DebugDraw>();
+			_debugPoints->push_back(curve.p1());
+			_debugPoints->push_back(curve.c1());
+			_debugPoints->push_back(curve.c2());
+			_debugPoints->push_back(curve.p2());
+
+			for (int i = 0; i < 199; i++) {
+				float t1 = static_cast<float>(i) / 199.f;
+				float t2 = static_cast<float>(i + 1) / 199.f;
+
+				_debugLines->push_back(curve.lerp(t1));
+				_debugLines->push_back(curve.lerp(t2));
+
+				curve.factor(t1, _debugPoints);
+			}
+
+			curve.factor(1, _debugPoints);
+		}
+
+		{ // test hermite spline
+			CubicCurveExample::Hermite curve(
+				vec3(-5, 0, 0), // p1
+				vec3(5, 0, 0),  // p1
+				0.2f,  // tan1
+				-3.f   // tan2
+			);
+
+			_debugPoints->push_back(curve.p1());
+			_debugPoints->push_back(curve.p2());
+
+			for (int i = 0; i < 199; i++) {
+				float t1 = static_cast<float>(i) / 199.f;
+				float t2 = static_cast<float>(i + 1) / 199.f;
+
+				_debugLines->push_back(curve.lerp(t1));
+				_debugLines->push_back(curve.lerp(t2));
+
+				curve.factor(t1, _debugPoints);
+			}
+
+			curve.factor(1, _debugPoints);
+		}
+
+		_debugPoints->uploadToGpu();
+		_debugLines->uploadToGpu();
+	}
+	void test_AnimationClip_onCreate() {
+		_restPoseVisual = eastl::make_unique<DebugDraw>();
+		_bindPoseVisual = eastl::make_unique<DebugDraw>();
+		_currentPoseVisual = eastl::make_unique<DebugDraw>();
 
 		_loadExampleAsset();
-		
+
 		_restPoseVisual->fromPose(_skeleton.restPose());
 		_restPoseVisual->uploadToGpu();
 
@@ -479,10 +612,9 @@ public:
 				break;
 			}
 		}
-#endif
-
-#if 0 // test skinning
-		_diffuseTexture	= new Texture("Assets/Textures/Woman.png");
+	}
+	void test_MeshSkinning_onCreate() {
+		_diffuseTexture = new Texture("Assets/Textures/Woman.png");
 		GLTFInfo info;
 		GLTFLoader::s_readFile(info, "Assets/Mesh/Woman.gltf");
 
@@ -512,7 +644,10 @@ public:
 				"Assets/Shaders/lit.frag"
 			);
 #else
-			_createExampleShader();
+			_skinnedShader = new Shader(
+				"Assets/Shaders/skinned.vert",
+				"Assets/Shaders/lit.frag"
+			);
 #endif
 			_gpuMeshes.appendRange(info.meshes); // trigger Mesh::operator= and will uploadToGpu
 			_gpuAnimInfo.animatedPose = _skeleton.restPose();
@@ -523,6 +658,9 @@ public:
 		_cpuAnimInfo.model.position = vec3(-2, 0, 0);
 		_gpuAnimInfo.model.position = vec3( 2, 0, 0);
 
+		_cpuAttribLoc.setByStaticShader(_staticShader);
+		_gpuAttribLoc.setBySkinnedShader(_skinnedShader);
+
 		for (int i = 0; i < _clips.size(); ++i) {
 			StrView clipName = _clips[i].name();
 			if (clipName == "Walking") {
@@ -532,9 +670,8 @@ public:
 				_gpuAnimInfo.clip = i;
 			}
 		}
-#endif
-
-#if 0 // test animation blend
+	}
+	void test_AnimationBlending_onCreate() {
 		_loadExampleAsset();
 		_createExampleShader();
 		_defaultSetAnimInfo();
@@ -561,9 +698,8 @@ public:
 			}
 			++i;
 		}
-#endif
-
-#if 1 // test crossfading animtion
+	}
+	void test_AnimationCrossfading_onCreate() {
 		_loadExampleAsset();
 		_createExampleShader();
 		_defaultSetAnimInfo();
@@ -573,37 +709,17 @@ public:
 		fadeController->play(&_clips[0]);
 
 		_fadeTimer = 2.0f;
-#endif
 	}
 
-	virtual void onCloseButton() override {
-		if (_vertexArrayObject != 0) {
-			HDC dc = hdc();
-			HGLRC hglrc = wglGetCurrentContext();
-
-			// delete VAO
-			glBindVertexArray(0);
-			glDeleteVertexArrays(1, &_vertexArrayObject);
-			_vertexArrayObject = 0;
-
-			// delete render context
-			wglMakeCurrent(NULL, NULL);
-			wglDeleteContext(hglrc);
-			ReleaseDC(_hwnd, dc);
-		}
-
-		NativeUIApp::current()->quit(0);
-	}
-
-	void update(float dt) {
-#if 0 // test lit texture
+	void test_LitTexture_onUpdate(float dt) {
 		_testRotation += dt * 45.0f;
 		while (_testRotation > 360.0f) {
 			_testRotation -= 360.0f;
 		}
-#endif
-
-#if 0 // test animation clip
+	}
+	void test_AnimationScalarTrack_onUpdate(float dt) {}
+	void test_BezierAndHermiteCurve_onUpdate(float dt) {}
+	void test_AnimationClip_onUpdate(float dt) {
 		static float s_clipLoopingTime = 0.f;
 		static const float k_clipMaxLoopTime = 4.f;
 
@@ -618,50 +734,48 @@ public:
 			_currentPose = _skeleton.restPose();
 		}
 		_currentPoseVisual->fromPose(_currentPose);
-#endif
-
-#if 0 // test skinning
+	}
+	void test_MeshSkinning_onUpdate(float dt) {
 		{ // test cpu skinning
-			#if 1 // test optimize clip
-				auto& clip = _fastClips[_cpuAnimInfo.clip];
-			#else
-				auto& clip = _clips[_cpuAnimInfo.clip];
-			#endif
+#if 1 // test optimize clip
+			auto& clip = _fastClips[_cpuAnimInfo.clip];
+#else
+			auto& clip = _clips[_cpuAnimInfo.clip];
+#endif
 			_cpuAnimInfo.playback = clip.sample(_cpuAnimInfo.animatedPose, _cpuAnimInfo.playback + dt);
-			#if 1 // test pre-multiplied skin matrix
-				_cpuAnimInfo.animatedPose.getMatrixPalette(_cpuAnimInfo.posePalette);
-				const auto& invBindPose = _skeleton.invBindPose();
-				for (int i = 0; i < _cpuAnimInfo.posePalette.size(); ++i) {
-					_cpuAnimInfo.posePalette[i] = _cpuAnimInfo.posePalette[i] * invBindPose[i];
-				}
-			#endif
+#if 1 // test pre-multiplied skin matrix
+			_cpuAnimInfo.animatedPose.getMatrixPalette(_cpuAnimInfo.posePalette);
+			const auto& invBindPose = _skeleton.invBindPose();
+			for (int i = 0; i < _cpuAnimInfo.posePalette.size(); ++i) {
+				_cpuAnimInfo.posePalette[i] = _cpuAnimInfo.posePalette[i] * invBindPose[i];
+			}
+#endif
 			for (int i = 0; i < _cpuMeshes.size(); ++i) {
-			#if 1 // test pre-multiplied skin matrix
+#if 1 // test pre-multiplied skin matrix
 				_cpuMeshes[i].cpuSkin(_cpuAnimInfo.posePalette);
-			#else
+#else
 				_cpuMeshes[i].cpuSkin(_skeleton, _cpuAnimInfo.animatedPose);
-			#endif
+#endif
 			}
 		}
 
 		{ // test gpu skinning
-		#if 1 // test optimize clip
+#if 1 // test optimize clip
 			auto& clip = _fastClips[_gpuAnimInfo.clip];
-		#else
+#else
 			auto& clip = _clips[_gpuAnimInfo.clip];
-		#endif
+#endif
 			_gpuAnimInfo.playback = clip.sample(_gpuAnimInfo.animatedPose, _gpuAnimInfo.playback + dt);
 			_gpuAnimInfo.animatedPose.getMatrixPalette(_gpuAnimInfo.posePalette);
-		#if 1 // test pre-multiplied skin matrix
+#if 1 // test pre-multiplied skin matrix
 			const auto& invBindPose = _skeleton.invBindPose();
 			for (int i = 0; i < _gpuAnimInfo.posePalette.size(); ++i) {
 				_gpuAnimInfo.posePalette[i] = _gpuAnimInfo.posePalette[i] * invBindPose[i];
 			}
-		#endif
-		}
 #endif
-
-#if 0 // test animation blend
+		}
+	}
+	void test_AnimationBlending_onUpdate(float dt) {
 		{
 			auto& clip = _clips[_blendAnimA.clip];
 			_blendAnimA.playback = clip.sample(_blendAnimA.animatedPose, _blendAnimA.playback + dt);
@@ -685,9 +799,8 @@ public:
 			_isInvertBlend = !_isInvertBlend;
 			_gpuAnimInfo.animatedPose = _skeleton.restPose();
 		}
-#endif
-
-#if 1 // test crossfading animtion
+	}
+	void test_AnimationCrossfading_onUpdate(float dt) {
 		CrossFadeController* fadeController = CrossFadeController::instance();
 		fadeController->update(dt);
 
@@ -706,24 +819,16 @@ public:
 		}
 
 		fadeController->curPose().getMatrixPalette(_gpuAnimInfo.posePalette);
-#endif
 	}
 
-	void render() {
-		_setViewport();
-
-		float aspect = _clientRect.size.x / _clientRect.size.y;
-		(void)aspect;
-
-#if 0 // test lit texture
-		mat4 projection = mat4::s_perspective(60.0f, aspect, 0.01f, 1000.0f);
+	void test_LitTexture_onRender() {
+		mat4 projection = mat4::s_perspective(60.0f, _aspect, 0.01f, 1000.0f);
 		mat4 view = mat4::s_lookAt(vec3(0, 0, -5), vec3::s_zero(), vec3::s_up());
 		mat4 model = mat4::s_quat(quat::s_angleAxis(Math::radians(_testRotation), vec3::s_forward())); // or mat4::s_identity();
 		mat4 mvp = projection * view * model;
 
 		_testShader->bind();
 		{
-
 			{ // bind uniforms
 				Uniform<mat4>::set(_testShader->findUniformByName("model"), model);
 				Uniform<mat4>::set(_testShader->findUniformByName("view"), view);
@@ -750,21 +855,12 @@ public:
 			}
 		}
 		_testShader->unbind();
-#endif
-
-#if 0 // test bezier curve or hermite spline
-		mat4 projection = mat4::s_perspective(60.0f, aspect, 0.01f, 1000.0f);
-		mat4 view = mat4::s_lookAt(vec3(0, 0, -5), vec3::s_zero(), vec3::s_up());
-		mat4 mvp = projection * view * mat4::s_identity();
-		_debugLines->draw(DebugDrawMode::Lines, mvp);
-		_debugPoints->draw(DebugDrawMode::Points, mvp, k_blue);
-#endif
-
-#if 0 // test track
+	}
+	void test_AnimationScalarTrack_onRender() {
 		float l = 0;
 		float b = 0;
 		float t = 22.f;
-		float r = aspect * t;
+		float r = _aspect * t;
 		float n = 0.01f;
 		float f = 5.f;
 		mat4 view = mat4::s_lookAt(vec3(0, 0, (n + f) / 2), vec3::s_zero(), vec3::s_up());
@@ -777,10 +873,16 @@ public:
 		_scalarTrackLines->draw(DebugDrawMode::Lines, mvp, k_green);
 		_handlePoints->draw(DebugDrawMode::Points, mvp, k_blue);
 		_handleLines->draw(DebugDrawMode::Lines, mvp, k_purple);
-#endif
-
-#if 0 // test animation clip
-		mat4 projection = mat4::s_perspective(60.0f, aspect, 0.01f, 10.f);
+	}
+	void test_BezierAndHermiteCurve_onRender() {
+		mat4 projection = mat4::s_perspective(60.0f, _aspect, 0.01f, 1000.0f);
+		mat4 view = mat4::s_lookAt(vec3(0, 0, -5), vec3::s_zero(), vec3::s_up());
+		mat4 mvp = projection * view * mat4::s_identity();
+		_debugLines->draw(DebugDrawMode::Lines, mvp);
+		_debugPoints->draw(DebugDrawMode::Points, mvp, k_blue);
+	}
+	void test_AnimationClip_onRender() {
+		mat4 projection = mat4::s_perspective(60.0f, _aspect, 0.01f, 10.f);
 		mat4 view = mat4::s_lookAt(vec3(0, 4, -7), vec3(0, 4, 0), vec3::s_up());
 		mat4 mvp = projection * view;
 
@@ -788,11 +890,10 @@ public:
 		_bindPoseVisual->draw(DebugDrawMode::Lines, mvp, k_green);
 		_currentPoseVisual->uploadToGpu();
 		_currentPoseVisual->draw(DebugDrawMode::Lines, mvp, k_blue);
-#endif
-
-#if 0 // test skinning
-		mat4 projection = mat4::s_perspective(60.0f, aspect, 0.01f, 10.f);
-		mat4 view = mat4::s_lookAt(vec3(0,5,7), vec3(0,3,0), vec3::s_up());
+	}
+	void test_MeshSkinning_onRender() {
+		mat4 projection = mat4::s_perspective(60.0f, _aspect, 0.01f, 10.f);
+		mat4 view = mat4::s_lookAt(vec3(0, 5, 7), vec3(0, 3, 0), vec3::s_up());
 
 		{ // test cpu skinning
 			mat4 model = mat4::s_transform(_cpuAnimInfo.model);
@@ -807,14 +908,8 @@ public:
 					_diffuseTexture->set(_staticShader->findUniformByName("tex0"), 0);
 				}
 
-				u32 pos		= _staticShader->findAttributeByName("position");
-				u32 normal	= _staticShader->findAttributeByName("normal");
-				u32 uv		= _staticShader->findAttributeByName("texCoord");
 				for (int i = 0; i < _cpuMeshes.size(); ++i) {
-					auto& mesh = _cpuMeshes[i];
-					mesh.bind(pos, normal, uv);
-					mesh.draw();
-					mesh.unbind(pos, normal, uv);
+					_drawMesh(_cpuMeshes[i], _cpuAttribLoc);
 				}
 				_diffuseTexture->unset(0);
 			}
@@ -823,7 +918,7 @@ public:
 
 		{ // test gpu skinning
 			mat4 model = mat4::s_transform(_gpuAnimInfo.model);
-			
+
 			// bind uniform
 			_skinnedShader->bind();
 			{
@@ -832,34 +927,28 @@ public:
 					Uniform<mat4>::set(_skinnedShader->findUniformByName("view"), view);
 					Uniform<mat4>::set(_skinnedShader->findUniformByName("projection"), projection);
 					Uniform<vec3>::set(_skinnedShader->findUniformByName("light"), vec3::s_one());
-					#if 1 // test pre-multiplied skin matrix
-						Uniform<mat4>::set(_skinnedShader->findUniformByName("animated"), _gpuAnimInfo.posePalette);
-					#else
-						Uniform<mat4>::set(_skinnedShader->findUniformByName("invBindPose"), _skeleton.invBindPose());
-						Uniform<mat4>::set(_skinnedShader->findUniformByName("pose"), _gpuAnimInfo.posePalette);
-					#endif
+#if 1 // test pre-multiplied skin matrix
+					Uniform<mat4>::set(_skinnedShader->findUniformByName("animated"), _gpuAnimInfo.posePalette);
+#else
+					Uniform<mat4>::set(_skinnedShader->findUniformByName("invBindPose"), _skeleton.invBindPose());
+					Uniform<mat4>::set(_skinnedShader->findUniformByName("pose"), _gpuAnimInfo.posePalette);
+#endif
 					_diffuseTexture->set(_skinnedShader->findUniformByName("tex0"), 0);
 				}
 
-				u32 pos		= _skinnedShader->findAttributeByName("position");
-				u32 normal	= _skinnedShader->findAttributeByName("normal");
-				u32 uv		= _skinnedShader->findAttributeByName("texCoord");
-				u32 weights = _skinnedShader->findAttributeByName("weights");
-				u32 joints	= _skinnedShader->findAttributeByName("joints");
 				for (int i = 0; i < _gpuMeshes.size(); ++i) {
-					auto& mesh = _gpuMeshes[i];
-					mesh.bind(pos, normal, uv, weights, joints);
-					mesh.draw();
-					mesh.unbind(pos, normal, uv, weights, joints);
+					_drawMesh(_gpuMeshes[i], _gpuAttribLoc);
 				}
 				_diffuseTexture->unset(0);
 			}
 			_skinnedShader->unbind();
 		}
-#endif
-
-#if 1 // test animation blend || test crossfading animtion
-		mat4 projection = mat4::s_perspective(60.0f, aspect, 0.01f, 10.f);
+	}
+	void test_AnimationBlending_onRender() {
+		test_AnimationCrossfading_onRender();
+	}
+	void test_AnimationCrossfading_onRender() {
+		mat4 projection = mat4::s_perspective(60.0f, _aspect, 0.01f, 10.f);
 		mat4 view = mat4::s_lookAt(vec3(0, 3, 5), vec3(0, 3, 0), vec3::s_up());
 		mat4 model = mat4::s_transform(_gpuAnimInfo.model);
 
@@ -876,44 +965,19 @@ public:
 				_diffuseTexture->set(_skinnedShader->findUniformByName("tex0"), 0);
 			}
 
-			u32 pos		= _skinnedShader->findAttributeByName("position");
-			u32 normal	= _skinnedShader->findAttributeByName("normal");
-			u32 uv		= _skinnedShader->findAttributeByName("texCoord");
-			u32 weights = _skinnedShader->findAttributeByName("weights");
-			u32 joints	= _skinnedShader->findAttributeByName("joints");
 			for (int i = 0; i < _gpuMeshes.size(); ++i) {
-				auto& mesh = _gpuMeshes[i];
-				mesh.bind(pos, normal, uv, weights, joints);
-				mesh.draw();
-				mesh.unbind(pos, normal, uv, weights, joints);
+				_drawMesh(_gpuMeshes[i], _gpuAttribLoc);
 			}
 			_diffuseTexture->unset(0);
 		}
 		_skinnedShader->unbind();
-#endif
-
-		_swapbuffers();
 	}
 
 private:
-
-	void _setViewport() {
-		float clientWidth = _clientRect.size.x;
-		float clientHeight = _clientRect.size.y;
-		glViewport(0, 0, static_cast<GLsizei>(clientWidth), static_cast<GLsizei>(clientHeight));
-
-		glEnable(GL_DEPTH_TEST);
-		glEnable(GL_CULL_FACE);
-		glPointSize(5.0f);
-
-		glBindVertexArray(_vertexArrayObject);
-		glClearColor(0.5f, 0.6f, 0.7f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-	}
-
-	void _swapbuffers() {
-		SwapBuffers(hdc());
-		if (_vsynch != 0) glFinish();
+	void _drawMesh(Mesh& mesh, const AnimationAttribLocation& aloc) {
+		mesh.bind(aloc.pos, aloc.normal, aloc.uv, aloc.weights, aloc.joints);
+		mesh.draw();
+		mesh.unbind(aloc.pos, aloc.normal, aloc.uv, aloc.weights, aloc.joints);
 	}
 
 	void _loadExampleAsset() {
@@ -938,11 +1002,12 @@ private:
 			"Assets/Shaders/static.vert",
 			"Assets/Shaders/lit.frag"
 		);
-
 		_skinnedShader = new Shader (
 			"Assets/Shaders/skinned.vert",
 			"Assets/Shaders/lit.frag"
 		);
+		_cpuAttribLoc.setByStaticShader(_staticShader);
+		_gpuAttribLoc.setBySkinnedShader(_skinnedShader);
 	}
 
 	void _defaultSetAnimInfo() {
@@ -956,14 +1021,11 @@ private:
 		_gpuAnimInfo.model.position = vec3( 2,0,0);
 	}
 
-	int _vsynch = 0;
+private:
+	float					_testRotation = 0.0f;
 
-	GLuint _vertexArrayObject = 0;
-
-	float _testRotation = 0.0f;
-
-	SPtr<Shader>  _testShader;
-	SPtr<Texture> _testTexture;
+	SPtr<Shader>			_testShader;
+	SPtr<Texture>			_testTexture;
 
 	UPtr< Attribute<vec3> >	_vertexPositions;
 	UPtr< Attribute<vec3> >	_vertexNormals;
@@ -996,10 +1058,12 @@ private:
 	SPtr<Shader>			_staticShader;
 	Vector<Mesh>			_cpuMeshes;
 	AnimationInstance		_cpuAnimInfo;
+	AnimationAttribLocation _cpuAttribLoc;
 
 	SPtr<Shader>			_skinnedShader;
 	Vector<Mesh>			_gpuMeshes;
 	AnimationInstance		_gpuAnimInfo;
+	AnimationAttribLocation _gpuAttribLoc;
 
 	Vector<FastClip>	    _fastClips;
 
@@ -1037,12 +1101,12 @@ protected:
 	}
 
 	virtual void onUpdate(float dt) override {
-		_mainWin.update(_deltaTime);
+		_mainWin.update(dt);
 		_mainWin.render();
 	}
 
 private:
-	MainWin _mainWin;
+	MyExampleMainWin _mainWin;
 };
 
 } // namespace
