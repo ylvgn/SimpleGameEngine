@@ -210,22 +210,20 @@ SGE_ENUM_CLASS(MyCaseType, u8)
 class MyExampleMainWin : public MainWin {
 	using Base = MainWin;
 
-	MyCaseType _caseType = MyCaseType::AnimationCrossfading;
+	MyCaseType _caseType = MyCaseType::AnimationBlending;
 
-#define MY_CASE(E, SGE_FN, ...) \
+#define TEST_CASE__ITEM(E, SGE_FN, ...) \
 	case MyCaseType::E: { \
 		test_ ## E ## _ ## SGE_FN(__VA_ARGS__); \
 	} break; \
 // ----------
-#define WINMAIN_onCreate(E, ...) MY_CASE(E, onCreate)
-#define WINMAIN_onUpdate(E, ...) MY_CASE(E, onUpdate, dt)
-#define WINMAIN_onRender(E, ...) MY_CASE(E, onRender)
+#define TEST_onCreate(E, ...) TEST_CASE__ITEM(E, onCreate)
+#define TEST_onUpdate(E, ...) TEST_CASE__ITEM(E, onUpdate, dt)
+#define TEST_onRender(E, ...) TEST_CASE__ITEM(E, onRender)
 
 #define RUN_CASE(SGE_FN, ...) \
 	switch (_caseType) { \
-		MyCaseType##_ENUM_LIST(WINMAIN_##SGE_FN) \
-	default: \
-		throw SGE_ERROR("unhandled test case"); \
+		MyCaseType##_ENUM_LIST(TEST_##SGE_FN) \
 	} \
 // ----------
 
@@ -246,14 +244,17 @@ protected:
 private:
 	void test_LitTexture_onCreate() {
 		_debugPoints = eastl::make_unique<DebugDraw>();
-		_debugLines = eastl::make_unique<DebugDraw>();
+		_debugLines  = eastl::make_unique<DebugDraw>();
 
-		_testTexture = new Texture("Assets/Textures/uvChecker.png");
-		_testShader = new Shader("Assets/Shaders/static.vert", "Assets/Shaders/lit.frag");
-		_vertexPositions = eastl::make_unique< Attribute<vec3> >();
-		_vertexNormals = eastl::make_unique< Attribute<vec3> >();
-		_vertexTexCoords = eastl::make_unique< Attribute<vec2> >();
-		_indexBuffer = eastl::make_unique<IndexBuffer>();
+		_texture = new Texture("Assets/Textures/uvChecker.png");
+		_staticShader = new Shader(
+			"Assets/Shaders/static.vert",
+			"Assets/Shaders/lit.frag"
+		);
+		_vertexPositions	= eastl::make_unique< Attribute<vec3> >();
+		_vertexNormals		= eastl::make_unique< Attribute<vec3> >();
+		_vertexTexCoords	= eastl::make_unique< Attribute<vec2> >();
+		_indexBuffer		= eastl::make_unique<IndexBuffer>();
 
 		Vector<vec3> positions{
 			vec3(-1, -1, 0),
@@ -532,13 +533,14 @@ private:
 	}
 	void test_BezierAndHermiteCurve_onCreate() {
 		_debugPoints = eastl::make_unique<DebugDraw>();
-		_debugLines = eastl::make_unique<DebugDraw>();
+		_debugLines  = eastl::make_unique<DebugDraw>();
+
 		{ // test bezier curve
 			CubicCurveExample::Bezier curve(
 				vec3(-5, 0, 0), // p1
 				vec3(-2, 1, 0), // c1
-				vec3(2, 1, 0),  // c2
-				vec3(5, 0, 0)   // p2
+				vec3( 2, 1, 0), // c2
+				vec3( 5, 0, 0)  // p2
 			);
 
 			_debugPoints->push_back(curve.p1());
@@ -561,10 +563,10 @@ private:
 
 		{ // test hermite spline
 			CubicCurveExample::Hermite curve(
-				vec3(-5, 0, 0), // p1
-				vec3(5, 0, 0),  // p1
-				0.2f,  // tan1
-				-3.f   // tan2
+				vec3(-5,0,0), // p1
+				vec3( 5,0,0), // p1
+				0.2f,         // tan1
+				-3.f          // tan2
 			);
 
 			_debugPoints->push_back(curve.p1());
@@ -587,8 +589,8 @@ private:
 		_debugLines->uploadToGpu();
 	}
 	void test_AnimationClip_onCreate() {
-		_restPoseVisual = eastl::make_unique<DebugDraw>();
-		_bindPoseVisual = eastl::make_unique<DebugDraw>();
+		_restPoseVisual    = eastl::make_unique<DebugDraw>();
+		_bindPoseVisual    = eastl::make_unique<DebugDraw>();
 		_currentPoseVisual = eastl::make_unique<DebugDraw>();
 
 		_loadExampleAsset();
@@ -614,7 +616,7 @@ private:
 		}
 	}
 	void test_MeshSkinning_onCreate() {
-		_diffuseTexture = new Texture("Assets/Textures/Woman.png");
+		_texture = new Texture("Assets/Textures/Woman.png");
 		GLTFInfo info;
 		GLTFLoader::s_readFile(info, "Assets/Mesh/Woman.gltf");
 
@@ -717,7 +719,7 @@ private:
 			_testRotation -= 360.0f;
 		}
 	}
-	void test_AnimationScalarTrack_onUpdate(float dt) {}
+	void test_AnimationScalarTrack_onUpdate(float dt)  {}
 	void test_BezierAndHermiteCurve_onUpdate(float dt) {}
 	void test_AnimationClip_onUpdate(float dt) {
 		static float s_clipLoopingTime = 0.f;
@@ -827,20 +829,20 @@ private:
 		mat4 model = mat4::s_quat(quat::s_angleAxis(Math::radians(_testRotation), vec3::s_forward())); // or mat4::s_identity();
 		mat4 mvp = projection * view * model;
 
-		_testShader->bind();
+		_staticShader->bind();
 		{
 			{ // bind uniforms
-				Uniform<mat4>::set(_testShader->findUniformByName("model"), model);
-				Uniform<mat4>::set(_testShader->findUniformByName("view"), view);
-				Uniform<mat4>::set(_testShader->findUniformByName("projection"), projection);
-				Uniform<vec3>::set(_testShader->findUniformByName("light"), vec3::s_forward());
-				_testTexture->set(_testShader->findUniformByName("tex0"), 0);
+				Uniform<mat4>::set(_staticShader->findUniformByName("model"), model);
+				Uniform<mat4>::set(_staticShader->findUniformByName("view"), view);
+				Uniform<mat4>::set(_staticShader->findUniformByName("projection"), projection);
+				Uniform<vec3>::set(_staticShader->findUniformByName("light"), vec3::s_forward());
+				_texture->set(_staticShader->findUniformByName("tex0"), 0);
 			}
 
 			{ // bind attributes
-				_vertexPositions->bind(_testShader->findAttributeByName("position"));
-				_vertexNormals->bind(_testShader->findAttributeByName("normal"));
-				_vertexTexCoords->bind(_testShader->findAttributeByName("texCoord"));
+				_vertexPositions->bind(_staticShader->findAttributeByName("position"));
+				_vertexNormals->bind(_staticShader->findAttributeByName("normal"));
+				_vertexTexCoords->bind(_staticShader->findAttributeByName("texCoord"));
 			}
 
 			DrawUtil::draw(*_indexBuffer.get());
@@ -848,13 +850,13 @@ private:
 			_debugPoints->draw(DebugDrawMode::Points, mvp, k_blue);
 
 			{ // unbind uniforms
-				_testTexture->unset(0);
-				_vertexPositions->unbind(_testShader->findAttributeByName("position"));
-				_vertexNormals->unbind(_testShader->findAttributeByName("normal"));
-				_vertexTexCoords->unbind(_testShader->findAttributeByName("texCoord"));
+				_texture->unset(0);
+				_vertexPositions->unbind(_staticShader->findAttributeByName("position"));
+				_vertexNormals->unbind(_staticShader->findAttributeByName("normal"));
+				_vertexTexCoords->unbind(_staticShader->findAttributeByName("texCoord"));
 			}
 		}
-		_testShader->unbind();
+		_staticShader->unbind();
 	}
 	void test_AnimationScalarTrack_onRender() {
 		float l = 0;
@@ -905,13 +907,13 @@ private:
 					Uniform<mat4>::set(_staticShader->findUniformByName("view"), view);
 					Uniform<mat4>::set(_staticShader->findUniformByName("projection"), projection);
 					Uniform<vec3>::set(_staticShader->findUniformByName("light"), vec3::s_one());
-					_diffuseTexture->set(_staticShader->findUniformByName("tex0"), 0);
+					_texture->set(_staticShader->findUniformByName("tex0"), 0);
 				}
 
 				for (int i = 0; i < _cpuMeshes.size(); ++i) {
 					_drawMesh(_cpuMeshes[i], _cpuAttribLoc);
 				}
-				_diffuseTexture->unset(0);
+				_texture->unset(0);
 			}
 			_staticShader->unbind();
 		}
@@ -933,13 +935,13 @@ private:
 					Uniform<mat4>::set(_skinnedShader->findUniformByName("invBindPose"), _skeleton.invBindPose());
 					Uniform<mat4>::set(_skinnedShader->findUniformByName("pose"), _gpuAnimInfo.posePalette);
 #endif
-					_diffuseTexture->set(_skinnedShader->findUniformByName("tex0"), 0);
+					_texture->set(_skinnedShader->findUniformByName("tex0"), 0);
 				}
 
 				for (int i = 0; i < _gpuMeshes.size(); ++i) {
 					_drawMesh(_gpuMeshes[i], _gpuAttribLoc);
 				}
-				_diffuseTexture->unset(0);
+				_texture->unset(0);
 			}
 			_skinnedShader->unbind();
 		}
@@ -962,13 +964,13 @@ private:
 				Uniform<mat4>::set(_skinnedShader->findUniformByName("invBindPose"), _skeleton.invBindPose());
 				Uniform<mat4>::set(_skinnedShader->findUniformByName("pose"), _gpuAnimInfo.posePalette);
 				Uniform<vec3>::set(_skinnedShader->findUniformByName("light"), vec3::s_one());
-				_diffuseTexture->set(_skinnedShader->findUniformByName("tex0"), 0);
+				_texture->set(_skinnedShader->findUniformByName("tex0"), 0);
 			}
 
 			for (int i = 0; i < _gpuMeshes.size(); ++i) {
 				_drawMesh(_gpuMeshes[i], _gpuAttribLoc);
 			}
-			_diffuseTexture->unset(0);
+			_texture->unset(0);
 		}
 		_skinnedShader->unbind();
 	}
@@ -994,7 +996,7 @@ private:
 		_gpuMeshes.reserve(info.meshes.size());
 		_gpuMeshes.appendRange(info.meshes);
 
-		_diffuseTexture = new Texture("Assets/Textures/Woman.png");
+		_texture = new Texture("Assets/Textures/Woman.png");
 	}
 
 	void _createExampleShader() {
@@ -1016,16 +1018,13 @@ private:
 		_gpuAnimInfo.playback = 0.f;
 		_gpuAnimInfo.animatedPose = _skeleton.restPose();
 		_gpuAnimInfo.animatedPose.getMatrixPalette(_gpuAnimInfo.posePalette);
-
-		_cpuAnimInfo.model.position = vec3(-2,0,0);
-		_gpuAnimInfo.model.position = vec3( 2,0,0);
 	}
 
 private:
 	float					_testRotation = 0.0f;
 
-	SPtr<Shader>			_testShader;
-	SPtr<Texture>			_testTexture;
+	SPtr<Shader>			_staticShader;
+	SPtr<Texture>			_texture;
 
 	UPtr< Attribute<vec3> >	_vertexPositions;
 	UPtr< Attribute<vec3> >	_vertexNormals;
@@ -1053,9 +1052,6 @@ private:
 	UPtr<DebugDraw>			_bindPoseVisual;
 	UPtr<DebugDraw>			_currentPoseVisual;
 
-	SPtr<Texture>			_diffuseTexture;
-
-	SPtr<Shader>			_staticShader;
 	Vector<Mesh>			_cpuMeshes;
 	AnimationInstance		_cpuAnimInfo;
 	AnimationAttribLocation _cpuAttribLoc;
