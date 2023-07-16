@@ -66,7 +66,7 @@ struct quat {
 		NOT commutative: q1*q2 != q2*q1
  		Quaternion multiplication is reversed (left side multiply)
 			let say combine 2 quat (q1 and q2) to 1 quat
-			if you want to apply q1 first, it would be "result=q2*q1"
+			if you want to apply q1 first, it would be "resultQuat = q2*q1"
 */
 #else
 		// FYI: https://gabormakesgames.com/blog_quats_multiply_quat.html

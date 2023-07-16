@@ -17,7 +17,11 @@ typedef int (WINAPI* PFNWGLGETSWAPINTERVALEXTPROC) (void);
 
 struct AnimationAttribLocation {
 
-	AnimationAttribLocation() = default;
+	int pos;
+	int normal;
+	int uv;
+	int weights;
+	int joints;
 
 	void setBySkinnedShader(const Shader* shader) {
 		pos		= shader->findAttributeByName("position");
@@ -34,24 +38,34 @@ struct AnimationAttribLocation {
 		weights = -1;
 		joints  = -1;
 	}
-
-	int pos;
-	int normal;
-	int uv;
-	int weights;
-	int joints;
 };
 
 struct AnimationInstance {
-	Pose animatedPose;
-	Transform model;
+	Transform model; // used to model matrix
 
-	// cpu skinning
-	int clip = 0;
+	// used to clip sampling
+	Pose  animatedPose;
+	int   clip = 0;
 	float playback = 0.f;
 
 	// gpu skinning
 	Vector<mat4> posePalette;
+
+	// blending
+	Pose additivePose;
+	int  additiveClip = 0;
+	Pose additiveBasePose;
+
+// helper functions ------------------------
+	void animatedSample(const Span<const Clip> clips, float dt) {
+		if (clips.size() <= clip) return;
+		playback = clips[clip].sample(animatedPose, playback + dt);
+	}
+
+	template<class T>
+	void animatedSample(const ClipT<T>& clip, float dt) {
+		playback = clip.sample(animatedPose, playback + dt);
+	}
 };
 
 class MainWin : public NativeUIWindow {
@@ -197,49 +211,41 @@ protected:
 	float	_aspect = 0;
 };
 
+class MyExampleMainWin : public MainWin {
+	using Base = MainWin;
+	using This = MyExampleMainWin;
+
+#define RUN_CASE__ITEM(E, SGE_FN, ...) \
+	case MyCaseType::E: { \
+		test_##E##_##SGE_FN(__VA_ARGS__); \
+	} break; \
+// ----------
+#define RUN_CASE__onCreate(E, ...) RUN_CASE__ITEM(E, onCreate)
+#define RUN_CASE__onUpdate(E, ...) RUN_CASE__ITEM(E, onUpdate, dt)
+#define RUN_CASE__onRender(E, ...) RUN_CASE__ITEM(E, onRender)
+
+#define RUN_CASE(SGE_FN, ...) \
+	switch (__caseType) { \
+		MyCaseType##_ENUM_LIST(RUN_CASE__##SGE_FN) \
+	} \
+// ----------
+
 #define MyCaseType_ENUM_LIST(E) \
 	E(LitTexture,) \
 	E(AnimationScalarTrack,) \
 	E(AnimationClip,) \
 	E(MeshSkinning,) \
 	E(AnimationBlending,) \
-	E(AnimationCrossfading,) \
-//----
-SGE_ENUM_CLASS(MyCaseType, u8)
-
-class MyExampleMainWin : public MainWin {
-	using Base = MainWin;
-
-	MyCaseType _caseType = MyCaseType::AnimationBlending;
-
-#define TEST_CASE__ITEM(E, SGE_FN, ...) \
-	case MyCaseType::E: { \
-		test_ ## E ## _ ## SGE_FN(__VA_ARGS__); \
-	} break; \
+	E(Crossfading,) \
+	E(AdditiveBlending,) \
 // ----------
-#define TEST_onCreate(E, ...) TEST_CASE__ITEM(E, onCreate)
-#define TEST_onUpdate(E, ...) TEST_CASE__ITEM(E, onUpdate, dt)
-#define TEST_onRender(E, ...) TEST_CASE__ITEM(E, onRender)
+	SGE_ENUM_DECLARE(MyCaseType, u8)
+	MyCaseType __caseType = MyCaseType::AdditiveBlending;
 
-#define RUN_CASE(SGE_FN, ...) \
-	switch (_caseType) { \
-		MyCaseType##_ENUM_LIST(TEST_##SGE_FN) \
-	} \
-// ----------
-
-protected:
-	virtual void onCreate(CreateDesc& desc) override {
-		Base::onCreate(desc);
-		RUN_CASE(onCreate)
-	}
-
-	virtual void onUpdate(float dt) override {
-		RUN_CASE(onUpdate)
-	}
-
-	virtual void onRender() override {
-		RUN_CASE(onRender)
-	}
+	virtual void onCreate(CreateDesc& desc) override { Base::onCreate(desc); RUN_CASE(onCreate) }
+	virtual void onUpdate(float dt)			override { RUN_CASE(onUpdate) }
+	virtual void onRender()					override { RUN_CASE(onRender) }
+#undef RUN_CASE
 
 private:
 	void test_LitTexture_onCreate() {
@@ -601,9 +607,9 @@ private:
 		_bindPoseVisual->fromPose(_skeleton.bindPose());
 		_bindPoseVisual->uploadToGpu();
 
-		_currentClip = 0;
+		_currentClip  = 0;
 		_playbackTime = 0.f;
-		_currentPose = _skeleton.restPose();
+		_currentPose  = _skeleton.restPose();
 		_currentPoseVisual->fromPose(_currentPose);
 		_currentPoseVisual->uploadToGpu();
 
@@ -653,8 +659,6 @@ private:
 #endif
 			_gpuMeshes.appendRange(info.meshes); // trigger Mesh::operator= and will uploadToGpu
 			_gpuAnimInfo.animatedPose = _skeleton.restPose();
-			_gpuAnimInfo.posePalette.resize(_gpuAnimInfo.animatedPose.getJointCount());
-			_gpuAnimInfo.animatedPose.getMatrixPalette(_gpuAnimInfo.posePalette);
 		}
 
 		_cpuAnimInfo.model.position = vec3(-2, 0, 0);
@@ -701,7 +705,7 @@ private:
 			++i;
 		}
 	}
-	void test_AnimationCrossfading_onCreate() {
+	void test_Crossfading_onCreate() {
 		_loadExampleAsset();
 		_createExampleShader();
 		_defaultSetAnimInfo();
@@ -711,6 +715,16 @@ private:
 		fadeController->play(&_clips[0]);
 
 		_fadeTimer = 2.0f;
+	}
+	void test_AdditiveBlending_onCreate() {
+		_loadExampleAsset();
+		_createExampleShader();
+		_defaultSetAnimInfo();
+		_defaultSelectClip();
+		_defaultSetAdditiveBasePose();
+
+		_additiveTime = 0.f;
+		_additiveDirection = 1.f;
 	}
 
 	void test_LitTexture_onUpdate(float dt) {
@@ -767,8 +781,11 @@ private:
 #else
 			auto& clip = _clips[_gpuAnimInfo.clip];
 #endif
-			_gpuAnimInfo.playback = clip.sample(_gpuAnimInfo.animatedPose, _gpuAnimInfo.playback + dt);
-			_gpuAnimInfo.animatedPose.getMatrixPalette(_gpuAnimInfo.posePalette);
+			/*_gpuAnimInfo.playback = clip.sample(_gpuAnimInfo.animatedPose, _gpuAnimInfo.playback + dt);
+			_gpuAnimInfo.animatedPose.getMatrixPalette(_gpuAnimInfo.posePalette);*/
+			_gpuAnimInfo.animatedSample(clip, dt);
+			_populatePosePalette();
+
 #if 1 // test pre-multiplied skin matrix
 			const auto& invBindPose = _skeleton.invBindPose();
 			for (int i = 0; i < _gpuAnimInfo.posePalette.size(); ++i) {
@@ -778,14 +795,8 @@ private:
 		}
 	}
 	void test_AnimationBlending_onUpdate(float dt) {
-		{
-			auto& clip = _clips[_blendAnimA.clip];
-			_blendAnimA.playback = clip.sample(_blendAnimA.animatedPose, _blendAnimA.playback + dt);
-		}
-		{
-			auto& clip = _clips[_blendAnimB.clip];
-			_blendAnimB.playback = clip.sample(_blendAnimB.animatedPose, _blendAnimB.playback + dt);
-		}
+		_blendAnimA.animatedSample(_clips, dt);
+		_blendAnimB.animatedSample(_clips, dt);
 
 		float bt = Math::clamp01(_elapsedBlendTime);
 		if (_isInvertBlend) {
@@ -793,7 +804,7 @@ private:
 		}
 
 		Blending::blend(_gpuAnimInfo.animatedPose, _blendAnimA.animatedPose, _blendAnimB.animatedPose, bt, -1);
-		_gpuAnimInfo.animatedPose.getMatrixPalette(_gpuAnimInfo.posePalette);
+		_populatePosePalette();
 
 		_elapsedBlendTime += dt;
 		if (_elapsedBlendTime >= 3.0f) { // each 3s switch animation between _blendAnimA and _blendAnimB
@@ -802,7 +813,7 @@ private:
 			_gpuAnimInfo.animatedPose = _skeleton.restPose();
 		}
 	}
-	void test_AnimationCrossfading_onUpdate(float dt) {
+	void test_Crossfading_onUpdate(float dt) {
 		CrossFadeController* fadeController = CrossFadeController::instance();
 		fadeController->update(dt);
 
@@ -814,13 +825,38 @@ private:
 			while (clip == _gpuAnimInfo.clip) {
 				clip = rand() % _clips.size();
 			}
-			SGE_LOG("{} -> {}", _clips[_gpuAnimInfo.clip].name(), _clips[clip].name());
+//			SGE_LOG("{} -> {}", _clips[_gpuAnimInfo.clip].name(), _clips[clip].name());
 			_gpuAnimInfo.clip = clip;
 
 			fadeController->fadeTo(&_clips[clip], 0.5f);
 		}
 
 		fadeController->curPose().getMatrixPalette(_gpuAnimInfo.posePalette);
+	}
+	void test_AdditiveBlending_onUpdate(float dt) {
+		_additiveTime += dt * _additiveDirection;
+		if (_additiveTime < 0) {
+			_additiveTime = 0;
+			_additiveDirection *= -1.f;
+		}
+		if (_additiveTime > 1) {
+			_additiveTime = 1;
+			_additiveDirection *= -1.f;
+		}
+
+		{ // sample animatedPose
+			auto& clip = _clips[_gpuAnimInfo.clip];
+			_gpuAnimInfo.playback = clip.sample(_gpuAnimInfo.animatedPose, _gpuAnimInfo.playback + dt);
+		}
+
+		{ // sample additivePose
+			auto& clip = _clips[_gpuAnimInfo.additiveClip];
+			float additivePlaybackTime = clip.getStartTime() + (clip.getDuration() * _additiveTime);
+			clip.sample(_gpuAnimInfo.additivePose, additivePlaybackTime);
+			Blending::add(_gpuAnimInfo.animatedPose, _gpuAnimInfo.animatedPose, _gpuAnimInfo.additivePose, _gpuAnimInfo.additiveBasePose);
+		}
+
+		_populatePosePalette();
 	}
 
 	void test_LitTexture_onRender() {
@@ -859,18 +895,16 @@ private:
 		_staticShader->unbind();
 	}
 	void test_AnimationScalarTrack_onRender() {
-		float l = 0;
-		float b = 0;
 		float t = 22.f;
+		float b = 0;
+		float l = 0;
 		float r = _aspect * t;
 		float n = 0.01f;
 		float f = 5.f;
-		mat4 view = mat4::s_lookAt(vec3(0, 0, (n + f) / 2), vec3::s_zero(), vec3::s_up());
-
-		//mat4 projection = mat4::s_ortho(0, aspect * 22.0f, 0, 22, 0.01f, 5);
 		mat4 projection = mat4::s_ortho(l, r, b, t, n, f);
+		mat4 view       = mat4::s_lookAt(vec3(0, 0, (n + f) / 2), vec3::s_zero(), vec3::s_up());
+		mat4 mvp        = projection * view * mat4::s_identity();
 
-		mat4 mvp = projection * view * mat4::s_identity();
 		_referenceLines->draw(DebugDrawMode::Lines, mvp, k_yellow);
 		_scalarTrackLines->draw(DebugDrawMode::Lines, mvp, k_green);
 		_handlePoints->draw(DebugDrawMode::Points, mvp, k_blue);
@@ -878,8 +912,8 @@ private:
 	}
 	void test_BezierAndHermiteCurve_onRender() {
 		mat4 projection = mat4::s_perspective(60.0f, _aspect, 0.01f, 1000.0f);
-		mat4 view = mat4::s_lookAt(vec3(0, 0, -5), vec3::s_zero(), vec3::s_up());
-		mat4 mvp = projection * view * mat4::s_identity();
+		mat4 view       = mat4::s_lookAt(vec3(0, 0, -5), vec3::s_zero(), vec3::s_up());
+		mat4 mvp        = projection * view * mat4::s_identity();
 		_debugLines->draw(DebugDrawMode::Lines, mvp);
 		_debugPoints->draw(DebugDrawMode::Points, mvp, k_blue);
 	}
@@ -947,11 +981,20 @@ private:
 		}
 	}
 	void test_AnimationBlending_onRender() {
-		test_AnimationCrossfading_onRender();
+		_onDrawGpuSkinning();
 	}
-	void test_AnimationCrossfading_onRender() {
+	void test_Crossfading_onRender() {
+		_onDrawGpuSkinning();
+	}
+	void test_AdditiveBlending_onRender() {
+		_onDrawGpuSkinning();
+	}
+
+private:
+
+	void _onDrawGpuSkinning() {
 		mat4 projection = mat4::s_perspective(60.0f, _aspect, 0.01f, 10.f);
-		mat4 view = mat4::s_lookAt(vec3(0, 3, 5), vec3(0, 3, 0), vec3::s_up());
+		mat4 view = mat4::s_lookAt(vec3(0, 3, 7), vec3(0, 3, 0), vec3::s_up());
 		mat4 model = mat4::s_transform(_gpuAnimInfo.model);
 
 		// bind uniform
@@ -975,7 +1018,11 @@ private:
 		_skinnedShader->unbind();
 	}
 
-private:
+	void _populatePosePalette() {
+		_cpuAnimInfo.animatedPose.getMatrixPalette(_cpuAnimInfo.posePalette);
+		_gpuAnimInfo.animatedPose.getMatrixPalette(_gpuAnimInfo.posePalette);
+	}
+
 	void _drawMesh(Mesh& mesh, const AnimationAttribLocation& aloc) {
 		mesh.bind(aloc.pos, aloc.normal, aloc.uv, aloc.weights, aloc.joints);
 		mesh.draw();
@@ -1013,11 +1060,50 @@ private:
 	}
 
 	void _defaultSetAnimInfo() {
+		_cpuAnimInfo.playback = 0.f;
 		_cpuAnimInfo.animatedPose = _skeleton.restPose();
 
 		_gpuAnimInfo.playback = 0.f;
 		_gpuAnimInfo.animatedPose = _skeleton.restPose();
 		_gpuAnimInfo.animatedPose.getMatrixPalette(_gpuAnimInfo.posePalette);
+
+		_cpuAnimInfo.additivePose = _skeleton.restPose();
+		_gpuAnimInfo.additivePose = _skeleton.restPose();
+	}
+
+	void _defaultSelectClip() {
+		SGE_ASSERT(_clips.size() > 0);
+		constexpr const char* k_ClipName = "Walking";
+		for (int i = 0; i < _clips.size(); ++i) {
+			if (_clips[i].name() == k_ClipName) {
+				_currentClip = i;
+				_cpuAnimInfo.clip = i;
+				_gpuAnimInfo.clip = i;
+				break;
+			}
+		}
+	}
+
+	void _defaultSetAdditiveBasePose() {
+		constexpr const char* k_ClipName = "Lean_Left";
+		for (int i = 0; i < _clips.size(); ++i) {
+			if (_clips[i].name() == k_ClipName) {
+				_cpuAnimInfo.additiveClip = i;
+				_gpuAnimInfo.additiveClip = i;
+				break;
+			}
+		}
+
+		{
+			auto& clip = _clips[_cpuAnimInfo.additiveClip];
+			_cpuAnimInfo.additiveBasePose = Blending::makeAdditiveBasePose(_skeleton, clip);
+			clip.setIsLoop(false);
+		}
+		{
+			auto& clip = _clips[_gpuAnimInfo.additiveClip];
+			_gpuAnimInfo.additiveBasePose = Blending::makeAdditiveBasePose(_skeleton, clip);
+			clip.setIsLoop(false);
+		}
 	}
 
 private:
@@ -1069,6 +1155,9 @@ private:
 	bool					_isInvertBlend;
 
 	float					_fadeTimer;
+
+	float					_additiveTime;      // 0~1
+	float					_additiveDirection; // -1, 1
 };
 
 class GameAnimeProgApp : public NativeUIApp {
@@ -1106,6 +1195,7 @@ private:
 };
 
 } // namespace
+
 
 int main(int argc, const char** argv) {
 	sge::GameAnimeProgApp app;
