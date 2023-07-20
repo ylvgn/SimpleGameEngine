@@ -22,6 +22,7 @@ struct quat {
 	inline quat() = default;
 	inline quat(float x_, float y_, float z_, float w_) : x(x_), y(y_), z(z_), w(w_) {}
 
+	// Quaternions have a multiplicitive identity. This special identity quaternion represents no rotation
 	inline static quat s_identity() { return quat(0,0,0,1); }
 	inline static quat s_zero()		{ return quat(0,0,0,0); }
 
@@ -57,6 +58,11 @@ struct quat {
 		// since it doesn't need to invoke other functions.
 		// Rotating by the product lhs*rhs is the same as applying the two rotations in sequence:
 			// lhs first and then rhs, relative to the reference frame resulting from lhs rotation
+			// familiar to matrix,
+				// ex1: TRS, which real algorithm is M=SRT,
+					// apply scale first, then rotate, last is translate：Mresult = Mtranslate * Mrotate * Mscale
+				// ex2: MVP, Mresult = Mprojection * Mview * Mmodel;
+				// ex3: v=MVP*v1 = Mprojection * Mview * Mmodel * v1 -> apply Mmodel first, then Mview, and last is Mprojection
 		return quat( r.x*w + r.y*z - r.z*y + r.w*x,
 					-r.x*z + r.y*w + r.z*x + r.w*y,
 					 r.x*y - r.y*x + r.z*w + r.w*z,
@@ -65,39 +71,40 @@ struct quat {
 /*
 		NOT commutative: q1*q2 != q2*q1
  		Quaternion multiplication is reversed (left side multiply)
-			let say combine 2 quat (q1 and q2) to 1 quat
-			if you want to apply q1 first, it would be "resultQuat = q2*q1"
+			let's say combine 2 quat (q1 and q2) to 1 quat
+			if you want to out-side apply q1 first, it would be "resultQuat = q2*q1"
+				let's say out-side is vec3, such as v2=resultQuat*v1 = q2*q1*v1, so q1 is apply to v1 first
 */
 #else
 		// FYI: https://gabormakesgames.com/blog_quats_multiply_quat.html
-		vec3 lv = vec3(x,y,z);
-		vec3 rv = vec3(r.x, r.y, r.z);
-		float lw = w;
-		float rw = r.w;
+		// qq' = [s,v]*[s',v'] = [(ss'-v.v'), vXv'+sv'+s'v]
 
-		float scalar = lw*rw - lv.dot(rv);
-		vec3 vector = (lv*rw) + (rv*lw) + rv.cross(lv);
-
-		quat result;
-		result.w = scalar;
-		result.x = vector.x;
-		result.y = vector.y;
-		result.z = vector.z;
-		return result;
+		vec3 lv = vec3(x,y,z);                          // v
+		vec3 rv = vec3(r.x, r.y, r.z);                  // v'
+		float scalar = w*r.w - lv.dot(rv);              // ss' - v.v'
+		vec3 vector = rv.cross(lv) + (rv*w) + (lv*r.w); // vXv' + sv' + s'v
+		return quat(vector.x, vector.y, vector.z, scalar);
 #endif
 	}
 
 	// Multiplying a vector by a quaternion will always yield a vector that is rotated by the quaternion.
-	inline vec3 operator* (const vec3& r) const {
+	inline vec3 operator* (const vec3& v) const {
 		vec3 qv(x,y,z);
 
-		return (qv * 2.0f*qv.dot(r)) +
-			(r * (w*w - qv.dot(qv))) +
-			(qv.cross(r) * 2.0f * w);
+		return (qv * 2.0f*qv.dot(v)) +
+			(v * (w*w - qv.dot(qv))) +
+			(qv.cross(v) * 2.0f * w);
 	}
 
+	inline quat operator+ (float s)	const { return quat(x+s, y+s, z+s, w+s); }
+	inline quat operator- (float s)	const { return quat(x-s, y-s, z-s, w-s); }
 	inline quat operator* (float s)	const { return quat(x*s, y*s, z*s, w*s); }
 	inline quat operator/ (float s)	const { return quat(x/s, y/s, z/s, w/s); }
+
+	inline quat operator+= (float s) { x+=s; y+=s; z+=s; w+=s; }
+	inline quat operator-= (float s) { x-=s; y-=s; z-=s; w-=s; }
+	inline quat operator*= (float s) { x*=s; y*=s; z*=s; w*=s; }
+	inline quat operator/= (float s) { x/=s; y/=s; z/=s; w/=s; }
 
 	inline quat operator- () const { return quat(-x,-y,-z,-w); }
 

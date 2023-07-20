@@ -61,12 +61,15 @@ void Blending::add(Pose& out, const Pose& inputPose, const Pose& additivePose, c
 
 		Transform result;
 		result.position = input.position + (additive.position - additiveBase.position);
-		result.scale    = input.scale    + (additive.scale - additiveBase.scale);
+		result.scale    = input.scale    + (additive.scale    - additiveBase.scale);
 /*
 		Quaternions don't have a subtraction operator.
 		To remove the rotation of quaternionA from quaternionB, multiply B by the inverse of A.
 		The inverse of a quaternion applies the opposite of a rotation,
 		which is why a quaternion multiplied by its inverse results in the identity.
+
+		so "additive pose – additive base pose", means remove "additive base pose" from "additive pose"
+			and equivalent to multiply "additive pose" by the "inverse(additive base pose)"
 */
 		result.rotation = input.rotation.normalize() * (additiveBase.rotation.inverse() * additive.rotation);
 		out.setLocalTransform(i, result);

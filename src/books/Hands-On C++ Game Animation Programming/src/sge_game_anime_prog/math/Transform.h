@@ -15,7 +15,7 @@ struct mat4;
 
 struct Transform {
 	vec3 position {0,0,0};
-	quat rotation {0,0,0,1}; // do not set {0,0,0,0}!! but no reason ???
+	quat rotation {0,0,0,1}; // do not set {0,0,0,0}, it means quat::s_identity
 	vec3 scale	  {1,1,1};
 
 	inline Transform() = default;

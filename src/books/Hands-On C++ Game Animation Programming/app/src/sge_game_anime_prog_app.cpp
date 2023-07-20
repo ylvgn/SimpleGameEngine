@@ -80,11 +80,11 @@ public:
 	}
 
 protected:
-	const Color4f k_red		{1,0,0,1};
-	const Color4f k_green	{0,1,0,1};
-	const Color4f k_blue	{0,0,1,1};
-	const Color4f k_yellow	{1,1,0,1};
-	const Color4f k_purple	{1,0,1,1};
+	const Color4f kRed		{1,0,0,1};
+	const Color4f kGreen	{0,1,0,1};
+	const Color4f kBlue		{0,0,1,1};
+	const Color4f kYellow	{1,1,0,1};
+	const Color4f kPurple	{1,0,1,1};
 
 	virtual void onCreate(CreateDesc& desc) override {
 		Base::onCreate(desc);
@@ -883,7 +883,7 @@ private:
 
 			DrawUtil::draw(*_indexBuffer.get());
 			_debugLines->draw(DebugDrawMode::Lines, mvp);
-			_debugPoints->draw(DebugDrawMode::Points, mvp, k_blue);
+			_debugPoints->draw(DebugDrawMode::Points, mvp, kBlue);
 
 			{ // unbind uniforms
 				_texture->unset(0);
@@ -905,27 +905,27 @@ private:
 		mat4 view       = mat4::s_lookAt(vec3(0, 0, (n + f) / 2), vec3::s_zero(), vec3::s_up());
 		mat4 mvp        = projection * view * mat4::s_identity();
 
-		_referenceLines->draw(DebugDrawMode::Lines, mvp, k_yellow);
-		_scalarTrackLines->draw(DebugDrawMode::Lines, mvp, k_green);
-		_handlePoints->draw(DebugDrawMode::Points, mvp, k_blue);
-		_handleLines->draw(DebugDrawMode::Lines, mvp, k_purple);
+		_referenceLines->draw(DebugDrawMode::Lines, mvp, kYellow);
+		_scalarTrackLines->draw(DebugDrawMode::Lines, mvp, kGreen);
+		_handlePoints->draw(DebugDrawMode::Points, mvp, kBlue);
+		_handleLines->draw(DebugDrawMode::Lines, mvp, kPurple);
 	}
 	void test_BezierAndHermiteCurve_onRender() {
 		mat4 projection = mat4::s_perspective(60.0f, _aspect, 0.01f, 1000.0f);
 		mat4 view       = mat4::s_lookAt(vec3(0, 0, -5), vec3::s_zero(), vec3::s_up());
 		mat4 mvp        = projection * view * mat4::s_identity();
 		_debugLines->draw(DebugDrawMode::Lines, mvp);
-		_debugPoints->draw(DebugDrawMode::Points, mvp, k_blue);
+		_debugPoints->draw(DebugDrawMode::Points, mvp, kBlue);
 	}
 	void test_AnimationClip_onRender() {
 		mat4 projection = mat4::s_perspective(60.0f, _aspect, 0.01f, 10.f);
 		mat4 view = mat4::s_lookAt(vec3(0, 4, -7), vec3(0, 4, 0), vec3::s_up());
 		mat4 mvp = projection * view;
 
-		_restPoseVisual->draw(DebugDrawMode::Lines, mvp, k_red);
-		_bindPoseVisual->draw(DebugDrawMode::Lines, mvp, k_green);
+		_restPoseVisual->draw(DebugDrawMode::Lines, mvp, kRed);
+		_bindPoseVisual->draw(DebugDrawMode::Lines, mvp, kGreen);
 		_currentPoseVisual->uploadToGpu();
-		_currentPoseVisual->draw(DebugDrawMode::Lines, mvp, k_blue);
+		_currentPoseVisual->draw(DebugDrawMode::Lines, mvp, kBlue);
 	}
 	void test_MeshSkinning_onRender() {
 		mat4 projection = mat4::s_perspective(60.0f, _aspect, 0.01f, 10.f);
@@ -994,8 +994,8 @@ private:
 
 	void _onDrawGpuSkinning() {
 		mat4 projection = mat4::s_perspective(60.0f, _aspect, 0.01f, 10.f);
-		mat4 view = mat4::s_lookAt(vec3(0, 3, 7), vec3(0, 3, 0), vec3::s_up());
-		mat4 model = mat4::s_transform(_gpuAnimInfo.model);
+		mat4 view       = mat4::s_lookAt(vec3(0, 3, 7), vec3(0, 3, 0), vec3::s_up());
+		mat4 model      = mat4::s_transform(_gpuAnimInfo.model);
 
 		// bind uniform
 		_skinnedShader->bind();

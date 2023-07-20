@@ -1,10 +1,10 @@
 #pragma once
 
 #include "vec4.h"
-#include "quat.h"
 
 namespace sge {
 
+struct quat4;
 struct Transform;
 
 struct mat4 {
@@ -113,8 +113,9 @@ struct mat4 {
 
 	// Matrix addition can be used with scalar multiplication to interpolate or blend between multiple matrices.Later, you will learn how to use this property to implement animation skinning.
 	inline mat4 operator+(const mat4& r) const { return mat4(cx()+r.cx(), cy()+r.cy(), cz()+r.cz(), cw()+r.cw()); }
+	inline mat4 operator-(const mat4& r) const { return mat4(cx()-r.cx(), cy()-r.cy(), cz()-r.cz(), cw()-r.cw()); }
 
-	//Scaling matricesand then adding them allows you to "lerp" or "mix" between two matrices, so long as both matrices represent a linear transform.
+	//Scaling matrices and then adding them allows you to "lerp" or "mix" between two matrices, so long as both matrices represent a linear transform.
 	inline mat4 operator*(float s) const { return mat4(cx()*s, cy()*s, cz()*s, cw()*s); }
 	inline mat4 operator/(float s) const { return mat4(cx()/s, cy()/s, cz()/s, cw()/s); }
 

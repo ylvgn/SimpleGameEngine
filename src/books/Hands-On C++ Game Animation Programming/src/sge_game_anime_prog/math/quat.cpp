@@ -20,12 +20,12 @@ quat quat::s_fromTo(const vec3& from, const vec3& to) {
 
 		vec3 ortho = vec3::s_right(); // x-axis is the most orthogonal axis of f vector
 
-		if (fabsf(f.y) < fabsf(f.x)) {
+		if (Math::abs(f.y) < Math::abs(f.x)) {
 			ortho = vec3::s_up(); // y-axis is the most orthogonal axis of f vector
 		}
 
 		// when from vector is close to XOY-plane
-		if (fabsf(f.z) < fabs(f.y) && fabs(f.z) < fabsf(f.x)) {
+		if (Math::abs(f.z) < Math::abs(f.y) && Math::abs(f.z) < Math::abs(f.x)) {
 			ortho = vec3::s_forward(); // z-axis is the most orthogonal axis of f vector
 		}
 
@@ -40,17 +40,16 @@ quat quat::s_fromTo(const vec3& from, const vec3& to) {
 }
 
 quat quat::s_lookRotation(const vec3& dir, const vec3& up) {
-	vec3 f = dir.normalize();		 // object space forward vector
-	vec3 desiredUp = up.normalize(); // desired up vector
-	vec3 r = desiredUp.cross(f);	 // object space right vector
-	desiredUp = f.cross(r);			 // object space up vector(incorrect)
+	vec3 f			= dir.normalize();		// object space forward vector
+	vec3 desiredUp	= up.normalize();		// desired up vector
+	vec3 r			= desiredUp.cross(f);	// object space right vector
+	desiredUp		= f.cross(r);			// object space up vector(incorrect)
 
-	quat f2d = s_fromTo(vec3::s_forward(), f); // From world forward to object forward
-	vec3 objectUp = f2d * vec3::s_up();        // what direction is the new object up?
-	quat u2u = s_fromTo(objectUp, desiredUp);  // From object up to desired up
+	quat f2d		= s_fromTo(vec3::s_forward(), f);	// From world forward to object forward
+	vec3 objectUp	= f2d * vec3::s_up();				// what direction is the new object up?
+	quat u2u		= s_fromTo(objectUp, desiredUp);	// From object up to desired up
 
-	// Rotate to forward direction first, then twist to correct up.
-	quat result = f2d * u2u;
+	quat result(f2d * u2u);
 	return result.normalize();
 /*
 	The matrix lookAt function creates a view matrix, which is the inverse of the camera transform.

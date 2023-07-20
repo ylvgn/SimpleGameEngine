@@ -39,9 +39,23 @@ Transform Transform::inverse() const {
 }
 
 Transform Transform::s_combine(const Transform& a, const Transform& b) {
+/*
+	transform combination is equivalent to matrix combination.
+		ex1: SRT = Mtranslate  * Mrotation * Mscale
+		ex2: MVP = Mprojection * Mview     * Mmodel
+
+	matrix order: scale->rotation->translate
+	transform order: scale->rotation->pos
+
+	now Transform is pos(vec3), rotate(quat4), scale(vec3), familiar to mat4*mat4 theory
+		- lhs(pos1, quat1, scale1)
+		- rhs(pos2, quat2, scale2)
+			- scale2*scale1 == scale1*scale2
+			- quat2*quat1 --> apply quat1 first
+			- pos1 + (quat1*scale1*pos2) --> kind of pos2 change space, which same as pos1's space
+*/
 	Transform res;
 
-//	Combining the scale and rotation of two transforms is simple—multiply them together.
 	res.scale = a.scale * b.scale;			// same as b.scale * a.scale
 	res.rotation = b.rotation * a.rotation; // apply a.rotation first, and then b.rotation
 
