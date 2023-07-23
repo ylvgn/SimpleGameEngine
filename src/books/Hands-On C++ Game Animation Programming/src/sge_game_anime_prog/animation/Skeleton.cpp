@@ -21,15 +21,28 @@ void Skeleton::setBindPose(const Pose& p) {
 
 void Skeleton::setJointNames(const Span<const String>& names) {
 	_jointNames.clear();
-	//	_jointNames.appendRange(names); why ???
+//	_jointNames.appendRange(names); // why ???
 
+#if 1
 	_jointNames.reserve(names.size());
-	for (auto& v : names) {
-		_jointNames.push_back(String(v.begin(), v.end()));
+	for (auto& name : names) {
+		_jointNames.push_back(String(name.begin(), name.end()));
 	}
+#endif
 #if 0
+	_jointNames.resize(names.size());
+	int i = 0;
 	for (auto* p = names.begin(); p != names.end(); p++) {
-		_jointNames.push_back(*p);
+		_jointNames[i].assign(p->begin(), p->end());
+		++i;
+	}
+#endif
+#if 0
+	_jointNames.resize(names.size());
+	int i = 0;
+	for (auto& v : names) {
+		_jointNames[i].assign(v);
+		i++;
 	}
 #endif
 }

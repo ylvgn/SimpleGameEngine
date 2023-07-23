@@ -26,45 +26,45 @@ struct FrameUtil {
 	FrameUtil() = delete;
 
 	static ScalarFrame createFrame(float time, float in, float value, float out) {
-		ScalarFrame result;
-		result.time     = time;
-		result.in[0]    = in;
-		result.value[0] = value;
-		result.out[0]   = out;
-		return result;
+		ScalarFrame res;
+		res.time     = time;
+		res.in[0]    = in;
+		res.value[0] = value;
+		res.out[0]   = out;
+		return res;
 	}
 
 	static VectorFrame createFrame(float time, const vec3f& in, const vec3f& value, const vec3f& out) {
-		VectorFrame result;
-		result.time     = time;
-		result.in[0]    = in.x;
-		result.in[1]    = in.y;
-		result.in[2]    = in.z;
-		result.value[0] = value.x;
-		result.value[1] = value.y;
-		result.value[2] = value.z;
-		result.out[0]   = out.x;
-		result.out[1]   = out.y;
-		result.out[2]   = out.z;
-		return result;
+		VectorFrame res;
+		res.time     = time;
+		res.in[0]    = in.x;
+		res.in[1]    = in.y;
+		res.in[2]    = in.z;
+		res.value[0] = value.x;
+		res.value[1] = value.y;
+		res.value[2] = value.z;
+		res.out[0]   = out.x;
+		res.out[1]   = out.y;
+		res.out[2]   = out.z;
+		return res;
 	}
 
 	static QuaternionFrame createFrame(float time, const quat& in, const quat& out, const quat& value) {
-		QuaternionFrame result;
-		result.time     = time;
-		result.in[0]    = in.x;
-		result.in[1]    = in.y;
-		result.in[2]    = in.z;
-		result.in[3]    = in.w;
-		result.value[0] = value.x;
-		result.value[1] = value.y;
-		result.value[2] = value.z;
-		result.value[3] = value.w;
-		result.out[0]   = out.x;
-		result.out[1]   = out.y;
-		result.out[2]   = out.z;
-		result.out[3]   = out.w;
-		return result;
+		QuaternionFrame res;
+		res.time     = time;
+		res.in[0]    = in.x;
+		res.in[1]    = in.y;
+		res.in[2]    = in.z;
+		res.in[3]    = in.w;
+		res.value[0] = value.x;
+		res.value[1] = value.y;
+		res.value[2] = value.z;
+		res.value[3] = value.w;
+		res.out[0]   = out.x;
+		res.out[1]   = out.y;
+		res.out[2]   = out.z;
+		res.out[3]   = out.w;
+		return res;
 	}
 
 	static ScalarFrame createFrame(float time, float value) {
