@@ -23,21 +23,18 @@ class TransformTrackT : public NonCopyable {
 public:
 	using SampleRequest = Track_SampleRequest;
 
-	inline float getStartTime() const { return Math::min(_position.getStartTime(), Math::min(_rotation.getStartTime(), _scale.getStartTime())); }
-	inline float getEndTime()	const { return Math::max(_position.getEndTime(), Math::max(_rotation.getEndTime(), _scale.getEndTime())); }
-//	inline float saveGetStartTime() const { return Math::min(_position.saveGetStartTime(), Math::min(_rotation.saveGetStartTime(), _scale.saveGetStartTime())); }
-//	inline float saveGetEndTime()	const { return Math::max(_position.saveGetEndTime(), Math::max(_rotation.saveGetEndTime(), _scale.saveGetEndTime())); }
+	float getStartTime() const;
+	float getEndTime() const;
 
 	// valid means at least one component track is valid.
 	inline bool isValid() const { return _position.isValid() || _rotation.isValid() || _scale.isValid(); }
-//	inline bool isValid2() const { return _position.isValid2() || _rotation.isValid2() || _scale.isValid2(); }
 
 	Transform sample(const Transform& t, const SampleRequest& sr) const;
 
-	inline u32 id()				const { return _id; }
-	const VTRACK& position()	const { return _position; }
-	const QTRACK& rotation()	const { return _rotation; }
-	const VTRACK& scale()		const { return _scale; }
+	inline u32 id()			 const { return _id; }
+	const VTRACK& position() const { return _position; }
+	const QTRACK& rotation() const { return _rotation; }
+	const VTRACK& scale()	 const { return _scale; }
 
 	inline void setId(u32 id)				 { _id = id; }
 	inline void setPosition(const VTRACK& p) { _position = p; }

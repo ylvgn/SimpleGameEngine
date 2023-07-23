@@ -19,6 +19,69 @@ Transform TransformTrackT<VTRACK, QTRACK>::sample(const Transform& t, const Samp
 
 	return res;
 }
+template<typename VTRACK, typename QTRACK>
+float TransformTrackT<VTRACK, QTRACK>::getStartTime() const {
+	float result = 0.f;
+	bool isSet = 0;
+
+	if (_position.getFrameCount() > 1) {
+		float startTime = _position.getStartTime();
+		if (!isSet || startTime < result) {
+			result = startTime;
+			isSet = true;
+		}
+	}
+
+	if (_rotation.getFrameCount() > 1) {
+		float startTime = _rotation.getStartTime();
+		if (!isSet || startTime < result) {
+			result = startTime;
+			isSet = true;
+		}
+	}
+
+	if (_scale.getFrameCount() > 1) {
+		float startTime = _scale.getStartTime();
+		if (!isSet || startTime < result) {
+			result = startTime;
+			isSet = true;
+		}
+	}
+
+	return result;
+}
+
+template<typename VTRACK, typename QTRACK>
+float TransformTrackT<VTRACK, QTRACK>::getEndTime() const {
+	float result = 0.f;
+	bool isSet = 0;
+
+	if (_position.getFrameCount() > 1) {
+		float endTime = _position.getEndTime();
+		if (!isSet || endTime > result) {
+			result = endTime;
+			isSet = true;
+		}
+	}
+
+	if (_rotation.getFrameCount() > 1) {
+		float endTime = _rotation.getEndTime();
+		if (!isSet || endTime > result) {
+			result = endTime;
+			isSet = true;
+		}
+	}
+
+	if (_scale.getFrameCount() > 1) {
+		float endTime = _scale.getEndTime();
+		if (!isSet || endTime > result) {
+			result = endTime;
+			isSet = true;
+		}
+	}
+
+	return result;
+}
 
 template TransformTrackT<VectorTrack, QuaternionTrack>;
 template TransformTrackT<FastVectorTrack, FastQuaternionTrack>;
