@@ -9,8 +9,6 @@
 #include <sge_game_anime_prog/opengl/Shader.h>
 #include <sge_game_anime_prog/opengl/Attribute.h>
 
-#include <sge_game_anime_prog/animation/Pose.h>
-
 namespace sge {
 
 /*
@@ -20,9 +18,11 @@ namespace sge {
 
 enum class DebugDrawMode { Lines, Loop, Strip, Points };
 
+class CCDSolver;
+class Pose;
+
 class DebugDraw : public NonCopyable {
 
-#if 0
 	static constexpr const char* kVert = "#version 330 core\n"
 		"uniform mat4 mvp;\n"
 		"in vec3 position;\n"
@@ -36,33 +36,39 @@ class DebugDraw : public NonCopyable {
 		"void main() {\n"
 		"	FragColor = color;\n"
 		"}";
-#endif
 
 public:
-#if 0
-	DebugDraw() : _shader(new Shader(kVert, kFrag)) { }
+#if 1
+	DebugDraw(size_t newSize = 0) : _shader(new Shader(kVert, kFrag)) { resize(newSize); }
 #else
-	DebugDraw() : _shader(new Shader(
+	DebugDraw(size_t newSize = 0) : _shader(new Shader(
 		"Assets/Shaders/debug.vert",
-		"Assets/Shaders/debug.frag"
-	)) { }
+		"Assets/Shaders/debug.frag"))
+	{
+		resize(newSize);
+	}
 #endif
 
 	inline size_t size() const			  { return _points.size(); }
 	inline void resize(size_t newSize)    { _points.resize(newSize); }
 	inline void clear()					  { _points.clear(); }
 	inline void push_back(const vec3f& v) { _points.push_back(v); }
-	inline void push_back(Span<vec3f>& v) { for (auto& s : v) _points.push_back(s); }
+	inline void push_back(Span<vec3f>& v) { _points.appendRange(v); /*for (auto& s : v) _points.push_back(s);*/ }
 	inline void push_back(const Span<const vec3f>& v) { for (auto& s : v) _points.push_back(s); }
 
-	inline void uploadToGpu()            { _attribs.uploadToGpu(_points); }
+	inline void setShader(Shader* shader) { _shader = shader; }
 
-	inline       vec3& operator[] (u32 index)       { return _points[index]; }
-	inline const vec3& operator[] (u32 index) const { return _points[index]; }
+	inline void uploadToGpu()             { _attribs.uploadToGpu(_points); }
+
+	inline       vec3& operator[] (int index)       { return _points[index]; }
+	inline const vec3& operator[] (int index) const { return _points[index]; }
 
 	void draw(DebugDrawMode mode, const mat4& mvp, const Color4f& color = Color4f(1,1,0,1));
 
-	void fromPose(const Pose& pose);
+	void lineFromPose(const Pose& pose);
+
+	void linesFromIKSolver(const CCDSolver& solver);
+	void pointsFromIKSolver(const CCDSolver& solver);
 
 private:
 	Vector<vec3>	_points;

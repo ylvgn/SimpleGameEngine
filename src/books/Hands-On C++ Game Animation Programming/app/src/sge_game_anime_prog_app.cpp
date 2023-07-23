@@ -86,6 +86,8 @@ protected:
 	const Color4f kYellow	{1,1,0,1};
 	const Color4f kPurple	{1,0,1,1};
 
+	const float kGizmoSize  = 0.25f;
+
 	virtual void onCreate(CreateDesc& desc) override {
 		Base::onCreate(desc);
 
@@ -238,9 +240,10 @@ class MyExampleMainWin : public MainWin {
 	E(AnimationBlending,) \
 	E(Crossfading,) \
 	E(AdditiveBlending,) \
+	E(CCD,) \
 // ----------
 	SGE_ENUM_DECLARE(MyCaseType, u8)
-	MyCaseType __caseType = MyCaseType::AdditiveBlending;
+	MyCaseType __caseType = MyCaseType::CCD;
 
 	virtual void onCreate(CreateDesc& desc) override { Base::onCreate(desc); RUN_CASE(onCreate) }
 	virtual void onUpdate(float dt)			override { RUN_CASE(onUpdate) }
@@ -601,16 +604,16 @@ private:
 
 		_loadExampleAsset();
 
-		_restPoseVisual->fromPose(_skeleton.restPose());
+		_restPoseVisual->lineFromPose(_skeleton.restPose());
 		_restPoseVisual->uploadToGpu();
 
-		_bindPoseVisual->fromPose(_skeleton.bindPose());
+		_bindPoseVisual->lineFromPose(_skeleton.bindPose());
 		_bindPoseVisual->uploadToGpu();
 
 		_currentClip  = 0;
 		_playbackTime = 0.f;
 		_currentPose  = _skeleton.restPose();
-		_currentPoseVisual->fromPose(_currentPose);
+		_currentPoseVisual->lineFromPose(_currentPose);
 		_currentPoseVisual->uploadToGpu();
 
 		// play 'Walking' animation clip
@@ -726,6 +729,53 @@ private:
 		_additiveTime = 0.f;
 		_additiveDirection = 1.f;
 	}
+	void test_CCD_onCreate() {
+
+		{ // debug draw
+			_debugLines  = eastl::make_unique<DebugDraw>();
+			_debugPoints = eastl::make_unique<DebugDraw>();
+
+			_ccdTargetVisual.resize(3);
+			for (int i = 0; i < 3; i++) {
+				_ccdTargetVisual[i] = eastl::make_unique<DebugDraw>(2);
+			}
+		}
+
+		{ // create a ikchain
+			_ccdSolver.resize(6);
+			_ccdSolver[0] = Transform(vec3::s_zero(), quat::s_angleAxis(Math::radians(90.f), vec3::s_right()), vec3::s_one());
+			_ccdSolver[1] = Transform(vec3(0, 0, 1.0f), quat::s_identity(), vec3::s_one());
+			_ccdSolver[2] = Transform(vec3(0, 0, 1.5f), quat::s_identity(), vec3::s_one());
+			_ccdSolver[3] = Transform(vec3(0, 0, 0.5f), quat::s_angleAxis(Math::radians(90.0f), vec3::s_up()), vec3::s_one());
+			_ccdSolver[4] = Transform(vec3(0, 0, 0.5f), quat::s_identity(), vec3::s_one());
+			_ccdSolver[5] = Transform(vec3(0, 0, 0.5f), quat::s_identity(), vec3::s_one());
+		}
+
+		_playbackTime = 0.0f;
+
+		{ // add one clip, and make it loop
+			vec3f startPos = vec3(1,-2,0);
+			_ccdTarget.position = startPos;
+			const int kFrameCount = 14;
+			float factor = 0.5f;
+			VectorTrack& posTrack = constCast(_ccdTargetPath.position());
+			posTrack.resize(kFrameCount);
+			posTrack[0 ] = FrameUtil::createFrame(0.f,   startPos     * factor);
+			posTrack[1 ] = FrameUtil::createFrame(1.0f,  vec3(1, 2,0) * factor);
+			posTrack[2 ] = FrameUtil::createFrame(2.0f,  vec3(1, 4,0) * factor);
+			posTrack[3 ] = FrameUtil::createFrame(3.0f,  vec3(3, 4,0) * factor);
+			posTrack[4 ] = FrameUtil::createFrame(4.0f,  vec3(5, 4,0) * factor);
+			posTrack[5 ] = FrameUtil::createFrame(5.0f,  vec3(5, 4,2) * factor);
+			posTrack[6 ] = FrameUtil::createFrame(6.0f,  vec3(5, 4,4) * factor);
+			posTrack[7 ] = FrameUtil::createFrame(7.0f,  vec3(3, 4,4) * factor);
+			posTrack[8 ] = FrameUtil::createFrame(8.0f,  vec3(3, 2,4) * factor);
+			posTrack[9 ] = FrameUtil::createFrame(9.0f,  vec3(3, 2,2) * factor);
+			posTrack[10] = FrameUtil::createFrame(10.0f, vec3(1, 2,2) * factor);
+			posTrack[11] = FrameUtil::createFrame(11.0f, vec3(1, 0,2) * factor);
+			posTrack[12] = FrameUtil::createFrame(12.0f, vec3(1,-2,2) * factor);
+			posTrack[13] = FrameUtil::createFrame(13.0f, startPos     * factor);
+		}
+	}
 
 	void test_LitTexture_onUpdate(float dt) {
 		_testRotation += dt * 45.0f;
@@ -749,7 +799,7 @@ private:
 			_playbackTime = 0.f;
 			_currentPose = _skeleton.restPose();
 		}
-		_currentPoseVisual->fromPose(_currentPose);
+		_currentPoseVisual->lineFromPose(_currentPose);
 	}
 	void test_MeshSkinning_onUpdate(float dt) {
 		{ // test cpu skinning
@@ -857,6 +907,18 @@ private:
 		}
 
 		_populatePosePalette();
+	}
+	void test_CCD_onUpdate(float dt) {
+		_playbackTime += dt;
+		if (_playbackTime > _ccdTargetPath.getEndTime()) {
+			_playbackTime -= _ccdTargetPath.getEndTime();
+		}
+		Track_SampleRequest sr;
+		sr.time = _playbackTime;
+		sr.isLoop = true;
+		_ccdTarget = _ccdTargetPath.sample(_ccdTarget, sr);
+//		SGE_LOG("{}s :\t{}", _playbackTime, _ccdTarget.position);
+		_ccdSolver.solve(_ccdTarget);
 	}
 
 	void test_LitTexture_onRender() {
@@ -988,6 +1050,47 @@ private:
 	}
 	void test_AdditiveBlending_onRender() {
 		_onDrawGpuSkinning();
+	}
+	void test_CCD_onRender() {
+		static const float kCamPitch = 45.0f;
+		static const float kCamYaw   = 60.0f;
+		static const float kCamDist  = 7.0f;
+		vec3 eyesPos(kCamDist * cosf(Math::radians(kCamYaw)) * sinf(Math::radians(kCamPitch)),
+			         kCamDist * cosf(Math::radians(kCamPitch)),
+			         kCamDist * sinf(Math::radians(kCamYaw)) * sinf(Math::radians(kCamPitch))
+		);
+
+		mat4 projection = mat4::s_perspective(60.0f, _aspect, 0.01f, 100.0f);
+		mat4 view = mat4::s_lookAt(eyesPos /*vec3(0, 0, 10)*/, vec3::s_zero(), vec3::s_up());
+		mat4 mvp = projection * view * mat4::s_identity();
+
+		{ // draw ikchains
+			_debugLines->linesFromIKSolver(_ccdSolver);
+			_debugPoints->pointsFromIKSolver(_ccdSolver);
+			_debugLines->uploadToGpu();
+			_debugPoints->uploadToGpu();
+			_debugLines->draw(DebugDrawMode::Lines, mvp, kPurple);
+			_debugPoints->draw(DebugDrawMode::Points, mvp, kPurple);
+		}
+
+		{ // 6 points -> 3 lines (xyz-axis) of target
+			(*_ccdTargetVisual[0])[0] = _ccdTarget.position + (vec3::s_right()	*  kGizmoSize); // x - red
+			(*_ccdTargetVisual[0])[1] = _ccdTarget.position + (vec3::s_right()	* -kGizmoSize); //-x - red
+
+			(*_ccdTargetVisual[1])[0] = _ccdTarget.position + (vec3::s_up()		*  kGizmoSize); // y - green
+			(*_ccdTargetVisual[1])[1] = _ccdTarget.position + (vec3::s_up()		* -kGizmoSize); //-y - green
+
+			(*_ccdTargetVisual[2])[0] = _ccdTarget.position + (vec3::s_forward()	*  kGizmoSize); // z - blue
+			(*_ccdTargetVisual[2])[1] = _ccdTarget.position + (vec3::s_forward()	* -kGizmoSize); //-z - blue
+
+			_ccdTargetVisual[0]->uploadToGpu();
+			_ccdTargetVisual[1]->uploadToGpu();
+			_ccdTargetVisual[2]->uploadToGpu();
+
+			_ccdTargetVisual[0]->draw(DebugDrawMode::Lines, mvp, kRed);
+			_ccdTargetVisual[1]->draw(DebugDrawMode::Lines, mvp, kGreen);
+			_ccdTargetVisual[2]->draw(DebugDrawMode::Lines, mvp, kBlue);
+		}
 	}
 
 private:
@@ -1157,7 +1260,13 @@ private:
 	float					_fadeTimer;
 
 	float					_additiveTime;      // 0~1
-	float					_additiveDirection; // -1, 1
+	float					_additiveDirection; // -1,1
+
+	CCDSolver				_ccdSolver;
+	Transform				_ccdTarget;
+	TransformTrack			_ccdTargetPath;
+
+	Vector<UPtr<DebugDraw>, 3> _ccdTargetVisual;
 };
 
 class GameAnimeProgApp : public NativeUIApp {
