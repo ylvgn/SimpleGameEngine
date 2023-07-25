@@ -10,25 +10,22 @@ void FABRIKSolver::_worldToIkChains() {
 		Transform world = getGlobalTransform(i);
 		Transform next  = getGlobalTransform(i+1);
 
-		vec3f position = world.position;
-		quat  rotation = world.rotation;
-#if 1
-		vec3f toNext = next.position - position;
-		toNext = rotation.inverse() * toNext;
+		const vec3f& worldPos = world.position;
+		const quat&  worldRot = world.rotation;
 
-		vec3f toDesired = _worldChians[i + 1] - position;
-		toDesired = rotation.inverse() * toDesired;
+		vec3f toNext	= next.position - worldPos;
+		vec3f toDesired = _worldChians[i + 1] - worldPos;
 
-		quat delta = quat::s_fromTo(toNext, toDesired);
-#else // is it right ???
-		vec3f toNext    = next.position - position;
-		vec3f toDesired = _worldChians[i + 1] - position;
-
-		quat nextToDesired = quat::s_fromTo(toNext, toDesired);
-		quat worldRotated  = rotation * nextToDesired;
-		quat delta         = nextToDesired * rotation.inverse();
+#if 1 // calc in local space
+		toNext				= worldRot.inverse() * toNext;
+		toDesired			= worldRot.inverse() * toDesired;
+		quat localRotated	= quat::s_fromTo(toNext, toDesired);
+#else // calc in world space
+		quat nextToDesired	= quat::s_fromTo(toNext, toDesired);
+		quat worldRotated	= worldRot * nextToDesired;
+		quat localRotated	= worldRotated * worldRot.inverse();
 #endif
-		_ikChains[i].rotation = delta * _ikChains[i].rotation;
+		_ikChains[i].rotation = localRotated * _ikChains[i].rotation;
 	}
 }
 

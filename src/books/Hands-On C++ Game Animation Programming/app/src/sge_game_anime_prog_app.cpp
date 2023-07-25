@@ -747,13 +747,13 @@ private:
 	void test_BezierAndHermiteCurve_onUpdate(float dt) {}
 	void test_AnimationClip_onUpdate(float dt) {
 		static float s_clipLoopingTime = 0.f;
-		static const float k_clipMaxLoopTime = 4.f;
+		static const float kClipMaxLoopTime = 4.f;
 
 		const Clip& clip = _clips[_currentClip];
 		_playbackTime = clip.sample(_currentPose, _playbackTime + dt);
 
 		s_clipLoopingTime += dt;
-		if (s_clipLoopingTime >= k_clipMaxLoopTime) {
+		if (s_clipLoopingTime >= kClipMaxLoopTime) {
 			s_clipLoopingTime = 0.f;
 			_currentClip = (_currentClip + 1) % _clips.size();
 			_playbackTime = 0.f;
@@ -1008,7 +1008,6 @@ private:
 	void test_CCD_onRender() {
 		_ccdSolver->onRender(_aspect);
 	}
-
 	void test_FABRIK_onRender() {
 		_fabrikSolver->onRender(_aspect);
 	}
@@ -1029,13 +1028,14 @@ private:
 		const float kCamDist	= 7.0f;
 
 		const float kGizmoSize	= 0.25f;
+
 	public:
 		IKSolverExample() {
-			_sr.time = 0.0f;
-			_sr.isLoop = true;
+			_sr.time	= 0.0f;
+			_sr.isLoop	= true;
 
 			{ // create ikChains
-				const size_t kJointCount = 6;
+				constexpr const size_t kJointCount = 6;
 				_solver.resize(kJointCount);
 				_solver[0] = Transform(vec3::s_zero(), quat::s_angleAxis(Math::radians(90.f), vec3::s_right()), vec3::s_one());
 				_solver[1] = Transform(vec3(0, 0, 1.0f), quat::s_identity(), vec3::s_one());
@@ -1046,8 +1046,8 @@ private:
 			}
 
 			{ // add one clip, and make it loop
-				const size_t kFrameCount = 14;
-				const float  kFactor	 = 0.5f;
+				constexpr const size_t kFrameCount = 14;
+				constexpr const float  kFactor	 = 0.5f;
 
 				vec3f startPos = vec3(1,-2,0);
 				_target.position = startPos;
@@ -1223,9 +1223,9 @@ private:
 
 	void _defaultSelectClip() {
 		SGE_ASSERT(_clips.size() > 0);
-		constexpr const char* k_ClipName = "Walking";
+		constexpr const char* kClipName = "Walking";
 		for (int i = 0; i < _clips.size(); ++i) {
-			if (_clips[i].name() == k_ClipName) {
+			if (_clips[i].name() == kClipName) {
 				_currentClip = i;
 				_cpuAnimInfo.clip = i;
 				_gpuAnimInfo.clip = i;
@@ -1235,9 +1235,9 @@ private:
 	}
 
 	void _defaultSetAdditiveBasePose() {
-		constexpr const char* k_ClipName = "Lean_Left";
+		constexpr const char* kClipName = "Lean_Left";
 		for (int i = 0; i < _clips.size(); ++i) {
-			if (_clips[i].name() == k_ClipName) {
+			if (_clips[i].name() == kClipName) {
 				_cpuAnimInfo.additiveClip = i;
 				_gpuAnimInfo.additiveClip = i;
 				break;
