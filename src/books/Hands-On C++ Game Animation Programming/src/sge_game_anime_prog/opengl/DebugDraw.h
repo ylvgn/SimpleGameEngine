@@ -19,6 +19,7 @@ namespace sge {
 enum class DebugDrawMode { Lines, Loop, Strip, Points };
 
 class CCDSolver;
+class FABRIKSolver;
 class Pose;
 
 class DebugDraw : public NonCopyable {
@@ -38,7 +39,7 @@ class DebugDraw : public NonCopyable {
 		"}";
 
 public:
-#if 1
+#if 0
 	DebugDraw(size_t newSize = 0) : _shader(new Shader(kVert, kFrag)) { resize(newSize); }
 #else
 	DebugDraw(size_t newSize = 0) : _shader(new Shader(
@@ -70,10 +71,13 @@ public:
 	void linesFromIKSolver(const CCDSolver& solver);
 	void pointsFromIKSolver(const CCDSolver& solver);
 
+	void linesFromIKSolver(const FABRIKSolver& solver);
+	void pointsFromIKSolver(const FABRIKSolver& solver);
+
 private:
-	Vector<vec3>	_points;
-	Attribute<vec3> _attribs;
-	SPtr<Shader>	_shader;
+	Vector<vec3f>		_points;
+	Attribute<vec3f>	_attribs;
+	SPtr<Shader>		_shader;
 };
 
 }

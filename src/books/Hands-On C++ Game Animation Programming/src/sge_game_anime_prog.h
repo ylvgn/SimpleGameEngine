@@ -26,6 +26,7 @@
 #include <sge_game_anime_prog/animation/blending/CrossFadeController.h>
 
 #include <sge_game_anime_prog/ik/CCDSolver.h>
+#include <sge_game_anime_prog/ik/FABRIKSolver.h>
 
 #include <sge_game_anime_prog/rendering/Mesh.h>
 

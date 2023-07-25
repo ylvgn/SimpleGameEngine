@@ -4,6 +4,7 @@
 
 #include <sge_game_anime_prog/animation/Pose.h>
 #include <sge_game_anime_prog/ik/CCDSolver.h>
+#include <sge_game_anime_prog/ik/FABRIKSolver.h>
 
 namespace sge {
 
@@ -67,6 +68,27 @@ void DebugDraw::linesFromIKSolver(const CCDSolver& solver) {
 }
 
 void DebugDraw::pointsFromIKSolver(const CCDSolver& solver) {
+	size_t jointCount = solver.getJointCount();
+	if (jointCount == 0) return;
+
+	_points.resize(jointCount);
+	for (int i = 0; i < jointCount; ++i) {
+		_points[i] = solver.getGlobalTransform(i).position;
+	}
+}
+
+void DebugDraw::linesFromIKSolver(const FABRIKSolver& solver) {
+	size_t jointCount = solver.getJointCount();
+	if (jointCount < 2) return;
+
+	_points.resize((jointCount - 1) * 2);
+	for (int i = 1, index = 0; i < jointCount; ++i) {
+		_points[index++] = solver.getGlobalTransform(i-1).position;
+		_points[index++] = solver.getGlobalTransform(i).position;
+	}
+}
+
+void DebugDraw::pointsFromIKSolver(const FABRIKSolver& solver) {
 	size_t jointCount = solver.getJointCount();
 	if (jointCount == 0) return;
 

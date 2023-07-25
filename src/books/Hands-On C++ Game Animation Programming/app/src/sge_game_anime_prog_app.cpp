@@ -79,15 +79,13 @@ public:
 		endRender();
 	}
 
+	Color4f kRed	{1,0,0,1};
+	Color4f kGreen	{0,1,0,1};
+	Color4f kBlue	{0,0,1,1};
+	Color4f kYellow	{1,1,0,1};
+	Color4f kPurple	{1,0,1,1};
+
 protected:
-	const Color4f kRed		{1,0,0,1};
-	const Color4f kGreen	{0,1,0,1};
-	const Color4f kBlue		{0,0,1,1};
-	const Color4f kYellow	{1,1,0,1};
-	const Color4f kPurple	{1,0,1,1};
-
-	const float kGizmoSize  = 0.25f;
-
 	virtual void onCreate(CreateDesc& desc) override {
 		Base::onCreate(desc);
 
@@ -241,9 +239,10 @@ class MyExampleMainWin : public MainWin {
 	E(Crossfading,) \
 	E(AdditiveBlending,) \
 	E(CCD,) \
+	E(FABRIK,) \
 // ----------
 	SGE_ENUM_DECLARE(MyCaseType, u8)
-	MyCaseType __caseType = MyCaseType::CCD;
+	MyCaseType __caseType = MyCaseType::FABRIK;
 
 	virtual void onCreate(CreateDesc& desc) override { Base::onCreate(desc); RUN_CASE(onCreate) }
 	virtual void onUpdate(float dt)			override { RUN_CASE(onUpdate) }
@@ -730,51 +729,12 @@ private:
 		_additiveDirection = 1.f;
 	}
 	void test_CCD_onCreate() {
-
-		{ // debug draw
-			_debugLines  = eastl::make_unique<DebugDraw>();
-			_debugPoints = eastl::make_unique<DebugDraw>();
-
-			_ccdTargetVisual.resize(3);
-			for (int i = 0; i < 3; i++) {
-				_ccdTargetVisual[i] = eastl::make_unique<DebugDraw>(2);
-			}
-		}
-
-		{ // create a ikchain
-			_ccdSolver.resize(6);
-			_ccdSolver[0] = Transform(vec3::s_zero(), quat::s_angleAxis(Math::radians(90.f), vec3::s_right()), vec3::s_one());
-			_ccdSolver[1] = Transform(vec3(0, 0, 1.0f), quat::s_identity(), vec3::s_one());
-			_ccdSolver[2] = Transform(vec3(0, 0, 1.5f), quat::s_identity(), vec3::s_one());
-			_ccdSolver[3] = Transform(vec3(0, 0, 0.5f), quat::s_angleAxis(Math::radians(90.0f), vec3::s_up()), vec3::s_one());
-			_ccdSolver[4] = Transform(vec3(0, 0, 0.5f), quat::s_identity(), vec3::s_one());
-			_ccdSolver[5] = Transform(vec3(0, 0, 0.5f), quat::s_identity(), vec3::s_one());
-		}
-
-		_playbackTime = 0.0f;
-
-		{ // add one clip, and make it loop
-			vec3f startPos = vec3(1,-2,0);
-			_ccdTarget.position = startPos;
-			const int kFrameCount = 14;
-			float factor = 0.5f;
-			VectorTrack& posTrack = constCast(_ccdTargetPath.position());
-			posTrack.resize(kFrameCount);
-			posTrack[0 ] = FrameUtil::createFrame(0.f,   startPos     * factor);
-			posTrack[1 ] = FrameUtil::createFrame(1.0f,  vec3(1, 2,0) * factor);
-			posTrack[2 ] = FrameUtil::createFrame(2.0f,  vec3(1, 4,0) * factor);
-			posTrack[3 ] = FrameUtil::createFrame(3.0f,  vec3(3, 4,0) * factor);
-			posTrack[4 ] = FrameUtil::createFrame(4.0f,  vec3(5, 4,0) * factor);
-			posTrack[5 ] = FrameUtil::createFrame(5.0f,  vec3(5, 4,2) * factor);
-			posTrack[6 ] = FrameUtil::createFrame(6.0f,  vec3(5, 4,4) * factor);
-			posTrack[7 ] = FrameUtil::createFrame(7.0f,  vec3(3, 4,4) * factor);
-			posTrack[8 ] = FrameUtil::createFrame(8.0f,  vec3(3, 2,4) * factor);
-			posTrack[9 ] = FrameUtil::createFrame(9.0f,  vec3(3, 2,2) * factor);
-			posTrack[10] = FrameUtil::createFrame(10.0f, vec3(1, 2,2) * factor);
-			posTrack[11] = FrameUtil::createFrame(11.0f, vec3(1, 0,2) * factor);
-			posTrack[12] = FrameUtil::createFrame(12.0f, vec3(1,-2,2) * factor);
-			posTrack[13] = FrameUtil::createFrame(13.0f, startPos     * factor);
-		}
+		_ccdSolver = eastl::make_unique< IKSolverExample<CCDSolver> >();
+		_ccdSolver->onCreate();
+	}
+	void test_FABRIK_onCreate() {
+		_fabrikSolver = eastl::make_unique< IKSolverExample<FABRIKSolver> >();
+		_fabrikSolver->onCreate();
 	}
 
 	void test_LitTexture_onUpdate(float dt) {
@@ -909,16 +869,10 @@ private:
 		_populatePosePalette();
 	}
 	void test_CCD_onUpdate(float dt) {
-		_playbackTime += dt;
-		if (_playbackTime > _ccdTargetPath.getEndTime()) {
-			_playbackTime -= _ccdTargetPath.getEndTime();
-		}
-		Track_SampleRequest sr;
-		sr.time = _playbackTime;
-		sr.isLoop = true;
-		_ccdTarget = _ccdTargetPath.sample(_ccdTarget, sr);
-//		SGE_LOG("{}s :\t{}", _playbackTime, _ccdTarget.position);
-		_ccdSolver.solve(_ccdTarget);
+		_ccdSolver->onUpdate(dt);
+	}
+	void test_FABRIK_onUpdate(float dt) {
+		_fabrikSolver->onUpdate(dt);
 	}
 
 	void test_LitTexture_onRender() {
@@ -1052,48 +1006,142 @@ private:
 		_onDrawGpuSkinning();
 	}
 	void test_CCD_onRender() {
-		static const float kCamPitch = 45.0f;
-		static const float kCamYaw   = 60.0f;
-		static const float kCamDist  = 7.0f;
-		vec3 eyesPos(kCamDist * cosf(Math::radians(kCamYaw)) * sinf(Math::radians(kCamPitch)),
-			         kCamDist * cosf(Math::radians(kCamPitch)),
-			         kCamDist * sinf(Math::radians(kCamYaw)) * sinf(Math::radians(kCamPitch))
-		);
+		_ccdSolver->onRender(_aspect);
+	}
 
-		mat4 projection = mat4::s_perspective(60.0f, _aspect, 0.01f, 100.0f);
-		mat4 view = mat4::s_lookAt(eyesPos /*vec3(0, 0, 10)*/, vec3::s_zero(), vec3::s_up());
-		mat4 mvp = projection * view * mat4::s_identity();
-
-		{ // draw ikchains
-			_debugLines->linesFromIKSolver(_ccdSolver);
-			_debugPoints->pointsFromIKSolver(_ccdSolver);
-			_debugLines->uploadToGpu();
-			_debugPoints->uploadToGpu();
-			_debugLines->draw(DebugDrawMode::Lines, mvp, kPurple);
-			_debugPoints->draw(DebugDrawMode::Points, mvp, kPurple);
-		}
-
-		{ // 6 points -> 3 lines (xyz-axis) of target
-			(*_ccdTargetVisual[0])[0] = _ccdTarget.position + (vec3::s_right()	*  kGizmoSize); // x - red
-			(*_ccdTargetVisual[0])[1] = _ccdTarget.position + (vec3::s_right()	* -kGizmoSize); //-x - red
-
-			(*_ccdTargetVisual[1])[0] = _ccdTarget.position + (vec3::s_up()		*  kGizmoSize); // y - green
-			(*_ccdTargetVisual[1])[1] = _ccdTarget.position + (vec3::s_up()		* -kGizmoSize); //-y - green
-
-			(*_ccdTargetVisual[2])[0] = _ccdTarget.position + (vec3::s_forward()	*  kGizmoSize); // z - blue
-			(*_ccdTargetVisual[2])[1] = _ccdTarget.position + (vec3::s_forward()	* -kGizmoSize); //-z - blue
-
-			_ccdTargetVisual[0]->uploadToGpu();
-			_ccdTargetVisual[1]->uploadToGpu();
-			_ccdTargetVisual[2]->uploadToGpu();
-
-			_ccdTargetVisual[0]->draw(DebugDrawMode::Lines, mvp, kRed);
-			_ccdTargetVisual[1]->draw(DebugDrawMode::Lines, mvp, kGreen);
-			_ccdTargetVisual[2]->draw(DebugDrawMode::Lines, mvp, kBlue);
-		}
+	void test_FABRIK_onRender() {
+		_fabrikSolver->onRender(_aspect);
 	}
 
 private:
+
+	template<class IKSolver>
+	class IKSolverExample : public NonCopyable {
+		
+		const Color4f kRed		{1,0,0,1};
+		const Color4f kGreen	{0,1,0,1};
+		const Color4f kBlue		{0,0,1,1};
+		const Color4f kYellow	{1,1,0,1};
+		const Color4f kPurple	{1,0,1,1};
+
+		const float kCamPitch	= 45.0f;
+		const float kCamYaw		= 60.0f;
+		const float kCamDist	= 7.0f;
+
+		const float kGizmoSize	= 0.25f;
+	public:
+		IKSolverExample() {
+			_sr.time = 0.0f;
+			_sr.isLoop = true;
+
+			{ // create ikChains
+				_solver.resize(6);
+				_solver[0] = Transform(vec3::s_zero(), quat::s_angleAxis(Math::radians(90.f), vec3::s_right()), vec3::s_one());
+				_solver[1] = Transform(vec3(0, 0, 1.0f), quat::s_identity(), vec3::s_one());
+				_solver[2] = Transform(vec3(0, 0, 1.5f), quat::s_identity(), vec3::s_one());
+				_solver[3] = Transform(vec3(0, 0, 0.5f), quat::s_angleAxis(Math::radians(90.0f), vec3::s_up()), vec3::s_one());
+				_solver[4] = Transform(vec3(0, 0, 0.5f), quat::s_identity(), vec3::s_one());
+				_solver[5] = Transform(vec3(0, 0, 0.5f), quat::s_identity(), vec3::s_one());
+			}
+
+			{ // add one clip, and make it loop
+				vec3f startPos = vec3(1,-2,0);
+				_target.position = startPos;
+				const int kFrameCount = 14;
+				float factor = 0.5f;
+				VectorTrack& posTrack = constCast(_targetPath.position());
+				posTrack.resize(kFrameCount);
+				posTrack[0 ] = FrameUtil::createFrame(0.f,   startPos     * factor);
+				posTrack[1 ] = FrameUtil::createFrame(1.0f,  vec3(1, 2,0) * factor);
+				posTrack[2 ] = FrameUtil::createFrame(2.0f,  vec3(1, 4,0) * factor);
+				posTrack[3 ] = FrameUtil::createFrame(3.0f,  vec3(3, 4,0) * factor);
+				posTrack[4 ] = FrameUtil::createFrame(4.0f,  vec3(5, 4,0) * factor);
+				posTrack[5 ] = FrameUtil::createFrame(5.0f,  vec3(5, 4,2) * factor);
+				posTrack[6 ] = FrameUtil::createFrame(6.0f,  vec3(5, 4,4) * factor);
+				posTrack[7 ] = FrameUtil::createFrame(7.0f,  vec3(3, 4,4) * factor);
+				posTrack[8 ] = FrameUtil::createFrame(8.0f,  vec3(3, 2,4) * factor);
+				posTrack[9 ] = FrameUtil::createFrame(9.0f,  vec3(3, 2,2) * factor);
+				posTrack[10] = FrameUtil::createFrame(10.0f, vec3(1, 2,2) * factor);
+				posTrack[11] = FrameUtil::createFrame(11.0f, vec3(1, 0,2) * factor);
+				posTrack[12] = FrameUtil::createFrame(12.0f, vec3(1,-2,2) * factor);
+				posTrack[13] = FrameUtil::createFrame(13.0f, startPos     * factor);
+			}
+		}
+
+		void onCreate() {
+			// debugDraw depends on opengl, create it after "gladLoadGL"
+			_debugLines = eastl::make_unique<DebugDraw>();
+			_debugPoints = eastl::make_unique<DebugDraw>();
+
+			_targetVisual.resize(3);
+			for (int i = 0; i < 3; i++) {
+				_targetVisual[i] = eastl::make_unique<DebugDraw>(2);
+			}
+		}
+
+		void onUpdate(float dt) {
+			_sr.time += dt;
+			if (_sr.time > _targetPath.getEndTime()) {
+				_sr.time -= _targetPath.getEndTime();
+			}
+
+			_target = _targetPath.sample(_target, _sr);
+//			SGE_LOG("{}s :\t{}", _sr.time, _target.position);
+			_solver.solve(_target);
+		}
+
+		void onRender(float aspect) {
+			vec3 eyesPos(kCamDist * cosf(Math::radians(kCamYaw)) * sinf(Math::radians(kCamPitch)),
+				kCamDist * cosf(Math::radians(kCamPitch)),
+				kCamDist * sinf(Math::radians(kCamYaw)) * sinf(Math::radians(kCamPitch))
+			);
+
+			mat4 projection = mat4::s_perspective(60.0f, aspect, 0.01f, 100.0f);
+			mat4 view = mat4::s_lookAt(eyesPos /*vec3(0, 0, 10)*/, vec3::s_zero(), vec3::s_up());
+			mat4 mvp = projection * view * mat4::s_identity();
+
+			{ // draw ikChains
+				_debugLines->linesFromIKSolver(_solver);
+				_debugPoints->pointsFromIKSolver(_solver);
+				_debugLines->uploadToGpu();
+				_debugPoints->uploadToGpu();
+				_debugLines->draw(DebugDrawMode::Lines, mvp, kPurple);
+				_debugPoints->draw(DebugDrawMode::Points, mvp, kPurple);
+			}
+
+			{ // 6 points -> 3 lines (xyz-axis) of target
+				(*_targetVisual[0])[0] = _target.position + (vec3::s_right() * kGizmoSize);		// x - red
+				(*_targetVisual[0])[1] = _target.position + (vec3::s_right() * -kGizmoSize);		//-x - red
+
+				(*_targetVisual[1])[0] = _target.position + (vec3::s_up() * kGizmoSize);			// y - green
+				(*_targetVisual[1])[1] = _target.position + (vec3::s_up() * -kGizmoSize);			//-y - green
+
+				(*_targetVisual[2])[0] = _target.position + (vec3::s_forward() * kGizmoSize);		// z - blue
+				(*_targetVisual[2])[1] = _target.position + (vec3::s_forward() * -kGizmoSize);	//-z - blue
+
+				_targetVisual[0]->uploadToGpu();
+				_targetVisual[1]->uploadToGpu();
+				_targetVisual[2]->uploadToGpu();
+
+				_targetVisual[0]->draw(DebugDrawMode::Lines, mvp, kRed);
+				_targetVisual[1]->draw(DebugDrawMode::Lines, mvp, kGreen);
+				_targetVisual[2]->draw(DebugDrawMode::Lines, mvp, kBlue);
+			}
+		}
+
+	private:
+
+		UPtr<DebugDraw>				_debugPoints;
+		UPtr<DebugDraw>				_debugLines;
+		Vector<UPtr<DebugDraw>, 3>	_targetVisual;
+
+		Track_SampleRequest			_sr;
+
+		Transform					_target;
+		TransformTrack				_targetPath;
+
+		IKSolver					_solver;
+	};
 
 	void _onDrawGpuSkinning() {
 		mat4 projection = mat4::s_perspective(60.0f, _aspect, 0.01f, 10.f);
@@ -1210,63 +1258,60 @@ private:
 	}
 
 private:
-	float					_testRotation = 0.0f;
+	float									_testRotation = 0.0f;
 
-	SPtr<Shader>			_staticShader;
-	SPtr<Texture>			_texture;
+	SPtr<Shader>							_staticShader;
+	SPtr<Texture>							_texture;
 
-	UPtr< Attribute<vec3> >	_vertexPositions;
-	UPtr< Attribute<vec3> >	_vertexNormals;
-	UPtr< Attribute<vec2> >	_vertexTexCoords;
-	UPtr<IndexBuffer>		_indexBuffer;
+	UPtr< Attribute<vec3> >					_vertexPositions;
+	UPtr< Attribute<vec3> >					_vertexNormals;
+	UPtr< Attribute<vec2> >					_vertexTexCoords;
+	UPtr<IndexBuffer>						_indexBuffer;
 
-	UPtr<DebugDraw>			_debugPoints;
-	UPtr<DebugDraw>			_debugLines;
+	UPtr<DebugDraw>							_debugPoints;
+	UPtr<DebugDraw>							_debugLines;
 
-	Vector<ScalarTrack>		_scalarTracks;
-	Vector<bool>			_scalarTracksIsLoop;
+	Vector<ScalarTrack>						_scalarTracks;
+	Vector<bool>							_scalarTracksIsLoop;
 
-	UPtr<DebugDraw>			_scalarTrackLines;
-	UPtr<DebugDraw>			_handlePoints;
-	UPtr<DebugDraw>			_handleLines;
-	UPtr<DebugDraw>			_referenceLines;
+	UPtr<DebugDraw>							_scalarTrackLines;
+	UPtr<DebugDraw>							_handlePoints;
+	UPtr<DebugDraw>							_handleLines;
+	UPtr<DebugDraw>							_referenceLines;
 
-	Skeleton				_skeleton;
-	Pose					_currentPose;
-	Vector<Clip>			_clips;
-	int						_currentClip;
-	float					_playbackTime;
+	Skeleton								_skeleton;
+	Pose									_currentPose;
+	Vector<Clip>							_clips;
+	int										_currentClip;
+	float									_playbackTime;
 
-	UPtr<DebugDraw>			_restPoseVisual;
-	UPtr<DebugDraw>			_bindPoseVisual;
-	UPtr<DebugDraw>			_currentPoseVisual;
+	UPtr<DebugDraw>							_restPoseVisual;
+	UPtr<DebugDraw>							_bindPoseVisual;
+	UPtr<DebugDraw>							_currentPoseVisual;
 
-	Vector<Mesh>			_cpuMeshes;
-	AnimationInstance		_cpuAnimInfo;
-	AnimationAttribLocation _cpuAttribLoc;
+	Vector<Mesh>							_cpuMeshes;
+	AnimationInstance						_cpuAnimInfo;
+	AnimationAttribLocation					_cpuAttribLoc;
 
-	SPtr<Shader>			_skinnedShader;
-	Vector<Mesh>			_gpuMeshes;
-	AnimationInstance		_gpuAnimInfo;
-	AnimationAttribLocation _gpuAttribLoc;
+	SPtr<Shader>							_skinnedShader;
+	Vector<Mesh>							_gpuMeshes;
+	AnimationInstance						_gpuAnimInfo;
+	AnimationAttribLocation					_gpuAttribLoc;
 
-	Vector<FastClip>	    _fastClips;
+	Vector<FastClip>						_fastClips;
 
-	AnimationInstance		_blendAnimA;
-	AnimationInstance		_blendAnimB;
-	float					_elapsedBlendTime;
-	bool					_isInvertBlend;
+	AnimationInstance						_blendAnimA;
+	AnimationInstance						_blendAnimB;
+	float									_elapsedBlendTime;
+	bool									_isInvertBlend;
 
-	float					_fadeTimer;
+	float									_fadeTimer;
 
-	float					_additiveTime;      // 0~1
-	float					_additiveDirection; // -1,1
+	float									_additiveTime;      // 0~1
+	float									_additiveDirection; // -1,1
 
-	CCDSolver				_ccdSolver;
-	Transform				_ccdTarget;
-	TransformTrack			_ccdTargetPath;
-
-	Vector<UPtr<DebugDraw>, 3> _ccdTargetVisual;
+	UPtr< IKSolverExample<CCDSolver> >		_ccdSolver;
+	UPtr< IKSolverExample<FABRIKSolver> >	_fabrikSolver;
 };
 
 class GameAnimeProgApp : public NativeUIApp {
