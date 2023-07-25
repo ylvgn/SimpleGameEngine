@@ -79,7 +79,7 @@ public:
 	SGE_NODISCARD SGE_INLINE Vec3	cross	(const Vec3& v) const	{ return Vec3(y*v.z - z*v.y, z*v.x - x*v.z,x*v.y - y*v.x); }
 	SGE_NODISCARD SGE_INLINE T		dot		(const Vec3& v) const	{ return (x*v.x) + (y*v.y) + (z*v.z); }
 
-	SGE_NODISCARD SGE_INLINE T		magnitude		() const	{ return Math::sqrt (sqrMagnitude()); }
+	SGE_NODISCARD SGE_INLINE T		magnitude		() const	{ T m = sqrMagnitude(); return Math::equals0(m) ? T(0) : Math::sqrt(m); }
 	SGE_NODISCARD SGE_INLINE T		sqrMagnitude	() const	{ return dot(*this); }
 
 	SGE_NODISCARD SGE_INLINE T		length			() const	{ return magnitude(); }
