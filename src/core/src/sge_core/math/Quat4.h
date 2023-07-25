@@ -160,8 +160,12 @@ Quat4<T> Quat4<T>::conjugate() const {
 
 template<class T> inline
 Quat4<T> Quat4<T>::inverse() const {
-	T d = x * x + y * y + z * z + w * w;
-	return Quat4(-x/d, -y/d, -z/d, w/d);
+	T lenSq = x * x + y * y + z * z + w * w;
+	if (Math::equals0(lenSq)) {
+		return Quat4::s_identity();
+	}
+	T recip = T(1) / lenSq;
+	return Quat4(-x/recip, -y/recip, -z/recip, w/recip);
 }
 
 template<class T> inline
