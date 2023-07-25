@@ -26,7 +26,9 @@ template<typename T>
 Attribute<T>::Attribute()
 	: _count(0)
 {
-	glGenBuffers(1, &_handle); // generate an OpenGL buffer and store it in the handle
+	// generate an OpenGL buffer and store it in the handle
+	// call any opengl function after "gladLoadGL" done
+	glGenBuffers(1, &_handle);
 }
 
 template<typename T>

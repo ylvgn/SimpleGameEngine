@@ -356,12 +356,12 @@ struct mat4 {
 			         r.z,         u.z,        -f.z,        0,
 			        -r.dot(eye), -u.dot(eye),  f.dot(eye), 1);
 /*
-		mat4::s_lookAt equivalent to view matrix
+		mat4::s_lookAt is equivalent to view matrix
 			The view matrix is the inverse of the camera's transformation (the position, rotation, and scale of the camera).
 			Instead of having to create the camera's transform matrix and then invert it,
-			you will be implementing a s_lookAt function that generates this matrix directly.
-			The s_lookAt function is the most convenient way of constructing a view matrix.
-			ex: s_lookAt(camera.position, {0,0,0}, {0,1,0})
+			you will be implementing a mat4::s_lookAt function that generates this matrix directly.
+			The mat4::s_lookAt function is the most convenient way of constructing a view matrix.
+			ex: mat4::s_lookAt(camera.position, {0,0,0}, {0,1,0})
 */
 	}
 

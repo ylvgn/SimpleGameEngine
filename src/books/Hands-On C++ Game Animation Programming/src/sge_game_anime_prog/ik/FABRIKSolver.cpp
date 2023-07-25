@@ -41,7 +41,8 @@ void FABRIKSolver::_ikChainsToWorld() {
 		_worldChians[i] = world.position;
 
 		if (i >= 1) {
-			_lengths[i] = (_worldChians[i] - _worldChians[i - 1]).len();
+			vec3 prev = _worldChians[i - 1];
+			_lengths[i] = (_worldChians[i] - prev).len();
 		}
 	}
 
@@ -102,7 +103,7 @@ bool FABRIKSolver::solve(const Transform& target) {
 
 	_ikChainsToWorld();
 
-	vec3f goal = target.position;
+	const auto& goal = target.position;
 	vec3f base = _worldChians[0];
 
 	int last = static_cast<int>(jointCount) - 1;

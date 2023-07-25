@@ -11,21 +11,19 @@ namespace sge{
 */
 class CCDSolver : public NonCopyable {
 public:
-	CCDSolver() = default;
-
 	inline size_t getJointCount() const { return _ikChains.size(); }
-	inline void resize(size_t newSize) { _ikChains.resize(newSize); }
+	inline void resize(size_t newSize)  { _ikChains.resize(newSize); }
 
 	inline       Transform& operator[](int i)		{ return _ikChains[i]; }
 	inline const Transform& operator[](int i) const	{ return _ikChains[i]; }
 
 	Transform getGlobalTransform(int i) const;
 
-	inline int stepCount() const		{ return _stepCount; }
-	inline void setStepCount(int sc)	{ _stepCount = sc; }
+	inline void setStepCount(int stepCount)		{ _stepCount = stepCount; }
+	inline int stepCount() const				{ return _stepCount; }
 
-	inline float threshold() const		{ return _threshold; }
-	inline float setThreshold(float th) { _threshold = th; }
+	inline float setThreshold(float threshold)  { _threshold = threshold; }
+	inline float threshold() const				{ return _threshold; }
 
 	bool solve(const Transform& target);
 

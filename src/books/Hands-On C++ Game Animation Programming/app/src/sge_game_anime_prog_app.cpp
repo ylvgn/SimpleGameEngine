@@ -1035,7 +1035,8 @@ private:
 			_sr.isLoop = true;
 
 			{ // create ikChains
-				_solver.resize(6);
+				const size_t kJointCount = 6;
+				_solver.resize(kJointCount);
 				_solver[0] = Transform(vec3::s_zero(), quat::s_angleAxis(Math::radians(90.f), vec3::s_right()), vec3::s_one());
 				_solver[1] = Transform(vec3(0, 0, 1.0f), quat::s_identity(), vec3::s_one());
 				_solver[2] = Transform(vec3(0, 0, 1.5f), quat::s_identity(), vec3::s_one());
@@ -1045,32 +1046,34 @@ private:
 			}
 
 			{ // add one clip, and make it loop
+				const size_t kFrameCount = 14;
+				const float  kFactor	 = 0.5f;
+
 				vec3f startPos = vec3(1,-2,0);
 				_target.position = startPos;
-				const int kFrameCount = 14;
-				float factor = 0.5f;
+
 				VectorTrack& posTrack = constCast(_targetPath.position());
 				posTrack.resize(kFrameCount);
-				posTrack[0 ] = FrameUtil::createFrame(0.f,   startPos     * factor);
-				posTrack[1 ] = FrameUtil::createFrame(1.0f,  vec3(1, 2,0) * factor);
-				posTrack[2 ] = FrameUtil::createFrame(2.0f,  vec3(1, 4,0) * factor);
-				posTrack[3 ] = FrameUtil::createFrame(3.0f,  vec3(3, 4,0) * factor);
-				posTrack[4 ] = FrameUtil::createFrame(4.0f,  vec3(5, 4,0) * factor);
-				posTrack[5 ] = FrameUtil::createFrame(5.0f,  vec3(5, 4,2) * factor);
-				posTrack[6 ] = FrameUtil::createFrame(6.0f,  vec3(5, 4,4) * factor);
-				posTrack[7 ] = FrameUtil::createFrame(7.0f,  vec3(3, 4,4) * factor);
-				posTrack[8 ] = FrameUtil::createFrame(8.0f,  vec3(3, 2,4) * factor);
-				posTrack[9 ] = FrameUtil::createFrame(9.0f,  vec3(3, 2,2) * factor);
-				posTrack[10] = FrameUtil::createFrame(10.0f, vec3(1, 2,2) * factor);
-				posTrack[11] = FrameUtil::createFrame(11.0f, vec3(1, 0,2) * factor);
-				posTrack[12] = FrameUtil::createFrame(12.0f, vec3(1,-2,2) * factor);
-				posTrack[13] = FrameUtil::createFrame(13.0f, startPos     * factor);
+				posTrack[0 ] = FrameUtil::createFrame(0.f,   startPos      * kFactor);
+				posTrack[1 ] = FrameUtil::createFrame(1.0f,  vec3(1, 2, 0) * kFactor);
+				posTrack[2 ] = FrameUtil::createFrame(2.0f,  vec3(1, 4, 0) * kFactor);
+				posTrack[3 ] = FrameUtil::createFrame(3.0f,  vec3(3, 4, 0) * kFactor);
+				posTrack[4 ] = FrameUtil::createFrame(4.0f,  vec3(5, 4, 0) * kFactor);
+				posTrack[5 ] = FrameUtil::createFrame(5.0f,  vec3(5, 4, 2) * kFactor);
+				posTrack[6 ] = FrameUtil::createFrame(6.0f,  vec3(5, 4, 4) * kFactor);
+				posTrack[7 ] = FrameUtil::createFrame(7.0f,  vec3(3, 4, 4) * kFactor);
+				posTrack[8 ] = FrameUtil::createFrame(8.0f,  vec3(3, 2, 4) * kFactor);
+				posTrack[9 ] = FrameUtil::createFrame(9.0f,  vec3(3, 2, 2) * kFactor);
+				posTrack[10] = FrameUtil::createFrame(10.0f, vec3(1, 2, 2) * kFactor);
+				posTrack[11] = FrameUtil::createFrame(11.0f, vec3(1, 0, 2) * kFactor);
+				posTrack[12] = FrameUtil::createFrame(12.0f, vec3(1,-2, 2) * kFactor);
+				posTrack[13] = FrameUtil::createFrame(13.0f, startPos      * kFactor);
 			}
 		}
 
 		void onCreate() {
 			// debugDraw depends on opengl, create it after "gladLoadGL"
-			_debugLines = eastl::make_unique<DebugDraw>();
+			_debugLines  = eastl::make_unique<DebugDraw>();
 			_debugPoints = eastl::make_unique<DebugDraw>();
 
 			_targetVisual.resize(3);
@@ -1086,14 +1089,13 @@ private:
 			}
 
 			_target = _targetPath.sample(_target, _sr);
-//			SGE_LOG("{}s :\t{}", _sr.time, _target.position);
 			_solver.solve(_target);
 		}
 
 		void onRender(float aspect) {
 			vec3 eyesPos(kCamDist * cosf(Math::radians(kCamYaw)) * sinf(Math::radians(kCamPitch)),
-				kCamDist * cosf(Math::radians(kCamPitch)),
-				kCamDist * sinf(Math::radians(kCamYaw)) * sinf(Math::radians(kCamPitch))
+				         kCamDist * cosf(Math::radians(kCamPitch)),
+				         kCamDist * sinf(Math::radians(kCamYaw)) * sinf(Math::radians(kCamPitch))
 			);
 
 			mat4 projection = mat4::s_perspective(60.0f, aspect, 0.01f, 100.0f);
@@ -1110,15 +1112,12 @@ private:
 			}
 
 			{ // 6 points -> 3 lines (xyz-axis) of target
-				(*_targetVisual[0])[0] = _target.position + (vec3::s_right() * kGizmoSize);		// x - red
-				(*_targetVisual[0])[1] = _target.position + (vec3::s_right() * -kGizmoSize);		//-x - red
-
-				(*_targetVisual[1])[0] = _target.position + (vec3::s_up() * kGizmoSize);			// y - green
-				(*_targetVisual[1])[1] = _target.position + (vec3::s_up() * -kGizmoSize);			//-y - green
-
-				(*_targetVisual[2])[0] = _target.position + (vec3::s_forward() * kGizmoSize);		// z - blue
-				(*_targetVisual[2])[1] = _target.position + (vec3::s_forward() * -kGizmoSize);	//-z - blue
-
+				(*_targetVisual[0])[0] = _target.position + (vec3::s_right()   *  kGizmoSize);	// x -red
+				(*_targetVisual[0])[1] = _target.position + (vec3::s_right()   * -kGizmoSize);	//-x -red
+				(*_targetVisual[1])[0] = _target.position + (vec3::s_up()      *  kGizmoSize);	// y -green
+				(*_targetVisual[1])[1] = _target.position + (vec3::s_up()      * -kGizmoSize);	//-y -green
+				(*_targetVisual[2])[0] = _target.position + (vec3::s_forward() *  kGizmoSize);	// z -blue
+				(*_targetVisual[2])[1] = _target.position + (vec3::s_forward() * -kGizmoSize);	//-z -blue
 				_targetVisual[0]->uploadToGpu();
 				_targetVisual[1]->uploadToGpu();
 				_targetVisual[2]->uploadToGpu();
@@ -1174,10 +1173,10 @@ private:
 		_gpuAnimInfo.animatedPose.getMatrixPalette(_gpuAnimInfo.posePalette);
 	}
 
-	void _drawMesh(Mesh& mesh, const AnimationAttribLocation& aloc) {
-		mesh.bind(aloc.pos, aloc.normal, aloc.uv, aloc.weights, aloc.joints);
+	void _drawMesh(Mesh& mesh, const AnimationAttribLocation& attribLoc) {
+		mesh.bind(attribLoc.pos, attribLoc.normal, attribLoc.uv, attribLoc.weights, attribLoc.joints);
 		mesh.draw();
-		mesh.unbind(aloc.pos, aloc.normal, aloc.uv, aloc.weights, aloc.joints);
+		mesh.unbind(attribLoc.pos, attribLoc.normal, attribLoc.uv, attribLoc.weights, attribLoc.joints);
 	}
 
 	void _loadExampleAsset() {

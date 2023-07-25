@@ -15,11 +15,8 @@ public:
 	inline void setStepCount(int stepCount)	{ _stepCount = stepCount; }
 	inline int	stepCount() const			{ return _stepCount; }
 
-	void setThreshold(float threshold)	{ _threshold = threshold; }
-	float threshold() const				{ return _threshold; }
-
-	inline Transform getLocalTransform(int i) const			 { return _ikChains[i]; }
-	inline void setLocalTransform(int i, const Transform& t) { _ikChains[i] = t; }
+	void setThreshold(float threshold)		{ _threshold = threshold; }
+	float threshold() const					{ return _threshold; }
 
 	Transform getGlobalTransform(int i) const;
 

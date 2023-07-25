@@ -18,15 +18,15 @@ quat quat::s_fromTo(const vec3& from, const vec3& to) {
 	else if (f.equals(-t)) { // 180 degree rotation
 		// when opposites of each other, the most orthogonal axis of the from vector can be used to create a pure quaternion
 
-		vec3 ortho = vec3::s_right(); // x-axis is the most orthogonal axis of f vector
+		vec3 ortho = vec3::s_right();	// x-axis is the most orthogonal axis of f vector
 
 		if (Math::abs(f.y) < Math::abs(f.x)) {
-			ortho = vec3::s_up(); // y-axis is the most orthogonal axis of f vector
+			ortho = vec3::s_up();		// y-axis is the most orthogonal axis of f vector
 		}
 
 		// when from vector is close to XOY-plane
 		if (Math::abs(f.z) < Math::abs(f.y) && Math::abs(f.z) < Math::abs(f.x)) {
-			ortho = vec3::s_forward(); // z-axis is the most orthogonal axis of f vector
+			ortho = vec3f::s_forward(); // z-axis is the most orthogonal axis of f vector
 		}
 
 		vec3 axis = f.cross(ortho).normalize();
@@ -36,24 +36,26 @@ quat quat::s_fromTo(const vec3& from, const vec3& to) {
 	vec3 half = (f + t).normalize(); // θ/2 between f and t
 	vec3 axis = f.cross(half);
 	return quat(axis.x, axis.y, axis.z, f.dot(half));
-//	The s_fromTo function is one of the most intuitive ways of creating a quaternion.
+//	The quat::s_fromTo function is one of the most intuitive ways of creating a quaternion.
 }
 
 quat quat::s_lookRotation(const vec3& dir, const vec3& up) {
 	vec3 f			= dir.normalize();		// object space forward vector
 	vec3 desiredUp	= up.normalize();		// desired up vector
 	vec3 r			= desiredUp.cross(f);	// object space right vector
+
 	desiredUp		= f.cross(r);			// object space up vector(incorrect)
 
-	quat f2d		= s_fromTo(vec3::s_forward(), f);	// From world forward to object forward
-	vec3 objectUp	= f2d * vec3::s_up();				// what direction is the new object up?
-	quat u2u		= s_fromTo(objectUp, desiredUp);	// From object up to desired up
+	quat f2d		= quat::s_fromTo(vec3f::s_forward(), f);// From world forward to object forward
+	vec3 objectUp	= f2d * vec3::s_up();					// what direction is the new object up?
+	quat u2u		= quat::s_fromTo(objectUp, desiredUp);	// From object up to desired up
 
 	quat result(f2d * u2u);
 	return result.normalize();
 /*
-	The matrix lookAt function creates a view matrix, which is the inverse of the camera transform.
-	This means the rotation of lookAt and the result of s_lookRotation are going to be the inverse of each other.
+	The mat4::s_lookAt function creates a view matrix, which is the inverse of the camera's transformation.
+	This means the rotation of mat4::s_lookAt and the result of quat::s_lookRotation are going to be the inverse of each other.
+	So, quat::s_mat4(mat4::s_lookAt(camera.pos, aim.pos, camera.up)) == inverse(quat::s_lookRotation(aim.pos-camera.pos, camera.up))
 */
 }
 
