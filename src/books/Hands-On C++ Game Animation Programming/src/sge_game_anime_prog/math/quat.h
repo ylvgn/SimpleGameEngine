@@ -136,10 +136,14 @@ struct quat {
 	// The conjugate of a quaternion flips its axis of rotation
 	inline quat conjugate() const { return quat(-x,-y,-z,w); }
 
-//	inverse = conjugate()/sqrMagnitude();
 	inline quat inverse() const {
-		float d = (x*x) + (y*y) + (z*z) + (w*w);
-		return quat(-x/d, -y/d, -z/d, w/d);
+		// inverse = conjugate()/sqrMagnitude();
+		float lenSq = sqrMagnitude();
+		if (Math::equals0(lenSq)) {
+			return quat::s_identity();
+		}
+		float reciprocal = 1.0f / lenSq;
+		return quat(-x*reciprocal, -y*reciprocal, -z*reciprocal, w*reciprocal);
 //		The inverse of a normalized quaternion is its conjugate.
 	}
 

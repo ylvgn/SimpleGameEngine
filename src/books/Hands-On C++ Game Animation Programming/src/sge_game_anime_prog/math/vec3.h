@@ -67,7 +67,7 @@ struct TVec3 {
 
 	inline TVec3	normalize() const { T m = magnitude(); return Math::equals0(m) ? s_zero() : (*this / m); }
 
-	inline T		magnitude()				const { return Math::sqrt(sqrMagnitude()); }
+	inline T		magnitude()				const { T m = sqrMagnitude(); return Math::equals0(m) ? T(0) : Math::sqrt(m); }
 	inline T		sqrMagnitude()			const { return dot(*this); }
 	inline T		lenSq()					const { return sqrMagnitude(); }
 	inline T		len()					const { return magnitude(); }
