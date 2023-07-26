@@ -26,9 +26,9 @@ bool CCDSolver::solve(const Transform& target) {
 	float thresholdSq = _threshold * _threshold;
 	const auto& goal = target.position;
 
+	constexpr const float kEpsilon = 0.00001f;
 	int last = static_cast<int>(jointCount) - 1;
 	for (int i = 0; i < _stepCount; ++i) {
-
 		vec3 effector = getGlobalTransform(last).position;
 		if ((goal - effector).lenSq() < thresholdSq) {
 			return true;
@@ -37,15 +37,16 @@ bool CCDSolver::solve(const Transform& target) {
 		for (int j = last - 1; j >= 0; --j) {
 			effector		= getGlobalTransform(last).position;
 			Transform world = getGlobalTransform(j);
-			vec3 worldPos   = world.position;
-			quat worldRot   = world.rotation;
 
-			vec3 toEffector = effector - worldPos;
-			vec3 toGoal     = goal - worldPos;
+			const vec3& worldPos	= world.position;
+			const quat& worldRot	= world.rotation;
+
+			vec3 toEffector			= effector - worldPos;
+			vec3 toGoal				= goal - worldPos;
 
 #if 1 // calc in world space
 			quat effectorToGoal = quat::s_identity();
-			if (toGoal.lenSq() > 0.00001f) { // maybe no need ???
+			if (toGoal.lenSq() > kEpsilon) { // maybe no need ???
 				// There is an edge case in which the vector pointing to the effector or to the goal could be a zero vector
 				effectorToGoal = quat::s_fromTo(toEffector, toGoal);
 			}

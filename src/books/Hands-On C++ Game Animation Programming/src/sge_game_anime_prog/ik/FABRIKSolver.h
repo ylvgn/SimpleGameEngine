@@ -6,17 +6,18 @@ namespace sge {
 
 class FABRIKSolver : public NonCopyable {
 public:
+
 	inline size_t getJointCount() const { return _ikChains.size(); }
 	void resize(size_t jointCount);
 
 	inline       Transform& operator[](int i)		{ return _ikChains[i]; }
 	inline const Transform& operator[](int i) const { return _ikChains[i]; }
 
-	inline void setStepCount(int stepCount)	{ _stepCount = stepCount; }
-	inline int	stepCount() const			{ return _stepCount; }
+	inline void setStepCount(int stepCount)			{ _stepCount = stepCount; }
+	inline int	stepCount() const					{ return _stepCount; }
 
-	void setThreshold(float threshold)		{ _threshold = threshold; }
-	float threshold() const					{ return _threshold; }
+	void setThreshold(float threshold)				{ _threshold = threshold; }
+	float threshold() const							{ return _threshold; }
 
 	Transform getGlobalTransform(int i) const;
 

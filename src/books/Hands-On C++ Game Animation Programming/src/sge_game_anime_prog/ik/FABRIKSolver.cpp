@@ -10,11 +10,11 @@ void FABRIKSolver::_worldToIkChains() {
 		Transform world = getGlobalTransform(i);
 		Transform next  = getGlobalTransform(i+1);
 
-		const vec3f& worldPos = world.position;
-		const quat&  worldRot = world.rotation;
+		const vec3f& worldPos	= world.position;
+		const quat&  worldRot	= world.rotation;
 
-		vec3f toNext	= next.position - worldPos;
-		vec3f toDesired = _worldChians[i + 1] - worldPos;
+		vec3f toNext			= next.position - worldPos;
+		vec3f toDesired			= _worldChians[i+1] - worldPos;
 
 #if 1 // calc in local space
 		toNext				= worldRot.inverse() * toNext;
@@ -60,7 +60,7 @@ void FABRIKSolver::_iterateBackward(const vec3f& goal) {
 
 	for (int i = last - 1; i >= 0; --i) {
 		vec3f dir = (_worldChians[i] - _worldChians[i+1]).normalize();
-		vec3f offset = dir * _lengths[i + 1];
+		vec3f offset = dir * _lengths[i+1];
 		_worldChians[i] = _worldChians[i+1] + offset;
 	}
 }
@@ -86,7 +86,6 @@ void FABRIKSolver::resize(size_t jointCount) {
 
 Transform FABRIKSolver::getGlobalTransform(int i) const {
 	SGE_ASSERT(i >= 0 && i < _ikChains.size());
-
 	Transform res = _ikChains[i];
 	for (int j = i - 1; j >= 0; --j) {
 		res = Transform::s_combine(_ikChains[j], res);
@@ -101,7 +100,7 @@ bool FABRIKSolver::solve(const Transform& target) {
 	_ikChainsToWorld();
 
 	const auto& goal = target.position;
-	vec3f base = _worldChians[0];
+	const vec3f base = _worldChians[0];
 
 	int last = static_cast<int>(jointCount) - 1;
 	float thresholdSq = _threshold * _threshold;
@@ -118,11 +117,12 @@ bool FABRIKSolver::solve(const Transform& target) {
 	}
 
 	_worldToIkChains();
+
 	const vec3f& effector = _worldChians[last];
 	if ((effector - goal).lenSq() < thresholdSq) {
+		// Check one last time whether the end effector has reached its goal, and return the appropriate Boolean
 		return true;
 	}
-
 	return true;
 }
 

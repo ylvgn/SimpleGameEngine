@@ -15,6 +15,12 @@ typedef const char* (WINAPI* PFNWGLGETEXTENSIONSSTRINGEXTPROC) (void);
 typedef BOOL(WINAPI* PFNWGLSWAPINTERVALEXTPROC) (int);
 typedef int (WINAPI* PFNWGLGETSWAPINTERVALEXTPROC) (void);
 
+constexpr static Color4f kRed	 =	{1,0,0,1};
+constexpr static Color4f kGreen  =	{0,1,0,1};
+constexpr static Color4f kBlue	 =	{0,0,1,1};
+constexpr static Color4f kYellow =	{1,1,0,1};
+constexpr static Color4f kPurple =	{1,0,1,1};
+
 struct AnimationAttribLocation {
 
 	int pos;
@@ -78,13 +84,6 @@ public:
 		onRender();
 		endRender();
 	}
-
-	Color4f kRed	{1,0,0,1};
-	Color4f kGreen	{0,1,0,1};
-	Color4f kBlue	{0,0,1,1};
-	Color4f kYellow	{1,1,0,1};
-	Color4f kPurple	{1,0,1,1};
-
 protected:
 	virtual void onCreate(CreateDesc& desc) override {
 		Base::onCreate(desc);
@@ -1016,12 +1015,6 @@ private:
 
 	template<class IKSolver>
 	class IKSolverExample : public NonCopyable {
-		
-		const Color4f kRed		{1,0,0,1};
-		const Color4f kGreen	{0,1,0,1};
-		const Color4f kBlue		{0,0,1,1};
-		const Color4f kYellow	{1,1,0,1};
-		const Color4f kPurple	{1,0,1,1};
 
 		const float kCamPitch	= 45.0f;
 		const float kCamYaw		= 60.0f;
@@ -1047,7 +1040,7 @@ private:
 
 			{ // add one clip, and make it loop
 				constexpr const size_t kFrameCount = 14;
-				constexpr const float  kFactor	 = 0.5f;
+				constexpr const float  kFactor	   = 0.5f;
 
 				vec3f startPos = vec3(1,-2,0);
 				_target.position = startPos;
