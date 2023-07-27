@@ -45,7 +45,7 @@ struct quat {
 	inline vec3 axis() const { return vec3(x,y,z).normalize(); }
 
 	// The angle of rotation is double the inverse cosine of the real component.
-	inline float angle() const { return 2.0f*::acosf(w); }
+	inline float angle() const { return 2.0f * Math::acos(w); }
 
 	inline bool equals(const quat& r, float epsilon = Math::epsilon<float>()) const;
 	inline bool equals0(              float epsilon = Math::epsilon<float>()) const;
@@ -96,17 +96,17 @@ struct quat {
 			(qv.cross(v) * 2.0f * w);
 	}
 
-	inline quat operator+ (float s)	const { return quat(x+s, y+s, z+s, w+s); }
-	inline quat operator- (float s)	const { return quat(x-s, y-s, z-s, w-s); }
-	inline quat operator* (float s)	const { return quat(x*s, y*s, z*s, w*s); }
-	inline quat operator/ (float s)	const { return quat(x/s, y/s, z/s, w/s); }
+	inline quat operator+ (float s)	const	{ return quat(x+s, y+s, z+s, w+s); }
+	inline quat operator- (float s)	const	{ return quat(x-s, y-s, z-s, w-s); }
+	inline quat operator* (float s)	const	{ return quat(x*s, y*s, z*s, w*s); }
+	inline quat operator/ (float s)	const	{ return quat(x/s, y/s, z/s, w/s); }
 
-	inline quat operator+= (float s) { x+=s; y+=s; z+=s; w+=s; }
-	inline quat operator-= (float s) { x-=s; y-=s; z-=s; w-=s; }
-	inline quat operator*= (float s) { x*=s; y*=s; z*=s; w*=s; }
-	inline quat operator/= (float s) { x/=s; y/=s; z/=s; w/=s; }
+	inline void operator+= (float s)		{ x+=s; y+=s; z+=s; w+=s; }
+	inline void operator-= (float s)		{ x-=s; y-=s; z-=s; w-=s; }
+	inline void operator*= (float s)		{ x*=s; y*=s; z*=s; w*=s; }
+	inline void operator/= (float s)		{ x/=s; y/=s; z/=s; w/=s; }
 
-	inline quat operator- () const { return quat(-x,-y,-z,-w); }
+	inline quat operator-() const			{ return quat(-x,-y,-z,-w); }
 
 	inline bool operator== (const quat& r) const { return x==r.x && y==r.y && z==r.z && w==r.w; }
 	inline bool operator!= (const quat& r) const { return !this->operator==(r); }
@@ -123,12 +123,12 @@ struct quat {
 	}
 
 	// Like with vectors, the dot product measures how similar two quaternions are.
-	inline float dot(const quat& r) const { return (x*r.x) + (y*r.y) + (z*r.z) + (w*r.w); }
+	inline float dot(const quat& r) const	{ return (x*r.x) + (y*r.y) + (z*r.z) + (w*r.w); }
 
-	inline float magnitude()	const { return Math::sqrt(sqrMagnitude()); }
-	inline float sqrMagnitude()	const { return dot(*this); }
-	inline float lenSq()		const { return sqrMagnitude(); }
-	inline float len()			const { return magnitude(); }
+	inline float magnitude()	const		{ return Math::sqrt(sqrMagnitude()); }
+	inline float sqrMagnitude()	const		{ return dot(*this); }
+	inline float lenSq()		const		{ return sqrMagnitude(); }
+	inline float len()			const		{ return magnitude(); }
 
 	// To normalize a quaternion, divide each component of the quaternion by its length.The resulting quaternion's length will be 1.
 	inline quat normalize() const { float m = magnitude(); return Math::equals0(m) ? s_identity() : (*this / m); }
@@ -150,10 +150,11 @@ struct quat {
 	// Remember that these functions(mix/nlerp/slerp) expect the quaternion to already be in its desired neighborhood.
 	// desired neighborhood means that you need to choose short arc or long arc. Generally, shortest arc is desirable.
 
-	// This function achieves the same result as lerp does, but it's not really a lerp function as the quaternion still travels on an arc, and arc is not linear.
+	// This function achieves the same result as lerp does, but it's not really a lerp function
+	// as the quaternion still travels on an arc, and arc is not linear.
 	// To avoid any confusion, this function will be called mix, not lerp.
 	inline quat mix(const quat& to, float t) const { return *this + (to-*this)*t; }
-	inline quat lerp(const quat& to, float t) const { return mix(to, t); }
+	inline quat lerp(const quat& to, float t) const { return mix(to, t); } // but i still like call it 'lerp' instand of 'mix'.
 
 	inline quat nlerp(const quat& to, float t) const { return mix(to, t).normalize(); }
 
@@ -168,7 +169,7 @@ struct quat {
 		return nlerp(-to, t);
 	}
 
-	// pow(quat, t) = quat(v*sin(tθ/2), cos(tθ/2))
+	// pow(quat, t) = quat(v*sin(t * θ/2), cos(t * θ/2))
 	// v means the axis of quat, θ menas the angle of quat
 	inline quat operator^(float t) const {
 		float theta = angle();
@@ -192,9 +193,9 @@ struct quat {
 		quat delta = inverse() * to;
 		return ( quat(delta^t) * (*this) ).normalize();
 /*
-		1. create a delta quaternion between the two
-		2. adjust the angle of the delta quaternion, which means that raise it to the desired power.
-		3. then concatenate it with the starting quaternion using quaternion multiplication.
+		create a delta quaternion between the two
+		adjust the angle of the delta quaternion, which means that raise it to the desired power.
+		then concatenate it with the starting quaternion using quaternion multiplication.
 */
 	}
 
@@ -219,5 +220,8 @@ inline bool quat::equals0(float epsilon) const {
 		&& Math::equals0(w, epsilon);
 }
 
+using quat4f = quat;
+
 SGE_FORMATTER(quat)
+
 }

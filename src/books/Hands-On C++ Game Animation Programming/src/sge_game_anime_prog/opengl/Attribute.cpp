@@ -15,11 +15,11 @@ namespace sge {
 
 template Attribute<int>;
 template Attribute<float>;
-template Attribute<vec2>;
-template Attribute<vec3>;
-template Attribute<vec4>;
+template Attribute<vec2f>;
+template Attribute<vec3f>;
+template Attribute<vec4f>;
 template Attribute<vec4i>;
-template Attribute<quat>;
+template Attribute<quat4f>;
 template Attribute<Color4f>;
 
 template<typename T>
@@ -38,7 +38,6 @@ Attribute<T>::~Attribute() {
 
 template<typename T>
 void Attribute<T>::uploadToGpu(const T* data, size_t len) {
-	//uploadToGpu(spanCast<const u8>(Span<const T>(data, len)));
 	uploadToGpu(spanCast<const u8>(Span<const T>(data, len)));
 }
 
@@ -83,22 +82,22 @@ void Attribute<float>::_setAttribPointer(u32 slot) {
 }
 
 template<>
-void Attribute<vec2>::_setAttribPointer(u32 slot) {
+void Attribute<vec2f>::_setAttribPointer(u32 slot) {
 	glVertexAttribPointer(slot, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
 }
 
 template<>
-void Attribute<vec3>::_setAttribPointer(u32 slot) {
+void Attribute<vec3f>::_setAttribPointer(u32 slot) {
 	glVertexAttribPointer(slot, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 }
 
 template<>
-void Attribute<vec4>::_setAttribPointer(u32 slot) {
+void Attribute<vec4f>::_setAttribPointer(u32 slot) {
 	glVertexAttribPointer(slot, 4, GL_FLOAT, GL_FALSE, 0, (void*)0);
 }
 
 template<>
-void Attribute<quat>::_setAttribPointer(u32 slot) {
+void Attribute<quat4f>::_setAttribPointer(u32 slot) {
 	glVertexAttribPointer(slot, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
 }
 

@@ -67,8 +67,8 @@ protected:
 };
 
 using ScalarTrack		= Track<float, 1>;
-using VectorTrack		= Track<vec3,  3>;
-using QuaternionTrack	= Track<quat,  4>;
+using VectorTrack		= Track<vec3f, 3>;
+using QuaternionTrack	= Track<quat4f,4>;
 
 template<typename T, size_t N>
 struct FastTrack : public Track<T, N> {
@@ -93,8 +93,8 @@ private:
 };
 
 using FastScalarTrack		= FastTrack<float, 1>;
-using FastVectorTrack		= FastTrack<vec3,  3>;
-using FastQuaternionTrack	= FastTrack<quat,  4>;
+using FastVectorTrack		= FastTrack<vec3f, 3>;
+using FastQuaternionTrack	= FastTrack<quat4f,4>;
 
 struct TrackUtil {
 	TrackUtil() = delete;
@@ -132,7 +132,7 @@ struct TrackUtil {
 
 	template<class... Args>
 	static QuaternionTrack createQuaternionTrack(Interpolation type, size_t frameCount, Args&&... args) {
-		return TrackUtil::createTrack<quat, 4>(type, frameCount, SGE_FORWARD(args)...);
+		return TrackUtil::createTrack<quat4f, 4>(type, frameCount, SGE_FORWARD(args)...);
 	}
 
 	template<typename T, size_t N>

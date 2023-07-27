@@ -86,11 +86,11 @@ struct TVec3 {
 		return Math::acos(c);
 	}
 
+	inline T radians(const TVec3& r) const { return angle(r); }
+	inline T degrees(const TVec3& r) const { return Math::degrees(radians(r)); }
+
 	// projection = project *this onto r
 	inline TVec3 project(const TVec3& r) const {
-		T rLenSq = r.sqrMagnitude();
-		if (Math::equals0(rLenSq)) return s_zero();
-
 /*
 		*this is considered as hypotenuse
 		using ||hypo|| = ||hypotenuse|| = *this
@@ -105,13 +105,21 @@ struct TVec3 {
 
 		so scale	= dot(r) / rLenSq
 */
-
+		T rLenSq = r.sqrMagnitude();
+		if (Math::equals0(rLenSq)) return s_zero();
 		T scale = dot(r) / rLenSq;
 		return r * scale;
 	}
 
 	// rejection is perpendicular to projection
 	inline TVec3 reject(const TVec3& r) const {
+/*
+		      /!
+			 / ! rejection
+			/  !
+		    ---->
+			projection
+*/
 		TVec3 proj = project(r);
 		return *this - proj;
 	}
@@ -148,11 +156,11 @@ struct TVec3 {
 		TVec3 from  = this->normalize();
 		TVec3 to    = to_.normalize();
 
-		T theta		= from.angle(to);
+		T theta		= from.radians(to);
 		T sinTheta	= Math::sin(theta);
 
-		T a = Math::sin( (1.0f-t)*theta ) / sinTheta;
-		T b = Math::sin(t*theta) / sinTheta;
+		T a = Math::sin((1.0f-t) * theta) / sinTheta;
+		T b = Math::sin(      t  * theta) / sinTheta;
 		return (from*a) + (to*b);
 	}
 
@@ -162,7 +170,7 @@ struct TVec3 {
 	inline bool operator== (const TVec3& r) const { return x == r.x && y == r.y && z == r.z; }
 	inline bool operator!= (const TVec3& r) const { return !(this->operator==(r)); }
 
-	void onFormat(fmt::format_context& ctx) const {
+	inline void onFormat(fmt::format_context& ctx) const {
 		fmt::format_to(ctx.out(), "[{}, {}, {}]", x, y, z);
 	}
 };
@@ -209,8 +217,6 @@ using vec3f		= TVec3<float>;
 using vec3d		= TVec3<double>;
 using vec3i		= TVec3<int>;
 using vec3ui	= TVec3<unsigned int>;
-
-using vec3		= vec3f;
 
 SGE_FORMATTER_T(class T, TVec3<T>)
 

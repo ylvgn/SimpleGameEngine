@@ -49,7 +49,7 @@ struct FrameUtil {
 		return res;
 	}
 
-	static QuaternionFrame createFrame(float time, const quat& in, const quat& out, const quat& value) {
+	static QuaternionFrame createFrame(float time, const quat4f& in, const quat4f& out, const quat4f& value) {
 		QuaternionFrame res;
 		res.time     = time;
 		res.in[0]    = in.x;
@@ -75,8 +75,8 @@ struct FrameUtil {
 		return createFrame(time, vec3f::s_zero(), value, vec3f::s_zero());
 	}
 
-	static QuaternionFrame createFrame(float time, const quat& value) {
-		return createFrame(time, quat::s_zero(), value, quat::s_zero());
+	static QuaternionFrame createFrame(float time, const quat4f& value) {
+		return createFrame(time, quat4f::s_zero(), value, quat4f::s_zero());
 	}
 };
 

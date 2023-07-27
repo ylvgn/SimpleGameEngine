@@ -371,5 +371,7 @@ struct mat4 {
 	void onFormat(fmt::format_context& ctx) const;
 };
 
+using mat4f = mat4;
+
 SGE_FORMATTER(mat4)
 }

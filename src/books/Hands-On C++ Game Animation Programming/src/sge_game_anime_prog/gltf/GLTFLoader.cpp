@@ -6,7 +6,7 @@ namespace sge {
 
 namespace GLTFHelpers {
 /*
-	These functions are internal to the glTF loaderand should not be exposed in the header file.
+	These functions are internal to the glTF loader and should not be exposed in the header file.
 */
 
 Transform getLocalTransform(const cgltf_node& node) {
@@ -14,18 +14,18 @@ Transform getLocalTransform(const cgltf_node& node) {
 
 	Transform res;
 	if (node.has_matrix) {
-		mat4 mat(&node.matrix[0]);
-		res = Transform::s_mat(mat);
+		mat4f m(&node.matrix[0]);
+		res = Transform::s_mat(m);
 	}
 
 	if (node.has_translation) {
-		res.position = vec3(node.translation[0], node.translation[1], node.translation[2]);
+		res.position = vec3f(node.translation[0], node.translation[1], node.translation[2]);
 	}
 	if (node.has_rotation) {
-		res.rotation = quat(node.rotation[0], node.rotation[1], node.rotation[2], node.rotation[3]);
+		res.rotation = quat4f(node.rotation[0], node.rotation[1], node.rotation[2], node.rotation[3]);
 	}
 	if (node.has_scale) {
-		res.scale = vec3(node.scale[0], node.scale[1], node.scale[2]);
+		res.scale = vec3f(node.scale[0], node.scale[1], node.scale[2]);
 	}
 	return res;
 }
@@ -81,7 +81,7 @@ void getTrackFromChannel(Track<T, N>& out, const cgltf_animation_channel& channe
 	// The number of frames the number of elements in the sampler input.
 	cgltf_size frameCount = sampler->input->count;
 
-	// The number of components per frame (vec3 or quat) is the number of value elements divided by the number of timeline elements.
+	// The number of components per frame (vec3f or quat4f) is the number of value elements divided by the number of timeline elements.
 	size_t numberOfValuesPerFrame = valueFloats.size() / timelineFloats.size();
 
 	bool isSamplerCubic = interpolation == Interpolation::Cubic;
@@ -156,9 +156,9 @@ void meshFromAttribute(Mesh& outMesh, const cgltf_attribute& attribute, const cg
 			break;
 		case cgltf_attribute_type_normal:
 		{
-			vec3 norm{ values[index + 0], values[index + 1], values[index + 2] };
+			vec3f norm{ values[index + 0], values[index + 1], values[index + 2] };
 			if (norm.lenSq() < 0.00001f) {
-				norm = vec3::s_up();
+				norm = vec3f::s_up();
 			}
 			normal.push_back(norm.normalize());
 		} break;
@@ -317,15 +317,15 @@ void GLTFLoader::_loadAnimationClips() {
 			// This means the TransformTrack function for the node that you are parsing is always valid
 			if (channel.target_path == cgltf_animation_path_type_translation) {
 				VectorTrack& track = constCast(o[i][nodeIndex].position());
-				GLTFHelpers::getTrackFromChannel<vec3, 3>(track, channel);
+				GLTFHelpers::getTrackFromChannel<vec3f, 3>(track, channel);
 			}
 			else if (channel.target_path == cgltf_animation_path_type_rotation) {
 				QuaternionTrack& track = constCast(o[i][nodeIndex].rotation());
-				GLTFHelpers::getTrackFromChannel<quat, 4>(track, channel);
+				GLTFHelpers::getTrackFromChannel<quat4f, 4>(track, channel);
 			}
 			else if (channel.target_path == cgltf_animation_path_type_scale) {
 				VectorTrack& track = constCast(o[i][nodeIndex].scale());
-				GLTFHelpers::getTrackFromChannel<vec3, 3>(track, channel);
+				GLTFHelpers::getTrackFromChannel<vec3f, 3>(track, channel);
 			}
 		}
 		o[i].recalculateDuration();
@@ -366,10 +366,10 @@ void GLTFLoader::_loadBindPose() {
 
 			// Read the ivnerse bind matrix of the joint
 			const float* matrix = &(invBindPoseMat4s[j * 16]);
-			const mat4 invBindPoseMat4(matrix);
+			const mat4f invBindPoseMat4(matrix);
 
 			// Invert the inverse bind pose matrix to get the bind pose matrix.
-			const mat4 bindPoseMat4 = invBindPoseMat4.inverse();
+			const mat4f bindPoseMat4 = invBindPoseMat4.inverse();
 			Transform bindPoseTrans = Transform::s_mat(bindPoseMat4);
 
 			// Set that transform in the worldBindPose.

@@ -12,8 +12,8 @@
 namespace sge {
 
 /*
-	The DebugDraw class is not very efficient;
-	it's only meant to be used for debugging.
+	The DebugDraw class is not very efficient
+	it's only meant to be used for debugging
 */
 
 enum class DebugDrawMode { Lines, Loop, Strip, Points };
@@ -50,28 +50,25 @@ public:
 	}
 #endif
 
-	inline size_t size() const			  { return _points.size(); }
-	inline void resize(size_t newSize)    { _points.resize(newSize); }
-	inline void clear()					  { _points.clear(); }
-	inline void push_back(const vec3f& v) { _points.push_back(v); }
-	inline void push_back(Span<vec3f>& v) { _points.appendRange(v); /*for (auto& s : v) _points.push_back(s);*/ }
-	inline void push_back(const Span<const vec3f>& v) { for (auto& s : v) _points.push_back(s); }
+	inline size_t size() const							{ return _points.size(); }
+	inline void resize(size_t newSize)					{ _points.resize(newSize); }
+	inline void clear()									{ _points.clear(); }
+	inline void push_back(const vec3f& v)				{ _points.push_back(v); }
+	inline void push_back(Span<vec3f>& v)				{ _points.appendRange(v); }
+	inline void push_back(const Span<const vec3f>& v)	{ _points.appendRange(v); }
+	inline void uploadToGpu()							{ _attribs.uploadToGpu(_points); }
 
-	inline void setShader(Shader* shader) { _shader = shader; }
-
-	inline void uploadToGpu()             { _attribs.uploadToGpu(_points); }
-
-	inline       vec3& operator[] (int index)       { return _points[index]; }
-	inline const vec3& operator[] (int index) const { return _points[index]; }
+	inline       vec3f& operator[] (int index)       { return _points[index]; }
+	inline const vec3f& operator[] (int index) const { return _points[index]; }
 
 	void draw(DebugDrawMode mode, const mat4& mvp, const Color4f& color = Color4f(1,1,0,1));
 
 	void lineFromPose(const Pose& pose);
 
-	void linesFromIKSolver(const CCDSolver& solver);
+	void linesFromIKSolver (const CCDSolver& solver);
 	void pointsFromIKSolver(const CCDSolver& solver);
 
-	void linesFromIKSolver(const FABRIKSolver& solver);
+	void linesFromIKSolver (const FABRIKSolver& solver);
 	void pointsFromIKSolver(const FABRIKSolver& solver);
 
 private:

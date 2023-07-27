@@ -19,8 +19,8 @@ template Uniform<vec2f>;
 template Uniform<vec3f>;
 template Uniform<vec4f>;
 
-template Uniform<quat>;
-template Uniform<mat4>;
+template Uniform<quat4f>;
+template Uniform<mat4f>;
 template Uniform<Color4f>;
 
 #define UNIFORM_IMPL(gl_func, T, dType) \
@@ -36,11 +36,11 @@ UNIFORM_IMPL(glUniform4iv, vec4i,   int)
 UNIFORM_IMPL(glUniform2fv, vec2f,   float)
 UNIFORM_IMPL(glUniform3fv, vec3f,   float)
 UNIFORM_IMPL(glUniform4fv, vec4f,   float)
-UNIFORM_IMPL(glUniform4fv, quat,    float)
+UNIFORM_IMPL(glUniform4fv, quat4f,    float)
 UNIFORM_IMPL(glUniform4fv, Color4f, float)
 
 template<>
-void Uniform<mat4>::set(u32 slot, const mat4* data, size_t dataSize) {
+void Uniform<mat4f>::set(u32 slot, const mat4f* data, size_t dataSize) {
 	// The set function for matrices needs to be specified manually;
 	// otherwise, the UNIFORM_IMPL macro won't work.
 	// This is because the glUniformMatrix4fv function takes an additional Boolean argument

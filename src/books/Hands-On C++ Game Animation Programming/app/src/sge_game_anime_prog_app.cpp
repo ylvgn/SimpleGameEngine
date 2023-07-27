@@ -55,7 +55,7 @@ struct AnimationInstance {
 	float playback = 0.f;
 
 	// gpu skinning
-	Vector<mat4> posePalette;
+	Vector<mat4f> posePalette;
 
 	// blending
 	Pose additivePose;
@@ -258,16 +258,16 @@ private:
 			"Assets/Shaders/static.vert",
 			"Assets/Shaders/lit.frag"
 		);
-		_vertexPositions	= eastl::make_unique< Attribute<vec3> >();
-		_vertexNormals		= eastl::make_unique< Attribute<vec3> >();
+		_vertexPositions	= eastl::make_unique< Attribute<vec3f> >();
+		_vertexNormals		= eastl::make_unique< Attribute<vec3f> >();
 		_vertexTexCoords	= eastl::make_unique< Attribute<vec2> >();
 		_indexBuffer		= eastl::make_unique<IndexBuffer>();
 
-		Vector<vec3> positions{
-			vec3(-1, -1, 0),
-			vec3(-1,  1, 0),
-			vec3( 1, -1, 0),
-			vec3( 1,  1, 0),
+		Vector<vec3f> positions{
+			vec3f(-1, -1, 0),
+			vec3f(-1,  1, 0),
+			vec3f( 1, -1, 0),
+			vec3f( 1,  1, 0),
 		};
 		Vector<u32> indices = {
 			0,1,2,
@@ -294,8 +294,8 @@ private:
 		_debugPoints->uploadToGpu();
 		_debugLines->uploadToGpu();
 
-		Vector<vec3> normals;
-		normals.resize(4, vec3::s_forward());
+		Vector<vec3f> normals;
+		normals.resize(4, vec3f::s_forward());
 		_vertexNormals->uploadToGpu(normals);
 
 		Vector<vec2> uvs = {
@@ -319,7 +319,7 @@ private:
 		float paddingX = xRange + 1.f;
 
 		{ // xy-coordinate figure
-			// Range in both X and Y is 0 to 20, according to mat4::s_ortho
+			// Range in both X and Y is 0 to 20, according to mat4f::s_ortho
 			// l=b=0, r=t=22f
 			for (int i = 0; i < 10; ++i) {
 				float originY = (i * 2.f) + (i * 0.2f) + 0.1f;
@@ -332,10 +332,10 @@ private:
 
 					vec3f o(originX, originY, 0);
 					_referenceLines->push_back(o);
-					_referenceLines->push_back(vec3(o.x, o.y + height, 0));
+					_referenceLines->push_back(vec3f(o.x, o.y + height, 0));
 
 					_referenceLines->push_back(o);
-					_referenceLines->push_back(vec3(o.x + xRange, o.y, 0));
+					_referenceLines->push_back(vec3f(o.x + xRange, o.y, 0));
 				}
 			}
 
@@ -484,8 +484,8 @@ private:
 					sr.time = nextJNorm;
 					float nextY = o.y + (track.sample(sr) * height);
 
-					_scalarTrackLines->push_back(vec3(thisX, thisY, 0.1f));
-					_scalarTrackLines->push_back(vec3(nextX, nextY, 0.1f));
+					_scalarTrackLines->push_back(vec3f(thisX, thisY, 0.1f));
+					_scalarTrackLines->push_back(vec3f(nextX, nextY, 0.1f));
 				}
 
 				{ // key frame display
@@ -499,7 +499,7 @@ private:
 						float thisY = o.y + (track.sample(sr) * height);
 
 						// key frame point
-						vec3 thisPoint(thisX, thisY, 0.3f);
+						vec3f thisPoint(thisX, thisY, 0.3f);
 						_handlePoints->push_back(thisPoint);
 
 						static const float tangentScale = 0.5f;
@@ -511,7 +511,7 @@ private:
 
 							sr.time = preTime;
 							float prevY = o.y + (track.sample(sr) * height);
-							vec3 prePoint(prevX, prevY, thisPoint.z);
+							vec3f prePoint(prevX, prevY, thisPoint.z);
 
 							_handleLines->push_back(thisPoint);
 							_handleLines->push_back(thisPoint + (prePoint-thisPoint).normalize() * tangentScale);
@@ -524,7 +524,7 @@ private:
 
 							sr.time = postTime;
 							float postY = o.y + (track.sample(sr) * height);
-							vec3 postPoint(postX, postY, thisPoint.z);
+							vec3f postPoint(postX, postY, thisPoint.z);
 
 							_handleLines->push_back(thisPoint);
 							_handleLines->push_back(thisPoint + (postPoint - thisPoint).normalize() * tangentScale);
@@ -544,10 +544,10 @@ private:
 
 		{ // test bezier curve
 			CubicCurveExample::Bezier curve(
-				vec3(-5, 0, 0), // p1
-				vec3(-2, 1, 0), // c1
-				vec3( 2, 1, 0), // c2
-				vec3( 5, 0, 0)  // p2
+				vec3f(-5, 0, 0), // p1
+				vec3f(-2, 1, 0), // c1
+				vec3f( 2, 1, 0), // c2
+				vec3f( 5, 0, 0)  // p2
 			);
 
 			_debugPoints->push_back(curve.p1());
@@ -570,8 +570,8 @@ private:
 
 		{ // test hermite spline
 			CubicCurveExample::Hermite curve(
-				vec3(-5,0,0), // p1
-				vec3( 5,0,0), // p1
+				vec3f(-5,0,0), // p1
+				vec3f( 5,0,0), // p1
 				0.2f,         // tan1
 				-3.f          // tan2
 			);
@@ -662,8 +662,8 @@ private:
 			_gpuAnimInfo.animatedPose = _skeleton.restPose();
 		}
 
-		_cpuAnimInfo.model.position = vec3(-2, 0, 0);
-		_gpuAnimInfo.model.position = vec3( 2, 0, 0);
+		_cpuAnimInfo.model.position = vec3f(-2, 0, 0);
+		_gpuAnimInfo.model.position = vec3f( 2, 0, 0);
 
 		_cpuAttribLoc.setByStaticShader(_staticShader);
 		_gpuAttribLoc.setBySkinnedShader(_skinnedShader);
@@ -875,18 +875,18 @@ private:
 	}
 
 	void test_LitTexture_onRender() {
-		mat4 projection = mat4::s_perspective(60.0f, _aspect, 0.01f, 1000.0f);
-		mat4 view = mat4::s_lookAt(vec3(0, 0, -5), vec3::s_zero(), vec3::s_up());
-		mat4 model = mat4::s_quat(quat::s_angleAxis(Math::radians(_testRotation), vec3::s_forward())); // or mat4::s_identity();
-		mat4 mvp = projection * view * model;
+		mat4f projection = mat4f::s_perspective(60.0f, _aspect, 0.01f, 1000.0f);
+		mat4f view = mat4f::s_lookAt(vec3f(0, 0, -5), vec3f::s_zero(), vec3f::s_up());
+		mat4f model = mat4f::s_quat(quat4f::s_angleAxis(Math::radians(_testRotation), vec3f::s_forward())); // or mat4f::s_identity();
+		mat4f mvp = projection * view * model;
 
 		_staticShader->bind();
 		{
 			{ // bind uniforms
-				Uniform<mat4>::set(_staticShader->findUniformByName("model"), model);
-				Uniform<mat4>::set(_staticShader->findUniformByName("view"), view);
-				Uniform<mat4>::set(_staticShader->findUniformByName("projection"), projection);
-				Uniform<vec3>::set(_staticShader->findUniformByName("light"), vec3::s_forward());
+				Uniform<mat4f>::set(_staticShader->findUniformByName("model"), model);
+				Uniform<mat4f>::set(_staticShader->findUniformByName("view"), view);
+				Uniform<mat4f>::set(_staticShader->findUniformByName("projection"), projection);
+				Uniform<vec3f>::set(_staticShader->findUniformByName("light"), vec3f::s_forward());
 				_texture->set(_staticShader->findUniformByName("tex0"), 0);
 			}
 
@@ -916,9 +916,9 @@ private:
 		float r = _aspect * t;
 		float n = 0.01f;
 		float f = 5.f;
-		mat4 projection = mat4::s_ortho(l, r, b, t, n, f);
-		mat4 view       = mat4::s_lookAt(vec3(0, 0, (n + f) / 2), vec3::s_zero(), vec3::s_up());
-		mat4 mvp        = projection * view * mat4::s_identity();
+		mat4f projection = mat4f::s_ortho(l, r, b, t, n, f);
+		mat4f view       = mat4f::s_lookAt(vec3f(0, 0, (n + f) / 2), vec3f::s_zero(), vec3f::s_up());
+		mat4f mvp        = projection * view * mat4f::s_identity();
 
 		_referenceLines->draw(DebugDrawMode::Lines, mvp, kYellow);
 		_scalarTrackLines->draw(DebugDrawMode::Lines, mvp, kGreen);
@@ -926,16 +926,16 @@ private:
 		_handleLines->draw(DebugDrawMode::Lines, mvp, kPurple);
 	}
 	void test_BezierAndHermiteCurve_onRender() {
-		mat4 projection = mat4::s_perspective(60.0f, _aspect, 0.01f, 1000.0f);
-		mat4 view       = mat4::s_lookAt(vec3(0, 0, -5), vec3::s_zero(), vec3::s_up());
-		mat4 mvp        = projection * view * mat4::s_identity();
+		mat4f projection = mat4f::s_perspective(60.0f, _aspect, 0.01f, 1000.0f);
+		mat4f view       = mat4f::s_lookAt(vec3f(0, 0, -5), vec3f::s_zero(), vec3f::s_up());
+		mat4f mvp        = projection * view * mat4f::s_identity();
 		_debugLines->draw(DebugDrawMode::Lines, mvp);
 		_debugPoints->draw(DebugDrawMode::Points, mvp, kBlue);
 	}
 	void test_AnimationClip_onRender() {
-		mat4 projection = mat4::s_perspective(60.0f, _aspect, 0.01f, 10.f);
-		mat4 view = mat4::s_lookAt(vec3(0, 4, -7), vec3(0, 4, 0), vec3::s_up());
-		mat4 mvp = projection * view;
+		mat4f projection = mat4f::s_perspective(60.0f, _aspect, 0.01f, 10.f);
+		mat4f view = mat4f::s_lookAt(vec3f(0, 4, -7), vec3f(0, 4, 0), vec3f::s_up());
+		mat4f mvp = projection * view;
 
 		_restPoseVisual->draw(DebugDrawMode::Lines, mvp, kRed);
 		_bindPoseVisual->draw(DebugDrawMode::Lines, mvp, kGreen);
@@ -943,19 +943,19 @@ private:
 		_currentPoseVisual->draw(DebugDrawMode::Lines, mvp, kBlue);
 	}
 	void test_MeshSkinning_onRender() {
-		mat4 projection = mat4::s_perspective(60.0f, _aspect, 0.01f, 10.f);
-		mat4 view = mat4::s_lookAt(vec3(0, 5, 7), vec3(0, 3, 0), vec3::s_up());
+		mat4f projection = mat4f::s_perspective(60.0f, _aspect, 0.01f, 10.f);
+		mat4f view = mat4f::s_lookAt(vec3f(0, 5, 7), vec3f(0, 3, 0), vec3f::s_up());
 
 		{ // test cpu skinning
-			mat4 model = mat4::s_transform(_cpuAnimInfo.model);
+			mat4f model = mat4f::s_transform(_cpuAnimInfo.model);
 
 			_staticShader->bind();
 			{
 				{ // bind uniforms
-					Uniform<mat4>::set(_staticShader->findUniformByName("model"), model);
-					Uniform<mat4>::set(_staticShader->findUniformByName("view"), view);
-					Uniform<mat4>::set(_staticShader->findUniformByName("projection"), projection);
-					Uniform<vec3>::set(_staticShader->findUniformByName("light"), vec3::s_one());
+					Uniform<mat4f>::set(_staticShader->findUniformByName("model"), model);
+					Uniform<mat4f>::set(_staticShader->findUniformByName("view"), view);
+					Uniform<mat4f>::set(_staticShader->findUniformByName("projection"), projection);
+					Uniform<vec3f>::set(_staticShader->findUniformByName("light"), vec3f::s_one());
 					_texture->set(_staticShader->findUniformByName("tex0"), 0);
 				}
 
@@ -968,21 +968,21 @@ private:
 		}
 
 		{ // test gpu skinning
-			mat4 model = mat4::s_transform(_gpuAnimInfo.model);
+			mat4f model = mat4f::s_transform(_gpuAnimInfo.model);
 
 			// bind uniform
 			_skinnedShader->bind();
 			{
 				{ // bind uniforms
-					Uniform<mat4>::set(_skinnedShader->findUniformByName("model"), model);
-					Uniform<mat4>::set(_skinnedShader->findUniformByName("view"), view);
-					Uniform<mat4>::set(_skinnedShader->findUniformByName("projection"), projection);
-					Uniform<vec3>::set(_skinnedShader->findUniformByName("light"), vec3::s_one());
+					Uniform<mat4f>::set(_skinnedShader->findUniformByName("model"), model);
+					Uniform<mat4f>::set(_skinnedShader->findUniformByName("view"), view);
+					Uniform<mat4f>::set(_skinnedShader->findUniformByName("projection"), projection);
+					Uniform<vec3f>::set(_skinnedShader->findUniformByName("light"), vec3f::s_one());
 #if 1 // test pre-multiplied skin matrix
-					Uniform<mat4>::set(_skinnedShader->findUniformByName("animated"), _gpuAnimInfo.posePalette);
+					Uniform<mat4f>::set(_skinnedShader->findUniformByName("animated"), _gpuAnimInfo.posePalette);
 #else
-					Uniform<mat4>::set(_skinnedShader->findUniformByName("invBindPose"), _skeleton.invBindPose());
-					Uniform<mat4>::set(_skinnedShader->findUniformByName("pose"), _gpuAnimInfo.posePalette);
+					Uniform<mat4f>::set(_skinnedShader->findUniformByName("invBindPose"), _skeleton.invBindPose());
+					Uniform<mat4f>::set(_skinnedShader->findUniformByName("pose"), _gpuAnimInfo.posePalette);
 #endif
 					_texture->set(_skinnedShader->findUniformByName("tex0"), 0);
 				}
@@ -1030,36 +1030,36 @@ private:
 			{ // create ikChains
 				constexpr const size_t kJointCount = 6;
 				_solver.resize(kJointCount);
-				_solver[0] = Transform(vec3::s_zero(), quat::s_angleAxis(Math::radians(90.f), vec3::s_right()), vec3::s_one());
-				_solver[1] = Transform(vec3(0, 0, 1.0f), quat::s_identity(), vec3::s_one());
-				_solver[2] = Transform(vec3(0, 0, 1.5f), quat::s_identity(), vec3::s_one());
-				_solver[3] = Transform(vec3(0, 0, 0.5f), quat::s_angleAxis(Math::radians(90.0f), vec3::s_up()), vec3::s_one());
-				_solver[4] = Transform(vec3(0, 0, 0.5f), quat::s_identity(), vec3::s_one());
-				_solver[5] = Transform(vec3(0, 0, 0.5f), quat::s_identity(), vec3::s_one());
+				_solver[0] = Transform(vec3f::s_zero(), quat4f::s_angleAxis(Math::radians(90.f), vec3f::s_right()), vec3f::s_one());
+				_solver[1] = Transform(vec3f(0, 0, 1.0f), quat4f::s_identity(), vec3f::s_one());
+				_solver[2] = Transform(vec3f(0, 0, 1.5f), quat4f::s_identity(), vec3f::s_one());
+				_solver[3] = Transform(vec3f(0, 0, 0.5f), quat4f::s_angleAxis(Math::radians(90.0f), vec3f::s_up()), vec3f::s_one());
+				_solver[4] = Transform(vec3f(0, 0, 0.5f), quat4f::s_identity(), vec3f::s_one());
+				_solver[5] = Transform(vec3f(0, 0, 0.5f), quat4f::s_identity(), vec3f::s_one());
 			}
 
 			{ // add one clip, and make it loop
 				constexpr const size_t kFrameCount = 14;
 				constexpr const float  kFactor	   = 0.5f;
 
-				vec3f startPos = vec3(1,-2,0);
+				vec3f startPos = vec3f(1,-2,0);
 				_target.position = startPos;
 
 				VectorTrack& posTrack = constCast(_targetPath.position());
 				posTrack.resize(kFrameCount);
 				posTrack[0 ] = FrameUtil::createFrame(0.f,   startPos      * kFactor);
-				posTrack[1 ] = FrameUtil::createFrame(1.0f,  vec3(1, 2, 0) * kFactor);
-				posTrack[2 ] = FrameUtil::createFrame(2.0f,  vec3(1, 4, 0) * kFactor);
-				posTrack[3 ] = FrameUtil::createFrame(3.0f,  vec3(3, 4, 0) * kFactor);
-				posTrack[4 ] = FrameUtil::createFrame(4.0f,  vec3(5, 4, 0) * kFactor);
-				posTrack[5 ] = FrameUtil::createFrame(5.0f,  vec3(5, 4, 2) * kFactor);
-				posTrack[6 ] = FrameUtil::createFrame(6.0f,  vec3(5, 4, 4) * kFactor);
-				posTrack[7 ] = FrameUtil::createFrame(7.0f,  vec3(3, 4, 4) * kFactor);
-				posTrack[8 ] = FrameUtil::createFrame(8.0f,  vec3(3, 2, 4) * kFactor);
-				posTrack[9 ] = FrameUtil::createFrame(9.0f,  vec3(3, 2, 2) * kFactor);
-				posTrack[10] = FrameUtil::createFrame(10.0f, vec3(1, 2, 2) * kFactor);
-				posTrack[11] = FrameUtil::createFrame(11.0f, vec3(1, 0, 2) * kFactor);
-				posTrack[12] = FrameUtil::createFrame(12.0f, vec3(1,-2, 2) * kFactor);
+				posTrack[1 ] = FrameUtil::createFrame(1.0f,  vec3f(1, 2, 0) * kFactor);
+				posTrack[2 ] = FrameUtil::createFrame(2.0f,  vec3f(1, 4, 0) * kFactor);
+				posTrack[3 ] = FrameUtil::createFrame(3.0f,  vec3f(3, 4, 0) * kFactor);
+				posTrack[4 ] = FrameUtil::createFrame(4.0f,  vec3f(5, 4, 0) * kFactor);
+				posTrack[5 ] = FrameUtil::createFrame(5.0f,  vec3f(5, 4, 2) * kFactor);
+				posTrack[6 ] = FrameUtil::createFrame(6.0f,  vec3f(5, 4, 4) * kFactor);
+				posTrack[7 ] = FrameUtil::createFrame(7.0f,  vec3f(3, 4, 4) * kFactor);
+				posTrack[8 ] = FrameUtil::createFrame(8.0f,  vec3f(3, 2, 4) * kFactor);
+				posTrack[9 ] = FrameUtil::createFrame(9.0f,  vec3f(3, 2, 2) * kFactor);
+				posTrack[10] = FrameUtil::createFrame(10.0f, vec3f(1, 2, 2) * kFactor);
+				posTrack[11] = FrameUtil::createFrame(11.0f, vec3f(1, 0, 2) * kFactor);
+				posTrack[12] = FrameUtil::createFrame(12.0f, vec3f(1,-2, 2) * kFactor);
 				posTrack[13] = FrameUtil::createFrame(13.0f, startPos      * kFactor);
 			}
 		}
@@ -1086,14 +1086,14 @@ private:
 		}
 
 		void onRender(float aspect) {
-			vec3 eyesPos(kCamDist * cosf(Math::radians(kCamYaw)) * sinf(Math::radians(kCamPitch)),
+			vec3f eyesPos(kCamDist * cosf(Math::radians(kCamYaw)) * sinf(Math::radians(kCamPitch)),
 				         kCamDist * cosf(Math::radians(kCamPitch)),
 				         kCamDist * sinf(Math::radians(kCamYaw)) * sinf(Math::radians(kCamPitch))
 			);
 
-			mat4 projection = mat4::s_perspective(60.0f, aspect, 0.01f, 100.0f);
-			mat4 view = mat4::s_lookAt(eyesPos /*vec3(0, 0, 10)*/, vec3::s_zero(), vec3::s_up());
-			mat4 mvp = projection * view * mat4::s_identity();
+			mat4f projection = mat4f::s_perspective(60.0f, aspect, 0.01f, 100.0f);
+			mat4f view = mat4f::s_lookAt(eyesPos /*vec3f(0, 0, 10)*/, vec3f::s_zero(), vec3f::s_up());
+			mat4f mvp = projection * view * mat4f::s_identity();
 
 			{ // draw ikChains
 				_debugLines->linesFromIKSolver(_solver);
@@ -1105,12 +1105,12 @@ private:
 			}
 
 			{ // 6 points -> 3 lines (xyz-axis) of target
-				(*_targetVisual[0])[0] = _target.position + (vec3::s_right()   *  kGizmoSize);	// x -red
-				(*_targetVisual[0])[1] = _target.position + (vec3::s_right()   * -kGizmoSize);	//-x -red
-				(*_targetVisual[1])[0] = _target.position + (vec3::s_up()      *  kGizmoSize);	// y -green
-				(*_targetVisual[1])[1] = _target.position + (vec3::s_up()      * -kGizmoSize);	//-y -green
-				(*_targetVisual[2])[0] = _target.position + (vec3::s_forward() *  kGizmoSize);	// z -blue
-				(*_targetVisual[2])[1] = _target.position + (vec3::s_forward() * -kGizmoSize);	//-z -blue
+				(*_targetVisual[0])[0] = _target.position + (vec3f::s_right()   *  kGizmoSize);	// x -red
+				(*_targetVisual[0])[1] = _target.position + (vec3f::s_right()   * -kGizmoSize);	//-x -red
+				(*_targetVisual[1])[0] = _target.position + (vec3f::s_up()      *  kGizmoSize);	// y -green
+				(*_targetVisual[1])[1] = _target.position + (vec3f::s_up()      * -kGizmoSize);	//-y -green
+				(*_targetVisual[2])[0] = _target.position + (vec3f::s_forward() *  kGizmoSize);	// z -blue
+				(*_targetVisual[2])[1] = _target.position + (vec3f::s_forward() * -kGizmoSize);	//-z -blue
 				_targetVisual[0]->uploadToGpu();
 				_targetVisual[1]->uploadToGpu();
 				_targetVisual[2]->uploadToGpu();
@@ -1136,20 +1136,20 @@ private:
 	};
 
 	void _onDrawGpuSkinning() {
-		mat4 projection = mat4::s_perspective(60.0f, _aspect, 0.01f, 10.f);
-		mat4 view       = mat4::s_lookAt(vec3(0, 3, 7), vec3(0, 3, 0), vec3::s_up());
-		mat4 model      = mat4::s_transform(_gpuAnimInfo.model);
+		mat4f projection = mat4f::s_perspective(60.0f, _aspect, 0.01f, 10.f);
+		mat4f view       = mat4f::s_lookAt(vec3f(0, 3, 7), vec3f(0, 3, 0), vec3f::s_up());
+		mat4f model      = mat4f::s_transform(_gpuAnimInfo.model);
 
 		// bind uniform
 		_skinnedShader->bind();
 		{
 			{ // bind uniforms
-				Uniform<mat4>::set(_skinnedShader->findUniformByName("model"), model);
-				Uniform<mat4>::set(_skinnedShader->findUniformByName("view"), view);
-				Uniform<mat4>::set(_skinnedShader->findUniformByName("projection"), projection);
-				Uniform<mat4>::set(_skinnedShader->findUniformByName("invBindPose"), _skeleton.invBindPose());
-				Uniform<mat4>::set(_skinnedShader->findUniformByName("pose"), _gpuAnimInfo.posePalette);
-				Uniform<vec3>::set(_skinnedShader->findUniformByName("light"), vec3::s_one());
+				Uniform<mat4f>::set(_skinnedShader->findUniformByName("model"), model);
+				Uniform<mat4f>::set(_skinnedShader->findUniformByName("view"), view);
+				Uniform<mat4f>::set(_skinnedShader->findUniformByName("projection"), projection);
+				Uniform<mat4f>::set(_skinnedShader->findUniformByName("invBindPose"), _skeleton.invBindPose());
+				Uniform<mat4f>::set(_skinnedShader->findUniformByName("pose"), _gpuAnimInfo.posePalette);
+				Uniform<vec3f>::set(_skinnedShader->findUniformByName("light"), vec3f::s_one());
 				_texture->set(_skinnedShader->findUniformByName("tex0"), 0);
 			}
 
@@ -1255,8 +1255,8 @@ private:
 	SPtr<Shader>							_staticShader;
 	SPtr<Texture>							_texture;
 
-	UPtr< Attribute<vec3> >					_vertexPositions;
-	UPtr< Attribute<vec3> >					_vertexNormals;
+	UPtr< Attribute<vec3f> >					_vertexPositions;
+	UPtr< Attribute<vec3f> >					_vertexNormals;
 	UPtr< Attribute<vec2> >					_vertexTexCoords;
 	UPtr<IndexBuffer>						_indexBuffer;
 

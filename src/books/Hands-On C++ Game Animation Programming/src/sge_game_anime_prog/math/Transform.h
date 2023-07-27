@@ -14,12 +14,12 @@ namespace sge {
 struct mat4;
 
 struct Transform {
-	vec3 position {0,0,0};
-	quat rotation {0,0,0,1}; // do not set {0,0,0,0}, it means quat::s_identity
-	vec3 scale	  {1,1,1};
+	vec3f  position {0,0,0};
+	quat4f rotation {0,0,0,1}; // do not set {0,0,0,0}, it means quat::s_identity
+	vec3f  scale	{1,1,1};
 
 	inline Transform() = default;
-	inline Transform(const vec3& p, const quat& r, const vec3& s) : position(p), rotation(r), scale(s) { }
+	inline Transform(const vec3f& p, const quat& r, const vec3f& s) : position(p), rotation(r), scale(s) { }
 
 	inline bool operator==(const Transform& r) const { return position == r.position && rotation == r.rotation && scale == r.scale; }
 	inline bool operator!=(const Transform& r) const { return !this->operator==(r); }
@@ -32,14 +32,14 @@ struct Transform {
 	Transform inverse() const;
 
 	// same as multiplying a matrix and a point, but just step by step (SRT) in function transformPoint.
-	inline vec3 transformPoint(const vec3& pos) const {
+	inline vec3f transformPoint(const vec3f& pos) const {
 		// first, apply the scale, then rotation, and finally, the translation
 		return position + (rotation * (scale * pos));
 //		transformPoint aka move points
 	}
 
 	// same as multiplying a matrix and a vector, just like transformPoint but no need add position
-	inline vec3 transformVector(const vec3& dir) const {
+	inline vec3f transformVector(const vec3f& dir) const {
 		// first, apply the scale, then rotation, and finally, the translation, but don't add the position
 		return rotation * (scale * dir);
 //		transformVector aka rotate vectors

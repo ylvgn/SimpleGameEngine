@@ -5,12 +5,12 @@
 namespace sge {
 
 template Track <float, 1>;
-template Track <vec3,  3>;
-template Track <quat,  4>;
+template Track <vec3f, 3>;
+template Track <quat4f,4>;
 
 template FastTrack <float, 1>;
-template FastTrack <vec3,  3>;
-template FastTrack <quat,  4>;
+template FastTrack <vec3f, 3>;
+template FastTrack <quat4f,4>;
 
 namespace TrackHelpers {
 /*
@@ -22,33 +22,28 @@ namespace TrackHelpers {
 */
 
 inline float interpolate(float a, float b, float t)				{ return a + (b-a)*t; }
-inline vec3  interpolate(const vec3& a, const vec3& b, float t) { return a.lerp(b, t); }
-inline quat  interpolate(const quat& a, const quat& b, float t) { // nlerp
-	quat q = a.mix(b, t);
+inline vec3f  interpolate(const vec3f& a, const vec3f& b, float t) { return a.lerp(b, t); }
+inline quat4f  interpolate(const quat4f& a, const quat4f& b, float t) { // nlerp
+	quat4f q = a.mix(b, t);
 	if (a.dot(b) < 0) { // neighborhood
 		q = a.mix(-b, t);
 	}
 	return q.normalize();
 }
 
-inline float adjustHermiteResult(float f)		{ return f; }
-inline vec3  adjustHermiteResult(const vec3& v) { return v; }
-inline quat  adjustHermiteResult(const quat& q) { return q.normalize(); }
+inline float  adjustHermiteResult(float f)			{ return f; }
+inline vec3f  adjustHermiteResult(const vec3f& v)	{ return v; }
+inline quat4f adjustHermiteResult(const quat4f& q)	{ return q.normalize(); }
 
 inline void neighborhood(const float& a, float& b)	{ }
-inline void neighborhood(const vec3& a, vec3& b)	{ }
-inline void neighborhood(const quat& a, quat& b)	{ if (a.dot(b) < 0) b = -b; }
+inline void neighborhood(const vec3f& a, vec3f& b)	{ }
+inline void neighborhood(const quat4f& a, quat4f& b){ if (a.dot(b) < 0) b = -b; }
 
 } // TrackHelpers namespace
 
-template<>
-float Track<float, 1>::s_toValue(const float* v) { return *v; }
-
-template<>
-vec3 Track<vec3, 3>::s_toValue(const float* v) { return vec3(v[0], v[1], v[2]); }
-
-template<>
-quat Track<quat, 4>::s_toValue(const float* v) { return quat(v[0], v[1], v[2], v[3]).normalize(); }
+template<> float  Track<float, 1>::s_toValue(const float* v) { return *v; }
+template<> vec3f  Track<vec3f, 3>::s_toValue(const float* v) { return vec3f(v[0], v[1], v[2]); }
+template<> quat4f Track<quat4f,4>::s_toValue(const float* v) { return quat4f(v[0], v[1], v[2], v[3]).normalize(); }
 
 template<typename T, size_t N>
 T Track<T, N>::sample(const SampleRequest& sr) const {
@@ -115,7 +110,7 @@ T Track<T, N>::_sampleCubic(const SampleRequest& sr) const {
 	SGE_ASSERT(i >= 0);
 
 	const auto& thisFrame = _frames[i];
-	const auto& nextFrame = _frames[i + 1];
+	const auto& nextFrame = _frames[i+1];
 
 	float trackStartTime = thisFrame.time;
 	float trackEndTime   = nextFrame.time;
@@ -135,12 +130,12 @@ T Track<T, N>::_sampleCubic(const SampleRequest& sr) const {
 	// slope1 = p1.out * frameDelta
 	T slope1;
 	std::memcpy(&slope1, thisFrame.out, N * sizeof(float));
-	slope1 = slope1 * trackDeltaTime;
+	slope1 *= trackDeltaTime;
 
 	// slope2 = p2.in * frameDelta 
 	T slope2;
 	std::memcpy(&slope2, nextFrame.in, N * sizeof(float));
-	slope2 = slope2 * trackDeltaTime;
+	slope2 *= trackDeltaTime;
 
 	T result = TrackUtil::hermite(t, p1, slope1, p2, slope2);
 	return TrackHelpers::adjustHermiteResult(result);
@@ -324,8 +319,8 @@ T TrackUtil::hermite(float t, const T& p1, const T& s1, const T& p2_, const T& s
 // Declare the template specializations of the optimizeTrack function for all three types
 // This means declaring specializations that work with the scalar, vector 3, and quaternion tracks
 template FastTrack<float, 1> TrackUtil::optimizeTrack(const Track<float, 1>& src);
-template FastTrack<vec3,  3> TrackUtil::optimizeTrack(const Track<vec3,  3>& src);
-template FastTrack<quat,  4> TrackUtil::optimizeTrack(const Track<quat,  4>& src);
+template FastTrack<vec3f,  3> TrackUtil::optimizeTrack(const Track<vec3f,  3>& src);
+template FastTrack<quat4f,  4> TrackUtil::optimizeTrack(const Track<quat4f,  4>& src);
 #endif
 
 template<typename T, size_t N>

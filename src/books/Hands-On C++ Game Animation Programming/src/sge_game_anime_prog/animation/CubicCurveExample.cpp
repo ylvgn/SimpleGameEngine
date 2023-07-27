@@ -31,10 +31,10 @@ void CubicCurveExample::Bezier::factor(float t, UPtr<DebugDraw>& outPoints) cons
 	float tt  = t * t;
 	float ttt = tt * t;
 
-	outPoints->push_back(vec3(t, uuu, 0));
-	outPoints->push_back(vec3(t, 3*uu*t, 0));
-	outPoints->push_back(vec3(t, 3*u*tt, 0));
-	outPoints->push_back(vec3(t, ttt, 0));
+	outPoints->push_back(vec3f(t, uuu, 0));
+	outPoints->push_back(vec3f(t, 3*uu*t, 0));
+	outPoints->push_back(vec3f(t, 3*u*tt, 0));
+	outPoints->push_back(vec3f(t, ttt, 0));
 }
 
 vec3f CubicCurveExample::Hermite::lerp(float t) const {
@@ -60,10 +60,10 @@ void CubicCurveExample::Hermite::factor(float t, UPtr<DebugDraw>& outPoints) con
 	float tt = t * t;
 	float t2 = 2 * t;
 
-	outPoints->push_back(vec3(t, (1+t2)*uu, 0));
-	outPoints->push_back(vec3(t, t*uu, 0));
-	outPoints->push_back(vec3(t, tt*(3-t2), 0));
-	outPoints->push_back(vec3(t, tt*(t-1), 0));
+	outPoints->push_back(vec3f(t, (1+t2)*uu, 0));
+	outPoints->push_back(vec3f(t, t*uu, 0));
+	outPoints->push_back(vec3f(t, tt*(3-t2), 0));
+	outPoints->push_back(vec3f(t, tt*(t-1), 0));
 }
 
 }
