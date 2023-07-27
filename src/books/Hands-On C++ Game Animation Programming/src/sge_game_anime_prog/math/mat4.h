@@ -112,12 +112,18 @@ struct mat4 {
 	inline bool operator!=(const mat4& r) const { return !(this->operator==(r)); }
 
 	// Matrix addition can be used with scalar multiplication to interpolate or blend between multiple matrices.Later, you will learn how to use this property to implement animation skinning.
-	inline mat4 operator+(const mat4& r) const { return mat4(cx()+r.cx(), cy()+r.cy(), cz()+r.cz(), cw()+r.cw()); }
-	inline mat4 operator-(const mat4& r) const { return mat4(cx()-r.cx(), cy()-r.cy(), cz()-r.cz(), cw()-r.cw()); }
+	inline mat4 operator+(const mat4& r) const	{ return mat4(cx()+r.cx(), cy()+r.cy(), cz()+r.cz(), cw()+r.cw()); }
+	inline mat4 operator-(const mat4& r) const	{ return mat4(cx()-r.cx(), cy()-r.cy(), cz()-r.cz(), cw()-r.cw()); }
+
+	inline void operator+=(const mat4& r)		{ _columns[0]+=r._columns[0], _columns[1]+=r._columns[1], _columns[2]+=r._columns[2], _columns[3]+=r._columns[3]; }
+	inline void operator-=(const mat4& r)		{ _columns[0]-=r._columns[0], _columns[1]-=r._columns[1], _columns[2]-=r._columns[2], _columns[3]-=r._columns[3]; }
 
 	//Scaling matrices and then adding them allows you to "lerp" or "mix" between two matrices, so long as both matrices represent a linear transform.
-	inline mat4 operator*(float s) const { return mat4(cx()*s, cy()*s, cz()*s, cw()*s); }
-	inline mat4 operator/(float s) const { return mat4(cx()/s, cy()/s, cz()/s, cw()/s); }
+	inline mat4 operator*(float s)		const	{ return mat4(cx()*s, cy()*s, cz()*s, cw()*s); }
+	inline mat4 operator/(float s)		const	{ return mat4(cx()/s, cy()/s, cz()/s, cw()/s); }
+
+	inline void operator*=(float s)				{ _columns[0]*=s, _columns[1]*=s, _columns[2]*=s, _columns[3]*=s; }
+	inline void operator/=(float s)				{ _columns[0]/=s, _columns[1]/=s, _columns[2]/=s, _columns[3]/=s; }
 
 	// The resulting value for any element is the dot product of that row from the left matrix and that column form the right matrix.
 	// For example, suppose you want to find the value of the element in row 2 column 3 when multiplying two matrices.
@@ -242,8 +248,7 @@ struct mat4 {
 	(v[c0*4+r0] * (v[c1*4+r1]*v[c2*4+r2] - v[c1*4+r2]*v[c2*4+r1]) - \
 	 v[c1*4+r0] * (v[c0*4+r1]*v[c2*4+r2] - v[c0*4+r2]*v[c2*4+r1]) + \
 	 v[c2*4+r0] * (v[c0*4+r1]*v[c1*4+r2] - v[c0*4+r2]*v[c1*4+r1]) ) \
-// ---- c*4+r = v array flatten index
-	// why c*4? because mat4 is column-major
+// ---- c*4+r --> mat4 array flatten index, but why c*4? because mat4 is column-major
 
 	inline float determinant() const {
 		return v[0]  * M4_3X3MINOR(1,2,3, 1,2,3)

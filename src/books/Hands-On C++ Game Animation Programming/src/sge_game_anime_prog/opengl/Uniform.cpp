@@ -11,14 +11,11 @@ namespace sge {
 
 template Uniform<int>;
 template Uniform<float>;
-
 template Uniform<vec2i>;
 template Uniform<vec4i>;
-
 template Uniform<vec2f>;
 template Uniform<vec3f>;
 template Uniform<vec4f>;
-
 template Uniform<quat4f>;
 template Uniform<mat4f>;
 template Uniform<Color4f>;
@@ -36,7 +33,7 @@ UNIFORM_IMPL(glUniform4iv, vec4i,   int)
 UNIFORM_IMPL(glUniform2fv, vec2f,   float)
 UNIFORM_IMPL(glUniform3fv, vec3f,   float)
 UNIFORM_IMPL(glUniform4fv, vec4f,   float)
-UNIFORM_IMPL(glUniform4fv, quat4f,    float)
+UNIFORM_IMPL(glUniform4fv, quat4f,  float)
 UNIFORM_IMPL(glUniform4fv, Color4f, float)
 
 template<>

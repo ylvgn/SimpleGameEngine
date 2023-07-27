@@ -21,11 +21,13 @@ namespace TrackHelpers {
 		- and are in the right neighborhood.
 */
 
-inline float interpolate(float a, float b, float t)				{ return a + (b-a)*t; }
-inline vec3f  interpolate(const vec3f& a, const vec3f& b, float t) { return a.lerp(b, t); }
-inline quat4f  interpolate(const quat4f& a, const quat4f& b, float t) { // nlerp
+inline float	interpolate(float a, float b, double t)				 { return static_cast<float>(a + (b-a)*t); }
+inline float	interpolate(float a, float b, float t)				 { return Math::lerp(a,b,t); }
+inline vec3f	interpolate(const vec3f& a, const vec3f& b, float t) { return a.lerp(b, t); }
+inline quat4f	interpolate(const quat4f& a, const quat4f& b, float t) { // nlerp
 	quat4f q = a.mix(b, t);
-	if (a.dot(b) < 0) { // neighborhood
+	if (a.dot(b) < 0) {
+		// neighborhood
 		q = a.mix(-b, t);
 	}
 	return q.normalize();
@@ -311,7 +313,7 @@ T TrackUtil::hermite(float t, const T& p1, const T& s1, const T& p2_, const T& s
 	T p2 = constCast(p2_);
 	TrackHelpers::neighborhood(p1, p2);
 
-	return p1 * (ttt2 - tt3 + 1) + s1 * (ttt - tt2 + t) + p2 * (-ttt2 + tt3) + s2 * (ttt - tt);
+	return p1*(ttt2-tt3+1) + s1*(ttt-tt2+t) + p2*(-ttt2+tt3) + s2*(ttt-tt);
 }
 
 #if 0
@@ -319,8 +321,8 @@ T TrackUtil::hermite(float t, const T& p1, const T& s1, const T& p2_, const T& s
 // Declare the template specializations of the optimizeTrack function for all three types
 // This means declaring specializations that work with the scalar, vector 3, and quaternion tracks
 template FastTrack<float, 1> TrackUtil::optimizeTrack(const Track<float, 1>& src);
-template FastTrack<vec3f,  3> TrackUtil::optimizeTrack(const Track<vec3f,  3>& src);
-template FastTrack<quat4f,  4> TrackUtil::optimizeTrack(const Track<quat4f,  4>& src);
+template FastTrack<vec3f, 3> TrackUtil::optimizeTrack(const Track<vec3f, 3>& src);
+template FastTrack<quat4f,4> TrackUtil::optimizeTrack(const Track<quat4f,4>& src);
 #endif
 
 template<typename T, size_t N>

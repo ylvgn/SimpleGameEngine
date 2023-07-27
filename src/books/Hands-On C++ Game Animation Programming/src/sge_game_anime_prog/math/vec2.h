@@ -29,17 +29,17 @@ struct TVec2 {
 	inline TVec2 operator* (const T& s) const	{ return TVec2(x*s, y*s); }
 	inline TVec2 operator/ (const T& s) const	{ return TVec2(x/s, y/s); }
 
-	inline void operator+= (const TVec2& r) { x+=r.x; y+=r.y; }
-	inline void operator-= (const TVec2& r) { x-=r.x; y-=r.y; }
-	inline void operator*= (const TVec2& r) { x*=r.x; y*=r.y; }
-	inline void operator/= (const TVec2& r) { x/=r.x; y/=r.y; }
+	inline void operator+= (const TVec2& r)		{ x+=r.x; y+=r.y; }
+	inline void operator-= (const TVec2& r)		{ x-=r.x; y-=r.y; }
+	inline void operator*= (const TVec2& r)		{ x*=r.x; y*=r.y; }
+	inline void operator/= (const TVec2& r)		{ x/=r.x; y/=r.y; }
 
-	inline void operator+= (const T& s)		{ x+=s; y+=s; }
-	inline void operator-= (const T& s)		{ x-=s; y-=s; }
-	inline void operator*= (const T& s)		{ x*=s; y*=s; }
-	inline void operator/= (const T& s)		{ x/=s; y/=s; }
+	inline void operator+= (const T& s)			{ x+=s; y+=s; }
+	inline void operator-= (const T& s)			{ x-=s; y-=s; }
+	inline void operator*= (const T& s)			{ x*=s; y*=s; }
+	inline void operator/= (const T& s)			{ x/=s; y/=s; }
 
-	inline TVec2 operator-() const { return TVec2(-x,-y); }
+	inline TVec2 operator-() const				{ return TVec2(-x,-y); }
 
 	inline bool operator== (const TVec2& r) const { return x == r.x && y == r.y; }
 	inline bool operator!= (const TVec2& r) const { return !(this->operator==(r)); }
@@ -85,7 +85,5 @@ using vec2f		= TVec2<float>;
 using vec2d		= TVec2<double>;
 using vec2i		= TVec2<int>;
 using vec2ui	= TVec2<unsigned int>;
-
-using vec2		= vec2f;
 
 }

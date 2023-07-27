@@ -81,8 +81,10 @@ struct quat {
 
 		vec3 lv = vec3(x,y,z);                          // v
 		vec3 rv = vec3(r.x, r.y, r.z);                  // v'
+
 		float scalar = w*r.w - lv.dot(rv);              // ss' - v.v'
 		vec3 vector = rv.cross(lv) + (rv*w) + (lv*r.w); // vXv' + sv' + s'v
+
 		return quat(vector.x, vector.y, vector.z, scalar);
 #endif
 	}
@@ -153,10 +155,9 @@ struct quat {
 	// This function achieves the same result as lerp does, but it's not really a lerp function
 	// as the quaternion still travels on an arc, and arc is not linear.
 	// To avoid any confusion, this function will be called mix, not lerp.
-	inline quat mix(const quat& to, float t) const { return *this + (to-*this)*t; }
-	inline quat lerp(const quat& to, float t) const { return mix(to, t); } // but i still like call it 'lerp' instand of 'mix'.
-
-	inline quat nlerp(const quat& to, float t) const { return mix(to, t).normalize(); }
+	inline quat mix(const quat& to, float t)	const { return *this + (to-*this)*t; }
+	inline quat lerp(const quat& to, float t)	const { return mix(to, t); } // but i still like call it 'lerp' instand of 'mix'.
+	inline quat nlerp(const quat& to, float t)	const { return mix(to, t).normalize(); }
 
 	inline quat nlerp_longway(const quat& to, float t) const {
 		// FYI: https://gabormakesgames.com/blog_quats_neighborhood.html
@@ -176,7 +177,7 @@ struct quat {
 		vec3 a = axis();
 
 		float s, c;
-		Math::sincos(t * theta*0.5f, s, c);
+		Math::sincos(t*(theta*0.5f), s, c);
 
 		return quat(a.x*s, a.y*s, a.z*s, c);
 	}
@@ -186,7 +187,7 @@ struct quat {
 		// If the from and to quaternions are very close together, means cos(θ) close to 1
 		// slerp tends to produce unexpected results.
 		float cosTheta = dot(to);
-		if (fabsf(cosTheta) > (1.0f - Math::epsilon<float>()) ) {
+		if (Math::abs(cosTheta) > (1.0f - Math::epsilon<float>()) ) {
 			return nlerp(to, t);
 		}
 		

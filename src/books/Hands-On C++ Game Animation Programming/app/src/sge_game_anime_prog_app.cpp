@@ -260,7 +260,7 @@ private:
 		);
 		_vertexPositions	= eastl::make_unique< Attribute<vec3f> >();
 		_vertexNormals		= eastl::make_unique< Attribute<vec3f> >();
-		_vertexTexCoords	= eastl::make_unique< Attribute<vec2> >();
+		_vertexTexCoords	= eastl::make_unique< Attribute<vec2f> >();
 		_indexBuffer		= eastl::make_unique<IndexBuffer>();
 
 		Vector<vec3f> positions{
@@ -298,11 +298,11 @@ private:
 		normals.resize(4, vec3f::s_forward());
 		_vertexNormals->uploadToGpu(normals);
 
-		Vector<vec2> uvs = {
-			vec2(0,0),
-			vec2(0,1),
-			vec2(1,0),
-			vec2(1,1),
+		Vector<vec2f> uvs = {
+			vec2f(0,0),
+			vec2f(0,1),
+			vec2f(1,0),
+			vec2f(1,1),
 		};
 		_vertexTexCoords->uploadToGpu(uvs);
 	}
@@ -1255,9 +1255,9 @@ private:
 	SPtr<Shader>							_staticShader;
 	SPtr<Texture>							_texture;
 
-	UPtr< Attribute<vec3f> >					_vertexPositions;
-	UPtr< Attribute<vec3f> >					_vertexNormals;
-	UPtr< Attribute<vec2> >					_vertexTexCoords;
+	UPtr< Attribute<vec3f> >				_vertexPositions;
+	UPtr< Attribute<vec3f> >				_vertexNormals;
+	UPtr< Attribute<vec2f> >				_vertexTexCoords;
 	UPtr<IndexBuffer>						_indexBuffer;
 
 	UPtr<DebugDraw>							_debugPoints;

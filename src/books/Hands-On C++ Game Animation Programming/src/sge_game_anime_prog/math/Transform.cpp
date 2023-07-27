@@ -28,12 +28,10 @@ Transform Transform::inverse() const {
 	if (!Math::equals0(scale.x)) { sx = 1.f / scale.x; }
 	if (!Math::equals0(scale.y)) { sy = 1.f / scale.y; }
 	if (!Math::equals0(scale.z)) { sz = 1.f / scale.z; }
-
 	inv.scale = vec3f(sx,sy,sz);
 
 	vec3f invTranslation = -position;
-	// first, apply the scale, then rotation, and finally, the translation
-	inv.position = inv.rotation * (inv.scale * invTranslation);
+	inv.position = inv.rotation * (inv.scale * invTranslation); // first, apply the scale, then rotation, and finally, the translation
 
 	return inv;
 }
@@ -68,7 +66,7 @@ Transform Transform::s_combine(const Transform& a, const Transform& b) {
 	return res;
 }
 
-Transform Transform::s_mat(const mat4f& m) {
+Transform Transform::s_mat(const mat4& m) {
 /*
 	It's important that you're able to convert matrices to transforms
 	because you don't always control what format the data you are dealing with comes in.

@@ -29,27 +29,27 @@ struct TVec4 {
 	inline bool equals(const TVec4& r, const T& epsilon = Math::epsilon<T>()) const;
 	inline bool equals0(               const T& epsilon = Math::epsilon<T>()) const;
 
-	inline TVec4 operator+ (const TVec4& r) const { return TVec4(x+r.x, y+r.y, z+r.z, w+r.w); }
-	inline TVec4 operator- (const TVec4& r) const { return TVec4(x-r.x, y-r.y, z-r.z, w-r.w); }
-	inline TVec4 operator* (const TVec4& r) const { return TVec4(x*r.x, y*r.y, z*r.z, w*r.w); } // non-uniform scale operator
-	inline TVec4 operator/ (const TVec4& r) const { return TVec4(x/r.x, y/r.y, z/r.z, w/r.w); }
+	inline TVec4 operator+ (const TVec4& r) const	{ return TVec4(x+r.x, y+r.y, z+r.z, w+r.w); }
+	inline TVec4 operator- (const TVec4& r) const	{ return TVec4(x-r.x, y-r.y, z-r.z, w-r.w); }
+	inline TVec4 operator* (const TVec4& r) const	{ return TVec4(x*r.x, y*r.y, z*r.z, w*r.w); } // non-uniform scale operator
+	inline TVec4 operator/ (const TVec4& r) const	{ return TVec4(x/r.x, y/r.y, z/r.z, w/r.w); }
 
-	inline TVec4 operator+ (const T& s)		const { return TVec4(x+s, y+s, z+s, w+s); }
-	inline TVec4 operator- (const T& s)		const { return TVec4(x-s, y-s, z-s, w-s); }
-	inline TVec4 operator* (const T& s)		const { return TVec4(x*s, y*s, z*s, w*s); }
-	inline TVec4 operator/ (const T& s)		const { return TVec4(x/s, y/s, z/s, w/s); }
+	inline TVec4 operator+ (const T& s)		const	{ return TVec4(x+s, y+s, z+s, w+s); }
+	inline TVec4 operator- (const T& s)		const	{ return TVec4(x-s, y-s, z-s, w-s); }
+	inline TVec4 operator* (const T& s)		const	{ return TVec4(x*s, y*s, z*s, w*s); }
+	inline TVec4 operator/ (const T& s)		const	{ return TVec4(x/s, y/s, z/s, w/s); }
 
-	inline void operator+= (const TVec4& r) { x+=r.x; y+=r.y; z+=r.z; w+=r.w; }
-	inline void operator-= (const TVec4& r) { x-=r.x; y-=r.y; z-=r.z; w-=r.w; }
-	inline void operator*= (const TVec4& r) { x*=r.x; y*=r.y; z*=r.z; w*=r.w; }
-	inline void operator/= (const TVec4& r) { x/=r.x; y/=r.y; z/=r.z; w/=r.w; }
+	inline void operator+= (const TVec4& r)			{ x+=r.x; y+=r.y; z+=r.z; w+=r.w; }
+	inline void operator-= (const TVec4& r)			{ x-=r.x; y-=r.y; z-=r.z; w-=r.w; }
+	inline void operator*= (const TVec4& r)			{ x*=r.x; y*=r.y; z*=r.z; w*=r.w; }
+	inline void operator/= (const TVec4& r)			{ x/=r.x; y/=r.y; z/=r.z; w/=r.w; }
 
-	inline void operator+= (const T& s)		{ x+=s; y+=s; z+=s; w+=s; }
-	inline void operator-= (const T& s)		{ x-=s; y-=s; z-=s; w-=s; }
-	inline void operator*= (const T& s)		{ x*=s; y*=s; z*=s; w*=s; }
-	inline void operator/= (const T& s)		{ x/=s; y/=s; z/=s; w/=s; }
+	inline void operator+= (const T& s)				{ x+=s; y+=s; z+=s; w+=s; }
+	inline void operator-= (const T& s)				{ x-=s; y-=s; z-=s; w-=s; }
+	inline void operator*= (const T& s)				{ x*=s; y*=s; z*=s; w*=s; }
+	inline void operator/= (const T& s)				{ x/=s; y/=s; z/=s; w/=s; }
 
-	inline TVec4 operator-() const { return TVec4(-x,-y,-z,-w); }
+	inline TVec4 operator-() const					{ return TVec4(-x,-y,-z,-w); }
 
 	inline bool operator== (const TVec4& r) const { return x == r.x && y == r.y && z == r.z && w == r.w; }
 	inline bool operator!= (const TVec4& r) const { return !(this->operator==(r)); }
@@ -114,8 +114,6 @@ using vec4f		= TVec4<float>;
 using vec4d		= TVec4<double>;
 using vec4i		= TVec4<int>;
 using vec4ui	= TVec4<unsigned int>;
-
-using vec4		= vec4f;
 
 SGE_FORMATTER_T(class T, TVec4<T>)
 }

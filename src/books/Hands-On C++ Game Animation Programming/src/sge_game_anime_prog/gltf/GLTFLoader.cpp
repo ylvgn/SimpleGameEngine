@@ -151,52 +151,52 @@ void meshFromAttribute(Mesh& outMesh, const cgltf_attribute& attribute, const cg
 		size_t index = i * componentCount;
 		switch (attribType)
 		{
-		case cgltf_attribute_type_position:
-			pos.push_back({values[index+0], values[index+1], values[index+2]});
-			break;
-		case cgltf_attribute_type_normal:
-		{
-			vec3f norm{ values[index + 0], values[index + 1], values[index + 2] };
-			if (norm.lenSq() < 0.00001f) {
-				norm = vec3f::s_up();
-			}
-			normal.push_back(norm.normalize());
-		} break;
-		case cgltf_attribute_type_texcoord:
-			uv.push_back({values[index+0], values[index+1]});
-			break;
-		case cgltf_attribute_type_joints:
-		{
-			// These joints are stored as floating-point numbers.Convert them into integers
+			case cgltf_attribute_type_position:
+				pos.push_back({values[index+0], values[index+1], values[index+2]});
+				break;
+			case cgltf_attribute_type_normal:
+			{
+				vec3f norm{ values[index + 0], values[index + 1], values[index + 2] };
+				if (norm.lenSq() < 0.00001f) {
+					norm = vec3f::s_up();
+				}
+				normal.push_back(norm.normalize());
+			} break;
+			case cgltf_attribute_type_texcoord:
+				uv.push_back({values[index+0], values[index+1]});
+				break;
+			case cgltf_attribute_type_joints:
+			{
+				// These joints are stored as floating-point numbers.Convert them into integers
 
-			// These indices are skin relative. 
-			// This function has no information about the skin that is being parsed.
-			// Add +0.5f to round, since we can not read integers
-			vec4i joints(
-				static_cast<int>(values[index+0]+0.5f),
-				static_cast<int>(values[index+1]+0.5f),
-				static_cast<int>(values[index+2]+0.5f),
-				static_cast<int>(values[index+3]+0.5f)
-			);
+				// These indices are skin relative. 
+				// This function has no information about the skin that is being parsed.
+				// Add +0.5f to round, since we can not read integers
+				vec4i joints(
+					static_cast<int>(values[index+0]+0.5f),
+					static_cast<int>(values[index+1]+0.5f),
+					static_cast<int>(values[index+2]+0.5f),
+					static_cast<int>(values[index+3]+0.5f)
+				);
 
-			// Make sure that even the invalid nodes have a value of 0. Any negative joint indices will break the skinning implementation. why??? will it be -1?
-			joints.x = Math::max(0, getNodeIndex(skin->joints[joints.x], nodes, nodeCount));
-			joints.y = Math::max(0, getNodeIndex(skin->joints[joints.y], nodes, nodeCount));
-			joints.z = Math::max(0, getNodeIndex(skin->joints[joints.z], nodes, nodeCount));
-			joints.w = Math::max(0, getNodeIndex(skin->joints[joints.w], nodes, nodeCount));
+				// Make sure that even the invalid nodes have a value of 0. Any negative joint indices will break the skinning implementation. why??? will it be -1?
+				joints.x = Math::max(0, getNodeIndex(skin->joints[joints.x], nodes, nodeCount));
+				joints.y = Math::max(0, getNodeIndex(skin->joints[joints.y], nodes, nodeCount));
+				joints.z = Math::max(0, getNodeIndex(skin->joints[joints.z], nodes, nodeCount));
+				joints.w = Math::max(0, getNodeIndex(skin->joints[joints.w], nodes, nodeCount));
 
-			influences.push_back(joints);
-		} break;
-		case cgltf_attribute_type_weights:
-			weights.push_back({values[index+0], values[index+1], values[index+2], values[index+3]});
-			break;
-		case cgltf_attribute_type_tangent: // todo
-			break;
-		case cgltf_attribute_type_color: // todo
-			break;
-		case cgltf_attribute_type_custom: // todo
-			break;
-		default: throw SGE_ERROR("not support attribute.type"); break;
+				influences.push_back(joints);
+			} break;
+			case cgltf_attribute_type_weights:
+				weights.push_back({values[index+0], values[index+1], values[index+2], values[index+3]});
+				break;
+			case cgltf_attribute_type_tangent: // todo
+				break;
+			case cgltf_attribute_type_color: // todo
+				break;
+			case cgltf_attribute_type_custom: // todo
+				break;
+			default: throw SGE_ERROR("not support cgltf_attribute_type"); break;
 		}
 	}
 }
@@ -366,10 +366,10 @@ void GLTFLoader::_loadBindPose() {
 
 			// Read the ivnerse bind matrix of the joint
 			const float* matrix = &(invBindPoseMat4s[j * 16]);
-			const mat4f invBindPoseMat4(matrix);
+			mat4f invBindPoseMat4(matrix);
 
 			// Invert the inverse bind pose matrix to get the bind pose matrix.
-			const mat4f bindPoseMat4 = invBindPoseMat4.inverse();
+			mat4f bindPoseMat4 = invBindPoseMat4.inverse();
 			Transform bindPoseTrans = Transform::s_mat(bindPoseMat4);
 
 			// Set that transform in the worldBindPose.
