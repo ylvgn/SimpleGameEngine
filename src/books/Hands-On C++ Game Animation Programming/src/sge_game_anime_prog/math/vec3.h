@@ -75,13 +75,15 @@ struct TVec3 {
 	inline T angle(const TVec3& r) const {
 		// angle means radians, not degrees
 		// Finding the angle between the two vectors would be expensive
-		T m1 = magnitude();
-		T m2 = r.magnitude();
+		T lSq = magnitude();
+		T rSq = r.magnitude();
 
-		if (Math::equals0(m1) || Math::equals0(m2)) return T(0);
+		if (Math::equals0(lSq) || Math::equals0(rSq)) {
+			return T(0);
+		}
 
-		T cosTheta = dot(r) / (m1 * m2);
-		return Math::acos(cosTheta);
+		T c = dot(r) / Math::sqrt(lSq * rSq);
+		return Math::acos(c);
 	}
 
 	// projection = project *this onto r
