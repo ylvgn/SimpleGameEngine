@@ -72,30 +72,40 @@ struct TVec3 {
 	inline T		lenSq()					const { return sqrMagnitude(); }
 	inline T		len()					const { return magnitude(); }
 
-	// angle means radians, not degrees
 	inline T angle(const TVec3& r) const {
+		// angle means radians, not degrees
 		// Finding the angle between the two vectors would be expensive
 		T m1 = magnitude();
 		T m2 = r.magnitude();
 
-		if (Math::equals0(m1) || Math::equals0(m2))
-			return 0;
+		if (Math::equals0(m1) || Math::equals0(m2)) return T(0);
 
 		T cosTheta = dot(r) / (m1 * m2);
 		return Math::acos(cosTheta);
 	}
 
-	// project *this onto r
+	// projection = project *this onto r
 	inline TVec3 project(const TVec3& r) const {
-		T m = r.magnitude();
-		if (Math::equals0(m))
-			return s_zero();
+		T rLenSq = r.sqrMagnitude();
+		if (Math::equals0(rLenSq)) return s_zero();
 
-		// *this is considered as hypotenuse
-		// so, s = ||hypotenuse|| * cos(theta) = dot(r) / ||r||
+/*
+		*this is considered as hypotenuse
+		using ||hypo|| = ||hypotenuse|| = *this
+		||hypo|| * cos(theta) = ||projection||
 
-		T s = dot(r) / m;
-		return r * s;
+		cos(theta) = dot(r) / ||hypo|| / ||r||
+
+		projection	= r.normalize() * ||projection||
+					= (r*||r||) * (||hypo||  * cos(theta))
+					= r * (||r|| * ||hypo|| * ( dot(r) / ||hypo|| / ||r|| )
+					= r * (dot(r) / ||r|| / ||r||)
+
+		so scale	= dot(r) / rLenSq
+*/
+
+		T scale = dot(r) / rLenSq;
+		return r * scale;
 	}
 
 	// rejection is perpendicular to projection
