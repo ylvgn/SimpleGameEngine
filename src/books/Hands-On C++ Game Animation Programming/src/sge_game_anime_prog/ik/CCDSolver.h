@@ -5,25 +5,31 @@ namespace sge{
 /*
 	CCDSolver class with three variables:
 		-a list of transforms to form the IK chain, --> _ikChains
-		-the number of iterations to perform, --> _stepCount
-		-and some small delta --> _threshold
+		-the number of iterations to perform,		--> _stepCount
+		-and some small delta						--> _threshold
 			that can be used to control how close the target has to be to the goal before the chain is considered solved.
 */
+
 class CCDSolver : public NonCopyable {
 public:
-	inline size_t getJointCount() const { return _ikChains.size(); }
-	inline void resize(size_t newSize)  { _ikChains.resize(newSize); }
 
 	inline       Transform& operator[](int i)		{ return _ikChains[i]; }
 	inline const Transform& operator[](int i) const	{ return _ikChains[i]; }
 
+	inline void setLocalTransform(int i, const Transform& t)	{ _ikChains[i] = t; }
+	inline Transform getLocalTransform(int i) const				{ return _ikChains[i]; }
+
 	Transform getGlobalTransform(int i) const;
+	inline Transform getWorldTransform(int i) const { return getGlobalTransform(i); }
 
-	inline void setStepCount(int stepCount)		{ _stepCount = stepCount; }
-	inline int stepCount() const				{ return _stepCount; }
+	inline void setStepCount(int stepCount)			{ _stepCount = stepCount; }
+	inline int  stepCount() const					{ return _stepCount; }
 
-	inline float setThreshold(float threshold)  { _threshold = threshold; }
-	inline float threshold() const				{ return _threshold; }
+	inline float setThreshold(float threshold)		{ _threshold = threshold; }
+	inline float threshold() const					{ return _threshold; }
+
+	inline size_t getJointCount() const				{ return _ikChains.size(); }
+	inline void resize(size_t jointCount)			{ _ikChains.resize(jointCount); }
 
 	bool solve(const Transform& target);
 

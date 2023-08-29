@@ -139,11 +139,11 @@ void meshFromAttribute(Mesh& outMesh, const cgltf_attribute& attribute, const cg
 	getScalarValues(values, componentCount, accessor);
 
 	// 3.write data to Mesh by loop through all the values in the current accessor and assign them to the appropriate vector based on the accessor type.
-	auto& pos			= outMesh.pos();
-	auto& normal		= outMesh.normal();
-	auto& uv			= outMesh.uv();
-	auto& influences	= outMesh.jointInfluences();
-	auto& weights		= outMesh.jointWeights();
+	auto& pos			= outMesh.pos;
+	auto& normal		= outMesh.normal;
+	auto& uv			= outMesh.uv;
+	auto& influences	= outMesh.jointInfluences;
+	auto& weights		= outMesh.jointWeights;
 
 	cgltf_attribute_type attribType = attribute.type;
 	cgltf_size acessorCount = accessor.count;
@@ -407,8 +407,8 @@ void GLTFLoader::_loadMeshes() {
 	auto& o = _outInfo->meshes;
 	o.clear();
 
-	cgltf_node* nodes = _data->nodes;
-	cgltf_size nodeCount = _data->nodes_count;
+	cgltf_node* nodes		= _data->nodes;
+	cgltf_size  nodeCount	= _data->nodes_count;
 
 	for (int i = 0; i < nodeCount; ++i) {
 		const cgltf_node& node = nodes[i];
@@ -433,7 +433,7 @@ void GLTFLoader::_loadMeshes() {
 			// Check whether the primitive contains indices.If it does, the index buffer of the mesh needs to be filled out as well
 			if (primitive.indices != 0) {
 				cgltf_size indiceCount = primitive.indices->count;
-				auto& indices = mesh.indices();
+				auto& indices = mesh.indices;
 				indices.resize(indiceCount);
 
 				for (size_t k = 0; k < indiceCount; ++k) {

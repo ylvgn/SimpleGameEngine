@@ -4,23 +4,22 @@
 namespace sge {
 
 Mesh::Mesh() {
-	_posAttrib		= eastl::make_unique< Attribute<vec3f> >();
-	_normalAttrib	= eastl::make_unique< Attribute<vec3f> >();
-	_uvAttrib		= eastl::make_unique< Attribute<vec2f> >();
-	_indexBuffer	= eastl::make_unique<IndexBuffer>();
-
-	_jointWeightsAttrib    = eastl::make_unique< Attribute<vec4f> >();
-	_jointInfluencesAttrib = eastl::make_unique< Attribute<vec4i> >();
+	_indexBuffer			= eastl::make_unique< IndexBuffer >();
+	_posAttrib				= eastl::make_unique< Attribute<vec3f> >();
+	_normalAttrib			= eastl::make_unique< Attribute<vec3f> >();
+	_uvAttrib				= eastl::make_unique< Attribute<vec2f> >();
+	_jointWeightsAttrib		= eastl::make_unique< Attribute<vec4f> >();
+	_jointInfluencesAttrib	= eastl::make_unique< Attribute<vec4i> >();
 }
 
 Mesh::Mesh(const Mesh& r) {
-	_posAttrib		= eastl::make_unique< Attribute<vec3f> >();
-	_normalAttrib	= eastl::make_unique< Attribute<vec3f> >();
-	_uvAttrib		= eastl::make_unique< Attribute<vec2f> >();
-	_indexBuffer	= eastl::make_unique<IndexBuffer>();
+	_indexBuffer			= eastl::make_unique< IndexBuffer >();
+	_posAttrib				= eastl::make_unique< Attribute<vec3f> >();
+	_normalAttrib			= eastl::make_unique< Attribute<vec3f> >();
+	_uvAttrib				= eastl::make_unique< Attribute<vec2f> >();
+	_jointWeightsAttrib		= eastl::make_unique< Attribute<vec4f> >();
+	_jointInfluencesAttrib	= eastl::make_unique< Attribute<vec4i> >();
 
-	_jointWeightsAttrib	   = eastl::make_unique< Attribute<vec4f> >();
-	_jointInfluencesAttrib = eastl::make_unique< Attribute<vec4i> >();
 	*this = r;
 }
 
@@ -32,12 +31,12 @@ Mesh& Mesh::operator=(const Mesh& r) {
 		return *this;
 	}
 
-	_pos				= r._pos;
-	_normal				= r._normal;
-	_uv					= r._uv;
-	_indices			= r._indices;
-	_jointWeights		= r._jointWeights;
-	_jointInfluences	= r._jointInfluences;
+	pos				= r.pos;
+	normal			= r.normal;
+	uv				= r.uv;
+	indices			= r.indices;
+	jointWeights	= r.jointWeights;
+	jointInfluences	= r.jointInfluences;
 	uploadToGpu();
 
 	return *this;
@@ -49,7 +48,7 @@ void Mesh::cpuSkin(const Skeleton& skeleton, const Pose& pose) {
 	CPU skinning is useful if the platform you are developing for has a limited number of uniform registers or a small uniform buffer.
 */
 
-	size_t vertexCount = _pos.size();
+	size_t vertexCount = getVertexCount();
 	if (vertexCount == 0) return;
 
 	_skinnedPos.resize(vertexCount);
@@ -61,8 +60,8 @@ void Mesh::cpuSkin(const Skeleton& skeleton, const Pose& pose) {
 	const auto& invPosePalette = skeleton.invBindPose();
 
 	for (int i = 0; i < vertexCount; ++i) {
-		const vec4i& j = _jointInfluences[i];
-		const vec4f& w = _jointWeights[i];
+		const vec4i& j = jointInfluences[i];
+		const vec4f& w = jointWeights[i];
 
 		mat4 m0 = _posePalette[j.x] * invPosePalette[j.x];
 		mat4 m1 = _posePalette[j.y] * invPosePalette[j.y];
@@ -71,8 +70,8 @@ void Mesh::cpuSkin(const Skeleton& skeleton, const Pose& pose) {
 
 		mat4 skin = (m0*w.x) + (m1*w.y) + (m2*w.z) + (m3*w.w);
 
-		_skinnedPos[i]    = skin.transformPoint(_pos[i]);
-		_skinnedNormal[i] = skin.transformVector(_normal[i]);
+		_skinnedPos[i]    = skin.transformPoint(pos[i]);
+		_skinnedNormal[i] = skin.transformVector(normal[i]);
 	}
 
 #else // skin tranform
@@ -86,8 +85,8 @@ void Mesh::cpuSkin(const Skeleton& skeleton, const Pose& pose) {
 
 	const auto& bindPose = skeleton.bindPose();
 	for (int i = 0; i < vertexCount; ++i) {
-		const vec4i& jointIds = _jointInfluences[i];
-		const vec4f& weights  = _jointWeights[i];
+		const vec4i& jointIds = jointInfluences[i];
+		const vec4f& weights  = jointWeights[i];
 
 		// 1.calc skin transform
 		Transform skin0 = Transform::s_combine(
@@ -95,29 +94,29 @@ void Mesh::cpuSkin(const Skeleton& skeleton, const Pose& pose) {
 			bindPose.getGlobalTransform(jointIds.x).inverse()
 		);
 		// 2.transform vertex data by using skin transform 
-		vec3 p0 = skin0.transformPoint(_pos[i]);
-		vec3 n0 = skin0.transformPoint(_normal[i]);
+		vec3f p0 = skin0.transformPoint(pos[i]);
+		vec3f n0 = skin0.transformPoint(normal[i]);
 
 		Transform skin1 = Transform::s_combine(
 			pose.getGlobalTransform(jointIds.y),
 			bindPose.getGlobalTransform(jointIds.y).inverse()
 		);
-		vec3 p1 = skin1.transformPoint(_pos[i]);
-		vec3 n1 = skin1.transformPoint(_normal[i]);
+		vec3f p1 = skin1.transformPoint(pos[i]);
+		vec3f n1 = skin1.transformPoint(normal[i]);
 
 		Transform skin2 = Transform::s_combine(
 			pose.getGlobalTransform(jointIds.z),
 			bindPose.getGlobalTransform(jointIds.z).inverse()
 		);
-		vec3 p2 = skin2.transformPoint(_pos[i]);
-		vec3 n2 = skin2.transformPoint(_normal[i]);
+		vec3f p2 = skin2.transformPoint(pos[i]);
+		vec3f n2 = skin2.transformPoint(normal[i]);
 
 		Transform skin3 = Transform::s_combine(
 			pose.getGlobalTransform(jointIds.w),
 			bindPose.getGlobalTransform(jointIds.w).inverse()
 		);
-		vec3 p3 = skin3.transformPoint(_pos[i]);
-		vec3 n3 = skin3.transformPoint(_normal[i]);
+		vec3f p3 = skin3.transformPoint(pos[i]);
+		vec3f n3 = skin3.transformPoint(normal[i]);
 
 		// 3. blend the 4 results with jointWeights
 		_skinnedPos[i]    = (p0*weights.x) + (p1*weights.y) + (p2*weights.z) + (p3*weights.w);
@@ -131,26 +130,27 @@ void Mesh::cpuSkin(const Skeleton& skeleton, const Pose& pose) {
 
 void Mesh::cpuSkin(const Span<const mat4>& animatedPose) {
 	// animatedPose = _posePalette * invPosePalette
-	size_t vertexCount = _pos.size();
+
+	size_t vertexCount = getVertexCount();
 	if (vertexCount == 0) return;
 
 	_skinnedPos.resize(vertexCount);
 	_skinnedNormal.resize(vertexCount);
 
 	for (int i = 0; i < vertexCount; ++i) {
-		const vec4i& j = _jointInfluences[i];
-		const vec4f& w = _jointWeights[i];
+		const vec4i& j = jointInfluences[i];
+		const vec4f& w = jointWeights[i];
 
-		vec3f p0 = animatedPose[j.x].transformPoint(_pos[i]);
-		vec3f p1 = animatedPose[j.y].transformPoint(_pos[i]);
-		vec3f p2 = animatedPose[j.z].transformPoint(_pos[i]);
-		vec3f p3 = animatedPose[j.w].transformPoint(_pos[i]);
+		vec3f p0 = animatedPose[j.x].transformPoint(pos[i]);
+		vec3f p1 = animatedPose[j.y].transformPoint(pos[i]);
+		vec3f p2 = animatedPose[j.z].transformPoint(pos[i]);
+		vec3f p3 = animatedPose[j.w].transformPoint(pos[i]);
 		_skinnedPos[i] = (p0*w.x) + (p1*w.y) + (p2*w.z) + (p3*w.w);
 
-		vec3f n0 = animatedPose[j.x].transformVector(_normal[i]);
-		vec3f n1 = animatedPose[j.y].transformVector(_normal[i]);
-		vec3f n2 = animatedPose[j.z].transformVector(_normal[i]);
-		vec3f n3 = animatedPose[j.w].transformVector(_normal[i]);
+		vec3f n0 = animatedPose[j.x].transformVector(normal[i]);
+		vec3f n1 = animatedPose[j.y].transformVector(normal[i]);
+		vec3f n2 = animatedPose[j.z].transformVector(normal[i]);
+		vec3f n3 = animatedPose[j.w].transformVector(normal[i]);
 		_skinnedNormal[i] = (n0*w.x) + (n1*w.y) + (n2*w.z) + (n3*w.w);
 	}
 
@@ -159,48 +159,56 @@ void Mesh::cpuSkin(const Span<const mat4>& animatedPose) {
 }
 
 void Mesh::uploadToGpu() {
+
 	// syncs the vectors holding data to the GPU
 	// If one of the CPU-side vectors has a size of 0, then there is nothing to set
-	if (_pos.size() > 0)				{ _posAttrib->uploadToGpu(_pos); }
-	if (_normal.size() > 0)				{ _normalAttrib->uploadToGpu(_normal); }
-	if (_uv.size() > 0)					{ _uvAttrib->uploadToGpu(_uv); }
-	if (_indices.size() > 0)			{ _indexBuffer->uploadToGpu(_indices); }
-	if (_jointWeights.size() > 0)		{ _jointWeightsAttrib->uploadToGpu(_jointWeights); }
-	if (_jointInfluences.size() > 0)	{ _jointInfluencesAttrib->uploadToGpu(_jointInfluences); }
+	if (pos.size() > 0)				{ _posAttrib->uploadToGpu(pos); }
+	if (normal.size() > 0)			{ _normalAttrib->uploadToGpu(normal); }
+	if (uv.size() > 0)				{ _uvAttrib->uploadToGpu(uv); }
+	if (indices.size() > 0)			{ _indexBuffer->uploadToGpu(indices); }
+	if (jointWeights.size() > 0)	{ _jointWeightsAttrib->uploadToGpu(jointWeights); }
+	if (jointInfluences.size() > 0)	{ _jointInfluencesAttrib->uploadToGpu(jointInfluences); }
+
 }
 
-void Mesh::bind(int pos, int normal, int uv, int jointWeight/*=-1*/, int jointInflucence/*=-1*/) {
+void Mesh::bind(int pos_, int normal_, int uv_, int jointWeight_/*=-1*/, int jointInflucence_/*=-1*/) {
+
 	// This takes integers that are bind slot indices.
 	// If the bind slot is valid, valid means slot >= 0, call the 'bind' function of attribute/
 		// why not pass a slot always >= 0 ???
-	if (pos >= 0)				{ _posAttrib->bind(pos); }
-	if (normal >= 0)			{ _normalAttrib->bind(normal); }
-	if (uv >= 0)				{ _uvAttrib->bind(uv); }
-	if (jointWeight >= 0)		{ _jointWeightsAttrib->bind(jointWeight); }
-	if (jointInflucence >= 0)	{ _jointInfluencesAttrib->bind(jointInflucence); }
+	if (pos_ >= 0)					{ _posAttrib->bind(pos_); }
+	if (normal_ >= 0)				{ _normalAttrib->bind(normal_); }
+	if (uv_ >= 0)					{ _uvAttrib->bind(uv_); }
+	if (jointWeight_ >= 0)			{ _jointWeightsAttrib->bind(jointWeight_); }
+	if (jointInflucence_ >= 0)		{ _jointInfluencesAttrib->bind(jointInflucence_); }
+
 }
 
-void Mesh::unbind(int pos, int normal, int uv, int jointWeight, int jointInflucence) {
-	if (pos >= 0)				{ _posAttrib->unbind(pos); }
-	if (normal >= 0)			{ _normalAttrib->unbind(normal); }
-	if (uv >= 0)				{ _uvAttrib->unbind(uv); }
-	if (jointWeight >= 0)		{ _jointWeightsAttrib->unbind(jointWeight); }
-	if (jointInflucence >= 0)	{ _jointInfluencesAttrib->unbind(jointInflucence); }
+void Mesh::unbind(int pos_, int normal_, int uv_, int jointWeight_, int jointInflucence_) {
+
+	if (pos_ >= 0)					{ _posAttrib->unbind(pos_); }
+	if (normal_ >= 0)				{ _normalAttrib->unbind(normal_); }
+	if (uv_ >= 0)					{ _uvAttrib->unbind(uv_); }
+	if (jointWeight_ >= 0)			{ _jointWeightsAttrib->unbind(jointWeight_); }
+	if (jointInflucence_ >= 0)		{ _jointInfluencesAttrib->unbind(jointInflucence_); }
+
 }
 
 void Mesh::draw() {
-	if (_indices.size() > 0) {
+	size_t indexCount = getIndexCount();
+	if (indexCount > 0) {
 		DrawUtil::draw(*_indexBuffer.get());
 	} else {
-		DrawUtil::draw(_pos.size());
+		DrawUtil::draw(getVertexCount());
 	}
 }
 
 void Mesh::drawInstanced(u32 instanceCount) {
-	if (_indices.size() > 0) {
+	size_t indexCount = getIndexCount();
+	if (indexCount > 0) {
 		DrawUtil::drawInstanced(*_indexBuffer.get(), instanceCount);
 	} else {
-		DrawUtil::drawInstanced(_pos.size(), instanceCount);
+		DrawUtil::drawInstanced(getVertexCount(), instanceCount);
 	}
 }
 

@@ -19,11 +19,11 @@ namespace sge {
 	The intended use of this class is to edit the CPU-side vertices,
 	then sync the changes to the GPU with the 'uploadToGpu' functions.
 
-	1.static vertex pipeline: vertex->MVP
-	2.rigid skinned vertex pipeline: vertex->skinned vertex->MVP
-	3.smooth skinned vertex pipeline: vertex->skinned vertex with weights->MVP
+	1. static vertex pipeline: vertex->MVP
+	2. rigid skinned vertex pipeline: vertex->skinned vertex->MVP
+	3. smooth skinned vertex pipeline: vertex->skinned vertex with weights->MVP
 
-	This Mesh class is not production-ready, but it's easy to work with
+	ps: This Mesh class is not production-ready, but it's easy to work with
 */
 
 class Mesh {
@@ -31,15 +31,6 @@ public:
 	Mesh();
 	Mesh(const Mesh& r);
 	Mesh& operator=(const Mesh& r);
-
-	// The vector references are not read-only; The references are expected to be edited
-	// you use these when loading meshes to populate the mesh data
-	inline Vector<vec3f>& pos()				{ return _pos; }
-	inline Vector<vec3f>& normal()			{ return _normal; }
-	inline Vector<vec2f>& uv()				{ return _uv; }
-	inline Vector<u32>&   indices()			{ return _indices; }
-	inline Vector<vec4f>& jointWeights()	{ return _jointWeights; }
-	inline Vector<vec4i>& jointInfluences()	{ return _jointInfluences; }
 
 	void cpuSkin(const Skeleton& skeleton, const Pose& pose);
 	void cpuSkin(const Span<const mat4>& animatedPose);
@@ -51,21 +42,26 @@ public:
 	void draw();
 	void drawInstanced(u32 instanceCount);
 
-private:
-	Vector<vec3f>	_pos;
-	Vector<vec3f>	_normal;
-	Vector<vec2f>	_uv;
-	Vector<u32>		_indices; // optional
+	inline size_t getVertexCount()	const { return pos.size(); };
+	inline size_t getIndexCount()	const { return indices.size(); };
+
+	Vector<u32>		indices;
+
+	Vector<vec3f>	pos;
+	Vector<vec3f>	normal;
+	Vector<vec2f>	uv;
 
 	// smooth skinned mesh
-	Vector<vec4f> _jointWeights;    // values from [0, 1], expected added together is equal 1.
-	Vector<vec4i> _jointInfluences; // contains jointId that affect the vertex
+	Vector<vec4f>	jointWeights;    // values from [0, 1], expected added together is equal 1.
+	Vector<vec4i>	jointInfluences; // contains jointId that affect the vertex
 
+private:
 	// Each of the vectors listed in the preceding code also needs to be set appropriate attributes.
+	UPtr<IndexBuffer>		 _indexBuffer;
+
 	UPtr< Attribute<vec3f> > _posAttrib;
 	UPtr< Attribute<vec3f> > _normalAttrib;
 	UPtr< Attribute<vec2f> > _uvAttrib;
-	UPtr<IndexBuffer>		 _indexBuffer; // optional
 
 	// smooth skinned mesh
 	UPtr< Attribute<vec4f> > _jointWeightsAttrib;
@@ -75,10 +71,10 @@ private:
 		// -the position
 		// -and normal,
 		// -as well as a matrix palette to use for CPU skinning
-	Vector<vec3f> _skinnedPos;
-	Vector<vec3f> _skinnedNormal;
+	Vector<vec3f>			_skinnedPos;
+	Vector<vec3f>			_skinnedNormal;
 
-	Vector<mat4>  _posePalette;
+	Vector<mat4>			_posePalette;
 };
 
 }

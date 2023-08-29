@@ -140,7 +140,7 @@ void RearrangeBones::rearrangeMesh(Mesh& out) {
 	Changing the mesh in this way only edits the CPU copy of the mesh.
 	Call UpdateOpenGLBuffers to upload the new attribute to the GPU as well
 */
-	auto& j = out.jointInfluences();
+	auto& j = out.jointInfluences;
 	for (int i = 0; i < j.size(); ++i) {
 		// The weights of the joint don't need to be edited since the joint itself didn't change;
 		// only its index in the array changed, only the value of x,y,z,w.

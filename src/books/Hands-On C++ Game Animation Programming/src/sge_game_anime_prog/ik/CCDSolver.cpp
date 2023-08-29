@@ -29,6 +29,7 @@ bool CCDSolver::solve(const Transform& target) {
 
 	constexpr const float kEpsilon = 0.00001f;
 	int last = static_cast<int>(jointCount) - 1;
+
 	for (int i = 0; i < _stepCount; ++i) {
 		vec3f effector = getGlobalTransform(last).position;
 		if ((goal - effector).lenSq() < thresholdSq) {

@@ -78,10 +78,10 @@ void FABRIKSolver::_iterateForward(const vec3f& base) {
 	}
 }
 
-void FABRIKSolver::resize(size_t jointCount) {
-	_ikChains.resize(jointCount);
-	_worldChians.resize(jointCount);
-	_lengths.resize(jointCount); // actually length only need jointCount - 1, but we need _lengths[0] == 0.f
+void FABRIKSolver::resize(size_t newJointCount) {
+	_ikChains.resize(newJointCount);
+	_worldChians.resize(newJointCount);
+	_lengths.resize(newJointCount); // actually length only need newJointCount - 1, but we need _lengths[0] == 0.f
 }
 
 Transform FABRIKSolver::getGlobalTransform(int i) const {

@@ -19,6 +19,7 @@ struct TVec3 {
 
 	inline TVec3() = default;
 	inline TVec3(const T& x_, const T& y_, const T& z_) : x(x_), y(y_), z(z_) {}
+	inline void set(const T& x_, const T& y_, const T& z_) { x = x_; y = y_; z = z_; }
 
 	inline static TVec3 s_zero()	{ return TVec3(0,0,0); }
 	inline static TVec3 s_one()		{ return TVec3(1,1,1); }
@@ -43,10 +44,10 @@ struct TVec3 {
 	inline TVec3 operator* (const T& s)		const { return TVec3(x*s, y*s, z*s); }
 	inline TVec3 operator/ (const T& s)		const { return TVec3(x/s, y/s, z/s); }
 
-	inline void operator+= (const TVec3& r) { x+=r.x; y+=r.y; z+=r.z; }
-	inline void operator-= (const TVec3& r) { x-=r.x; y-=r.y; z-=r.z; }
-	inline void operator*= (const TVec3& r) { x*=r.x; y*=r.y; z*=r.z; }
-	inline void operator/= (const TVec3& r) { x/=r.x; y/=r.y; z/=r.z; }
+	inline void operator+= (const TVec3& r)	{ x+=r.x; y+=r.y; z+=r.z; }
+	inline void operator-= (const TVec3& r)	{ x-=r.x; y-=r.y; z-=r.z; }
+	inline void operator*= (const TVec3& r)	{ x*=r.x; y*=r.y; z*=r.z; }
+	inline void operator/= (const TVec3& r)	{ x/=r.x; y/=r.y; z/=r.z; }
 
 	inline void operator+= (const T& s)		{ x+=s; y+=s; z+=s; }
 	inline void operator-= (const T& s)		{ x-=s; y-=s; z-=s; }
@@ -58,14 +59,14 @@ struct TVec3 {
 	inline			T& operator[](int i)		{ return v[i]; }
 	inline const	T& operator[](int i) const	{ return v[i]; }
 
-	inline	TVec2<T> xy() const { return TVec2<T>(x,y); }
-	inline	TVec2<T> xz() const { return TVec2<T>(x,z); }
-	inline	TVec2<T> yz() const { return TVec2<T>(y,z); }
+	inline TVec2<T> xy() const { return TVec2<T>(x,y); }
+	inline TVec2<T> xz() const { return TVec2<T>(x,z); }
+	inline TVec2<T> yz() const { return TVec2<T>(y,z); }
 
 	inline T		dot(const TVec3& r)		const { return (x*r.x) + (y*r.y) + (z*r.z); }
 	inline TVec3	cross(const TVec3& r)	const { return TVec3(y*r.z - z*r.y, z*r.x - x*r.z, x*r.y - y*r.x); }
 
-	inline TVec3	normalize() const { T m = magnitude(); return Math::equals0(m) ? s_zero() : (*this / m); }
+	inline TVec3	normalize()				const { T m = magnitude(); return Math::equals0(m) ? s_zero() : (*this / m); }
 
 	inline T		magnitude()				const { T m = sqrMagnitude(); return Math::equals0(m) ? T(0) : Math::sqrt(m); }
 	inline T		sqrMagnitude()			const { return dot(*this); }
@@ -217,6 +218,7 @@ using vec3f		= TVec3<float>;
 using vec3d		= TVec3<double>;
 using vec3i		= TVec3<int>;
 using vec3ui	= TVec3<unsigned int>;
+
 
 SGE_FORMATTER_T(class T, TVec3<T>)
 

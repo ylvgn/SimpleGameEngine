@@ -39,17 +39,17 @@ struct CubicCurveExample {
 	class Hermite : public NonCopyable {
 	public:
 		Hermite() = default;
-		Hermite(const vec3f& p1, const vec3f& p2, float tan1, float tan2) { set(p1, p2, tan1, tan2); }
+		Hermite(const vec3f& p1, const vec3f& p2, const vec3f& tan1, const vec3f& tan2) { set(p1, p2, tan1, tan2); }
 
 		vec3f lerp(float t) const;
 		void factor(float t, UPtr<DebugDraw>& outPoints) const;
 
 		inline const vec3f& p1()	const { return _p1; }
 		inline const vec3f& p2()	const { return _p2; }
-		inline float tan1()			const { return _tan1; }
-		inline float tan2()			const { return _tan2; }
+		inline const vec3f& tan1()	const { return _tan1; }
+		inline const vec3f& tan2()	const { return _tan2; }
 
-		inline void set(const vec3f& p1, const vec3f& p2, float tan1, float tan2) {
+		inline void set(const vec3f& p1, const vec3f& p2, const vec3f& tan1, const vec3f& tan2) {
 			_p1   = p1;
 			_p2   = p2;
 			_tan1 = tan1;
@@ -57,10 +57,10 @@ struct CubicCurveExample {
 		}
 
 	private:
-		vec3f _p1 {0,0,0};
-		vec3f _p2 {0,0,0};;
-		float _tan1 = 0;
-		float _tan2 = 0;
+		vec3f _p1   {0,0,0};
+		vec3f _p2   {0,0,0};
+		vec3f _tan1 {0,0,0};
+		vec3f _tan2 {0,0,0};
 	};
 };
 
