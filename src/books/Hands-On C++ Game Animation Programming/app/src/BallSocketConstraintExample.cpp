@@ -34,10 +34,9 @@ void BallSocketConstraintExample<IKSolver>::s_constraintHandler(int i, IKSolver*
 	auto& map = exampleThis->_jointId2LimitAngle;
 
 	if (map.find(i) == map.end()) return;
-	
 	float limitAngle = map[i];
-	const quat& thisLocalRot = solver->operator[](i).rotation;
 
+	const quat& thisLocalRot = solver->operator[](i).rotation;
 	quat parentRot = i == 0
 		? thisLocalRot
 		: solver->getWorldTransform(i-1).rotation;

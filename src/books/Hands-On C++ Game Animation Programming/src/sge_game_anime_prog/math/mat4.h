@@ -370,8 +370,26 @@ struct mat4 {
 */
 	}
 
+
+	inline static mat4 s_translate(const vec3& t) {
+		return mat4({ 1,   0,   0,		0},
+					{ 0,   1,	0,		0},
+					{ 0,   0,   1,		0},
+					{ t.x, t.y, t.z,	1});
+	}
+
+	inline static mat4 s_scale(const vec3& s) {
+		return mat4({ s.x, 0,   0,   0 },
+					{ 0,   s.y, 0,   0 },
+					{ 0,   0,   s.z, 0 },
+					{ 0,   0,   0,   1 });
+	}
+
 	static mat4 s_quat(const quat& q);
+
 	static mat4 s_transform(const Transform& t);
+
+	static mat4 s_trs(const vec3f& pos, const quat& q, const vec3f& scale);
 
 	void onFormat(fmt::format_context& ctx) const;
 };

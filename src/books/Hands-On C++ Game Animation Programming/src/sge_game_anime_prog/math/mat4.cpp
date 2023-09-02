@@ -146,6 +146,13 @@ mat4 mat4::s_transform(const Transform& t) {
 #endif
 }
 
+mat4 mat4::s_trs(const vec3f& pos, const quat& q, const vec3f& scale) {
+	auto t = mat4f::s_translate(pos);
+	auto r = mat4f::s_quat(q);
+	auto s = mat4f::s_scale(scale);
+	return t*r*s;
+}
+
 void mat4::onFormat(fmt::format_context& ctx) const {
 	fmt::format_to(ctx.out(), "{}\n{}\n{}\n{}", cx(), cy(), cz(), cw());
 }

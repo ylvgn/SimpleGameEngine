@@ -16,6 +16,7 @@ class IKExampleTestBase : public ExampleTestBase {
 public:
 	IKExampleTestBase();
 
+	constexpr static Color4f kBlack  =  {0,0,0,1};
 	constexpr static Color4f kWhite  =  {1,1,1,1};
 	constexpr static Color4f kRed	 =	{1,0,0,1};
 	constexpr static Color4f kGreen  =	{0,1,0,1};
@@ -27,7 +28,7 @@ protected:
 	virtual void onCreate() override;
 	virtual void onUpdate(float dt) override;
 	virtual void onRender(float aspect) override;
-	
+
 protected:
 	void _createIKChains();
 	void _createLoopingClip();

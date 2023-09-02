@@ -77,7 +77,7 @@ void IKExampleTestBase<IKSolver>::onUpdate(float dt) {
 
 template<class IKSolver>
 void IKExampleTestBase<IKSolver>::onRender(float aspect) {
-	_matrixView = mat4f::s_lookAt(vec3f(0,0,10)/*getEyesPos()*/, vec3f::s_zero(), vec3f::s_up());
+	_matrixView = mat4f::s_lookAt(getEyesPos(), vec3f::s_zero(), vec3f::s_up());
 	_matrixProj = mat4f::s_perspective(60.0f, aspect, 0.01f, 100.0f);
 	mat4f mvp = _matrixProj * _matrixView * mat4f::s_identity();
 
