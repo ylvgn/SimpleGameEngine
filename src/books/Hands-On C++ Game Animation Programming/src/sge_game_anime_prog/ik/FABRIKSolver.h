@@ -5,13 +5,17 @@
 namespace sge {
 
 class FABRIKSolver : public NonCopyable {
+	using This = FABRIKSolver;
 public:
+
+	using ConstraintsHandler = void(*) (int i, This* solver);
 
 	inline       Transform& operator[](int i)		{ return _ikChains[i]; }
 	inline const Transform& operator[](int i) const { return _ikChains[i]; }
 
 	inline void setLocalTransform(int i, const Transform& t)	{ _ikChains[i] = t; }
-	inline Transform getLocalTransform(int i) const				{ return _ikChains[i]; }
+	inline Transform& getLocalTransform(int i)					{ return _ikChains[i]; }
+	inline const Transform& getLocalTransform(int i) const		{ return _ikChains[i]; }
 
 	Transform getGlobalTransform(int i) const;
 	inline Transform getWorldTransform(int i) const { return getGlobalTransform(i); }
@@ -27,6 +31,10 @@ public:
 
 	bool solve(const Transform& target);
 
+	inline void setConstraintsHandler(void (*handler)(int i, This* solver)) {
+		_constraintsHandler = reinterpret_cast<ConstraintsHandler>(handler);
+	}
+
 private:
 	void _ikChainsToWorld();
 	void _worldToIkChains();
@@ -38,8 +46,10 @@ private:
 	Vector<vec3f>		_worldChians;
 	Vector<float>		_lengths;
 
-	int _stepCount		= 15;
-	float _threshold	= 0.00001f;
+	int		_stepCount	= 15;
+	float	_threshold	= 0.00001f;
+
+	ConstraintsHandler _constraintsHandler = nullptr;
 };
 
 }

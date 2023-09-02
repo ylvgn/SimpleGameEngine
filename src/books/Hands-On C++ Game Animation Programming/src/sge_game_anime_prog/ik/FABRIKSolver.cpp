@@ -114,6 +114,12 @@ bool FABRIKSolver::solve(const Transform& target) {
 
 		_iterateBackward(goal);
 		_iterateForward(base);
+
+		if (_constraintsHandler != nullptr) {
+			_worldToIkChains(); // NEEDED FOR CONSTRAINTS
+			_constraintsHandler(i, this);
+			_ikChainsToWorld(); // NEEDED FOR CONSTRAINTS
+		}
 	}
 
 	_worldToIkChains();

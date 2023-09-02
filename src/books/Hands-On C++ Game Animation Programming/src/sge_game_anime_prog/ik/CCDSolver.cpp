@@ -62,6 +62,10 @@ bool CCDSolver::solve(const Transform& target) {
 #endif
 			_ikChains[j].rotation = localRotated * _ikChains[j].rotation;	// apply localRotate in current rotation (local)
 
+			if (_constraintsHandler != nullptr) {
+				_constraintsHandler(j, this);
+			}
+
 			effector = getGlobalTransform(last).position;
 			if ((goal - effector).lenSq() < thresholdSq) {
 				return true;

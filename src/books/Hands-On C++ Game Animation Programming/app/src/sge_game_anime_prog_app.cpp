@@ -1,4 +1,8 @@
 #include <sge_game_anime_prog.h>
+
+#include "IKSolverExample.h"
+#include "BallSocketConstraintExample.h"
+
 #include <sge_game_anime_prog/animation/CubicCurveExample.h>
 
 namespace sge {
@@ -29,7 +33,7 @@ struct AnimationAttribLocation {
 	int weights;
 	int joints;
 
-	void setBySkinnedShader(const Shader* shader) {
+	void setBySkinnedShader(const Shader* const shader) {
 		pos		= shader->findAttributeByName("position");
 		normal	= shader->findAttributeByName("normal");
 		uv		= shader->findAttributeByName("texCoord");
@@ -37,7 +41,7 @@ struct AnimationAttribLocation {
 		joints	= shader->findAttributeByName("joints");
 	}
 
-	void setByStaticShader(const Shader* shader) {
+	void setByStaticShader(const Shader* const shader) {
 		pos		= shader->findAttributeByName("position");
 		normal	= shader->findAttributeByName("normal");
 		uv		= shader->findAttributeByName("texCoord");
@@ -224,7 +228,7 @@ class MyExampleMainWin : public MainWin {
 #define RUN_CASE__onRender(E, ...) RUN_CASE__ITEM(E, onRender)
 
 #define RUN_CASE(SGE_FN, ...) \
-	switch (__caseType) { \
+	switch (_caseType) { \
 		MyCaseType##_ENUM_LIST(RUN_CASE__##SGE_FN) \
 	} \
 // ----------
@@ -239,9 +243,11 @@ class MyExampleMainWin : public MainWin {
 	E(AdditiveBlending,) \
 	E(CCD,) \
 	E(FABRIK,) \
+	E(CCD_BallSocketConstraint,) \
+	E(FABRIK_BallSocketConstraint,) \
 // ----------
 	SGE_ENUM_DECLARE(MyCaseType, u8)
-	MyCaseType __caseType = MyCaseType::FABRIK;
+	MyCaseType _caseType = MyCaseType::CCD_BallSocketConstraint;
 
 	virtual void onCreate(CreateDesc& desc) override { Base::onCreate(desc); RUN_CASE(onCreate) }
 	virtual void onUpdate(float dt)			override { RUN_CASE(onUpdate) }
@@ -570,10 +576,10 @@ private:
 
 		{ // test hermite spline
 			CubicCurveExample::Hermite curve(
-				vec3f(-5,0,0), // p1
-				vec3f( 5,0,0), // p1
-				0.2f,         // tan1
-				-3.f          // tan2
+				vec3f(-5,0,0),	// p1
+				vec3f( 5,0,0),	// p1
+				vec3f( 2,0,0),	// tan1
+				vec3f(-3,0,0)   // tan2
 			);
 
 			_debugPoints->push_back(curve.p1());
@@ -729,11 +735,19 @@ private:
 	}
 	void test_CCD_onCreate() {
 		_ccdSolver = eastl::make_unique< IKSolverExample<CCDSolver> >();
-		_ccdSolver->onCreate();
+		_ccdSolver->create();
 	}
 	void test_FABRIK_onCreate() {
 		_fabrikSolver = eastl::make_unique< IKSolverExample<FABRIKSolver> >();
-		_fabrikSolver->onCreate();
+		_fabrikSolver->create();
+	}
+	void test_CCD_BallSocketConstraint_onCreate() {
+		_ccdBallSocketConstraint = BallSocketConstraintExample<CCDSolver>::instance();
+		_ccdBallSocketConstraint->create();
+	}
+	void test_FABRIK_BallSocketConstraint_onCreate() {
+		_fabrikBallSocketConstraint = BallSocketConstraintExample<FABRIKSolver>::instance();
+		_fabrikBallSocketConstraint->create();
 	}
 
 	void test_LitTexture_onUpdate(float dt) {
@@ -868,10 +882,16 @@ private:
 		_populatePosePalette();
 	}
 	void test_CCD_onUpdate(float dt) {
-		_ccdSolver->onUpdate(dt);
+		_ccdSolver->update(dt);
 	}
 	void test_FABRIK_onUpdate(float dt) {
-		_fabrikSolver->onUpdate(dt);
+		_fabrikSolver->update(dt);
+	}
+	void test_CCD_BallSocketConstraint_onUpdate(float dt) {
+		_ccdBallSocketConstraint->update(dt);
+	}
+	void test_FABRIK_BallSocketConstraint_onUpdate(float dt) {
+		_fabrikBallSocketConstraint->update(dt);
 	}
 
 	void test_LitTexture_onRender() {
@@ -1005,135 +1025,19 @@ private:
 		_onDrawGpuSkinning();
 	}
 	void test_CCD_onRender() {
-		_ccdSolver->onRender(_aspect);
+		_ccdSolver->render(_aspect);
 	}
 	void test_FABRIK_onRender() {
-		_fabrikSolver->onRender(_aspect);
+		_fabrikSolver->render(_aspect);
+	}
+	void test_CCD_BallSocketConstraint_onRender() {
+		_ccdBallSocketConstraint->render(_aspect);
+	}
+	void test_FABRIK_BallSocketConstraint_onRender() {
+		_fabrikBallSocketConstraint->render(_aspect);
 	}
 
 private:
-
-	template<class IKSolver>
-	class IKSolverExample : public NonCopyable {
-
-		const float kCamPitch	= 45.0f;
-		const float kCamYaw		= 60.0f;
-		const float kCamDist	= 7.0f;
-
-		const float kGizmoSize	= 0.25f;
-
-	public:
-		IKSolverExample() {
-			_sr.time	= 0.0f;
-			_sr.isLoop	= true;
-
-			{ // create ikChains
-				constexpr const size_t kJointCount = 6;
-				_solver.resize(kJointCount);
-				_solver[0] = Transform(vec3f::s_zero(), quat4f::s_angleAxis(Math::radians(90.f), vec3f::s_right()), vec3f::s_one());
-				_solver[1] = Transform(vec3f(0, 0, 1.0f), quat4f::s_identity(), vec3f::s_one());
-				_solver[2] = Transform(vec3f(0, 0, 1.5f), quat4f::s_identity(), vec3f::s_one());
-				_solver[3] = Transform(vec3f(0, 0, 0.5f), quat4f::s_angleAxis(Math::radians(90.0f), vec3f::s_up()), vec3f::s_one());
-				_solver[4] = Transform(vec3f(0, 0, 0.5f), quat4f::s_identity(), vec3f::s_one());
-				_solver[5] = Transform(vec3f(0, 0, 0.5f), quat4f::s_identity(), vec3f::s_one());
-			}
-
-			{ // add one clip, and make it loop
-				constexpr const size_t kFrameCount = 14;
-				constexpr const float  kFactor	   = 0.5f;
-
-				vec3f startPos = vec3f(1,-2,0);
-				_target.position = startPos;
-
-				VectorTrack& posTrack = constCast(_targetPath.position());
-				posTrack.resize(kFrameCount);
-				posTrack[0 ] = FrameUtil::createFrame(0.f,   startPos      * kFactor);
-				posTrack[1 ] = FrameUtil::createFrame(1.0f,  vec3f(1, 2, 0) * kFactor);
-				posTrack[2 ] = FrameUtil::createFrame(2.0f,  vec3f(1, 4, 0) * kFactor);
-				posTrack[3 ] = FrameUtil::createFrame(3.0f,  vec3f(3, 4, 0) * kFactor);
-				posTrack[4 ] = FrameUtil::createFrame(4.0f,  vec3f(5, 4, 0) * kFactor);
-				posTrack[5 ] = FrameUtil::createFrame(5.0f,  vec3f(5, 4, 2) * kFactor);
-				posTrack[6 ] = FrameUtil::createFrame(6.0f,  vec3f(5, 4, 4) * kFactor);
-				posTrack[7 ] = FrameUtil::createFrame(7.0f,  vec3f(3, 4, 4) * kFactor);
-				posTrack[8 ] = FrameUtil::createFrame(8.0f,  vec3f(3, 2, 4) * kFactor);
-				posTrack[9 ] = FrameUtil::createFrame(9.0f,  vec3f(3, 2, 2) * kFactor);
-				posTrack[10] = FrameUtil::createFrame(10.0f, vec3f(1, 2, 2) * kFactor);
-				posTrack[11] = FrameUtil::createFrame(11.0f, vec3f(1, 0, 2) * kFactor);
-				posTrack[12] = FrameUtil::createFrame(12.0f, vec3f(1,-2, 2) * kFactor);
-				posTrack[13] = FrameUtil::createFrame(13.0f, startPos      * kFactor);
-			}
-		}
-
-		void onCreate() {
-			// debugDraw depends on opengl, create it after "gladLoadGL"
-			_debugLines  = eastl::make_unique<DebugDraw>();
-			_debugPoints = eastl::make_unique<DebugDraw>();
-
-			_targetVisual.resize(3);
-			for (int i = 0; i < 3; i++) {
-				_targetVisual[i] = eastl::make_unique<DebugDraw>(2);
-			}
-		}
-
-		void onUpdate(float dt) {
-			_sr.time += dt;
-			if (_sr.time > _targetPath.getEndTime()) {
-				_sr.time -= _targetPath.getEndTime();
-			}
-
-			_target = _targetPath.sample(_target, _sr);
-			_solver.solve(_target);
-		}
-
-		void onRender(float aspect) {
-			vec3f eyesPos(kCamDist * cosf(Math::radians(kCamYaw)) * sinf(Math::radians(kCamPitch)),
-				         kCamDist * cosf(Math::radians(kCamPitch)),
-				         kCamDist * sinf(Math::radians(kCamYaw)) * sinf(Math::radians(kCamPitch))
-			);
-
-			mat4f projection = mat4f::s_perspective(60.0f, aspect, 0.01f, 100.0f);
-			mat4f view = mat4f::s_lookAt(eyesPos /*vec3f(0, 0, 10)*/, vec3f::s_zero(), vec3f::s_up());
-			mat4f mvp = projection * view * mat4f::s_identity();
-
-			{ // draw ikChains
-				_debugLines->linesFromIKSolver(_solver);
-				_debugPoints->pointsFromIKSolver(_solver);
-				_debugLines->uploadToGpu();
-				_debugPoints->uploadToGpu();
-				_debugLines->draw(DebugDrawMode::Lines, mvp, kPurple);
-				_debugPoints->draw(DebugDrawMode::Points, mvp, kPurple);
-			}
-
-			{ // 6 points -> 3 lines (xyz-axis) of target
-				(*_targetVisual[0])[0] = _target.position + (vec3f::s_right()   *  kGizmoSize);	// x -red
-				(*_targetVisual[0])[1] = _target.position + (vec3f::s_right()   * -kGizmoSize);	//-x -red
-				(*_targetVisual[1])[0] = _target.position + (vec3f::s_up()      *  kGizmoSize);	// y -green
-				(*_targetVisual[1])[1] = _target.position + (vec3f::s_up()      * -kGizmoSize);	//-y -green
-				(*_targetVisual[2])[0] = _target.position + (vec3f::s_forward() *  kGizmoSize);	// z -blue
-				(*_targetVisual[2])[1] = _target.position + (vec3f::s_forward() * -kGizmoSize);	//-z -blue
-				_targetVisual[0]->uploadToGpu();
-				_targetVisual[1]->uploadToGpu();
-				_targetVisual[2]->uploadToGpu();
-
-				_targetVisual[0]->draw(DebugDrawMode::Lines, mvp, kRed);
-				_targetVisual[1]->draw(DebugDrawMode::Lines, mvp, kGreen);
-				_targetVisual[2]->draw(DebugDrawMode::Lines, mvp, kBlue);
-			}
-		}
-
-	private:
-
-		UPtr<DebugDraw>				_debugPoints;
-		UPtr<DebugDraw>				_debugLines;
-		Vector<UPtr<DebugDraw>, 3>	_targetVisual;
-
-		Track_SampleRequest			_sr;
-
-		Transform					_target;
-		TransformTrack				_targetPath;
-
-		IKSolver					_solver;
-	};
 
 	void _onDrawGpuSkinning() {
 		mat4f projection = mat4f::s_perspective(60.0f, _aspect, 0.01f, 10.f);
@@ -1304,6 +1208,9 @@ private:
 
 	UPtr< IKSolverExample<CCDSolver> >		_ccdSolver;
 	UPtr< IKSolverExample<FABRIKSolver> >	_fabrikSolver;
+
+	BallSocketConstraintExample<CCDSolver>*		_ccdBallSocketConstraint;
+	BallSocketConstraintExample<FABRIKSolver>*	_fabrikBallSocketConstraint;
 };
 
 class GameAnimeProgApp : public NativeUIApp {

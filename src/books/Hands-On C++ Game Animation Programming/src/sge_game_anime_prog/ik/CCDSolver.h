@@ -11,13 +11,17 @@ namespace sge{
 */
 
 class CCDSolver : public NonCopyable {
+	using This = CCDSolver;
 public:
+
+	using ConstraintsHandler = void(*) (int i, This* solver);
 
 	inline       Transform& operator[](int i)		{ return _ikChains[i]; }
 	inline const Transform& operator[](int i) const	{ return _ikChains[i]; }
 
 	inline void setLocalTransform(int i, const Transform& t)	{ _ikChains[i] = t; }
-	inline Transform getLocalTransform(int i) const				{ return _ikChains[i]; }
+	inline Transform& getLocalTransform(int i)					{ return _ikChains[i]; }
+	inline const Transform& getLocalTransform(int i) const		{ return _ikChains[i]; }
 
 	Transform getGlobalTransform(int i) const;
 	inline Transform getWorldTransform(int i) const { return getGlobalTransform(i); }
@@ -33,13 +37,19 @@ public:
 
 	bool solve(const Transform& target);
 
+	inline void setConstraintsHandler(void (*handler)(int i, This* solver) ) {
+		_constraintsHandler = reinterpret_cast<ConstraintsHandler>(handler);
+	}
+
 private:
 	// Assume that the IK chain has a parent-child relationship
 	// where every index is the child of the index before it, making 0 our root node.
 	// As such, every transform in the IK chain is declared in local space.
-	Vector<Transform> _ikChains;
-	int _stepCount   = 15; // The _stepCount variable is used to make sure the solver doesn't fall into an infinite loop.
-	float _threshold = 0.00001f;
+	Vector<Transform>	_ikChains;
+	int					_stepCount	= 15; // The _stepCount variable is used to make sure the solver doesn't fall into an infinite loop.
+	float				_threshold	= 0.00001f;
+
+	ConstraintsHandler	_constraintsHandler = nullptr;
 };
 
 }
