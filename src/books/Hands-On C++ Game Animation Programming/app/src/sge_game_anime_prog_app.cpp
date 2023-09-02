@@ -2,6 +2,7 @@
 
 #include "IKSolverExample.h"
 #include "BallSocketConstraintExample.h"
+#include "HingeSocketConstraintExample.h"
 
 #include <sge_game_anime_prog/animation/CubicCurveExample.h>
 
@@ -245,9 +246,11 @@ class MyExampleMainWin : public MainWin {
 	E(FABRIK,) \
 	E(CCD_BallSocketConstraint,) \
 	E(FABRIK_BallSocketConstraint,) \
+	E(CCD_HingeSocketConstraint,) \
+	E(FABRIK_HingeSocketConstraint,) \
 // ----------
 	SGE_ENUM_DECLARE(MyCaseType, u8)
-	MyCaseType _caseType = MyCaseType::CCD_BallSocketConstraint;
+	MyCaseType _caseType = MyCaseType::FABRIK_HingeSocketConstraint;
 
 	virtual void onCreate(CreateDesc& desc) override { Base::onCreate(desc); RUN_CASE(onCreate) }
 	virtual void onUpdate(float dt)			override { RUN_CASE(onUpdate) }
@@ -749,6 +752,14 @@ private:
 		_fabrikBallSocketConstraint = BallSocketConstraintExample<FABRIKSolver>::instance();
 		_fabrikBallSocketConstraint->create();
 	}
+	void test_CCD_HingeSocketConstraint_onCreate() {
+		_ccdHingeSocketConstraint = HingeSocketConstraintExample<CCDSolver>::instance();
+		_ccdHingeSocketConstraint->create();
+	}
+	void test_FABRIK_HingeSocketConstraint_onCreate() {
+		_fabrikHingeSocketConstraint = HingeSocketConstraintExample<FABRIKSolver>::instance();
+		_fabrikHingeSocketConstraint->create();
+	}
 
 	void test_LitTexture_onUpdate(float dt) {
 		_testRotation += dt * 45.0f;
@@ -893,6 +904,12 @@ private:
 	void test_FABRIK_BallSocketConstraint_onUpdate(float dt) {
 		_fabrikBallSocketConstraint->update(dt);
 	}
+	void test_CCD_HingeSocketConstraint_onUpdate(float dt) {
+		_ccdHingeSocketConstraint->update(dt);
+	}
+	void test_FABRIK_HingeSocketConstraint_onUpdate(float dt) {
+		_fabrikHingeSocketConstraint->update(dt);
+	}
 
 	void test_LitTexture_onRender() {
 		mat4f projection = mat4f::s_perspective(60.0f, _aspect, 0.01f, 1000.0f);
@@ -1035,6 +1052,12 @@ private:
 	}
 	void test_FABRIK_BallSocketConstraint_onRender() {
 		_fabrikBallSocketConstraint->render(_aspect);
+	}
+	void test_CCD_HingeSocketConstraint_onRender() {
+		_ccdHingeSocketConstraint->render(_aspect);
+	}
+	void test_FABRIK_HingeSocketConstraint_onRender() {
+		_fabrikHingeSocketConstraint->render(_aspect);
 	}
 
 private:
@@ -1211,6 +1234,9 @@ private:
 
 	BallSocketConstraintExample<CCDSolver>*		_ccdBallSocketConstraint;
 	BallSocketConstraintExample<FABRIKSolver>*	_fabrikBallSocketConstraint;
+
+	HingeSocketConstraintExample<CCDSolver>*	_ccdHingeSocketConstraint;
+	HingeSocketConstraintExample<FABRIKSolver>*	_fabrikHingeSocketConstraint;
 };
 
 class GameAnimeProgApp : public NativeUIApp {
