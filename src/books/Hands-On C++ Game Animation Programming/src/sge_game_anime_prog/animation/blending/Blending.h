@@ -6,12 +6,10 @@
 
 namespace sge {
 /*
-	Animation Blending is simply seen as lerp from PoseA to PoseB using Transfrom interpolate.
-*/
+	* Animation Blending is simply seen as lerp from PoseA to PoseB using Transfrom interpolate.
 
-/*
-	Additive animations are most often used to create new animation variants—
-	for example, mixing a walking animation with a crouching pose to create a crouched walk.
+	* Additive animations are most often used to create new animation variants—
+		* for example, mixing a walking animation with a crouching pose to create a crouched walk.
 */
 struct Blending {
 	Blending() = delete;

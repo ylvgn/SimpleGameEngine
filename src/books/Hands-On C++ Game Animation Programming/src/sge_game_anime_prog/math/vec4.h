@@ -25,6 +25,9 @@ struct TVec4 {
 	inline static TVec4 s_zero()	{ return TVec4(0,0,0,0); }
 	inline static TVec4 s_one()		{ return TVec4(1,1,1,1); }
 
+	inline static TVec4 min(const TVec4& l, const TVec4& r) { return TVec4<T>(Math::min(l.x, r.x), Math::min(l.y, r.y), Math::min(l.z, r.z), Math::min(l.w, r.w)); }
+	inline static TVec4 max(const TVec4& l, const TVec4& r) { return TVec4<T>(Math::max(l.x, r.x), Math::max(l.y, r.y), Math::max(l.z, r.z), Math::max(l.w, r.w)); }
+
 	inline			T& operator[](int i)		{ return v[i]; }
 	inline const	T& operator[](int i) const	{ return v[i]; }
 

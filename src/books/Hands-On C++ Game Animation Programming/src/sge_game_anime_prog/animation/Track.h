@@ -4,7 +4,6 @@
 #include "Frame.h"
 
 namespace sge {
-
 /*
 	An animation track is a collection of keyframes.
 	Interpolating a track returns the data type of the track;
@@ -13,22 +12,22 @@ namespace sge {
 */
 
 struct Track_SampleRequest {
-	float time = 0.f;
-	bool isLoop = false;
+	float time		= 0.f;
+	bool  isLoop	= false;
 };
 
 template<typename T, size_t N>
 struct Track {
 public:
 	using SampleRequest = Track_SampleRequest;
-	using Type = Interpolation;
+	using Type			= Interpolation;
 
 	constexpr static int kInvalidFrameIndex = -1;
 
-	void clear()					{ _frames.clear(); }
-	void resize(size_t frameCount)	{ _frames.resize(frameCount); }
+	inline void clear()						{ _frames.clear(); }
+	inline void resize(size_t frameCount)	{ _frames.resize(frameCount); }
 
-	inline size_t getFrameCount() const { return _frames.size(); }
+	inline size_t getFrameCount()	const { return _frames.size(); }
 
 	inline float getStartTime()		const { SGE_ASSERT(isValid()); return _frames[0].time; };
 	inline float getEndTime()		const { SGE_ASSERT(isValid()); return _frames[_frames.size() - 1].time; };
@@ -44,8 +43,8 @@ public:
 
 	T sample(const SampleRequest& sr) const;
 
-	      Frame<N>& operator[] (int i)       { return _frames[i]; }
-	const Frame<N>& operator[] (int i) const { return _frames[i]; }
+	inline       Frame<N>& operator[] (int i)       { return _frames[i]; }
+	inline const Frame<N>& operator[] (int i) const { return _frames[i]; }
 
 	inline Type type() const		{ return _type; }
 	inline void setType(Type type)  { _type = type; }
@@ -73,6 +72,7 @@ using QuaternionTrack	= Track<quat4f,4>;
 template<typename T, size_t N>
 struct FastTrack : public Track<T, N> {
 	using Base = Track<T, N>;
+	//const int kFrameCountPerSecond = 60; // not work. why???
 	constexpr static int kFrameCountPerSecond = 60;
 public:
 	void updateIndexLookupTable();
@@ -81,7 +81,7 @@ protected:
 	virtual int getFrameIndex(const SampleRequest& sr) const override;
 private:
 
-//	inline constexpr int kFrameCountPerSecond() const { return 60; } not good ???
+	//	inline constexpr int kFrameCountPerSecond() const { return 60; } is it not good ???
 
 	inline constexpr int _getSampleCount() const {
 		float duration = getDuration();
@@ -127,7 +127,7 @@ struct TrackUtil {
 
 	template<class... Args>
 	static VectorTrack createVectorTrack(Interpolation type, size_t frameCount, Args&&... args) {
-		return TrackUtil::createTrack<vec3, 3>(type, frameCount, SGE_FORWARD(args)...);
+		return TrackUtil::createTrack<vec3f, 3>(type, frameCount, SGE_FORWARD(args)...);
 	}
 
 	template<class... Args>

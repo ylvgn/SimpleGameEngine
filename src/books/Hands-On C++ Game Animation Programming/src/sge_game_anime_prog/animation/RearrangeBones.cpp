@@ -36,7 +36,6 @@ void RearrangeBones::s_rearrange(Skeleton& outSkeleton, Span<Mesh> outMeshes, Sp
 }
 #endif
 
-
 int RearrangeBones::_rearrangeIdx(int oldJointIndex) const {
 	SGE_ASSERT(_o2n.find(oldJointIndex) != _o2n.end());
 	return _o2n.at(oldJointIndex);
@@ -138,7 +137,7 @@ void RearrangeBones::rearrangeSkeleton(Skeleton& out) {
 void RearrangeBones::rearrangeMesh(Mesh& out) {
 /*
 	Changing the mesh in this way only edits the CPU copy of the mesh.
-	Call UpdateOpenGLBuffers to upload the new attribute to the GPU as well
+	Call 'uploadToGpu' to upload the new attribute to the GPU as well
 */
 	auto& j = out.jointInfluences;
 	for (int i = 0; i < j.size(); ++i) {

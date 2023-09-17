@@ -3,10 +3,10 @@
 namespace sge {
 
 Transform CCDSolver::getGlobalTransform(int i) const {
-	SGE_ASSERT(i >= 0 || i < _ikChains.size());
+	SGE_ASSERT(i >= 0 && i < _ikChains.size());
 	Transform world(_ikChains[i]);
-	for (int j = i - 1; j >= 0; --j) {
-		world = Transform::s_combine(_ikChains[j], world);
+	for (int p = i - 1; p >= 0; --p) {
+		world = Transform::s_combine(_ikChains[p], world);
 	}
 	return world;
 }
@@ -60,7 +60,7 @@ bool CCDSolver::solve(const Transform& target) {
 			toGoal				= worldRot.inverse() * toGoal;
 			quat4f localRotated	= quat4f::s_fromTo(toEffector, toGoal);
 #endif
-			_ikChains[j].rotation = localRotated * _ikChains[j].rotation;	// apply localRotate in current rotation (local)
+			_ikChains[j].rotation = localRotated * _ikChains[j].rotation;	// apply 'localRotated' in current rotation (local)
 
 			if (_constraintsHandler != nullptr) {
 				_constraintsHandler(j, this);

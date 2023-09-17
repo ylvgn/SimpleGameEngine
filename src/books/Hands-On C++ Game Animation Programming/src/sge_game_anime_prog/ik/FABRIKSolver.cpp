@@ -22,8 +22,8 @@ void FABRIKSolver::_worldToIkChains() {
 		quat4f localRotated	= quat4f::s_fromTo(toNext, toDesired);
 #else // calc in world space
 		quat4f nextToDesired	= quat4f::s_fromTo(toNext, toDesired);
-		quat4f worldRotated	= worldRot * nextToDesired;
-		quat4f localRotated	= worldRotated * worldRot.inverse();
+		quat4f worldRotated		= worldRot * nextToDesired;
+		quat4f localRotated		= worldRotated * worldRot.inverse();
 #endif
 		_ikChains[i].rotation = localRotated * _ikChains[i].rotation;
 	}
@@ -86,11 +86,11 @@ void FABRIKSolver::resize(size_t newJointCount) {
 
 Transform FABRIKSolver::getGlobalTransform(int i) const {
 	SGE_ASSERT(i >= 0 && i < _ikChains.size());
-	Transform res = _ikChains[i];
-	for (int j = i - 1; j >= 0; --j) {
-		res = Transform::s_combine(_ikChains[j], res);
+	Transform world(_ikChains[i]);
+	for (int p = i - 1; p >= 0; --p) {
+		world = Transform::s_combine(_ikChains[p], world);
 	}
-	return res;
+	return world;
 }
 
 bool FABRIKSolver::solve(const Transform& target) {

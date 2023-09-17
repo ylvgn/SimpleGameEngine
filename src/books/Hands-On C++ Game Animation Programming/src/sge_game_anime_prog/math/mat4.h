@@ -344,10 +344,11 @@ struct mat4 {
 			       [r2, r6, r10, 0] [0, 0, 1, tz] [r2, r6, r10, r2*tx + r6*ty + r10*tz]
 			       [0,  0,  0,   1] [0, 0, 0, 1 ] [0,  0,  0,   1                     ]
 */
-		SGE_ASSERT(target != eye);
 		vec3 f = (target - eye).normalize();
 		vec3 r = f.cross(up).normalize();
-		SGE_ASSERT(r != vec3::s_zero());
+		if (r == vec3::s_zero()) {
+			return mat4::s_identity();
+		}
 
 		vec3 u = r.cross(f);
 

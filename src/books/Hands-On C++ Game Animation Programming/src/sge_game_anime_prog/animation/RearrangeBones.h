@@ -21,7 +21,7 @@ public:
 	template<typename T>
 	static void s_rearrange(Skeleton& outSkeleton, Span<Mesh> outMeshes, Span< TClip<T> > outClips);
 #else
-	//what if spanCast<Clip, FastClip>(_fastClips); pass into line 25, is it danger ??
+	//what if spanCast<Clip, FastClip>(_fastClips); pass into line 25, is it danger ???
 	static void s_rearrange(Skeleton& outSkeleton, Span<Mesh> outMeshes, Span<Clip> outClips);
 	static void s_rearrange(Skeleton& outSkeleton, Span<Mesh> outMeshes, Span<FastClip> outClips);
 #endif

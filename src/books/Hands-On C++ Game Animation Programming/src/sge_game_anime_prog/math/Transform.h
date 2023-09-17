@@ -31,6 +31,10 @@ struct Transform {
 
 	Transform inverse() const;
 
+	inline vec3f forward()	const { return rotation * vec3f::s_forward(); }
+	inline vec3f right()	const { return rotation * vec3f::s_right(); }
+	inline vec3f up()		const { return rotation * vec3f::s_up(); }
+
 	// same as multiplying a matrix and a point, but just step by step (SRT) in function transformPoint.
 	inline vec3f transformPoint(const vec3f& pos) const {
 		// first, apply the scale, then rotation, and finally, the translation

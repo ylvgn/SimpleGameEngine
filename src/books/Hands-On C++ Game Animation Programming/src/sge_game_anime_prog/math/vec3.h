@@ -3,6 +3,7 @@
 #include <sge_core/base/Error.h>
 #include <sge_core/log/Log.h>
 #include <sge_core/math/Math.h>
+
 #include "vec2.h"
 
 namespace sge {
@@ -30,6 +31,9 @@ struct TVec3 {
 	inline static TVec3 s_down()	{ return TVec3( 0,-1, 0); }
 	inline static TVec3 s_right()	{ return TVec3( 1, 0, 0); }
 	inline static TVec3 s_left()	{ return TVec3(-1, 0, 0); }
+
+	inline static TVec3 min(const TVec3& l, const TVec3& r) { return TVec3<T>(Math::min(l.x, r.x), Math::min(l.y, r.y), Math::min(l.z, r.z)); }
+	inline static TVec3 max(const TVec3& l, const TVec3& r) { return TVec3<T>(Math::max(l.x, r.x), Math::max(l.y, r.y), Math::max(l.z, r.z)); }
 
 	inline bool equals(const TVec3& r, const T& epsilon = Math::epsilon<T>()) const;
 	inline bool equals0(               const T& epsilon = Math::epsilon<T>()) const;

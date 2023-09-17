@@ -57,10 +57,9 @@ float ClipT<TRACK>::sample(Pose& out, float time) const {
 
 	Track_SampleRequest sr;
 	sr.isLoop = _isLoop;
-
-	for (int i = 0; i < _tracks.size(); ++i) {
-		auto& track = _tracks[i];
-		u32 joint = track->id();
+	
+	for (auto& track : _tracks) {
+		u32 joint		= track->id();
 		Transform local = out.getLocalTransform(joint);
 
 		// If a component of a transform isn't animated,

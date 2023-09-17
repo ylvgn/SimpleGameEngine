@@ -243,7 +243,7 @@ void FastTrack<T, N>::updateIndexLookupTable() {
 	float duration  = endTime - startTime;
 
 	// Since the class has 60 samples for every second of animation, multiply the duration by 60
-	const int sampleCount = _getSampleCount();
+	int sampleCount = _getSampleCount();
 	_sampled2FrameIndex.resize(sampleCount);
 
 	for (int i = 0; i < sampleCount; ++i) {

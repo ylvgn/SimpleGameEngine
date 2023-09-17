@@ -22,9 +22,9 @@ namespace sge {
 class Pose {
 public:
 	inline Pose() = default;
-	inline Pose(size_t jointCount) { resize(jointCount); };
+	inline Pose(size_t jointCount) { resize(jointCount); }
 
-	inline Pose(const Pose& r) { *this = r; }; // will also call operator=
+	inline Pose(const Pose& r) { *this = r; } // will also call operator=
 	Pose& operator=(const Pose& r);
 
 	void clear();
@@ -37,10 +37,10 @@ public:
 
 	inline Transform getLocalTransform(int i) const          { return _jointTrans[i]; }
 	inline void setLocalTransform(int i, const Transform& t) { _jointTrans[i] = t; }
-	Transform getGlobalTransform(int i) const; // aka getWorldTransform
+	Transform getGlobalTransform(int i) const;
 
-	      Transform operator[] (int i)       { return getGlobalTransform(i); };
-	const Transform operator[] (int i) const { return getGlobalTransform(i); };
+	inline Transform getWorldTransform(int i) const { return getGlobalTransform(i); }
+	inline const Transform operator[] (int i) const { return getGlobalTransform(i); }
 
 	// For a Pose class to be passed to OpenGL, it needs to be converted into a linear array of matrices.
 	// The function takes a reference to a vector of matricesand fills it out with the global transform matrix of each joint in the pose
@@ -53,8 +53,8 @@ private:
 	// To store a parent-child hierarchy between transforms, you need to maintain two parallel vectors
 	// one filled with transforms and one filled with integers.
 	// The integer array contains the index of the parent transform for each joint.
-	Vector<Transform> _jointTrans;
-	Vector<int> _parentIds;
+	Vector<Transform>	_jointTrans;
+	Vector<int>			_parentIds;
 };
 
 
