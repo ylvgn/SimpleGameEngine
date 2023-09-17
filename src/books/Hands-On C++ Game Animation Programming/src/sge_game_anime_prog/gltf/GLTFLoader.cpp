@@ -117,61 +117,74 @@ void getTrackFromChannel(Track<T, N>& out, const cgltf_animation_channel& channe
 	}
 }
 
-void meshFromAttribute(Mesh& outMesh, const cgltf_attribute& attribute, const cgltf_skin* skin, const cgltf_node* nodes, cgltf_size nodeCount) {
+size_t getComponentCount(cgltf_type dataType) {
+	switch (dataType)
+	{
+		case cgltf_type_scalar: return 1;
+		case cgltf_type_vec2:   return 2;
+		case cgltf_type_vec3:   return 3;
+		case cgltf_type_vec4:   return 4;
+		case cgltf_type_mat2:   return 4;
+		case cgltf_type_mat3:   return 9;
+		case cgltf_type_mat4:   return 16;
+		default:				throw SGE_ERROR("not support"); break;
+	}
+}
+
+void skinMeshFromAttribute(Mesh& outMesh, const cgltf_attribute& attribute, const cgltf_skin* skin, const cgltf_node* nodes, cgltf_size nodeCount) {
 
 	// 1. figuring out how many attributes the current component has
-	size_t componentCount = 0;
 	const cgltf_accessor& accessor = *attribute.data;
-	switch (accessor.type)
-	{
-		case cgltf_type_scalar: componentCount = 1;  break;
-		case cgltf_type_vec2:   componentCount = 2;  break;
-		case cgltf_type_vec3:   componentCount = 3;  break;
-		case cgltf_type_vec4:   componentCount = 4;  break;
-		case cgltf_type_mat2:   componentCount = 4;  break;
-		case cgltf_type_mat3:   componentCount = 9;  break;
-		case cgltf_type_mat4:   componentCount = 16; break;
-		default: throw SGE_ERROR("not support accessor.type in meshFromAttribute"); break;
-	}
+	cgltf_type dataType = accessor.type;
+	size_t componentCount = getComponentCount(dataType);
 
 	// 2. parse the data out of the provided accessor
 	Vector<float> values;
 	getScalarValues(values, componentCount, accessor);
 
-	// 3.write data to Mesh by loop through all the values in the current accessor and assign them to the appropriate vector based on the accessor type.
+	// 3.write data to Mesh by loop through all the values in the current accessor
+	// and assign them to the appropriate vector based on the accessor type.
 	auto& pos			= outMesh.pos;
 	auto& normal		= outMesh.normal;
 	auto& uv			= outMesh.uv;
 	auto& influences	= outMesh.jointInfluences;
 	auto& weights		= outMesh.jointWeights;
+	auto& color			= outMesh.color;
 
 	cgltf_attribute_type attribType = attribute.type;
-	cgltf_size acessorCount = accessor.count;
-	for (size_t i = 0; i < acessorCount; ++i) {
+	cgltf_size accessorCount		= accessor.count;
+	for (size_t i = 0; i < accessorCount; ++i) {
 		size_t index = i * componentCount;
 		switch (attribType)
 		{
 			case cgltf_attribute_type_position:
+				SGE_ASSERT(dataType == cgltf_type_vec3);
 				pos.push_back({values[index+0], values[index+1], values[index+2]});
 				break;
 			case cgltf_attribute_type_normal:
 			{
-				vec3f norm{ values[index + 0], values[index + 1], values[index + 2] };
+				SGE_ASSERT(dataType == cgltf_type_vec3);
+				vec3f norm (values[index+0],
+							values[index+1],
+							values[index+2]
+				);
 				if (norm.lenSq() < 0.00001f) {
 					norm = vec3f::s_up();
 				}
 				normal.push_back(norm.normalize());
 			} break;
 			case cgltf_attribute_type_texcoord:
+				SGE_ASSERT(dataType == cgltf_type_vec2);
 				uv.push_back({values[index+0], values[index+1]});
 				break;
 			case cgltf_attribute_type_joints:
 			{
-				// These joints are stored as floating-point numbers.Convert them into integers
-
+				// These joints are stored as floating-point numbers. Convert them into integers
 				// These indices are skin relative. 
 				// This function has no information about the skin that is being parsed.
 				// Add +0.5f to round, since we can not read integers
+
+				SGE_ASSERT(dataType == cgltf_type_vec4);
 				vec4i joints(
 					static_cast<int>(values[index+0]+0.5f),
 					static_cast<int>(values[index+1]+0.5f),
@@ -179,7 +192,8 @@ void meshFromAttribute(Mesh& outMesh, const cgltf_attribute& attribute, const cg
 					static_cast<int>(values[index+3]+0.5f)
 				);
 
-				// Make sure that even the invalid nodes have a value of 0. Any negative joint indices will break the skinning implementation. why??? will it be -1?
+				// Make sure that even the invalid nodes have a value of 0.
+				// Any negative joint indices will break the skinning implementation.
 				joints.x = Math::max(0, getNodeIndex(skin->joints[joints.x], nodes, nodeCount));
 				joints.y = Math::max(0, getNodeIndex(skin->joints[joints.y], nodes, nodeCount));
 				joints.z = Math::max(0, getNodeIndex(skin->joints[joints.z], nodes, nodeCount));
@@ -188,15 +202,66 @@ void meshFromAttribute(Mesh& outMesh, const cgltf_attribute& attribute, const cg
 				influences.push_back(joints);
 			} break;
 			case cgltf_attribute_type_weights:
+				SGE_ASSERT(dataType == cgltf_type_vec4);
 				weights.push_back({values[index+0], values[index+1], values[index+2], values[index+3]});
 				break;
-			case cgltf_attribute_type_tangent: // todo
+			case cgltf_attribute_type_tangent:
+				SGE_ASSERT(dataType == cgltf_type_vec4); // x, y, z + sign
 				break;
-			case cgltf_attribute_type_color: // todo
-				break;
-			case cgltf_attribute_type_custom: // todo
+			case cgltf_attribute_type_color:
+				SGE_ASSERT(dataType == cgltf_type_vec4);
+				color.push_back({values[index+ 0], values[index+1], values[index+2], values[index+3] });
 				break;
 			default: throw SGE_ERROR("not support cgltf_attribute_type"); break;
+		}
+	}
+}
+
+void staticMeshFromAttribute(Mesh& outMesh, const cgltf_attribute& attribute) {
+	// same as skinMeshFromAttribute, but no need skin
+
+	const cgltf_accessor& accessor = *attribute.data;
+	cgltf_type dataType		= accessor.type;
+	size_t componentCount	= getComponentCount(dataType);
+
+	Vector<float> values;
+	getScalarValues(values, componentCount, accessor);
+
+	auto& pos						= outMesh.pos;
+	auto& normal					= outMesh.normal;
+	auto& uv						= outMesh.uv;
+	auto& color						= outMesh.color;
+
+	cgltf_attribute_type attribType = attribute.type;
+	cgltf_size accessorCount		= accessor.count;
+	for (size_t i = 0; i < accessorCount; ++i) {
+		size_t index = i * componentCount;
+		switch (attribType)
+		{
+			case cgltf_attribute_type_position:
+				SGE_ASSERT(dataType == cgltf_type_vec3);
+				pos.push_back({values[index+0], values[index+1], values[index+2]});
+				break;
+			case cgltf_attribute_type_normal:
+			{
+				SGE_ASSERT(dataType == cgltf_type_vec3);
+				vec3f norm (values[index+0],
+							values[index+1],
+							values[index+2]
+				);
+				if (norm.lenSq() < 0.00001f) {
+					norm = vec3f::s_up();
+				}
+				normal.push_back(norm.normalize());
+			} break;
+			case cgltf_attribute_type_texcoord:
+				SGE_ASSERT(dataType == cgltf_type_vec2);
+				uv.push_back({values[index+0], values[index+1]});
+				break;
+			case cgltf_attribute_type_color:
+				SGE_ASSERT(dataType == cgltf_type_vec4);
+				color.push_back({values[index+ 0], values[index+1], values[index+2], values[index+3] });
+				break;
 		}
 	}
 }
@@ -246,7 +311,8 @@ void GLTFLoader::_readMem(Info& outInfo, ByteSpan data, StrView filename) {
 
 	_loadSkeleton();
 	_loadAnimationClips();
-	_loadMeshes();
+	_loadSkinMeshes();
+	_loadStaticMeshes();
 }
 
 GLTFLoader::~GLTFLoader() {
@@ -403,8 +469,8 @@ void GLTFLoader::_loadSkeleton() {
 	_loadJointNames();
 }
 
-void GLTFLoader::_loadMeshes() {
-	auto& o = _outInfo->meshes;
+void GLTFLoader::_loadSkinMeshes() {
+	auto& o = _outInfo->skinMeshes;
 	o.clear();
 
 	cgltf_node* nodes		= _data->nodes;
@@ -414,7 +480,8 @@ void GLTFLoader::_loadMeshes() {
 		const cgltf_node& node = nodes[i];
 
 		if (node.mesh == nullptr || node.skin == nullptr) {
-			// Only process nodes that have both a meshand a skin; any other nodes should be skipped
+			// Only process nodes that have both a mesh and a skin;
+			// any other nodes should be skipped
 			continue;
 		}
 
@@ -425,9 +492,9 @@ void GLTFLoader::_loadMeshes() {
 			auto& mesh = o.back();
 
 			cgltf_size attributeCount = primitive.attributes_count;
-			for (int k = 0; k < attributeCount; ++k) {
+			for (cgltf_size k = 0; k < attributeCount; ++k) {
 				const cgltf_attribute& attribute = primitive.attributes[k];
-				GLTFHelpers::meshFromAttribute(mesh, attribute, node.skin, nodes, nodeCount);
+				GLTFHelpers::skinMeshFromAttribute(mesh, attribute, node.skin, nodes, nodeCount);
 			}
 
 			// Check whether the primitive contains indices.If it does, the index buffer of the mesh needs to be filled out as well
@@ -436,7 +503,47 @@ void GLTFLoader::_loadMeshes() {
 				auto& indices = mesh.indices;
 				indices.resize(indiceCount);
 
-				for (size_t k = 0; k < indiceCount; ++k) {
+				for (cgltf_size k = 0; k < indiceCount; ++k) {
+					indices[k] = static_cast<u32>(cgltf_accessor_read_index(primitive.indices, k));
+				}
+			}
+			mesh.uploadToGpu();
+		}
+	}
+}
+
+void GLTFLoader::_loadStaticMeshes() {
+	auto& o = _outInfo->staticMeshes;
+	o.clear();
+
+	cgltf_node* nodes		= _data->nodes;
+	cgltf_size  nodeCount	= _data->nodes_count;
+
+	for (int i = 0; i < nodeCount; ++i) {
+		const cgltf_node& node = nodes[i];
+
+		if (node.mesh == nullptr) {
+			continue;
+		}
+
+		cgltf_size primitivesCount = node.mesh->primitives_count;
+		for (int j = 0; j < primitivesCount; ++j) {
+			const cgltf_primitive& primitive = node.mesh->primitives[j];
+			o.push_back(Mesh());
+			auto& mesh = o.back();
+
+			cgltf_size attributeCount = primitive.attributes_count;
+			for (cgltf_size k = 0; k < attributeCount; ++k) {
+				const cgltf_attribute& attribute = primitive.attributes[k];
+				GLTFHelpers::staticMeshFromAttribute(mesh, attribute);
+			}
+
+			if (primitive.indices != 0) {
+				cgltf_size indiceCount = primitive.indices->count;
+				auto& indices = mesh.indices;
+				indices.resize(indiceCount);
+
+				for (cgltf_size k = 0; k < indiceCount; ++k) {
 					indices[k] = static_cast<u32>(cgltf_accessor_read_index(primitive.indices, k));
 				}
 			}

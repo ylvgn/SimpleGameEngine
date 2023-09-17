@@ -6,6 +6,7 @@
 #include <sge_game_anime_prog/math/quat.h>
 #include <sge_game_anime_prog/math/mat4.h>
 #include <sge_game_anime_prog/math/MathGeometry.h>
+#include <sge_game_anime_prog/math/Intersections.h>
 
 #include <sge_game_anime_prog/opengl/Shader.h>
 #include <sge_game_anime_prog/opengl/Attribute.h>
@@ -30,6 +31,7 @@
 
 #include <sge_game_anime_prog/ik/CCDSolver.h>
 #include <sge_game_anime_prog/ik/FABRIKSolver.h>
+
 
 #include <sge_game_anime_prog/gltf/GLTFLoader.h>
 

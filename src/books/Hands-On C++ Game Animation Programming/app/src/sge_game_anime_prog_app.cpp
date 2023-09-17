@@ -20,11 +20,12 @@ typedef const char* (WINAPI* PFNWGLGETEXTENSIONSSTRINGEXTPROC) (void);
 typedef BOOL(WINAPI* PFNWGLSWAPINTERVALEXTPROC) (int);
 typedef int (WINAPI* PFNWGLGETSWAPINTERVALEXTPROC) (void);
 
-constexpr static Color4f kRed	 =	{1,0,0,1};
-constexpr static Color4f kGreen  =	{0,1,0,1};
-constexpr static Color4f kBlue	 =	{0,0,1,1};
-constexpr static Color4f kYellow =	{1,1,0,1};
-constexpr static Color4f kPurple =	{1,0,1,1};
+template<class T, class... Args>
+inline UPtr<T> make_unique(Args&&... args) {
+	return eastl::make_unique<T>(SGE_FORWARD(args)...);
+}
+
+using DebugDrawPL = DebugDraw_PointLines;
 
 struct AnimationAttribLocation {
 
@@ -52,7 +53,7 @@ struct AnimationAttribLocation {
 };
 
 struct AnimationInstance {
-	Transform model; // used to model matrix
+	Transform model; // model matrix
 
 	// used to clip sampling
 	Pose  animatedPose;
@@ -70,12 +71,26 @@ struct AnimationInstance {
 // helper functions ------------------------
 	void animatedSample(const Span<const Clip> clips, float dt) {
 		if (clips.size() <= clip) return;
-		playback = clips[clip].sample(animatedPose, playback + dt);
+		animatedSample(clips[clip], dt);
 	}
 
 	template<class T>
 	void animatedSample(const ClipT<T>& clip, float dt) {
 		playback = clip.sample(animatedPose, playback + dt);
+	}
+
+	float getNormalizedTime(const Span<const Clip> clips) {
+		if (clips.size() <= clip) return 0;
+		return getNormalizedTime(clips[clip]);
+	}
+
+	template<class T>
+	float getNormalizedTime(const ClipT<T>& clip) {
+		return (playback - clip.getStartTime()) / clip.getDuration();
+	}
+
+	Transform getAnimatedPoseGlobalTransform(int i) {
+		return animatedPose.getGlobalTransform(i);
 	}
 };
 
@@ -199,9 +214,17 @@ protected:
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 		_aspect = _clientRect.size.x / _clientRect.size.y;
+
+		if (_bWireFrame) {
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		}
 	}
 
 	virtual void endRender() {
+		if (_bWireFrame) {
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		}
+
 		SwapBuffers(hdc());
 		if (_vsynch != 0) {
 			glFinish();
@@ -213,6 +236,7 @@ protected:
 	int		_vsynch = 0;
 	GLuint	_vertexArrayObject = 0;
 	float	_aspect = 0;
+	bool	_bWireFrame = false;
 };
 
 class MyExampleMainWin : public MainWin {
@@ -248,9 +272,11 @@ class MyExampleMainWin : public MainWin {
 	E(FABRIK_BallSocketConstraint,) \
 	E(CCD_HingeSocketConstraint,) \
 	E(FABRIK_HingeSocketConstraint,) \
+	E(RayCastTriangle,) \
+	E(AlignFeetOnTheGround,) \
 // ----------
 	SGE_ENUM_DECLARE(MyCaseType, u8)
-	MyCaseType _caseType = MyCaseType::FABRIK_HingeSocketConstraint;
+	MyCaseType _caseType = MyCaseType::AlignFeetOnTheGround;
 
 	virtual void onCreate(CreateDesc& desc) override { Base::onCreate(desc); RUN_CASE(onCreate) }
 	virtual void onUpdate(float dt)			override { RUN_CASE(onUpdate) }
@@ -259,18 +285,18 @@ class MyExampleMainWin : public MainWin {
 
 private:
 	void test_LitTexture_onCreate() {
-		_debugPoints = eastl::make_unique<DebugDraw>();
-		_debugLines  = eastl::make_unique<DebugDraw>();
+		_debugPoints = new DebugDraw();
+		_debugLines  = new DebugDraw();
 
 		_texture = new Texture("Assets/Textures/uvChecker.png");
 		_staticShader = new Shader(
 			"Assets/Shaders/static.vert",
 			"Assets/Shaders/lit.frag"
 		);
-		_vertexPositions	= eastl::make_unique< Attribute<vec3f> >();
-		_vertexNormals		= eastl::make_unique< Attribute<vec3f> >();
-		_vertexTexCoords	= eastl::make_unique< Attribute<vec2f> >();
-		_indexBuffer		= eastl::make_unique<IndexBuffer>();
+		_vertexPositions	= make_unique< Attribute<vec3f> >();
+		_vertexNormals		= make_unique< Attribute<vec3f> >();
+		_vertexTexCoords	= make_unique< Attribute<vec2f> >();
+		_indexBuffer		= make_unique<IndexBuffer>();
 
 		Vector<vec3f> positions{
 			vec3f(-1, -1, 0),
@@ -316,10 +342,10 @@ private:
 		_vertexTexCoords->uploadToGpu(uvs);
 	}
 	void test_AnimationScalarTrack_onCreate() {
-		_referenceLines 	= eastl::make_unique<DebugDraw>();
-		_scalarTrackLines 	= eastl::make_unique<DebugDraw>();
-		_handlePoints 		= eastl::make_unique<DebugDraw>();
-		_handleLines 		= eastl::make_unique<DebugDraw>();
+		_referenceLines 	= new DebugDraw();
+		_scalarTrackLines 	= new DebugDraw();
+		_handlePoints 		= new DebugDraw();
+		_handleLines 		= new DebugDraw();
 
 		float height = 1.8f;
 		float left   = 1.0f;
@@ -548,8 +574,8 @@ private:
 		}
 	}
 	void test_BezierAndHermiteCurve_onCreate() {
-		_debugPoints = eastl::make_unique<DebugDraw>();
-		_debugLines  = eastl::make_unique<DebugDraw>();
+		_debugPoints = new DebugDraw();
+		_debugLines  = new DebugDraw();
 
 		{ // test bezier curve
 			CubicCurveExample::Bezier curve(
@@ -605,9 +631,9 @@ private:
 		_debugLines->uploadToGpu();
 	}
 	void test_AnimationClip_onCreate() {
-		_restPoseVisual    = eastl::make_unique<DebugDraw>();
-		_bindPoseVisual    = eastl::make_unique<DebugDraw>();
-		_currentPoseVisual = eastl::make_unique<DebugDraw>();
+		_restPoseVisual    = new DebugDraw();
+		_bindPoseVisual    = new DebugDraw();
+		_currentPoseVisual = new DebugDraw();
 
 		_loadExampleAsset();
 
@@ -644,14 +670,14 @@ private:
 #endif
 		_skeleton.create(info);
 		_clips = std::move(info.animationClips);
-		RearrangeBones::s_rearrange(_skeleton, info.meshes, _fastClips.span());
+		RearrangeBones::s_rearrange(_skeleton, info.skinMeshes, _fastClips.span());
 
 		{ // test cpu skinning
 			_staticShader = new Shader(
 				"Assets/Shaders/static.vert",
 				"Assets/Shaders/lit.frag"
 			);
-			_cpuMeshes.appendRange(info.meshes);
+			_cpuMeshes.appendRange(info.skinMeshes);
 			_cpuAnimInfo.animatedPose = _skeleton.restPose();
 		}
 
@@ -667,7 +693,7 @@ private:
 				"Assets/Shaders/lit.frag"
 			);
 #endif
-			_gpuMeshes.appendRange(info.meshes); // trigger Mesh::operator= and will uploadToGpu
+			_gpuMeshes.appendRange(info.skinMeshes); // trigger Mesh::operator= and will uploadToGpu
 			_gpuAnimInfo.animatedPose = _skeleton.restPose();
 		}
 
@@ -737,11 +763,11 @@ private:
 		_additiveDirection = 1.f;
 	}
 	void test_CCD_onCreate() {
-		_ccdSolver = eastl::make_unique< IKSolverExample<CCDSolver> >();
+		_ccdSolver = make_unique< IKSolverExample<CCDSolver> >();
 		_ccdSolver->create();
 	}
 	void test_FABRIK_onCreate() {
-		_fabrikSolver = eastl::make_unique< IKSolverExample<FABRIKSolver> >();
+		_fabrikSolver = make_unique< IKSolverExample<FABRIKSolver> >();
 		_fabrikSolver->create();
 	}
 	void test_CCD_BallSocketConstraint_onCreate() {
@@ -760,6 +786,116 @@ private:
 		_fabrikHingeSocketConstraint = HingeSocketConstraintExample<FABRIKSolver>::instance();
 		_fabrikHingeSocketConstraint->create();
 	}
+	void test_RayCastTriangle_onCreate() {
+		_loadExampleAsset_AlignFeetOnTheGround();
+		_createExampleShader();
+
+		_bWireFrame = true;
+
+		_groundRayDebugDraw = new DebugDrawPL();
+		_debugPoints		= new DebugDraw();
+	}
+	void test_AlignFeetOnTheGround_onCreate() {
+		_loadExampleAsset();
+		_loadExampleAsset_AlignFeetOnTheGround();
+		_createExampleShader();
+		_defaultSetAnimInfo();
+		_defaultSelectClip();
+
+		_motionTrack = TrackUtil::createVectorTrack(Interpolation::Linear, 5,
+			FrameUtil::createFrame(0, vec3f(0,  0, 1 )),
+			FrameUtil::createFrame(1, vec3f(0,  0, 10)),
+			FrameUtil::createFrame(3, vec3f(22, 0, 10)),
+			FrameUtil::createFrame(4, vec3f(22, 0, 2 )),
+			FrameUtil::createFrame(6, vec3f(0,  0, 1 )) // kWalkingTimeLength = 6.0f
+		);
+
+		_leftLeg = new IKLeg();
+		_leftLeg->setAnkleToGroundOffset(0.2f);
+		_leftLeg->setByJointNames(_skeleton,
+			"LeftUpLeg", "LeftLeg", "LeftFoot", "LeftToeBase"
+		);
+
+		_rightLeg = new IKLeg();
+		_rightLeg->setAnkleToGroundOffset(0.2f);
+		_rightLeg->setByJointNames(_skeleton,
+			"RightUpLeg", "RightLeg", "RightFoot", "RightToeBase"
+		);
+
+		_leftLeg->setPinTrack(TrackUtil::createScalarTrack(Interpolation::Cubic, 4,
+			FrameUtil::createFrame(0,		0),
+			FrameUtil::createFrame(0.4f,	1),
+			FrameUtil::createFrame(0.6f,	1),
+			FrameUtil::createFrame(1,		0)
+		));
+
+		_rightLeg->setPinTrack(TrackUtil::createScalarTrack(Interpolation::Cubic, 4,
+			FrameUtil::createFrame(0,		1),
+			FrameUtil::createFrame(0.3f,	0),
+			FrameUtil::createFrame(0.7f,	0),
+			FrameUtil::createFrame(1,		1)
+		));
+
+		_animatedPoseDebugDraw		= new DebugDrawPL();
+		_leftLegDebugDraw			= new DebugDrawPL();
+		_rightLegDebugDraw			= new DebugDrawPL();
+		_groundRayDebugDraw			= new DebugDrawPL();
+		_ankleRayDebugDraw			= new DebugDrawPL();
+		_ankleRayCastHitDebugDraw	= new DebugDrawPL();
+		_ankle2ToeRayCastDebugDraw	= new DebugDrawPL();
+		_toeRayDebugDraw			= new DebugDrawPL();
+		_toeRayCastHitDebugDraw		= new DebugDrawPL();
+		_ankleToCurrentToeDebugDraw = new DebugDrawPL();
+		_ankleToDesiredToeDebugDraw = new DebugDrawPL();
+
+		_animatedPoseDebugDraw->setLineColor(DebugDraw::kBlack);
+		_leftLegDebugDraw->setLineColor(DebugDraw::kRed);
+		_leftLegDebugDraw->setPointColor(DebugDraw::kRed);
+		_rightLegDebugDraw->setLineColor(DebugDraw::kGreen);
+		_rightLegDebugDraw->setPointColor(DebugDraw::kGreen);
+		_groundRayDebugDraw->setColor(DebugDraw::kWhite);
+		_ankleRayDebugDraw->setColor(DebugDraw::kYellow);
+		_ankleRayCastHitDebugDraw->setColor(DebugDraw::kBlue);
+		_ankle2ToeRayCastDebugDraw->setColor(DebugDraw::kWhite);
+		_toeRayDebugDraw->setColor(DebugDraw::kCyan);
+		_toeRayCastHitDebugDraw->setColor(DebugDraw::kBlue);
+		_ankleToCurrentToeDebugDraw->setColor(DebugDraw::kRed);
+		_ankleToDesiredToeDebugDraw->setColor(DebugDraw::kGreen);
+
+		_bWireFrame				= false;
+		_depthTest				= false;
+
+		_showIKPose				= false;
+		_showCurrentPose		= false;
+		_showEnvironment		= true;
+		_showMesh				= true;
+		_showGroundRayCast		= false;
+		_showAnkleRayCast		= false;
+		_showAnkle2ToeRayCast	= false;
+		_showToeRayCast			= false;
+		_showToeAdjustRayCast	= false;
+
+		_walkingTime		= 0.f;
+		_lastModelY			= 0.f;
+		_sinkIntoGround		= 0.15f;
+		_toeLength			= 0.3f;
+
+		// Start the character clamped to the ground.
+		// Move down a little bit so it's not perfectly up
+		auto& model = _gpuAnimInfo.model;
+		Ray groundRay(	vec3f(model.position.x, 11, model.position.z),
+						vec3f::s_down()
+		);
+		vec3f hitPoint;
+		for (auto& triangle : _triangles) {
+			if (IntersectionsUtil::raycastTriangle(groundRay, triangle, hitPoint)) {
+				model.position = hitPoint;
+				break;
+			}
+		}
+		model.position.y -= _sinkIntoGround;
+		_lastModelY = model.position.y;
+	}
 
 	void test_LitTexture_onUpdate(float dt) {
 		_testRotation += dt * 45.0f;
@@ -771,7 +907,7 @@ private:
 	void test_BezierAndHermiteCurve_onUpdate(float dt) {}
 	void test_AnimationClip_onUpdate(float dt) {
 		static float s_clipLoopingTime = 0.f;
-		static const float kClipMaxLoopTime = 4.f;
+		constexpr float kClipMaxLoopTime = 4.f;
 
 		const Clip& clip = _clips[_currentClip];
 		_playbackTime = clip.sample(_currentPose, _playbackTime + dt);
@@ -910,6 +1046,352 @@ private:
 	void test_FABRIK_HingeSocketConstraint_onUpdate(float dt) {
 		_fabrikHingeSocketConstraint->update(dt);
 	}
+	void test_RayCastTriangle_onUpdate(float dt) {
+
+		_groundRayDebugDraw->clear();
+		_debugPoints->clear();
+
+		vec3f hitPoint;
+		Ray ray(
+			vec3f(0, 3, 0),
+			vec3f::s_down()
+		);
+
+		static constexpr const float rayHeight = 5.f;
+		static constexpr const float rayHeightSq = rayHeight * rayHeight;
+		_groundRayDebugDraw->add(ray.origin, ray.origin + ray.direction * rayHeight);
+
+#if 1
+		for (auto& triangle : _triangles) {
+			if (IntersectionsUtil::raycastTriangle(ray, triangle, hitPoint)) {
+				if ((hitPoint- ray.origin).lenSq() < rayHeightSq) {
+//					SGE_LOG("{}\nv0={}\nv1={}\nv2={}\n", hitPoint, triangle.v0, triangle.v1, triangle.v2);
+					_debugPoints->push_back(ray.origin);
+					_debugPoints->push_back(hitPoint);
+					break;
+				}
+			}
+		}
+#else
+/*
+		[0, -0.0011286736, 0]
+		v0=[-3.5999937, -0.001804769, -1.2090831]
+		v1=[4.401746, -0.001804769, 3.2887857]
+		v2=[4.401746, 0.0019281805, -1.2090831]
+*/
+		vec3f v0(-3.5999937f, -0.001804769f, -1.2090831f);
+		vec3f v1(4.401746f, -0.001804769f, 3.2887857f);
+		vec3f v2(4.401746f, 0.0019281805f, -1.2090831f);
+		auto triangle = Triangle(v0, v1, v2);
+		_debugPoints->push_back(v0);
+		_debugPoints->push_back(v1);
+		_debugPoints->push_back(v2);
+
+		if (IntersectionsUtil::raycastTriangle(ray, triangle, hitPoint)) {
+			if ((hitPoint - ray.origin).lenSq() < rayHeightSq) {
+				SGE_LOG("{}\nv0={}\nv1={}\nv2={}\n", hitPoint, triangle.v0, triangle.v1, triangle.v2);
+				_debugPoints->push_back(ray.origin);
+				_debugPoints->push_back(hitPoint);
+			}
+		}
+#endif
+	}
+	void test_AlignFeetOnTheGround_onUpdate(float dt) {
+//		dt = 0;
+
+		_groundRayDebugDraw->clear();
+		_ankleRayDebugDraw->clear();
+		_ankleRayCastHitDebugDraw->clear();
+		_ankle2ToeRayCastDebugDraw->clear();
+		_toeRayDebugDraw->clear();
+		_toeRayCastHitDebugDraw->clear();
+		_ankleToCurrentToeDebugDraw->clear();
+		_ankleToDesiredToeDebugDraw->clear();
+
+		vec3f hitPoint;
+		Track_SampleRequest sr;
+
+		auto& animInfo			= _gpuAnimInfo;
+		auto& model				= animInfo.model;
+		auto& curAnimatedPose	= animInfo.animatedPose;
+
+		// Increment time and sample the animation clip that moves the model on the level rails
+		// The Y position is a lie, it's a trackt hat only makes sense from an ortho top view
+
+		static constexpr float kWalkingSpeed = 0.3f;
+		static constexpr float kWalkingTimeLength = 6.f;
+
+		_walkingTime += dt * kWalkingSpeed;
+		while (_walkingTime > kWalkingTimeLength) {
+			_walkingTime -= kWalkingTimeLength;
+		}
+
+		// Figure out the X and Z position of the model in world spcae
+		// Keep the Y position the same as last frame for both to properly orient the model
+		float lastYPosition		= model.position.y;
+
+		sr.isLoop				= true;
+		sr.time					= _walkingTime;
+		vec3f currentPosition	= _motionTrack.sample(sr);
+
+		sr.isLoop				= true;
+		sr.time					= _walkingTime + 0.1f;
+		vec3f nextPosition		= _motionTrack.sample(sr);
+
+		currentPosition.y		= lastYPosition;
+		nextPosition.y			= lastYPosition;
+
+		model.position			= currentPosition;
+#if 1
+		static constexpr float kRotationSensitive = 10.f;
+
+		// Figure out the forward direction of the model in world spcae
+		vec3f forwardDir      = (nextPosition - currentPosition).normalize();
+		quat newDirectionQuat = quat::s_lookRotation(forwardDir, vec3f::s_up());
+		if (model.rotation.dot(newDirectionQuat) < 0.0f) {
+			newDirectionQuat *= -1.0f;
+		}
+		model.rotation = model.rotation.nlerp(newDirectionQuat, dt * kRotationSensitive);
+		vec3f characterForward = model.forward();
+
+		// Figure out the Y position of the model in world spcae
+		Ray groundRay(
+			vec3f(model.position.x, 11, model.position.z),
+			vec3f::s_down()
+		);
+		for (auto& triangle : _triangles) {
+			if (IntersectionsUtil::raycastTriangle(groundRay, triangle, hitPoint)) {
+				// Sink the model a little bit into the ground to avoid hyper-extending it's legs
+				model.position = hitPoint - vec3f(0, _sinkIntoGround, 0);
+				_groundRayDebugDraw->add(groundRay.origin, hitPoint);
+				break;
+			}
+		}
+		_groundRayDebugDraw->add(currentPosition, nextPosition); // character forward
+
+		// Sample the current animation, update the pose visual
+		// and figure out where the left and right leg are in their up/down animation cycle
+		animInfo.animatedSample(_clips, dt);
+		_animatedPoseDebugDraw->lineFromPose(curAnimatedPose);
+
+		float normalizedTime = animInfo.getNormalizedTime(_clips);
+#if 1
+		normalizedTime = Math::clamp01(normalizedTime);
+#else
+		if (normalizedTime < 0.0f) {
+			SGE_LOG("normalizedTime should not be > 0\n");
+			normalizedTime = 0.0f;
+		}
+		if (normalizedTime > 1.0f) {
+			SGE_LOG("normalizedTime should not be < 1\n");
+			normalizedTime = 1.0f;
+		}
+#endif
+
+		Transform lAnkleTran = animInfo.getAnimatedPoseGlobalTransform(_leftLeg->ankle());
+		Transform rAnkleTran = animInfo.getAnimatedPoseGlobalTransform(_rightLeg->ankle());
+
+		vec3f  leftAnkleWorldPos = Transform::s_combine(model, lAnkleTran).position;
+		vec3f rightAnkleWorldPos = Transform::s_combine(model, rAnkleTran).position;
+
+		// Construct a ray for the left/right ankle,
+		// store 
+			// the world position
+			// and the predictive position of the ankle.
+		// This is in case the raycasts below don't hit anything.
+		Ray leftAnkleRay(
+			leftAnkleWorldPos + vec3f(0, 2, 0),
+			vec3f::s_down()
+		);
+		Ray rightAnkleRay(
+			rightAnkleWorldPos + vec3f(0, 2, 0),
+			vec3f::s_down()
+		);
+
+		// Perform some raycasts for the feet, these are done in world space
+		// and will define the IK based target points.
+		// For each ankle, we need to know
+		// the current position (raycast from knee height to the sole of the foot height)
+		// and the predictive position (infinate ray cast).
+		// The target point will be between these two goals
+			// 1. current position
+			// 2. predictive position
+		vec3f  predictiveLeftAnkle = leftAnkleWorldPos;
+		vec3f predictiveRightAnkle = rightAnkleWorldPos;
+		vec3f groundReference = model.position;
+		constexpr const float rayHeight = 2.1f;
+		constexpr const float rayHeightSq = rayHeight * rayHeight;
+		for (auto& triangle : _triangles) {
+			if (IntersectionsUtil::raycastTriangle(leftAnkleRay, triangle, hitPoint)) {
+				if ((hitPoint - leftAnkleRay.origin).lenSq() < rayHeightSq) {
+					leftAnkleWorldPos = hitPoint;
+					_ankleRayDebugDraw->add(leftAnkleRay.origin, hitPoint);
+
+					if (hitPoint.y < groundReference.y) {
+						groundReference = hitPoint - vec3f(0, _sinkIntoGround, 0);
+						SGE_LOG("{}", groundReference);
+					}
+				}
+				predictiveLeftAnkle = hitPoint;
+			}
+			if (IntersectionsUtil::raycastTriangle(rightAnkleRay, triangle, hitPoint)) {
+				if ((hitPoint - rightAnkleRay.origin).lenSq() < rayHeightSq) {
+					rightAnkleWorldPos = hitPoint;
+					_ankleRayDebugDraw->add(rightAnkleRay.origin, hitPoint);
+
+					if (hitPoint.y < groundReference.y) {
+						groundReference = hitPoint - vec3f(0, _sinkIntoGround, 0);
+						SGE_LOG("{}", groundReference);
+					}
+				}
+				predictiveRightAnkle = hitPoint;
+			}
+		}
+		_ankleRayCastHitDebugDraw->add( leftAnkleRay.origin,  leftAnkleRay.origin +  leftAnkleRay.direction * rayHeight);
+		_ankleRayCastHitDebugDraw->add(rightAnkleRay.origin, rightAnkleRay.origin + rightAnkleRay.direction * rayHeight);
+#if 1
+		// Lerp the Y position of the mode over a small period of time
+		// Just to avoid poping
+		model.position.y	= _lastModelY;
+		model.position		= model.position.lerp(groundReference, dt * 10.0f);
+		_lastModelY			= model.position.y;
+#endif
+
+#if 1
+		sr.isLoop = true;
+		sr.time = normalizedTime;
+		float wLeftMotion = _leftLeg->pinTrack().sample(sr);
+
+		sr.isLoop = true;
+		sr.time = normalizedTime;
+		float wRightMotion = _rightLeg->pinTrack().sample(sr);
+
+		// Lerp between fully clamped to the ground,
+		// and somewhat clamped to the ground based on the current phase of the walk cycle
+		 leftAnkleWorldPos =  leftAnkleWorldPos.lerp( predictiveLeftAnkle,  wLeftMotion); // 01, interpolate
+		rightAnkleWorldPos = rightAnkleWorldPos.lerp(predictiveRightAnkle, wRightMotion);
+#endif
+
+		// Now that we know the position of the model, as well as the ankle
+		// we can solve the feet.
+		 _leftLeg->solveForLeg(model, curAnimatedPose, leftAnkleWorldPos);
+		_rightLeg->solveForLeg(model, curAnimatedPose, rightAnkleWorldPos);
+
+		 _leftLegDebugDraw->fromIKSolver( _leftLeg->solver());
+		_rightLegDebugDraw->fromIKSolver(_rightLeg->solver());
+
+		// Apply the solved feet
+		Blending::blend(curAnimatedPose, curAnimatedPose,  _leftLeg->outPose(), 1.f,  _leftLeg->hip());
+		Blending::blend(curAnimatedPose, curAnimatedPose, _rightLeg->outPose(), 1.f, _rightLeg->hip());
+#endif
+
+#if 1
+		// The toes are still wrong, let's fix those.
+		// First, construct some rays for the toes
+		Transform  leftAnkleWorld = Transform::s_combine(model, curAnimatedPose.getGlobalTransform( _leftLeg->ankle()));
+		Transform rightAnkleWorld = Transform::s_combine(model, curAnimatedPose.getGlobalTransform(_rightLeg->ankle()));
+
+		vec3f  leftToeWorldPos = Transform::s_combine(model, curAnimatedPose.getGlobalTransform( _leftLeg->toe())).position;
+		vec3f rightToeWorldPos = Transform::s_combine(model, curAnimatedPose.getGlobalTransform(_rightLeg->toe())).position;
+
+		vec3f origin = leftAnkleWorld.position;
+		origin.y	 = leftToeWorldPos.y;
+		vec3f offset = characterForward * _toeLength;
+		Ray leftToeRay(
+			origin + offset + vec3f(0, 1, 0),
+			vec3f::s_down()
+		);
+		_ankle2ToeRayCastDebugDraw->add(origin, origin + offset);
+
+		origin   = rightAnkleWorld.position;
+		origin.y = rightToeWorldPos.y;
+		Ray rightToeRay = Ray(
+			origin + offset + vec3f(0, 1, 0),
+			vec3f::s_down()
+		);
+		_ankle2ToeRayCastDebugDraw->add(origin, origin + offset);
+
+		// Next, see if the toes hit anything
+		vec3f  leftToeTarget		= leftToeWorldPos;
+		vec3f rightToeTarget		= rightToeWorldPos;
+		vec3f  predictiveLeftToe	= leftToeWorldPos;
+		vec3f predictiveRightToe	= rightToeWorldPos;
+		constexpr const float ankleRayHeight   = 1.1f;
+		constexpr const float ankleRayHeightSq = ankleRayHeight * ankleRayHeight;
+		for (auto& triangle : _triangles) {
+			if (IntersectionsUtil::raycastTriangle(leftToeRay, triangle, hitPoint)) {
+				if ((hitPoint - leftToeRay.origin).lenSq() < ankleRayHeightSq) {
+					leftToeTarget = hitPoint;
+					_toeRayDebugDraw->add(leftToeRay.origin, hitPoint);
+				}
+				predictiveLeftToe = hitPoint;
+			}
+			if (IntersectionsUtil::raycastTriangle(rightToeRay, triangle, hitPoint)) {
+				if ((hitPoint - rightToeRay.origin).lenSq() < ankleRayHeightSq) {
+					rightToeTarget = hitPoint;
+					_toeRayDebugDraw->add(rightToeRay.origin, hitPoint);
+				}
+				predictiveRightToe = hitPoint;
+			}
+		}
+		_toeRayCastHitDebugDraw->add( leftToeRay.origin,  leftToeRay.origin +  leftToeRay.direction * ankleRayHeight);
+		_toeRayCastHitDebugDraw->add(rightToeRay.origin, rightToeRay.origin + rightToeRay.direction * ankleRayHeight);
+
+		// Place the toe target at the right location
+		leftToeTarget  =  leftToeTarget.lerp( predictiveLeftToe,  wLeftMotion);
+		rightToeTarget = rightToeTarget.lerp(predictiveRightToe, wRightMotion);
+
+		static constexpr const float kEpsilon = 0.00001f;
+
+		// If the left or right toe hit, adjust the ankle rotation approrpaiteley
+		vec3f leftAnkleToCurrentToe = leftToeWorldPos - leftAnkleWorld.position;
+		vec3f leftAnkleToDesiredToe = leftToeTarget   - leftAnkleWorld.position;
+		_ankleToCurrentToeDebugDraw->add(leftToeWorldPos, leftAnkleWorld.position);
+		_ankleToDesiredToeDebugDraw->add(leftToeTarget,   leftAnkleWorld.position);
+
+		if (leftAnkleToCurrentToe.dot(leftAnkleToDesiredToe) > kEpsilon) { // avoid 90 degrees, why???
+			Transform ankleLocalTran = curAnimatedPose.getLocalTransform(_leftLeg->ankle());
+			const quat4f& leftAnkleWorldRot = leftAnkleWorld.rotation;
+		#if 1 // calc in world space
+			quat4f currentToDesired	= quat::s_fromTo(leftAnkleToCurrentToe, leftAnkleToDesiredToe);
+			quat4f worldRotated		= leftAnkleWorldRot * currentToDesired;
+			quat4f localRotated		= worldRotated * leftAnkleWorldRot.inverse();
+		#else // calc in local space
+			quat4f leftAnkleWorldRotInv		= leftAnkleWorldRot.inverse();
+			leftAnkleToCurrentToe			= leftAnkleWorldRotInv * leftAnkleToCurrentToe;
+			leftAnkleToDesiredToe			= leftAnkleWorldRotInv * leftAnkleToDesiredToe;
+			quat4f localRotated				= quat4f::s_fromTo(leftAnkleToCurrentToe, leftAnkleToDesiredToe);
+		#endif
+			ankleLocalTran.rotation = localRotated * ankleLocalTran.rotation;
+			curAnimatedPose.setLocalTransform(_leftLeg->ankle(), ankleLocalTran);
+		}
+
+		vec3f rightAnkleToCurrentToe = rightToeWorldPos - rightAnkleWorld.position;
+		vec3f rightAnkleToDesiredToe = rightToeTarget   - rightAnkleWorld.position;
+		_ankleToCurrentToeDebugDraw->add(rightToeWorldPos, rightAnkleWorld.position);
+		_ankleToDesiredToeDebugDraw->add(rightToeTarget,   rightAnkleWorld.position);
+
+		if (rightAnkleToCurrentToe.dot(rightAnkleToDesiredToe) > kEpsilon) {
+			Transform ankleLocalTran = curAnimatedPose.getLocalTransform(_rightLeg->ankle());
+			const quat4f& rightAnkleWorldRot = rightAnkleWorld.rotation;
+		#if 1 // calc in world space
+			quat4f currentToDesired = quat::s_fromTo(rightAnkleToCurrentToe, rightAnkleToDesiredToe);
+			quat4f worldRotated		= rightAnkleWorldRot * currentToDesired;
+			quat4f localRotated		= worldRotated * rightAnkleWorldRot.inverse();
+		#else
+			quat4f rightAnkleWorldRotInv	= rightAnkleWorldRot.inverse();
+			rightAnkleToCurrentToe			= rightAnkleWorldRotInv * rightAnkleToCurrentToe;
+			rightAnkleToDesiredToe			= rightAnkleWorldRotInv * rightAnkleToDesiredToe;
+			quat4f localRotated				= quat4f::s_fromTo(rightAnkleToCurrentToe, rightAnkleToDesiredToe);
+		#endif
+			ankleLocalTran.rotation = localRotated * ankleLocalTran.rotation;
+			curAnimatedPose.setLocalTransform(_rightLeg->ankle(), ankleLocalTran);
+		}
+#endif
+
+		// Update the matrix palette for skinning
+		_populatePosePalette();
+	}
 
 	void test_LitTexture_onRender() {
 		mat4f projection = mat4f::s_perspective(60.0f, _aspect, 0.01f, 1000.0f);
@@ -935,7 +1417,7 @@ private:
 
 			DrawUtil::draw(*_indexBuffer.get());
 			_debugLines->draw(DebugDrawMode::Lines, mvp);
-			_debugPoints->draw(DebugDrawMode::Points, mvp, kBlue);
+			_debugPoints->draw(DebugDrawMode::Points, mvp, DebugDraw::kBlue);
 
 			{ // unbind uniforms
 				_texture->unset(0);
@@ -957,27 +1439,27 @@ private:
 		mat4f view       = mat4f::s_lookAt(vec3f(0, 0, (n + f) / 2), vec3f::s_zero(), vec3f::s_up());
 		mat4f mvp        = projection * view * mat4f::s_identity();
 
-		_referenceLines->draw(DebugDrawMode::Lines, mvp, kYellow);
-		_scalarTrackLines->draw(DebugDrawMode::Lines, mvp, kGreen);
-		_handlePoints->draw(DebugDrawMode::Points, mvp, kBlue);
-		_handleLines->draw(DebugDrawMode::Lines, mvp, kPurple);
+		_referenceLines->draw(DebugDrawMode::Lines, mvp, DebugDraw::kYellow);
+		_scalarTrackLines->draw(DebugDrawMode::Lines, mvp, DebugDraw::kGreen);
+		_handlePoints->draw(DebugDrawMode::Points, mvp, DebugDraw::kBlue);
+		_handleLines->draw(DebugDrawMode::Lines, mvp, DebugDraw::kPurple);
 	}
 	void test_BezierAndHermiteCurve_onRender() {
 		mat4f projection = mat4f::s_perspective(60.0f, _aspect, 0.01f, 1000.0f);
 		mat4f view       = mat4f::s_lookAt(vec3f(0, 0, -5), vec3f::s_zero(), vec3f::s_up());
 		mat4f mvp        = projection * view * mat4f::s_identity();
 		_debugLines->draw(DebugDrawMode::Lines, mvp);
-		_debugPoints->draw(DebugDrawMode::Points, mvp, kBlue);
+		_debugPoints->draw(DebugDrawMode::Points, mvp, DebugDraw::kBlue);
 	}
 	void test_AnimationClip_onRender() {
 		mat4f projection = mat4f::s_perspective(60.0f, _aspect, 0.01f, 10.f);
 		mat4f view = mat4f::s_lookAt(vec3f(0, 4, -7), vec3f(0, 4, 0), vec3f::s_up());
 		mat4f mvp = projection * view;
 
-		_restPoseVisual->draw(DebugDrawMode::Lines, mvp, kRed);
-		_bindPoseVisual->draw(DebugDrawMode::Lines, mvp, kGreen);
+		_restPoseVisual->draw(DebugDrawMode::Lines, mvp, DebugDraw::kRed);
+		_bindPoseVisual->draw(DebugDrawMode::Lines, mvp, DebugDraw::kGreen);
 		_currentPoseVisual->uploadToGpu();
-		_currentPoseVisual->draw(DebugDrawMode::Lines, mvp, kBlue);
+		_currentPoseVisual->draw(DebugDrawMode::Lines, mvp, DebugDraw::kBlue);
 	}
 	void test_MeshSkinning_onRender() {
 		mat4f projection = mat4f::s_perspective(60.0f, _aspect, 0.01f, 10.f);
@@ -1033,13 +1515,13 @@ private:
 		}
 	}
 	void test_AnimationBlending_onRender() {
-		_onDrawGpuSkinning();
+		_onDrawGpuSkinningByDefault();
 	}
 	void test_Crossfading_onRender() {
-		_onDrawGpuSkinning();
+		_onDrawGpuSkinningByDefault();
 	}
 	void test_AdditiveBlending_onRender() {
-		_onDrawGpuSkinning();
+		_onDrawGpuSkinningByDefault();
 	}
 	void test_CCD_onRender() {
 		_ccdSolver->render(_aspect);
@@ -1059,15 +1541,82 @@ private:
 	void test_FABRIK_HingeSocketConstraint_onRender() {
 		_fabrikHingeSocketConstraint->render(_aspect);
 	}
+	void test_RayCastTriangle_onRender() {
+		mat4f projection = mat4f::s_perspective(60.0f, _aspect, 0.01f, 100.f);
+		mat4f view = mat4f::s_lookAt(vec3f(0, 7, 20), vec3f::s_zero(), vec3f::s_up());
+		mat4f mvp = projection * view * mat4f::s_identity();
+		_onDrawStaticMesh(projection, view, _ikCourse, _ikCourseTexture);
+
+		_debugPoints->uploadToGpu();
+		_debugPoints->draw(DebugDrawMode::Points, mvp, DebugDraw::kGreen);
+		_groundRayDebugDraw->draw(mvp);
+	}
+	void test_AlignFeetOnTheGround_onRender() {
+		auto& modelTran = _gpuAnimInfo.model;
+		float modelPosX = modelTran.position.x;
+		float modelPosZ = modelTran.position.z;
+		mat4 model		= mat4::s_transform(modelTran);
+
+		mat4 projection = mat4::s_perspective(60.0f, _aspect, 0.01f, 1000.0f);
+		mat4 view = mat4::s_lookAt(
+			vec3f(modelPosX, 0, modelPosZ) + vec3f(0, 5, 10),
+			vec3f(modelPosX, 0, modelPosZ) + vec3f(0, 3, 0),
+			vec3f::s_up());
+		
+		mat4 vp		= projection * view;
+		mat4 mvp	= vp * model;
+
+		if (_showMesh) {
+			_onDrawGpuSkinning(projection, view);
+		}
+
+		if (_showEnvironment) {
+			_onDrawStaticMesh(projection, view, _ikCourse, _ikCourseTexture);
+		}
+
+		if (!_depthTest) glDisable(GL_DEPTH_TEST);
+		{
+			if (_showCurrentPose) {
+				_animatedPoseDebugDraw->draw(mvp, DebugDrawPL::Mask::Line);
+			}
+			if (_showIKPose) {
+				_leftLegDebugDraw->draw(vp, DebugDrawPL::Mask::Line);
+				_rightLegDebugDraw->draw(vp, DebugDrawPL::Mask::Line);
+			}
+			if (_showGroundRayCast) {
+				_groundRayDebugDraw->draw(vp);
+			}
+			if (_showAnkleRayCast) {
+				_ankleRayCastHitDebugDraw->draw(vp);
+				_ankleRayDebugDraw->draw(vp);
+			}
+			if (_showAnkle2ToeRayCast) {
+				_ankle2ToeRayCastDebugDraw->draw(vp);
+			}
+			if (_showToeRayCast) {
+				_toeRayCastHitDebugDraw->draw(vp);
+				_toeRayDebugDraw->draw(vp);
+			}
+			if (_showToeAdjustRayCast) {
+				_ankleToCurrentToeDebugDraw->draw(vp);
+				_ankleToDesiredToeDebugDraw->draw(vp);
+			}
+		}
+		if (!_depthTest) glEnable(GL_DEPTH_TEST);
+	}
 
 private:
 
-	void _onDrawGpuSkinning() {
+	void _onDrawGpuSkinningByDefault() {
 		mat4f projection = mat4f::s_perspective(60.0f, _aspect, 0.01f, 10.f);
 		mat4f view       = mat4f::s_lookAt(vec3f(0, 3, 7), vec3f(0, 3, 0), vec3f::s_up());
+		_onDrawGpuSkinning(projection, view);
+	}
+
+	void _onDrawGpuSkinning(const mat4f& projection, const mat4f& view) {
 		mat4f model      = mat4f::s_transform(_gpuAnimInfo.model);
 
-		// bind uniform
+		// bind shader
 		_skinnedShader->bind();
 		{
 			{ // bind uniforms
@@ -1088,6 +1637,25 @@ private:
 		_skinnedShader->unbind();
 	}
 
+	void _onDrawStaticMesh(const mat4f& projection, const mat4f& view, Span<Mesh> meshes, SPtr<Texture> tex) {
+		// bind shader
+		_staticShader->bind();
+		{
+			{ // bind uniforms
+				Uniform<mat4>::set(_staticShader->findUniformByName("model"), mat4::s_identity());
+				Uniform<mat4>::set(_staticShader->findUniformByName("view"), view);
+				Uniform<mat4>::set(_staticShader->findUniformByName("projection"), projection);
+				Uniform<vec3f>::set(_staticShader->findUniformByName("light"), vec3f::s_one());
+				tex->set(_staticShader->findUniformByName("tex0"), 0);
+			}
+			for (auto& mesh : meshes) {
+				_drawMesh(mesh, _cpuAttribLoc);
+			}
+		}
+		tex->unset(0);
+		_staticShader->unbind();
+	}
+
 	void _populatePosePalette() {
 		_cpuAnimInfo.animatedPose.getMatrixPalette(_cpuAnimInfo.posePalette);
 		_gpuAnimInfo.animatedPose.getMatrixPalette(_gpuAnimInfo.posePalette);
@@ -1100,20 +1668,35 @@ private:
 	}
 
 	void _loadExampleAsset() {
+		constexpr const char* kGltfFileName = "Assets/Mesh/Woman.gltf";
+		constexpr const char* kTextureFileName = "Assets/Textures/Woman.png";
+
 		GLTFInfo info;
-		GLTFLoader::s_readFile(info, "Assets/Mesh/Woman.gltf");
+		GLTFLoader::s_readFile(info, kGltfFileName);
 
 		_skeleton.create(info);
 		_clips.reserve(info.animationClips.size());
 		_clips = std::move(info.animationClips);
 
-		_cpuMeshes.reserve(info.meshes.size());
-		_cpuMeshes.appendRange(info.meshes);
+		_cpuMeshes.reserve(info.skinMeshes.size());
+		_cpuMeshes.appendRange(info.skinMeshes);
 
-		_gpuMeshes.reserve(info.meshes.size());
-		_gpuMeshes.appendRange(info.meshes);
+		_gpuMeshes.reserve(info.skinMeshes.size());
+		_gpuMeshes.appendRange(info.skinMeshes);
 
-		_texture = new Texture("Assets/Textures/Woman.png");
+		_texture = new Texture(kTextureFileName);
+	}
+
+	void _loadExampleAsset_AlignFeetOnTheGround() {
+		constexpr const char* kGltfFileName = "Assets/Mesh/IKCourse.gltf";
+		constexpr const char* kTextureFileName = "Assets/Textures/uvChecker.png";
+
+		GLTFInfo info;
+		GLTFLoader::s_readFile(info, kGltfFileName);
+
+		_ikCourse = info.staticMeshes;
+		_triangles = IntersectionsUtil::meshesToTriangles(_ikCourse);
+		_ikCourseTexture = new Texture(kTextureFileName);
 	}
 
 	void _createExampleShader() {
@@ -1177,66 +1760,100 @@ private:
 	}
 
 private:
-	float									_testRotation = 0.0f;
+	float										_testRotation = 0.0f;
 
-	SPtr<Shader>							_staticShader;
-	SPtr<Texture>							_texture;
+	SPtr<Shader>								_staticShader;
+	SPtr<Texture>								_texture;
 
-	UPtr< Attribute<vec3f> >				_vertexPositions;
-	UPtr< Attribute<vec3f> >				_vertexNormals;
-	UPtr< Attribute<vec2f> >				_vertexTexCoords;
-	UPtr<IndexBuffer>						_indexBuffer;
+	UPtr< Attribute<vec3f> >					_vertexPositions;
+	UPtr< Attribute<vec3f> >					_vertexNormals;
+	UPtr< Attribute<vec2f> >					_vertexTexCoords;
+	UPtr<IndexBuffer>							_indexBuffer;
 
-	UPtr<DebugDraw>							_debugPoints;
-	UPtr<DebugDraw>							_debugLines;
+	SPtr<DebugDraw>								_debugPoints;
+	SPtr<DebugDraw>								_debugLines;
 
-	Vector<ScalarTrack>						_scalarTracks;
-	Vector<bool>							_scalarTracksIsLoop;
+	Vector<ScalarTrack>							_scalarTracks;
+	Vector<bool>								_scalarTracksIsLoop;
 
-	UPtr<DebugDraw>							_scalarTrackLines;
-	UPtr<DebugDraw>							_handlePoints;
-	UPtr<DebugDraw>							_handleLines;
-	UPtr<DebugDraw>							_referenceLines;
+	SPtr<DebugDraw>								_scalarTrackLines;
+	SPtr<DebugDraw>								_handlePoints;
+	SPtr<DebugDraw>								_handleLines;
+	SPtr<DebugDraw>								_referenceLines;
 
-	Skeleton								_skeleton;
-	Pose									_currentPose;
-	Vector<Clip>							_clips;
-	int										_currentClip;
-	float									_playbackTime;
+	Skeleton									_skeleton;
+	Pose										_currentPose;
+	Vector<Clip>								_clips;
+	int											_currentClip;
+	float										_playbackTime;
 
-	UPtr<DebugDraw>							_restPoseVisual;
-	UPtr<DebugDraw>							_bindPoseVisual;
-	UPtr<DebugDraw>							_currentPoseVisual;
+	SPtr<DebugDraw>								_restPoseVisual;
+	SPtr<DebugDraw>								_bindPoseVisual;
+	SPtr<DebugDraw>								_currentPoseVisual;
 
-	Vector<Mesh>							_cpuMeshes;
-	AnimationInstance						_cpuAnimInfo;
-	AnimationAttribLocation					_cpuAttribLoc;
+	Vector<Mesh>								_cpuMeshes;
+	AnimationInstance							_cpuAnimInfo;
+	AnimationAttribLocation						_cpuAttribLoc;
 
-	SPtr<Shader>							_skinnedShader;
-	Vector<Mesh>							_gpuMeshes;
-	AnimationInstance						_gpuAnimInfo;
-	AnimationAttribLocation					_gpuAttribLoc;
+	SPtr<Shader>								_skinnedShader;
+	Vector<Mesh>								_gpuMeshes;
+	AnimationInstance							_gpuAnimInfo;
+	AnimationAttribLocation						_gpuAttribLoc;
 
-	Vector<FastClip>						_fastClips;
+	Vector<FastClip>							_fastClips;
 
-	AnimationInstance						_blendAnimA;
-	AnimationInstance						_blendAnimB;
-	float									_elapsedBlendTime;
-	bool									_isInvertBlend;
+	AnimationInstance							_blendAnimA;
+	AnimationInstance							_blendAnimB;
+	float										_elapsedBlendTime;
+	bool										_isInvertBlend;
 
-	float									_fadeTimer;
+	float										_fadeTimer;
 
-	float									_additiveTime;      // 0~1
-	float									_additiveDirection; // -1,1
+	float										_additiveTime;      // 0~1
+	float										_additiveDirection; // -1,1
 
-	UPtr< IKSolverExample<CCDSolver> >		_ccdSolver;
-	UPtr< IKSolverExample<FABRIKSolver> >	_fabrikSolver;
+	UPtr< IKSolverExample<CCDSolver> >			_ccdSolver;
+	UPtr< IKSolverExample<FABRIKSolver> >		_fabrikSolver;
 
 	BallSocketConstraintExample<CCDSolver>*		_ccdBallSocketConstraint;
 	BallSocketConstraintExample<FABRIKSolver>*	_fabrikBallSocketConstraint;
 
 	HingeSocketConstraintExample<CCDSolver>*	_ccdHingeSocketConstraint;
 	HingeSocketConstraintExample<FABRIKSolver>*	_fabrikHingeSocketConstraint;
+
+	Vector<Mesh>								_ikCourse;
+	Vector<Triangle>							_triangles;
+	SPtr<Texture>								_ikCourseTexture;
+	VectorTrack									_motionTrack;
+	float										_walkingTime;
+	float										_sinkIntoGround;
+	SPtr<IKLeg>									_leftLeg;
+	SPtr<IKLeg>									_rightLeg;
+	float										_toeLength;
+	float										_lastModelY;
+
+	bool										_showIKPose;
+	bool										_showCurrentPose;
+	bool										_depthTest;
+	bool										_showMesh;
+	bool										_showEnvironment;
+	bool										_showGroundRayCast;
+	bool										_showAnkleRayCast;
+	bool										_showAnkle2ToeRayCast;
+	bool										_showToeRayCast;
+	bool										_showToeAdjustRayCast;
+
+	SPtr<DebugDrawPL>							_animatedPoseDebugDraw;
+	SPtr<DebugDrawPL>							_leftLegDebugDraw;
+	SPtr<DebugDrawPL>							_rightLegDebugDraw;
+	SPtr<DebugDrawPL>							_groundRayDebugDraw;
+	SPtr<DebugDrawPL>							_ankleRayCastHitDebugDraw;
+	SPtr<DebugDrawPL>							_ankleRayDebugDraw;
+	SPtr<DebugDrawPL>							_ankle2ToeRayCastDebugDraw;
+	SPtr<DebugDrawPL>							_toeRayCastHitDebugDraw;
+	SPtr<DebugDrawPL>							_toeRayDebugDraw;
+	SPtr<DebugDrawPL>							_ankleToCurrentToeDebugDraw;
+	SPtr<DebugDrawPL>							_ankleToDesiredToeDebugDraw;
 };
 
 class GameAnimeProgApp : public NativeUIApp {

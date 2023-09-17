@@ -7,9 +7,12 @@
 namespace sge {
 
 struct GLTFInfo {
+
 	Skeleton		skeleton;
 	Vector<Clip>	animationClips;
-	Vector<Mesh>	meshes;
+
+	Vector<Mesh>	skinMeshes;
+	Vector<Mesh>	staticMeshes;
 
 	inline const Pose& restPose() const { return skeleton.restPose(); }
 	inline const Pose& bindPose() const { return skeleton.bindPose(); }

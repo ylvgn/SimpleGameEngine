@@ -5,7 +5,8 @@ namespace sge {
 void GLTFInfo::clear() {
 	skeleton.clear();
 	animationClips.clear();
-	meshes.clear();
+	skinMeshes.clear();
+	staticMeshes.clear();
 }
 
 }

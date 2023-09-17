@@ -27,10 +27,11 @@ private:
 	void _loadBindPose();
 	void _loadJointNames();
 	void _loadSkeleton();
-	void _loadMeshes();
+	void _loadSkinMeshes();
+	void _loadStaticMeshes();
 
-	cgltf_data* _data	= nullptr;
-	Info* _outInfo		= nullptr;
+	cgltf_data* _data		= nullptr;
+	Info*		_outInfo	= nullptr;
 };
 
 }
