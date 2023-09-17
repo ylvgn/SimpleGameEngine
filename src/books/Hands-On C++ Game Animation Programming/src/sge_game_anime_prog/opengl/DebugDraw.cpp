@@ -9,6 +9,9 @@
 namespace sge {
 
 void DebugDraw::draw(DebugDrawMode mode, const mat4& mvp, const Color4f& color /*= Color4f(1,0,0,1)*/) {
+	size_t vertexCount = _points.size();
+	if (vertexCount == 0) return;
+
 	_shader->bind();
 
 	_attribs.bind(_shader->findAttributeByName("position"));
@@ -21,8 +24,6 @@ void DebugDraw::draw(DebugDrawMode mode, const mat4& mvp, const Color4f& color /
 #endif
 
 	Uniform<Color4f>::set(_shader->findUniformByName("color"), color);
-
-	size_t vertexCount = _points.size();
 
 	switch (mode)
 	{
@@ -97,5 +98,26 @@ void DebugDraw::pointsFromIKSolver(const FABRIKSolver& solver) {
 		_points[i] = solver.getGlobalTransform(i).position;
 	}
 }
+
+template<class IKSolver>
+void DebugDraw_PointLines::fromIKSolver(const IKSolver& solver) {
+	_lines->linesFromIKSolver(solver);
+}
+
+void DebugDraw_PointLines::draw(const mat4f& mvp, Mask mask/*= Mask::Point | Mask::Line*/) {
+	_lines->uploadToGpu();
+
+	if (enumHas(mask, Mask::Line)) {
+		_lines->draw(DebugDrawMode::Lines, mvp, _lineColor);
+	}
+
+	if (enumHas(mask, Mask::Point)) {
+		_lines->draw(DebugDrawMode::Points, mvp, _pointColor);
+	}
+}
+
+// explict template instantiation
+template void DebugDraw_PointLines::fromIKSolver(const CCDSolver& solver);
+template void DebugDraw_PointLines::fromIKSolver(const FABRIKSolver& solver);
 
 }

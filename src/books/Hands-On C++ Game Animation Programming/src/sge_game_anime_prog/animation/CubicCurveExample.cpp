@@ -24,7 +24,7 @@ vec3f CubicCurveExample::Bezier::lerp(float t) const {
 #endif
 }
 
-void CubicCurveExample::Bezier::factor(float t, UPtr<DebugDraw>& outPoints) const {
+void CubicCurveExample::Bezier::factor(float t, SPtr<DebugDraw> outPoints) const {
 	float u   = 1 - t;
 	float uu  = u * u;
 	float uuu = uu * u;
@@ -54,7 +54,7 @@ vec3f CubicCurveExample::Hermite::lerp(float t) const {
 #endif
 }
 
-void CubicCurveExample::Hermite::factor(float t, UPtr<DebugDraw>& outPoints) const {
+void CubicCurveExample::Hermite::factor(float t, SPtr<DebugDraw> outPoints) const {
 	float u  = 1 - t;
 	float uu = u * u;
 	float tt = t * t;

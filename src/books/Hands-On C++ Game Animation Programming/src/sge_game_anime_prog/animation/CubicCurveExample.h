@@ -14,7 +14,7 @@ struct CubicCurveExample {
 		Bezier(const vec3f& p1, const vec3f& c1, const vec3f& c2, const vec3f& p2) { set(p1, c1, c2, p2); }
 
 		vec3f lerp(float t) const;
-		void factor(float t, UPtr<DebugDraw>& outPoints) const;
+		void factor(float t, SPtr<DebugDraw> outPoints) const;
 
 		inline const vec3f& p1() const { return _p1; }
 		inline const vec3f& p2() const { return _p2; }
@@ -42,7 +42,7 @@ struct CubicCurveExample {
 		Hermite(const vec3f& p1, const vec3f& p2, const vec3f& tan1, const vec3f& tan2) { set(p1, p2, tan1, tan2); }
 
 		vec3f lerp(float t) const;
-		void factor(float t, UPtr<DebugDraw>& outPoints) const;
+		void factor(float t, SPtr<DebugDraw> outPoints) const;
 
 		inline const vec3f& p1()	const { return _p1; }
 		inline const vec3f& p2()	const { return _p2; }

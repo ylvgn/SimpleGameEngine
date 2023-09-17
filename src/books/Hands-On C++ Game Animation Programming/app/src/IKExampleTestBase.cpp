@@ -19,8 +19,8 @@ void IKExampleTestBase<IKSolver>::_createIKChains() {
 
 template<class IKSolver>
 void IKExampleTestBase<IKSolver>::_createLoopingClip() {
-	constexpr const size_t kFrameCount = 14;
-	constexpr const float  kFactor = 0.5f;
+	static constexpr const size_t kFrameCount = 14;
+	static constexpr const float  kFactor = 0.5f;
 
 	_sr.time	= 0.0f;
 	_sr.isLoop	= true;
@@ -55,8 +55,8 @@ IKExampleTestBase<IKSolver>::IKExampleTestBase() {
 template<class IKSolver>
 void IKExampleTestBase<IKSolver>::onCreate() {
 	// debugDraw depends on opengl, create it after "gladLoadGL" called
-	_debugLines  = eastl::make_unique<DebugDraw>();
-	_debugPoints = eastl::make_unique<DebugDraw>();
+	_ikChainsVisual = new DebugDrawPL();
+	_ikChainsVisual->setColor(DebugDraw::kPurple);
 
 	_targetVisual.resize(3);
 	for (int i = 0; i < 3; i++) {
@@ -82,12 +82,8 @@ void IKExampleTestBase<IKSolver>::onRender(float aspect) {
 	mat4f mvp = _matrixProj * _matrixView * mat4f::s_identity();
 
 	{ // draw ikChains
-		_debugLines->linesFromIKSolver(*_solver);
-		_debugPoints->pointsFromIKSolver(*_solver);
-		_debugLines->uploadToGpu();
-		_debugPoints->uploadToGpu();
-		_debugLines->draw(DebugDrawMode::Lines, mvp, kPurple);
-		_debugPoints->draw(DebugDrawMode::Points, mvp, kPurple);
+		_ikChainsVisual->fromIKSolver(*_solver);
+		_ikChainsVisual->draw(mvp);
 	}
 
 	{ // 6 DOF(6 points, 3 lines) - xyz axis of target
@@ -102,9 +98,9 @@ void IKExampleTestBase<IKSolver>::onRender(float aspect) {
 		_targetVisual[1]->uploadToGpu();
 		_targetVisual[2]->uploadToGpu();
 
-		_targetVisual[0]->draw(DebugDrawMode::Lines, mvp, kRed);
-		_targetVisual[1]->draw(DebugDrawMode::Lines, mvp, kGreen);
-		_targetVisual[2]->draw(DebugDrawMode::Lines, mvp, kBlue);
+		_targetVisual[0]->draw(DebugDrawMode::Lines, mvp, DebugDraw::kRed);
+		_targetVisual[1]->draw(DebugDrawMode::Lines, mvp, DebugDraw::kGreen);
+		_targetVisual[2]->draw(DebugDrawMode::Lines, mvp, DebugDraw::kBlue);
 	}
 }
 

@@ -51,6 +51,8 @@ public:
 	Vector<vec3f>	normal;
 	Vector<vec2f>	uv;
 
+	Vector<vec4f>	color;
+
 	// smooth skinned mesh
 	Vector<vec4f>	jointWeights;    // values from [0, 1], expected added together is equal 1.
 	Vector<vec4i>	jointInfluences; // contains jointId that affect the vertex

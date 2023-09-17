@@ -8,21 +8,14 @@
 
 namespace sge {
 
-class DebugDraw;
+class DebugDraw_PointLines;
 
 template<class IKSolver>
 class IKExampleTestBase : public ExampleTestBase {
 	using Base = ExampleTestBase;
+	using DebugDrawPL = DebugDraw_PointLines;
 public:
 	IKExampleTestBase();
-
-	constexpr static Color4f kBlack  =  {0,0,0,1};
-	constexpr static Color4f kWhite  =  {1,1,1,1};
-	constexpr static Color4f kRed	 =	{1,0,0,1};
-	constexpr static Color4f kGreen  =	{0,1,0,1};
-	constexpr static Color4f kBlue	 =	{0,0,1,1};
-	constexpr static Color4f kYellow =	{1,1,0,1};
-	constexpr static Color4f kPurple =	{1,0,1,1};
 
 protected:
 	virtual void onCreate() override;
@@ -33,8 +26,7 @@ protected:
 	void _createIKChains();
 	void _createLoopingClip();
 
-	UPtr<DebugDraw>				_debugPoints;
-	UPtr<DebugDraw>				_debugLines;
+	SPtr<DebugDrawPL>			_ikChainsVisual;
 	Vector<UPtr<DebugDraw>, 3>	_targetVisual;
 
 	Track_SampleRequest			_sr;
