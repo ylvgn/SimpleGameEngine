@@ -5,9 +5,6 @@
 
 namespace sge {
 
-template HingeSocketConstraintExample<CCDSolver>;
-template HingeSocketConstraintExample<FABRIKSolver>;
-
 template<class IKSolver>
 HingeSocketConstraintExample<IKSolver>* HingeSocketConstraintExample<IKSolver>::instance() {
 	static This s;
@@ -47,5 +44,8 @@ void HingeSocketConstraintExample<IKSolver>::s_constraintHandler(int i, IKSolver
 
 	solver->operator[](i).rotation = solver->operator[](i).rotation * currentToDesired;
 }
+
+template HingeSocketConstraintExample<CCDSolver>;
+template HingeSocketConstraintExample<FABRIKSolver>;
 
 }

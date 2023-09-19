@@ -124,8 +124,8 @@ void Mesh::cpuSkin(const Skeleton& skeleton, const Pose& pose) {
 	}
 #endif
 
-	_posAttrib->uploadToGpu(_skinnedPos);
-	_normalAttrib->uploadToGpu(_skinnedNormal);
+	_posAttrib->uploadToGpu(ByteSpan_make(_skinnedPos.span()));
+	_normalAttrib->uploadToGpu(ByteSpan_make(_skinnedNormal.span()));
 }
 
 void Mesh::cpuSkin(const Span<const mat4>& animatedPose) {
@@ -154,28 +154,27 @@ void Mesh::cpuSkin(const Span<const mat4>& animatedPose) {
 		_skinnedNormal[i] = (n0*w.x) + (n1*w.y) + (n2*w.z) + (n3*w.w);
 	}
 
-	_posAttrib->uploadToGpu(_skinnedPos);
-	_normalAttrib->uploadToGpu(_skinnedNormal);
+	_posAttrib->uploadToGpu(ByteSpan_make(_skinnedPos.span()));
+	_normalAttrib->uploadToGpu(ByteSpan_make(_skinnedNormal.span()));
 }
 
 void Mesh::uploadToGpu() {
 
 	// syncs the vectors holding data to the GPU
 	// If one of the CPU-side vectors has a size of 0, then there is nothing to set
-	if (pos.size() > 0)				{ _posAttrib->uploadToGpu(pos); }
-	if (normal.size() > 0)			{ _normalAttrib->uploadToGpu(normal); }
-	if (uv.size() > 0)				{ _uvAttrib->uploadToGpu(uv); }
-	if (indices.size() > 0)			{ _indexBuffer->uploadToGpu(indices); }
-	if (jointWeights.size() > 0)	{ _jointWeightsAttrib->uploadToGpu(jointWeights); }
-	if (jointInfluences.size() > 0)	{ _jointInfluencesAttrib->uploadToGpu(jointInfluences); }
+	if (pos.size() > 0)				{ _posAttrib->uploadToGpu(ByteSpan_make(pos.span())); }
+	if (normal.size() > 0)			{ _normalAttrib->uploadToGpu(ByteSpan_make(normal.span())); }
+	if (uv.size() > 0)				{ _uvAttrib->uploadToGpu(ByteSpan_make(uv.span())); }
+	if (indices.size() > 0)			{ _indexBuffer->uploadToGpu(ByteSpan_make(indices.span())); }
+	if (jointWeights.size() > 0)	{ _jointWeightsAttrib->uploadToGpu(ByteSpan_make(jointWeights.span())); }
+	if (jointInfluences.size() > 0)	{ _jointInfluencesAttrib->uploadToGpu(ByteSpan_make(jointInfluences.span())); }
 
 }
 
-void Mesh::bind(int pos_, int normal_, int uv_, int jointWeight_/*=-1*/, int jointInflucence_/*=-1*/) {
+void Mesh::bind(int pos_, int normal_, int uv_, int jointWeight_/*=kInvalidSlotIndex*/, int jointInflucence_/*=kInvalidSlotIndex*/) {
 
 	// This takes integers that are bind slot indices.
-	// If the bind slot is valid, valid means slot >= 0, call the 'bind' function of attribute/
-		// why not pass a slot always >= 0 ???
+	// If the bind slot is valid, valid means slot >= 0, call the 'bind' function of attribute
 	if (pos_ >= 0)					{ _posAttrib->bind(pos_); }
 	if (normal_ >= 0)				{ _normalAttrib->bind(normal_); }
 	if (uv_ >= 0)					{ _uvAttrib->bind(uv_); }

@@ -20,9 +20,6 @@ public:
 
 	// it will upload an array of data to the GPU.
 	// Each element in the array represents the attribute for one vertex.
-	void uploadToGpu(const T* data, size_t len);
-	void uploadToGpu(const std::vector<T>& data);
-	void uploadToGpu(const Vector<T>& data);
 	void uploadToGpu(ByteSpan data);
 
 	// We need a way of binding and unbinding attributes from bind slots defined by the shader.
@@ -34,8 +31,8 @@ public:
 	inline size_t	count()  const { return _count; }
 
 protected:
-	u32 _handle;   // OpenGL buffer handle
-	size_t _count; // The count represents how many total attributes there are
+	u32		_handle;	// OpenGL buffer handle
+	size_t	_count;		// The count represents how many total attributes there are
 
 private:
 

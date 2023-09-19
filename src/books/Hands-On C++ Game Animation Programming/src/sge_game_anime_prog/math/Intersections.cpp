@@ -6,44 +6,35 @@ namespace sge {
 
 bool IntersectionsUtil::raycastTriangle(const Ray& ray, const Triangle& triangle, vec3f& outHitPoint) {
 #if 1
-	const float EPSILON = 0.0000001f;
+	constexpr static const float kEpsilon = 0.0000001f;
 
 	vec3f vertex0		= triangle.v0;
 	vec3f vertex1		= triangle.v1;
 	vec3f vertex2		= triangle.v2;
 	vec3f rayVector		= ray.direction;
 	vec3f rayOrigin		= ray.origin;
-
 	vec3f edge1, edge2, h, s, q;
 	float a, f, u, v;
-
 	edge1 = vertex1 - vertex0;
 	edge2 = vertex2 - vertex0;
-	
 	h = rayVector.cross(edge2);
 	a = edge1.dot(h);
-
-	if (Math::equals0(a, EPSILON)) {
+	if (Math::equals0(a, kEpsilon)) {
 		return false;
 	}
-
 	f = 1.0f / a;
 	s = rayOrigin - vertex0;
 	u = f * s.dot(h);
-
 	if (u < 0.0f || u > 1.0f) {
 		return false;
 	}
-
 	q = s.cross(edge1);
 	v = f * rayVector.dot(q);
-
 	if (v < 0.0f || u + v > 1.0f) {
 		return false;
 	}
-
 	float t = f * edge2.dot(q);
-	if (t > EPSILON) {
+	if (t > kEpsilon) {
 		outHitPoint = rayOrigin + rayVector * t;
 		return true;
 	}
@@ -110,7 +101,6 @@ Vector<Triangle> IntersectionsUtil::meshToTriangles(const Mesh& mesh) {
 						pos[indices[i+2]]);
 		}
 	}
-
 	return res;
 }
 

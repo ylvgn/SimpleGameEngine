@@ -16,9 +16,12 @@ struct TVec4 {
 	};
 
 	inline TVec4() = default;
-	inline TVec4(const T& x_, const T& y_, const T& z_, const T& w_) : x(x_), y(y_), z(z_), w(w_) {}
-	inline TVec4(const vec2& fv, const T& z_, const T& w_) : x(fv.x), y(fv.y), z(z_), w(w_) {}
-	inline TVec4(const vec3& fv, const T& w_) : x(fv.x), y(fv.y), z(fv.z), w(w_) {}
+	inline TVec4(const T& x_, const T& y_, const T& z_, const T& w_)
+		: x(x_), y(y_), z(z_), w(w_) {}
+	inline TVec4(const vec2& fv, const T& z_, const T& w_)
+		: x(fv.x), y(fv.y), z(z_), w(w_) {}
+	inline TVec4(const vec3& fv, const T& w_)
+		: x(fv.x), y(fv.y), z(fv.z), w(w_) {}
 
 	inline void set(const T& x_, const T& y_, const T& z_, const T& w_) { x = x_; y = y_; z = z_; w = w_; }
 
@@ -99,7 +102,8 @@ struct TVec4<int> {
 		T v[4];
 	};
 
-	inline TVec4(const T& x_, const T& y_, const T& z_, const T& w_) : x(x_), y(y_), z(z_), w(w_) {}
+	inline TVec4(const T& x_, const T& y_, const T& z_, const T& w_)
+		: x(x_), y(y_), z(z_), w(w_) {}
 };
 
 template<>
@@ -111,7 +115,8 @@ struct TVec4<unsigned int> {
 		T v[4];
 	};
 
-	inline TVec4(const T& x_, const T& y_, const T& z_, const T& w_) : x(x_), y(y_), z(z_), w(w_) {}
+	inline TVec4(const T& x_, const T& y_, const T& z_, const T& w_)
+		: x(x_), y(y_), z(z_), w(w_) {}
 };
 
 

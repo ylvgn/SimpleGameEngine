@@ -12,31 +12,23 @@ namespace sge {
 	any clips or meshes that reference this skeleton are now broken.
 */
 
-#define MYTEST 0
-
 class RearrangeBones : public NonCopyable {
+private:
+	template<typename T> static void s_internalRearrange(Skeleton& outSkeleton, Span<Mesh> outMeshes, Span< ClipT<T> > outClips);
+	template<typename T> void _internalRearrangeClip(ClipT<T>& out);
 public:
 
-#if MYTEST
-	template<typename T>
-	static void s_rearrange(Skeleton& outSkeleton, Span<Mesh> outMeshes, Span< TClip<T> > outClips);
-#else
-	//what if spanCast<Clip, FastClip>(_fastClips); pass into line 25, is it danger ???
-	static void s_rearrange(Skeleton& outSkeleton, Span<Mesh> outMeshes, Span<Clip> outClips);
-	static void s_rearrange(Skeleton& outSkeleton, Span<Mesh> outMeshes, Span<FastClip> outClips);
-#endif
+	static void s_rearrange(Skeleton& outSkeleton, Span<Mesh> outMeshes, Span<Clip> outClips)		{ s_internalRearrange(outSkeleton, outMeshes, outClips); }
+	static void s_rearrange(Skeleton& outSkeleton, Span<Mesh> outMeshes, Span<FastClip> outClips)	{ s_internalRearrange(outSkeleton, outMeshes, outClips); }
+
+	void rearrangeClip(Clip& out)		{ _internalRearrangeClip(out); }
+	void rearrangeClip(FastClip& out)	{ _internalRearrangeClip(out); }
 
 	void create(const Skeleton& skeleton);
 	void clear();
 
 	void rearrangeSkeleton(Skeleton& out);
 	void rearrangeMesh(Mesh& out);
-#if MYTEST
-	template<typename T> void rearrangeClip(TClip<T>& out);
-#else
-	void rearrangeClip(Clip& out);
-	void rearrangeClip(FastClip& out);
-#endif
 
 private:
 	int _rearrangeIdx(int oldJointIndex) const;

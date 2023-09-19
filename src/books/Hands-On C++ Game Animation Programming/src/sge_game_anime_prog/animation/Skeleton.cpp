@@ -21,30 +21,7 @@ void Skeleton::setBindPose(const Pose& p) {
 
 void Skeleton::setJointNames(const Span<const String>& names) {
 	_jointNames.clear();
-//	_jointNames.appendRange(names); // why ???
-
-#if 1
-	_jointNames.reserve(names.size());
-	for (auto& name : names) {
-		_jointNames.push_back(String(name.begin(), name.end()));
-	}
-#endif
-#if 0
-	_jointNames.resize(names.size());
-	int i = 0;
-	for (auto* p = names.begin(); p != names.end(); p++) {
-		_jointNames[i].assign(p->begin(), p->end());
-		++i;
-	}
-#endif
-#if 0
-	_jointNames.resize(names.size());
-	int i = 0;
-	for (auto& v : names) {
-		_jointNames[i].assign(v);
-		i++;
-	}
-#endif
+	_jointNames.appendRange(names); // StringT need add copy constructor and operator=
 }
 
 void Skeleton::_updateInverseBindPose() {
@@ -57,8 +34,8 @@ void Skeleton::_updateInverseBindPose() {
 		_invBindPose[i] = Transform::s_mat4(world).inverse();
 #else
 		// To generate an inverse bind pose matrix,
-		// you don't have to convert the transform into a matrix and then invert it; you could invert the transform
-		// and then convert it into a matrix.
+		// you don't have to convert the transform into a matrix and then invert it;
+		// you could invert the transform and then convert it into a matrix.
 		// The performance delta between the two is minimal.
 		_invBindPose[i] = mat4::s_transform(world.inverse());
 #endif

@@ -72,7 +72,6 @@ using QuaternionTrack	= Track<quat4f,4>;
 template<typename T, size_t N>
 struct FastTrack : public Track<T, N> {
 	using Base = Track<T, N>;
-	//const int kFrameCountPerSecond = 60; // not work. why???
 	constexpr static int kFrameCountPerSecond = 60;
 public:
 	void updateIndexLookupTable();
@@ -80,8 +79,6 @@ protected:
 	// track sampling this way is greater when the animation in question has more frames.
 	virtual int getFrameIndex(const SampleRequest& sr) const override;
 private:
-
-	//	inline constexpr int kFrameCountPerSecond() const { return 60; } is it not good ???
 
 	inline constexpr int _getSampleCount() const {
 		float duration = getDuration();

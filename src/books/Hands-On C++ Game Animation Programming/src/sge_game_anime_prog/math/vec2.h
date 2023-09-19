@@ -11,7 +11,8 @@ struct TVec2 {
 	};
 
 	inline TVec2() = default;
-	inline TVec2(const T& x_, const T& y_) : x(x_), y(y_) {}
+	inline TVec2(const T& x_, const T& y_)
+		: x(x_), y(y_) {}
 
 	inline void set(const T& x_, const T& y_) { x = x_; y = y_; }
 
@@ -74,7 +75,8 @@ struct TVec2<int> {
 		T v[2];
 	};
 
-	inline TVec2(const T& x_, const T& y_) : x(x_), y(y_) {}
+	inline TVec2(const T& x_, const T& y_)
+		: x(x_), y(y_) {}
 };
 
 template<>
@@ -86,7 +88,8 @@ struct TVec2<unsigned int> {
 		T v[2];
 	};
 
-	inline TVec2(const T& x_, const T& y_) : x(x_), y(y_) {}
+	inline TVec2(const T& x_, const T& y_)
+		: x(x_), y(y_) {}
 };
 
 using vec2f		= TVec2<float>;

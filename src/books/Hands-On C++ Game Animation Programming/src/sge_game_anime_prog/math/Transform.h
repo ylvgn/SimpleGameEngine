@@ -19,7 +19,8 @@ struct Transform {
 	vec3f  scale	{1,1,1};
 
 	inline Transform() = default;
-	inline Transform(const vec3f& p, const quat4f& r, const vec3f& s) : position(p), rotation(r), scale(s) { }
+	inline Transform(const vec3f& p, const quat4f& r, const vec3f& s)
+		: position(p), rotation(r), scale(s) {}
 
 	inline bool operator==(const Transform& r) const { return position == r.position && rotation == r.rotation && scale == r.scale; }
 	inline bool operator!=(const Transform& r) const { return !this->operator==(r); }

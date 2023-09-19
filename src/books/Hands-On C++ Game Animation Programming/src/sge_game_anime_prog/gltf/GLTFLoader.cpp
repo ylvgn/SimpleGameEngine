@@ -9,6 +9,8 @@ namespace GLTFHelpers {
 	These functions are internal to the glTF loader and should not be exposed in the header file.
 */
 
+static const float kEpsilon = 0.00001f;
+
 Transform getLocalTransform(const cgltf_node& node) {
 	// A node can store its transform either as a matrix or as a separate position, rotation, and scale components.
 
@@ -168,7 +170,7 @@ void skinMeshFromAttribute(Mesh& outMesh, const cgltf_attribute& attribute, cons
 							values[index+1],
 							values[index+2]
 				);
-				if (norm.lenSq() < 0.00001f) {
+				if (norm.lenSq() < kEpsilon) {
 					norm = vec3f::s_up();
 				}
 				normal.push_back(norm.normalize());
@@ -182,14 +184,15 @@ void skinMeshFromAttribute(Mesh& outMesh, const cgltf_attribute& attribute, cons
 				// These joints are stored as floating-point numbers. Convert them into integers
 				// These indices are skin relative. 
 				// This function has no information about the skin that is being parsed.
-				// Add +0.5f to round, since we can not read integers
+				// Add +0.5f to round, since we can not read integers -> same as Math::roundToInt
 
 				SGE_ASSERT(dataType == cgltf_type_vec4);
+
 				vec4i joints(
-					static_cast<int>(values[index+0]+0.5f),
-					static_cast<int>(values[index+1]+0.5f),
-					static_cast<int>(values[index+2]+0.5f),
-					static_cast<int>(values[index+3]+0.5f)
+					Math::roundToInt(values[index + 0]),
+					Math::roundToInt(values[index + 1]),
+					Math::roundToInt(values[index + 2]),
+					Math::roundToInt(values[index + 3])
 				);
 
 				// Make sure that even the invalid nodes have a value of 0.
@@ -210,7 +213,7 @@ void skinMeshFromAttribute(Mesh& outMesh, const cgltf_attribute& attribute, cons
 				break;
 			case cgltf_attribute_type_color:
 				SGE_ASSERT(dataType == cgltf_type_vec4);
-				color.push_back({values[index+ 0], values[index+1], values[index+2], values[index+3] });
+				color.push_back({values[index+ 0], values[index+1], values[index+2], values[index+3]});
 				break;
 			default: throw SGE_ERROR("not support cgltf_attribute_type"); break;
 		}
@@ -220,11 +223,11 @@ void skinMeshFromAttribute(Mesh& outMesh, const cgltf_attribute& attribute, cons
 void staticMeshFromAttribute(Mesh& outMesh, const cgltf_attribute& attribute) {
 	// same as skinMeshFromAttribute, but no need skin
 
-	const cgltf_accessor& accessor = *attribute.data;
-	cgltf_type dataType		= accessor.type;
-	size_t componentCount	= getComponentCount(dataType);
+	const cgltf_accessor& accessor	= *attribute.data;
+	cgltf_type dataType				= accessor.type;
+	size_t componentCount			= getComponentCount(dataType);
 
-	Vector<float> values;
+	Vector<f32> values;
 	getScalarValues(values, componentCount, accessor);
 
 	auto& pos						= outMesh.pos;
@@ -249,7 +252,7 @@ void staticMeshFromAttribute(Mesh& outMesh, const cgltf_attribute& attribute) {
 							values[index+1],
 							values[index+2]
 				);
-				if (norm.lenSq() < 0.00001f) {
+				if (norm.lenSq() < kEpsilon) {
 					norm = vec3f::s_up();
 				}
 				normal.push_back(norm.normalize());
@@ -348,11 +351,9 @@ void GLTFLoader::_loadJointNames() {
 	o.resize(boneCount);
 	for (int i = 0; i < boneCount; ++i) {
 		const cgltf_node& node = _data->nodes[i];
-		if (node.name == 0) {
-			o[i] = "EMPTY NODE";
-		} else {
-			o[i] = node.name;
-		}
+		o[i] = node.name == 0
+			? "EMPTY NODE"
+			: node.name;
 	}
 	_outInfo->skeleton.setJointNames(o);
 }
@@ -440,7 +441,7 @@ void GLTFLoader::_loadBindPose() {
 
 			// Set that transform in the worldBindPose.
 			int nodeIndex = GLTFHelpers::getNodeIndex(joint, _data->nodes, boneCount);
-			SGE_ASSERT(nodeIndex != -1); // no need ???
+			SGE_ASSERT(nodeIndex != -1);
 			worldBindPose[nodeIndex] = bindPoseTrans;
 		}
 	}

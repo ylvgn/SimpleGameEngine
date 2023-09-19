@@ -12,8 +12,9 @@ class DebugDraw_PointLines;
 
 template<class IKSolver>
 class IKExampleTestBase : public ExampleTestBase {
-	using Base = ExampleTestBase;
-	using DebugDrawPL = DebugDraw_PointLines;
+	using Base			= ExampleTestBase;
+	using DebugDrawPL	= DebugDraw_PointLines;
+	using SampleRequest = Track_SampleRequest;
 public:
 	IKExampleTestBase();
 
@@ -29,7 +30,7 @@ protected:
 	SPtr<DebugDrawPL>			_ikChainsVisual;
 	Vector<UPtr<DebugDraw>, 3>	_targetVisual;
 
-	Track_SampleRequest			_sr;
+	SampleRequest				_sr;
 
 	Transform					_target;
 	TransformTrack				_targetPath;

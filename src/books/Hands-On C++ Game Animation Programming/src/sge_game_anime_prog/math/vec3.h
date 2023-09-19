@@ -19,7 +19,9 @@ struct TVec3 {
 	};
 
 	inline TVec3() = default;
-	inline TVec3(const T& x_, const T& y_, const T& z_) : x(x_), y(y_), z(z_) {}
+	inline TVec3(const T& x_, const T& y_, const T& z_)
+		: x(x_), y(y_), z(z_) {}
+
 	inline void set(const T& x_, const T& y_, const T& z_) { x = x_; y = y_; z = z_; }
 
 	inline static TVec3 s_zero()	{ return TVec3(0,0,0); }
@@ -203,7 +205,8 @@ struct TVec3<int> {
 		T v[3];
 	};
 
-	inline TVec3(const T& x_, const T& y_, const T& z_) : x(x_), y(y_), z(z_) {}
+	inline TVec3(const T& x_, const T& y_, const T& z_)
+		: x(x_), y(y_), z(z_) {}
 };
 
 template<>
@@ -215,7 +218,8 @@ struct TVec3<unsigned int> {
 		T v[3];
 	};
 
-	inline TVec3(const T& x_, const T& y_, const T& z_) : x(x_), y(y_), z(z_) {}
+	inline TVec3(const T& x_, const T& y_, const T& z_)
+		: x(x_), y(y_), z(z_) {}
 };
 
 using vec3f		= TVec3<float>;

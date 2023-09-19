@@ -40,21 +40,21 @@ class DebugDraw : public RefCountBase {
 		"	FragColor = color;\n"
 		"}";
 public:
-	constexpr static Color4f kWhite  =	{1,1,1,1};
-	constexpr static Color4f kBlack  =	{0,0,0,1};
-	constexpr static Color4f kRed	 =	{1,0,0,1};
-	constexpr static Color4f kGreen  =	{0,1,0,1};
-	constexpr static Color4f kBlue	 =	{0,0,1,1};
-	constexpr static Color4f kYellow =	{1,1,0,1};
-	constexpr static Color4f kPurple =	{1,0,1,1};
-	constexpr static Color4f kCyan	 =	{0,1,1,1};
+	constexpr static const Color4f kWhite	=	{1,1,1,1};
+	constexpr static const Color4f kBlack	=	{0,0,0,1};
+	constexpr static const Color4f kRed		=	{1,0,0,1};
+	constexpr static const Color4f kGreen	=	{0,1,0,1};
+	constexpr static const Color4f kBlue	=	{0,0,1,1};
+	constexpr static const Color4f kYellow	=	{1,1,0,1};
+	constexpr static const Color4f kPurple	=	{1,0,1,1};
+	constexpr static const Color4f kCyan	=	{0,1,1,1};
 public:
+
 #if 0
 	DebugDraw(size_t newSize = 0) : _shader(new Shader(kVert, kFrag)) { resize(newSize); }
 #else
-	DebugDraw(size_t newSize = 0) : _shader(new Shader(
-		"Assets/Shaders/debug.vert",
-		"Assets/Shaders/debug.frag"))
+	DebugDraw(size_t newSize = 0)
+		: _shader(new Shader("Assets/Shaders/debug.vert", "Assets/Shaders/debug.frag"))
 	{
 		resize(newSize);
 	}
@@ -64,9 +64,8 @@ public:
 	inline void resize(size_t newSize)					{ _points.resize(newSize); }
 	inline void clear()									{ _points.clear(); }
 	inline void push_back(const vec3f& v)				{ _points.push_back(v); }
-	inline void push_back(Span<vec3f>& v)				{ _points.appendRange(v); }
-	inline void push_back(const Span<const vec3f>& v)	{ _points.appendRange(v); }
-	inline void uploadToGpu()							{ _attribs.uploadToGpu(_points); }
+	inline void appendRange(const Span<const vec3f>& v)	{ _points.appendRange(v); }
+	inline void uploadToGpu()							{ _attribs.uploadToGpu(spanCast<const u8>(_points.span())); }
 
 	inline Span<      vec3f> span()						{ return _points.span(); }
 	inline Span<const vec3f> span() const				{ return _points.span(); }
@@ -103,9 +102,10 @@ class DebugDraw_PointLines : public RefCountBase {
 public:
 	using Mask = DebugDraw_PointLines_Mask;
 
-	DebugDraw_PointLines() {
-		_lines = new DebugDraw();
-	}
+	DebugDraw_PointLines()
+		: _lines(new DebugDraw())
+		, _pointColor(DebugDraw::kPurple)
+		, _lineColor(DebugDraw::kYellow) {}
 
 	inline void add(const vec3f& from, const vec3f& to) {
 		_lines->push_back(from);
@@ -137,7 +137,7 @@ public:
 private:
 	SPtr<DebugDraw>	_lines;
 
-	Color4f _pointColor	= DebugDraw::kPurple;
-	Color4f _lineColor	= DebugDraw::kYellow;
+	Color4f _pointColor;
+	Color4f _lineColor;
 };
 }

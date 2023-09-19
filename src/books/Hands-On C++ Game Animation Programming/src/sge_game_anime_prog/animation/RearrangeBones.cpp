@@ -2,13 +2,17 @@
 
 namespace sge {
 
-#if MYTEST
-// explict template instantiation
-template void RearrangeBones::s_rearrange(Skeleton& outSkeleton, Span<Mesh> outMeshes, Span< Clip > outClips);
-template void RearrangeBones::s_rearrange(Skeleton& outSkeleton, Span<Mesh> outMeshes, Span< FastClip > outClips);
+template<typename T>
+void RearrangeBones::_internalRearrangeClip(ClipT<T>& out) {
+	for (int i = 0; i < out.getTrackCount(); ++i) {
+		int oldJointId = out.getJointIdAtIndex(i);
+		int newJointId = _rearrangeIdx(oldJointId);
+		out.setJointIdAtIndex(i, newJointId);
+	}
+}
 
 template <typename T>
-void RearrangeBones::s_rearrange(Skeleton& outSkeleton, Span<Mesh> outMeshes, Span< TClip<T> > outClips) {
+void RearrangeBones::s_internalRearrange(Skeleton& outSkeleton, Span<Mesh> outMeshes, Span< ClipT<T> > outClips) {
 	RearrangeBones re;
 	re.create(outSkeleton);
 
@@ -16,25 +20,6 @@ void RearrangeBones::s_rearrange(Skeleton& outSkeleton, Span<Mesh> outMeshes, Sp
 	for (auto& mesh : outMeshes) re.rearrangeMesh(mesh);
 	for (auto& clip : outClips)  re.rearrangeClip(clip);
 }
-#else
-void RearrangeBones::s_rearrange(Skeleton& outSkeleton, Span<Mesh> outMeshes, Span<Clip> outClips) {
-	RearrangeBones re;
-	re.create(outSkeleton);
-
-	re.rearrangeSkeleton(outSkeleton);
-	for (auto& mesh : outMeshes) re.rearrangeMesh(mesh);
-	for (auto& clip : outClips)  re.rearrangeClip(clip);
-}
-
-void RearrangeBones::s_rearrange(Skeleton& outSkeleton, Span<Mesh> outMeshes, Span<FastClip> outClips) {
-	RearrangeBones re;
-	re.create(outSkeleton);
-
-	re.rearrangeSkeleton(outSkeleton);
-	for (auto& mesh : outMeshes) re.rearrangeMesh(mesh);
-	for (auto& clip : outClips)  re.rearrangeClip(clip);
-}
-#endif
 
 int RearrangeBones::_rearrangeIdx(int oldJointIndex) const {
 	SGE_ASSERT(_o2n.find(oldJointIndex) != _o2n.end());
@@ -72,8 +57,7 @@ void RearrangeBones::create(const Skeleton& skeleton) {
 	Vector<int> processIds;
 	processIds.resize(jointCount);
 
-	int hh = 0;
-	int tt = 0;
+	int hh = 0, tt = 0;
 	for (int i = 0; i < jointCount; ++i) {
 		int parent = restPose.getParent(i);
 		if (parent >= 0) {
@@ -116,11 +100,11 @@ void RearrangeBones::rearrangeSkeleton(Skeleton& out) {
 	newJointNames.resize(jointCount);
 
 	for (int i = 0; i < jointCount; ++i) {
-		int oldJointId = _originalIdx(i);
-		int oldParent  = bindPose.getParent(oldJointId);
-		int newParent  = _rearrangeIdx(oldParent);
+		int oldJointId		= _originalIdx(i);
+		int oldParent		= bindPose.getParent(oldJointId);
+		int newParent		= _rearrangeIdx(oldParent);
 
-		newJointNames[i] = jointNames[oldJointId];
+		newJointNames[i]	= jointNames[oldJointId];
 
 		newRestPose.setLocalTransform(i, restPose.getLocalTransform(oldJointId));
 		newBindPose.setLocalTransform(i, bindPose.getLocalTransform(oldJointId));
@@ -152,30 +136,11 @@ void RearrangeBones::rearrangeMesh(Mesh& out) {
 	out.uploadToGpu();
 }
 
-#if MYTEST
-template<typename T>
-void RearrangeBones::rearrangeClip(TClip<T>& out) {
-	for (int i = 0; i < out.size(); ++i) {
-		int oldJointId = out.getJointIdAtIndex(i);
-		int newJointId = _rearrangeIdx(oldJointId);
-		out.setJointIdAtIndex(i, newJointId);
-	}
-}
-#else
-void RearrangeBones::rearrangeClip(Clip& out) {
-	for (int i = 0; i < out.getTrackCount(); ++i) {
-		int oldJointId = out.getJointIdAtIndex(i);
-		int newJointId = _rearrangeIdx(oldJointId);
-		out.setJointIdAtIndex(i, newJointId);
-	}
-}
+// explict template instantiation
+template void RearrangeBones::s_internalRearrange(Skeleton& outSkeleton, Span<Mesh> outMeshes, Span< Clip > outClips);
+template void RearrangeBones::s_internalRearrange(Skeleton& outSkeleton, Span<Mesh> outMeshes, Span< FastClip > outClips);
 
-void RearrangeBones::rearrangeClip(FastClip& out) {
-	for (int i = 0; i < out.getTrackCount(); ++i) {
-		int oldJointId = out.getJointIdAtIndex(i);
-		int newJointId = _rearrangeIdx(oldJointId);
-		out.setJointIdAtIndex(i, newJointId);
-	}
-}
-#endif
+template void RearrangeBones::_internalRearrangeClip(Clip& out);
+template void RearrangeBones::_internalRearrangeClip(FastClip& out);
+
 }

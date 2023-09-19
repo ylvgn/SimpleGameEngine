@@ -7,7 +7,7 @@ namespace sge {
 struct Line {
 	inline Line() = default;
 	inline Line(const vec3f& start_, const vec3f& end_)
-		: start(start_), end(end_) { }
+		: start(start_), end(end_) {}
 
 	vec3f start;
 	vec3f end;
@@ -16,7 +16,7 @@ struct Line {
 struct Ray {
 	inline Ray() = default;
 	inline Ray(const vec3f& origin_, const vec3f& direction_)
-		: origin(origin_), direction(direction_) { }
+		: origin(origin_), direction(direction_) {}
 
 	vec3f origin;
 	vec3f direction;
@@ -50,11 +50,11 @@ struct Plane {
 	inline Plane() = default;
 	inline Plane(const vec3f& normal_, const vec3f& pos)
 		: normal(normal_)
-		, distance(normal_.dot(pos)) { }
+		, distance(normal_.dot(pos)) {}
 
 	inline Plane(const vec3f& normal_, float distance_)
 		: normal(normal_)
-		, distance(distance_) { }
+		, distance(distance_) {}
 
 	inline void setByTriangle(const vec3f& v0, const vec3f& v1, const vec3f& v2) {
 		vec3f v10(v1-v0);

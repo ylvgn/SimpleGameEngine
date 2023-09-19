@@ -192,7 +192,6 @@ public:
 					_camera.dolly(d.x + d.y);
 				}break;
 			}
-			//SGE_LOG("pos={}\taim={}", _camera.pos(), _camera.aim());
 		}
 	}
 

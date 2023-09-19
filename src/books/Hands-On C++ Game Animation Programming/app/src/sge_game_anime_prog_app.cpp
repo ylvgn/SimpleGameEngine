@@ -4,7 +4,7 @@
 #include "BallSocketConstraintExample.h"
 #include "HingeSocketConstraintExample.h"
 
-#include <sge_game_anime_prog/animation/CubicCurveExample.h>
+#include "CubicCurveExample.h"
 
 namespace sge {
 
@@ -17,8 +17,8 @@ namespace sge {
 typedef HGLRC(WINAPI* PFNWGLCREATECONTEXTATTRIBSARBPROC) (HDC, HGLRC, const int*);
 
 typedef const char* (WINAPI* PFNWGLGETEXTENSIONSSTRINGEXTPROC) (void);
-typedef BOOL(WINAPI* PFNWGLSWAPINTERVALEXTPROC) (int);
-typedef int (WINAPI* PFNWGLGETSWAPINTERVALEXTPROC) (void);
+typedef BOOL		(WINAPI* PFNWGLSWAPINTERVALEXTPROC) (int);
+typedef int			(WINAPI* PFNWGLGETSWAPINTERVALEXTPROC) (void);
 
 template<class T, class... Args>
 inline UPtr<T> make_unique(Args&&... args) {
@@ -47,8 +47,8 @@ struct AnimationAttribLocation {
 		pos		= shader->findAttributeByName("position");
 		normal	= shader->findAttributeByName("normal");
 		uv		= shader->findAttributeByName("texCoord");
-		weights = -1;
-		joints  = -1;
+		weights = Mesh::kInvalidSlotIndex;
+		joints  = Mesh::kInvalidSlotIndex;
 	}
 };
 
@@ -89,9 +89,8 @@ struct AnimationInstance {
 		return (playback - clip.getStartTime()) / clip.getDuration();
 	}
 
-	Transform getAnimatedPoseGlobalTransform(int i) {
-		return animatedPose.getGlobalTransform(i);
-	}
+	Transform getAnimatedPoseGlobalTransform(int i) const { return animatedPose.getGlobalTransform(i); }
+	Transform getAnimatedPoseLocalTransform(int i)  const { return animatedPose.getLocalTransform(i); }
 };
 
 class MainWin : public NativeUIWindow {
@@ -233,10 +232,10 @@ protected:
 
 protected:
 
-	int		_vsynch = 0;
-	GLuint	_vertexArrayObject = 0;
-	float	_aspect = 0;
-	bool	_bWireFrame = false;
+	int		_vsynch				= 0;
+	GLuint	_vertexArrayObject	= 0;
+	float	_aspect				= 0;
+	bool	_bWireFrame			= false;
 };
 
 class MyExampleMainWin : public MainWin {
@@ -261,6 +260,7 @@ class MyExampleMainWin : public MainWin {
 #define MyCaseType_ENUM_LIST(E) \
 	E(LitTexture,) \
 	E(AnimationScalarTrack,) \
+	E(BezierAndHermiteCurve, ) \
 	E(AnimationClip,) \
 	E(MeshSkinning,) \
 	E(AnimationBlending,) \
@@ -298,48 +298,52 @@ private:
 		_vertexTexCoords	= make_unique< Attribute<vec2f> >();
 		_indexBuffer		= make_unique<IndexBuffer>();
 
-		Vector<vec3f> positions{
+		Vector<vec3f, 4> positions{
 			vec3f(-1, -1, 0),
 			vec3f(-1,  1, 0),
 			vec3f( 1, -1, 0),
 			vec3f( 1,  1, 0),
 		};
-		Vector<u32> indices = {
+		Vector<u32, 6> indices = {
 			0,1,2,
 			2,1,3
 		};
 
-		_debugPoints->push_back(positions);
+		_debugPoints->appendRange(positions);
 
 		SGE_ASSERT(indices.size() == 6);
-		for (int i = 0; i < indices.size(); i += 3) {
-			_debugLines->push_back(positions[indices[i]]);
-			_debugLines->push_back(positions[indices[i+1]]);
+		Vector<vec3f> lines;
+		lines.resize(indices.size() * 6);
+		for (int i = 0, j = 0; i < indices.size(); i += 3) {
+			lines[j++] = positions[indices[i]];
+			lines[j++] = positions[indices[i + 1]];
 
-			_debugLines->push_back(positions[indices[i+1]]);
-			_debugLines->push_back(positions[indices[i+2]]);
+			lines[j++] = positions[indices[i + 1]];
+			lines[j++] = positions[indices[i + 2]];
 
-			_debugLines->push_back(positions[indices[i+2]]);
-			_debugLines->push_back(positions[indices[i]]);
+			lines[j++] = positions[indices[i + 2]];
+			lines[j++] = positions[indices[i]];
 		}
 
-		_vertexPositions->uploadToGpu(positions);
-		_indexBuffer->uploadToGpu(indices);
+		_vertexPositions->uploadToGpu(ByteSpan_make(positions.span()));
+		_indexBuffer->uploadToGpu(ByteSpan_make(indices.span()));
 
-		_debugPoints->uploadToGpu();
+		_debugLines->appendRange(lines);
 		_debugLines->uploadToGpu();
 
-		Vector<vec3f> normals;
-		normals.resize(4, vec3f::s_forward());
-		_vertexNormals->uploadToGpu(normals);
+		_debugPoints->uploadToGpu();
 
-		Vector<vec2f> uvs = {
+		Vector<vec3f, 4> normals;
+		normals.resize(4, vec3f::s_forward());
+		_vertexNormals->uploadToGpu(ByteSpan_make(normals.span()));
+
+		Vector<vec2f, 4> uvs = {
 			vec2f(0,0),
 			vec2f(0,1),
 			vec2f(1,0),
 			vec2f(1,1),
 		};
-		_vertexTexCoords->uploadToGpu(uvs);
+		_vertexTexCoords->uploadToGpu(ByteSpan_make(uvs.span()));
 	}
 	void test_AnimationScalarTrack_onCreate() {
 		_referenceLines 	= new DebugDraw();
@@ -576,6 +580,14 @@ private:
 	void test_BezierAndHermiteCurve_onCreate() {
 		_debugPoints = new DebugDraw();
 		_debugLines  = new DebugDraw();
+		
+		constexpr const int kSampleCount = 200;
+		constexpr const float kFloatOfSampleCount = static_cast<float>(kSampleCount);
+		Vector<vec3f> points;
+		Vector<vec3f> lines;
+
+		points.reserve(6);
+		lines.reserve(kSampleCount * 4 + 6 + 4);
 
 		{ // test bezier curve
 			CubicCurveExample::Bezier curve(
@@ -584,48 +596,46 @@ private:
 				vec3f( 2, 1, 0), // c2
 				vec3f( 5, 0, 0)  // p2
 			);
+			points.emplace_back(curve.p1);
+			points.emplace_back(curve.c1);
+			points.emplace_back(curve.c2);
+			points.emplace_back(curve.p2);
 
-			_debugPoints->push_back(curve.p1());
-			_debugPoints->push_back(curve.c1());
-			_debugPoints->push_back(curve.c2());
-			_debugPoints->push_back(curve.p2());
+			lines.push_back(curve.p1); lines.push_back(curve.c1);
+			lines.push_back(curve.c1); lines.push_back(curve.c2);
+			lines.push_back(curve.c2); lines.push_back(curve.p2);
 
-			for (int i = 0; i < 199; i++) {
-				float t1 = static_cast<float>(i) / 199.f;
-				float t2 = static_cast<float>(i + 1) / 199.f;
-
-				_debugLines->push_back(curve.lerp(t1));
-				_debugLines->push_back(curve.lerp(t2));
-
-				curve.factor(t1, _debugPoints);
+			for (int i = 1; i <= kSampleCount; ++i) {
+				float cur  = static_cast<float>(i-1) / kFloatOfSampleCount;
+				float next = static_cast<float>(i)   / kFloatOfSampleCount;
+				lines.emplace_back(curve.lerp(cur));
+				lines.emplace_back(curve.lerp(next));
 			}
-
-			curve.factor(1, _debugPoints);
 		}
 
 		{ // test hermite spline
 			CubicCurveExample::Hermite curve(
 				vec3f(-5,0,0),	// p1
-				vec3f( 5,0,0),	// p1
-				vec3f( 2,0,0),	// tan1
-				vec3f(-3,0,0)   // tan2
+				vec3f( 5,0,0),	// p2
+				vec3f( 2,2,0),	// tan1
+				vec3f(-3,-3,0)  // tan2
 			);
+			points.emplace_back(curve.p1);
+			points.emplace_back(curve.p2);
 
-			_debugPoints->push_back(curve.p1());
-			_debugPoints->push_back(curve.p2());
+			lines.emplace_back(curve.p1); lines.emplace_back(curve.p1 + curve.tan1.normalize());
+			lines.emplace_back(curve.p2); lines.emplace_back(curve.p2 + curve.tan2.normalize());
 
-			for (int i = 0; i < 199; i++) {
-				float t1 = static_cast<float>(i) / 199.f;
-				float t2 = static_cast<float>(i + 1) / 199.f;
-
-				_debugLines->push_back(curve.lerp(t1));
-				_debugLines->push_back(curve.lerp(t2));
-
-				curve.factor(t1, _debugPoints);
+			for (int i = 1; i <= kSampleCount; ++i) {
+				float cur  = static_cast<float>(i-1) / kFloatOfSampleCount;
+				float next = static_cast<float>(i)   / kFloatOfSampleCount;
+				lines.emplace_back(curve.lerp(cur));
+				lines.emplace_back(curve.lerp(next));
 			}
-
-			curve.factor(1, _debugPoints);
 		}
+
+		_debugPoints->appendRange(points);
+		_debugLines->appendRange(lines);
 
 		_debugPoints->uploadToGpu();
 		_debugLines->uploadToGpu();
@@ -790,7 +800,7 @@ private:
 		_loadExampleAsset_AlignFeetOnTheGround();
 		_createExampleShader();
 
-		_bWireFrame = true;
+		_bWireFrame			= true;
 
 		_groundRayDebugDraw = new DebugDrawPL();
 		_debugPoints		= new DebugDraw();
@@ -812,15 +822,11 @@ private:
 
 		_leftLeg = new IKLeg();
 		_leftLeg->setAnkleToGroundOffset(0.2f);
-		_leftLeg->setByJointNames(_skeleton,
-			"LeftUpLeg", "LeftLeg", "LeftFoot", "LeftToeBase"
-		);
+		_leftLeg->setByJointNames(_skeleton, "LeftUpLeg", "LeftLeg", "LeftFoot", "LeftToeBase");
 
 		_rightLeg = new IKLeg();
 		_rightLeg->setAnkleToGroundOffset(0.2f);
-		_rightLeg->setByJointNames(_skeleton,
-			"RightUpLeg", "RightLeg", "RightFoot", "RightToeBase"
-		);
+		_rightLeg->setByJointNames(_skeleton, "RightUpLeg", "RightLeg", "RightFoot", "RightToeBase");
 
 		_leftLeg->setPinTrack(TrackUtil::createScalarTrack(Interpolation::Cubic, 4,
 			FrameUtil::createFrame(0,		0),
@@ -875,10 +881,10 @@ private:
 		_showToeRayCast			= false;
 		_showToeAdjustRayCast	= false;
 
-		_walkingTime		= 0.f;
-		_lastModelY			= 0.f;
-		_sinkIntoGround		= 0.15f;
-		_toeLength			= 0.3f;
+		_walkingTime			= 0.f;
+		_lastModelY				= 0.f;
+		_sinkIntoGround			= 0.15f;
+		_toeLength				= 0.3f;
 
 		// Start the character clamped to the ground.
 		// Move down a little bit so it's not perfectly up
@@ -886,6 +892,7 @@ private:
 		Ray groundRay(	vec3f(model.position.x, 11, model.position.z),
 						vec3f::s_down()
 		);
+
 		vec3f hitPoint;
 		for (auto& triangle : _triangles) {
 			if (IntersectionsUtil::raycastTriangle(groundRay, triangle, hitPoint)) {
@@ -1047,7 +1054,6 @@ private:
 		_fabrikHingeSocketConstraint->update(dt);
 	}
 	void test_RayCastTriangle_onUpdate(float dt) {
-
 		_groundRayDebugDraw->clear();
 		_debugPoints->clear();
 
@@ -1118,8 +1124,8 @@ private:
 		// Increment time and sample the animation clip that moves the model on the level rails
 		// The Y position is a lie, it's a trackt hat only makes sense from an ortho top view
 
-		static constexpr float kWalkingSpeed = 0.3f;
-		static constexpr float kWalkingTimeLength = 6.f;
+		constexpr static const float kWalkingSpeed = 0.3f;
+		constexpr static const float kWalkingTimeLength = 6.f;
 
 		_walkingTime += dt * kWalkingSpeed;
 		while (_walkingTime > kWalkingTimeLength) {
@@ -1175,18 +1181,7 @@ private:
 		_animatedPoseDebugDraw->lineFromPose(curAnimatedPose);
 
 		float normalizedTime = animInfo.getNormalizedTime(_clips);
-#if 1
 		normalizedTime = Math::clamp01(normalizedTime);
-#else
-		if (normalizedTime < 0.0f) {
-			SGE_LOG("normalizedTime should not be > 0\n");
-			normalizedTime = 0.0f;
-		}
-		if (normalizedTime > 1.0f) {
-			SGE_LOG("normalizedTime should not be < 1\n");
-			normalizedTime = 1.0f;
-		}
-#endif
 
 		Transform lAnkleTran = animInfo.getAnimatedPoseGlobalTransform(_leftLeg->ankle());
 		Transform rAnkleTran = animInfo.getAnimatedPoseGlobalTransform(_rightLeg->ankle());
@@ -1341,7 +1336,7 @@ private:
 		leftToeTarget  =  leftToeTarget.lerp( predictiveLeftToe,  wLeftMotion);
 		rightToeTarget = rightToeTarget.lerp(predictiveRightToe, wRightMotion);
 
-		static constexpr const float kEpsilon = 0.00001f;
+		constexpr static const float kEpsilon = 0.00001f;
 
 		// If the left or right toe hit, adjust the ankle rotation approrpaiteley
 		vec3f leftAnkleToCurrentToe = leftToeWorldPos - leftAnkleWorld.position;
@@ -1349,7 +1344,7 @@ private:
 		_ankleToCurrentToeDebugDraw->add(leftToeWorldPos, leftAnkleWorld.position);
 		_ankleToDesiredToeDebugDraw->add(leftToeTarget,   leftAnkleWorld.position);
 
-		if (leftAnkleToCurrentToe.dot(leftAnkleToDesiredToe) > kEpsilon) { // avoid 90 degrees, why???
+		if (leftAnkleToCurrentToe.dot(leftAnkleToDesiredToe) > kEpsilon) { // degrees range (-90, 90), why ???
 			Transform ankleLocalTran = curAnimatedPose.getLocalTransform(_leftLeg->ankle());
 			const quat4f& leftAnkleWorldRot = leftAnkleWorld.rotation;
 		#if 1 // calc in world space

@@ -6,10 +6,10 @@ namespace sge {
 CrossFadeController* CrossFadeController::_instance = nullptr;
 
 CrossFadeController::CrossFadeController()
-	: _curClip(nullptr),
-	  _curPlaybackTime(0),
-	  _curSkeleton(nullptr),
-	  _isSetSkeleton(false)
+	: _curClip(nullptr)
+	, _curPlaybackTime(0)
+	, _curSkeleton(nullptr)
+	, _isSetSkeleton(false)
 {
 	SGE_ASSERT(_instance == nullptr);
 	_instance = this;
@@ -23,6 +23,7 @@ CrossFadeController::~CrossFadeController() {
 void CrossFadeController::setSkeleton(Skeleton* skeleton) {
 	if (_curSkeleton == skeleton) return;
 	_curSkeleton = skeleton;
+
 	if (skeleton) {
 		_curPose = skeleton->restPose();
 	}
@@ -46,8 +47,9 @@ void CrossFadeController::fadeTo(const Clip* target, float fadeDuration) {
 	}
 
 	if (_fadingTargets.size() == 0) {
-		if (_curClip == target) // blending to same _curClip
+		if (_curClip == target) { // blending to same _curClip
 			return;
+		}
 	} else {
 		const auto* clip = _fadingTargets.back()->clip;
 		if (target == clip) { // last clip is same _curClip
@@ -56,9 +58,7 @@ void CrossFadeController::fadeTo(const Clip* target, float fadeDuration) {
 	}
 
 	SGE_ASSERT(_curSkeleton != nullptr);
-	_fadingTargets.push_back(
-		eastl::make_unique<MyTarget>(target, _curSkeleton->restPose(), fadeDuration)
-	);
+	_fadingTargets.emplace_back(new MyTarget(target, _curSkeleton->restPose(), fadeDuration));
 }
 
 void CrossFadeController::update(float dt) {
@@ -66,7 +66,7 @@ void CrossFadeController::update(float dt) {
 		return;
 	}
 
-#if 0 // move all faded-out targets per frame
+#if 0 // move all faded-out targets per frame. is it right ???
 	for (int i = _fadingTargets.size() - 1; i >= 0; --i) {
 		const auto& target    = _targets[i];
 		float fadeDuration    = target.fadeDuration;
@@ -107,7 +107,5 @@ void CrossFadeController::update(float dt) {
 		Blending::blend(_curPose, _curPose, target->pose, t, -1);
 	}
 }
-
-
 
 }

@@ -28,6 +28,9 @@ namespace sge {
 
 class Mesh {
 public:
+
+	static const int kInvalidSlotIndex = -1;
+
 	Mesh();
 	Mesh(const Mesh& r);
 	Mesh& operator=(const Mesh& r);
@@ -36,8 +39,8 @@ public:
 	void cpuSkin(const Span<const mat4>& animatedPose);
 	void uploadToGpu();
 
-	void bind(  int pos, int normal, int uv, int jointWeight = -1, int jointInflucence = -1);
-	void unbind(int pos, int normal, int uv, int jointWeight = -1, int jointInflucence = -1);
+	void bind(  int pos, int normal, int uv, int jointWeight = kInvalidSlotIndex, int jointInflucence = kInvalidSlotIndex);
+	void unbind(int pos, int normal, int uv, int jointWeight = kInvalidSlotIndex, int jointInflucence = kInvalidSlotIndex);
 
 	void draw();
 	void drawInstanced(u32 instanceCount);

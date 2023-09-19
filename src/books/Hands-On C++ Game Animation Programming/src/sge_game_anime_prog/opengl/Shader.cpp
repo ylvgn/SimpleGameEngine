@@ -1,15 +1,10 @@
 #include "Shader.h"
 
-#if 1
 #include <sge_core/file/MemMapFile.h>
-#else
-#include <fstream>
-#include <sstream>
-#include <iostream>
-#endif
 
 namespace sge {
-Shader::Shader() : _handle(glCreateProgram()) { }
+Shader::Shader()
+	: _handle(glCreateProgram()) {};
 
 Shader::Shader(StrView vertex, StrView fragment)
 	: _handle(glCreateProgram())
@@ -57,18 +52,9 @@ void Shader::unbind() {
 }
 
 String Shader::_readFile(StrView path) {
-#if 1
 	MemMapFile mm;
 	mm.open(path);
 	return _readMem(mm, path);
-#else
-	std::ifstream file;
-	file.open(path.data());
-	std::stringstream contents;
-	contents << file.rdbuf();
-	file.close();
-	return String(contents.str().c_str());
-#endif
 }
 
 String Shader::_readMem(ByteSpan data, StrView) {
@@ -91,8 +77,8 @@ u32 Shader::_compileVertexShader(StrView vertex) {
 	int success = 0;
 	glGetShaderiv(v_shader, GL_COMPILE_STATUS, &success);
 	if (!success) {
-		char infoLog[512];
-		glGetShaderInfoLog(v_shader, 512, NULL, infoLog);
+		char infoLog[kInfoLogSize];
+		glGetShaderInfoLog(v_shader, kInfoLogSize, NULL, infoLog);
 		SGE_ERROR("Vertex compilation failed.\n{}", infoLog);
 		glDeleteShader(v_shader);
 		return 0;
@@ -112,8 +98,8 @@ u32 Shader::_compileFragmentShader(StrView fragment) {
 	int success = 0;
 	glGetShaderiv(f_shader, GL_COMPILE_STATUS, &success);
 	if (!success) {
-		char infoLog[512];
-		glGetShaderInfoLog(f_shader, 512, NULL, infoLog);
+		char infoLog[kInfoLogSize];
+		glGetShaderInfoLog(f_shader, kInfoLogSize, NULL, infoLog);
 		SGE_ERROR("Fragment compilation failed.\n{}", infoLog);
 		glDeleteShader(f_shader);
 		return 0;
@@ -134,8 +120,8 @@ bool Shader::_linkShaders(u32 vertex, u32 fragment) {
 	int success = 0;
 	glGetProgramiv(_handle, GL_LINK_STATUS, &success);
 	if (!success) {
-		char infoLog[512];
-		glGetProgramInfoLog(_handle, 512, NULL, infoLog);
+		char infoLog[kInfoLogSize];
+		glGetProgramInfoLog(_handle, kInfoLogSize, NULL, infoLog);
 		SGE_ERROR("Shader linking failed.\n{}", infoLog);
 		glDeleteShader(vertex);
 		glDeleteShader(fragment);
@@ -152,7 +138,7 @@ bool Shader::_linkShaders(u32 vertex, u32 fragment) {
 void Shader::_populateAttributes() {
 	int count = -1;
 	int length;
-	char name[128];
+	char name[kNameSize];
 	int size;
 	GLenum type;
 
@@ -163,10 +149,10 @@ void Shader::_populateAttributes() {
 
 		// Then loop through all the attributes by index
 		for (int i = 0; i < count; ++i) {
-			memset(name, 0, sizeof(char) * 128);
+			memset(name, 0, sizeof(char) * kNameSize);
 
 			// and use glGetActiveAttrib to get the name of each attribute.
-			glGetActiveAttrib(_handle, (GLuint)i, 128, &length, &size, &type, name);
+			glGetActiveAttrib(_handle, static_cast<GLuint>(i), kNameSize, &length, &size, &type, name);
 
 			// Finally, call glGetAttribLocation to get the location of each attribute
 			int attrib = glGetAttribLocation(_handle, name);
@@ -183,7 +169,7 @@ void Shader::_populateUniforms() {
 	// The PopulateUniforms is very similar to the PopulateAttributes
 	int count = -1;
 	int length;
-	char name[128];
+	char name[kNameSize];
 	int size;
 	GLenum type;
 	TempString testName;
@@ -195,8 +181,8 @@ void Shader::_populateUniforms() {
 		glGetProgramiv(_handle, GL_ACTIVE_UNIFORMS, &count);
 
 		for (int i = 0; i < count; ++i) {
-			memset(name, 0, sizeof(char) * 128);
-			glGetActiveUniform(_handle, (GLuint)i, 128, &length, &size, &type, name);
+			memset(name, 0, sizeof(char) * kNameSize);
+			glGetActiveUniform(_handle, static_cast<GLuint>(i), kNameSize, &length, &size, &type, name);
 
 			int uniform = glGetUniformLocation(_handle, name);
 			if (uniform >= 0) { // Is uniform valid?
@@ -207,18 +193,18 @@ void Shader::_populateUniforms() {
 				// If the bracket is found, the uniform is an array
 
 				TempString uniformName = name;
-				std::size_t found = uniformName.find('[');
+				size_t found = uniformName.find('[');
 				if (found != TempString::npos) { // uniform array
 					
-					// If you encounter a uniform array, erase everything out of the string,
-					// starting with[.This will leave you with only the uniform name.
+					// If you encounter an uniform array, erase everything out of the string, starting with '['
+					// This will leave you with only the uniform name.
 					uniformName.erase(uniformName.begin() + found, uniformName.end());
 
 					// Then, enter a loop where you try to retrieve every index from the array by appending[+index + ] to the uniform name.
 					// Once the first invalid index is found, break the loop
 
 					// Populate subscripted names too
-					unsigned int uniformIndex = 0;
+					u32 uniformIndex = 0;
 					while (true) {
 						testName.clear();
 						FmtTo(testName, "{}[{}]", uniformName.c_str(), uniformIndex++);

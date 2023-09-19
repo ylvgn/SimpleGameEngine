@@ -5,9 +5,6 @@
 
 namespace sge {
 
-template BallSocketConstraintExample<CCDSolver>;
-template BallSocketConstraintExample<FABRIKSolver>;
-
 template<class IKSolver>
 BallSocketConstraintExample<IKSolver>* BallSocketConstraintExample<IKSolver>::instance() {
 	static This s;
@@ -60,6 +57,9 @@ void BallSocketConstraintExample<IKSolver>::s_constraintHandler(int i, IKSolver*
 		solver->operator[](i).rotation = localRotation;
 	}
 }
+
+template BallSocketConstraintExample<CCDSolver>;
+template BallSocketConstraintExample<FABRIKSolver>;
 
 }
 

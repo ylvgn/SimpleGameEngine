@@ -3,6 +3,8 @@
 namespace sge {
 
 class Shader : public RefCountBase {
+	static constexpr size_t kInfoLogSize = 512;
+	static constexpr size_t kNameSize    = 128;
 public:
 	Shader();
 	Shader(StrView vertex, StrView fragment);

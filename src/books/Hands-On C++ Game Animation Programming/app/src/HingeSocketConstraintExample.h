@@ -11,7 +11,7 @@ struct HingeSocketConstraintExample : public IKExampleTestBase<IKSolver> {
 	using Base = typename IKExampleTestBase<IKSolver>;
 	using This = typename HingeSocketConstraintExample<IKSolver>;
 public:
-	HingeSocketConstraintExample() : Base() { }
+	HingeSocketConstraintExample() : Base() {}
 
 	static HingeSocketConstraintExample* instance();
 

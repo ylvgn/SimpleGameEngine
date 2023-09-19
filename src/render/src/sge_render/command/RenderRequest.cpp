@@ -28,14 +28,14 @@ void RenderRequest::reset(RenderContext* ctx, const Math::Camera3f& _camera) {
 	_inlineDraw.reset();
 }
 
-void RenderRequest::setMaterialCommonParams(Material* mtl, const Mat4f& matrix) {
+void RenderRequest::setMaterialCommonParams(Material* mtl, const Mat4f& matrix_model) {
 	if (!mtl) return;
 
-	mtl->setParam("sge_matrix_model",	matrix);
+	mtl->setParam("sge_matrix_model",	matrix_model);
 	mtl->setParam("sge_matrix_view",	matrix_view);
 	mtl->setParam("sge_matrix_proj",	matrix_proj);
 
-	auto mvp = matrix_proj * matrix_view * matrix;
+	auto mvp = matrix_proj * matrix_view * matrix_model;
 	mtl->setParam("sge_matrix_mvp",		mvp);
 
 	mtl->setParam("sge_camera_pos",		cameraPos);

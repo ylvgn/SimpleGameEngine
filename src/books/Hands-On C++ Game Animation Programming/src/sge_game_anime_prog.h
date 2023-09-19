@@ -32,6 +32,7 @@
 #include <sge_game_anime_prog/ik/CCDSolver.h>
 #include <sge_game_anime_prog/ik/FABRIKSolver.h>
 
+#include <sge_game_anime_prog/ik/IKLeg.h>
 
 #include <sge_game_anime_prog/gltf/GLTFLoader.h>
 
