@@ -188,6 +188,13 @@ public:
 	StringT(StringT&& str) : Base(std::move(str)) {}
 	StringT(const T* sz) : Base(sz) {}
 
+	template<size_t M>
+	StringT(const StringT<T, M>& s) : Base(s.data(), s.size()) {}
+
+	StringT(const StringT& s) : Base(s.data(), s.size()) {}
+
+	void operator=(const StringT& s) { Base::assign(s.data(), s.size()); }
+
 	template<class R> void operator=(R&& r) { Base::operator=(SGE_FORWARD(r)); }
 
 	void operator+=(StrViewT<T> v) { Base::append(v.begin(), v.end()); }
@@ -222,6 +229,12 @@ inline StrView StrView_make(ByteSpan s) {
 
 inline ByteSpan ByteSpan_make(StrView v) {
 	return ByteSpan(reinterpret_cast<const u8*>(v.data()), v.size());
+}
+
+template<typename SRC> inline
+ByteSpan ByteSpan_make(Span<SRC> v) {
+	using DST = typename ByteSpan::element_type;
+	return spanCast<DST>(v);
 }
 
 template<size_t N> using String_ = StringA_<N>;

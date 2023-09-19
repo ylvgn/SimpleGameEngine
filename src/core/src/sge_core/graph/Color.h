@@ -117,8 +117,8 @@ struct ColorR {
 		T data[kElementCount];
 	};
 
-	ColorR() = default;
-	ColorR(const T& r_)
+	constexpr ColorR() = default;
+	constexpr ColorR(const T& r_)
 		: r(r_) {}
 };
 
@@ -134,8 +134,8 @@ struct ColorRG {
 		T data[kElementCount];
 	};
 
-	ColorRG() = default;
-	ColorRG(const T& r_, const T& g_)
+	constexpr ColorRG() = default;
+	constexpr ColorRG(const T& r_, const T& g_)
 		: r(r_), g(g_) {}
 
 };
@@ -152,8 +152,8 @@ struct ColorRGB {
 		T data[kElementCount];
 	};
 
-	ColorRGB() = default;
-	ColorRGB(const T& r_, const T& g_, const T& b_)
+	constexpr ColorRGB() = default;
+	constexpr ColorRGB(const T& r_, const T& g_, const T& b_)
 		: r(r_), g(g_), b(b_) {}
 
 };
@@ -171,8 +171,8 @@ struct ColorRGBA {
 		T data[kElementCount];
 	};
 
-	ColorRGBA() = default;
-	ColorRGBA(const T& r_, const T& g_, const T& b_, const T& a_)
+	constexpr ColorRGBA() = default;
+	constexpr ColorRGBA(const T& r_, const T& g_, const T& b_, const T& a_)
 		: r(r_), g(g_), b(b_), a(a_) {}
 
 	ColorRGB<T> rgb() const { return ColorRGB(r,g,b); }
@@ -208,8 +208,8 @@ struct ColorL {
 		T data[kElementCount];
 	};
 
-	ColorL() = default;
-	ColorL(const T& l_)
+	constexpr ColorL() = default;
+	constexpr ColorL(const T& l_)
 		: l(l_) {}
 };
 
@@ -225,8 +225,8 @@ struct ColorLA {
 		T data[kElementCount];
 	};
 
-	ColorLA() = default;
-	ColorLA(const T& l_, const T& a_)
+	constexpr ColorLA() = default;
+	constexpr ColorLA(const T& l_, const T& a_)
 		: l(l_), a(a_) {}
 };
 
