@@ -40,7 +40,7 @@ public:
 	void onPostCreate();
 	void drawUI(RenderRequest& req);
 	bool onUIMouseEvent(UIMouseEvent& ev);
-	void onUIMouseCursor(UIMouseEvent& ev);
+	void onUIKeyboardEvent(UIKeyboardEvent& ev);
 
 protected:
 	virtual void onBeginRender() {}

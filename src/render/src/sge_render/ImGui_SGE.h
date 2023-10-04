@@ -17,7 +17,6 @@ public:
 	void onDrawUI(RenderRequest& req);
 
 	bool onUIMouseEvent(UIMouseEvent& ev);
-	void onUIMouseCursor(UIMouseEvent& ev);
 	void onUIKeyboardEvent(UIKeyboardEvent& ev);
 
 private:
@@ -36,7 +35,7 @@ private:
 	void _createFontsTexture();
 
 	int _mouseButton(UIMouseEventButton v);
-	static ImGuiKey _keyCode(UIKeyboardEventType v);
+	ImGuiKey _keyboardKey(UIKeyboardEventKeyCode v);
 
 	ImGuiContext* _ctx;
 };

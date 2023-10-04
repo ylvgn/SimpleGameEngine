@@ -177,30 +177,24 @@ public:
 		if (ev.isDragging()) {
 			using Button = UIMouseEventButton;
 			switch (ev.pressedButtons) {
-				case Button::Left: {
-					auto d = ev.deltaPos * 0.01f;
-					_camera.orbit(d.x, d.y);
-				}break;
-
 				case Button::Middle: {
 					auto d = ev.deltaPos * 0.05f;
 					_camera.move(d.x, d.y, 0);
 				}break;
-
 				case Button::Right: {
-					auto d = ev.deltaPos * -0.05f;
-					_camera.dolly(d.x + d.y);
+					auto d = ev.deltaPos * 0.01f;
+					_camera.orbit(d.x, d.y);
 				}break;
 			}
 		}
-	}
-
-	virtual void onUIMouseCursor(UIMouseEvent& ev) override {
-		_renderContext->onUIMouseCursor(ev);
+		if (ev.isScroll()) {
+			auto d = ev.scroll * -0.005f;
+			_camera.dolly(d.y);
+		}
 	}
 
 	virtual void onUIKeyboardEvent(UIKeyboardEvent& ev) override {
-		//_renderContext.onUIKeyboardEvent(ev); todo
+		_renderContext->onUIKeyboardEvent(ev);
 	}
 
 	virtual void onDraw() {

@@ -36,8 +36,8 @@ bool RenderContext::onUIMouseEvent(UIMouseEvent& ev) {
 	return _imgui.onUIMouseEvent(ev);
 }
 
-void RenderContext::onUIMouseCursor(UIMouseEvent& ev) {
-	_imgui.onUIMouseCursor(ev);
+void RenderContext::onUIKeyboardEvent(UIKeyboardEvent& ev) {
+	_imgui.onUIKeyboardEvent(ev);
 }
 
 } // namespace

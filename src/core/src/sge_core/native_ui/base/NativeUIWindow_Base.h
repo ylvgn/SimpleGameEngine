@@ -44,7 +44,7 @@ public:
 
 	void create			(CreateDesc& desc)		{ onCreate(desc); }
 	void setWindowTitle	(StrView title)			{ onSetWindowTitle(title); }
-	void setCursor(UIMouseEvent::Cursor type)	{ onSetCursor(type); }
+	void setCursor(UIMouseCursor cursor)		{ onSetCursor(cursor); }
 
 	void drawNeeded() { onDrawNeeded(); }
 
@@ -57,25 +57,22 @@ public:
 	virtual void onUINativeMouseEvent(UIMouseEvent& ev);
 	virtual void onUIMouseEvent(UIMouseEvent& ev) {}
 
-	virtual void onUINativeMouseCursor(UIMouseEvent& ev);
-	virtual void onUIMouseCursor(UIMouseEvent& ev) {}
-
 	virtual void onUINativeKeyboardEvent(UIKeyboardEvent& ev);
 	virtual void onUIKeyboardEvent(UIKeyboardEvent& ev) {}
 
 protected:
 	virtual void onCreate(CreateDesc& desc) {}
 	virtual void onSetWindowTitle(StrView title) {}
-	virtual void onSetCursor(UIMouseEvent::Cursor type) {}
+	virtual void onSetCursor(UIMouseCursor type) {}
 	virtual void onClientRectChanged(const Rect2f& rc) { _clientRect = rc; }
 	virtual void onDrawNeeded() {}
 
 	Rect2f	_clientRect {0,0,0,0};
 
-	UIMouseEventButton _pressedMouseButtons = UIMouseEventButton::None;
-	Vec2f _mousePos{0,0};
-	
-	Set<UIKeyboardEventType> _pressedkeyCodes;
+	UIMouseEventButton	_pressedMouseButtons = UIMouseEventButton::None;
+	Vec2f				_mousePos{0,0};
+
+	Map<UIKeyboardEventKeyCode, UIKeyCodeEventType> _keyCodesMap;
 };
 
 }

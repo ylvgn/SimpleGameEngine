@@ -96,11 +96,11 @@ void NativeUIWindow_Win32::onSetWindowTitle(StrView title) {
 	::SetWindowText(_hwnd, tmp.c_str());
 }
 
-void NativeUIWindow_Win32::onSetCursor(UIMouseCursorType type) {
+void NativeUIWindow_Win32::onSetCursor(UIMouseCursor type) {
 	if (!_hwnd) return;
 
-	using Cursor = UIMouseCursorType;
-	LPTSTR cursor = IDC_ARROW;
+	using Cursor	= UIMouseCursor;
+	LPTSTR cursor	= IDC_ARROW;
 	switch (type)
 	{
 	case Cursor::Arrow:		cursor = IDC_ARROW;		break;
@@ -200,6 +200,7 @@ bool NativeUIWindow_Win32::_handleNativeUIMouseEvent(HWND hwnd, UINT msg, WPARAM
 
 	Win32Util::convert(ev.pos, curPos);
 
+	// the 'auto button' no need, why???
 	auto button = Button::None;
 	switch (HIWORD(wParam)) {
 		case XBUTTON1: button = Button::Button4; break;
@@ -238,106 +239,192 @@ bool NativeUIWindow_Win32::_handleNativeUIMouseEvent(HWND hwnd, UINT msg, WPARAM
 	}
 
 	onUINativeMouseEvent(ev);
-	onUINativeMouseCursor(ev);
 	return true;
 }
 
-bool NativeUIWindow_Win32::_handleNativeUIKeyboardEvent(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+bool NativeUIWindow_Win32::_handleNativeUIKeyboardEvent(HWND hwnd,
+														UINT msg,
+														WPARAM wParam,
+														LPARAM lParam)
+{
 	UIKeyboardEvent ev;
 
-	using Type = UIKeyboardEvent::Type;
-	using State = UIKeyboardEvent::State;
+	ev.modifier = _getWin32Modifier();
 
-	State state = State::None;
+	using KeyCode	= UIKeyboardEvent::KeyCode;
+	using Type		= UIKeyboardEvent::Type;
+
+	// https://learn.microsoft.com/en-us/windows/win32/learnwin32/keyboard-input
+	// https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
+
+	// If you intercept the WM_SYSKEYDOWN message, call DefWindowProc afterward.
+	// Otherwise, you will block the operating system from handling the command.
+
+	// WM_CHAR messages are generated from WM_KEYDOWN messages
+		// while WM_SYSCHAR messages are generated from WM_SYSKEYDOWN messages.
+		// As with WM_SYSKEYDOWN, you should generally pass this message directly to DefWindowProc.
+		// In particular, do not treat WM_SYSCHAR as text that the user has typed.
+
+	// the wParam parameter contains the virtual-key code of the key
+	// The lParam parameter contains some miscellaneous information packed into 32 bits.
+		// You typically do not need the information in lParam
+		// One flag that might be useful is bit 30, the "previous key state" flag, which is set to 1 for repeated key - down messages.
+
+#if 1
 	switch (msg) {
-		case WM_CHAR: {
-		/*
-			* VK_0 - VK_9 are the same as ASCII '0' - '9' (0x30 - 0x39)
-			* 0x3A - 0x40 : unassigned
-			* VK_A - VK_Z are the same as ASCII 'A' - 'Z' (0x41 - 0x5A)
-		*/
-		if (wParam >= 0x30 && wParam <= 0x39) { // 0x30 == 48
-			Type t = Type::Keypad0;
-			int offset = static_cast<int>(wParam - 0x30);
-			t += offset;
-			ev.keyCodes[enumInt(t)] = State::Down;
-			break;
-		}
-		if (wParam >= 0x41 && wParam <= 0x39) { // 0x41 == 65
-			Type t = Type::A;
-			int offset = static_cast<int>(wParam - 0x41);
-			t += offset;
-			ev.keyCodes[enumInt(t)] = State::Down;
-			break;
-		}
-		}break;
+		case WM_SYSKEYDOWN: SGE_LOG("WM_SYSKEYDOWN: 0x{:x}",	wParam); break;
+		case WM_SYSCHAR:	SGE_LOG("WM_SYSCHAR: {:c}",			wParam); break;
+		case WM_SYSKEYUP:	SGE_LOG("WM_SYSKEYUP: 0x{:x}",		wParam); break;
+		case WM_KEYDOWN:	SGE_LOG("WM_KEYDOWN: 0x{:x}",		wParam); break;
+		case WM_KEYUP:		SGE_LOG("WM_KEYUP: 0x{:x}",			wParam); break;
+		case WM_CHAR:		SGE_LOG("WM_CHAR: {:c}",			wParam); break;
+	};
+#endif
 
+	switch (msg) {
+		case WM_SYSKEYDOWN: case WM_KEYDOWN:	{ ev.type = Type::Down; } break;
+		case WM_SYSKEYUP:	case WM_KEYUP:		{ ev.type = Type::Up;	} break;
+		case WM_SYSCHAR:	case WM_CHAR:		{ ev.type = Type::Char; } break;
+	};
+
+	switch (msg) {
 		case WM_KEYDOWN:
 		case WM_KEYUP:
 		case WM_SYSKEYDOWN:
-		case WM_SYSKEYUP:
-			state = (msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN) ? State::Down : State::Up;
-			break;
-		default:
-			return false;
-	}
+		case WM_SYSKEYUP: {
 
-	// https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
-	switch (wParam)
-	{
-#define CASE(K, T) \
-	case K: ev.keyCodes[enumInt(Type::T)] = state; break;\
-// ---------
+			#define E(K, T) case K: { /*SGE_LOG("{} = {}", #K, K);*/ ev.keyCode = KeyCode::T; } break;
+			switch (wParam)
+			{
+				case VK_LWIN:
+				case VK_RWIN: { ev.keyCode = KeyCode::Cmd; } break;
 
-		//CASE(VK_PROCESSKEY, _End) // why always VK_PROCESSKEY ??
+				E(VK_CONTROL,		Ctrl)
+				E(VK_SHIFT,			Shift)
+				E(VK_MENU,			Alt)
 
-		CASE(VK_BACK, Backspace)
-		CASE(VK_TAB, Tab)
-		CASE(VK_CAPITAL, CapsLock)
-		CASE(VK_PAUSE, Pause)
-		CASE(VK_ESCAPE, Escape)
-		CASE(VK_DELETE, Delete)
-		CASE(VK_CLEAR, Clear)
-		CASE(VK_RETURN, Enter) // Enter
-		CASE(VK_SPACE, Space)
+				E(VK_RETURN,		Enter)
+				E(VK_ESCAPE,		Escape)
+				E(VK_TAB,			Tab)
+				E(VK_CAPITAL,		CapsLock)
+				E(VK_SPACE,			Space)
+				E(VK_BACK,			Backspace)
 
-		CASE(VK_UP, UpArrow)
-		CASE(VK_DOWN, DownArrow)
-		CASE(VK_LEFT, LeftArrow)
-		CASE(VK_RIGHT, RightArrow)
+				E(VK_OEM_1,			Semicolon)		// ;:
+				E(VK_OEM_2,			Slash)			// /?
+				E(VK_OEM_3,			BackQuote)		// `~
+				E(VK_OEM_4,			LeftBracket)	// [{
+				E(VK_OEM_5,			Backslash)		// \|
+				E(VK_OEM_6,			RightBracket)	// ]}
+				E(VK_OEM_7,			Quote)			// '~
+				E(VK_OEM_PLUS,		Equals)			// =+
+				E(VK_OEM_MINUS,		Hyphen)			// -_
+				E(VK_OEM_COMMA,		Comma)			// ,<
+				E(VK_OEM_PERIOD,	Period)			// .>
 
-		CASE(VK_INSERT, Insert)
-		CASE(VK_HOME, Home)
-		CASE(VK_END, End)
-#if 0
-		//------------ need modifier??
-		CASE(VK_CONTROL, LeftControl)
-		CASE(VK_MENU, LeftAlt)
-		CASE(VK_SHIFT, LeftShift)
-		CASE(VK_LWIN, LeftCommand)
-#endif
+				E(VK_F1,	F1)
+				E(VK_F2,	F2)
+				E(VK_F3,	F3)
+				E(VK_F4,	F4)
+				E(VK_F5,	F5)
+				E(VK_F6,	F6)
+				E(VK_F7,	F7)
+				E(VK_F8,	F8)
+				E(VK_F9,	F9)
+				E(VK_F10,	F10)
+				E(VK_F11,	F11)
+				E(VK_F12,	F12)
 
-#undef CASE
+				E('0', Alpha0)	// 1!
+				E('1', Alpha1)	// 2@
+				E('2', Alpha2)	// 3#
+				E('3', Alpha3)	// 4$
+				E('4', Alpha4)	// 5%
+				E('5', Alpha5)	// 6^
+				E('6', Alpha6)	// 7&
+				E('7', Alpha7)	// 8*
+				E('8', Alpha8)	// 9(
+				E('9', Alpha9)	// 10)
 
-	default:
-		if (wParam >= 0x70 && wParam <= 0x87) { // F1 ~ F24
-			Type t = Type::F1;
-			int offset = static_cast<int>(wParam - 0x70);
-			t += offset;
-			ev.keyCodes[enumInt(t)] = state;
+				E('A', A)
+				E('B', B)
+				E('C', C)
+				E('D', D)
+				E('E', E)
+				E('F', F)
+				E('G', G)
+				E('H', H)
+				E('I', I)
+				E('J', J)
+				E('K', K)
+				E('L', L)
+				E('M', M)
+				E('N', N)
+				E('O', O)
+				E('P', P)
+				E('Q', Q)
+				E('R', R)
+				E('S', S)
+				E('T', T)
+				E('U', U)
+				E('V', V)
+				E('W', W)
+				E('X', X)
+				E('Y', Y)
+				E('Z', Z)
+
+				E(VK_UP,	UpArrow)
+				E(VK_DOWN,	DownArrow)
+				E(VK_LEFT,	LeftArrow)
+				E(VK_RIGHT,	RightArrow)
+
+				E(VK_INSERT,	Insert)
+				E(VK_DELETE,	Delete)
+				E(VK_HOME,		Home)
+				E(VK_END,		End)
+				E(VK_PRIOR,		PageUp)
+				E(VK_NEXT,		PageDown)
+
+				E(VK_NUMPAD0,	Keypad0)
+				E(VK_NUMPAD1,	Keypad1)
+				E(VK_NUMPAD2,	Keypad2)
+				E(VK_NUMPAD3,	Keypad3)
+				E(VK_NUMPAD4,	Keypad4)
+				E(VK_NUMPAD5,	Keypad5)
+				E(VK_NUMPAD6,	Keypad6)
+				E(VK_NUMPAD7,	Keypad7)
+				E(VK_NUMPAD8,	Keypad8)
+				E(VK_NUMPAD9,	Keypad9)
+
+				E(VK_SNAPSHOT,	PrintScreen)
+				E(VK_SCROLL,	ScrollLock)
+				E(VK_PAUSE,		Pause)
+				E(VK_NUMLOCK,	NumLock)
+				E(VK_ADD,		KeypadPlus)		// +
+				E(VK_DECIMAL,	KeypadPeriod)	// .
+				E(VK_SUBTRACT,	KeypadMinus)	// -
+				E(VK_DIVIDE,	KeypadDivide)	// /
+				E(VK_MULTIPLY,	KeypadMultiply)	// *
+			}
+			#undef E
 			break;
 		}
-		throw SGE_ERROR("not support VK_ : {}", wParam);
-		return false;
+		case WM_CHAR: { ev.charCode = static_cast<u32>(wParam); } break;
+		default: return false;
 	}
 
+	// https://learn.microsoft.com/en-us/windows/win32/inputdev/wm-char
+	if (ev.charCode > 32) {
+		ev.charCodeStr = static_cast<char>(ev.charCode);
+	}
+		
 	onUINativeKeyboardEvent(ev);
 	return true;
 }
 
 LRESULT NativeUIWindow_Win32::_handleNativeEvent(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	if (_handleNativeUIMouseEvent(hwnd, msg, wParam, lParam)) return 0;
-	//if (_handleNativeUIKeyboardEvent(hwnd, msg, wParam, lParam)) return 0; // <--------------- something wrong
+	if (_handleNativeUIKeyboardEvent(hwnd, msg, wParam, lParam)) return 0;
 	return ::DefWindowProc(hwnd, msg, wParam, lParam);
 }
 

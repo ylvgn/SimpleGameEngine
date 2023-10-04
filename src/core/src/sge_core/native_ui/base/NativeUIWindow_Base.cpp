@@ -20,27 +20,32 @@ void NativeUIWindow_Base::onUINativeMouseEvent(UIMouseEvent& ev) {
 	onUIMouseEvent(ev);
 }
 
-void NativeUIWindow_Base::onUINativeMouseCursor(UIMouseEvent& ev) {
-	onUIMouseCursor(ev);
-	setCursor(ev.cursor);
-}
-
 void NativeUIWindow_Base::onUINativeKeyboardEvent(UIKeyboardEvent& ev) {
-	using Type = UIKeyboardEvent::Type;
-	using State = UIKeyboardEvent::State;
+	using KeyCode	= UIKeyboardEvent::KeyCode;
+	using Type		= UIKeyboardEvent::Type;
 
-	for (auto& k : _pressedkeyCodes) {
-		if (ev.isUp(k)) {
-			_pressedkeyCodes.erase(k);
-		} else {
-			ev.keyCodes[enumInt(k)] = State::Pressed;
+	const auto& keyCode	= ev.keyCode;
+	auto& curType		= ev.type;
+
+	if (keyCode != KeyCode::None)
+	{
+		const auto& lastType = _keyCodesMap[keyCode];
+		switch (curType)
+		{
+			case Type::Down: {
+				// HoldDown
+				if (BitUtil::hasAny(lastType, Type::Down) || BitUtil::hasAny(lastType, Type::HoldDown)) {
+					curType = Type::HoldDown;
+				}
+				_keyCodesMap[keyCode] = curType;
+			} break;
+			case Type::Up: {
+				_keyCodesMap[keyCode] = curType;
+			} break;
 		}
 	}
 
-	for (Type k = Type::None; k != Type::_End; k += 1) {
-		if (_pressedkeyCodes.count(k) != 0) continue;
-		if (ev.keyCodes[enumInt(k)] == State::Down) _pressedkeyCodes.emplace(k);
-	}
+	ev.keyCodesMap = _keyCodesMap;
 
 	onUIKeyboardEvent(ev);
 }

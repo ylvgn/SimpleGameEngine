@@ -13,7 +13,7 @@ public:
 
 	virtual void onCreate(CreateDesc& desc) override;
 	virtual void onSetWindowTitle(StrView title) override;
-	virtual void onSetCursor(UIMouseCursorType type) override;
+	virtual void onSetCursor(UIMouseCursor type) override;
 	virtual void onDrawNeeded() override;
 
 	const HWND	hwnd()	const	{ return _hwnd; }
