@@ -1,14 +1,14 @@
 #include <sge_game_anime_prog.h>
+#include "MyCommon.h"
 
 #include "IKSolverExample.h"
 #include "BallSocketConstraintExample.h"
 #include "HingeSocketConstraintExample.h"
-
 #include "CubicCurveExample.h"
 
 namespace sge {
 
-// https://registry.khronos.org/OpenGL/api/GL/wglext.h
+// OpenGL: https://registry.khronos.org/OpenGL/api/GL/wglext.h
 #define WGL_CONTEXT_MAJOR_VERSION_ARB     0x2091
 #define WGL_CONTEXT_MINOR_VERSION_ARB     0x2092
 #define WGL_CONTEXT_FLAGS_ARB             0x2094
@@ -16,248 +16,14 @@ namespace sge {
 #define WGL_CONTEXT_PROFILE_MASK_ARB      0x9126
 typedef HGLRC(WINAPI* PFNWGLCREATECONTEXTATTRIBSARBPROC) (HDC, HGLRC, const int*);
 
+// V Synch
 typedef const char* (WINAPI* PFNWGLGETEXTENSIONSSTRINGEXTPROC) (void);
 typedef BOOL		(WINAPI* PFNWGLSWAPINTERVALEXTPROC) (int);
 typedef int			(WINAPI* PFNWGLGETSWAPINTERVALEXTPROC) (void);
 
-template<class T, class... Args>
-inline UPtr<T> make_unique(Args&&... args) {
-	return eastl::make_unique<T>(SGE_FORWARD(args)...);
-}
-
 using DebugDrawPL = DebugDraw_PointLines;
 
-struct AnimationAttribLocation {
-
-	int pos;
-	int normal;
-	int uv;
-	int weights;
-	int joints;
-
-	void setBySkinnedShader(const Shader* const shader) {
-		pos		= shader->findAttributeByName("position");
-		normal	= shader->findAttributeByName("normal");
-		uv		= shader->findAttributeByName("texCoord");
-		weights = shader->findAttributeByName("weights");
-		joints	= shader->findAttributeByName("joints");
-	}
-
-	void setByStaticShader(const Shader* const shader) {
-		pos		= shader->findAttributeByName("position");
-		normal	= shader->findAttributeByName("normal");
-		uv		= shader->findAttributeByName("texCoord");
-		weights = Mesh::kInvalidSlotIndex;
-		joints  = Mesh::kInvalidSlotIndex;
-	}
-};
-
-struct AnimationInstance {
-	Transform model; // model matrix
-
-	// used to clip sampling
-	Pose  animatedPose;
-	int   clip = 0;
-	float playback = 0.f;
-
-	// gpu skinning
-	Vector<mat4f> posePalette;
-
-	// blending
-	Pose additivePose;
-	int  additiveClip = 0;
-	Pose additiveBasePose;
-
-// helper functions ------------------------
-	void animatedSample(const Span<const Clip> clips, float dt) {
-		if (clips.size() <= clip) return;
-		animatedSample(clips[clip], dt);
-	}
-
-	template<class T>
-	void animatedSample(const ClipT<T>& clip, float dt) {
-		playback = clip.sample(animatedPose, playback + dt);
-	}
-
-	float getNormalizedTime(const Span<const Clip> clips) {
-		if (clips.size() <= clip) return 0;
-		return getNormalizedTime(clips[clip]);
-	}
-
-	template<class T>
-	float getNormalizedTime(const ClipT<T>& clip) {
-		return (playback - clip.getStartTime()) / clip.getDuration();
-	}
-
-	Transform getAnimatedPoseGlobalTransform(int i) const { return animatedPose.getGlobalTransform(i); }
-	Transform getAnimatedPoseLocalTransform(int i)  const { return animatedPose.getLocalTransform(i); }
-};
-
-class MainWin : public NativeUIWindow {
-	using Base = NativeUIWindow;
-public:
-	void update(float dt) { onUpdate(dt); };
-
-	void render() {
-		beginRender();
-		onRender();
-		endRender();
-	}
-protected:
-	virtual void onCreate(CreateDesc& desc) override {
-		Base::onCreate(desc);
-
-		{ // create opengl render context
-			const HDC dc = hdc();
-			PIXELFORMATDESCRIPTOR pfd;
-			pfd					= {};
-			pfd.nSize			= sizeof(PIXELFORMATDESCRIPTOR);
-			pfd.nVersion		= 1;
-			pfd.dwFlags			= PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW | PFD_DOUBLEBUFFER;
-			pfd.iPixelType		= PFD_TYPE_RGBA;
-			pfd.cColorBits		= 24;
-			pfd.cDepthBits		= 32;
-			pfd.cStencilBits	= 8;
-			pfd.iLayerType		= PFD_MAIN_PLANE;
-			int pixelFormat		= ChoosePixelFormat(dc, &pfd);
-			SetPixelFormat(dc, pixelFormat, &pfd);
-
-			// legacy render context
-			HGLRC tempRC = wglCreateContext(dc);
-			wglMakeCurrent(dc, tempRC);
-
-			// legacy render context just for get function pointer of 'wglCreateContextAttribsARB'
-			PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;
-			wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)wglGetProcAddress("wglCreateContextAttribsARB");
-			const int attribList[] = {
-				WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
-				WGL_CONTEXT_MINOR_VERSION_ARB, 3,
-				WGL_CONTEXT_FLAGS_ARB, 0,
-				WGL_CONTEXT_PROFILE_MASK_ARB,
-				WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-				0,
-			};
-
-			// modern render context
-			HGLRC hglrc = wglCreateContextAttribsARB(dc, 0, attribList);
-
-			wglMakeCurrent(NULL, NULL);
-			wglDeleteContext(tempRC);
-			wglMakeCurrent(dc, hglrc);
-
-			// use 'glad' to load all opengl core function
-			if (!gladLoadGL()) {
-				throw SGE_ERROR("Could not initialize GLAD\n");
-			}
-
-			SGE_LOG("OpenGL Version: {}.{} loaded", GLVersion.major, GLVersion.minor);
-		}
-
-		{ // vsynch: https://www.khronos.org/opengl/wiki/Swap_Interval
-			PFNWGLGETEXTENSIONSSTRINGEXTPROC _wglGetExtensionsStringEXT = (PFNWGLGETEXTENSIONSSTRINGEXTPROC)wglGetProcAddress("wglGetExtensionsStringEXT");
-			bool isSwapControlSupported = strstr(_wglGetExtensionsStringEXT(), "WGL_EXT_swap_control") != 0;
-
-			_vsynch = 0;
-			if (isSwapControlSupported) {
-				PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
-				PFNWGLGETSWAPINTERVALEXTPROC wglGetSwapIntervalEXT = (PFNWGLGETSWAPINTERVALEXTPROC)wglGetProcAddress("wglGetSwapIntervalEXT");
-
-				if (wglSwapIntervalEXT(1)) {
-					SGE_LOG("Enabled vsynch\n");
-					_vsynch = wglGetSwapIntervalEXT();
-				} else {
-					SGE_LOG("Could not enable vsynch\n");
-				}
-			}
-			else { // !swapControlSupported
-				SGE_LOG("WGL_EXT_swap_control not supported\n");
-			}
-
-			glGenVertexArrays(1, &_vertexArrayObject);
-			glBindVertexArray(_vertexArrayObject);
-		}
-	}
-	virtual void onUpdate(float dt) {}
-	virtual void onRender() {}
-
-	virtual void onCloseButton() override {
-		if (_vertexArrayObject != 0) {
-			HDC dc = hdc();
-			HGLRC hglrc = wglGetCurrentContext();
-
-			// delete VAO
-			glBindVertexArray(0);
-			glDeleteVertexArrays(1, &_vertexArrayObject);
-			_vertexArrayObject = 0;
-
-			// delete render context
-			wglMakeCurrent(NULL, NULL);
-			wglDeleteContext(hglrc);
-			ReleaseDC(_hwnd, dc);
-		}
-
-		NativeUIApp::current()->quit(0);
-	}
-
-	virtual void beginRender() {
-		float clientWidth = _clientRect.size.x;
-		float clientHeight = _clientRect.size.y;
-		glViewport(0, 0, static_cast<GLsizei>(clientWidth), static_cast<GLsizei>(clientHeight));
-
-		glEnable(GL_DEPTH_TEST);
-		glEnable(GL_CULL_FACE);
-		glPointSize(5.0f);
-
-		glBindVertexArray(_vertexArrayObject);
-		glClearColor(0.5f, 0.6f, 0.7f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-		_aspect = _clientRect.size.x / _clientRect.size.y;
-
-		if (_bWireFrame) {
-			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		}
-	}
-
-	virtual void endRender() {
-		if (_bWireFrame) {
-			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		}
-
-		SwapBuffers(hdc());
-		if (_vsynch != 0) {
-			glFinish();
-		}
-	}
-
-protected:
-
-	int		_vsynch				= 0;
-	GLuint	_vertexArrayObject	= 0;
-	float	_aspect				= 0;
-	bool	_bWireFrame			= false;
-};
-
-class MyExampleMainWin : public MainWin {
-	using Base = MainWin;
-	using This = MyExampleMainWin;
-
-#define RUN_CASE__ITEM(E, SGE_FN, ...) \
-	case MyCaseType::E: { \
-		test_##E##_##SGE_FN(__VA_ARGS__); \
-	} break; \
-// ----------
-#define RUN_CASE__onCreate(E, ...) RUN_CASE__ITEM(E, onCreate)
-#define RUN_CASE__onUpdate(E, ...) RUN_CASE__ITEM(E, onUpdate, dt)
-#define RUN_CASE__onRender(E, ...) RUN_CASE__ITEM(E, onRender)
-
-#define RUN_CASE(SGE_FN, ...) \
-	switch (_caseType) { \
-		MyCaseType##_ENUM_LIST(RUN_CASE__##SGE_FN) \
-	} \
-// ----------
-
-#define MyCaseType_ENUM_LIST(E) \
+#define MySampleFlags_ENUM_LIST(E) \
 	E(LitTexture,) \
 	E(AnimationScalarTrack,) \
 	E(BezierAndHermiteCurve, ) \
@@ -274,22 +40,48 @@ class MyExampleMainWin : public MainWin {
 	E(FABRIK_HingeSocketConstraint,) \
 	E(RayCastTriangle,) \
 	E(AlignFeetOnTheGround,) \
+	E(_END,) \
 // ----------
-	SGE_ENUM_DECLARE(MyCaseType, u8)
-	MyCaseType _caseType = MyCaseType::AlignFeetOnTheGround;
+SGE_ENUM_CLASS(MySampleFlags, u8)
 
-	virtual void onCreate(CreateDesc& desc) override { Base::onCreate(desc); RUN_CASE(onCreate) }
-	virtual void onUpdate(float dt)			override { RUN_CASE(onUpdate) }
-	virtual void onRender()					override { RUN_CASE(onRender) }
-#undef RUN_CASE
+struct MySample_Context : public NonCopyable {
+	MySampleFlags	sampleFlag	= MySampleFlags::LitTexture;
+	float			aspect		= 0;
+	bool			bWireFrame	= false;
+};
+
+class MySample : public NonCopyable {
+
+#define RUN_SAMPLE__ITEM(E, SGE_FN, ...) \
+	case MySampleFlags::E: { \
+		test_##E##_##SGE_FN(__VA_ARGS__); \
+	} break; \
+// ----------
+#define RUN_SAMPLE__onCreate(E, ...) RUN_SAMPLE__ITEM(E, onCreate)
+#define RUN_SAMPLE__onUpdate(E, ...) RUN_SAMPLE__ITEM(E, onUpdate, dt)
+#define RUN_SAMPLE__onRender(E, ...) RUN_SAMPLE__ITEM(E, onRender)
+
+#define RUN_SAMPLE(SGE_FN, ...) \
+	switch (_ctx->sampleFlag) { \
+		MySampleFlags_ENUM_LIST(RUN_SAMPLE__##SGE_FN) \
+	} \
+// ----------
+
+public:
+	void create(MySample_Context* ctx)	{ _ctx = ctx; RUN_SAMPLE(onCreate)	}
+	void update(float dt)				{ RUN_SAMPLE(onUpdate)				}
+	void render()						{ RUN_SAMPLE(onRender)				}
+
+#undef RUN_SAMPLE
 
 private:
+	void test__END_onCreate() {}
 	void test_LitTexture_onCreate() {
 		_debugPoints = new DebugDraw();
 		_debugLines  = new DebugDraw();
 
-		_texture = new Texture("Assets/Textures/uvChecker.png");
-		_staticShader = new Shader(
+		_texture		= new Texture("Assets/Textures/uvChecker.png");
+		_staticShader	= new Shader(
 			"Assets/Shaders/static.vert",
 			"Assets/Shaders/lit.frag"
 		);
@@ -301,9 +93,10 @@ private:
 		Vector<vec3f, 4> positions{
 			vec3f(-1, -1, 0),
 			vec3f(-1,  1, 0),
-			vec3f( 1, -1, 0),
-			vec3f( 1,  1, 0),
+			vec3f(1,  -1, 0),
+			vec3f(1,   1, 0),
 		};
+
 		Vector<u32, 6> indices = {
 			0,1,2,
 			2,1,3
@@ -346,16 +139,16 @@ private:
 		_vertexTexCoords->uploadToGpu(ByteSpan_make(uvs.span()));
 	}
 	void test_AnimationScalarTrack_onCreate() {
-		_referenceLines 	= new DebugDraw();
-		_scalarTrackLines 	= new DebugDraw();
-		_handlePoints 		= new DebugDraw();
-		_handleLines 		= new DebugDraw();
+		_referenceLines		= new DebugDraw();
+		_scalarTrackLines	= new DebugDraw();
+		_handlePoints		= new DebugDraw();
+		_handleLines		= new DebugDraw();
 
-		float height = 1.8f;
-		float left   = 1.0f;
-		float right  = 12.f;
-		float xRange = right - left;
-		float paddingX = xRange + 1.f;
+		float height		= 1.8f;
+		float left			= 1.0f;
+		float right			= 12.f;
+		float xRange		= right - left;
+		float paddingX		= xRange + 1.f;
 
 		{ // xy-coordinate figure
 			// Range in both X and Y is 0 to 20, according to mat4f::s_ortho
@@ -400,7 +193,7 @@ private:
 				const auto linearTrack = TrackUtil::createScalarTrack(
 					Interpolation::Linear, 3,
 					FrameUtil::createFrame(0.25f, 0.f),
-					FrameUtil::createFrame(0.5f,  1.f),
+					FrameUtil::createFrame(0.50f, 1.f),
 					FrameUtil::createFrame(0.75f, 0.f)
 				);
 				_scalarTracks.push_back(linearTrack);
@@ -580,7 +373,7 @@ private:
 	void test_BezierAndHermiteCurve_onCreate() {
 		_debugPoints = new DebugDraw();
 		_debugLines  = new DebugDraw();
-		
+
 		constexpr const int kSampleCount = 200;
 		constexpr const float kFloatOfSampleCount = static_cast<float>(kSampleCount);
 		Vector<vec3f> points;
@@ -615,9 +408,9 @@ private:
 
 		{ // test hermite spline
 			CubicCurveExample::Hermite curve(
-				vec3f(-5,0,0),	// p1
-				vec3f( 5,0,0),	// p2
-				vec3f( 2,2,0),	// tan1
+				vec3f(-5, 0,0),	// p1
+				vec3f( 5, 0,0),	// p2
+				vec3f( 2, 2,0),	// tan1
 				vec3f(-3,-3,0)  // tan2
 			);
 			points.emplace_back(curve.p1);
@@ -703,7 +496,7 @@ private:
 				"Assets/Shaders/lit.frag"
 			);
 #endif
-			_gpuMeshes.appendRange(info.skinMeshes); // trigger Mesh::operator= and will uploadToGpu
+			_gpuMeshes.appendRange(info.skinMeshes); // trigger Mesh::operator= and it will uploadToGpu
 			_gpuAnimInfo.animatedPose = _skeleton.restPose();
 		}
 
@@ -800,7 +593,7 @@ private:
 		_loadExampleAsset_AlignFeetOnTheGround();
 		_createExampleShader();
 
-		_bWireFrame			= true;
+		_ctx->bWireFrame = true;
 
 		_groundRayDebugDraw = new DebugDrawPL();
 		_debugPoints		= new DebugDraw();
@@ -868,7 +661,7 @@ private:
 		_ankleToCurrentToeDebugDraw->setColor(DebugDraw::kRed);
 		_ankleToDesiredToeDebugDraw->setColor(DebugDraw::kGreen);
 
-		_bWireFrame				= false;
+		_ctx->bWireFrame		= false;
 		_depthTest				= false;
 
 		_showIKPose				= false;
@@ -904,6 +697,7 @@ private:
 		_lastModelY = model.position.y;
 	}
 
+	void test__END_onUpdate(float dt) {}
 	void test_LitTexture_onUpdate(float dt) {
 		_testRotation += dt * 45.0f;
 		while (_testRotation > 360.0f) {
@@ -1388,8 +1182,9 @@ private:
 		_populatePosePalette();
 	}
 
+	void test__END_onRender() {}
 	void test_LitTexture_onRender() {
-		mat4f projection = mat4f::s_perspective(60.0f, _aspect, 0.01f, 1000.0f);
+		mat4f projection = mat4f::s_perspective(60.0f, _ctx->aspect, 0.01f, 1000.0f);
 		mat4f view = mat4f::s_lookAt(vec3f(0, 0, -5), vec3f::s_zero(), vec3f::s_up());
 		mat4f model = mat4f::s_quat(quat4f::s_angleAxis(Math::radians(_testRotation), vec3f::s_forward())); // or mat4f::s_identity();
 		mat4f mvp = projection * view * model;
@@ -1427,7 +1222,7 @@ private:
 		float t = 22.f;
 		float b = 0;
 		float l = 0;
-		float r = _aspect * t;
+		float r = _ctx->aspect * t;
 		float n = 0.01f;
 		float f = 5.f;
 		mat4f projection = mat4f::s_ortho(l, r, b, t, n, f);
@@ -1440,14 +1235,14 @@ private:
 		_handleLines->draw(DebugDrawMode::Lines, mvp, DebugDraw::kPurple);
 	}
 	void test_BezierAndHermiteCurve_onRender() {
-		mat4f projection = mat4f::s_perspective(60.0f, _aspect, 0.01f, 1000.0f);
+		mat4f projection = mat4f::s_perspective(60.0f, _ctx->aspect, 0.01f, 1000.0f);
 		mat4f view       = mat4f::s_lookAt(vec3f(0, 0, -5), vec3f::s_zero(), vec3f::s_up());
 		mat4f mvp        = projection * view * mat4f::s_identity();
 		_debugLines->draw(DebugDrawMode::Lines, mvp);
 		_debugPoints->draw(DebugDrawMode::Points, mvp, DebugDraw::kBlue);
 	}
 	void test_AnimationClip_onRender() {
-		mat4f projection = mat4f::s_perspective(60.0f, _aspect, 0.01f, 10.f);
+		mat4f projection = mat4f::s_perspective(60.0f, _ctx->aspect, 0.01f, 10.f);
 		mat4f view = mat4f::s_lookAt(vec3f(0, 4, -7), vec3f(0, 4, 0), vec3f::s_up());
 		mat4f mvp = projection * view;
 
@@ -1457,7 +1252,7 @@ private:
 		_currentPoseVisual->draw(DebugDrawMode::Lines, mvp, DebugDraw::kBlue);
 	}
 	void test_MeshSkinning_onRender() {
-		mat4f projection = mat4f::s_perspective(60.0f, _aspect, 0.01f, 10.f);
+		mat4f projection = mat4f::s_perspective(60.0f, _ctx->aspect, 0.01f, 10.f);
 		mat4f view = mat4f::s_lookAt(vec3f(0, 5, 7), vec3f(0, 3, 0), vec3f::s_up());
 
 		{ // test cpu skinning
@@ -1519,25 +1314,25 @@ private:
 		_onDrawGpuSkinningByDefault();
 	}
 	void test_CCD_onRender() {
-		_ccdSolver->render(_aspect);
+		_ccdSolver->render(_ctx->aspect);
 	}
 	void test_FABRIK_onRender() {
-		_fabrikSolver->render(_aspect);
+		_fabrikSolver->render(_ctx->aspect);
 	}
 	void test_CCD_BallSocketConstraint_onRender() {
-		_ccdBallSocketConstraint->render(_aspect);
+		_ccdBallSocketConstraint->render(_ctx->aspect);
 	}
 	void test_FABRIK_BallSocketConstraint_onRender() {
-		_fabrikBallSocketConstraint->render(_aspect);
+		_fabrikBallSocketConstraint->render(_ctx->aspect);
 	}
 	void test_CCD_HingeSocketConstraint_onRender() {
-		_ccdHingeSocketConstraint->render(_aspect);
+		_ccdHingeSocketConstraint->render(_ctx->aspect);
 	}
 	void test_FABRIK_HingeSocketConstraint_onRender() {
-		_fabrikHingeSocketConstraint->render(_aspect);
+		_fabrikHingeSocketConstraint->render(_ctx->aspect);
 	}
 	void test_RayCastTriangle_onRender() {
-		mat4f projection = mat4f::s_perspective(60.0f, _aspect, 0.01f, 100.f);
+		mat4f projection = mat4f::s_perspective(60.0f, _ctx->aspect, 0.01f, 100.f);
 		mat4f view = mat4f::s_lookAt(vec3f(0, 7, 20), vec3f::s_zero(), vec3f::s_up());
 		mat4f mvp = projection * view * mat4f::s_identity();
 		_onDrawStaticMesh(projection, view, _ikCourse, _ikCourseTexture);
@@ -1552,7 +1347,7 @@ private:
 		float modelPosZ = modelTran.position.z;
 		mat4 model		= mat4::s_transform(modelTran);
 
-		mat4 projection = mat4::s_perspective(60.0f, _aspect, 0.01f, 1000.0f);
+		mat4 projection = mat4::s_perspective(60.0f, _ctx->aspect, 0.01f, 1000.0f);
 		mat4 view = mat4::s_lookAt(
 			vec3f(modelPosX, 0, modelPosZ) + vec3f(0, 5, 10),
 			vec3f(modelPosX, 0, modelPosZ) + vec3f(0, 3, 0),
@@ -1603,7 +1398,7 @@ private:
 private:
 
 	void _onDrawGpuSkinningByDefault() {
-		mat4f projection = mat4f::s_perspective(60.0f, _aspect, 0.01f, 10.f);
+		mat4f projection = mat4f::s_perspective(60.0f, _ctx->aspect, 0.01f, 10.f);
 		mat4f view       = mat4f::s_lookAt(vec3f(0, 3, 7), vec3f(0, 3, 0), vec3f::s_up());
 		_onDrawGpuSkinning(projection, view);
 	}
@@ -1755,6 +1550,9 @@ private:
 	}
 
 private:
+
+	MySample_Context*							_ctx;
+
 	float										_testRotation = 0.0f;
 
 	SPtr<Shader>								_staticShader;
@@ -1851,6 +1649,218 @@ private:
 	SPtr<DebugDrawPL>							_ankleToDesiredToeDebugDraw;
 };
 
+class GameAnimeProgMainWin : public NativeUIWindow {
+	using Base = NativeUIWindow;
+public:
+	void update(float dt) {
+		if (_vertexArrayObject == 0)
+			return;
+
+		if (_sample) _sample->update(dt);
+	}
+
+	void render() {
+		if (_vertexArrayObject == 0)
+			return;
+
+		_beginRender();
+		if (_sample) _sample->render();
+		_renderImGui();
+		NuklearUI::demo();
+		_endRender();
+	}
+
+	void switchSample(MySampleFlags flag) {
+		if (_ctx.sampleFlag == flag)
+			return;
+
+		if (_sample) {
+			_sample.release();
+			_sample = nullptr;
+		}
+		_ctx.sampleFlag = flag;
+		_sample = make_unique<MySample>();
+		_sample->create(&_ctx);
+	}
+
+private:
+	void _renderImGui() {
+		const float& clientWidth  = _clientRect.size.x;
+		const float& clientHeight = _clientRect.size.y;
+
+		NuklearUI::render(static_cast<int>(clientWidth * _invScaleFactor),
+						  static_cast<int>(clientHeight * _invScaleFactor),
+						  static_cast<int>(clientWidth),
+						  static_cast<int>(clientHeight));
+	}
+
+protected:
+	virtual void onCreate(CreateDesc& desc) override  {
+		Base::onCreate(desc);
+
+		{ // create opengl render context
+			const HDC dc = hdc();
+			PIXELFORMATDESCRIPTOR pfd;
+			pfd 				= {};
+			pfd.nSize 			= sizeof(PIXELFORMATDESCRIPTOR);
+			pfd.nVersion 		= 1;
+			pfd.dwFlags 		= PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW | PFD_DOUBLEBUFFER;
+			pfd.iPixelType 		= PFD_TYPE_RGBA;
+			pfd.cColorBits 		= 24;
+			pfd.cDepthBits 		= 32;
+			pfd.cStencilBits 	= 8;
+			pfd.iLayerType 		= PFD_MAIN_PLANE;
+			int pixelFormat 	= ChoosePixelFormat(dc, &pfd);
+			SetPixelFormat(dc, pixelFormat, &pfd);
+
+			// legacy render context
+			HGLRC tempRC = wglCreateContext(dc);
+			wglMakeCurrent(dc, tempRC);
+
+			// legacy render context just for get function pointer of 'wglCreateContextAttribsARB'
+			PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;
+			wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)wglGetProcAddress("wglCreateContextAttribsARB");
+			const int attribList[] = {
+				WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
+				WGL_CONTEXT_MINOR_VERSION_ARB, 3,
+				WGL_CONTEXT_FLAGS_ARB, 0,
+				WGL_CONTEXT_PROFILE_MASK_ARB,
+				WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+				0,
+			};
+
+			// modern render context
+			HGLRC hglrc = wglCreateContextAttribsARB(dc, 0, attribList);
+
+			wglMakeCurrent(NULL, NULL);
+			wglDeleteContext(tempRC);
+			wglMakeCurrent(dc, hglrc);
+
+			// use 'glad' to load all opengl core function
+			if (!gladLoadGL()) {
+				throw SGE_ERROR("Could not initialize GLAD\n");
+			}
+
+			SGE_LOG("OpenGL Version: {}.{} loaded", GLVersion.major, GLVersion.minor);
+		}
+
+		{ // vsynch: https://www.khronos.org/opengl/wiki/Swap_Interval
+			PFNWGLGETEXTENSIONSSTRINGEXTPROC _wglGetExtensionsStringEXT = (PFNWGLGETEXTENSIONSSTRINGEXTPROC)wglGetProcAddress("wglGetExtensionsStringEXT");
+			bool isSwapControlSupported = strstr(_wglGetExtensionsStringEXT(), "WGL_EXT_swap_control") != 0;
+
+			_vsynch = 0;
+			if (isSwapControlSupported) {
+				PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
+				PFNWGLGETSWAPINTERVALEXTPROC wglGetSwapIntervalEXT = (PFNWGLGETSWAPINTERVALEXTPROC)wglGetProcAddress("wglGetSwapIntervalEXT");
+
+				if (wglSwapIntervalEXT(1)) {
+					SGE_LOG("Enabled vsynch\n");
+					_vsynch = wglGetSwapIntervalEXT();
+				}
+				else {
+					SGE_LOG("Could not enable vsynch\n");
+				}
+			}
+			else { // !swapControlSupported
+				SGE_LOG("WGL_EXT_swap_control not supported\n");
+			}
+		}
+
+		glGenQueries(1, &_gpuApplicationStart);
+		glGenQueries(1, &_gpuApplicationStop);
+		glGenQueries(1, &_gpuImguiStart);
+		glGenQueries(1, &_gpuImguiStop);
+
+		// Setup some OpenGL required state
+		glGenVertexArrays(1, &_vertexArrayObject);
+		glBindVertexArray(_vertexArrayObject);
+
+		// create Nuklear
+		NuklearUI::createContext();
+		_sample = make_unique<MySample>();
+		_sample->create(&_ctx);
+	}
+
+	virtual void onCloseButton() override {
+		if (_vertexArrayObject != 0) {
+			HDC dc = hdc();
+			HGLRC hglrc = wglGetCurrentContext();
+
+			glDeleteQueries(1, &_gpuApplicationStart);
+			glDeleteQueries(1, &_gpuApplicationStop);
+			glDeleteQueries(1, &_gpuImguiStart);
+			glDeleteQueries(1, &_gpuImguiStop);
+
+			// delete VAO
+			glBindVertexArray(0);
+			glDeleteVertexArrays(1, &_vertexArrayObject);
+			_vertexArrayObject = 0;
+
+			// deleate Nuklear
+			NuklearUI::destroyContext();
+
+			// delete render context
+			wglMakeCurrent(NULL, NULL);
+			wglDeleteContext(hglrc);
+			ReleaseDC(_hwnd, dc);
+		}
+
+		NativeUIApp::current()->quit(0);
+	}
+
+private:
+	void _beginRender() {
+		float clientWidth	= _clientRect.size.x;
+		float clientHeight	= _clientRect.size.y;
+		glViewport(0, 0, static_cast<GLsizei>(clientWidth), static_cast<GLsizei>(clientHeight));
+
+		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_CULL_FACE);
+		glPointSize(5.0f * _scaleFactor);
+		glLineWidth(1.5f * _scaleFactor);
+
+		glBindVertexArray(_vertexArrayObject);
+		glClearColor(0.5f, 0.6f, 0.7f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+		_ctx.aspect = _clientRect.size.x / _clientRect.size.y;
+
+		if (_ctx.bWireFrame) {
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		}
+	}
+
+	void _endRender() {
+		if (_ctx.bWireFrame) {
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		}
+
+		SwapBuffers(hdc());
+		if (_vsynch != 0) {
+			glFinish();
+		}
+	}
+
+	// Display helpers
+	nk_color defaultColor	= { 255, 255, 255, 255 };
+	nk_color red			= { 255, 0,   0,   255 };
+	nk_color orange			= { 255, 165, 0,   255 };
+	char printBuffer[512];
+
+	GLuint				_vertexArrayObject		= 0;
+	GLuint				_gpuApplicationStart	= 0;
+	GLuint				_gpuApplicationStop		= 0;
+	GLuint				_gpuImguiStart			= 0;
+	GLuint				_gpuImguiStop			= 0;
+
+	float				_scaleFactor			= 1.0f;
+	float				_invScaleFactor			= 1.0f;
+	int					_vsynch					= 0;
+
+	MySample_Context	_ctx;
+	UPtr<MySample>		_sample;
+};
+
 class GameAnimeProgApp : public NativeUIApp {
 	using Base = NativeUIApp;
 protected:
@@ -1882,7 +1892,7 @@ protected:
 	}
 
 private:
-	MyExampleMainWin _mainWin;
+	GameAnimeProgMainWin _mainWin;
 };
 
 } // namespace

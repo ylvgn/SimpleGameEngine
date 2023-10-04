@@ -1,5 +1,7 @@
 #pragma once
 
+#include <sge_game_anime_prog/MyCommon.h>
+
 #include <sge_game_anime_prog/math/vec2.h>
 #include <sge_game_anime_prog/math/vec3.h>
 #include <sge_game_anime_prog/math/vec4.h>
@@ -35,3 +37,5 @@
 #include <sge_game_anime_prog/ik/IKLeg.h>
 
 #include <sge_game_anime_prog/gltf/GLTFLoader.h>
+
+#include <sge_game_anime_prog/nuklear/NuklearUI.h>
