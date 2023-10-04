@@ -5,3 +5,5 @@ project(${PROJECT_NAME})
 sge_add_library(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR})
 set_target_properties (${PROJECT_NAME} PROPERTIES FOLDER sge/books/game_anime_prog)
 target_link_libraries(${PROJECT_NAME} PUBLIC sge_core glad::glad)
+
+#target_link_libraries(${PROJECT_NAME} PUBLIC sge_core glad::glad nuklear)

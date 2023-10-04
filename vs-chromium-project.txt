@@ -10,11 +10,13 @@
 *.recipe
 *.lib
 *.lastbuildstate
+/.git/objects
 
 [SearchableFiles.include]
 /src/
 # /externals/vcpkg/buildtrees/nlohmann-json
-/externals/vcpkg/buildtrees/imgui
+# /externals/vcpkg/buildtrees/imgui
+# /externals/vcpkg/buildtrees/nuklear
 
 [SourceExplorer.ignore]
 *.exe

@@ -13,5 +13,6 @@ externals\vcpkg\vcpkg install nlohmann-json:x64-windows --recurse
 externals\vcpkg\vcpkg install libpng:x64-windows --recurse
 externals\vcpkg\vcpkg install imgui:x64-windows --recurse
 externals\vcpkg\vcpkg install glad[gl-api-33]:x64-windows --recurse
+@REM externals\vcpkg\vcpkg install nuklear:x64-windows --recurse
 
 @pause
