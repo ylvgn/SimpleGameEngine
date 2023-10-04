@@ -1,7 +1,6 @@
 #include "DebugDraw.h"
-#include "Uniform.h"
-#include "Draw.h"
-
+#include <sge_game_anime_prog/opengl/Uniform.h>
+#include <sge_game_anime_prog/opengl/Draw.h>
 #include <sge_game_anime_prog/animation/Pose.h>
 #include <sge_game_anime_prog/ik/CCDSolver.h>
 #include <sge_game_anime_prog/ik/FABRIKSolver.h>

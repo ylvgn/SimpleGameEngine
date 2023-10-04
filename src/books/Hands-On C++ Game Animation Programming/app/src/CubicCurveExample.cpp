@@ -1,5 +1,5 @@
 #include "CubicCurveExample.h"
-#include <sge_game_anime_prog/opengl/DebugDraw.h>
+#include <sge_game_anime_prog/rendering/DebugDraw.h>
 
 namespace sge {
 

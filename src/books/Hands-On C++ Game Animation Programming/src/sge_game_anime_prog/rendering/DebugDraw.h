@@ -91,7 +91,7 @@ private:
 };
 
 #define DebugDraw_PointLines_Mask_ENUM_LIST(E) \
-	E(None, = 0) \
+	E(None,  = 0) \
 	E(Point, = 1 << 0) \
 	E(Line,  = 1 << 1) \
 //----
@@ -135,9 +135,9 @@ public:
 	void draw(const mat4f& mvp, Mask mask = Mask::Point | Mask::Line);
 
 private:
-	SPtr<DebugDraw>	_lines;
+	UPtr<DebugDraw>	_lines;
 
-	Color4f _pointColor;
-	Color4f _lineColor;
+	Color4f			_pointColor;
+	Color4f			_lineColor;
 };
 }

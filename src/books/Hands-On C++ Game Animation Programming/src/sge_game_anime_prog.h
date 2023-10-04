@@ -16,6 +16,7 @@
 #include <sge_game_anime_prog/opengl/Texture.h>
 
 #include <sge_game_anime_prog/rendering/Mesh.h>
+#include <sge_game_anime_prog/rendering/DebugDraw.h>
 
 #include <sge_game_anime_prog/animation/Interpolation.h>
 #include <sge_game_anime_prog/animation/Frame.h>
@@ -31,9 +32,6 @@
 
 #include <sge_game_anime_prog/ik/CCDSolver.h>
 #include <sge_game_anime_prog/ik/FABRIKSolver.h>
-
 #include <sge_game_anime_prog/ik/IKLeg.h>
 
 #include <sge_game_anime_prog/gltf/GLTFLoader.h>
-
-#include <sge_game_anime_prog/opengl/DebugDraw.h>
