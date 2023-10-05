@@ -247,13 +247,6 @@ bool NativeUIWindow_Win32::_handleNativeUIKeyboardEvent(HWND hwnd,
 														WPARAM wParam,
 														LPARAM lParam)
 {
-	UIKeyboardEvent ev;
-
-	ev.modifier = _getWin32Modifier();
-
-	using KeyCode	= UIKeyboardEvent::KeyCode;
-	using Type		= UIKeyboardEvent::Type;
-
 	// https://learn.microsoft.com/en-us/windows/win32/learnwin32/keyboard-input
 	// https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
 
@@ -270,7 +263,14 @@ bool NativeUIWindow_Win32::_handleNativeUIKeyboardEvent(HWND hwnd,
 		// You typically do not need the information in lParam
 		// One flag that might be useful is bit 30, the "previous key state" flag, which is set to 1 for repeated key - down messages.
 
-#if 1
+	UIKeyboardEvent ev;
+
+	ev.modifier = _getWin32Modifier();
+
+	using KeyCode	= UIKeyboardEvent::KeyCode;
+	using Type		= UIKeyboardEvent::Type;
+
+#if 0
 	switch (msg) {
 		case WM_SYSKEYDOWN: SGE_LOG("WM_SYSKEYDOWN: 0x{:x}",	wParam); break;
 		case WM_SYSCHAR:	SGE_LOG("WM_SYSCHAR: {:c}",			wParam); break;
@@ -294,14 +294,12 @@ bool NativeUIWindow_Win32::_handleNativeUIKeyboardEvent(HWND hwnd,
 		case WM_SYSKEYUP: {
 
 			#define E(K, T) case K: { /*SGE_LOG("{} = {}", #K, K);*/ ev.keyCode = KeyCode::T; } break;
-			switch (wParam)
-			{
-				case VK_LWIN:
-				case VK_RWIN: { ev.keyCode = KeyCode::Cmd; } break;
-
+			switch (wParam) {
 				E(VK_CONTROL,		Ctrl)
 				E(VK_SHIFT,			Shift)
 				E(VK_MENU,			Alt)
+				E(VK_LWIN,			LCmd)
+				E(VK_RWIN,			RCmd)
 
 				E(VK_RETURN,		Enter)
 				E(VK_ESCAPE,		Escape)
@@ -400,11 +398,11 @@ bool NativeUIWindow_Win32::_handleNativeUIKeyboardEvent(HWND hwnd,
 				E(VK_SCROLL,	ScrollLock)
 				E(VK_PAUSE,		Pause)
 				E(VK_NUMLOCK,	NumLock)
-				E(VK_ADD,		KeypadPlus)		// +
-				E(VK_DECIMAL,	KeypadPeriod)	// .
-				E(VK_SUBTRACT,	KeypadMinus)	// -
 				E(VK_DIVIDE,	KeypadDivide)	// /
 				E(VK_MULTIPLY,	KeypadMultiply)	// *
+				E(VK_SUBTRACT,	KeypadMinus)	// -
+				E(VK_ADD,		KeypadPlus)		// +
+				E(VK_DECIMAL,	KeypadPeriod)	// .
 			}
 			#undef E
 			break;
@@ -417,7 +415,7 @@ bool NativeUIWindow_Win32::_handleNativeUIKeyboardEvent(HWND hwnd,
 	if (ev.charCode > 32) {
 		ev.charCodeStr = static_cast<char>(ev.charCode);
 	}
-		
+
 	onUINativeKeyboardEvent(ev);
 	return true;
 }
@@ -430,9 +428,21 @@ LRESULT NativeUIWindow_Win32::_handleNativeEvent(HWND hwnd, UINT msg, WPARAM wPa
 
 UIEventModifier NativeUIWindow_Win32::_getWin32Modifier() {
 	auto o = UIEventModifier::None;
-	if (::GetAsyncKeyState(VK_CONTROL)) o |= UIEventModifier::Ctrl;
-	if (::GetAsyncKeyState(VK_SHIFT  )) o |= UIEventModifier::Shift;
-	if (::GetAsyncKeyState(VK_MENU   )) o |= UIEventModifier::Alt;
+	if (::GetAsyncKeyState(VK_CONTROL)) {
+		o |= UIEventModifier::Ctrl;
+		if (::GetAsyncKeyState(VK_LCONTROL)) o |= UIEventModifier::LCtrl;
+		if (::GetAsyncKeyState(VK_RCONTROL)) o |= UIEventModifier::RCtrl;
+	}
+	if (::GetAsyncKeyState(VK_SHIFT)) {
+		o |= UIEventModifier::Shift;
+		if (::GetAsyncKeyState(VK_LSHIFT)) o |= UIEventModifier::LShift;
+		if (::GetAsyncKeyState(VK_RSHIFT)) o |= UIEventModifier::RShift;
+	}
+	if (::GetAsyncKeyState(VK_MENU)) {
+		o |= UIEventModifier::Alt;
+		if (::GetAsyncKeyState(VK_LMENU)) o |= UIEventModifier::LAlt;
+		if (::GetAsyncKeyState(VK_RMENU)) o |= UIEventModifier::RAlt;
+	}
 	if (::GetAsyncKeyState(VK_LWIN) || ::GetAsyncKeyState(VK_RWIN)) {
 		o |= UIEventModifier::Cmd;
 	}

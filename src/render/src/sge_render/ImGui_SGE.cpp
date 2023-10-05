@@ -252,11 +252,28 @@ int ImGui_SGE::_mouseButton(UIMouseEventButton v) {
 }
 
 void ImGui_SGE::onUIKeyboardEvent(UIKeyboardEvent& ev) {
-	ImGuiIO& io = ImGui::GetIO();
-	io.AddKeyEvent(_keyboardKey(ev.keyCode), ev.isDownWhatever());
+	using Modifier	= UIEventModifier;
+	using Type		= UIKeyCodeEventType;
+
+	ImGuiIO& io		= ImGui::GetIO();
+
+	for (auto& kv : ev.keyCodesMap) {
+		const auto& type = kv.second;
+		const auto& keyCode = kv.first;
+		switch (type) {
+			case Type::Down:
+			case Type::HoldDown: {
+				io.AddKeyEvent(_keyCode(keyCode), true);
+			} break;
+
+			case Type::Up: {
+				io.AddKeyEvent(_keyCode(keyCode), false);
+			} break;
+		}
+	}
 }
 
-ImGuiKey ImGui_SGE::_keyboardKey(UIKeyboardEventKeyCode v) {
+ImGuiKey ImGui_SGE::_keyCode(UIKeyboardEventKeyCode v) {
 	using KeyCode = UIKeyboardEventKeyCode;
 
 	switch (v)
@@ -307,14 +324,14 @@ ImGuiKey ImGui_SGE::_keyboardKey(UIKeyboardEventKeyCode v) {
 	case KeyCode::KeypadMultiply:	return ImGuiKey_KeypadMultiply;
 	case KeyCode::KeypadMinus:		return ImGuiKey_KeypadSubtract;
 	case KeyCode::KeypadPlus:	 	return ImGuiKey_KeypadAdd;
-	case KeyCode::LeftShift:		return ImGuiKey_LeftShift;
-	case KeyCode::LeftCtrl:			return ImGuiKey_LeftCtrl;
-	case KeyCode::LeftAlt:			return ImGuiKey_LeftAlt;
-	case KeyCode::LeftCmd: 			return ImGuiKey_LeftSuper;
-	case KeyCode::RightShift:  		return ImGuiKey_RightShift;
-	case KeyCode::RightCtrl:   		return ImGuiKey_RightCtrl;
-	case KeyCode::RightAlt:	   		return ImGuiKey_RightAlt;
-	case KeyCode::RightCmd:			return ImGuiKey_RightSuper;
+	case KeyCode::LShift:			return ImGuiKey_LeftShift;
+	case KeyCode::LCtrl:			return ImGuiKey_LeftCtrl;
+	case KeyCode::LAlt:				return ImGuiKey_LeftAlt;
+	case KeyCode::LCmd: 			return ImGuiKey_LeftSuper;
+	case KeyCode::RShift:  			return ImGuiKey_RightShift;
+	case KeyCode::RCtrl:   			return ImGuiKey_RightCtrl;
+	case KeyCode::RAlt:	   			return ImGuiKey_RightAlt;
+	case KeyCode::RCmd:				return ImGuiKey_RightSuper;
 	case KeyCode::Menu:				return ImGuiKey_Menu;
 	case KeyCode::Alpha0:			return ImGuiKey_0;
 	case KeyCode::Alpha1:			return ImGuiKey_1;

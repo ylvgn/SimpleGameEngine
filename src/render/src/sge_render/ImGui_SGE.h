@@ -35,7 +35,7 @@ private:
 	void _createFontsTexture();
 
 	int _mouseButton(UIMouseEventButton v);
-	ImGuiKey _keyboardKey(UIKeyboardEventKeyCode v);
+	ImGuiKey _keyCode(UIKeyboardEventKeyCode v);
 
 	ImGuiContext* _ctx;
 };

@@ -30,6 +30,12 @@ enum class UIEventModifier {
 	Alt		= 1 << 2,
 	Cmd		= 1 << 3,
 	Fn		= 1 << 4,
+	LShift	= 1 << 5,
+	RShift	= 1 << 6,
+	LCtrl	= 1 << 7,
+	RCtrl	= 1 << 8,
+	LAlt	= 1 << 9,
+	RAlt	= 1 << 10,
 };
 SGE_ENUM_ALL_OPERATOR(UIEventModifier)
 
@@ -77,10 +83,10 @@ struct UIMouseEvent {
 	_E(Tab,) \
 	_E(CapsLock,) \
 	\
-	_E(Shift,)	_E(LeftShift,)	_E(RightShift,)	\
-	_E(Ctrl,)	_E(LeftCtrl,)	_E(RightCtrl,) \
-	_E(Alt,)	_E(LeftAlt,)	_E(RightAlt,) \
-	_E(Cmd,)	_E(LeftCmd,)	_E(RightCmd,) \
+	_E(Shift,)	_E(LShift,)	_E(RShift,)	\
+	_E(Ctrl,)	_E(LCtrl,)	_E(RCtrl,) \
+	_E(Alt,)	_E(LAlt,)	_E(RAlt,) \
+	_E(Cmd,)	_E(LCmd,)	_E(RCmd,) \
 	_E(Menu,) \
 	\
 	_E(F1,) _E(F2,) _E(F3,) _E(F4,)  _E(F5,)  _E(F6,) \
@@ -126,36 +132,27 @@ struct UIKeyboardEvent {
 	using Type			= UIKeyCodeEventType;
 	using Modifier		= UIEventModifier;
 
-	bool isUp(KeyCode k)		const { return getType(k) == Type::Up; }
-	bool isDown(KeyCode k)		const { return getType(k) == Type::Down; }
-	bool isHoldDown(KeyCode k)	const { return getType(k) == Type::HoldDown; }
-	bool isChar(KeyCode k)		const { return getType(k) == Type::Char; }
+	bool isUp(KeyCode key)			const { return getType(key) == Type::Up; }
+	bool isDown(KeyCode key)		const { return getType(key) == Type::Down; }
+	bool isHoldDown(KeyCode key)	const { return getType(key) == Type::HoldDown; }
+	bool isChar(KeyCode key)		const { return getType(key) == Type::Char; }
 
-	bool isUp()			const { return type == Type::Up;}
-	bool isDown()		const { return type == Type::Down; }
-	bool isHoldDown()	const { return type == Type::HoldDown; }
-	bool isChar()		const { return type == Type::Char; }
+	bool isModifierKey()			const { return modifier != Modifier::None; }
+
+	StrView data()					const { return charCodeStr; }
 
 	Type getType(KeyCode k) const {
 		auto it = keyCodesMap.find(k);
 		return it == keyCodesMap.end() ? Type::None : it->second;
 	}
 
-	bool isDownWhatever()			const { return isDown() || isHoldDown(); }
-	bool isDownWhatever(KeyCode k)	const { return isDown(k) || isHoldDown(k); }
+	Type				type	 = Type::None;
+	KeyCode				keyCode  = KeyCode::None;
+	Modifier			modifier = Modifier::None;
+	u32					charCode = 0;
+	String				charCodeStr;
 
-	bool isModifier(KeyCode k) const { return modifier != Modifier::None; }
-
-	StrView data() const { return charCodeStr; }
-
-	Type					type	 = Type::None;
-	Modifier				modifier = Modifier::None;
-	KeyCode					keyCode  = KeyCode::None;
-
-	u32						charCode = 0;
-	String					charCodeStr;
-
-	Map<KeyCode, Type>		keyCodesMap;
+	Map<KeyCode, Type>	keyCodesMap;
 };
 
 }
