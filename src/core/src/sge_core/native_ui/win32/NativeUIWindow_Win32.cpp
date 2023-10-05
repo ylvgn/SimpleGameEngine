@@ -445,6 +445,8 @@ UIEventModifier NativeUIWindow_Win32::_getWin32Modifier() {
 	}
 	if (::GetAsyncKeyState(VK_LWIN) || ::GetAsyncKeyState(VK_RWIN)) {
 		o |= UIEventModifier::Cmd;
+		if (::GetAsyncKeyState(VK_LWIN)) o |= UIEventModifier::LCmd;
+		if (::GetAsyncKeyState(VK_RWIN)) o |= UIEventModifier::RCmd;
 	}
 	return o;
 }

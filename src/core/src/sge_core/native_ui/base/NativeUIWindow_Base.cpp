@@ -27,13 +27,12 @@ void NativeUIWindow_Base::onUINativeKeyboardEvent(UIKeyboardEvent& ev) {
 
 	const auto& curKeyCode	= ev.keyCode;
 	auto& curType			= ev.type;
-	const auto& modifier	= ev.modifier;
 
 	if (curKeyCode != KeyCode::None) {
 
 	#define E(T) \
 		if (_keyCodesMap[KeyCode::T] == Type::Down) { \
-			if (!BitUtil::hasAny(modifier, Modifier::T)) { \
+			if (!ev.hasAnyModifierKey(Modifier::T)) { \
 				_keyCodesMap[KeyCode::T] = Type::Up; \
 			} \
 		} \
@@ -47,20 +46,19 @@ void NativeUIWindow_Base::onUINativeKeyboardEvent(UIKeyboardEvent& ev) {
 	#undef E
 
 		if (ev.isModifierKey()) {
+			#define E(T) \
+				case KeyCode::T: { \
+					if (ev.hasAnyModifierKey(Modifier::L##T)) _keyCodesMap[KeyCode::L##T] = Type::Down; \
+					if (ev.hasAnyModifierKey(Modifier::R##T)) _keyCodesMap[KeyCode::R##T] = Type::Down; \
+				} break; \
+			// ----
 			switch (curKeyCode) {
-				case KeyCode::Ctrl: {
-					if (BitUtil::hasAny(modifier, Modifier::LCtrl)) _keyCodesMap[KeyCode::LCtrl] = Type::Down;
-					if (BitUtil::hasAny(modifier, Modifier::RCtrl)) _keyCodesMap[KeyCode::RCtrl] = Type::Down;
-				}break;
-				case KeyCode::Shift: {
-					if (BitUtil::hasAny(modifier, Modifier::LShift)) _keyCodesMap[KeyCode::LShift] = Type::Down;
-					if (BitUtil::hasAny(modifier, Modifier::RShift)) _keyCodesMap[KeyCode::RShift] = Type::Down;
-				}break;
-				case KeyCode::Alt: {
-					if (BitUtil::hasAny(modifier, Modifier::LAlt)) _keyCodesMap[KeyCode::LAlt] = Type::Down;
-					if (BitUtil::hasAny(modifier, Modifier::RAlt)) _keyCodesMap[KeyCode::RAlt] = Type::Down;
-				}break;
+				E(Ctrl)
+				E(Shift)
+				E(Alt)
+				E(Cmd)
 			}
+			#undef E
 		}
 
 		const auto& lastType = _keyCodesMap[curKeyCode];

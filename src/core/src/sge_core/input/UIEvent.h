@@ -1,6 +1,7 @@
 #pragma once
 
 #include <sge_core/math/Rect2.h>
+#include <sge_core/base/BitUtil.h>
 
 namespace sge {
 
@@ -36,6 +37,8 @@ enum class UIEventModifier {
 	RCtrl	= 1 << 8,
 	LAlt	= 1 << 9,
 	RAlt	= 1 << 10,
+	LCmd	= 1 << 11,
+	RCmd	= 1 << 12,
 };
 SGE_ENUM_ALL_OPERATOR(UIEventModifier)
 
@@ -132,18 +135,63 @@ struct UIKeyboardEvent {
 	using Type			= UIKeyCodeEventType;
 	using Modifier		= UIEventModifier;
 
-	bool isUp(KeyCode key)			const { return getType(key) == Type::Up; }
-	bool isDown(KeyCode key)		const { return getType(key) == Type::Down; }
-	bool isHoldDown(KeyCode key)	const { return getType(key) == Type::HoldDown; }
-	bool isChar(KeyCode key)		const { return getType(key) == Type::Char; }
+	bool isUp(KeyCode k)			const { return getType(k) == Type::Up; }
+	bool isDown(KeyCode k)			const { return getType(k) == Type::Down; }
+	bool isHoldDown(KeyCode k)		const { return getType(k) == Type::HoldDown; }
+	bool isChar(KeyCode k)			const { return getType(k) == Type::Char; }
+	bool isDownWhatever(KeyCode k)	const { return isHoldDown(k) || isDown(k); }
 
-	bool isModifierKey()			const { return modifier != Modifier::None; }
+	bool isUp()						const { return type == Type::Up; }
+	bool isDown()					const { return type == Type::Down; }
+	bool isHoldDown()				const { return type == Type::HoldDown; }
+	bool isChar()					const { return type == Type::Char; }
+	bool isDownWhatever()			const { return isHoldDown() || isDown(); }
 
 	StrView data()					const { return charCodeStr; }
 
 	Type getType(KeyCode k) const {
 		auto it = keyCodesMap.find(k);
 		return it == keyCodesMap.end() ? Type::None : it->second;
+	}
+
+	bool isModifierKey()				const { return modifier != Modifier::None; }
+	bool hasAnyModifierKey(Modifier k)	const { return BitUtil::hasAny(modifier, k); }
+
+	Type getModifierKeyType(Modifier k) const {
+		switch (k) {
+			case Modifier::Shift:	return getType(KeyCode::Shift);
+			case Modifier::Ctrl:	return getType(KeyCode::Ctrl);
+			case Modifier::Alt:		return getType(KeyCode::Alt);
+			case Modifier::Cmd:		return getType(KeyCode::Cmd);
+			case Modifier::LShift:	return getType(KeyCode::LShift);
+			case Modifier::RShift:	return getType(KeyCode::RShift);
+			case Modifier::LCtrl:	return getType(KeyCode::LCtrl);
+			case Modifier::RCtrl:	return getType(KeyCode::RCtrl);
+			case Modifier::LAlt:	return getType(KeyCode::LAlt);
+			case Modifier::RAlt:	return getType(KeyCode::RAlt);
+		}
+		return Type::None;
+	}
+
+	bool IsModifierKeyDown(KeyCode k) const {
+		switch (k) {
+			case KeyCode::Ctrl:
+			case KeyCode::LCtrl:
+			case KeyCode::RCtrl:
+			case KeyCode::Shift:
+			case KeyCode::LShift:
+			case KeyCode::RShift:
+			case KeyCode::Alt:
+			case KeyCode::LAlt:
+			case KeyCode::RAlt:
+			case KeyCode::Cmd:
+			case KeyCode::LCmd:
+			case KeyCode::RCmd: {
+				return isDownWhatever(k);
+			} break;
+			default: throw SGE_ERROR("not support {}", k);
+		}
+		return false;
 	}
 
 	Type				type	 = Type::None;

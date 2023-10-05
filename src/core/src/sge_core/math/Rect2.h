@@ -13,7 +13,7 @@ public:
 	using Vec2 = Vec2<T>;
 
 	union {
-		struct { T x, y, w, h;};
+		struct { T x, y, w, h; };
 		struct { Vec2 pos, size; };
 		T data[kElementCount];
 	};

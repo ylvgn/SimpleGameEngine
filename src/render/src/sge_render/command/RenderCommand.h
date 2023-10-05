@@ -126,19 +126,19 @@ private:
 class RenderScissorRectScope : public NonCopyable {
 public:
 	RenderScissorRectScope() = default;
-	RenderScissorRectScope(RenderScissorRectScope && r) {
+	RenderScissorRectScope(RenderScissorRectScope && r) noexcept {
 		_cmdBuf = r._cmdBuf;
 		_rect = r._rect;
 		r._cmdBuf = nullptr;
 	}
 
-	RenderScissorRectScope(RenderCommandBuffer* cmdBuf) {
+	RenderScissorRectScope(RenderCommandBuffer* cmdBuf) noexcept {
 		if (!cmdBuf) return;
 		_rect = cmdBuf->scissorRect();
 		_cmdBuf = cmdBuf;
 	}
 
-	~RenderScissorRectScope() { detach(); }
+	~RenderScissorRectScope() noexcept { detach(); }
 
 	void detach() {
 		if (!_cmdBuf) return;
