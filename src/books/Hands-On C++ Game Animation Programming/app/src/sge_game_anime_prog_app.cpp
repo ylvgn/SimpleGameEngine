@@ -24,6 +24,7 @@ typedef int			(WINAPI* PFNWGLGETSWAPINTERVALEXTPROC) (void);
 using DebugDrawPL = DebugDraw_PointLines;
 
 #define MySampleFlags_ENUM_LIST(E) \
+	E(None,) \
 	E(LitTexture,) \
 	E(AnimationScalarTrack,) \
 	E(BezierAndHermiteCurve, ) \
@@ -43,11 +44,22 @@ using DebugDrawPL = DebugDraw_PointLines;
 	E(_END,) \
 // ----------
 SGE_ENUM_CLASS(MySampleFlags, u8)
+SGE_ENUM_ALL_OPERATOR(MySampleFlags)
 
 struct MySample_Context : public NonCopyable {
-	MySampleFlags	sampleFlag	= MySampleFlags::LitTexture;
-	float			aspect		= 0;
-	bool			bWireFrame	= false;
+	MySample_Context() {
+		reset();
+	}
+
+	void reset() {
+		sampleFlag	= MySampleFlags::None;
+		aspect		= 0;
+		bWireFrame	= false;
+	}
+
+	MySampleFlags	sampleFlag;
+	float			aspect;
+	bool			bWireFrame;
 };
 
 class MySample : public NonCopyable {
@@ -60,6 +72,7 @@ class MySample : public NonCopyable {
 #define RUN_SAMPLE__onCreate(E, ...) RUN_SAMPLE__ITEM(E, onCreate)
 #define RUN_SAMPLE__onUpdate(E, ...) RUN_SAMPLE__ITEM(E, onUpdate, dt)
 #define RUN_SAMPLE__onRender(E, ...) RUN_SAMPLE__ITEM(E, onRender)
+#define RUN_SAMPLE__onDrawUI(E, ...) RUN_SAMPLE__ITEM(E, onDrawUI)
 
 #define RUN_SAMPLE(SGE_FN, ...) \
 	switch (_ctx->sampleFlag) { \
@@ -68,13 +81,14 @@ class MySample : public NonCopyable {
 // ----------
 
 public:
-	void create(MySample_Context* ctx)	{ _ctx = ctx; RUN_SAMPLE(onCreate)	}
-	void update(float dt)				{ RUN_SAMPLE(onUpdate)				}
-	void render()						{ RUN_SAMPLE(onRender)				}
+	void create(MySample_Context* ctx)	{ _ctx = ctx; RUN_SAMPLE(onCreate)			}
+	void update(float dt)				{ RUN_SAMPLE(onUpdate)						}
+	void render()						{ RUN_SAMPLE(onRender) RUN_SAMPLE(onDrawUI) }
 
 #undef RUN_SAMPLE
 
 private:
+	void test_None_onCreate() {}
 	void test__END_onCreate() {}
 	void test_LitTexture_onCreate() {
 		_debugPoints = new DebugDraw();
@@ -697,6 +711,7 @@ private:
 		_lastModelY = model.position.y;
 	}
 
+	void test_None_onUpdate(float dt) {}
 	void test__END_onUpdate(float dt) {}
 	void test_LitTexture_onUpdate(float dt) {
 		_testRotation += dt * 45.0f;
@@ -1182,6 +1197,7 @@ private:
 		_populatePosePalette();
 	}
 
+	void test_None_onRender() {}
 	void test__END_onRender() {}
 	void test_LitTexture_onRender() {
 		mat4f projection = mat4f::s_perspective(60.0f, _ctx->aspect, 0.01f, 1000.0f);
@@ -1394,6 +1410,27 @@ private:
 		}
 		if (!_depthTest) glEnable(GL_DEPTH_TEST);
 	}
+	
+	void test_None_onDrawUI() {
+		NuklearUI::demo();
+	}
+	void test__END_onDrawUI() {}
+	void test_LitTexture_onDrawUI() {}
+	void test_AnimationScalarTrack_onDrawUI() {}
+	void test_BezierAndHermiteCurve_onDrawUI() {}
+	void test_AnimationClip_onDrawUI() {}
+	void test_MeshSkinning_onDrawUI() {}
+	void test_AnimationBlending_onDrawUI() {}
+	void test_Crossfading_onDrawUI() {}
+	void test_AdditiveBlending_onDrawUI() {}
+	void test_CCD_onDrawUI() {}
+	void test_FABRIK_onDrawUI() {}
+	void test_CCD_BallSocketConstraint_onDrawUI() {}
+	void test_FABRIK_BallSocketConstraint_onDrawUI() {}
+	void test_CCD_HingeSocketConstraint_onDrawUI() {}
+	void test_FABRIK_HingeSocketConstraint_onDrawUI() {}
+	void test_RayCastTriangle_onDrawUI() {}
+	void test_AlignFeetOnTheGround_onDrawUI() {}
 
 private:
 
@@ -1666,7 +1703,6 @@ public:
 		_beginRender();
 		if (_sample) _sample->render();
 		_renderImGui();
-		NuklearUI::demo();
 		_endRender();
 	}
 
@@ -1678,6 +1714,7 @@ public:
 			_sample.release();
 			_sample = nullptr;
 		}
+		_ctx.reset();
 		_ctx.sampleFlag = flag;
 		_sample = make_unique<MySample>();
 		_sample->create(&_ctx);
@@ -1688,10 +1725,34 @@ private:
 		const float& clientWidth  = _clientRect.size.x;
 		const float& clientHeight = _clientRect.size.y;
 
-		NuklearUI::render(static_cast<int>(clientWidth * _invScaleFactor),
-						  static_cast<int>(clientHeight * _invScaleFactor),
-						  static_cast<int>(clientWidth),
-						  static_cast<int>(clientHeight));
+		NuklearUI::render(clientWidth  * _invScaleFactor,
+						  clientHeight * _invScaleFactor,
+						  clientWidth,
+						  clientHeight);
+
+		if (_ctx.sampleFlag != MySampleFlags::None) {
+			static Rect2f sBound = { 0, clientHeight - 100, 100.0f, 100.0f };
+			NuklearUI::Box box("Sample Exit", sBound, NK_WINDOW_TITLE | NK_WINDOW_MOVABLE | NK_WINDOW_NO_SCROLLBAR);
+			NuklearUI::LayoutRowStatic layout(sBound.h-40, sBound.w - 20);
+			NuklearUI::ButtonLabel btn("X");
+			if (btn.isOpen()) {
+				switchSample(MySampleFlags::None);
+			}
+		}
+		else {
+			static Vec2f sBoxXY		= { 50.f,  20.f };
+			static Vec2f sItemSize	= { 250.f, 25.f };
+			NuklearUI::BoxStaticVerticalLayout box("Sample Selector", sBoxXY, sItemSize, kSampleCount);
+
+			TempString sampleDesc;
+			int i = 1;
+			for (auto flag = MySampleFlags::None + 1; flag != MySampleFlags::_END; flag += 1, ++i) {
+				sampleDesc.clear();
+				FmtTo(sampleDesc, "{}. {}", i, flag);
+				NuklearUI::ButtonLabel btn(sampleDesc);
+				if (btn.isOpen()) switchSample(flag);
+			}
+		}
 	}
 
 protected:
@@ -1808,6 +1869,14 @@ protected:
 		NativeUIApp::current()->quit(0);
 	}
 
+	virtual void onUIMouseEvent(UIMouseEvent& ev) override {
+		NuklearUI::onUIMouseEvent(ev);
+	}
+
+	virtual void onUIKeyboardEvent(UIKeyboardEvent& ev) override {
+		NuklearUI::onUIKeyboardEvent(ev);
+	}
+
 private:
 	void _beginRender() {
 		float clientWidth	= _clientRect.size.x;
@@ -1827,25 +1896,19 @@ private:
 
 		if (_ctx.bWireFrame) {
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		} else {
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
 	}
 
 	void _endRender() {
-		if (_ctx.bWireFrame) {
-			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		}
-
 		SwapBuffers(hdc());
 		if (_vsynch != 0) {
 			glFinish();
 		}
 	}
 
-	// Display helpers
-	nk_color defaultColor	= { 255, 255, 255, 255 };
-	nk_color red			= { 255, 0,   0,   255 };
-	nk_color orange			= { 255, 165, 0,   255 };
-	char printBuffer[512];
+	static constexpr int kSampleCount = enumInt(MySampleFlags::_END) - 1;
 
 	GLuint				_vertexArrayObject		= 0;
 	GLuint				_gpuApplicationStart	= 0;
@@ -1889,6 +1952,7 @@ protected:
 	virtual void onUpdate(float dt) override {
 		_mainWin.update(dt);
 		_mainWin.render();
+		NuklearUI::UIInput input;
 	}
 
 private:

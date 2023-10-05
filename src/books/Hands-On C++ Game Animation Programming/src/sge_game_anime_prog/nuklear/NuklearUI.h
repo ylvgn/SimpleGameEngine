@@ -5,76 +5,158 @@
 namespace sge {
 namespace NuklearUI {
 
-static nk_context* s_ctx = nullptr;
+struct NuklearUI_Util {
+	NuklearUI_Util() = delete;
+
+	static enum nk_buttons	mouseButton(UIMouseEventButton v);
+	static enum nk_keys		keyCode(UIKeyboardEventKeyCode v);
+
+	template<typename T> inline
+	static void convert(struct nk_color& o, const sge::ColorRGBA<T>& i) {
+		o.r = static_cast<nk_byte>(i.r);
+		o.g = static_cast<nk_byte>(i.g);
+		o.b = static_cast<nk_byte>(i.b);
+		o.a = static_cast<nk_byte>(i.a);
+	}
+
+	template<typename T> inline
+	static void convert(struct nk_colorf& o, const sge::ColorRGBA<T>& i) {
+		o.r = static_cast<nk_byte>(i.r);
+		o.g = static_cast<nk_byte>(i.g);
+		o.b = static_cast<nk_byte>(i.b);
+		o.a = static_cast<nk_byte>(i.a);
+	}
+
+	template<typename T> inline
+	static void convert(struct nk_vec2& o, const sge::Vec2<T>& i) {
+		o.x = static_cast<float>(i.x);
+		o.y = static_cast<float>(i.y);
+	}
+
+	template<typename T> inline
+	static void convert(struct nk_rect& o, const sge::Rect2<T>& i) {
+		o.x = static_cast<float>(i.x);
+		o.y = static_cast<float>(i.y);
+		o.w = static_cast<float>(i.w);
+		o.h = static_cast<float>(i.h);
+	}
+
+	template<typename T> inline
+	static nk_color toNKColor(const sge::ColorRGBA<T>& i) {
+		nk_color o;
+		convert(o, i);
+		return o;
+	}
+	
+	template<typename T> inline
+		static nk_colorf toNKColorf(const sge::ColorRGBA<T>& i) {
+		nk_colorf o;
+		convert(o, i);
+		return o;
+	}
+
+	template<typename T> inline
+	static struct nk_vec2 toVec2(const sge::Vec2<T>& i) {
+		struct nk_vec2 o;
+		convert(o, i);
+		return o;
+	}
+
+	template<typename T> inline
+	static struct nk_rect toRect(const sge::Rect2<T> i) {
+		struct nk_rect o;
+		convert(o, i);
+		return o;
+	}
+};
+
+using Util = NuklearUI_Util;
+
+extern nk_context* g_ctx;
 
 void createContext();
 void destroyContext();
-
-void render(int width,
-	int height,
-	int displayWidth,
-	int displayHeight);
-
-void handleWindowEvent(HWND hwnd,
-	UINT msg,
-	WPARAM wparam,
-	LPARAM lparam,
-	float scaleFactor);
-
+void onUIMouseEvent(UIMouseEvent& ev);
+void onUIKeyboardEvent(UIKeyboardEvent& ev);
+void render(float width, float height, float displayWidth, float displayHeight);
 void demo();
 
-struct InputMouseAndKeyBoard : public NonCopyable {
-	InputMouseAndKeyBoard()  { ::nk_input_begin(s_ctx); }
-	~InputMouseAndKeyBoard() { ::nk_input_end  (s_ctx);	}
+#if 0
+#pragma mark ================= Helper ====================
+#endif
+struct UIInput : public NonCopyable {
+	UIInput()  { if(g_ctx) ::nk_input_begin(g_ctx); }
+	~UIInput() { if(g_ctx) ::nk_input_end(g_ctx); }
 };
 
-struct Box : public NonCopyable {
-	~Box() { ::nk_end(s_ctx); }
+class Box : public NonCopyable {
+public:
+	static constexpr float kTitleHeight = 20.f;
 
-	Box(StrView title,
-		struct nk_rect bounds,
-		nk_flags flags)
+	Box(StrView			str,
+		const Rect2f&	bounds,
+		nk_flags		flags = NK_WINDOW_MOVABLE | NK_WINDOW_TITLE | NK_WINDOW_BORDER | NK_WINDOW_NO_SCROLLBAR)
 	{
-		::nk_begin(s_ctx, title.data(), bounds, flags);
+		_isOpen = ::nk_begin(g_ctx, str.data(), Util::toRect(bounds), flags);
+	}
+	~Box() { ::nk_end(g_ctx); }
+
+	bool isOpen() const { return _isOpen; }
+
+private:
+	bool _isOpen;
+};
+
+class Label : public NonCopyable {
+public:
+	Label(StrView str, nk_flags alignment = NK_TEXT_LEFT) {
+		::nk_label(g_ctx, str.data(), alignment);
 	}
 };
 
-struct Label : public NonCopyable {
-	Label(StrView str, nk_flags alignment) {
-		::nk_label(s_ctx, str.data(), alignment);
+class ButtonLabel : public NonCopyable {
+public:
+	ButtonLabel(StrView str) {
+		_isOpen = ::nk_button_label(g_ctx, str.data());
+	}
+
+	bool isOpen() const { return _isOpen; }
+
+private:
+	bool _isOpen;
+};
+
+class LayoutRowStatic : public NonCopyable {
+public:
+	static constexpr float kItemWMargin  = 10.f;
+	static constexpr float kItemHMargin = 5.f;
+
+	LayoutRowStatic(float height, float itemWidth, int cols = 1) {
+		::nk_layout_row_static(g_ctx, height, static_cast<int>(itemWidth), cols);
 	}
 };
 
+class BoxStaticVerticalLayout : public NonCopyable {
+public:
+	using Layout = LayoutRowStatic;
 
-template<typename T> inline
-static void convert(nk_color& o, const sge::ColorRGBA<T>& i) {
-	o.r = static_cast<nk_byte>(i.r);
-	o.g = static_cast<nk_byte>(i.g);
-	o.b = static_cast<nk_byte>(i.b);
-	o.a = static_cast<nk_byte>(i.a);
-}
+	BoxStaticVerticalLayout(StrView str, Vec2f pos, Vec2f itemSize, size_t itemCount) {
+		const float& itemW	= itemSize.x;
+		const float& itemH	= itemSize.y;
+		Rect2f bounds = {
+			pos.x, pos.y,
+			itemW + Layout::kItemWMargin,
+			itemCount * (itemH + Layout::kItemHMargin) + Box::kTitleHeight
+		};
 
-template<typename T> inline
-	static void convert(nk_colorf& o, const sge::ColorRGBA<T>& i) {
-	o.r = static_cast<nk_byte>(i.r);
-	o.g = static_cast<nk_byte>(i.g);
-	o.b = static_cast<nk_byte>(i.b);
-	o.a = static_cast<nk_byte>(i.a);
-}
+		_box	= eastl::make_unique<Box>(str, bounds);
+		_layout = eastl::make_unique<Layout>(itemH, itemW);
+	}
 
-template<typename T> inline
-static nk_color toNKColor(const sge::ColorRGBA<T>& i) {
-	nk_color o;
-	convert(o, i);
-	return o;
-}
-	
-template<typename T> inline
-	static nk_colorf toNKColorf(const sge::ColorRGBA<T>& i) {
-	nk_colorf o;
-	convert(o, i);
-	return o;
-}
+private:
+	UPtr<Box>		_box;
+	UPtr<Layout>	_layout;
+};
 
 } // NuklearUI
 } // sge

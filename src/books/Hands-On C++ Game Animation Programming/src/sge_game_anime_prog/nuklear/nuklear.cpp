@@ -588,7 +588,7 @@ NK_API void nk_demo() {
 	static float value = 0.6f;
 	static int i = 20;
 
-	if (nk_begin(&s_nk_ctx.ctx, "Show", nk_rect(50, 50, 220, 220),
+	if (nk_begin(&s_nk_ctx.ctx, "Show", nk_rect(350, 150, 220, 220),
 		NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE)) {
 		/* fixed widget pixel width */
 		nk_layout_row_static(&s_nk_ctx.ctx, 30, 80, 1);
