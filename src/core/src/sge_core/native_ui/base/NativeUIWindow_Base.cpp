@@ -65,7 +65,6 @@ void NativeUIWindow_Base::onUINativeKeyboardEvent(UIKeyboardEvent& ev) {
 		switch (curType)
 		{
 			case Type::Down: {
-				// HoldDown
 				if (BitUtil::hasAny(lastType, Type::Down) || BitUtil::hasAny(lastType, Type::HoldDown)) {
 					curType = Type::HoldDown;
 				}

@@ -135,17 +135,15 @@ struct UIKeyboardEvent {
 	using Type			= UIKeyCodeEventType;
 	using Modifier		= UIEventModifier;
 
-	bool isUp(KeyCode k)			const { return getType(k) == Type::Up; }
-	bool isDown(KeyCode k)			const { return getType(k) == Type::Down; }
-	bool isHoldDown(KeyCode k)		const { return getType(k) == Type::HoldDown; }
-	bool isChar(KeyCode k)			const { return getType(k) == Type::Char; }
-	bool isDownWhatever(KeyCode k)	const { return isHoldDown(k) || isDown(k); }
+	bool isUp(KeyCode k)			const { return isUp() && getType(k) == Type::Up; }
+	bool isDown(KeyCode k)			const { return isDown() && getType(k) == Type::Down; }
+	bool isHoldDown(KeyCode k)		const { return isHoldDown() && getType(k) == Type::HoldDown; }
+	bool isChar(KeyCode k)			const { return isChar() && getType(k) == Type::Char; }
 
 	bool isUp()						const { return type == Type::Up; }
 	bool isDown()					const { return type == Type::Down; }
 	bool isHoldDown()				const { return type == Type::HoldDown; }
 	bool isChar()					const { return type == Type::Char; }
-	bool isDownWhatever()			const { return isHoldDown() || isDown(); }
 
 	StrView data()					const { return charCodeStr; }
 
@@ -187,11 +185,10 @@ struct UIKeyboardEvent {
 			case KeyCode::Cmd:
 			case KeyCode::LCmd:
 			case KeyCode::RCmd: {
-				return isDownWhatever(k);
+				return isHoldDown(k) || isDown(k);
 			} break;
 			default: throw SGE_ERROR("not support {}", k);
 		}
-		return false;
 	}
 
 	Type				type	 = Type::None;
