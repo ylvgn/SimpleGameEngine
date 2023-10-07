@@ -40,7 +40,9 @@
 #define NK_MAX_ELEMENT_MEMORY 128 * 1024
 
 NK_API struct nk_context* nk_win32_init();
+#if 0 // no need
 NK_API int nk_win32_handle_event(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam, float scaleFactor);
+#endif
 NK_API void nk_win32_render(int width, int height, int display_width, int display_height);
 NK_API void nk_win32_shutdown(void);
 NK_API void nk_demo();
@@ -413,7 +415,7 @@ NK_API void nk_win32_font_stash_end(void) {
 
 #define LEFT_MOUSE_POS (short)((float)LOWORD(lparam) * scaleFactor)
 #define RIGHT_MOUSE_POS (short)((float)HIWORD(lparam) * scaleFactor)
-
+#if 0 // no need
 NK_API int nk_win32_handle_event(HWND wnd, UINT msg, WPARAM wparam, LPARAM lparam, float scaleFactor) {
 	switch (msg)
 	{
@@ -573,7 +575,7 @@ NK_API int nk_win32_handle_event(HWND wnd, UINT msg, WPARAM wparam, LPARAM lpara
 
 	return 0;
 }
-
+#endif
 
 NK_API void nk_win32_shutdown(void) {
 	nk_font_atlas_clear(&s_nk_ctx.atlas);

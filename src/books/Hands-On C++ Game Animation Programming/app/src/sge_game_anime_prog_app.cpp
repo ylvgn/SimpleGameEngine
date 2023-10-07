@@ -21,9 +21,9 @@ typedef const char* (WINAPI* PFNWGLGETEXTENSIONSSTRINGEXTPROC) (void);
 typedef BOOL		(WINAPI* PFNWGLSWAPINTERVALEXTPROC) (int);
 typedef int			(WINAPI* PFNWGLGETSWAPINTERVALEXTPROC) (void);
 
-using DebugDrawPL = DebugDraw_PointLines;
+using DebugDrawPL	= DebugDraw_PointLines;
 
-#define MySampleFlags_ENUM_LIST(E) \
+#define MySampleType_ENUM_LIST(E) \
 	E(None,) \
 	E(LitTexture,) \
 	E(AnimationScalarTrack,) \
@@ -43,54 +43,69 @@ using DebugDrawPL = DebugDraw_PointLines;
 	E(AlignFeetOnTheGround,) \
 	E(_END,) \
 // ----------
-SGE_ENUM_CLASS(MySampleFlags, u8)
-SGE_ENUM_ALL_OPERATOR(MySampleFlags)
+SGE_ENUM_CLASS(MySampleType, u8)
+SGE_ENUM_ALL_OPERATOR(MySampleType)
 
-struct MySample_Context : public NonCopyable {
-	MySample_Context() {
-		reset();
+class SampleRequest {
+public:
+	using Type = MySampleType;
+
+	static constexpr float s_HeaderHeight() {
+		return (NuklearUI::Window::kTitleHeight+5) * NuklearUI::scaleFactor;
 	}
+
+	const Type&		type;
+	const float&	aspect;
+	bool&			bWireFrame;
+	
+	float			dt;
+
+	bool mShowRestPose;
+	bool mShowCurrentPose = true;
+	bool mShowBindPose;
+	bool mShowIKPose;
+
+	float mTimeMod = 1.0f;
 
 	void reset() {
-		sampleFlag	= MySampleFlags::None;
-		aspect		= 0;
-		bWireFrame	= false;
+		bWireFrame = false;
+		mTimeMod = 1.0f;
 	}
-
-	MySampleFlags	sampleFlag;
-	float			aspect;
-	bool			bWireFrame;
 };
 
-class MySample : public NonCopyable {
+class SampleContext : public NonCopyable {
+	using Request	= SampleRequest;
+	using Type		= MySampleType;
 
 #define RUN_SAMPLE__ITEM(E, SGE_FN, ...) \
-	case MySampleFlags::E: { \
+	case Type::E: { \
 		test_##E##_##SGE_FN(__VA_ARGS__); \
 	} break; \
 // ----------
-#define RUN_SAMPLE__onCreate(E, ...) RUN_SAMPLE__ITEM(E, onCreate)
-#define RUN_SAMPLE__onUpdate(E, ...) RUN_SAMPLE__ITEM(E, onUpdate, dt)
-#define RUN_SAMPLE__onRender(E, ...) RUN_SAMPLE__ITEM(E, onRender)
-#define RUN_SAMPLE__onDrawUI(E, ...) RUN_SAMPLE__ITEM(E, onDrawUI)
+#define RUN_SAMPLE__onCreate(E, ...) RUN_SAMPLE__ITEM(E, onCreate, req)
+#define RUN_SAMPLE__onUpdate(E, ...) RUN_SAMPLE__ITEM(E, onUpdate, req)
+#define RUN_SAMPLE__onRender(E, ...) RUN_SAMPLE__ITEM(E, onRender, req)
+#define RUN_SAMPLE__onDrawUI(E, ...) RUN_SAMPLE__ITEM(E, onDrawUI, req)
 
 #define RUN_SAMPLE(SGE_FN, ...) \
-	switch (_ctx->sampleFlag) { \
-		MySampleFlags_ENUM_LIST(RUN_SAMPLE__##SGE_FN) \
+	switch (req.type) { \
+		MySampleType_ENUM_LIST(RUN_SAMPLE__##SGE_FN) \
 	} \
 // ----------
-
 public:
-	void create(MySample_Context* ctx)	{ _ctx = ctx; RUN_SAMPLE(onCreate)			}
-	void update(float dt)				{ RUN_SAMPLE(onUpdate)						}
-	void render()						{ RUN_SAMPLE(onRender) RUN_SAMPLE(onDrawUI) }
 
+	static constexpr const Type kStartUpDefaultType = Type::AdditiveBlending;
+
+	void create(Request& req)	{ RUN_SAMPLE(onCreate) }
+	void update(Request& req)	{ RUN_SAMPLE(onUpdate) }
+	void render(Request& req)	{ RUN_SAMPLE(onRender) }
+	void drawUI(Request& req)	{ RUN_SAMPLE(onDrawUI) }
 #undef RUN_SAMPLE
 
 private:
-	void test_None_onCreate() {}
-	void test__END_onCreate() {}
-	void test_LitTexture_onCreate() {
+	void test_None_onCreate(Request& req) {}
+	void test__END_onCreate(Request& req) {}
+	void test_LitTexture_onCreate(Request& req) {
 		_debugPoints = new DebugDraw();
 		_debugLines  = new DebugDraw();
 
@@ -152,7 +167,7 @@ private:
 		};
 		_vertexTexCoords->uploadToGpu(ByteSpan_make(uvs.span()));
 	}
-	void test_AnimationScalarTrack_onCreate() {
+	void test_AnimationScalarTrack_onCreate(Request& req) {
 		_referenceLines		= new DebugDraw();
 		_scalarTrackLines	= new DebugDraw();
 		_handlePoints		= new DebugDraw();
@@ -384,7 +399,7 @@ private:
 			_handleLines->uploadToGpu();
 		}
 	}
-	void test_BezierAndHermiteCurve_onCreate() {
+	void test_BezierAndHermiteCurve_onCreate(Request& req) {
 		_debugPoints = new DebugDraw();
 		_debugLines  = new DebugDraw();
 
@@ -447,7 +462,7 @@ private:
 		_debugPoints->uploadToGpu();
 		_debugLines->uploadToGpu();
 	}
-	void test_AnimationClip_onCreate() {
+	void test_AnimationClip_onCreate(Request& req) {
 		_restPoseVisual    = new DebugDraw();
 		_bindPoseVisual    = new DebugDraw();
 		_currentPoseVisual = new DebugDraw();
@@ -473,8 +488,12 @@ private:
 				break;
 			}
 		}
+
+		req.mShowRestPose		= true;
+		req.mShowCurrentPose	= true;
+		req.mShowBindPose		= true;
 	}
-	void test_MeshSkinning_onCreate() {
+	void test_MeshSkinning_onCreate(Request& req) {
 		_texture = new Texture("Assets/Textures/Woman.png");
 		GLTFInfo info;
 		GLTFLoader::s_readFile(info, "Assets/Mesh/Woman.gltf");
@@ -530,7 +549,7 @@ private:
 			}
 		}
 	}
-	void test_AnimationBlending_onCreate() {
+	void test_AnimationBlending_onCreate(Request& req) {
 		_loadExampleAsset();
 		_createExampleShader();
 		_defaultSetAnimInfo();
@@ -558,7 +577,7 @@ private:
 			++i;
 		}
 	}
-	void test_Crossfading_onCreate() {
+	void test_Crossfading_onCreate(Request& req) {
 		_loadExampleAsset();
 		_createExampleShader();
 		_defaultSetAnimInfo();
@@ -569,7 +588,7 @@ private:
 
 		_fadeTimer = 2.0f;
 	}
-	void test_AdditiveBlending_onCreate() {
+	void test_AdditiveBlending_onCreate(Request& req) {
 		_loadExampleAsset();
 		_createExampleShader();
 		_defaultSetAnimInfo();
@@ -579,40 +598,38 @@ private:
 		_additiveTime = 0.f;
 		_additiveDirection = 1.f;
 	}
-	void test_CCD_onCreate() {
+	void test_CCD_onCreate(Request& req) {
 		_ccdSolver = make_unique< IKSolverExample<CCDSolver> >();
 		_ccdSolver->create();
 	}
-	void test_FABRIK_onCreate() {
+	void test_FABRIK_onCreate(Request& req) {
 		_fabrikSolver = make_unique< IKSolverExample<FABRIKSolver> >();
 		_fabrikSolver->create();
 	}
-	void test_CCD_BallSocketConstraint_onCreate() {
+	void test_CCD_BallSocketConstraint_onCreate(Request& req) {
 		_ccdBallSocketConstraint = BallSocketConstraintExample<CCDSolver>::instance();
 		_ccdBallSocketConstraint->create();
 	}
-	void test_FABRIK_BallSocketConstraint_onCreate() {
+	void test_FABRIK_BallSocketConstraint_onCreate(Request& req) {
 		_fabrikBallSocketConstraint = BallSocketConstraintExample<FABRIKSolver>::instance();
 		_fabrikBallSocketConstraint->create();
 	}
-	void test_CCD_HingeSocketConstraint_onCreate() {
+	void test_CCD_HingeSocketConstraint_onCreate(Request& req) {
 		_ccdHingeSocketConstraint = HingeSocketConstraintExample<CCDSolver>::instance();
 		_ccdHingeSocketConstraint->create();
 	}
-	void test_FABRIK_HingeSocketConstraint_onCreate() {
+	void test_FABRIK_HingeSocketConstraint_onCreate(Request& req) {
 		_fabrikHingeSocketConstraint = HingeSocketConstraintExample<FABRIKSolver>::instance();
 		_fabrikHingeSocketConstraint->create();
 	}
-	void test_RayCastTriangle_onCreate() {
+	void test_RayCastTriangle_onCreate(Request& req) {
 		_loadExampleAsset_AlignFeetOnTheGround();
 		_createExampleShader();
-
-		_ctx->bWireFrame = true;
 
 		_groundRayDebugDraw = new DebugDrawPL();
 		_debugPoints		= new DebugDraw();
 	}
-	void test_AlignFeetOnTheGround_onCreate() {
+	void test_AlignFeetOnTheGround_onCreate(Request& req) {
 		_loadExampleAsset();
 		_loadExampleAsset_AlignFeetOnTheGround();
 		_createExampleShader();
@@ -675,7 +692,7 @@ private:
 		_ankleToCurrentToeDebugDraw->setColor(DebugDraw::kRed);
 		_ankleToDesiredToeDebugDraw->setColor(DebugDraw::kGreen);
 
-		_ctx->bWireFrame		= false;
+		req.bWireFrame			= false;
 		_depthTest				= false;
 
 		_showIKPose				= false;
@@ -709,19 +726,23 @@ private:
 		}
 		model.position.y -= _sinkIntoGround;
 		_lastModelY = model.position.y;
+
+		req.mTimeMod			= 1.0f;
 	}
 
-	void test_None_onUpdate(float dt) {}
-	void test__END_onUpdate(float dt) {}
-	void test_LitTexture_onUpdate(float dt) {
+	void test_None_onUpdate(Request& req) {}
+	void test__END_onUpdate(Request& req) {}
+	void test_LitTexture_onUpdate(Request& req) {
+		auto& dt = req.dt;
 		_testRotation += dt * 45.0f;
 		while (_testRotation > 360.0f) {
 			_testRotation -= 360.0f;
 		}
 	}
-	void test_AnimationScalarTrack_onUpdate(float dt)  {}
-	void test_BezierAndHermiteCurve_onUpdate(float dt) {}
-	void test_AnimationClip_onUpdate(float dt) {
+	void test_AnimationScalarTrack_onUpdate(Request& req) {}
+	void test_BezierAndHermiteCurve_onUpdate(Request& req) {}
+	void test_AnimationClip_onUpdate(Request& req) {
+		auto& dt = req.dt;
 		static float s_clipLoopingTime = 0.f;
 		constexpr float kClipMaxLoopTime = 4.f;
 
@@ -737,7 +758,9 @@ private:
 		}
 		_currentPoseVisual->lineFromPose(_currentPose);
 	}
-	void test_MeshSkinning_onUpdate(float dt) {
+	void test_MeshSkinning_onUpdate(Request& req) {
+		auto& dt = req.dt;
+
 		{ // test cpu skinning
 #if 1 // test optimize clip
 			auto& clip = _fastClips[_cpuAnimInfo.clip];
@@ -780,7 +803,9 @@ private:
 #endif
 		}
 	}
-	void test_AnimationBlending_onUpdate(float dt) {
+	void test_AnimationBlending_onUpdate(Request& req) {
+		auto& dt = req.dt;
+
 		_blendAnimA.animatedSample(_clips, dt);
 		_blendAnimB.animatedSample(_clips, dt);
 
@@ -799,7 +824,9 @@ private:
 			_gpuAnimInfo.animatedPose = _skeleton.restPose();
 		}
 	}
-	void test_Crossfading_onUpdate(float dt) {
+	void test_Crossfading_onUpdate(Request& req) {
+		auto dt = req.dt;
+
 		CrossFadeController* fadeController = CrossFadeController::instance();
 		fadeController->update(dt);
 
@@ -811,7 +838,7 @@ private:
 			while (clip == _gpuAnimInfo.clip) {
 				clip = rand() % _clips.size();
 			}
-//			SGE_LOG("{} -> {}", _clips[_gpuAnimInfo.clip].name(), _clips[clip].name());
+			//			SGE_LOG("{} -> {}", _clips[_gpuAnimInfo.clip].name(), _clips[clip].name());
 			_gpuAnimInfo.clip = clip;
 
 			fadeController->fadeTo(&_clips[clip], 0.5f);
@@ -819,7 +846,9 @@ private:
 
 		fadeController->curPose().getMatrixPalette(_gpuAnimInfo.posePalette);
 	}
-	void test_AdditiveBlending_onUpdate(float dt) {
+	void test_AdditiveBlending_onUpdate(Request& req) {
+		auto& dt = req.dt;
+#if 0
 		_additiveTime += dt * _additiveDirection;
 		if (_additiveTime < 0) {
 			_additiveTime = 0;
@@ -829,7 +858,7 @@ private:
 			_additiveTime = 1;
 			_additiveDirection *= -1.f;
 		}
-
+#endif
 		{ // sample animatedPose
 			auto& clip = _clips[_gpuAnimInfo.clip];
 			_gpuAnimInfo.playback = clip.sample(_gpuAnimInfo.animatedPose, _gpuAnimInfo.playback + dt);
@@ -844,25 +873,31 @@ private:
 
 		_populatePosePalette();
 	}
-	void test_CCD_onUpdate(float dt) {
+	void test_CCD_onUpdate(Request& req) {
+		auto& dt = req.dt;
 		_ccdSolver->update(dt);
 	}
-	void test_FABRIK_onUpdate(float dt) {
+	void test_FABRIK_onUpdate(Request& req) {
+		auto& dt = req.dt;
 		_fabrikSolver->update(dt);
 	}
-	void test_CCD_BallSocketConstraint_onUpdate(float dt) {
+	void test_CCD_BallSocketConstraint_onUpdate(Request& req) {
+		auto& dt = req.dt;
 		_ccdBallSocketConstraint->update(dt);
 	}
-	void test_FABRIK_BallSocketConstraint_onUpdate(float dt) {
+	void test_FABRIK_BallSocketConstraint_onUpdate(Request& req) {
+		auto& dt = req.dt;
 		_fabrikBallSocketConstraint->update(dt);
 	}
-	void test_CCD_HingeSocketConstraint_onUpdate(float dt) {
+	void test_CCD_HingeSocketConstraint_onUpdate(Request& req) {
+		auto& dt = req.dt;
 		_ccdHingeSocketConstraint->update(dt);
 	}
-	void test_FABRIK_HingeSocketConstraint_onUpdate(float dt) {
+	void test_FABRIK_HingeSocketConstraint_onUpdate(Request& req) {
+		auto& dt = req.dt;
 		_fabrikHingeSocketConstraint->update(dt);
 	}
-	void test_RayCastTriangle_onUpdate(float dt) {
+	void test_RayCastTriangle_onUpdate(Request& req) {
 		_groundRayDebugDraw->clear();
 		_debugPoints->clear();
 
@@ -879,7 +914,7 @@ private:
 #if 1
 		for (auto& triangle : _triangles) {
 			if (IntersectionsUtil::raycastTriangle(ray, triangle, hitPoint)) {
-				if ((hitPoint- ray.origin).lenSq() < rayHeightSq) {
+				if ((hitPoint - ray.origin).lenSq() < rayHeightSq) {
 //					SGE_LOG("{}\nv0={}\nv1={}\nv2={}\n", hitPoint, triangle.v0, triangle.v1, triangle.v2);
 					_debugPoints->push_back(ray.origin);
 					_debugPoints->push_back(hitPoint);
@@ -888,12 +923,12 @@ private:
 			}
 		}
 #else
-/*
-		[0, -0.0011286736, 0]
-		v0=[-3.5999937, -0.001804769, -1.2090831]
-		v1=[4.401746, -0.001804769, 3.2887857]
-		v2=[4.401746, 0.0019281805, -1.2090831]
-*/
+		/*
+				[0, -0.0011286736, 0]
+				v0=[-3.5999937, -0.001804769, -1.2090831]
+				v1=[4.401746, -0.001804769, 3.2887857]
+				v2=[4.401746, 0.0019281805, -1.2090831]
+		*/
 		vec3f v0(-3.5999937f, -0.001804769f, -1.2090831f);
 		vec3f v1(4.401746f, -0.001804769f, 3.2887857f);
 		vec3f v2(4.401746f, 0.0019281805f, -1.2090831f);
@@ -911,8 +946,8 @@ private:
 		}
 #endif
 	}
-	void test_AlignFeetOnTheGround_onUpdate(float dt) {
-//		dt = 0;
+	void test_AlignFeetOnTheGround_onUpdate(Request& req) {
+		auto dt = req.dt * req.mTimeMod;
 
 		_groundRayDebugDraw->clear();
 		_ankleRayDebugDraw->clear();
@@ -1197,10 +1232,10 @@ private:
 		_populatePosePalette();
 	}
 
-	void test_None_onRender() {}
-	void test__END_onRender() {}
-	void test_LitTexture_onRender() {
-		mat4f projection = mat4f::s_perspective(60.0f, _ctx->aspect, 0.01f, 1000.0f);
+	void test_None_onRender(Request& req) {}
+	void test__END_onRender(Request& req) {}
+	void test_LitTexture_onRender(Request& req) {
+		mat4f projection = mat4f::s_perspective(60.0f, req.aspect, 0.01f, 1000.0f);
 		mat4f view = mat4f::s_lookAt(vec3f(0, 0, -5), vec3f::s_zero(), vec3f::s_up());
 		mat4f model = mat4f::s_quat(quat4f::s_angleAxis(Math::radians(_testRotation), vec3f::s_forward())); // or mat4f::s_identity();
 		mat4f mvp = projection * view * model;
@@ -1234,11 +1269,11 @@ private:
 		}
 		_staticShader->unbind();
 	}
-	void test_AnimationScalarTrack_onRender() {
+	void test_AnimationScalarTrack_onRender(Request& req) {
 		float t = 22.f;
 		float b = 0;
 		float l = 0;
-		float r = _ctx->aspect * t;
+		float r = req.aspect * t;
 		float n = 0.01f;
 		float f = 5.f;
 		mat4f projection = mat4f::s_ortho(l, r, b, t, n, f);
@@ -1250,25 +1285,32 @@ private:
 		_handlePoints->draw(DebugDrawMode::Points, mvp, DebugDraw::kBlue);
 		_handleLines->draw(DebugDrawMode::Lines, mvp, DebugDraw::kPurple);
 	}
-	void test_BezierAndHermiteCurve_onRender() {
-		mat4f projection = mat4f::s_perspective(60.0f, _ctx->aspect, 0.01f, 1000.0f);
+	void test_BezierAndHermiteCurve_onRender(Request& req) {
+		mat4f projection = mat4f::s_perspective(60.0f, req.aspect, 0.01f, 1000.0f);
 		mat4f view       = mat4f::s_lookAt(vec3f(0, 0, -5), vec3f::s_zero(), vec3f::s_up());
 		mat4f mvp        = projection * view * mat4f::s_identity();
 		_debugLines->draw(DebugDrawMode::Lines, mvp);
 		_debugPoints->draw(DebugDrawMode::Points, mvp, DebugDraw::kBlue);
 	}
-	void test_AnimationClip_onRender() {
-		mat4f projection = mat4f::s_perspective(60.0f, _ctx->aspect, 0.01f, 10.f);
+	void test_AnimationClip_onRender(Request& req) {
+		mat4f projection = mat4f::s_perspective(60.0f, req.aspect, 0.01f, 10.f);
 		mat4f view = mat4f::s_lookAt(vec3f(0, 4, -7), vec3f(0, 4, 0), vec3f::s_up());
 		mat4f mvp = projection * view;
 
-		_restPoseVisual->draw(DebugDrawMode::Lines, mvp, DebugDraw::kRed);
-		_bindPoseVisual->draw(DebugDrawMode::Lines, mvp, DebugDraw::kGreen);
-		_currentPoseVisual->uploadToGpu();
-		_currentPoseVisual->draw(DebugDrawMode::Lines, mvp, DebugDraw::kBlue);
+		if (req.mShowRestPose) {
+			_restPoseVisual->draw(DebugDrawMode::Lines, mvp, DebugDraw::kRed);
+		}
+
+		if (req.mShowCurrentPose) {
+			_currentPoseVisual->uploadToGpu();
+			_currentPoseVisual->draw(DebugDrawMode::Lines, mvp, DebugDraw::kBlue);
+		}
+		if (req.mShowBindPose) {
+			_bindPoseVisual->draw(DebugDrawMode::Lines, mvp, DebugDraw::kGreen);
+		}
 	}
-	void test_MeshSkinning_onRender() {
-		mat4f projection = mat4f::s_perspective(60.0f, _ctx->aspect, 0.01f, 10.f);
+	void test_MeshSkinning_onRender(Request& req) {
+		mat4f projection = mat4f::s_perspective(60.0f, req.aspect, 0.01f, 10.f);
 		mat4f view = mat4f::s_lookAt(vec3f(0, 5, 7), vec3f(0, 3, 0), vec3f::s_up());
 
 		{ // test cpu skinning
@@ -1320,35 +1362,37 @@ private:
 			_skinnedShader->unbind();
 		}
 	}
-	void test_AnimationBlending_onRender() {
-		_onDrawGpuSkinningByDefault();
+	void test_AnimationBlending_onRender(Request& req) {
+		_onDrawGpuSkinningByDefault(req);
 	}
-	void test_Crossfading_onRender() {
-		_onDrawGpuSkinningByDefault();
+	void test_Crossfading_onRender(Request& req) {
+		_onDrawGpuSkinningByDefault(req);
 	}
-	void test_AdditiveBlending_onRender() {
-		_onDrawGpuSkinningByDefault();
+	void test_AdditiveBlending_onRender(Request& req) {
+		_onDrawGpuSkinningByDefault(req);
 	}
-	void test_CCD_onRender() {
-		_ccdSolver->render(_ctx->aspect);
+	void test_CCD_onRender(Request& req) {
+		_ccdSolver->render(req.aspect);
 	}
-	void test_FABRIK_onRender() {
-		_fabrikSolver->render(_ctx->aspect);
+	void test_FABRIK_onRender(Request& req) {
+		_fabrikSolver->render(req.aspect);
 	}
-	void test_CCD_BallSocketConstraint_onRender() {
-		_ccdBallSocketConstraint->render(_ctx->aspect);
+	void test_CCD_BallSocketConstraint_onRender(Request& req) {
+		_ccdBallSocketConstraint->render(req.aspect);
 	}
-	void test_FABRIK_BallSocketConstraint_onRender() {
-		_fabrikBallSocketConstraint->render(_ctx->aspect);
+	void test_FABRIK_BallSocketConstraint_onRender(Request& req) {
+		_fabrikBallSocketConstraint->render(req.aspect);
 	}
-	void test_CCD_HingeSocketConstraint_onRender() {
-		_ccdHingeSocketConstraint->render(_ctx->aspect);
+	void test_CCD_HingeSocketConstraint_onRender(Request& req) {
+		_ccdHingeSocketConstraint->render(req.aspect);
 	}
-	void test_FABRIK_HingeSocketConstraint_onRender() {
-		_fabrikHingeSocketConstraint->render(_ctx->aspect);
+	void test_FABRIK_HingeSocketConstraint_onRender(Request& req) {
+		_fabrikHingeSocketConstraint->render(req.aspect);
 	}
-	void test_RayCastTriangle_onRender() {
-		mat4f projection = mat4f::s_perspective(60.0f, _ctx->aspect, 0.01f, 100.f);
+	void test_RayCastTriangle_onRender(Request& req) {
+		req.bWireFrame = true;
+
+		mat4f projection = mat4f::s_perspective(60.0f, req.aspect, 0.01f, 100.f);
 		mat4f view = mat4f::s_lookAt(vec3f(0, 7, 20), vec3f::s_zero(), vec3f::s_up());
 		mat4f mvp = projection * view * mat4f::s_identity();
 		_onDrawStaticMesh(projection, view, _ikCourse, _ikCourseTexture);
@@ -1357,13 +1401,13 @@ private:
 		_debugPoints->draw(DebugDrawMode::Points, mvp, DebugDraw::kGreen);
 		_groundRayDebugDraw->draw(mvp);
 	}
-	void test_AlignFeetOnTheGround_onRender() {
+	void test_AlignFeetOnTheGround_onRender(Request& req) {
 		auto& modelTran = _gpuAnimInfo.model;
 		float modelPosX = modelTran.position.x;
 		float modelPosZ = modelTran.position.z;
 		mat4 model		= mat4::s_transform(modelTran);
 
-		mat4 projection = mat4::s_perspective(60.0f, _ctx->aspect, 0.01f, 1000.0f);
+		mat4 projection = mat4::s_perspective(60.0f, req.aspect, 0.01f, 1000.0f);
 		mat4 view = mat4::s_lookAt(
 			vec3f(modelPosX, 0, modelPosZ) + vec3f(0, 5, 10),
 			vec3f(modelPosX, 0, modelPosZ) + vec3f(0, 3, 0),
@@ -1411,33 +1455,167 @@ private:
 		if (!_depthTest) glEnable(GL_DEPTH_TEST);
 	}
 	
-	void test_None_onDrawUI() {
+	void test_None_onDrawUI(Request& req) {
 		NuklearUI::demo();
 	}
-	void test__END_onDrawUI() {}
-	void test_LitTexture_onDrawUI() {}
-	void test_AnimationScalarTrack_onDrawUI() {}
-	void test_BezierAndHermiteCurve_onDrawUI() {}
-	void test_AnimationClip_onDrawUI() {}
-	void test_MeshSkinning_onDrawUI() {}
-	void test_AnimationBlending_onDrawUI() {}
-	void test_Crossfading_onDrawUI() {}
-	void test_AdditiveBlending_onDrawUI() {}
-	void test_CCD_onDrawUI() {}
-	void test_FABRIK_onDrawUI() {}
-	void test_CCD_BallSocketConstraint_onDrawUI() {}
-	void test_FABRIK_BallSocketConstraint_onDrawUI() {}
-	void test_CCD_HingeSocketConstraint_onDrawUI() {}
-	void test_FABRIK_HingeSocketConstraint_onDrawUI() {}
-	void test_RayCastTriangle_onDrawUI() {}
-	void test_AlignFeetOnTheGround_onDrawUI() {}
+	void test__END_onDrawUI(Request& req) {}
+	void test_LitTexture_onDrawUI(Request& req) {}
+	void test_AnimationScalarTrack_onDrawUI(Request& req) {}
+	void test_BezierAndHermiteCurve_onDrawUI(Request& req) {}
+	void test_AnimationClip_onDrawUI(Request& req) {
+		Rect2f xywh { 5.0f, 5.0f + req.s_HeaderHeight(), 300.0f, 135.0f};
+		NuklearUI::Window window(xywh);
+		
+		static const float layout[] = { 75, 200 };
+		NuklearUI::LayoutRow row(NK_STATIC, 25, 2, layout);
+		NuklearUI::Label("Animation:");
+		NuklearUI::Combo combo(_clipNames, _currentClip, 25, { 200, 200 });
+		if (combo.selectedIndex() != _currentClip) {
+			_currentPose = _skeleton.restPose();
+			_currentClip = combo.selectedIndex();
+		}
+
+		NuklearUI::Label("Playback:");
+		auto& clip = _clips[_currentClip];
+		float startTime = clip.getStartTime();
+		float duration	= clip.getDuration();
+		float progress = (_playbackTime - startTime) / duration;
+		size_t prog = static_cast<size_t>(progress * 200.0f);
+		NuklearUI::Progress(prog, 200, NK_FIXED);
+
+		NuklearUI::LayoutRowDynamic(20, 1);
+
+		NuklearUI::CheckboxLabel cb1("Show Rest Pose", req.mShowRestPose);
+		if (cb1.isOpen()) {
+			req.mShowRestPose = cb1.isActive();
+		}
+		NuklearUI::CheckboxLabel cb2("Show Current Pose", req.mShowCurrentPose);
+		if (cb2.isOpen()) {
+			req.mShowCurrentPose = cb2.isActive();
+		}
+		NuklearUI::CheckboxLabel cb3("Show Bind Pose", req.mShowBindPose);
+		if (cb3.isOpen()) {
+			req.mShowBindPose = cb3.isActive();
+		}
+	}
+	void test_MeshSkinning_onDrawUI(Request& req) {}
+	void test_AnimationBlending_onDrawUI(Request& req) {}
+	void test_Crossfading_onDrawUI(Request& req) {}
+	void test_AdditiveBlending_onDrawUI(Request& req) {
+		auto& currentClip		= _gpuAnimInfo.clip;
+		auto& playbackTime		= _gpuAnimInfo.playback;
+		auto& mAdditiveIndex	= _gpuAnimInfo.additiveClip;
+		auto& mAdditiveBase		= _gpuAnimInfo.additiveBasePose;
+		auto& mSkeleton			= _skeleton;
+
+		Rect2f xywh{ 5.0f, 5.0f + req.s_HeaderHeight(), 300.0f, 225.0f };
+		NuklearUI::Window window(xywh);
+		static const float layout[] = { 75, 200 };
+		NuklearUI::LayoutRow(NK_STATIC, 25, 2, layout);
+
+		NuklearUI::Label("Animation:");
+		NuklearUI::Combo combo(_clipNames, currentClip, 25, { 200, 200 });
+		if (combo.selectedIndex() != currentClip) {
+			_gpuAnimInfo.animatedPose = mSkeleton.restPose();
+			currentClip = combo.selectedIndex();
+		}
+
+		NuklearUI::Label("Playback:");
+		auto& clip = _clips[currentClip];
+		float startTime = clip.getStartTime();
+		float duration = clip.getDuration();
+		float progress = (playbackTime - startTime) / duration;
+		size_t prog = static_cast<size_t>(progress * 200.0f);
+		NuklearUI::Progress(prog, 200, NK_FIXED);
+
+		NuklearUI::LayoutRowDynamic(20, 1);
+#if 0
+		NuklearUI::CheckboxLabel cb1("Show Rest Pose", req.mShowRestPose);
+		if (cb1.isOpen()) {
+			req.mShowRestPose = cb1.isActive();
+		}
+#endif
+		NuklearUI::Label("Additive:");
+		NuklearUI::Combo combo2(_clipNames, mAdditiveIndex, 25, { 200, 200 });
+		if (combo2.selectedIndex() != mAdditiveIndex) {
+			_clips[mAdditiveIndex].setIsLoop(true);
+			mAdditiveIndex = combo2.selectedIndex();
+			mAdditiveBase = Blending::makeAdditiveBasePose(_skeleton, _clips[mAdditiveIndex]);
+			_clips[mAdditiveIndex].setIsLoop(true);
+		}
+
+		NuklearUI::Label("Strength:");
+		NuklearUI::SliderFloat(&_additiveTime, 0.0f, 1.0f);
+#if 0
+		NuklearUI::LayoutRowDynamic(20, 1);
+		NuklearUI::CheckboxLabel cb("Show Current Pose", req.mShowCurrentPose);
+		if (cb.isOpen()) {
+			req.mShowCurrentPose = cb.isActive();
+		}
+#endif
+	}
+	void test_CCD_onDrawUI(Request& req) {}
+	void test_FABRIK_onDrawUI(Request& req) {}
+	void test_CCD_BallSocketConstraint_onDrawUI(Request& req) {}
+	void test_FABRIK_BallSocketConstraint_onDrawUI(Request& req) {}
+	void test_CCD_HingeSocketConstraint_onDrawUI(Request& req) {}
+	void test_FABRIK_HingeSocketConstraint_onDrawUI(Request& req) {}
+	void test_RayCastTriangle_onDrawUI(Request& req) {}
+	void test_AlignFeetOnTheGround_onDrawUI(Request& req) {
+		Rect2f xywh { 5.0f, 5.0f + req.s_HeaderHeight(), 300.0f, 330.0f };
+		NuklearUI::Window window(xywh);
+		static const float layout[] = { 75, 200 };
+		NuklearUI::LayoutRow row(NK_STATIC, 25, 2, layout);
+
+		NuklearUI::Label("Time speed:");
+		NuklearUI::SliderFloat(&req.mTimeMod, 0.0f, 2.0f);
+		NuklearUI::LayoutRowDynamic(20, 1);
+
+#define E(MemberName) \
+		{ \
+			NuklearUI::CheckboxLabel cb(#MemberName, MemberName); \
+			if (cb.isOpen()) { \
+				MemberName = cb.isActive(); \
+			} \
+		} \
+// ----
+		E(_depthTest)
+		E(_showMesh)
+		E(_showEnvironment)
+		E(_showCurrentPose)
+		E(_showIKPose)
+		E(_showGroundRayCast)
+		E(_showAnkleRayCast)
+		E(_showAnkle2ToeRayCast)
+		E(_showToeRayCast)
+		E(_showToeAdjustRayCast)
+#undef E
+	}
 
 private:
 
-	void _onDrawGpuSkinningByDefault() {
-		mat4f projection = mat4f::s_perspective(60.0f, _ctx->aspect, 0.01f, 10.f);
+	void _onDrawGpuSkinningByDefault(Request& req) {
+		mat4f projection = mat4f::s_perspective(60.0f, req.aspect, 0.01f, 10.f);
 		mat4f view       = mat4f::s_lookAt(vec3f(0, 3, 7), vec3f(0, 3, 0), vec3f::s_up());
 		_onDrawGpuSkinning(projection, view);
+
+#if 0
+		mat4f model = mat4f::s_transform(_gpuAnimInfo.model);
+		mat4f mvp = projection * view * model;
+		glDisable(GL_DEPTH_TEST);
+		if (req.mShowRestPose) {
+			_restPoseVisual->draw(DebugDrawMode::Lines, mvp, DebugDraw::kRed);
+		}
+
+		if (req.mShowCurrentPose) {
+			_currentPoseVisual->uploadToGpu();
+			_currentPoseVisual->draw(DebugDrawMode::Lines, mvp, DebugDraw::kBlue);
+		}
+		if (req.mShowBindPose) {
+			_bindPoseVisual->draw(DebugDrawMode::Lines, mvp, DebugDraw::kGreen);
+		}
+		glEnable(GL_DEPTH_TEST);
+#endif
 	}
 
 	void _onDrawGpuSkinning(const mat4f& projection, const mat4f& view) {
@@ -1495,8 +1673,8 @@ private:
 	}
 
 	void _loadExampleAsset() {
-		constexpr const char* kGltfFileName = "Assets/Mesh/Woman.gltf";
-		constexpr const char* kTextureFileName = "Assets/Textures/Woman.png";
+		constexpr const char* kGltfFileName		= "Assets/Mesh/Woman.gltf";
+		constexpr const char* kTextureFileName  = "Assets/Textures/Woman.png";
 
 		GLTFInfo info;
 		GLTFLoader::s_readFile(info, kGltfFileName);
@@ -1504,6 +1682,7 @@ private:
 		_skeleton.create(info);
 		_clips.reserve(info.animationClips.size());
 		_clips = std::move(info.animationClips);
+		_clipNames = std::move(info.animationClipNames);
 
 		_cpuMeshes.reserve(info.skinMeshes.size());
 		_cpuMeshes.appendRange(info.skinMeshes);
@@ -1587,9 +1766,6 @@ private:
 	}
 
 private:
-
-	MySample_Context*							_ctx;
-
 	float										_testRotation = 0.0f;
 
 	SPtr<Shader>								_staticShader;
@@ -1614,6 +1790,7 @@ private:
 	Skeleton									_skeleton;
 	Pose										_currentPose;
 	Vector<Clip>								_clips;
+	Vector<String>								_clipNames;
 	int											_currentClip;
 	float										_playbackTime;
 
@@ -1686,14 +1863,23 @@ private:
 	SPtr<DebugDrawPL>							_ankleToDesiredToeDebugDraw;
 };
 
+
+
 class GameAnimeProgMainWin : public NativeUIWindow {
 	using Base = NativeUIWindow;
 public:
+	using Type = MySampleType;
+
+	static constexpr const int kSampleCount = enumInt(Type::_END);
+
 	void update(float dt) {
+		_sampleRequest.dt = dt;
+
 		if (_vertexArrayObject == 0)
 			return;
 
-		if (_sample) _sample->update(dt);
+		if (_sampleContext)
+			_sampleContext->update(_sampleRequest);
 	}
 
 	void render() {
@@ -1701,58 +1887,20 @@ public:
 			return;
 
 		_beginRender();
-		if (_sample) _sample->render();
-		_renderImGui();
+
+		if (_sampleContext) {
+			_sampleContext->render(_sampleRequest);
+
+			if (_bShowUI) {
+				_sampleContext->drawUI(_sampleRequest);
+			}
+		}
+
+		if (_bShowUI) {
+			_drawUI();
+		}
+		
 		_endRender();
-	}
-
-	void switchSample(MySampleFlags flag) {
-		if (_ctx.sampleFlag == flag)
-			return;
-
-		if (_sample) {
-			_sample.release();
-			_sample = nullptr;
-		}
-		_ctx.reset();
-		_ctx.sampleFlag = flag;
-		_sample = make_unique<MySample>();
-		_sample->create(&_ctx);
-	}
-
-private:
-	void _renderImGui() {
-		const float& clientWidth  = _clientRect.size.x;
-		const float& clientHeight = _clientRect.size.y;
-
-		NuklearUI::render(clientWidth  * _invScaleFactor,
-						  clientHeight * _invScaleFactor,
-						  clientWidth,
-						  clientHeight);
-
-		if (_ctx.sampleFlag != MySampleFlags::None) {
-			static Rect2f sBound = { 0, clientHeight - 100, 100.0f, 100.0f };
-			NuklearUI::Box box("Sample Exit", sBound, NK_WINDOW_TITLE | NK_WINDOW_MOVABLE | NK_WINDOW_NO_SCROLLBAR);
-			NuklearUI::LayoutRowStatic layout(sBound.h-40, sBound.w - 20);
-			NuklearUI::ButtonLabel btn("X");
-			if (btn.isOpen()) {
-				switchSample(MySampleFlags::None);
-			}
-		}
-		else {
-			static Vec2f sBoxXY		= { 50.f,  20.f };
-			static Vec2f sItemSize	= { 250.f, 25.f };
-			NuklearUI::BoxStaticVerticalLayout box("Sample Selector", sBoxXY, sItemSize, kSampleCount);
-
-			TempString sampleDesc;
-			int i = 1;
-			for (auto flag = MySampleFlags::None + 1; flag != MySampleFlags::_END; flag += 1, ++i) {
-				sampleDesc.clear();
-				FmtTo(sampleDesc, "{}. {}", i, flag);
-				NuklearUI::ButtonLabel btn(sampleDesc);
-				if (btn.isOpen()) switchSample(flag);
-			}
-		}
 	}
 
 protected:
@@ -1827,30 +1975,21 @@ protected:
 			}
 		}
 
-		glGenQueries(1, &_gpuApplicationStart);
-		glGenQueries(1, &_gpuApplicationStop);
-		glGenQueries(1, &_gpuImguiStart);
-		glGenQueries(1, &_gpuImguiStop);
-
 		// Setup some OpenGL required state
 		glGenVertexArrays(1, &_vertexArrayObject);
 		glBindVertexArray(_vertexArrayObject);
 
 		// create Nuklear
 		NuklearUI::createContext();
-		_sample = make_unique<MySample>();
-		_sample->create(&_ctx);
+
+		// create sample
+		_createSample();
 	}
 
 	virtual void onCloseButton() override {
 		if (_vertexArrayObject != 0) {
-			HDC dc = hdc();
+			HDC dc		= hdc();
 			HGLRC hglrc = wglGetCurrentContext();
-
-			glDeleteQueries(1, &_gpuApplicationStart);
-			glDeleteQueries(1, &_gpuApplicationStop);
-			glDeleteQueries(1, &_gpuImguiStart);
-			glDeleteQueries(1, &_gpuImguiStop);
 
 			// delete VAO
 			glBindVertexArray(0);
@@ -1874,31 +2013,60 @@ protected:
 	}
 
 	virtual void onUIKeyboardEvent(UIKeyboardEvent& ev) override {
+		using KeyCode = UIKeyboardEventKeyCode;
+
 		NuklearUI::onUIKeyboardEvent(ev);
+
+		if (ev.isDown(KeyCode::Escape)) {
+			_exitSample();
+		}
+		if (ev.isDown(KeyCode::Tab)) {
+			if (ev.IsModifierKeyDown(KeyCode::Shift)) {
+				_switchToLastSample(); 
+			} else {
+				_switchToNextSample();
+			}
+		}
+
+		if (ev.isDown(KeyCode::Space)) {
+			_bShowSettingWindow = !_bShowSettingWindow;
+		}
+
+		if (ev.IsModifierKeyDown(KeyCode::Ctrl)) {
+			static float const kValueStep = 0.1f;
+			auto& scaleFactor = NuklearUI::scaleFactor;
+			if (ev.isDown(KeyCode::Equals)) {
+				scaleFactor += kValueStep;
+			}
+			else if (ev.isDown(KeyCode::Hyphen)) {
+				scaleFactor = Math::max(1.0f, scaleFactor - kValueStep);
+			}
+			else if (ev.isDown(KeyCode::R)) {
+				scaleFactor = 1.0f;
+			}
+			else if (ev.isDown(KeyCode::H)) {
+				_bShowUI = !_bShowUI;
+			}
+		}
 	}
 
 private:
 	void _beginRender() {
-		float clientWidth	= _clientRect.size.x;
-		float clientHeight	= _clientRect.size.y;
-		glViewport(0, 0, static_cast<GLsizei>(clientWidth), static_cast<GLsizei>(clientHeight));
 
+		const Vec2f& clientSize	= clientRect().size;
+		_aspect = clientSize.x / clientSize.y;
+
+		glViewport(0, 0, static_cast<GLsizei>(clientSize.x), static_cast<GLsizei>(clientSize.y));
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_CULL_FACE);
-		glPointSize(5.0f * _scaleFactor);
-		glLineWidth(1.5f * _scaleFactor);
+		glPointSize(5.0f * NuklearUI::scaleFactor);
+		glLineWidth(1.5f * NuklearUI::scaleFactor);
 
 		glBindVertexArray(_vertexArrayObject);
 		glClearColor(0.5f, 0.6f, 0.7f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-		_ctx.aspect = _clientRect.size.x / _clientRect.size.y;
-
-		if (_ctx.bWireFrame) {
-			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		} else {
-			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		}
+		_uploadWireFrameMode();
 	}
 
 	void _endRender() {
@@ -1908,20 +2076,127 @@ private:
 		}
 	}
 
-	static constexpr int kSampleCount = enumInt(MySampleFlags::_END) - 1;
+	void _drawSampleSelectorWindow() {
+		const Vec2f& clientSize = clientRect().size;
 
-	GLuint				_vertexArrayObject		= 0;
-	GLuint				_gpuApplicationStart	= 0;
-	GLuint				_gpuApplicationStop		= 0;
-	GLuint				_gpuImguiStart			= 0;
-	GLuint				_gpuImguiStop			= 0;
+		TempString title;
+		if (_type != Type::None) {
+			FmtTo(title, "{}. {}", enumInt(_type), _type);
+			Rect2f xywh { 0, 0, NuklearUI::Util::toNKSize(clientSize.x), 0 };
+			NuklearUI::Window window(xywh, title);
+			if (!window.isOpen()) {
+				_exitSample();
+			}
+			return;
+		}
 
-	float				_scaleFactor			= 1.0f;
-	float				_invScaleFactor			= 1.0f;
-	int					_vsynch					= 0;
+		static Vec2f pos		{ 50.f,  20.f };
+		static Vec2f sItemSize	{ 250.f, 25.f };
+		static const int sItemCount = kSampleCount - 1;
+		Rect2f xywh = {
+			pos.x,
+			pos.y,
+			sItemSize.x + NuklearUI::LayoutRowStatic::kItemWMargin,
+			sItemCount * (sItemSize.y + NuklearUI::LayoutRowStatic::kItemHMargin)
+		};
+		NuklearUI::Window window(xywh, "My Sample Selector", NuklearUI::Window::kMovableStyle);
+		if (!window.isOpen()) {
+			return;
+		}
+		NuklearUI::LayoutRowStatic layout(sItemSize.y, sItemSize.x);
+		for (auto flag = Type::None + 1; flag != Type::_END; flag += 1) {
+			title.clear();
+			FmtTo(title, "{}. {}", enumInt(flag), flag);
+			NuklearUI::ButtonLabel btn(title);
+			if (btn.isOpen()) {
+				_switchSample(flag);
+			}
+		}
+	}
+	
+	void _drawSettingWindow() {
+		if (!_bShowSettingWindow) return;
+		//const Vec2f& clientSize = clientRect().size;
+		auto& scaleFactor = NuklearUI::scaleFactor;
+		Rect2f xywh = { 0, 0/*clientSize.y - h * scale*/, 220.f/*clientSize.x / scale*/, 60.f };
+		NuklearUI::Window window(xywh, "ScaleFactor:");
+		if (!window.isOpen()) {
+			_bShowSettingWindow = false;
+			return;
+		}
+		auto windowSize = NuklearUI::windowGetSize();
+		NuklearUI::LayoutRowStatic layout(0, windowSize.x - 25.f);
+		NuklearUI::SliderFloat(&scaleFactor, 1.0f, 2.0f);
+	}
 
-	MySample_Context	_ctx;
-	UPtr<MySample>		_sample;
+	void _drawUI() {
+		{
+			auto noWireFrame = makeScopedValue(&_bWireFrame, false);
+			_uploadWireFrameMode();
+
+			_drawSampleSelectorWindow();
+			_drawSettingWindow();
+
+			NuklearUI::render(clientRect().size);
+		}
+		_uploadWireFrameMode();
+	}
+
+	void _uploadWireFrameMode() {
+		glPolygonMode(GL_FRONT_AND_BACK, _bWireFrame ? GL_LINE : GL_FILL);
+	}
+
+	void _switchSample(Type newType) {
+		if (_type == newType)
+			return;
+
+		_destroySample();
+
+		_sampleRequest.reset();
+		_type = newType;
+
+		_createSample();
+	}
+
+	void _exitSample() {
+		_switchSample(Type::None);
+	}
+
+	void _switchToLastSample() {
+		int sampleIndex = (enumInt(_type) - 1 + kSampleCount) % kSampleCount;
+		_switchSample(static_cast<Type>(sampleIndex));
+	}
+
+	void _switchToNextSample() {
+		int sampleIndex = (enumInt(_type) + 1) % kSampleCount;
+		_switchSample(static_cast<Type>(sampleIndex));
+	}
+
+	void _destroySample() {
+		if (_sampleContext) {
+			_sampleContext.release();
+			_sampleContext = nullptr;
+		}
+	}
+
+	void _createSample() {
+		_destroySample();
+		_sampleContext = make_unique<SampleContext>();
+		_sampleContext->create(_sampleRequest);
+	}
+
+	GLuint					_vertexArrayObject	= 0;
+	int						_vsynch				= 0;
+
+	Type					_type				= SampleContext::kStartUpDefaultType;
+	float					_aspect				= 0;
+	bool					_bWireFrame			= false;
+
+	SampleRequest			_sampleRequest { _type, _aspect, _bWireFrame };
+	UPtr<SampleContext>		_sampleContext;
+
+	bool _bShowUI			 = true;
+	bool _bShowSettingWindow = false;
 };
 
 class GameAnimeProgApp : public NativeUIApp {
@@ -1943,7 +2218,7 @@ protected:
 		{ // create window
 			NativeUIWindow::CreateDesc winDesc;
 			winDesc.isMainWindow = true;
-			winDesc.rect = { 10, 10, 800, 600 };
+			winDesc.rect = { 10, 10, 1500, 1080 };
 			_mainWin.create(winDesc);
 			_mainWin.setWindowTitle("SGE Game Anime Prog Window");
 		}

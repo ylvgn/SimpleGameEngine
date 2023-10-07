@@ -22,6 +22,7 @@ private:
 	// In this book, we will assume that a glTF file only contains one animated character.
 	// It's safe to assume that the entire hierarchy of the glTF file can be treated as the skeleton of the model.
 	void _loadAnimationClips();
+	void _loadAnimationClipNames();
 
 	void _loadRestPose();
 	void _loadBindPose();

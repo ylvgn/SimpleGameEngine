@@ -13,6 +13,8 @@ namespace NuklearUI {
 
 nk_context* NuklearUI::g_ctx = nullptr;
 
+float NuklearUI::scaleFactor = 1.5f;
+
 void createContext() {
 	SGE_ASSERT(g_ctx == nullptr);
 	g_ctx = nk_win32_init();
@@ -25,25 +27,28 @@ void destroyContext() {
 	}
 }
 
-void onUIMouseEvent(UIMouseEvent& ev) {
+bool onUIMouseEvent(UIMouseEvent& ev) {
 	using Button	= UIMouseEventButton;
 	using Type		= UIMouseEventType;
 
+	Vec2i pos = Vec2i::s_cast(ev.pos / NuklearUI::scaleFactor);
+
 	switch (ev.type) {
 		case Type::Move: {
-			nk_input_motion(g_ctx, static_cast<int>(ev.pos.x), static_cast<int>(ev.pos.y));
+			nk_input_motion(g_ctx, pos.x, pos.y);
 		} break;
 		case Type::Down: {
-			nk_input_button(g_ctx, Util::mouseButton(ev.button), static_cast<int>(ev.pos.x), static_cast<int>(ev.pos.y), 1);
+			nk_input_button(g_ctx, Util::mouseButton(ev.button), pos.x, pos.y, 1);
 		} break;
 		case Type::Up: {
-			nk_input_button(g_ctx, Util::mouseButton(ev.button), static_cast<int>(ev.pos.x), static_cast<int>(ev.pos.y), 0);
+			nk_input_button(g_ctx, Util::mouseButton(ev.button), pos.x, pos.y, 0);
 		} break;
 		case Type::Scroll: {
-			auto d = ev.scroll * -0.005f;
-			nk_input_scroll(g_ctx, Util::toVec2(d));
+			nk_input_scroll(g_ctx, Util::toNKVec2(ev.scroll));
 		} break;
 	}
+
+	return windowIsAnyHovered();
 }
 
 void onUIKeyboardEvent(UIKeyboardEvent& ev) {
@@ -113,11 +118,11 @@ void onUIKeyboardEvent(UIKeyboardEvent& ev) {
 	}
 }
 
-void render(float width, float height, float displayWidth, float displayHeight) {
-	nk_win32_render(static_cast<int>(width),
-					static_cast<int>(height),
-					static_cast<int>(displayWidth),
-					static_cast<int>(displayHeight));
+void render(const Vec2f& viewportSize) {
+	nk_win32_render(static_cast<int>(viewportSize.x / NuklearUI::scaleFactor),
+					static_cast<int>(viewportSize.y / NuklearUI::scaleFactor),
+					static_cast<int>(viewportSize.x),
+					static_cast<int>(viewportSize.y));
 }
 
 void demo()	{

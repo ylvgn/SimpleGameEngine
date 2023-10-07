@@ -314,6 +314,7 @@ void GLTFLoader::_readMem(Info& outInfo, ByteSpan data, StrView filename) {
 
 	_loadSkeleton();
 	_loadAnimationClips();
+	_loadAnimationClipNames();
 	_loadSkinMeshes();
 	_loadStaticMeshes();
 }
@@ -396,6 +397,20 @@ void GLTFLoader::_loadAnimationClips() {
 			}
 		}
 		o[i].recalculateDuration();
+	}
+}
+
+void GLTFLoader::_loadAnimationClipNames() {
+	auto& src = _outInfo->animationClips;
+	if (src.size() == 0) {
+		_loadAnimationClips();
+	}
+	auto& o = _outInfo->animationClipNames;
+	o.resize(src.size());
+	int i = 0;
+	for (auto& clip : src) {
+		const auto& name = clip.name();
+		o[i++].assign(name.data(), name.size());
 	}
 }
 
