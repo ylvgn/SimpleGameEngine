@@ -175,7 +175,8 @@ public:
 	static constexpr nk_flags kMovableStyle   = kDefaultStyle | NK_WINDOW_MOVABLE;
 	static constexpr nk_flags kMinizableStyle = kDefaultStyle | NK_WINDOW_MINIMIZABLE;
 	static constexpr nk_flags kCloseableStyle = kDefaultStyle | NK_WINDOW_CLOSABLE;
-
+	static constexpr nk_flags kScalableStyle = kDefaultStyle | NK_WINDOW_SCALABLE;
+	
 	Window(	const Rect2f& bounds,
 			StrView title = "",
 			nk_flags flags = kDefaultStyle)

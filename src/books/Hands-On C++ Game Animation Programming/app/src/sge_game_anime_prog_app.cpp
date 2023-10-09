@@ -57,6 +57,7 @@ public:
 	const Type&		type;
 	const float&	aspect;
 	bool&			bWireFrame;
+	Math::Camera3f&	camera;
 	
 	float			dt;
 
@@ -94,7 +95,7 @@ class SampleContext : public NonCopyable {
 // ----------
 public:
 
-	static constexpr const Type kStartUpDefaultType = Type::AdditiveBlending;
+	static constexpr const Type kStartUpDefaultType = Type::None;
 
 	void create(Request& req)	{ RUN_SAMPLE(onCreate) }
 	void update(Request& req)	{ RUN_SAMPLE(onUpdate) }
@@ -166,6 +167,15 @@ private:
 			vec2f(1,1),
 		};
 		_vertexTexCoords->uploadToGpu(ByteSpan_make(uvs.span()));
+
+		// mat4f::s_lookAt(vec3f(0, 0, -5), vec3f::s_zero(), vec3f::s_up());
+		req.camera.setPos(0, 0, -5);
+		req.camera.setAim(0, 0, 0);
+
+		// mat4f::s_perspective(60.0f, req.aspect, 0.01f, 1000.0f);
+		req.camera.setFov(60.f);
+		req.camera.setNearClip(0.01f);
+		req.camera.setFarClip(1000.0f);
 	}
 	void test_AnimationScalarTrack_onCreate(Request& req) {
 		_referenceLines		= new DebugDraw();
@@ -1235,9 +1245,10 @@ private:
 	void test_None_onRender(Request& req) {}
 	void test__END_onRender(Request& req) {}
 	void test_LitTexture_onRender(Request& req) {
-		mat4f projection = mat4f::s_perspective(60.0f, req.aspect, 0.01f, 1000.0f);
-		mat4f view = mat4f::s_lookAt(vec3f(0, 0, -5), vec3f::s_zero(), vec3f::s_up());
+		mat4f projection = mat4f::cast(req.camera.projMatrix());
+		mat4f view = mat4f::cast(req.camera.viewMatrix());
 		mat4f model = mat4f::s_quat(quat4f::s_angleAxis(Math::radians(_testRotation), vec3f::s_forward())); // or mat4f::s_identity();
+
 		mat4f mvp = projection * view * model;
 
 		_staticShader->bind();
@@ -1979,6 +1990,10 @@ protected:
 		glGenVertexArrays(1, &_vertexArrayObject);
 		glBindVertexArray(_vertexArrayObject);
 
+		// set-up camera
+		_camera.setPos(0, 10, 10);
+		_camera.setAim(0, 0, 0);
+
 		// create Nuklear
 		NuklearUI::createContext();
 
@@ -2009,7 +2024,28 @@ protected:
 	}
 
 	virtual void onUIMouseEvent(UIMouseEvent& ev) override {
-		NuklearUI::onUIMouseEvent(ev);
+		using Button = UIMouseEventButton;
+
+		if (NuklearUI::onUIMouseEvent(ev)) {
+			return;
+		}
+
+		if (ev.isDragging()) {
+			switch (ev.pressedButtons) {
+			case Button::Middle: {
+				auto d = ev.deltaPos * 0.05f;
+				_camera.move(d.x, d.y, 0);
+			}break;
+			case Button::Right: {
+				auto d = ev.deltaPos * 0.01f;
+				_camera.orbit(d.x, d.y);
+			}break;
+			}
+		}
+		if (ev.isScroll()) {
+			auto d = ev.scroll * -0.005f;
+			_camera.dolly(d.y);
+		}
 	}
 
 	virtual void onUIKeyboardEvent(UIKeyboardEvent& ev) override {
@@ -2052,6 +2088,8 @@ protected:
 
 private:
 	void _beginRender() {
+
+		_camera.setViewport(clientRect());
 
 		const Vec2f& clientSize	= clientRect().size;
 		_aspect = clientSize.x / clientSize.y;
@@ -2116,9 +2154,9 @@ private:
 	
 	void _drawSettingWindow() {
 		if (!_bShowSettingWindow) return;
-		//const Vec2f& clientSize = clientRect().size;
 		auto& scaleFactor = NuklearUI::scaleFactor;
-		Rect2f xywh = { 0, 0/*clientSize.y - h * scale*/, 220.f/*clientSize.x / scale*/, 60.f };
+		// Rect2f xywh = { 0, clientSize.y - h * scaleFactor, clientSize.x / scaleFactor, 60.f }; // why ???
+		static constexpr Rect2f xywh { 0, 0, 220.f, 60.f };
 		NuklearUI::Window window(xywh, "ScaleFactor:");
 		if (!window.isOpen()) {
 			_bShowSettingWindow = false;
@@ -2185,18 +2223,20 @@ private:
 		_sampleContext->create(_sampleRequest);
 	}
 
-	GLuint					_vertexArrayObject	= 0;
-	int						_vsynch				= 0;
+	GLuint	_vertexArrayObject	= 0;
+	int		_vsynch				= 0;
 
-	Type					_type				= SampleContext::kStartUpDefaultType;
-	float					_aspect				= 0;
-	bool					_bWireFrame			= false;
+	Type	_type				= SampleContext::kStartUpDefaultType;
+	float	_aspect				= 0;
+	bool	_bWireFrame			= false;
 
-	SampleRequest			_sampleRequest { _type, _aspect, _bWireFrame };
-	UPtr<SampleContext>		_sampleContext;
+	bool	_bShowUI			= true;
+	bool	_bShowSettingWindow	= false;
 
-	bool _bShowUI			 = true;
-	bool _bShowSettingWindow = false;
+	Math::Camera3f	_camera;
+
+	SampleRequest		_sampleRequest { _type, _aspect, _bWireFrame, _camera };
+	UPtr<SampleContext>	_sampleContext;
 };
 
 class GameAnimeProgApp : public NativeUIApp {

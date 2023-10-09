@@ -392,6 +392,11 @@ struct mat4 {
 
 	static mat4 s_trs(const vec3f& pos, const quat& q, const vec3f& scale);
 
+	static mat4 cast(sge::Mat4f m) {
+		mat4 o(m._elements);
+		return o;
+	}
+
 	void onFormat(fmt::format_context& ctx) const;
 };
 

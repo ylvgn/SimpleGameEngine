@@ -33,7 +33,9 @@ struct Camera3 {
 	void setAim(const Vec3& aim)	{ _aim = aim; }
 	void setUp (const Vec3& up)		{ _up  = up;  }
 
-	void setFov(const T& fov)		{ _fov = fov; }
+	void setFov(const T& fov)			{ _fov = fov;			}
+	void setNearClip(const T& nearClip) { _nearClip = nearClip; }
+	void setFarClip(const T& farClip)	{ _farClip = farClip;	}
 
 	const Vec3& pos() const { return _pos; }
 	const Vec3& aim() const { return _aim; }
