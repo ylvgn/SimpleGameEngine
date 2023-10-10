@@ -33,18 +33,35 @@ struct Camera3 {
 	void setAim(const Vec3& aim)	{ _aim = aim; }
 	void setUp (const Vec3& up)		{ _up  = up;  }
 
+	void setViewport(const Rect2& v)	{ _viewport = v;		}
 	void setFov(const T& fov)			{ _fov = fov;			}
 	void setNearClip(const T& nearClip) { _nearClip = nearClip; }
 	void setFarClip(const T& farClip)	{ _farClip = farClip;	}
 
-	const Vec3& pos() const { return _pos; }
-	const Vec3& aim() const { return _aim; }
-	const Vec3& up () const { return _up;  }
-	const T&	fov() const { return _fov; }
+	const Vec3& pos()	const { return _pos; }
+	const Vec3& aim()	const { return _aim; }
+	const Vec3& up ()	const { return _up;  }
+	const T&	fov()	const { return _fov; }
+	const T& nearClip() const { return _nearClip; }
+	const T& farClip()	const { return _farClip; }
 
-	void setViewport(const Rect2& v) { _viewport = v; }
+	Vec3 forward()	const { return _aim - _pos; }
+	Vec3 back()		const { return _pos - _aim; }
+	Vec3 down()		const { return Vec3(-_up.x, -_up.y, -_up.z); }
+
+	Vec3 right() const {
+		Vec3 v = forward();
+		auto dir = v.normalize();
+		return _up.cross(dir);
+	}
+
+	Vec3 left() const {
+		Vec3 v = forward();
+		auto dir = v.normalize();
+		return dir.cross(_up);
+	}
+
 	const Rect2& viewport() const { return _viewport; }
-
 
 	Ray3	getRay(const Vec2& screenPos) const;
 
@@ -54,7 +71,7 @@ struct Camera3 {
 
 	Frustum3 frustum() const { Frustum3 o; o.setByViewProjMatrix(viewProjMatrix()); return o; };
 
-private:	
+private:
 	T _fov = T(50.0);
 	T _nearClip = T(0.1);
 	T _farClip = T(10000.0);

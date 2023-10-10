@@ -123,8 +123,8 @@ private:
 		Vector<vec3f, 4> positions{
 			vec3f(-1, -1, 0),
 			vec3f(-1,  1, 0),
-			vec3f(1,  -1, 0),
-			vec3f(1,   1, 0),
+			vec3f( 1, -1, 0),
+			vec3f( 1,  1, 0),
 		};
 
 		Vector<u32, 6> indices = {
@@ -139,12 +139,12 @@ private:
 		lines.resize(indices.size() * 6);
 		for (int i = 0, j = 0; i < indices.size(); i += 3) {
 			lines[j++] = positions[indices[i]];
-			lines[j++] = positions[indices[i + 1]];
+			lines[j++] = positions[indices[i+1]];
 
-			lines[j++] = positions[indices[i + 1]];
-			lines[j++] = positions[indices[i + 2]];
+			lines[j++] = positions[indices[i+1]];
+			lines[j++] = positions[indices[i+2]];
 
-			lines[j++] = positions[indices[i + 2]];
+			lines[j++] = positions[indices[i+2]];
 			lines[j++] = positions[indices[i]];
 		}
 
@@ -343,7 +343,7 @@ private:
 
 				// 0~149 count frame remap to 0~1 time in x-axis
 				for (int j = 1; j < 150; ++j) { // j goes from 0 to 149
-					float thisJNorm = (j - 1) / 149.0f;
+					float thisJNorm = (j-1) / 149.0f;
 					float nextJNorm = j / 149.0f;
 
 					float thisX = o.x + (thisJNorm * xRange);
@@ -645,6 +645,7 @@ private:
 		_createExampleShader();
 		_defaultSetAnimInfo();
 		_defaultSelectClip();
+		_defaultSetCamera(req);
 
 		_motionTrack = TrackUtil::createVectorTrack(Interpolation::Linear, 5,
 			FrameUtil::createFrame(0, vec3f(0,  0, 1 )),
@@ -714,6 +715,7 @@ private:
 		_showAnkle2ToeRayCast	= false;
 		_showToeRayCast			= false;
 		_showToeAdjustRayCast	= false;
+		_isCameraFollow			= true;
 
 		_walkingTime			= 0.f;
 		_lastModelY				= 0.f;
@@ -1418,12 +1420,16 @@ private:
 		float modelPosZ = modelTran.position.z;
 		mat4 model		= mat4::s_transform(modelTran);
 
-		mat4 projection = mat4::s_perspective(60.0f, req.aspect, 0.01f, 1000.0f);
-		mat4 view = mat4::s_lookAt(
-			vec3f(modelPosX, 0, modelPosZ) + vec3f(0, 5, 10),
-			vec3f(modelPosX, 0, modelPosZ) + vec3f(0, 3, 0),
-			vec3f::s_up());
-		
+		if (_isCameraFollow) {
+			vec3f eye = vec3f(modelPosX, 0, modelPosZ) + vec3f(0, 5, 10);
+			vec3f target = vec3f(modelPosX, 0, modelPosZ) + vec3f(0, 3, 0);
+			req.camera.setPos(eye.x, eye.y, eye.z);
+			req.camera.setAim(target.x, target.y, target.z);
+		}
+
+		mat4f projection = mat4f::cast(req.camera.projMatrix());
+		mat4f view = mat4f::cast(req.camera.viewMatrix());
+
 		mat4 vp		= projection * view;
 		mat4 mvp	= vp * model;
 
@@ -1600,6 +1606,7 @@ private:
 		E(_showAnkle2ToeRayCast)
 		E(_showToeRayCast)
 		E(_showToeAdjustRayCast)
+		E(_isCameraFollow)
 #undef E
 	}
 
@@ -1776,6 +1783,14 @@ private:
 		}
 	}
 
+	void _defaultSetCamera(Request& req, const vec3f& aim = vec3f(0,3,7)) {
+		req.camera.setAim(aim.x, aim.y, aim.z);
+		req.camera.setPos(0,0,0);
+		req.camera.setFov(60.f);
+		req.camera.setNearClip(0.01f);
+		req.camera.setFarClip(1000.0f);
+	}
+
 private:
 	float										_testRotation = 0.0f;
 
@@ -1860,6 +1875,7 @@ private:
 	bool										_showAnkle2ToeRayCast;
 	bool										_showToeRayCast;
 	bool										_showToeAdjustRayCast;
+	bool										_isCameraFollow;
 
 	SPtr<DebugDrawPL>							_animatedPoseDebugDraw;
 	SPtr<DebugDrawPL>							_leftLegDebugDraw;
@@ -1883,8 +1899,40 @@ public:
 
 	static constexpr const int kSampleCount = enumInt(Type::_END);
 
+	static constexpr float kMaxCameraMoveOffset = 0.3f;
+	static constexpr float kMaxMouseFactor = 0.3f;
+	static constexpr float kMaxMouseDecayFactor = 0.5f;
+
+	void _cameraMove(float dt) {
+		static Vec3f sCameraOffset{ 1,0,1 };
+		sCameraOffset *= _cameraMoveFactor;
+
+		sCameraOffset.z = _cameraMoveFactor.z > 0
+			? Math::min(_cameraMoveFactor.z, kMaxCameraMoveOffset)
+			: Math::max(_cameraMoveFactor.z, -kMaxCameraMoveOffset);
+
+		sCameraOffset.x = _cameraMoveFactor.x > 0
+			? Math::min(_cameraMoveFactor.x, kMaxCameraMoveOffset)
+			: Math::max(_cameraMoveFactor.x, -kMaxCameraMoveOffset);
+
+		if (_cameraMoveFactor.z != 0) {
+			_cameraMoveFactor.z = _cameraMoveFactor.z > 0
+				? Math::max(0.f, _cameraMoveFactor.z - dt * kMaxMouseDecayFactor)
+				: Math::min(0.f, _cameraMoveFactor.z + dt * kMaxMouseDecayFactor);
+		}
+
+		if (_cameraMoveFactor.x != 0) {
+			_cameraMoveFactor.x = _cameraMoveFactor.x > 0
+				? Math::max(0.f, _cameraMoveFactor.x - dt * kMaxMouseDecayFactor)
+				: Math::min(0.f, _cameraMoveFactor.x + dt * kMaxMouseDecayFactor);
+		}
+
+		_camera.move(sCameraOffset);
+	}
+
 	void update(float dt) {
 		_sampleRequest.dt = dt;
+		_cameraMove(dt);
 
 		if (_vertexArrayObject == 0)
 			return;
@@ -2032,6 +2080,10 @@ protected:
 
 		if (ev.isDragging()) {
 			switch (ev.pressedButtons) {
+			case Button::Left: {
+				auto d = ev.deltaPos * 0.01f;
+				_camera.pan(-d.x, d.y);
+			}break;
 			case Button::Middle: {
 				auto d = ev.deltaPos * 0.05f;
 				_camera.move(d.x, d.y, 0);
@@ -2084,6 +2136,28 @@ protected:
 				_bShowUI = !_bShowUI;
 			}
 		}
+
+		bool isClick = false;
+		if (ev.isDown(KeyCode::W)) {
+			_cameraMoveFactor.z += 0.1f;
+			isClick = true;
+		}
+		if (ev.isDown(KeyCode::S)) {
+			_cameraMoveFactor.z -= 0.1f;
+			isClick = true;
+		}
+		if (ev.isDown(KeyCode::A)) {
+			_cameraMoveFactor.x += 0.1f;
+			isClick = true;
+		}
+		if (ev.isDown(KeyCode::D)) {
+			_cameraMoveFactor.x -= 0.1f;
+			isClick = true;
+		}
+		if (isClick) {
+			_cameraMoveFactor.z = Math::clamp(_cameraMoveFactor.z, -kMaxMouseFactor, kMaxMouseFactor);
+			_cameraMoveFactor.x = Math::clamp(_cameraMoveFactor.x, -kMaxMouseFactor, kMaxMouseFactor);
+		}
 	}
 
 private:
@@ -2128,8 +2202,8 @@ private:
 			return;
 		}
 
-		static Vec2f pos		{ 50.f,  20.f };
-		static Vec2f sItemSize	{ 250.f, 25.f };
+		static vec2f pos		{ 50.f,  20.f };
+		static vec2f sItemSize	{ 250.f, 25.f };
 		static const int sItemCount = kSampleCount - 1;
 		Rect2f xywh = {
 			pos.x,
@@ -2233,10 +2307,12 @@ private:
 	bool	_bShowUI			= true;
 	bool	_bShowSettingWindow	= false;
 
-	Math::Camera3f	_camera;
+	Math::Camera3f		_camera;
+	Vec3f _cameraMoveFactor {0,0,0};
 
 	SampleRequest		_sampleRequest { _type, _aspect, _bWireFrame, _camera };
 	UPtr<SampleContext>	_sampleContext;
+
 };
 
 class GameAnimeProgApp : public NativeUIApp {
