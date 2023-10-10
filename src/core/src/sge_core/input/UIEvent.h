@@ -125,7 +125,6 @@ SGE_ENUM_CLASS(UIKeyboardEventKeyCode, u32)
 	_E(Up,) \
 	_E(Down,) \
 	_E(Char,) \
-	_E(HoldDown,) \
 // ----
 SGE_ENUM_CLASS(UIKeyCodeEventType, u8)
 SGE_ENUM_ALL_OPERATOR(UIKeyCodeEventType)
@@ -135,14 +134,12 @@ struct UIKeyboardEvent {
 	using Type			= UIKeyCodeEventType;
 	using Modifier		= UIEventModifier;
 
-	bool isUp(KeyCode k)			const { return isUp() && getType(k) == Type::Up; }
-	bool isDown(KeyCode k)			const { return isDown() && getType(k) == Type::Down; }
-	bool isHoldDown(KeyCode k)		const { return isHoldDown() && getType(k) == Type::HoldDown; }
-	bool isChar(KeyCode k)			const { return isChar() && getType(k) == Type::Char; }
+	bool isUp(KeyCode k)			const { return getType(k) == Type::Up; }
+	bool isDown(KeyCode k)			const { return getType(k) == Type::Down; }
+	bool isChar(KeyCode k)			const { return getType(k) == Type::Char; }
 
 	bool isUp()						const { return type == Type::Up; }
 	bool isDown()					const { return type == Type::Down; }
-	bool isHoldDown()				const { return type == Type::HoldDown; }
 	bool isChar()					const { return type == Type::Char; }
 
 	StrView data()					const { return charCodeStr; }
@@ -185,10 +182,54 @@ struct UIKeyboardEvent {
 			case KeyCode::Cmd:
 			case KeyCode::LCmd:
 			case KeyCode::RCmd: {
-				return isHoldDown(k) || isDown(k);
+				return isDown(k);
 			} break;
 			default: throw SGE_ERROR("not support {}", k);
 		}
+	}
+	bool IsCharKeyDown(KeyCode k) const {
+		switch (k) {
+			case KeyCode::Ctrl:
+			case KeyCode::LCtrl:
+			case KeyCode::RCtrl:
+			case KeyCode::Shift:
+			case KeyCode::LShift:
+			case KeyCode::RShift:
+			case KeyCode::Alt:
+			case KeyCode::LAlt:
+			case KeyCode::RAlt:
+			case KeyCode::Cmd:
+			case KeyCode::LCmd:
+			case KeyCode::RCmd:
+			case KeyCode::Escape:
+			case KeyCode::CapsLock:
+			case KeyCode::F1:
+			case KeyCode::F2:
+			case KeyCode::F3:
+			case KeyCode::F4:
+			case KeyCode::F5:
+			case KeyCode::F6:
+			case KeyCode::F7:
+			case KeyCode::F8:
+			case KeyCode::F9:
+			case KeyCode::F10:
+			case KeyCode::F11:
+			case KeyCode::F12:
+			case KeyCode::Delete:
+			case KeyCode::Insert:
+			case KeyCode::Home:
+			case KeyCode::End:
+			case KeyCode::PageDown:
+			case KeyCode::PageUp:
+			case KeyCode::PrintScreen:
+			case KeyCode::ScrollLock:
+			case KeyCode::Pause:
+			case KeyCode::NumLock:
+			{
+				return false;
+			} break;
+		}
+		return true;
 	}
 
 	Type				type	 = Type::None;

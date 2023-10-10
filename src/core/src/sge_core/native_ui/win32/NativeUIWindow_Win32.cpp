@@ -295,118 +295,118 @@ bool NativeUIWindow_Win32::_handleNativeUIKeyboardEvent(HWND hwnd,
 		case WM_SYSKEYDOWN:
 		case WM_SYSKEYUP: {
 
-			#define E(K, T) case K: { /*SGE_LOG("{} = {}", #K, K);*/ ev.keyCode = KeyCode::T; } break;
+			#define SGE_E(K, SGE_T) case K: { /*SGE_LOG("{} = {}", #K, K);*/ ev.keyCode = KeyCode::SGE_T; } break;
 			switch (wParam) {
-				E(VK_CONTROL,		Ctrl)
-				E(VK_SHIFT,			Shift)
-				E(VK_MENU,			Alt)
-				E(VK_LWIN,			LCmd)
-				E(VK_RWIN,			RCmd)
+				SGE_E(VK_CONTROL,		Ctrl)
+				SGE_E(VK_SHIFT,			Shift)
+				SGE_E(VK_MENU,			Alt)
+				SGE_E(VK_LWIN,			LCmd)
+				SGE_E(VK_RWIN,			RCmd)
 
-				E(VK_RETURN,		Enter)
-				E(VK_ESCAPE,		Escape)
-				E(VK_TAB,			Tab)
-				E(VK_CAPITAL,		CapsLock)
-				E(VK_SPACE,			Space)
-				E(VK_BACK,			Backspace)
+				SGE_E(VK_RETURN,		Enter)
+				SGE_E(VK_ESCAPE,		Escape)
+				SGE_E(VK_TAB,			Tab)
+				SGE_E(VK_CAPITAL,		CapsLock)
+				SGE_E(VK_SPACE,			Space)
+				SGE_E(VK_BACK,			Backspace)
 
-				E(VK_OEM_1,			Semicolon)		// ;:
-				E(VK_OEM_2,			Slash)			// /?
-				E(VK_OEM_3,			BackQuote)		// `~
-				E(VK_OEM_4,			LeftBracket)	// [{
-				E(VK_OEM_5,			Backslash)		// \|
-				E(VK_OEM_6,			RightBracket)	// ]}
-				E(VK_OEM_7,			Quote)			// '~
-				E(VK_OEM_PLUS,		Equals)			// =+
-				E(VK_OEM_MINUS,		Hyphen)			// -_
-				E(VK_OEM_COMMA,		Comma)			// ,<
-				E(VK_OEM_PERIOD,	Period)			// .>
+				SGE_E(VK_OEM_1,			Semicolon)		// ;:
+				SGE_E(VK_OEM_2,			Slash)			// /?
+				SGE_E(VK_OEM_3,			BackQuote)		// `~
+				SGE_E(VK_OEM_4,			LeftBracket)	// [{
+				SGE_E(VK_OEM_5,			Backslash)		// \|
+				SGE_E(VK_OEM_6,			RightBracket)	// ]}
+				SGE_E(VK_OEM_7,			Quote)			// '~
+				SGE_E(VK_OEM_PLUS,		Equals)			// =+
+				SGE_E(VK_OEM_MINUS,		Hyphen)			// -_
+				SGE_E(VK_OEM_COMMA,		Comma)			// ,<
+				SGE_E(VK_OEM_PERIOD,	Period)			// .>
 
-				E(VK_F1,	F1)
-				E(VK_F2,	F2)
-				E(VK_F3,	F3)
-				E(VK_F4,	F4)
-				E(VK_F5,	F5)
-				E(VK_F6,	F6)
-				E(VK_F7,	F7)
-				E(VK_F8,	F8)
-				E(VK_F9,	F9)
-				E(VK_F10,	F10)
-				E(VK_F11,	F11)
-				E(VK_F12,	F12)
+				SGE_E(VK_F1,	F1)
+				SGE_E(VK_F2,	F2)
+				SGE_E(VK_F3,	F3)
+				SGE_E(VK_F4,	F4)
+				SGE_E(VK_F5,	F5)
+				SGE_E(VK_F6,	F6)
+				SGE_E(VK_F7,	F7)
+				SGE_E(VK_F8,	F8)
+				SGE_E(VK_F9,	F9)
+				SGE_E(VK_F10,	F10)
+				SGE_E(VK_F11,	F11)
+				SGE_E(VK_F12,	F12)
 
-				E('0', Alpha0)	// 1!
-				E('1', Alpha1)	// 2@
-				E('2', Alpha2)	// 3#
-				E('3', Alpha3)	// 4$
-				E('4', Alpha4)	// 5%
-				E('5', Alpha5)	// 6^
-				E('6', Alpha6)	// 7&
-				E('7', Alpha7)	// 8*
-				E('8', Alpha8)	// 9(
-				E('9', Alpha9)	// 10)
+				SGE_E('0', Alpha0)	// 1!
+				SGE_E('1', Alpha1)	// 2@
+				SGE_E('2', Alpha2)	// 3#
+				SGE_E('3', Alpha3)	// 4$
+				SGE_E('4', Alpha4)	// 5%
+				SGE_E('5', Alpha5)	// 6^
+				SGE_E('6', Alpha6)	// 7&
+				SGE_E('7', Alpha7)	// 8*
+				SGE_E('8', Alpha8)	// 9(
+				SGE_E('9', Alpha9)	// 10)
 
-				E('A', A)
-				E('B', B)
-				E('C', C)
-				E('D', D)
-				E('E', E)
-				E('F', F)
-				E('G', G)
-				E('H', H)
-				E('I', I)
-				E('J', J)
-				E('K', K)
-				E('L', L)
-				E('M', M)
-				E('N', N)
-				E('O', O)
-				E('P', P)
-				E('Q', Q)
-				E('R', R)
-				E('S', S)
-				E('T', T)
-				E('U', U)
-				E('V', V)
-				E('W', W)
-				E('X', X)
-				E('Y', Y)
-				E('Z', Z)
+				SGE_E('A', A)
+				SGE_E('B', B)
+				SGE_E('C', C)
+				SGE_E('D', D)
+				SGE_E('E', E)
+				SGE_E('F', F)
+				SGE_E('G', G)
+				SGE_E('H', H)
+				SGE_E('I', I)
+				SGE_E('J', J)
+				SGE_E('K', K)
+				SGE_E('L', L)
+				SGE_E('M', M)
+				SGE_E('N', N)
+				SGE_E('O', O)
+				SGE_E('P', P)
+				SGE_E('Q', Q)
+				SGE_E('R', R)
+				SGE_E('S', S)
+				SGE_E('T', T)
+				SGE_E('U', U)
+				SGE_E('V', V)
+				SGE_E('W', W)
+				SGE_E('X', X)
+				SGE_E('Y', Y)
+				SGE_E('Z', Z)
 
-				E(VK_UP,	UpArrow)
-				E(VK_DOWN,	DownArrow)
-				E(VK_LEFT,	LeftArrow)
-				E(VK_RIGHT,	RightArrow)
+				SGE_E(VK_UP,	UpArrow)
+				SGE_E(VK_DOWN,	DownArrow)
+				SGE_E(VK_LEFT,	LeftArrow)
+				SGE_E(VK_RIGHT,	RightArrow)
 
-				E(VK_INSERT,	Insert)
-				E(VK_DELETE,	Delete)
-				E(VK_HOME,		Home)
-				E(VK_END,		End)
-				E(VK_PRIOR,		PageUp)
-				E(VK_NEXT,		PageDown)
+				SGE_E(VK_INSERT,	Insert)
+				SGE_E(VK_DELETE,	Delete)
+				SGE_E(VK_HOME,		Home)
+				SGE_E(VK_END,		End)
+				SGE_E(VK_PRIOR,		PageUp)
+				SGE_E(VK_NEXT,		PageDown)
 
-				E(VK_NUMPAD0,	Keypad0)
-				E(VK_NUMPAD1,	Keypad1)
-				E(VK_NUMPAD2,	Keypad2)
-				E(VK_NUMPAD3,	Keypad3)
-				E(VK_NUMPAD4,	Keypad4)
-				E(VK_NUMPAD5,	Keypad5)
-				E(VK_NUMPAD6,	Keypad6)
-				E(VK_NUMPAD7,	Keypad7)
-				E(VK_NUMPAD8,	Keypad8)
-				E(VK_NUMPAD9,	Keypad9)
+				SGE_E(VK_NUMPAD0,	Keypad0)
+				SGE_E(VK_NUMPAD1,	Keypad1)
+				SGE_E(VK_NUMPAD2,	Keypad2)
+				SGE_E(VK_NUMPAD3,	Keypad3)
+				SGE_E(VK_NUMPAD4,	Keypad4)
+				SGE_E(VK_NUMPAD5,	Keypad5)
+				SGE_E(VK_NUMPAD6,	Keypad6)
+				SGE_E(VK_NUMPAD7,	Keypad7)
+				SGE_E(VK_NUMPAD8,	Keypad8)
+				SGE_E(VK_NUMPAD9,	Keypad9)
 
-				E(VK_SNAPSHOT,	PrintScreen)
-				E(VK_SCROLL,	ScrollLock)
-				E(VK_PAUSE,		Pause)
-				E(VK_NUMLOCK,	NumLock)
-				E(VK_DIVIDE,	KeypadDivide)	// /
-				E(VK_MULTIPLY,	KeypadMultiply)	// *
-				E(VK_SUBTRACT,	KeypadMinus)	// -
-				E(VK_ADD,		KeypadPlus)		// +
-				E(VK_DECIMAL,	KeypadPeriod)	// .
+				SGE_E(VK_SNAPSHOT,	PrintScreen)
+				SGE_E(VK_SCROLL,	ScrollLock)
+				SGE_E(VK_PAUSE,		Pause)
+				SGE_E(VK_NUMLOCK,	NumLock)
+				SGE_E(VK_DIVIDE,	KeypadDivide)	// /
+				SGE_E(VK_MULTIPLY,	KeypadMultiply)	// *
+				SGE_E(VK_SUBTRACT,	KeypadMinus)	// -
+				SGE_E(VK_ADD,		KeypadPlus)		// +
+				SGE_E(VK_DECIMAL,	KeypadPeriod)	// .
 			}
-			#undef E
+			#undef SGE_E
 			break;
 		}
 		case WM_CHAR: { ev.charCode = static_cast<u32>(wParam); } break;

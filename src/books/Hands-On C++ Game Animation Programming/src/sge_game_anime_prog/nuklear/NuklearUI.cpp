@@ -107,8 +107,7 @@ void onUIKeyboardEvent(UIKeyboardEvent& ev) {
 		const auto& type	= kv.second;
 
 		switch (type) {
-			case Type::Down:
-			case Type::HoldDown: {
+			case Type::Down: {
 				nk_input_key(g_ctx, Util::keyCode(keyCode), 1);
 			} break;
 			case Type::Up: {

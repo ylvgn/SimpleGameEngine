@@ -25,15 +25,12 @@ void NativeUIWindow_Base::onUINativeKeyboardEvent(UIKeyboardEvent& ev) {
 	using Type			= UIKeyboardEvent::Type;
 	using Modifier		= UIKeyboardEvent::Modifier;
 
-	const auto& curKeyCode	= ev.keyCode;
-	auto& curType			= ev.type;
+	if (ev.keyCode != KeyCode::None) {
 
-	if (curKeyCode != KeyCode::None) {
-
-	#define E(T) \
-		if (_keyCodesMap[KeyCode::T] == Type::Down) { \
-			if (!ev.hasAnyModifierKey(Modifier::T)) { \
-				_keyCodesMap[KeyCode::T] = Type::Up; \
+	#define E(SGE_T) \
+		if (_keyCodesMap[KeyCode::SGE_T] == Type::Down) { \
+			if (!ev.hasAnyModifierKey(Modifier::SGE_T)) { \
+				_keyCodesMap[KeyCode::SGE_T] = Type::Up; \
 			} \
 		} \
 	//---- Modifier Key Down -> Up
@@ -46,13 +43,13 @@ void NativeUIWindow_Base::onUINativeKeyboardEvent(UIKeyboardEvent& ev) {
 	#undef E
 
 		if (ev.isModifierKey()) {
-			#define E(T) \
-				case KeyCode::T: { \
-					if (ev.hasAnyModifierKey(Modifier::L##T)) _keyCodesMap[KeyCode::L##T] = Type::Down; \
-					if (ev.hasAnyModifierKey(Modifier::R##T)) _keyCodesMap[KeyCode::R##T] = Type::Down; \
+			#define E(SGE_T) \
+				case KeyCode::SGE_T: { \
+					if (ev.hasAnyModifierKey(Modifier::L##SGE_T)) _keyCodesMap[KeyCode::L##SGE_T] = Type::Down; \
+					if (ev.hasAnyModifierKey(Modifier::R##SGE_T)) _keyCodesMap[KeyCode::R##SGE_T] = Type::Down; \
 				} break; \
 			// ----
-			switch (curKeyCode) {
+			switch (ev.keyCode) {
 				E(Ctrl)
 				E(Shift)
 				E(Alt)
@@ -61,24 +58,19 @@ void NativeUIWindow_Base::onUINativeKeyboardEvent(UIKeyboardEvent& ev) {
 			#undef E
 		}
 
-		const auto& lastType = _keyCodesMap[curKeyCode];
-		switch (curType)
+		switch (ev.type)
 		{
-			case Type::Down: {
-				if (BitUtil::hasAny(lastType, Type::Down) || BitUtil::hasAny(lastType, Type::HoldDown)) {
-					curType = Type::HoldDown;
-				}
-				_keyCodesMap[curKeyCode] = curType;
-			} break;
-			case Type::Up: {
-				_keyCodesMap[curKeyCode] = curType;
-			} break;
+			case Type::Down: { _keyCodesMap[ev.keyCode] = ev.type; } break;
+			case Type::Up:	 { _keyCodesMap[ev.keyCode] = ev.type; } break;
 		}
 	}
 
 	ev.keyCodesMap = _keyCodesMap;
-
-	onUIKeyboardEvent(ev);
+	if (ev.type == Type::Char || ev.type == Type::Up) {
+		onUIKeyboardEvent(ev);
+	} else if (!ev.IsCharKeyDown(ev.keyCode)) {
+		onUIKeyboardEvent(ev);
+	}
 
 	// reset Up -> None
 	for (auto& kv : _keyCodesMap) {

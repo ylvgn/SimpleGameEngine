@@ -261,11 +261,9 @@ void ImGui_SGE::onUIKeyboardEvent(UIKeyboardEvent& ev) {
 		const auto& type = kv.second;
 		const auto& keyCode = kv.first;
 		switch (type) {
-			case Type::Down:
-			case Type::HoldDown: {
+			case Type::Down: {
 				io.AddKeyEvent(_keyCode(keyCode), true);
 			} break;
-
 			case Type::Up: {
 				io.AddKeyEvent(_keyCode(keyCode), false);
 			} break;
