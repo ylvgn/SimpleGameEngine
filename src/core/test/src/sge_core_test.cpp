@@ -13,7 +13,6 @@
 namespace sge {
 
 void run_temp_test() {
-	RUN_TEST(test_NativeUIWindow_Win32)
 }
 
 void run_all_test() {
