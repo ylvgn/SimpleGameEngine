@@ -82,17 +82,16 @@ struct TVec3 {
 	inline T		len()					const { return magnitude(); }
 
 	inline T angle(const TVec3& r) const {
-		// angle means radians, not degrees
 		// Finding the angle between the two vectors would be expensive
-		T lSq = magnitude();
-		T rSq = r.magnitude();
+		T sqMagL = sqrMagnitude();
+		T sqMagR = r.sqrMagnitude();
 
-		if (Math::equals0(lSq) || Math::equals0(rSq)) {
+		if (Math::equals0(sqMagL) || Math::equals0(sqMagR)) {
 			return T(0);
 		}
 
-		T c = dot(r) / Math::sqrt(lSq * rSq);
-		return Math::acos(c);
+		T cosTheta = dot(r) / Math::sqrt(sqMagL * sqMagR);
+		return Math::acos(cosTheta); // radians
 	}
 
 	inline T radians(const TVec3& r) const { return angle(r); }
