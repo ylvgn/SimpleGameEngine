@@ -66,7 +66,10 @@ void NativeUIWindow_Base::onUINativeKeyboardEvent(UIKeyboardEvent& ev) {
 	}
 
 	ev.keyCodesMap = _keyCodesMap;
+
 	if (ev.type == Type::Char || ev.type == Type::Up) {
+		onUIKeyboardEvent(ev);
+	} else if (ev.isModifierKey()) {
 		onUIKeyboardEvent(ev);
 	} else if (!ev.IsCharKeyDown(ev.keyCode)) {
 		onUIKeyboardEvent(ev);
