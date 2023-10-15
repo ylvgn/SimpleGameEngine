@@ -310,6 +310,8 @@ struct mat4 {
 	mat4 inverse() const;
 	mat4 inverse3x3() const;
 
+	void onFormat(fmt::format_context& ctx) const;
+
 	// A frustum represents everything that is visible to the camera.
 	// The frustum function can be used to construct a view frustum,
 	// but the function parameters are not intuitive.
@@ -360,7 +362,6 @@ struct mat4 {
 
 	static mat4 s_transform(const Transform& t);
 	static mat4 s_dual_quat(const dual_quat& dq);
-	void onFormat(fmt::format_context& ctx) const;
 };
 
 inline bool mat4::equals(const mat4& r, float epsilon) const {

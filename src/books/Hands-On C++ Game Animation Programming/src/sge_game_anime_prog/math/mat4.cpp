@@ -56,6 +56,10 @@ mat4 mat4::inverse3x3() const {
 */
 }
 
+void mat4::onFormat(fmt::format_context& ctx) const {
+	fmt::format_to(ctx.out(), "mat4(\n  {},\n  {},\n  {},\n  {})", cx(), cy(), cz(), cw());
+}
+
 mat4 mat4::s_lookAt(const vec3& eye, const vec3& aim, const vec3& up) {
 		// FYI: http://www.songho.ca/opengl/gl_camera.html#lookat
 		// The eye position and target are defined in world space.
@@ -118,8 +122,10 @@ mat4 mat4::s_quat(const quat& q) {
 				u.x, u.y, u.z, 0,  // y basis vector (No scale)
 				f.x, f.y, f.z, 0,  // z basis vector (No scale)
 				0,   0,   0,   1); // w basis vector (No scale)
-#else
-	#if 0
+#endif
+
+#if 0
+	// Chapter 6 of <Graphics Gems II> implement by Ken Shoemake
 	float ww = q.w*q.w;
 	float xx = q.x*q.x;
 	float yy = q.y*q.y;
@@ -135,7 +141,9 @@ mat4 mat4::s_quat(const quat& q) {
 		        2*xy-2*wz,   ww-xx+yy-zz, 2*yz+2*wx,   0,
 		        2*xz+2*wy,   2*yz-2*wx,   ww-xx-yy+zz, 0,
 		        0,           0,           0,           ww+xx+yy+zz);
-	#else
+#endif
+
+#if 1
 	// since q is a unit quaternion, so ww+xx+yy+zz=1
 	// FYI: http://www.songho.ca/opengl/gl_quaternion.html
 	float xx = q.x*q.x;
@@ -152,7 +160,6 @@ mat4 mat4::s_quat(const quat& q) {
 		        2*(xy-wz),      1-2*(xx+zz),	2*(yz+wx),     0,
 		        2*(xz+wy),      2*(yz-wx),		1-2*(xx+yy),   0,
 		        0,              0,				0,             1);
-	#endif
 #endif
 /*
 	Being able to convert quaternions to matrices will be useful later when you need to pass rotation data to a shader.
@@ -218,10 +225,6 @@ mat4 mat4::s_dual_quat(const dual_quat& dq) {
 		        2*(xy-wz),      1-2*(xx+zz),	2*(yz+wx),		0,
 		        2*(xz+wy),      2*(yz-wx),		1-2*(xx+yy),	0,
 				t.x,			t.y,			t.z,			1);
-}
-
-void mat4::onFormat(fmt::format_context& ctx) const {
-	fmt::format_to(ctx.out(), "mat4(\n  {},\n  {},\n  {},\n  {})", cx(), cy(), cz(), cw());
 }
 
 }

@@ -1,7 +1,5 @@
 #pragma once
 
-#include <sge_core/base/Error.h>
-#include <sge_core/log/Log.h>
 #include <sge_core/math/Math.h>
 
 #include "vec2.h"
@@ -141,8 +139,8 @@ struct TVec3 {
 			return s_zero();
 		}
 
-		TVec3 projx2 = proj+proj;
-		return *this - projx2;
+		TVec3 proj2 = proj+proj;
+		return *this - proj2;
 	}
 
 	// linear interpolatation
@@ -208,7 +206,7 @@ struct TVec3<int> {
 	using ElementType = int;
 	union {
 		struct { ElementType x, y, z; };
-		ElementType v[3];
+		ElementType data[3];
 	};
 
 	inline TVec3(const ElementType& x_, const ElementType& y_, const ElementType& z_)
@@ -220,7 +218,7 @@ struct TVec3<unsigned int> {
 	using ElementType = unsigned int;
 	union {
 		struct { ElementType x, y, z; };
-		ElementType v[3];
+		ElementType data[3];
 	};
 
 	inline TVec3(const ElementType& x_, const ElementType& y_, const ElementType& z_)

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <sge_core/math/Math.h>
-#include "vec3.h"
+#include "vec4.h"
 
 namespace sge {
 
@@ -34,6 +34,9 @@ struct quat {
 	inline static quat s_identity() { return quat(0,0,0,1); }
 	inline static quat s_zero()		{ return quat(0,0,0,0); }
 
+	inline			float& operator[](int i)		{ SGE_ASSERT(i < kElementCount); return data[i]; }
+	inline const	float& operator[](int i) const	{ SGE_ASSERT(i < kElementCount); return data[i]; }
+
 	inline static quat s_angleAxis(float angle, const vec3& axis) {
 /*
 		A quaternion can track two full rotations, which is 4π or 720 degrees.
@@ -52,7 +55,7 @@ struct quat {
 	// To retrieve the axis of rotation, normalize the vector part of the quaternion. maybe no need normalize ???
 	inline vec3 axis() const { return vec3(x,y,z).normalize(); }
 
-	// The angle of rotation is double the inverse cosine of the real component.
+	// The angle(radians) of rotation is double the inverse cosine of the real component.
 	inline float angle() const { return 2.0f * Math::acos(w); }
 
 	inline bool equals (const quat& r,	float epsilon = Math::epsilon<float>()) const;
@@ -60,6 +63,7 @@ struct quat {
 
 	inline quat operator+ (const quat& r) const { return quat(x+r.x, y+r.y, z+r.z, w+r.w); }
 	inline quat operator- (const quat& r) const { return quat(x-r.x, y-r.y, z-r.z, w-r.w); }
+
 	inline quat operator* (const quat& r) const {
 #if 1
 		// This implementation is a bit more performant
@@ -98,13 +102,13 @@ struct quat {
 	}
 
 	inline vec3 operator* (const vec3& v) const {
-#if 0 // something wrong, but no why ??? when use q2 = q1 * vec3f::right(), then mat4::s_quat(q2)
+#if 0
+		// something wrong, but no why ??? when use q2 = q1 * vec3f::right(), then mat4::s_quat(q2)
 		// FYI: https://gabormakesgames.com/blog_quats_multiply_vec.html
 		vec3 qv(x,y,z);
 		return qv * 2.0f * qv.dot(v) +
 			v * (w*w - qv.dot(qv)) +
 			qv.cross(v) * 2.0f * w;
-
 #endif
 
 #if 0
@@ -169,19 +173,17 @@ struct quat {
 	inline float dot(const quat& r) const	{ return (x*r.x) + (y*r.y) + (z*r.z) + (w*r.w); }
 
 	inline float sqrMagnitude()	const		{ return dot(*this); }
-	inline float magnitude()	const		{ return Math::sqrt(sqrMagnitude()); }
-	inline float lenSq()		const		{ return sqrMagnitude(); }
-	inline float len()			const		{ return magnitude(); }
-
-	// The norm of a quaternion is it's squared length, so norm == sqrMagnitude
-	// FYI: https://proofwiki.org/wiki/Definition:Field_Norm_of_Quaternion
-	inline float norm()			const		{ return sqrMagnitude(); }
+	inline float magnitude() const			{ return Math::sqrt(sqrMagnitude()); }
+	inline float lenSq() const				{ return sqrMagnitude(); }
+	inline float len() const				{ return magnitude(); }
 
 	// To normalize a quaternion, divide each component of the quaternion by its length.
 	// The resulting quaternion's length will be 1.
 	inline quat normalize() const { float m = magnitude(); return Math::equals0(m) ? s_identity() : (*this / m); }
 
 	inline void normalized() {
+		// FYI: https://proofwiki.org/wiki/Definition:Field_Norm_of_Quaternion
+		// The norm of a quaternion is it's squared length, so norm == sqrMagnitude
 		auto norm = sqrMagnitude();
 		if (Math::equals0(norm)) {
 			return;
@@ -256,7 +258,7 @@ struct quat {
 		//             =( (b * Inverse(a))^t )     * a
 		//             =( pow(b * Inverse(a), t) ) * a
 		quat delta = inverse() * to;
-		return ( quat(delta^t) * (*this) ).normalize();
+		return ( (delta^t) * (*this) ).normalize();
 	}
 #else
 	inline quat slerp(const quat& to, float t, bool shortestPath = true) const {
@@ -285,8 +287,6 @@ struct quat {
 		return (*this * coeffA) + (b * coeffB);
 	}
 #endif
-
-	inline bool isNormalize() const { return Math::equals(sqrMagnitude(), 1.f); }
 
 	void onFormat(fmt::format_context& ctx) const;
 

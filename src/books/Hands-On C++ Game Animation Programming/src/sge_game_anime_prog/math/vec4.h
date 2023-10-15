@@ -97,7 +97,7 @@ struct TVec4<int> {
 	using ElementType = int;
 	union {
 		struct { ElementType x, y, z, w; };
-		ElementType v[4];
+		ElementType data[4];
 	};
 
 	inline TVec4(const ElementType& x_, const ElementType& y_, const ElementType& z_, const ElementType& w_)
@@ -109,13 +109,12 @@ struct TVec4<unsigned int> {
 	using ElementType = unsigned int;
 	union {
 		struct { ElementType x, y, z, w; };
-		ElementType v[4];
+		ElementType data[4];
 	};
 
 	inline TVec4(const ElementType& x_, const ElementType& y_, const ElementType& z_, const ElementType& w_)
 		: x(x_), y(y_), z(z_), w(w_) {}
 };
-
 
 using vec4f		= TVec4<float>;
 using vec4d		= TVec4<double>;

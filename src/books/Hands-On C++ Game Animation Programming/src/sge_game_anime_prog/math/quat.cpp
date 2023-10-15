@@ -3,6 +3,10 @@
 
 namespace sge {
 
+void quat::onFormat(fmt::format_context& ctx) const {
+	fmt::format_to(ctx.out(), "quat({}, {}, {}, {})", x, y, z, w);
+}
+
 quat quat::s_fromTo(const vec3& from, const vec3& to) {
 /*
 	There is one edge case—what happens when v1 and v2 are parallel? Or if v1== -v2?
@@ -73,10 +77,6 @@ quat quat::s_mat4(const mat4& m) {
 	Converting matrices to quaternions is going to be useful for debugging
 	and in the case where an external data source only provides rotations as matrices.
 */
-}
-
-void quat::onFormat(fmt::format_context& ctx) const {
-	fmt::format_to(ctx.out(), "quat({}, {}, {}, {})", x, y, z, w);
 }
 
 }

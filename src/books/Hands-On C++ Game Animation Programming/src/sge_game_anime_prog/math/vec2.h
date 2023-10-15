@@ -79,7 +79,7 @@ struct TVec2<int> {
 	using ElementType = int;
 	union {
 		struct { ElementType x, y; };
-		ElementType v[2];
+		ElementType data[2];
 	};
 
 	inline TVec2(const ElementType& x_, const ElementType& y_)
@@ -91,7 +91,7 @@ struct TVec2<unsigned int> {
 	using ElementType = unsigned int;
 	union {
 		struct { ElementType x, y; };
-		ElementType v[2];
+		ElementType data[2];
 	};
 
 	inline TVec2(const ElementType& x_, const ElementType& y_)
