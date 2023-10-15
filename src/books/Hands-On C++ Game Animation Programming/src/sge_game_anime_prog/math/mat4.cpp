@@ -1,5 +1,6 @@
 #include "mat4.h"
 #include "Transform.h"
+#include "dual_quat.h"
 
 namespace sge {
 
@@ -191,6 +192,32 @@ mat4 mat4::s_transform(const Transform& t) {
 #else	
 	return mat4::s_trs(t.position, t.rotation, t.scale);
 #endif
+}
+
+mat4 mat4::s_dual_quat(const dual_quat& dq) {
+	// dual-quaternions can be converted to and from matrices as well;
+	// however, that operation 's_dual_quat' is generally not used.
+
+	// result = mat4::s_trs(dq.toTranslation(), dq.toRotation(), vec3f::s_one());
+
+	auto n   = dq.normalize();
+	auto q   = n.toRotation();
+	auto t   = n.toTranslation();
+
+	float xx = q.x*q.x;
+	float yy = q.y*q.y;
+	float zz = q.z*q.z;
+	float wx = q.w*q.x;
+	float wy = q.w*q.y;
+	float wz = q.w*q.z;
+	float xy = q.x*q.y;
+	float xz = q.x*q.z;
+	float yz = q.y*q.z;
+
+	return mat4(1-2*(yy+zz),	2*(xy+wz),		2*(xz-wy),		0,
+		        2*(xy-wz),      1-2*(xx+zz),	2*(yz+wx),		0,
+		        2*(xz+wy),      2*(yz-wx),		1-2*(xx+yy),	0,
+				t.x,			t.y,			t.z,			1);
 }
 
 void mat4::onFormat(fmt::format_context& ctx) const {

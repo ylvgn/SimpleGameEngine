@@ -12,6 +12,7 @@ namespace sge {
 */
 
 struct mat4;
+struct dual_quat;
 
 struct Transform {
 
@@ -57,6 +58,7 @@ struct Transform {
 	// To keep things consistent, combining transforms should maintain a right-to- left combination order.
 	static Transform s_combine(const Transform& a, const Transform& b);
 	static Transform s_mat(const mat4f& m);
+	static Transform s_dual_quat(const dual_quat& dq);
 
 	vec3f  position {0,0,0};
 	quat4f rotation {0,0,0,1}; // do not set '{0,0,0,0}', '{0,0,0,1}' it means quat4f::s_identity

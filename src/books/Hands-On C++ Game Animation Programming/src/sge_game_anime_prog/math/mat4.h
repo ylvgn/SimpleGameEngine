@@ -6,6 +6,7 @@
 namespace sge {
 
 struct Transform;
+struct dual_quat;
 
 struct mat4 {
 
@@ -358,7 +359,7 @@ struct mat4 {
 	static mat4 s_trs(const vec3& t, const quat& r, const vec3& s);
 
 	static mat4 s_transform(const Transform& t);
-
+	static mat4 s_dual_quat(const dual_quat& dq);
 	void onFormat(fmt::format_context& ctx) const;
 };
 

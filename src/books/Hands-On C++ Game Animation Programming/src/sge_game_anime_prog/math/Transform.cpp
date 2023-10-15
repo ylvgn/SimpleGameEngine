@@ -1,5 +1,6 @@
 #include "Transform.h"
 #include "mat4.h"
+#include "dual_quat.h"
 
 namespace sge {
 
@@ -34,6 +35,10 @@ Transform Transform::inverse() const {
 	inv.position = inv.rotation * (inv.scale * invTranslation); // first, apply the scale, then rotation, and finally, the translation
 
 	return inv;
+}
+
+void Transform::onFormat(fmt::format_context& ctx) const {
+	fmt::format_to(ctx.out(), "Transform(\n  {},\n  {},\n  {})", position, rotation, scale);
 }
 
 Transform Transform::s_combine(const Transform& a, const Transform& b) {
@@ -105,8 +110,12 @@ Transform Transform::s_mat(const mat4f& m) {
 */
 }
 
-void Transform::onFormat(fmt::format_context& ctx) const {
-	fmt::format_to(ctx.out(), "Transform(\n  {},\n  {},\n  {})", position, rotation, scale);
+Transform Transform::s_dual_quat(const dual_quat& dq) {
+	// The input dual quaternion is assumed to already be normalized.
+	vec3f  pos;
+	quat4f rot;
+	dq.toRotationTranslation(rot, pos);
+	return Transform(pos, rot, vec3f::s_one());
 }
 
 }

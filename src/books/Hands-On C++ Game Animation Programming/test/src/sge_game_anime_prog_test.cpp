@@ -11,13 +11,14 @@
 namespace sge {
 
 void run_temp_test() {
-	RUN_TEST(test_qual)
+	RUN_TEST(test_dual_qual)
 }
 
 void run_all_test() {
 // math
 	RUN_TEST(test_mat4)
 	RUN_TEST(test_qual)
+	RUN_TEST(test_dual_qual)
 }
 
 int test_main() {

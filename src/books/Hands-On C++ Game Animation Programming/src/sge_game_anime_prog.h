@@ -6,6 +6,7 @@
 #include <sge_game_anime_prog/math/vec3.h>
 #include <sge_game_anime_prog/math/vec4.h>
 #include <sge_game_anime_prog/math/quat.h>
+#include <sge_game_anime_prog/math/dual_quat.h>
 #include <sge_game_anime_prog/math/mat4.h>
 #include <sge_game_anime_prog/math/MathGeometry.h>
 #include <sge_game_anime_prog/math/Intersections.h>
