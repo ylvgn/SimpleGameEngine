@@ -14,13 +14,12 @@ namespace sge {
 struct mat4;
 
 struct Transform {
-	vec3f  position {0,0,0};
-	quat4f rotation {0,0,0,1}; // do not set {0,0,0,0}, it means quat::s_identity
-	vec3f  scale	{1,1,1};
+
+	using mat4f = mat4;
 
 	inline Transform() = default;
-	inline Transform(const vec3f& p, const quat4f& r, const vec3f& s)
-		: position(p), rotation(r), scale(s) {}
+	inline Transform(const vec3f& t, const quat4f& r, const vec3f& s)
+		: position(t), rotation(r), scale(s) {}
 
 	inline bool operator==(const Transform& r) const { return position == r.position && rotation == r.rotation && scale == r.scale; }
 	inline bool operator!=(const Transform& r) const { return !this->operator==(r); }
@@ -37,25 +36,33 @@ struct Transform {
 	inline vec3f up()		const { return rotation * vec3f::s_up(); }
 
 	// same as multiplying a matrix and a point, but just step by step (SRT) in function transformPoint.
-	inline vec3f transformPoint(const vec3f& pos) const {
+	inline vec3f transformPoint(const vec3f& point) const {
 		// first, apply the scale, then rotation, and finally, the translation
-		return position + (rotation * (scale * pos));
+		return position + (rotation * (scale * point));
 //		transformPoint aka move points
 	}
 
 	// same as multiplying a matrix and a vector, just like transformPoint but no need add position
-	inline vec3f transformVector(const vec3f& dir) const {
+	inline vec3f transformVector(const vec3f& vector) const {
 		// first, apply the scale, then rotation, and finally, the translation, but don't add the position
-		return rotation * (scale * dir);
+		return rotation * (scale * vector);
 //		transformVector aka rotate vectors
 	}
+
+	void onFormat(fmt::format_context& ctx) const;
 
 	// Consider a skeleton, as an example. At each joint, you could place a transform to describe the motion of the joint.
 	// When you rotate your shoulder, the elbow attached to that shoulder also moves.
 	// To apply the shoulder transformation to all connected joints, the transform on each joint must be combined with its parent joint's transform.
 	// To keep things consistent, combining transforms should maintain a right-to- left combination order.
 	static Transform s_combine(const Transform& a, const Transform& b);
-	static Transform s_mat(const mat4& m);
+	static Transform s_mat(const mat4f& m);
+
+	vec3f  position {0,0,0};
+	quat4f rotation {0,0,0,1}; // do not set '{0,0,0,0}', '{0,0,0,1}' it means quat4f::s_identity
+	vec3f  scale	{1,1,1};
 };
+
+SGE_FORMATTER(Transform)
 
 }

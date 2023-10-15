@@ -26,7 +26,7 @@ quat quat::s_fromTo(const vec3& from, const vec3& to) {
 
 		// when from vector is close to XOY-plane
 		if (Math::abs(f.z) < Math::abs(f.y) && Math::abs(f.z) < Math::abs(f.x)) {
-			ortho = vec3f::s_forward(); // z-axis is the most orthogonal axis of f vector
+			ortho = vec3::s_forward(); // z-axis is the most orthogonal axis of f vector
 		}
 
 		vec3 axis = f.cross(ortho).normalize();
@@ -46,7 +46,7 @@ quat quat::s_lookRotation(const vec3& dir, const vec3& up) {
 
 	desiredUp		= f.cross(r);			// object space up vector(incorrect)
 
-	quat f2d		= quat::s_fromTo(vec3f::s_forward(), f);// From world forward to object forward
+	quat f2d		= quat::s_fromTo(vec3::s_forward(), f);// From world forward to object forward
 	vec3 objectUp	= f2d * vec3::s_up();					// what direction is the new object up?
 	quat u2u		= quat::s_fromTo(objectUp, desiredUp);	// From object up to desired up
 
@@ -76,7 +76,7 @@ quat quat::s_mat4(const mat4& m) {
 }
 
 void quat::onFormat(fmt::format_context& ctx) const {
-	fmt::format_to(ctx.out(), "({},{},{},{})", x,y,z,w);
+	fmt::format_to(ctx.out(), "quat({}, {}, {}, {})", x, y, z, w);
 }
 
 }

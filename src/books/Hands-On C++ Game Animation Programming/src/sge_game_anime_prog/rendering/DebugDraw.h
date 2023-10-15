@@ -73,7 +73,7 @@ public:
 	inline       vec3f& operator[] (int index)       { return _points[index]; }
 	inline const vec3f& operator[] (int index) const { return _points[index]; }
 
-	void draw(DebugDrawMode mode, const mat4& mvp, const Color4f& color = kYellow);
+	void draw(DebugDrawMode mode, const mat4f& mvp, const Color4f& color = kYellow);
 
 	void lineFromPose(const Pose& pose);
 

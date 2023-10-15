@@ -44,7 +44,7 @@ public:
 
 	// For a Pose class to be passed to OpenGL, it needs to be converted into a linear array of matrices.
 	// The function takes a reference to a vector of matricesand fills it out with the global transform matrix of each joint in the pose
-	void getMatrixPalette(Vector<mat4>& out) const;
+	void getMatrixPalette(Vector<mat4f>& out) const;
 
 	bool operator== (const Pose& r) const;
 	bool operator!= (const Pose& r) const;

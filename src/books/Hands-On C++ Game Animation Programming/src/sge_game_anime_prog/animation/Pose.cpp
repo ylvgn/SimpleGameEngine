@@ -52,7 +52,7 @@ Transform Pose::getGlobalTransform(int i) const {
 }
 
 #if 1
-void Pose::getMatrixPalette(Vector<mat4>& out) const {
+void Pose::getMatrixPalette(Vector<mat4f>& out) const {
 	size_t jointCount = getJointCount();
 	out.resize(jointCount);
 
@@ -65,7 +65,7 @@ void Pose::getMatrixPalette(Vector<mat4>& out) const {
 			break;
 		}
 
-		mat4 local = mat4::s_transform(_jointTrans[i]);
+		mat4f local = mat4f::s_transform(_jointTrans[i]);
 		if (p >= 0) { // maybe p == -1
 			out[i] = out[p] * local;
 		} else {
@@ -76,11 +76,11 @@ void Pose::getMatrixPalette(Vector<mat4>& out) const {
 	// fallback
 	for (; i < jointCount; ++i) { // second loop
 		Transform global = getGlobalTransform(i);
-		out[i] = mat4::s_transform(global);
+		out[i] = mat4f::s_transform(global);
 	}
 }
 #else
-void Pose::getMatrixPalette(Vector<mat4>& out) const {
+void Pose::getMatrixPalette(Vector<mat4f>& out) const {
 	// converts a pose into a linear array of matrices
 	// For every transform, find the global transform, convert it into a matrix
 
@@ -88,7 +88,7 @@ void Pose::getMatrixPalette(Vector<mat4>& out) const {
 	out.resize(jointCount);
 	for (int i = 0; i < jointCount; ++i) {
 		Transform global = getGlobalTransform(i);
-		out[i] = mat4::s_transform(global);
+		out[i] = mat4f::s_transform(global);
 	}
 }
 #endif

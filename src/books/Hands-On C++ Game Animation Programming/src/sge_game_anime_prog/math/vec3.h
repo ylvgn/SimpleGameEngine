@@ -12,10 +12,12 @@ namespace sge {
 
 template<typename T>
 struct TVec3 {
+	
+	static const size_t kElementCount = 3;
 
 	union {
 		struct { T x, y, z; };
-		T v[3];
+		T data[kElementCount];
 	};
 
 	inline TVec3() = default;
@@ -34,36 +36,36 @@ struct TVec3 {
 	inline static TVec3 s_right()	{ return TVec3( 1, 0, 0); }
 	inline static TVec3 s_left()	{ return TVec3(-1, 0, 0); }
 
-	inline static TVec3 min(const TVec3& l, const TVec3& r) { return TVec3<T>(Math::min(l.x, r.x), Math::min(l.y, r.y), Math::min(l.z, r.z)); }
-	inline static TVec3 max(const TVec3& l, const TVec3& r) { return TVec3<T>(Math::max(l.x, r.x), Math::max(l.y, r.y), Math::max(l.z, r.z)); }
+	inline			T& operator[](int i)		{ SGE_ASSERT(i < kElementCount); return data[i]; }
+	inline const	T& operator[](int i) const	{ SGE_ASSERT(i < kElementCount); return data[i]; }
 
-	inline bool equals(const TVec3& r, const T& epsilon = Math::epsilon<T>()) const;
-	inline bool equals0(               const T& epsilon = Math::epsilon<T>()) const;
+	inline bool equals (const TVec3& r, const T& epsilon = Math::epsilon<T>()) const;
+	inline bool equals0(				const T& epsilon = Math::epsilon<T>()) const;
 
-	inline TVec3 operator+ (const TVec3& r) const { return TVec3(x+r.x, y+r.y, z+r.z); }
-	inline TVec3 operator- (const TVec3& r) const { return TVec3(x-r.x, y-r.y, z-r.z); }
-	inline TVec3 operator* (const TVec3& r) const { return TVec3(x*r.x, y*r.y, z*r.z); } // non-uniform scale operator
-	inline TVec3 operator/ (const TVec3& r) const { return TVec3(x/r.x, y/r.y, z/r.z); }
+	inline TVec3 operator+ (const TVec3& r) const	{ return TVec3(x+r.x, y+r.y, z+r.z); }
+	inline TVec3 operator- (const TVec3& r) const	{ return TVec3(x-r.x, y-r.y, z-r.z); }
+	inline TVec3 operator* (const TVec3& r) const	{ return TVec3(x*r.x, y*r.y, z*r.z); } // non-uniform scale operator
+	inline TVec3 operator/ (const TVec3& r) const	{ return TVec3(x/r.x, y/r.y, z/r.z); }
 
-	inline TVec3 operator+ (const T& s)		const { return TVec3(x+s, y+s, z+s); }
-	inline TVec3 operator- (const T& s)		const { return TVec3(x-s, y-s, z-s); }
-	inline TVec3 operator* (const T& s)		const { return TVec3(x*s, y*s, z*s); }
-	inline TVec3 operator/ (const T& s)		const { return TVec3(x/s, y/s, z/s); }
+	inline TVec3 operator+ (const T& s)		const	{ return TVec3(x+s, y+s, z+s); }
+	inline TVec3 operator- (const T& s)		const	{ return TVec3(x-s, y-s, z-s); }
+	inline TVec3 operator* (const T& s)		const	{ return TVec3(x*s, y*s, z*s); }
+	inline TVec3 operator/ (const T& s)		const	{ return TVec3(x/s, y/s, z/s); }
 
-	inline void operator+= (const TVec3& r)	{ x+=r.x; y+=r.y; z+=r.z; }
-	inline void operator-= (const TVec3& r)	{ x-=r.x; y-=r.y; z-=r.z; }
-	inline void operator*= (const TVec3& r)	{ x*=r.x; y*=r.y; z*=r.z; }
-	inline void operator/= (const TVec3& r)	{ x/=r.x; y/=r.y; z/=r.z; }
+	inline void operator+= (const TVec3& r)			{ x+=r.x; y+=r.y; z+=r.z; }
+	inline void operator-= (const TVec3& r)			{ x-=r.x; y-=r.y; z-=r.z; }
+	inline void operator*= (const TVec3& r)			{ x*=r.x; y*=r.y; z*=r.z; }
+	inline void operator/= (const TVec3& r)			{ x/=r.x; y/=r.y; z/=r.z; }
 
-	inline void operator+= (const T& s)		{ x+=s; y+=s; z+=s; }
-	inline void operator-= (const T& s)		{ x-=s; y-=s; z-=s; }
-	inline void operator*= (const T& s)		{ x*=s; y*=s; z*=s; }
-	inline void operator/= (const T& s)		{ x/=s; y/=s; z/=s; }
+	inline void operator+= (const T& s)				{ x+=s; y+=s; z+=s; }
+	inline void operator-= (const T& s)				{ x-=s; y-=s; z-=s; }
+	inline void operator*= (const T& s)				{ x*=s; y*=s; z*=s; }
+	inline void operator/= (const T& s)				{ x/=s; y/=s; z/=s; }
 
-	inline TVec3 operator-() const { return TVec3(-x,-y,-z); }
+	inline TVec3 operator-() const					{ return TVec3(-x,-y,-z); }
 
-	inline			T& operator[](int i)		{ return v[i]; }
-	inline const	T& operator[](int i) const	{ return v[i]; }
+	inline bool operator== (const TVec3& r) const	{ return x == r.x && y == r.y && z == r.z; }
+	inline bool operator!= (const TVec3& r) const	{ return !(this->operator==(r)); }
 
 	inline TVec2<T> xy() const { return TVec2<T>(x,y); }
 	inline TVec2<T> xz() const { return TVec2<T>(x,z); }
@@ -74,8 +76,8 @@ struct TVec3 {
 
 	inline TVec3	normalize()				const { T m = magnitude(); return Math::equals0(m) ? s_zero() : (*this / m); }
 
-	inline T		magnitude()				const { T m = sqrMagnitude(); return Math::equals0(m) ? T(0) : Math::sqrt(m); }
 	inline T		sqrMagnitude()			const { return dot(*this); }
+	inline T		magnitude()				const { T m = sqrMagnitude(); return Math::equals0(m) ? T(0) : Math::sqrt(m); }
 	inline T		lenSq()					const { return sqrMagnitude(); }
 	inline T		len()					const { return magnitude(); }
 
@@ -110,12 +112,15 @@ struct TVec3 {
 					= r * (||r|| * ||hypo|| * ( dot(r) / ||hypo|| / ||r|| )
 					= r * (dot(r) / ||r|| / ||r||)
 
-		so scale	= dot(r) / rLenSq
+		let 'factor'= dot(r) / sqMagR
 */
-		T rLenSq = r.sqrMagnitude();
-		if (Math::equals0(rLenSq)) return s_zero();
-		T scale = dot(r) / rLenSq;
-		return r * scale;
+		T sqMagR = r.sqrMagnitude();
+		if (Math::equals0(sqMagR)) {
+			return s_zero();
+		}
+
+		T factor = dot(r) / sqMagR;
+		return r * factor;
 	}
 
 	// rejection is perpendicular to projection
@@ -124,18 +129,18 @@ struct TVec3 {
 		      /!
 			 / ! rejection
 			/  !
-		    ---->
+		    ----
 			projection
 */
-		TVec3 proj = project(r);
-		return *this - proj;
+		return *this - project(r);
 	}
 
 	// bounce-like reflect
 	inline TVec3 reflect(const TVec3& r) const {
 		TVec3 proj = project(r);
-		if (proj.equals0())
+		if (proj.equals0()) {
 			return s_zero();
+		}
 
 		TVec3 projx2 = proj+proj;
 		return *this - projx2;
@@ -154,9 +159,10 @@ struct TVec3 {
 
 	// spherical linear interpolatation: constant in velocity
 	inline TVec3 slerp(const TVec3& to_, const T& t) const {
-
+		// FYI: https://gabormakesgames.com/blog_vectors_interpolate.html
 		// when t is close to 0, slerp will yield unexpected results
-		if (Math::equals0(Math::abs(t - 0.01))) {
+		if (Math::equals0(Math::abs(t - T(0.01)))) {
+			// Linear interpolation
 			return lerp(to_, t);
 		}
 
@@ -166,7 +172,7 @@ struct TVec3 {
 		T theta		= from.radians(to);
 		T sinTheta	= Math::sin(theta);
 
-		T a = Math::sin((1.0f-t) * theta) / sinTheta;
+		T a = Math::sin((T(1)-t) * theta) / sinTheta;
 		T b = Math::sin(      t  * theta) / sinTheta;
 		return (from*a) + (to*b);
 	}
@@ -174,11 +180,13 @@ struct TVec3 {
 	// normalize lerp: non-constant in velocity
 	inline TVec3 nlerp(const TVec3& to, const T& t) const { return lerp(to, t).normalize(); }
 
-	inline bool operator== (const TVec3& r) const { return x == r.x && y == r.y && z == r.z; }
-	inline bool operator!= (const TVec3& r) const { return !(this->operator==(r)); }
-
 	inline void onFormat(fmt::format_context& ctx) const {
-		fmt::format_to(ctx.out(), "[{}, {}, {}]", x, y, z);
+		fmt::format_to(ctx.out(), "({}, {}, {})", x, y, z);
+	}
+
+	inline friend std::ostream& operator<< (std::ostream& o, const TVec3& v) {
+		o << "(" << v.x << ", " << v.y << ", " << v.z << ")";
+		return o;
 	}
 };
 
@@ -198,27 +206,25 @@ bool TVec3<T>::equals0(const T& epsilon) const {
 
 template<>
 struct TVec3<int> {
-	using T = int;
-	using This = TVec3<T>;
+	using ElementType = int;
 	union {
-		struct { T x, y, z; };
-		T v[3];
+		struct { ElementType x, y, z; };
+		ElementType v[3];
 	};
 
-	inline TVec3(const T& x_, const T& y_, const T& z_)
+	inline TVec3(const ElementType& x_, const ElementType& y_, const ElementType& z_)
 		: x(x_), y(y_), z(z_) {}
 };
 
 template<>
 struct TVec3<unsigned int> {
-	using T = unsigned int;
-	using This = TVec3<T>;
+	using ElementType = unsigned int;
 	union {
-		struct { T x, y, z; };
-		T v[3];
+		struct { ElementType x, y, z; };
+		ElementType v[3];
 	};
 
-	inline TVec3(const T& x_, const T& y_, const T& z_)
+	inline TVec3(const ElementType& x_, const ElementType& y_, const ElementType& z_)
 		: x(x_), y(y_), z(z_) {}
 };
 
@@ -226,7 +232,6 @@ using vec3f		= TVec3<float>;
 using vec3d		= TVec3<double>;
 using vec3i		= TVec3<int>;
 using vec3ui	= TVec3<unsigned int>;
-
 
 SGE_FORMATTER_T(class T, TVec3<T>)
 

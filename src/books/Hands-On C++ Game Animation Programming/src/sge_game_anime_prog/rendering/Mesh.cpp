@@ -63,12 +63,12 @@ void Mesh::cpuSkin(const Skeleton& skeleton, const Pose& pose) {
 		const vec4i& j = jointInfluences[i];
 		const vec4f& w = jointWeights[i];
 
-		mat4 m0 = _posePalette[j.x] * invPosePalette[j.x];
-		mat4 m1 = _posePalette[j.y] * invPosePalette[j.y];
-		mat4 m2 = _posePalette[j.z] * invPosePalette[j.z];
-		mat4 m3 = _posePalette[j.w] * invPosePalette[j.w];
+		mat4f m0 = _posePalette[j.x] * invPosePalette[j.x];
+		mat4f m1 = _posePalette[j.y] * invPosePalette[j.y];
+		mat4f m2 = _posePalette[j.z] * invPosePalette[j.z];
+		mat4f m3 = _posePalette[j.w] * invPosePalette[j.w];
 
-		mat4 skin = (m0*w.x) + (m1*w.y) + (m2*w.z) + (m3*w.w);
+		mat4f skin = (m0*w.x) + (m1*w.y) + (m2*w.z) + (m3*w.w);
 
 		_skinnedPos[i]    = skin.transformPoint(pos[i]);
 		_skinnedNormal[i] = skin.transformVector(normal[i]);
@@ -128,7 +128,7 @@ void Mesh::cpuSkin(const Skeleton& skeleton, const Pose& pose) {
 	_normalAttrib->uploadToGpu(ByteSpan_make(_skinnedNormal.span()));
 }
 
-void Mesh::cpuSkin(const Span<const mat4>& animatedPose) {
+void Mesh::cpuSkin(const Span<const mat4f>& animatedPose) {
 	// animatedPose = _posePalette * invPosePalette
 
 	size_t vertexCount = getVertexCount();

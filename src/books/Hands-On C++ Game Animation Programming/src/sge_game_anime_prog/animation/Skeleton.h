@@ -23,8 +23,8 @@ public:
 	inline const Pose& restPose() const { return _restPose; }
 	inline const Pose& bindPose() const { return _bindPose; }
 
-	inline       Span<      mat4> invBindPose()			{ return _invBindPose; }
-	inline const Span<const mat4> invBindPose() const	{ return _invBindPose; }
+	inline       Span<      mat4f> invBindPose()		{ return _invBindPose; }
+	inline const Span<const mat4f> invBindPose() const	{ return _invBindPose; }
 
 	inline       Span<      String> jointNames()		{ return _jointNames.span(); }
 	inline const Span<const String> jointNames() const	{ return _jointNames.span(); }
@@ -48,7 +48,7 @@ private:
 
 	Pose			_restPose;
 	Pose			_bindPose;
-	Vector<mat4>	_invBindPose;
+	Vector<mat4f>	_invBindPose;
 	Vector<String>	_jointNames;
 };
 

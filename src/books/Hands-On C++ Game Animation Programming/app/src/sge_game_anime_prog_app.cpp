@@ -1247,8 +1247,8 @@ private:
 	void test_None_onRender(Request& req) {}
 	void test__END_onRender(Request& req) {}
 	void test_LitTexture_onRender(Request& req) {
-		mat4f projection = mat4f::cast(req.camera.projMatrix());
-		mat4f view = mat4f::cast(req.camera.viewMatrix());
+		mat4f projection(req.camera.projMatrix());
+		mat4f view(req.camera.viewMatrix());
 		mat4f model = mat4f::s_quat(quat4f::s_angleAxis(Math::radians(_testRotation), vec3f::s_forward())); // or mat4f::s_identity();
 
 		mat4f mvp = projection * view * model;
@@ -1418,7 +1418,7 @@ private:
 		auto& modelTran = _gpuAnimInfo.model;
 		float modelPosX = modelTran.position.x;
 		float modelPosZ = modelTran.position.z;
-		mat4 model		= mat4::s_transform(modelTran);
+		mat4f model		= mat4f::s_transform(modelTran);
 
 		if (_isCameraFollow) {
 			vec3f eye = vec3f(modelPosX, 0, modelPosZ) + vec3f(0, 5, 10);
@@ -1427,11 +1427,11 @@ private:
 			req.camera.setAim(target.x, target.y, target.z);
 		}
 
-		mat4f projection = mat4f::cast(req.camera.projMatrix());
-		mat4f view = mat4f::cast(req.camera.viewMatrix());
+		mat4f projection(req.camera.projMatrix());
+		mat4f view(req.camera.viewMatrix());
 
-		mat4 vp		= projection * view;
-		mat4 mvp	= vp * model;
+		mat4f vp	= projection * view;
+		mat4f mvp	= vp * model;
 
 		if (_showMesh) {
 			_onDrawGpuSkinning(projection, view);
@@ -1665,9 +1665,9 @@ private:
 		_staticShader->bind();
 		{
 			{ // bind uniforms
-				Uniform<mat4>::set(_staticShader->findUniformByName("model"), mat4::s_identity());
-				Uniform<mat4>::set(_staticShader->findUniformByName("view"), view);
-				Uniform<mat4>::set(_staticShader->findUniformByName("projection"), projection);
+				Uniform<mat4f>::set(_staticShader->findUniformByName("model"), mat4f::s_identity());
+				Uniform<mat4f>::set(_staticShader->findUniformByName("view"), view);
+				Uniform<mat4f>::set(_staticShader->findUniformByName("projection"), projection);
 				Uniform<vec3f>::set(_staticShader->findUniformByName("light"), vec3f::s_one());
 				tex->set(_staticShader->findUniformByName("tex0"), 0);
 			}

@@ -15,8 +15,6 @@ struct Uniform {
 
 	static void set(u32 slot, const T& value);
 	static void set(u32 slot, const T* data, size_t dataSize);
-	static void set(u32 slot, const std::vector<T>& value);
-	static void set(u32 slot, const Vector<T>& value);
 	static void set(u32 slot, const Span<const T>& value);
 };
 

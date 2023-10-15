@@ -12,6 +12,8 @@ struct mat4 {
 	using vec3 = TVec3<float>;
 	using vec4 = TVec4<float>;
 
+	static const size_t kElementCount = 16;
+
 	union {
 		/* v[0 1 2 3 4 5 6 7 8 9 10 ...] in mat4
 		    r0 r1 r2 r3
@@ -29,7 +31,7 @@ struct mat4 {
 			wx wy wz ww  c3
 		*/
 
-		float v[16];
+		float v[kElementCount];
 		vec4 _columns[4]; // colomn-major
 
 		struct {
@@ -72,12 +74,8 @@ struct mat4 {
 		, zx(_20), zy(_21), zz(_22), zw(_23)
 		, wx(_30), wy(_31), wz(_32), ww(_33) {}
 
-	inline mat4(const vec4f& cx, const vec4f& cy, const vec4f& cz, const vec4f& cw) {
-		_columns[0] = cx;
-		_columns[1] = cy;
-		_columns[2] = cz;
-		_columns[3] = cw;
-	}
+	inline mat4(const vec4f& cx, const vec4f& cy, const vec4f& cz, const vec4f& cw) : _columns{ cx, cy, cz, cw } {}
+	inline mat4(sge::Mat4f m) : mat4(m._elements) {}
 
 	const vec4& right()			const { return _columns[0]; }
 	const vec4& up()			const { return _columns[1]; }
@@ -96,20 +94,41 @@ struct mat4 {
 			        0,0,0,1);
 	}
 
-	inline			vec4& operator[](int i)			{ return _columns[i]; }
-	inline const	vec4& operator[](int i) const	{ return _columns[i]; }
+	inline			vec4& operator[](int i)			{ SGE_ASSERT(i < kElementCount); return _columns[i]; }
+	inline const	vec4& operator[](int i) const	{ SGE_ASSERT(i < kElementCount); return _columns[i]; }
 
-	inline vec4 col(int i) const { return _columns[i]; }
-	inline vec4 row(int i) const { return vec4(v[4*0+i], v[4*1+i], v[4*2+i], v[4*3+i]); }
+	inline vec4 col(int i) const { SGE_ASSERT(i < 4); return _columns[i]; }
+	inline vec4 row(int i) const {
+		SGE_ASSERT(i < 4);
+		return vec4(v[4*0+i],
+					v[4*1+i],
+					v[4*2+i],
+					v[4*3+i]);
+	}
 
-	inline void setCol(int i, const vec4& v_) { _columns[i] = v_; }
-	inline void setRow(int i, const vec4& v_) { v[4*0+i] = v_.x; v[4*1+i] = v_.y; v[4*2+i] = v_.z; v[4*3+i] = v_.w; }
+	inline void setCol(int i, const vec4& col) { SGE_ASSERT(i < 4); _columns[i] = col; }
+	inline void setRow(int i, const vec4& row) {
+		SGE_ASSERT(i < 4);
+		v[4*0+i] = row.x;
+		v[4*1+i] = row.y;
+		v[4*2+i] = row.z;
+		v[4*3+i] = row.w;
+	}
 
-	inline bool equals(const mat4& r, float epsilon = Math::epsilon<float>()) const { return cx().equals(r.cx(), epsilon) && cy().equals(r.cy(), epsilon) && cz().equals(r.cz(), epsilon) && cw().equals(r.cw(), epsilon); }
-	inline bool equals0(              float epsilon = Math::epsilon<float>()) const { return cx().equals0(epsilon) && cy().equals0(epsilon) && cz().equals0(epsilon) && cw().equals0(epsilon); }
+	inline bool equals (const mat4& r,	float epsilon = Math::epsilon<float>()) const;
+	inline bool equals0(				float epsilon = Math::epsilon<float>()) const;
 
-	inline bool operator==(const mat4& r) const { return cx()==r.cx() && cy()==r.cy() && cz()==r.cz() && cw()==r.cw(); }
-	inline bool operator!=(const mat4& r) const { return !(this->operator==(r)); }
+	// Scaling matrices and then adding them allows you to "lerp" or "mix" between two matrices,
+	// so long as both matrices represent a linear transform.
+	inline mat4 operator+(float s) const		{ return mat4(cx()+s, cy()+s, cz()+s, cw()+s); }
+	inline mat4 operator-(float s) const		{ return mat4(cx()-s, cy()-s, cz()-s, cw()-s); }
+	inline mat4 operator*(float s) const		{ return mat4(cx()*s, cy()*s, cz()*s, cw()*s); }
+	inline mat4 operator/(float s) const		{ return mat4(cx()/s, cy()/s, cz()/s, cw()/s); }
+
+	inline void operator+=(float s)				{ _columns[0]+=s, _columns[1]+=s, _columns[2]+=s, _columns[3]+=s; }
+	inline void operator-=(float s)				{ _columns[0]-=s, _columns[1]-=s, _columns[2]-=s, _columns[3]-=s; }
+	inline void operator*=(float s)				{ _columns[0]*=s, _columns[1]*=s, _columns[2]*=s, _columns[3]*=s; }
+	inline void operator/=(float s)				{ _columns[0]/=s, _columns[1]/=s, _columns[2]/=s, _columns[3]/=s; }
 
 	// Matrix addition can be used with scalar multiplication to interpolate or blend between multiple matrices.Later, you will learn how to use this property to implement animation skinning.
 	inline mat4 operator+(const mat4& r) const	{ return mat4(cx()+r.cx(), cy()+r.cy(), cz()+r.cz(), cw()+r.cw()); }
@@ -117,13 +136,6 @@ struct mat4 {
 
 	inline void operator+=(const mat4& r)		{ _columns[0]+=r._columns[0], _columns[1]+=r._columns[1], _columns[2]+=r._columns[2], _columns[3]+=r._columns[3]; }
 	inline void operator-=(const mat4& r)		{ _columns[0]-=r._columns[0], _columns[1]-=r._columns[1], _columns[2]-=r._columns[2], _columns[3]-=r._columns[3]; }
-
-	//Scaling matrices and then adding them allows you to "lerp" or "mix" between two matrices, so long as both matrices represent a linear transform.
-	inline mat4 operator*(float s)		const	{ return mat4(cx()*s, cy()*s, cz()*s, cw()*s); }
-	inline mat4 operator/(float s)		const	{ return mat4(cx()/s, cy()/s, cz()/s, cw()/s); }
-
-	inline void operator*=(float s)				{ _columns[0]*=s, _columns[1]*=s, _columns[2]*=s, _columns[3]*=s; }
-	inline void operator/=(float s)				{ _columns[0]/=s, _columns[1]/=s, _columns[2]/=s, _columns[3]/=s; }
 
 	// The resulting value for any element is the dot product of that row from the left matrix and that column form the right matrix.
 	// For example, suppose you want to find the value of the element in row 2 column 3 when multiplying two matrices.
@@ -196,6 +208,9 @@ struct mat4 {
 #endif
 	}
 
+	inline bool operator==(const mat4& r) const { return cx()==r.cx() && cy()==r.cy() && cz()==r.cz() && cw()==r.cw(); }
+	inline bool operator!=(const mat4& r) const { return !(this->operator==(r)); }
+
 	/*
 		Most of the data will be stored as three-component vectors, not four.
 		There is no need to create a new four-component vector every time one needs to be transformed by a matrix.
@@ -204,30 +219,30 @@ struct mat4 {
 		and use transformVector/transformPoint instead.
 		This should help reduce ambiguity as to what the data being transformed is.
 	*/
-	inline vec3 transformVector(const vec3& r) const {
+	inline vec3 transformVector(const vec3& vector) const {
 #define E(ROW, V3) M4V4D(ROW, V3.x, V3.y, V3.z, 0)
-		return vec3(E(0,r), E(1,r), E(2,r));
+		return vec3(E(0,vector), E(1,vector), E(2,vector));
 #undef E
 	}
 
-	inline vec3 transformPoint(const vec3& r) const {
+	inline vec3 transformPoint(const vec3& point) const {
 #define E(ROW, V3) M4V4D(ROW, V3.x, V3.y, V3.z, 1)
-		return vec3(E(0,r), E(1,r), E(2,r));
+		return vec3(E(0,point), E(1,point), E(2,point));
 #undef E
 	}
 
 	// The W component is a reference — it is a read-write.
 	// After the function is executed,
 	// the w component holds the value for W, if the input vector had been vec4
-	inline vec3 transformPoint(const vec3& r, float& w) const {
+	inline vec3 transformPoint(const vec3& point, float& w) const {
 		float _w = w;
-		w = M4V4D(3, r.x, r.y, r.z, _w);
+		w = M4V4D(3, point.x, point.y, point.z, _w);
 #define E(ROW, V3) M4V4D(ROW, V3.x, V3.y, V3.z, _w)
-		return vec3(E(0,r), E(1,r), E(2,r));
+		return vec3(E(0,point), E(1,point), E(2,point));
 #undef E
 	}
 
-	inline mat4 transposed() const {
+	inline mat4 transpose() const {
 		return mat4(xx, yx, zx, wx,
 			        xy, yy, zy, wy,
 			        xz, yz, zz, wz,
@@ -235,7 +250,7 @@ struct mat4 {
 	}
 
 	// convert a matrix from row-major to column-major
-	inline void transpose() {
+	inline void transposed() {
 		swap(yx, xy);
 		swap(zx, xz);
 		swap(wx, xw);
@@ -281,7 +296,7 @@ struct mat4 {
 		cofactor.v[15] =  M4_3X3MINOR(0,1,2, 0,1,2);
 
 		// Adj(M[i,j]) = Cofactor(M[j,i])
-		cofactor.transpose();
+		cofactor.transposed();
 		return cofactor;
 	}
 
@@ -297,9 +312,10 @@ struct mat4 {
 	// A frustum represents everything that is visible to the camera.
 	// The frustum function can be used to construct a view frustum,
 	// but the function parameters are not intuitive.
+	// FYI: http://www.songho.ca/opengl/gl_projectionmatrix.html
 	inline static mat4 s_frustum(float l, float r, float b, float t, float n, float f) {
-		// FYI: http://www.songho.ca/opengl/gl_projectionmatrix.html
-		SGE_ASSERT(l != r && t != b && n != f);
+		SGE_ASSERT(!Math::equals(l, r) && !Math::equals(t, b) && !Math::equals(n, f));
+
 		return mat4(2*n/(r-l),   0,           0,            0,
 			        0,           2*n/(t-b),   0,            0,
 			        (r+l)/(r-l), (t+b)/(t-b), -(f+n)/(f-n), -1,
@@ -307,9 +323,9 @@ struct mat4 {
 	}
 
 	// A perspective matrix is built from
-		// a field of view (fov typically in degrees),
-		// an aspect ratio (the ratio of 'x:y')
-		// and near and far distances.
+		// -a field of view (fov typically in degrees),
+		// -an aspect ratio (the ratio of 'x:y', 'width:height')
+		// -and near and far distances.
 	inline static mat4 s_perspective(float fov, float aspect, float zNear, float zFar) {
 		if (Math::equals0(aspect)) {
 			return mat4::s_identity();
@@ -325,82 +341,43 @@ struct mat4 {
 	// An orthographic projection maps linearly to NDC space.
 	// Orthographic view projections are generally useful for displaying UI or other two-dimensional elements.
 	inline static mat4 s_ortho(float l, float r, float b, float t, float n, float f) {
-		SGE_ASSERT(l != r && t != b && n != f);
+		SGE_ASSERT(!Math::equals(l, r) && !Math::equals(t, b) && !Math::equals(n, f));
+		
 		return mat4(2/(r-l),      0,            0,            0,
 			        0,            2/(t-b),      0,            0,
 			        0,            0,            -2/(f-n),     0,
 			        -(r+l)/(r-l), -(t+b)/(t-b), -(f+n)/(f-n), 1);
 	}
 
-	inline static mat4 s_lookAt(const vec3& eye, const vec3& target, const vec3& up) {
-		// FYI: http://www.songho.ca/opengl/gl_camera.html#lookat
-		// The eye position and target are defined in world space.
-		// The rest of the work is finding the inverted basis vectors and figuring out where the position is.
+	static mat4 s_lookAt(const vec3& eye, const vec3& aim, const vec3& up);
 
-		// finding the inverted basis vectors: rotating the scene with reverse orientation
-/*		Mview = Mrotation*Mtranslation
-		         = [r0, r4, r8,  0]*[1, 0, 0, tx]=[r0, r4, r8,  r0*tx + r4*ty + r8*tz ]
-			       [r1, r5, r9,  0] [0, 1, 0, ty] [r1, r5, r9,  r1*tx + r5*ty + r9*tz ]
-			       [r2, r6, r10, 0] [0, 0, 1, tz] [r2, r6, r10, r2*tx + r6*ty + r10*tz]
-			       [0,  0,  0,   1] [0, 0, 0, 1 ] [0,  0,  0,   1                     ]
-*/
-		vec3 f = (target - eye).normalize();
-		vec3 r = f.cross(up).normalize();
-		if (r == vec3::s_zero()) {
-			return mat4::s_identity();
-		}
-
-		vec3 u = r.cross(f);
-
-		// Since the basis vectors are orthonormal, their inverse is the same as their transpose.
-		// Remember, forward is negative z
-		// Transpose upper 3x3 matrix to invert it
-		// figuring out where the position is: translating the whole scene inversely from the eye position to the origin
-		// The position can be calculated by negating the dot product of the position column vector with the inverted basis vectors.
-		return mat4( r.x,         u.x,        -f.x,        0,
-			         r.y,         u.y,        -f.y,        0,
-			         r.z,         u.z,        -f.z,        0,
-			        -r.dot(eye), -u.dot(eye),  f.dot(eye), 1);
-/*
-		mat4::s_lookAt is equivalent to view matrix
-			The view matrix is the inverse of the camera's transformation (the position, rotation, and scale of the camera).
-			Instead of having to create the camera's transform matrix and then invert it,
-			you will be implementing a mat4::s_lookAt function that generates this matrix directly.
-			The mat4::s_lookAt function is the most convenient way of constructing a view matrix.
-			ex: mat4::s_lookAt(camera.position, {0,0,0}, {0,1,0})
-*/
-	}
-
-
-	inline static mat4 s_translate(const vec3& t) {
-		return mat4({ 1,   0,   0,		0},
-					{ 0,   1,	0,		0},
-					{ 0,   0,   1,		0},
-					{ t.x, t.y, t.z,	1});
-	}
-
-	inline static mat4 s_scale(const vec3& s) {
-		return mat4({ s.x, 0,   0,   0 },
-					{ 0,   s.y, 0,   0 },
-					{ 0,   0,   s.z, 0 },
-					{ 0,   0,   0,   1 });
-	}
-
+	static mat4 s_translate(const vec3& t);
 	static mat4 s_quat(const quat& q);
+	static mat4 s_scale(const vec3& s);
+
+	static mat4 s_trs(const vec3& t, const quat& r, const vec3& s);
 
 	static mat4 s_transform(const Transform& t);
-
-	static mat4 s_trs(const vec3f& pos, const quat& q, const vec3f& scale);
-
-	static mat4 cast(sge::Mat4f m) {
-		mat4 o(m._elements);
-		return o;
-	}
 
 	void onFormat(fmt::format_context& ctx) const;
 };
 
+inline bool mat4::equals(const mat4& r, float epsilon) const {
+	return cx().equals(r.cx(), epsilon)
+		&& cy().equals(r.cy(), epsilon)
+		&& cz().equals(r.cz(), epsilon)
+		&& cw().equals(r.cw(), epsilon);
+}
+
+inline bool mat4::equals0(float epsilon) const {
+	return cx().equals0(epsilon)
+		&& cy().equals0(epsilon)
+		&& cz().equals0(epsilon)
+		&& cw().equals0(epsilon);
+}
+
 using mat4f = mat4;
 
 SGE_FORMATTER(mat4)
+
 }

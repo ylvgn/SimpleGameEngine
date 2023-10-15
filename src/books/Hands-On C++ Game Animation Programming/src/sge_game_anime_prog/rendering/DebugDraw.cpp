@@ -7,7 +7,7 @@
 
 namespace sge {
 
-void DebugDraw::draw(DebugDrawMode mode, const mat4& mvp, const Color4f& color /*= Color4f(1,0,0,1)*/) {
+void DebugDraw::draw(DebugDrawMode mode, const mat4f& mvp, const Color4f& color /*= Color4f(1,0,0,1)*/) {
 	size_t vertexCount = _points.size();
 	if (vertexCount == 0) return;
 
@@ -15,11 +15,11 @@ void DebugDraw::draw(DebugDrawMode mode, const mat4& mvp, const Color4f& color /
 
 	_attribs.bind(_shader->findAttributeByName("position"));
 #if 1
-	Uniform<mat4>::set(_shader->findUniformByName("mvp"), mvp);
+	Uniform<mat4f>::set(_shader->findUniformByName("mvp"), mvp);
 #else
-	Uniform<mat4>::set(_shader->findUniformByName("model"), model);
-	Uniform<mat4>::set(_shader->findUniformByName("view"), view);
-	Uniform<mat4>::set(_shader->findUniformByName("projection"), projection);
+	Uniform<mat4f>::set(_shader->findUniformByName("model"), model);
+	Uniform<mat4f>::set(_shader->findUniformByName("view"), view);
+	Uniform<mat4f>::set(_shader->findUniformByName("projection"), projection);
 #endif
 
 	Uniform<Color4f>::set(_shader->findUniformByName("color"), color);

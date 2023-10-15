@@ -1,6 +1,7 @@
 #include "Uniform.h"
 
 #include "glad/glad.h"
+
 #include <sge_game_anime_prog/math/vec2.h>
 #include <sge_game_anime_prog/math/vec3.h>
 #include <sge_game_anime_prog/math/vec4.h>
@@ -9,21 +10,10 @@
 
 namespace sge {
 
-template Uniform<int>;
-template Uniform<float>;
-template Uniform<vec2i>;
-template Uniform<vec4i>;
-template Uniform<vec2f>;
-template Uniform<vec3f>;
-template Uniform<vec4f>;
-template Uniform<quat4f>;
-template Uniform<mat4f>;
-template Uniform<Color4f>;
-
-#define UNIFORM_IMPL(gl_func, T, dType) \
+#define UNIFORM_IMPL(FUNC, T, DATA_TYPE) \
 template<> \
 void Uniform<T>::set(u32 slot, const T* data, size_t dataSize) { \
-    gl_func(slot, static_cast<GLsizei>(dataSize), reinterpret_cast<const dType*>(&data[0])); \
+    FUNC(slot, static_cast<GLsizei>(dataSize), reinterpret_cast<const DATA_TYPE*>(&data[0])); \
 } \
 // ------
 UNIFORM_IMPL(glUniform1iv, int,     int)
@@ -42,11 +32,12 @@ void Uniform<mat4f>::set(u32 slot, const mat4f* data, size_t dataSize) {
 	// otherwise, the UNIFORM_IMPL macro won't work.
 	// This is because the glUniformMatrix4fv function takes an additional Boolean argument
 	// asking whether the matrix should be transposed or not.
+
 	glUniformMatrix4fv(
 		slot,
 		static_cast<GLsizei>(dataSize),
 		false, // set the transposed Boolean to false
-		(float*)&data[0]
+		static_cast<const GLfloat*>(data->v)
 	);
 }
 
@@ -56,18 +47,19 @@ void Uniform<T>::set(u32 slot, const T& value) {
 }
 
 template <typename T>
-void Uniform<T>::set(u32 slot, const Vector<T>& value) {
-	set(slot, value.span());
-}
-
-template <typename T>
-void Uniform<T>::set(u32 slot, const std::vector<T>& value) {
-	set(slot, &value[0], value.size());
-}
-
-template <typename T>
 void Uniform<T>::set(u32 slot, const Span<const T>& value) {
 	set(slot, value.data(), value.size());
 }
+
+template Uniform<int>;
+template Uniform<float>;
+template Uniform<vec2i>;
+template Uniform<vec4i>;
+template Uniform<vec2f>;
+template Uniform<vec3f>;
+template Uniform<vec4f>;
+template Uniform<quat4f>;
+template Uniform<mat4f>;
+template Uniform<Color4f>;
 
 }

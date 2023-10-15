@@ -5,9 +5,11 @@ namespace sge {
 template<typename T>
 struct TVec2 {
 
+	static const size_t kElementCount = 2;
+
 	union {
 		struct { T x, y; };
-		T v[2];
+		T data[kElementCount];
 	};
 
 	inline TVec2() = default;
@@ -19,39 +21,45 @@ struct TVec2 {
 	inline static TVec2 s_zero()	{ return TVec2(0,0); }
 	inline static TVec2 s_one()		{ return TVec2(1,1); }
 
-	inline static TVec2 min(const TVec2& l, const TVec2& r) { return TVec2<T>(Math::min(l.x, r.x), Math::min(l.y, r.y)); }
-	inline static TVec2 max(const TVec2& l, const TVec2& r) { return TVec2<T>(Math::max(l.x, r.x), Math::max(l.y, r.y)); }
+	inline			T& operator[](int i)		{ SGE_ASSERT(i < kElementCount); return data[i]; }
+	inline const	T& operator[](int i) const	{ SGE_ASSERT(i < kElementCount); return data[i]; }
 
-	inline			T& operator[](int i)		{ return v[i]; }
-	inline const	T& operator[](int i) const	{ return v[i]; }
+	inline bool equals (const TVec2& r, const T& epsilon = Math::epsilon<T>()) const;
+	inline bool equals0(				const T& epsilon = Math::epsilon<T>()) const;
 
-	inline bool equals(const TVec2& r, const T& epsilon = Math::epsilon<T>()) const;
-	inline bool equals0(               const T& epsilon = Math::epsilon<T>()) const;
+	inline TVec2 operator+ (const TVec2& r) const	{ return TVec2(x+r.x, y+r.y); }
+	inline TVec2 operator- (const TVec2& r) const	{ return TVec2(x-r.x, y-r.y); }
+	inline TVec2 operator* (const TVec2& r) const	{ return TVec2(x*r.x, y*r.y); }
+	inline TVec2 operator/ (const TVec2& r) const	{ return TVec2(x/r.x, y/r.y); }
 
-	inline TVec2 operator+ (const TVec2& r) const { return TVec2(x+r.x, y+r.y); }
-	inline TVec2 operator- (const TVec2& r) const { return TVec2(x-r.x, y-r.y); }
-	inline TVec2 operator* (const TVec2& r) const { return TVec2(x*r.x, y*r.y); }
-	inline TVec2 operator/ (const TVec2& r) const { return TVec2(x/r.x, y/r.y); }
+	inline TVec2 operator+ (const T& s) const		{ return TVec2(x+s, y+s); }
+	inline TVec2 operator- (const T& s) const		{ return TVec2(x-s, y-s); }
+	inline TVec2 operator* (const T& s) const		{ return TVec2(x*s, y*s); }
+	inline TVec2 operator/ (const T& s) const		{ return TVec2(x/s, y/s); }
 
-	inline TVec2 operator+ (const T& s) const	{ return TVec2(x+s, y+s); }
-	inline TVec2 operator- (const T& s) const	{ return TVec2(x-s, y-s); }
-	inline TVec2 operator* (const T& s) const	{ return TVec2(x*s, y*s); }
-	inline TVec2 operator/ (const T& s) const	{ return TVec2(x/s, y/s); }
+	inline void operator+= (const TVec2& r)			{ x+=r.x; y+=r.y; }
+	inline void operator-= (const TVec2& r)			{ x-=r.x; y-=r.y; }
+	inline void operator*= (const TVec2& r)			{ x*=r.x; y*=r.y; }
+	inline void operator/= (const TVec2& r)			{ x/=r.x; y/=r.y; }
 
-	inline void operator+= (const TVec2& r)		{ x+=r.x; y+=r.y; }
-	inline void operator-= (const TVec2& r)		{ x-=r.x; y-=r.y; }
-	inline void operator*= (const TVec2& r)		{ x*=r.x; y*=r.y; }
-	inline void operator/= (const TVec2& r)		{ x/=r.x; y/=r.y; }
+	inline void operator+= (const T& s)				{ x+=s; y+=s; }
+	inline void operator-= (const T& s)				{ x-=s; y-=s; }
+	inline void operator*= (const T& s)				{ x*=s; y*=s; }
+	inline void operator/= (const T& s)				{ x/=s; y/=s; }
 
-	inline void operator+= (const T& s)			{ x+=s; y+=s; }
-	inline void operator-= (const T& s)			{ x-=s; y-=s; }
-	inline void operator*= (const T& s)			{ x*=s; y*=s; }
-	inline void operator/= (const T& s)			{ x/=s; y/=s; }
+	inline TVec2 operator-() const					{ return TVec2(-x,-y); }
 
-	inline TVec2 operator-() const				{ return TVec2(-x,-y); }
+	inline bool operator== (const TVec2& r) const	{ return x == r.x && y == r.y; }
+	inline bool operator!= (const TVec2& r) const	{ return !(this->operator==(r)); }
 
-	inline bool operator== (const TVec2& r) const { return x == r.x && y == r.y; }
-	inline bool operator!= (const TVec2& r) const { return !(this->operator==(r)); }
+	inline void onFormat(fmt::format_context& ctx) const {
+		fmt::format_to(ctx.out(), "({}, {})", x, y);
+	}
+
+	inline friend std::ostream& operator<< (std::ostream& o, const TVec2& v) {
+		o << "(" << v.x << ", " << v.y << ")";
+		return o;
+	}
 };
 
 template<class T> inline
@@ -68,27 +76,25 @@ bool TVec2<T>::equals0(const T& epsilon) const {
 
 template<>
 struct TVec2<int> {
-	using T = int;
-	using This = TVec2<T>;
+	using ElementType = int;
 	union {
-		struct { T x, y; };
-		T v[2];
+		struct { ElementType x, y; };
+		ElementType v[2];
 	};
 
-	inline TVec2(const T& x_, const T& y_)
+	inline TVec2(const ElementType& x_, const ElementType& y_)
 		: x(x_), y(y_) {}
 };
 
 template<>
 struct TVec2<unsigned int> {
-	using T = unsigned int;
-	using This = TVec2<T>;
+	using ElementType = unsigned int;
 	union {
-		struct { T x, y; };
-		T v[2];
+		struct { ElementType x, y; };
+		ElementType v[2];
 	};
 
-	inline TVec2(const T& x_, const T& y_)
+	inline TVec2(const ElementType& x_, const ElementType& y_)
 		: x(x_), y(y_) {}
 };
 
@@ -96,5 +102,7 @@ using vec2f		= TVec2<float>;
 using vec2d		= TVec2<double>;
 using vec2i		= TVec2<int>;
 using vec2ui	= TVec2<unsigned int>;
+
+SGE_FORMATTER_T(class T, TVec2<T>)
 
 }

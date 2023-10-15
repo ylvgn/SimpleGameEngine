@@ -66,7 +66,7 @@ Transform Transform::s_combine(const Transform& a, const Transform& b) {
 	return res;
 }
 
-Transform Transform::s_mat(const mat4& m) {
+Transform Transform::s_mat(const mat4f& m) {
 /*
 	It's important that you're able to convert matrices to transforms
 	because you don't always control what format the data you are dealing with comes in.
@@ -75,7 +75,7 @@ Transform Transform::s_mat(const mat4& m) {
 
 	Transform res;
 	res.position = vec3f(m.v[12], m.v[13], m.v[14]); // wx, wy, wz, same as m.cw().xyz()
-	res.rotation = quat::s_mat4(m);
+	res.rotation = quat4f::s_mat4(m);
 
 	// To find the scale, first, ignore the translation part of the matrix,
 	// M(zero out the translation vector).This leaves you with M = SR.
@@ -103,6 +103,10 @@ Transform Transform::s_mat(const mat4& m) {
 	However, this decomposition is expensive and not well suited to real-time applications.
 	FYI: https://gabormakesgames.com/blog_decomposition.html
 */
+}
+
+void Transform::onFormat(fmt::format_context& ctx) const {
+	fmt::format_to(ctx.out(), "Transform(\n  {},\n  {},\n  {})", position, rotation, scale);
 }
 
 }

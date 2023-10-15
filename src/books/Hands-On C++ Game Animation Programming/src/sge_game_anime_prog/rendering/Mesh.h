@@ -36,7 +36,7 @@ public:
 	Mesh& operator=(const Mesh& r);
 
 	void cpuSkin(const Skeleton& skeleton, const Pose& pose);
-	void cpuSkin(const Span<const mat4>& animatedPose);
+	void cpuSkin(const Span<const mat4f>& animatedPose);
 	void uploadToGpu();
 
 	void bind(  int pos, int normal, int uv, int jointWeight = kInvalidSlotIndex, int jointInflucence = kInvalidSlotIndex);
@@ -79,7 +79,7 @@ private:
 	Vector<vec3f>			_skinnedPos;
 	Vector<vec3f>			_skinnedNormal;
 
-	Vector<mat4>			_posePalette;
+	Vector<mat4f>			_posePalette;
 };
 
 }
