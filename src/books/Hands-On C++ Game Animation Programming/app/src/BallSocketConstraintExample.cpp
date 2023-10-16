@@ -12,8 +12,8 @@ BallSocketConstraintExample<IKSolver>* BallSocketConstraintExample<IKSolver>::in
 }
 
 template<class IKSolver>
-void BallSocketConstraintExample<IKSolver>::onCreate() {
-	Base::onCreate();
+void BallSocketConstraintExample<IKSolver>::onCreate(Request& req) {
+	Base::onCreate(req);
 	constexpr float kLimitDegrees = 60.f;
 
 	size_t jointCount =_solver->getJointCount();

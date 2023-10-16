@@ -14,11 +14,12 @@ namespace sge {
 
 	Non-unit dual quaternions can introduce an unwanted skew into the transformation represented by a dual quaternion.
 
-	non-dual part means real part
+	non-dual part aka real part
 */
 
 struct Transform;
 
+// DualQuaternion
 struct dual_quat {
 
 	using vec3 = TVec3<float>;
@@ -26,8 +27,7 @@ struct dual_quat {
 	static const size_t kElementCount = 8;
 
 	union {
-		// 2x4 matrix
-		struct {
+		struct { // 2x4 matrix
 			float x,  y,  z,  w;
 			float dx, dy, dz, dw;
 		};
@@ -75,6 +75,7 @@ struct dual_quat {
 	inline void setDual(float dx_, float dy_, float dz_, float dw_) { dx = dx_; dy = dy_; dz = dz_;	dw = dw_; }
 
 	inline static dual_quat s_identity()			{ return dual_quat(0,0,0,1, 0,0,0,0); }
+	inline static dual_quat s_zero()				{ return dual_quat(0,0,0,0, 0,0,0,0); }
 
 	inline			float& operator[](int i)		{ SGE_ASSERT(i < kElementCount); return data[i]; }
 	inline const	float& operator[](int i) const	{ SGE_ASSERT(i < kElementCount); return data[i]; }
@@ -111,18 +112,27 @@ struct dual_quat {
 	inline bool operator!= (const dual_quat& r) const { return !this->operator==(r); }
 
 	// Since the dot product only considers direction, the dual part of the dual quaternion is not used.
-	inline float dot(const dual_quat& r) const	{ return real.dot(r.real); }
+	inline float dot(const dual_quat& r) const { return real.dot(r.real); }
 
-	inline float sqrMagnitude()	const			{ return dot(*this); }
-	inline float magnitude()	const			{ return Math::sqrt(sqrMagnitude()); }
-	inline float lenSq()		const			{ return sqrMagnitude(); }
-	inline float len()			const			{ return magnitude(); }
+	inline float sqrMagnitude()	const	{ return dot(*this); }
+	inline float magnitude() const		{ return Math::sqrt(sqrMagnitude()); }
+	inline float lenSq() const			{ return sqrMagnitude(); }
+	inline float len() const			{ return magnitude(); }
 
 	// The dual quaternion conjugate operation is an extension of quaternion conjugates,
 	// to find the conjugate of both real and dual parts respectively.
-	inline dual_quat conjugate() const			{ return dual_quat(real.conjugate(), dual.conjugate()); }
+	inline dual_quat conjugate() const	{ return dual_quat(real.conjugate(), dual.conjugate()); }
 
-	inline dual_quat normalize() const { auto m = real.magnitude(); return Math::equals0(m) ? s_identity() : *this / m; }
+	inline dual_quat normalize() const {
+		auto norm = real.sqrMagnitude();
+		if (Math::equals0(norm)) {
+			// return an invalid result to flag the error
+			return s_zero();
+		}
+		auto m = Math::sqrt(norm);
+		auto reciprocal = 1.0f / m;
+		return *this * reciprocal;
+	}
 
 	inline void normalized() {
 		auto norm = real.sqrMagnitude();

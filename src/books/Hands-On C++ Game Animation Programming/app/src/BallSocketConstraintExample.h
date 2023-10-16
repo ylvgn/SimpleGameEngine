@@ -17,7 +17,7 @@ public:
 	static BallSocketConstraintExample* instance();
 
 protected:
-	virtual void onCreate() override;
+	virtual void onCreate(Request& req) override;
 
 private:
 	static void s_constraintHandler(int i, IKSolver* solver);

@@ -179,7 +179,16 @@ struct quat {
 
 	// To normalize a quaternion, divide each component of the quaternion by its length.
 	// The resulting quaternion's length will be 1.
-	inline quat normalize() const { float m = magnitude(); return Math::equals0(m) ? s_identity() : (*this / m); }
+	inline quat normalize() const {
+		auto norm = sqrMagnitude();
+		if (Math::equals0(norm)) {
+			// return an invalid result to flag the error
+			return s_zero();
+		}
+		auto m = Math::sqrt(norm);
+		auto reciprocal = 1.0f / m;
+		return *this * reciprocal;
+	}
 
 	inline void normalized() {
 		// FYI: https://proofwiki.org/wiki/Definition:Field_Norm_of_Quaternion
@@ -200,11 +209,17 @@ struct quat {
 		// inverse = conjugate()/sqrMagnitude();
 		auto norm = sqrMagnitude();
 		if (Math::equals0(norm)) {
-			return quat::s_identity();
+			// return an invalid result to flag the error
+			return quat::s_zero();
 		}
 		auto reciprocal = 1.0f / norm;
 		return quat(-x*reciprocal, -y*reciprocal, -z*reciprocal, w*reciprocal);
-//		The inverse of a normalized quaternion is its conjugate. cuz reciprocal is 1
+//		unitInverse: The inverse of a normalized quaternion is its conjugate. cuz reciprocal is 1
+	}
+
+	inline quat unitInverse() const {
+		// assume this quaternion is normalized(unit)
+		return conjugate();
 	}
 
 	// Remember that these functions(mix/nlerp/slerp) expect the quaternion to already be in its desired neighborhood.
@@ -291,7 +306,11 @@ struct quat {
 	void onFormat(fmt::format_context& ctx) const;
 
 	inline friend std::ostream& operator<< (std::ostream& o, const quat& q) {
-		o << "quat(" << q.x << ", " << q.y << ", " << q.z << ", " << q.w << ")";
+		o << "quat(" \
+			<< q.x << ", " \
+			<< q.y << ", " \
+			<< q.z << ", " \
+			<< q.w << ")";
 		return o;
 	}
 

@@ -12,8 +12,8 @@ HingeSocketConstraintExample<IKSolver>* HingeSocketConstraintExample<IKSolver>::
 }
 
 template<class IKSolver>
-void HingeSocketConstraintExample<IKSolver>::onCreate() {
-	Base::onCreate();
+void HingeSocketConstraintExample<IKSolver>::onCreate(Request& req) {
+	Base::onCreate(req);
 	static vec3f sLimitAxis = vec3f::s_up();
 
 	size_t jointCount = _solver->getJointCount();

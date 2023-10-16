@@ -19,9 +19,9 @@ public:
 	IKExampleTestBase();
 
 protected:
-	virtual void onCreate() override;
-	virtual void onUpdate(float dt) override;
-	virtual void onRender(float aspect) override;
+	virtual void onCreate(Request& req) override;
+	virtual void onUpdate(Request& req) override;
+	virtual void onRender(Request& req) override;
 
 protected:
 	void _createIKChains();

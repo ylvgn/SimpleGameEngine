@@ -53,7 +53,7 @@ IKExampleTestBase<IKSolver>::IKExampleTestBase() {
 }
 
 template<class IKSolver>
-void IKExampleTestBase<IKSolver>::onCreate() {
+void IKExampleTestBase<IKSolver>::onCreate(Request& req) {
 	// debugDraw depends on opengl, create it after "gladLoadGL" called
 	_ikChainsVisual = new DebugDrawPL();
 	_ikChainsVisual->setColor(DebugDraw::kPurple);
@@ -65,8 +65,8 @@ void IKExampleTestBase<IKSolver>::onCreate() {
 }
 
 template<class IKSolver>
-void IKExampleTestBase<IKSolver>::onUpdate(float dt) {
-	_sr.time += dt;
+void IKExampleTestBase<IKSolver>::onUpdate(Request& req) {
+	_sr.time += req.dt;
 	if (_sr.time > _targetPath.getEndTime()) {
 		_sr.time -= _targetPath.getEndTime();
 	}
@@ -76,10 +76,11 @@ void IKExampleTestBase<IKSolver>::onUpdate(float dt) {
 }
 
 template<class IKSolver>
-void IKExampleTestBase<IKSolver>::onRender(float aspect) {
-	_matrixView = mat4f::s_lookAt(getEyesPos(), vec3f::s_zero(), vec3f::s_up());
-	_matrixProj = mat4f::s_perspective(60.0f, aspect, 0.01f, 100.0f);
-	mat4f mvp = _matrixProj * _matrixView * mat4f::s_identity();
+void IKExampleTestBase<IKSolver>::onRender(Request& req) {
+	mat4f proj(req.camera.projMatrix());
+	mat4f view(req.camera.viewMatrix());
+
+	mat4f mvp = proj * view * mat4f::s_identity();
 
 	{ // draw ikChains
 		_ikChainsVisual->fromIKSolver(*_solver);

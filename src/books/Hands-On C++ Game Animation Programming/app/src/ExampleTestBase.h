@@ -5,8 +5,12 @@
 
 namespace sge {
 
+class SampleRequest;
+
 class ExampleTestBase : public RefCountBase {
 public:
+	using Request = SampleRequest;
+
 	const float kCamPitch	= 45.0f;
 	const float kCamYaw		= 60.0f;
 	const float kCamDist	= 7.0f;
@@ -16,25 +20,17 @@ public:
 public:
 	virtual ~ExampleTestBase() = default;
 
-	virtual void create()				{ onCreate(); }
-	virtual void update(float dt)		{ onUpdate(dt); }
-	virtual void render(float aspect)	{ onRender(aspect); }
+	virtual void create(Request& req)	{ _defaultSetCamera(req); onCreate(req); }
+	virtual void update(Request& req)	{ onUpdate(req); }
+	virtual void render(Request& req)	{ onRender(req); }
 
 protected:
-	virtual void onCreate() { };
-	virtual void onUpdate(float dt) { };
-	virtual void onRender(float aspect) { };
+	virtual void onCreate(Request& req) {};
+	virtual void onUpdate(Request& req) {};
+	virtual void onRender(Request& req) {};
 
-	inline vec3f getEyesPos() const
-	{
-		return vec3f(	kCamDist * cosf(Math::radians(kCamYaw))* sinf(Math::radians(kCamPitch)),
-						kCamDist * cosf(Math::radians(kCamPitch)),
-						kCamDist * sinf(Math::radians(kCamYaw))* sinf(Math::radians(kCamPitch))
-		);
-	}
-
-	mat4f	_matrixView;
-	mat4f	_matrixProj;
+private:
+	void _defaultSetCamera(Request& req);
 };
 
 }

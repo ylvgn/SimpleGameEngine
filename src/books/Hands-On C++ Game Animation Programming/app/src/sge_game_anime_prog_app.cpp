@@ -1,5 +1,6 @@
 #include <sge_game_anime_prog.h>
 #include "MyCommon.h"
+#include "SampleRequest.h"
 
 #include "IKSolverExample.h"
 #include "BallSocketConstraintExample.h"
@@ -22,57 +23,6 @@ typedef BOOL		(WINAPI* PFNWGLSWAPINTERVALEXTPROC) (int);
 typedef int			(WINAPI* PFNWGLGETSWAPINTERVALEXTPROC) (void);
 
 using DebugDrawPL	= DebugDraw_PointLines;
-
-#define MySampleType_ENUM_LIST(E) \
-	E(None,) \
-	E(LitTexture,) \
-	E(AnimationScalarTrack,) \
-	E(BezierAndHermiteCurve, ) \
-	E(AnimationClip,) \
-	E(MeshSkinning,) \
-	E(AnimationBlending,) \
-	E(Crossfading,) \
-	E(AdditiveBlending,) \
-	E(CCD,) \
-	E(FABRIK,) \
-	E(CCD_BallSocketConstraint,) \
-	E(FABRIK_BallSocketConstraint,) \
-	E(CCD_HingeSocketConstraint,) \
-	E(FABRIK_HingeSocketConstraint,) \
-	E(RayCastTriangle,) \
-	E(AlignFeetOnTheGround,) \
-	E(_END,) \
-// ----------
-SGE_ENUM_CLASS(MySampleType, u8)
-SGE_ENUM_ALL_OPERATOR(MySampleType)
-
-class SampleRequest {
-public:
-	using Type = MySampleType;
-
-	static constexpr float s_HeaderHeight() {
-		return (NuklearUI::Window::kTitleHeight+5) * NuklearUI::scaleFactor;
-	}
-
-	const Type&		type;
-	const float&	aspect;
-	bool&			bWireFrame;
-	Math::Camera3f&	camera;
-	
-	float			dt;
-
-	bool mShowRestPose;
-	bool mShowCurrentPose = true;
-	bool mShowBindPose;
-	bool mShowIKPose;
-
-	float mTimeMod = 1.0f;
-
-	void reset() {
-		bWireFrame = false;
-		mTimeMod = 1.0f;
-	}
-};
 
 class SampleContext : public NonCopyable {
 	using Request	= SampleRequest;
@@ -167,15 +117,6 @@ private:
 			vec2f(1,1),
 		};
 		_vertexTexCoords->uploadToGpu(ByteSpan_make(uvs.span()));
-
-		// mat4f::s_lookAt(vec3f(0, 0, -5), vec3f::s_zero(), vec3f::s_up());
-		req.camera.setPos(0, 0, -5);
-		req.camera.setAim(0, 0, 0);
-
-		// mat4f::s_perspective(60.0f, req.aspect, 0.01f, 1000.0f);
-		req.camera.setFov(60.f);
-		req.camera.setNearClip(0.01f);
-		req.camera.setFarClip(1000.0f);
 	}
 	void test_AnimationScalarTrack_onCreate(Request& req) {
 		_referenceLines		= new DebugDraw();
@@ -292,11 +233,11 @@ private:
 			{
 				const auto cubicTrack = TrackUtil::createScalarTrack(
 					Interpolation::Cubic, 5,
-					FrameUtil::createFrame(0.25f,      0,          0,          0         ),
-					FrameUtil::createFrame(0.3833333f, -10.11282f, 0.5499259f, -10.11282f),
-					FrameUtil::createFrame(0.5f,       25.82528f,  1,          25.82528f ),
-					FrameUtil::createFrame(0.6333333f, 7.925411f,  0.4500741f, 7.925411f ),
-					FrameUtil::createFrame(0.75f,      0,          0,          0         )
+					FrameUtil::createFrame(0.25f,       0,          0,           0         ),
+					FrameUtil::createFrame(0.3833333f, -10.11282f,  0.5499259f, -10.11282f ),
+					FrameUtil::createFrame(0.5f,        25.82528f,  1,           25.82528f ),
+					FrameUtil::createFrame(0.6333333f,  7.925411f,  0.4500741f,  7.925411f ),
+					FrameUtil::createFrame(0.75f,       0,          0,           0         )
 				);
 				_scalarTracks.push_back(cubicTrack);
 				_scalarTracksIsLoop.push_back(false);
@@ -308,11 +249,11 @@ private:
 			{
 				const auto cubicTrack = TrackUtil::createScalarTrack(
 					Interpolation::Cubic, 5,
-				    FrameUtil::createFrame(0.25f,      0,         0,          0         ),
+				    FrameUtil::createFrame(0.25f,      0,         0,           0        ),
 				    FrameUtil::createFrame(0.3833333f, 13.25147f, 0.5499259f, -10.11282f),
 				    FrameUtil::createFrame(0.5f,       10.2405f,  1,          -5.545671f),
 				    FrameUtil::createFrame(0.6333333f, 7.925411f, 0.4500741f, -11.40672f),
-				    FrameUtil::createFrame(0.75f,      0,         0,          0         )
+				    FrameUtil::createFrame(0.75f,      0,         0,           0        )
 				);
 				_scalarTracks.push_back(cubicTrack);
 				_scalarTracksIsLoop.push_back(false);
@@ -413,7 +354,7 @@ private:
 		_debugPoints = new DebugDraw();
 		_debugLines  = new DebugDraw();
 
-		constexpr const int kSampleCount = 200;
+		constexpr const int   kSampleCount = 200;
 		constexpr const float kFloatOfSampleCount = static_cast<float>(kSampleCount);
 		Vector<vec3f> points;
 		Vector<vec3f> lines;
@@ -478,6 +419,7 @@ private:
 		_currentPoseVisual = new DebugDraw();
 
 		_loadExampleAsset();
+		_defaultSetCamera(req, { 0,4,7 }, { 0,4,0 });
 
 		_restPoseVisual->lineFromPose(_skeleton.restPose());
 		_restPoseVisual->uploadToGpu();
@@ -504,6 +446,7 @@ private:
 		req.mShowBindPose		= true;
 	}
 	void test_MeshSkinning_onCreate(Request& req) {
+		_defaultSetCamera(req, { 0,5,7 }, { 0,3,0 });
 		_texture = new Texture("Assets/Textures/Woman.png");
 		GLTFInfo info;
 		GLTFLoader::s_readFile(info, "Assets/Mesh/Woman.gltf");
@@ -563,7 +506,7 @@ private:
 		_loadExampleAsset();
 		_createExampleShader();
 		_defaultSetAnimInfo();
-
+		_defaultSetCamera(req);
 		_blendAnimA.animatedPose = _skeleton.restPose();
 		_blendAnimA.playback = 0.f;
 
@@ -591,6 +534,7 @@ private:
 		_loadExampleAsset();
 		_createExampleShader();
 		_defaultSetAnimInfo();
+		_defaultSetCamera(req);
 
 		CrossFadeController* fadeController = new CrossFadeController();
 		fadeController->setSkeleton(&_skeleton);
@@ -604,37 +548,38 @@ private:
 		_defaultSetAnimInfo();
 		_defaultSelectClip();
 		_defaultSetAdditiveBasePose();
-
+		_defaultSetCamera(req, { 0, 3, 7 }, { 0,3,0 });
 		_additiveTime = 0.f;
 		_additiveDirection = 1.f;
 	}
 	void test_CCD_onCreate(Request& req) {
 		_ccdSolver = make_unique< IKSolverExample<CCDSolver> >();
-		_ccdSolver->create();
+		_ccdSolver->create(req);
 	}
 	void test_FABRIK_onCreate(Request& req) {
 		_fabrikSolver = make_unique< IKSolverExample<FABRIKSolver> >();
-		_fabrikSolver->create();
+		_fabrikSolver->create(req);
 	}
 	void test_CCD_BallSocketConstraint_onCreate(Request& req) {
 		_ccdBallSocketConstraint = BallSocketConstraintExample<CCDSolver>::instance();
-		_ccdBallSocketConstraint->create();
+		_ccdBallSocketConstraint->create(req);
 	}
 	void test_FABRIK_BallSocketConstraint_onCreate(Request& req) {
 		_fabrikBallSocketConstraint = BallSocketConstraintExample<FABRIKSolver>::instance();
-		_fabrikBallSocketConstraint->create();
+		_fabrikBallSocketConstraint->create(req);
 	}
 	void test_CCD_HingeSocketConstraint_onCreate(Request& req) {
 		_ccdHingeSocketConstraint = HingeSocketConstraintExample<CCDSolver>::instance();
-		_ccdHingeSocketConstraint->create();
+		_ccdHingeSocketConstraint->create(req);
 	}
 	void test_FABRIK_HingeSocketConstraint_onCreate(Request& req) {
 		_fabrikHingeSocketConstraint = HingeSocketConstraintExample<FABRIKSolver>::instance();
-		_fabrikHingeSocketConstraint->create();
+		_fabrikHingeSocketConstraint->create(req);
 	}
 	void test_RayCastTriangle_onCreate(Request& req) {
 		_loadExampleAsset_AlignFeetOnTheGround();
 		_createExampleShader();
+		_defaultSetCamera(req, vec3f(0, 7, 20), vec3f::s_zero());
 
 		_groundRayDebugDraw = new DebugDrawPL();
 		_debugPoints		= new DebugDraw();
@@ -739,7 +684,7 @@ private:
 		model.position.y -= _sinkIntoGround;
 		_lastModelY = model.position.y;
 
-		req.mTimeMod			= 1.0f;
+		req.mTimeMod = 1.0f;
 	}
 
 	void test_None_onUpdate(Request& req) {}
@@ -886,28 +831,22 @@ private:
 		_populatePosePalette();
 	}
 	void test_CCD_onUpdate(Request& req) {
-		auto& dt = req.dt;
-		_ccdSolver->update(dt);
+		_ccdSolver->update(req);
 	}
 	void test_FABRIK_onUpdate(Request& req) {
-		auto& dt = req.dt;
-		_fabrikSolver->update(dt);
+		_fabrikSolver->update(req);
 	}
 	void test_CCD_BallSocketConstraint_onUpdate(Request& req) {
-		auto& dt = req.dt;
-		_ccdBallSocketConstraint->update(dt);
+		_ccdBallSocketConstraint->update(req);
 	}
 	void test_FABRIK_BallSocketConstraint_onUpdate(Request& req) {
-		auto& dt = req.dt;
-		_fabrikBallSocketConstraint->update(dt);
+		_fabrikBallSocketConstraint->update(req);
 	}
 	void test_CCD_HingeSocketConstraint_onUpdate(Request& req) {
-		auto& dt = req.dt;
-		_ccdHingeSocketConstraint->update(dt);
+		_ccdHingeSocketConstraint->update(req);
 	}
 	void test_FABRIK_HingeSocketConstraint_onUpdate(Request& req) {
-		auto& dt = req.dt;
-		_fabrikHingeSocketConstraint->update(dt);
+		_fabrikHingeSocketConstraint->update(req);
 	}
 	void test_RayCastTriangle_onUpdate(Request& req) {
 		_groundRayDebugDraw->clear();
@@ -1299,15 +1238,15 @@ private:
 		_handleLines->draw(DebugDrawMode::Lines, mvp, DebugDraw::kPurple);
 	}
 	void test_BezierAndHermiteCurve_onRender(Request& req) {
-		mat4f projection = mat4f::s_perspective(60.0f, req.aspect, 0.01f, 1000.0f);
-		mat4f view       = mat4f::s_lookAt(vec3f(0, 0, -5), vec3f::s_zero(), vec3f::s_up());
-		mat4f mvp        = projection * view * mat4f::s_identity();
+		mat4f projection(req.camera.projMatrix());
+		mat4f view(req.camera.viewMatrix());
+		mat4f mvp = projection * view * mat4f::s_identity();
 		_debugLines->draw(DebugDrawMode::Lines, mvp);
 		_debugPoints->draw(DebugDrawMode::Points, mvp, DebugDraw::kBlue);
 	}
 	void test_AnimationClip_onRender(Request& req) {
-		mat4f projection = mat4f::s_perspective(60.0f, req.aspect, 0.01f, 10.f);
-		mat4f view = mat4f::s_lookAt(vec3f(0, 4, -7), vec3f(0, 4, 0), vec3f::s_up());
+		mat4f projection(req.camera.projMatrix());
+		mat4f view(req.camera.viewMatrix());
 		mat4f mvp = projection * view;
 
 		if (req.mShowRestPose) {
@@ -1323,8 +1262,8 @@ private:
 		}
 	}
 	void test_MeshSkinning_onRender(Request& req) {
-		mat4f projection = mat4f::s_perspective(60.0f, req.aspect, 0.01f, 10.f);
-		mat4f view = mat4f::s_lookAt(vec3f(0, 5, 7), vec3f(0, 3, 0), vec3f::s_up());
+		mat4f projection(req.camera.projMatrix());
+		mat4f view(req.camera.viewMatrix());
 
 		{ // test cpu skinning
 			mat4f model = mat4f::s_transform(_cpuAnimInfo.model);
@@ -1385,28 +1324,27 @@ private:
 		_onDrawGpuSkinningByDefault(req);
 	}
 	void test_CCD_onRender(Request& req) {
-		_ccdSolver->render(req.aspect);
+		_ccdSolver->render(req);
 	}
 	void test_FABRIK_onRender(Request& req) {
-		_fabrikSolver->render(req.aspect);
+		_fabrikSolver->render(req);
 	}
 	void test_CCD_BallSocketConstraint_onRender(Request& req) {
-		_ccdBallSocketConstraint->render(req.aspect);
+		_ccdBallSocketConstraint->render(req);
 	}
 	void test_FABRIK_BallSocketConstraint_onRender(Request& req) {
-		_fabrikBallSocketConstraint->render(req.aspect);
+		_fabrikBallSocketConstraint->render(req);
 	}
 	void test_CCD_HingeSocketConstraint_onRender(Request& req) {
-		_ccdHingeSocketConstraint->render(req.aspect);
+		_ccdHingeSocketConstraint->render(req);
 	}
 	void test_FABRIK_HingeSocketConstraint_onRender(Request& req) {
-		_fabrikHingeSocketConstraint->render(req.aspect);
+		_fabrikHingeSocketConstraint->render(req);
 	}
 	void test_RayCastTriangle_onRender(Request& req) {
 		req.bWireFrame = true;
-
-		mat4f projection = mat4f::s_perspective(60.0f, req.aspect, 0.01f, 100.f);
-		mat4f view = mat4f::s_lookAt(vec3f(0, 7, 20), vec3f::s_zero(), vec3f::s_up());
+		mat4f projection(req.camera.projMatrix());
+		mat4f view(req.camera.viewMatrix());
 		mat4f mvp = projection * view * mat4f::s_identity();
 		_onDrawStaticMesh(projection, view, _ikCourse, _ikCourseTexture);
 
@@ -1480,7 +1418,7 @@ private:
 	void test_AnimationScalarTrack_onDrawUI(Request& req) {}
 	void test_BezierAndHermiteCurve_onDrawUI(Request& req) {}
 	void test_AnimationClip_onDrawUI(Request& req) {
-		Rect2f xywh { 5.0f, 5.0f + req.s_HeaderHeight(), 300.0f, 135.0f};
+		Rect2f xywh { 5.0f, 5.0f + s_HeaderHeight(), 300.0f, 135.0f};
 		NuklearUI::Window window(xywh);
 		
 		static const float layout[] = { 75, 200 };
@@ -1525,7 +1463,7 @@ private:
 		auto& mAdditiveBase		= _gpuAnimInfo.additiveBasePose;
 		auto& mSkeleton			= _skeleton;
 
-		Rect2f xywh{ 5.0f, 5.0f + req.s_HeaderHeight(), 300.0f, 225.0f };
+		Rect2f xywh{ 5.0f, 5.0f + s_HeaderHeight(), 300.0f, 225.0f };
 		NuklearUI::Window window(xywh);
 		static const float layout[] = { 75, 200 };
 		NuklearUI::LayoutRow(NK_STATIC, 25, 2, layout);
@@ -1579,7 +1517,7 @@ private:
 	void test_FABRIK_HingeSocketConstraint_onDrawUI(Request& req) {}
 	void test_RayCastTriangle_onDrawUI(Request& req) {}
 	void test_AlignFeetOnTheGround_onDrawUI(Request& req) {
-		Rect2f xywh { 5.0f, 5.0f + req.s_HeaderHeight(), 300.0f, 330.0f };
+		Rect2f xywh { 5.0f, 5.0f + s_HeaderHeight(), 300.0f, 330.0f };
 		NuklearUI::Window window(xywh);
 		static const float layout[] = { 75, 200 };
 		NuklearUI::LayoutRow row(NK_STATIC, 25, 2, layout);
@@ -1613,8 +1551,8 @@ private:
 private:
 
 	void _onDrawGpuSkinningByDefault(Request& req) {
-		mat4f projection = mat4f::s_perspective(60.0f, req.aspect, 0.01f, 10.f);
-		mat4f view       = mat4f::s_lookAt(vec3f(0, 3, 7), vec3f(0, 3, 0), vec3f::s_up());
+		mat4f projection(req.camera.projMatrix());
+		mat4f view(req.camera.viewMatrix());
 		_onDrawGpuSkinning(projection, view);
 
 #if 0
@@ -1783,12 +1721,16 @@ private:
 		}
 	}
 
-	void _defaultSetCamera(Request& req, const vec3f& aim = vec3f(0,3,7)) {
+	void _defaultSetCamera(Request& req, const vec3f& pos = vec3f(0,0,0), const vec3f& aim = vec3f(0,3,7)) {
+		req.camera.setPos(pos.x, pos.y, pos.z);
 		req.camera.setAim(aim.x, aim.y, aim.z);
-		req.camera.setPos(0,0,0);
 		req.camera.setFov(60.f);
 		req.camera.setNearClip(0.01f);
 		req.camera.setFarClip(1000.0f);
+	}
+
+	static float s_HeaderHeight() {
+		return (NuklearUI::Window::kTitleHeight + 5) * NuklearUI::scaleFactor;
 	}
 
 private:
@@ -1890,8 +1832,6 @@ private:
 	SPtr<DebugDrawPL>							_ankleToDesiredToeDebugDraw;
 };
 
-
-
 class GameAnimeProgMainWin : public NativeUIWindow {
 	using Base = NativeUIWindow;
 public:
@@ -1900,7 +1840,7 @@ public:
 	static constexpr const int kSampleCount = enumInt(Type::_END);
 
 	static constexpr float kMaxCameraMoveOffset = 0.3f;
-	static constexpr float kMaxMouseFactor = 0.3f;
+	static constexpr float kMaxMouseFactor		= 0.3f;
 	static constexpr float kMaxMouseDecayFactor = 0.5f;
 
 	void _cameraMove(float dt) {
@@ -1934,11 +1874,9 @@ public:
 		_sampleRequest.dt = dt;
 		_cameraMove(dt);
 
-		if (_vertexArrayObject == 0)
-			return;
+		if (_vertexArrayObject == 0) return;
 
-		if (_sampleContext)
-			_sampleContext->update(_sampleRequest);
+		if (_sampleContext) _sampleContext->update(_sampleRequest);
 	}
 
 	void render() {
@@ -1950,15 +1888,11 @@ public:
 		if (_sampleContext) {
 			_sampleContext->render(_sampleRequest);
 
-			if (_bShowUI) {
-				_sampleContext->drawUI(_sampleRequest);
-			}
+			if (_bShowUI) _sampleContext->drawUI(_sampleRequest);
 		}
 
-		if (_bShowUI) {
-			_drawUI();
-		}
-		
+		if (_bShowUI) _drawUI();
+
 		_endRender();
 	}
 
@@ -1968,6 +1902,7 @@ protected:
 
 		{ // create opengl render context
 			const HDC dc = hdc();
+
 			PIXELFORMATDESCRIPTOR pfd;
 			pfd 				= {};
 			pfd.nSize 			= sizeof(PIXELFORMATDESCRIPTOR);
@@ -1978,6 +1913,7 @@ protected:
 			pfd.cDepthBits 		= 32;
 			pfd.cStencilBits 	= 8;
 			pfd.iLayerType 		= PFD_MAIN_PLANE;
+
 			int pixelFormat 	= ChoosePixelFormat(dc, &pfd);
 			SetPixelFormat(dc, pixelFormat, &pfd);
 
@@ -2085,7 +2021,7 @@ protected:
 				_camera.pan(-d.x, d.y);
 			}break;
 			case Button::Middle: {
-				auto d = ev.deltaPos * 0.05f;
+				auto d = ev.deltaPos * 0.01f;
 				_camera.move(d.x, d.y, 0);
 			}break;
 			case Button::Right: {
@@ -2259,14 +2195,10 @@ private:
 	}
 
 	void _switchSample(Type newType) {
-		if (_type == newType)
+		if (_type == newType) {
 			return;
-
-		_destroySample();
-
-		_sampleRequest.reset();
+		}
 		_type = newType;
-
 		_createSample();
 	}
 
@@ -2294,6 +2226,7 @@ private:
 	void _createSample() {
 		_destroySample();
 		_sampleContext = make_unique<SampleContext>();
+		_sampleRequest.reset();
 		_sampleContext->create(_sampleRequest);
 	}
 
@@ -2307,12 +2240,11 @@ private:
 	bool	_bShowUI			= true;
 	bool	_bShowSettingWindow	= false;
 
-	Math::Camera3f		_camera;
-	Vec3f _cameraMoveFactor {0,0,0};
+	Math::Camera3f	_camera;
+	Vec3f			_cameraMoveFactor {0,0,0};
 
 	SampleRequest		_sampleRequest { _type, _aspect, _bWireFrame, _camera };
 	UPtr<SampleContext>	_sampleContext;
-
 };
 
 class GameAnimeProgApp : public NativeUIApp {
@@ -2334,7 +2266,7 @@ protected:
 		{ // create window
 			NativeUIWindow::CreateDesc winDesc;
 			winDesc.isMainWindow = true;
-			winDesc.rect = { 10, 10, 1500, 1080 };
+			winDesc.rect = { 10, 10, 1500, 900 };
 			_mainWin.create(winDesc);
 			_mainWin.setWindowTitle("SGE Game Anime Prog Window");
 		}
@@ -2343,7 +2275,7 @@ protected:
 	virtual void onUpdate(float dt) override {
 		_mainWin.update(dt);
 		_mainWin.render();
-		NuklearUI::UIInput input;
+		NuklearUI::UIInput input; // is it trickk ???
 	}
 
 private:
