@@ -65,21 +65,26 @@ void NativeUIWindow_Base::onUINativeKeyboardEvent(UIKeyboardEvent& ev) {
 		}
 	}
 
+	if (ev.type == Type::Char) {
+		for (auto& kv : _keyCodesMap) {
+			if (kv.second == Type::Down) {
+				_keyCodesMap[kv.first] = Type::None;
+			}
+		}
+	}
+
 	ev.keyCodesMap = _keyCodesMap;
 
-	if (ev.type == Type::Char || ev.type == Type::Up) {
-		onUIKeyboardEvent(ev);
-	} else if (ev.isModifierKey()) {
-		onUIKeyboardEvent(ev);
-	} else if (!ev.IsCharKeyDown(ev.keyCode)) {
-		onUIKeyboardEvent(ev);
-	}
+	onUIKeyboardEvent(ev);
 
 	// reset Up -> None
 	for (auto& kv : _keyCodesMap) {
 		if (kv.second == Type::Up) {
 			_keyCodesMap[kv.first] = Type::None;
 		}
+	}
+	if (ev.type == Type::Char && ev.keyCode != KeyCode::None) {
+		_keyCodesMap[ev.keyCode] = Type::None;
 	}
 }
 
