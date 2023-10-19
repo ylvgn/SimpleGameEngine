@@ -27,7 +27,7 @@ struct dual_quat {
 	static const size_t kElementCount = 8;
 
 	union {
-		struct { // 2x4 matrix
+		struct { // 2x4 matrix aka mat2x4
 			float x,  y,  z,  w;
 			float dx, dy, dz, dw;
 		};
@@ -175,6 +175,10 @@ struct dual_quat {
 		// assume this dual quaternion is normalized
 		return real * point + toTranslation();
 	}
+
+	// Pointer accessor for direct copying
+	inline			float* ptr()		{ return data; } // same as return &x;
+	inline const	float* ptr() const	{ return data; }
 
 	void onFormat(fmt::format_context& ctx) const;
 

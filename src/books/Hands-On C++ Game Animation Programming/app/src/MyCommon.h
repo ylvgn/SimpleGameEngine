@@ -10,24 +10,30 @@ struct AnimationAttribLocation {
 	int joints;
 
 	void setBySkinnedShader(const Shader* const shader);
-	void setByStaticShader(const Shader* const shader);
+	void setByStaticShader (const Shader* const shader);
+	void uploadToGpu(Mesh& mesh) const;
 };
 
 struct AnimationInstance {
 	Transform model; // model matrix
 
-	// used to clip sampling
+	// clip sampling
 	Pose  animatedPose;
 	int   clip = 0;
 	float playback = 0.f;
 
 	// gpu skinning
 	Vector<mat4f> posePalette;
+	Vector<mat4f> invBindPosePalette;
 
 	// blending
 	Pose additivePose;
 	int  additiveClip = 0;
 	Pose additiveBasePose;
+
+	// dual quaternion
+	Vector<dual_quat> dqPosePalette;
+	Vector<dual_quat> dqInvBindPalette;
 
 	void animatedSample(const Span<const Clip> clips, float dt) {
 		if (clips.size() <= clip) return;
@@ -46,7 +52,7 @@ struct AnimationInstance {
 	float getNormalizedTime(const ClipT<T>& clip);
 
 	inline Transform getAnimatedPoseGlobalTransform(int i) const { return animatedPose.getGlobalTransform(i); }
-	inline Transform getAnimatedPoseLocalTransform(int i)  const { return animatedPose.getLocalTransform(i);  }
+	inline Transform getAnimatedPoseLocalTransform (int i) const { return animatedPose.getLocalTransform(i);  }
 };
 
 template<class T> inline

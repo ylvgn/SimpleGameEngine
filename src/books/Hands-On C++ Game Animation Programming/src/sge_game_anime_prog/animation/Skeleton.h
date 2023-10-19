@@ -40,6 +40,9 @@ public:
 	void create(const GLTFInfo& src);
 	void clear();
 
+	void getInvBindPose(Vector<mat4f>& out) const;
+	void getInvBindPose(Vector<dual_quat>& out) const;
+
 private:
 
 	// This function updates the inverse bind pose matrix any time that the bind pose is set

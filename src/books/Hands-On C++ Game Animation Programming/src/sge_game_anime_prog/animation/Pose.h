@@ -2,7 +2,7 @@
 
 #include <sge_game_anime_prog/math/Transform.h>
 #include <sge_game_anime_prog/math/mat4.h>
-
+#include <sge_game_anime_prog/math/dual_quat.h>
 /*
 	The Pose class is used to hold the transformation of every bone in an animated hierarchy.
 	Think of it as a frame in an animation;
@@ -38,13 +38,16 @@ public:
 	inline Transform getLocalTransform(int i) const          { return _jointTrans[i]; }
 	inline void setLocalTransform(int i, const Transform& t) { _jointTrans[i] = t; }
 	Transform getGlobalTransform(int i) const;
+	dual_quat4f getGlobalDualQuaternion(int i) const;
 
-	inline Transform getWorldTransform(int i) const { return getGlobalTransform(i); }
-	inline const Transform operator[] (int i) const { return getGlobalTransform(i); }
+	inline Transform getWorldTransform(int i)			const { return getGlobalTransform(i); }
+	inline const Transform operator[] (int i)			const { return getGlobalTransform(i); }
+	inline dual_quat4f getWorldDualQuaternion(int i)	const { return getGlobalDualQuaternion(i); }
 
 	// For a Pose class to be passed to OpenGL, it needs to be converted into a linear array of matrices.
 	// The function takes a reference to a vector of matricesand fills it out with the global transform matrix of each joint in the pose
 	void getMatrixPalette(Vector<mat4f>& out) const;
+	void getDualQuaternionPalette(Vector<dual_quat4f>& out) const;
 
 	bool operator== (const Pose& r) const;
 	bool operator!= (const Pose& r) const;

@@ -20,6 +20,7 @@ namespace sge {
 	E(FABRIK_HingeSocketConstraint,) \
 	E(RayCastTriangle,) \
 	E(AlignFeetOnTheGround,) \
+	E(DualQuaterionMeshSkinning,) \
 	E(_END,) \
 // ----------
 SGE_ENUM_CLASS(MySampleType, u8)
@@ -34,17 +35,25 @@ public:
 	bool& bWireFrame;
 	Math::Camera3f& camera;
 
-	float			dt;
+	float dt;
+	float mTimeMod;
 
-	bool mShowRestPose;
-	bool mShowCurrentPose = true;
-	bool mShowBindPose;
-	bool mShowIKPose;
-
-	float mTimeMod = 1.0f;
+	bool bShowCurrentPose;
+	bool bShowRestPose;
+	bool bShowBindPose;
+	bool bShowIKPose;
+	bool bShowLinearSkinning;
+	bool bShowDualQuaternionSkinning;
 
 	void reset() {
-		bWireFrame = false;
+		bWireFrame					= false;
+		bShowCurrentPose			= false;
+		bShowBindPose				= false;
+		bShowRestPose				= false;
+		bShowIKPose					= false;
+		bShowLinearSkinning			= false;
+		bShowDualQuaternionSkinning = false;
+
 		mTimeMod = 1.0f;
 
 		// mat4f::s_lookAt(vec3f(0, 0, -5), vec3f::s_zero(), vec3f::s_up());

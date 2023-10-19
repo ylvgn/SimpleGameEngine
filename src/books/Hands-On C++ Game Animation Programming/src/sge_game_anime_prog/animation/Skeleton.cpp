@@ -48,4 +48,20 @@ void Skeleton::create(const GLTFInfo& src) {
 	setJointNames(src.jointNames());
 }
 
+void Skeleton::getInvBindPose(Vector<mat4f>& out) const {
+	out.clear();
+	out.reserve(_invBindPose.size());
+	out.appendRange(_invBindPose);
+}
+
+void Skeleton::getInvBindPose(Vector<dual_quat>& out) const {
+	size_t jointCount = _bindPose.getJointCount();
+	out.resize(jointCount);
+
+	for (int i = 0; i < jointCount; ++i) {
+		dual_quat4f world = _bindPose.getGlobalDualQuaternion(i);
+		out[i] = world.conjugate();
+	}
+}
+
 }

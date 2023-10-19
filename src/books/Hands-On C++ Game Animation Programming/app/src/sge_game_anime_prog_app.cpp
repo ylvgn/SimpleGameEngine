@@ -45,7 +45,7 @@ class SampleContext : public NonCopyable {
 // ----------
 public:
 
-	static constexpr const Type kStartUpDefaultType = Type::None;
+	static constexpr const Type kStartUpDefaultType = Type::DualQuaterionMeshSkinning;
 
 	void create(Request& req)	{ RUN_SAMPLE(onCreate) }
 	void update(Request& req)	{ RUN_SAMPLE(onUpdate) }
@@ -441,9 +441,9 @@ private:
 			}
 		}
 
-		req.mShowRestPose		= true;
-		req.mShowCurrentPose	= true;
-		req.mShowBindPose		= true;
+		req.bShowRestPose		= true;
+		req.bShowCurrentPose	= true;
+		req.bShowBindPose		= true;
 	}
 	void test_MeshSkinning_onCreate(Request& req) {
 		_defaultSetCamera(req, { 0,5,7 }, { 0,3,0 });
@@ -685,6 +685,18 @@ private:
 		_lastModelY = model.position.y;
 
 		req.mTimeMod = 1.0f;
+	}
+	void test_DualQuaterionMeshSkinning_onCreate(Request& req) {
+		_loadExampleAsset_DualQuaterionMeshSkinning();
+		_createExampleShader();
+		_defaultSetAnimInfo();
+		_defaultSelectClip();
+		_defaultSetCamera(req, { 0,0,15 }, {0,0,0});
+
+		_gpuAnimInfo.model.position.set(0,0,0);
+
+		req.bShowLinearSkinning = true;
+		req.bShowDualQuaternionSkinning = true;
 	}
 
 	void test_None_onUpdate(Request& req) {}
@@ -1182,6 +1194,11 @@ private:
 		// Update the matrix palette for skinning
 		_populatePosePalette();
 	}
+	void test_DualQuaterionMeshSkinning_onUpdate(Request& req) {
+		_gpuAnimInfo.animatedSample(_clips, req.dt);
+		_gpuAnimInfo.animatedPose.getMatrixPalette(_gpuAnimInfo.posePalette);
+		_gpuAnimInfo.animatedPose.getDualQuaternionPalette(_gpuAnimInfo.dqPosePalette);
+	}
 
 	void test_None_onRender(Request& req) {}
 	void test__END_onRender(Request& req) {}
@@ -1249,15 +1266,15 @@ private:
 		mat4f view(req.camera.viewMatrix());
 		mat4f mvp = projection * view;
 
-		if (req.mShowRestPose) {
+		if (req.bShowRestPose) {
 			_restPoseVisual->draw(DebugDrawMode::Lines, mvp, DebugDraw::kRed);
 		}
 
-		if (req.mShowCurrentPose) {
+		if (req.bShowCurrentPose) {
 			_currentPoseVisual->uploadToGpu();
 			_currentPoseVisual->draw(DebugDrawMode::Lines, mvp, DebugDraw::kBlue);
 		}
-		if (req.mShowBindPose) {
+		if (req.bShowBindPose) {
 			_bindPoseVisual->draw(DebugDrawMode::Lines, mvp, DebugDraw::kGreen);
 		}
 	}
@@ -1278,8 +1295,8 @@ private:
 					_texture->set(_staticShader->findUniformByName("tex0"), 0);
 				}
 
-				for (int i = 0; i < _cpuMeshes.size(); ++i) {
-					_drawMesh(_cpuMeshes[i], _cpuAttribLoc);
+				for(auto& mesh : _cpuMeshes) {
+					_cpuAttribLoc.uploadToGpu(mesh);
 				}
 				_texture->unset(0);
 			}
@@ -1306,8 +1323,8 @@ private:
 					_texture->set(_skinnedShader->findUniformByName("tex0"), 0);
 				}
 
-				for (int i = 0; i < _gpuMeshes.size(); ++i) {
-					_drawMesh(_gpuMeshes[i], _gpuAttribLoc);
+				for (auto& mesh : _gpuMeshes) {
+					_gpuAttribLoc.uploadToGpu(mesh);
 				}
 				_texture->unset(0);
 			}
@@ -1409,7 +1426,24 @@ private:
 		}
 		if (!_depthTest) glEnable(GL_DEPTH_TEST);
 	}
-	
+	void test_DualQuaterionMeshSkinning_onRender(Request& req) {
+		mat4f projection(req.camera.projMatrix());
+		mat4f view(req.camera.viewMatrix());
+
+		Transform linearModel   = _gpuAnimInfo.model;
+		Transform DualQuatModel = _gpuAnimInfo.model;
+
+		linearModel.position += vec3f(7, 0, 0);
+		DualQuatModel.position += vec3f(-7, 0, 0);
+
+		if (req.bShowLinearSkinning) {
+			test_DualQuaterionMeshSkinning_onRender_Inner(req, _skinnedShader, _gpuAttribLoc, mat4f::s_transform(linearModel), true);
+		}
+		if (req.bShowDualQuaternionSkinning) {
+			test_DualQuaterionMeshSkinning_onRender_Inner(req, _dqSkinnedShader, _dqGpuAttribLoc, mat4f::s_transform(DualQuatModel), false);
+		}
+	}
+
 	void test_None_onDrawUI(Request& req) {
 		NuklearUI::demo();
 	}
@@ -1440,18 +1474,19 @@ private:
 
 		NuklearUI::LayoutRowDynamic(20, 1);
 
-		NuklearUI::CheckboxLabel cb1("Show Rest Pose", req.mShowRestPose);
-		if (cb1.isOpen()) {
-			req.mShowRestPose = cb1.isActive();
-		}
-		NuklearUI::CheckboxLabel cb2("Show Current Pose", req.mShowCurrentPose);
-		if (cb2.isOpen()) {
-			req.mShowCurrentPose = cb2.isActive();
-		}
-		NuklearUI::CheckboxLabel cb3("Show Bind Pose", req.mShowBindPose);
-		if (cb3.isOpen()) {
-			req.mShowBindPose = cb3.isActive();
-		}
+#define E(NAME, VALUE) \
+		{ \
+			NuklearUI::CheckboxLabel cb(NAME, VALUE); \
+			if (cb.isOpen()) { \
+				VALUE = cb.isActive(); \
+			} \
+		} \
+// ----
+		E("Show Rest Pose", req.bShowRestPose)
+		E("Show Current Pose", req.bShowCurrentPose)
+		E("Show Bind Pose", req.bShowBindPose)
+#undef E
+
 	}
 	void test_MeshSkinning_onDrawUI(Request& req) {}
 	void test_AnimationBlending_onDrawUI(Request& req) {}
@@ -1547,6 +1582,23 @@ private:
 		E(_isCameraFollow)
 #undef E
 	}
+	void test_DualQuaterionMeshSkinning_onDrawUI(Request& req) {
+		Rect2f xywh{ 5.0f, 5.0f + s_HeaderHeight(), 300.0f, 60.0f };
+		NuklearUI::Window window(xywh);
+
+		NuklearUI::LayoutRowDynamic(20, 1);
+#define E(NAME, VALUE) \
+		{ \
+			NuklearUI::CheckboxLabel cb(NAME, VALUE); \
+			if (cb.isOpen()) { \
+				VALUE = cb.isActive(); \
+			} \
+		} \
+// ----
+		E("showLinearSkinning", req.bShowLinearSkinning)
+		E("showDualQuaternionSkinning", req.bShowDualQuaternionSkinning)
+#undef E
+	}
 
 private:
 
@@ -1584,14 +1636,14 @@ private:
 				Uniform<mat4f>::set(_skinnedShader->findUniformByName("model"), model);
 				Uniform<mat4f>::set(_skinnedShader->findUniformByName("view"), view);
 				Uniform<mat4f>::set(_skinnedShader->findUniformByName("projection"), projection);
-				Uniform<mat4f>::set(_skinnedShader->findUniformByName("invBindPose"), _skeleton.invBindPose());
+				Uniform<mat4f>::set(_skinnedShader->findUniformByName("invBindPose"), _gpuAnimInfo.invBindPosePalette);
 				Uniform<mat4f>::set(_skinnedShader->findUniformByName("pose"), _gpuAnimInfo.posePalette);
 				Uniform<vec3f>::set(_skinnedShader->findUniformByName("light"), vec3f::s_one());
 				_texture->set(_skinnedShader->findUniformByName("tex0"), 0);
 			}
 
 			for (int i = 0; i < _gpuMeshes.size(); ++i) {
-				_drawMesh(_gpuMeshes[i], _gpuAttribLoc);
+				_gpuAttribLoc.uploadToGpu(_gpuMeshes[i]);
 			}
 			_texture->unset(0);
 		}
@@ -1610,7 +1662,7 @@ private:
 				tex->set(_staticShader->findUniformByName("tex0"), 0);
 			}
 			for (auto& mesh : meshes) {
-				_drawMesh(mesh, _cpuAttribLoc);
+				_cpuAttribLoc.uploadToGpu(mesh);
 			}
 		}
 		tex->unset(0);
@@ -1622,10 +1674,35 @@ private:
 		_gpuAnimInfo.animatedPose.getMatrixPalette(_gpuAnimInfo.posePalette);
 	}
 
-	void _drawMesh(Mesh& mesh, const AnimationAttribLocation& attribLoc) {
-		mesh.bind(attribLoc.pos, attribLoc.normal, attribLoc.uv, attribLoc.weights, attribLoc.joints);
-		mesh.draw();
-		mesh.unbind(attribLoc.pos, attribLoc.normal, attribLoc.uv, attribLoc.weights, attribLoc.joints);
+	void test_DualQuaterionMeshSkinning_onRender_Inner(Request& req, Shader* shader, const AnimationAttribLocation& attrLoc, const mat4f& model, bool isLinearSkinning) {
+		mat4f projection(req.camera.projMatrix());
+		mat4f view(req.camera.viewMatrix());
+
+		// bind shader
+		shader->bind();
+		{
+			{ // bind uniforms
+				Uniform<mat4f>::set(shader->findUniformByName("model"), model);
+				Uniform<mat4f>::set(shader->findUniformByName("view"), view);
+				Uniform<mat4f>::set(shader->findUniformByName("projection"), projection);
+				if (isLinearSkinning) {
+					Uniform<mat4f>::set(shader->findUniformByName("invBindPose"), _gpuAnimInfo.invBindPosePalette);
+					Uniform<mat4f>::set(shader->findUniformByName("pose"), _gpuAnimInfo.posePalette);
+				}
+				else {
+					Uniform<dual_quat>::set(shader->findUniformByName("invBindPose"), _gpuAnimInfo.dqInvBindPalette);
+					Uniform<dual_quat>::set(shader->findUniformByName("pose"), _gpuAnimInfo.dqPosePalette);
+				}
+				Uniform<vec3f>::set(shader->findUniformByName("light"), vec3f::s_one());
+				_texture->set(shader->findUniformByName("tex0"), 0);
+			}
+
+			for (int i = 0; i < _gpuMeshes.size(); ++i) {
+				attrLoc.uploadToGpu(_gpuMeshes[i]);
+			}
+			_texture->unset(0);
+		}
+		_skinnedShader->unbind();
 	}
 
 	void _loadExampleAsset() {
@@ -1661,6 +1738,27 @@ private:
 		_ikCourseTexture = new Texture(kTextureFileName);
 	}
 
+	void _loadExampleAsset_DualQuaterionMeshSkinning() {
+		constexpr const char* kGltfFileName = "Assets/Mesh/dq.gltf";
+		constexpr const char* kTextureFileName = "Assets/Textures/dq.png";
+
+		GLTFInfo info;
+		GLTFLoader::s_readFile(info, kGltfFileName);
+
+		_skeleton.create(info);
+		_clips.reserve(info.animationClips.size());
+		_clips = std::move(info.animationClips);
+		_clipNames = std::move(info.animationClipNames);
+
+		_cpuMeshes.reserve(info.skinMeshes.size());
+		_cpuMeshes.appendRange(info.skinMeshes);
+
+		_gpuMeshes.reserve(info.skinMeshes.size());
+		_gpuMeshes.appendRange(info.skinMeshes);
+
+		_texture = new Texture(kTextureFileName);
+	}
+
 	void _createExampleShader() {
 		_staticShader = new Shader (
 			"Assets/Shaders/static.vert",
@@ -1670,19 +1768,27 @@ private:
 			"Assets/Shaders/skinned.vert",
 			"Assets/Shaders/lit.frag"
 		);
+		_dqSkinnedShader = new Shader(
+			"Assets/Shaders/dualquaternion.vert",
+			"Assets/Shaders/lit.frag"
+		);
 		_cpuAttribLoc.setByStaticShader(_staticShader);
 		_gpuAttribLoc.setBySkinnedShader(_skinnedShader);
+		_dqGpuAttribLoc.setBySkinnedShader(_dqSkinnedShader);
 	}
 
 	void _defaultSetAnimInfo() {
 		_cpuAnimInfo.playback = 0.f;
 		_cpuAnimInfo.animatedPose = _skeleton.restPose();
+		_cpuAnimInfo.additivePose = _skeleton.restPose();
+		_skeleton.getInvBindPose(_cpuAnimInfo.invBindPosePalette);
 
 		_gpuAnimInfo.playback = 0.f;
 		_gpuAnimInfo.animatedPose = _skeleton.restPose();
 		_gpuAnimInfo.animatedPose.getMatrixPalette(_gpuAnimInfo.posePalette);
-
-		_cpuAnimInfo.additivePose = _skeleton.restPose();
+		_gpuAnimInfo.animatedPose.getDualQuaternionPalette(_gpuAnimInfo.dqPosePalette);
+		_skeleton.getInvBindPose(_gpuAnimInfo.invBindPosePalette);
+		_skeleton.getInvBindPose(_gpuAnimInfo.dqInvBindPalette);
 		_gpuAnimInfo.additivePose = _skeleton.restPose();
 	}
 
@@ -1830,6 +1936,9 @@ private:
 	SPtr<DebugDrawPL>							_toeRayDebugDraw;
 	SPtr<DebugDrawPL>							_ankleToCurrentToeDebugDraw;
 	SPtr<DebugDrawPL>							_ankleToDesiredToeDebugDraw;
+
+	SPtr<Shader>								_dqSkinnedShader;
+	AnimationAttribLocation						_dqGpuAttribLoc;
 };
 
 class GameAnimeProgMainWin : public NativeUIWindow {

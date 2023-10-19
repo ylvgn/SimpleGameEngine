@@ -7,6 +7,7 @@
 #include <sge_game_anime_prog/math/vec4.h>
 #include <sge_game_anime_prog/math/quat.h>
 #include <sge_game_anime_prog/math/mat4.h>
+#include <sge_game_anime_prog/math/dual_quat.h>
 
 namespace sge {
 
@@ -37,7 +38,17 @@ void Uniform<mat4f>::set(u32 slot, const mat4f* data, size_t dataSize) {
 		slot,
 		static_cast<GLsizei>(dataSize),
 		false, // set the transposed Boolean to false
-		static_cast<const GLfloat*>(data->v)
+		static_cast<const GLfloat*>(data->ptr())
+	);
+}
+
+template<>
+void Uniform<dual_quat4f>::set(u32 slot, const dual_quat4f* data, size_t dataSize) {
+	glUniformMatrix2x4fv( // mat2x4
+		slot,
+		static_cast<GLsizei>(dataSize),
+		false,
+		static_cast<const GLfloat*>(data->ptr())
 	);
 }
 
@@ -59,7 +70,8 @@ template Uniform<vec2f>;
 template Uniform<vec3f>;
 template Uniform<vec4f>;
 template Uniform<quat4f>;
-template Uniform<mat4f>;
 template Uniform<Color4f>;
+template Uniform<mat4f>;
+template Uniform<dual_quat4f>;
 
 }

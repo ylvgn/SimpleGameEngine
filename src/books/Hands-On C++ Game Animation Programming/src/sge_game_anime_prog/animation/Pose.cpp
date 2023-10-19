@@ -51,6 +51,15 @@ Transform Pose::getGlobalTransform(int i) const {
 	return result;
 }
 
+dual_quat4f Pose::getGlobalDualQuaternion(int i) const {
+	dual_quat4f result = dual_quat4f::s_Transform(getLocalTransform(i));
+	for (int p = _parentIds[i]; p >= 0; p = _parentIds[p]) {
+		dual_quat4f parent = dual_quat4f::s_Transform(_jointTrans[p]);
+		result = result * parent; // Remember, multiplication is in reverse!
+	}
+	return result;
+}
+
 #if 1
 void Pose::getMatrixPalette(Vector<mat4f>& out) const {
 	size_t jointCount = getJointCount();
@@ -92,6 +101,31 @@ void Pose::getMatrixPalette(Vector<mat4f>& out) const {
 	}
 }
 #endif
+
+void Pose::getDualQuaternionPalette(Vector<dual_quat4f>& out) const {
+	size_t jointCount = getJointCount();
+	out.resize(jointCount);
+
+	int i = 0;
+	for (; i < jointCount; ++i) { // first loop
+		int p = _parentIds[i];
+		if (p > i) {
+			break;
+		}
+
+		auto parent = dual_quat4f::s_Transform(_jointTrans[i]);
+		if (p >= 0) {
+			out[i] = parent * out[p]; // Remember, multiplication is in reverse!
+		} else {
+			out[i] = parent;
+		}
+	}
+
+	// fallback
+	for (; i < jointCount; ++i) { // second loop
+		out[i] = getGlobalDualQuaternion(i);
+	}
+}
 
 bool Pose::operator==(const Pose& r) const {
 	if ((_jointTrans.size() != r._jointTrans.size())
