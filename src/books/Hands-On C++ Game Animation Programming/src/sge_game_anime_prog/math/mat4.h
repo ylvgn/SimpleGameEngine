@@ -95,8 +95,8 @@ struct mat4 {
 			        0,0,0,1);
 	}
 
-	inline			vec4& operator[](int i)			{ SGE_ASSERT(i < kElementCount); return _columns[i]; }
-	inline const	vec4& operator[](int i) const	{ SGE_ASSERT(i < kElementCount); return _columns[i]; }
+	inline			vec4& operator[](int i)			{ SGE_ASSERT(i < 4); return _columns[i]; }
+	inline const	vec4& operator[](int i) const	{ SGE_ASSERT(i < 4); return _columns[i]; }
 
 	inline vec4 col(int i) const { SGE_ASSERT(i < 4); return _columns[i]; }
 	inline vec4 row(int i) const {
@@ -107,13 +107,13 @@ struct mat4 {
 					v[4*3+i]);
 	}
 
-	inline void setCol(int i, const vec4& col) { SGE_ASSERT(i < 4); _columns[i] = col; }
-	inline void setRow(int i, const vec4& row) {
+	inline void setCol(int i, const vec4& c) { SGE_ASSERT(i < 4); _columns[i] = c; }
+	inline void setRow(int i, const vec4& r) {
 		SGE_ASSERT(i < 4);
-		v[4*0+i] = row.x;
-		v[4*1+i] = row.y;
-		v[4*2+i] = row.z;
-		v[4*3+i] = row.w;
+		v[4*0+i] = r.x;
+		v[4*1+i] = r.y;
+		v[4*2+i] = r.z;
+		v[4*3+i] = r.w;
 	}
 
 	inline bool equals (const mat4& r,	float epsilon = Math::epsilon<float>()) const;
@@ -309,6 +309,10 @@ struct mat4 {
 
 	mat4 inverse() const;
 	mat4 inverse3x3() const;
+
+	// Pointer accessor for direct copying
+	inline			float* ptr()		{ return v; }
+	inline const	float* ptr() const	{ return v; }
 
 	void onFormat(fmt::format_context& ctx) const;
 

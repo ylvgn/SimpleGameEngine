@@ -13,14 +13,14 @@ in vec2 texCoord;
 // skinning info
 in vec4 weights;
 in ivec4 joints;
-uniform mat4 pose[120]; // 120 is arbitrary, according to boneCount
+uniform mat4 pose[120]; // 120 is arbitrary, according to jointCount
 uniform mat4 invBindPose[120];
 
 out vec3 norm;
 out vec3 fragPos;
 out vec2 uv;
 
-// perform matrix palette skinning, same logic as cpu skinning skin matrix
+// perform matrix palette skinning, same logic as cpu mesh skinning skin matrix
 void main() {
 	mat4 m0 = pose[joints.x] * invBindPose[joints.x];
 	mat4 m1 = pose[joints.y] * invBindPose[joints.y];

@@ -52,6 +52,9 @@ struct TVec2 {
 	inline bool operator== (const TVec2& r) const	{ return x == r.x && y == r.y; }
 	inline bool operator!= (const TVec2& r) const	{ return !(this->operator==(r)); }
 
+	inline			T* ptr()						{ return data; }
+	inline const	T* ptr() const					{ return data; }
+
 	inline void onFormat(fmt::format_context& ctx) const {
 		fmt::format_to(ctx.out(), "({}, {})", x, y);
 	}

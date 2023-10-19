@@ -303,6 +303,10 @@ struct quat {
 	}
 #endif
 
+	// Pointer accessor for direct copying
+	inline			float* ptr()		{ return data; }
+	inline const	float* ptr() const	{ return data; }
+
 	void onFormat(fmt::format_context& ctx) const;
 
 	inline friend std::ostream& operator<< (std::ostream& o, const quat& q) {

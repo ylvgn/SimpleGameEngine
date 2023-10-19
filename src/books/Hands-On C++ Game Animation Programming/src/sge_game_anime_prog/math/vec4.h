@@ -66,6 +66,9 @@ struct TVec4 {
 
 	inline T dot(const TVec4& r) const { return (x*r.x) + (y*r.y) + (z*r.z) + (w*r.w); }
 
+	inline			T* ptr()		{ return data; }
+	inline const	T* ptr() const	{ return data; }
+
 	void onFormat(fmt::format_context& ctx) const {
 		fmt::format_to(ctx.out(), "({}, {}, {}, {})", x, y, z, w);
 	}

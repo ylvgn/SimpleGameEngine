@@ -19,7 +19,7 @@ void Material_DX11::_bindStageHelper(RenderContext_DX11* ctx, STAGE* stage) {
 		UINT bindPoint = cbInfo->bindPoint;
 
 		auto* gpuBuffer = static_cast<RenderGpuBuffer_DX11*>(cb.gpuBuffer.ptr());
-		if (!gpuBuffer) throw SGE_ERROR("cosnt buffer is null");
+		if (!gpuBuffer) throw SGE_ERROR("const buffer is null");
 
 		auto* d3dBuf = gpuBuffer->d3dBuf();
 		if (!d3dBuf) throw SGE_ERROR("d3dbuffer is null");

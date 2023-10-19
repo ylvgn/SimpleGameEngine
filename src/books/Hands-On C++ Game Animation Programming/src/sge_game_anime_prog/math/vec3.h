@@ -177,6 +177,9 @@ struct TVec3 {
 	// normalize lerp: non-constant in velocity
 	inline TVec3 nlerp(const TVec3& to, const T& t) const { return lerp(to, t).normalize(); }
 
+	inline			T* ptr()		{ return data; }
+	inline const	T* ptr() const	{ return data; }
+
 	inline void onFormat(fmt::format_context& ctx) const {
 		fmt::format_to(ctx.out(), "({}, {}, {})", x, y, z);
 	}
