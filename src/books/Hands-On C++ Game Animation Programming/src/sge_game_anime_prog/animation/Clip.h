@@ -9,7 +9,8 @@
 	If you sample an animation clip, you get a pose that describes the configuration of each joint in the animation clip at the specified time.
 	For a basic clip class, all you need is a vector of transform tracks.
 
-	The Clip class implemented here can be used to animate anything; don't feel like you are limited to humans and humanoid animations.
+	The Clip class implemented here can be used to animate anything;
+	don't feel like you are limited to humans and humanoid animations.
 
 	An animation clip always modifies the same joints.
 	There is no need to re-set the pose that is sampled into so that it is the bind pose every frame.
@@ -20,11 +21,11 @@ namespace sge {
 template<typename TRACK>
 class ClipT {
 public:
-	inline ClipT() :
-		_name(""),
-		_startTime(0.f),
-		_endTime(0.f),
-		_isLoop(true) { }
+	inline ClipT()
+		: _name("")
+		, _startTime(0.f)
+		, _endTime(0.f)
+		, _isLoop(true) {}
 
 	// a public helper function to figure out the start and end times of the animation clip.
 	// This function is intended to be called by the code that loads the animation clip from a file format.
@@ -46,15 +47,16 @@ public:
 	inline StrView	name()			const  { return _name; }
 	inline void		setName(StrView name)  { _name = name; }
 
-	inline void setJointIdAtIndex(int i, u32 jointId) { _tracks[i]->setId(jointId); }
-	inline u32 getJointIdAtIndex(int i) const { return _tracks[i]->id(); }
+	inline void setJointIdAtIndex(int i, u32 jointId)	{ _tracks[i]->setId(jointId); }
+	inline u32  getJointIdAtIndex(int i) const			{ return _tracks[i]->id(); }
 
-	inline size_t getTrackCount() const { return _tracks.size(); }
+	inline const Span<const UPtr<TRACK>> tracks() const	{ return _tracks; }
 
-	const Span<const UPtr<TRACK>> tracks() const { return _tracks; }
-	void reserve(size_t size) { _tracks.reserve(size); }
-	inline void appendTrack(UPtr<TRACK>&& t) { _tracks.emplace_back(std::move(t)); }
-	
+	inline size_t getTrackCount() const					{ return _tracks.size(); }
+	inline void reserve(size_t newtrackCount)			{ _tracks.reserve(newtrackCount); }
+
+	inline void appendTrack(UPtr<TRACK>&& t)			{ _tracks.emplace_back(std::move(t)); }
+
 private:
 	float _adjustTimeToFitRange(float time) const;
 

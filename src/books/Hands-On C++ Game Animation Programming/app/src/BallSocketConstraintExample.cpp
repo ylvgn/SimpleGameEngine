@@ -33,28 +33,23 @@ void BallSocketConstraintExample<IKSolver>::s_constraintHandler(int i, IKSolver*
 	if (map.find(i) == map.end()) return;
 	float limitAngle = map[i];
 
-	const quat& thisLocalRot = solver->operator[](i).rotation;
-	quat parentRot = i == 0
+	const quat4f& thisLocalRot = solver->operator[](i).rotation;
+	const quat4f& parentRot = i == 0
 		? thisLocalRot
 		: solver->getWorldTransform(i-1).rotation;
 
-	quat thisRot = solver->getWorldTransform(i).rotation;
+	const quat4f& thisRot = solver->getWorldTransform(i).rotation;
 
-	vec3f parentDir = parentRot * vec3f::s_forward();
 	vec3f thisDir	= thisRot   * vec3f::s_forward();
+	vec3f parentDir = parentRot * vec3f::s_forward();
 
 	float angle = parentDir.angle(thisDir);
-
 	if (angle > limitAngle) {
-#if 1 // calc in world space
-		vec3f correction	= parentDir.cross(thisDir);
-		quat worldRotation	= parentRot * quat::s_angleAxis(limitAngle, correction);
-		quat localRotation	= worldRotation * parentRot.inverse();
-#else // calc in local space
-		vec3f correction	= parentRot.inverse() * parentDir.cross(thisDir);
-		quat localRotation	= thisLocalRot * quat::s_angleAxis(limitAngle, correction);
-#endif
-		solver->operator[](i).rotation = localRotation;
+		vec3f  worldRotateAxis			 = parentDir.cross(thisDir);
+		quat4f parentDirToLimitedThisDir = quat4f::s_angleAxis(limitAngle, worldRotateAxis);
+		quat4f worldLimitedRotation		 = parentRot * parentDirToLimitedThisDir;
+		quat4f localLimitedRotation		 = worldLimitedRotation * parentRot.inverse();
+		solver->operator[](i).rotation   = localLimitedRotation;
 	}
 }
 

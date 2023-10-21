@@ -103,7 +103,6 @@ FastClip ClipUtil::optimizeClip(const Clip& src) {
 		UPtr<FastTransformTrack> fast = TransformTrackUtil::optimizeTransformTrack(*t.get());
 		res.appendTrack(std::move(fast));
 	}
-
 	res.setName(src.name());
 	res.setIsLoop(src.isLoop());
 	res.recalculateDuration();

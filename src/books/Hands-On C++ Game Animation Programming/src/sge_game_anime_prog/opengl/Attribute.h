@@ -30,17 +30,14 @@ public:
 	inline u32		handle() const { return _handle; }
 	inline size_t	count()  const { return _count; }
 
-protected:
-	u32		_handle;	// OpenGL buffer handle
-	size_t	_count;		// The count represents how many total attributes there are
-
 private:
-
 	// it will need to be implemented once for each type of attribute that will be supported.
 	// wraps glVertesAttribPointer or glVertesAttribIPointer
 	// int, float, vec2/3/4, quat
 	void _setAttribPointer(u32 slot);
-	
+
+	u32		_handle;	// OpenGL buffer handle
+	size_t	_count;		// The count represents how many total attributes there are
 };
 
 }

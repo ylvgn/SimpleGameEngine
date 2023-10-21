@@ -45,7 +45,7 @@ class SampleContext : public NonCopyable {
 // ----------
 public:
 
-	static constexpr const Type kStartUpDefaultType = Type::DualQuaterionMeshSkinning;
+	static constexpr const Type kStartUpDefaultType = Type::None;
 
 	void create(Request& req)	{ RUN_SAMPLE(onCreate) }
 	void update(Request& req)	{ RUN_SAMPLE(onUpdate) }
@@ -418,18 +418,20 @@ private:
 		_bindPoseVisual    = new DebugDraw();
 		_currentPoseVisual = new DebugDraw();
 
+		const auto& restPose = _skeleton.restPose();
+
 		_loadExampleAsset();
 		_defaultSetCamera(req, { 0,4,7 }, { 0,4,0 });
 
-		_restPoseVisual->lineFromPose(_skeleton.restPose());
+		_restPoseVisual->lineFromPose(restPose);
 		_restPoseVisual->uploadToGpu();
 
-		_bindPoseVisual->lineFromPose(_skeleton.bindPose());
+		_bindPoseVisual->lineFromPose(restPose);
 		_bindPoseVisual->uploadToGpu();
 
 		_currentClip  = 0;
 		_playbackTime = 0.f;
-		_currentPose  = _skeleton.restPose();
+		_currentPose  = restPose;
 		_currentPoseVisual->lineFromPose(_currentPose);
 		_currentPoseVisual->uploadToGpu();
 
@@ -454,12 +456,12 @@ private:
 #if 1 // test optimize clip
 		_fastClips.resize(info.animationClips.size());
 		for (int i = 0; i < info.animationClips.size(); ++i) {
-			_fastClips[i] = std::move(ClipUtil::optimizeClip(info.animationClips[i]));
+			_fastClips[i] = ClipUtil::optimizeClip(info.animationClips[i]);
 		}
 #endif
 		_skeleton.create(info);
 		_clips = std::move(info.animationClips);
-		RearrangeBones::s_rearrange(_skeleton, info.skinMeshes, _fastClips.span());
+		RearrangeBones::s_rearrange(_skeleton, info.skinMeshes, _fastClips);
 
 		{ // test cpu skinning
 			_staticShader = new Shader(
@@ -506,7 +508,7 @@ private:
 		_loadExampleAsset();
 		_createExampleShader();
 		_defaultSetAnimInfo();
-		_defaultSetCamera(req);
+		_defaultSetCamera(req, { 0,4,7 }, { 0,3,0 });
 		_blendAnimA.animatedPose = _skeleton.restPose();
 		_blendAnimA.playback = 0.f;
 
@@ -534,10 +536,13 @@ private:
 		_loadExampleAsset();
 		_createExampleShader();
 		_defaultSetAnimInfo();
-		_defaultSetCamera(req);
+		_defaultSetCamera(req, { 0,4,7 }, { 0,3,0 });
 
-		CrossFadeController* fadeController = new CrossFadeController();
-		fadeController->setSkeleton(&_skeleton);
+		CrossFadeController* fadeController = CrossFadeController::instance();
+		if (fadeController == nullptr) {
+			fadeController = new CrossFadeController();
+		}
+		fadeController->setSkeleton(&_skeleton); // todo gyh
 		fadeController->play(&_clips[0]);
 
 		_fadeTimer = 2.0f;
@@ -548,7 +553,7 @@ private:
 		_defaultSetAnimInfo();
 		_defaultSelectClip();
 		_defaultSetAdditiveBasePose();
-		_defaultSetCamera(req, { 0, 3, 7 }, { 0,3,0 });
+		_defaultSetCamera(req, { 0,3,7 }, { 0,3,0 });
 		_additiveTime = 0.f;
 		_additiveDirection = 1.f;
 	}
@@ -1496,7 +1501,6 @@ private:
 		auto& playbackTime		= _gpuAnimInfo.playback;
 		auto& mAdditiveIndex	= _gpuAnimInfo.additiveClip;
 		auto& mAdditiveBase		= _gpuAnimInfo.additiveBasePose;
-		auto& mSkeleton			= _skeleton;
 
 		Rect2f xywh{ 5.0f, 5.0f + s_HeaderHeight(), 300.0f, 225.0f };
 		NuklearUI::Window window(xywh);
@@ -1506,7 +1510,7 @@ private:
 		NuklearUI::Label("Animation:");
 		NuklearUI::Combo combo(_clipNames, currentClip, 25, { 200, 200 });
 		if (combo.selectedIndex() != currentClip) {
-			_gpuAnimInfo.animatedPose = mSkeleton.restPose();
+			_gpuAnimInfo.animatedPose = _skeleton.restPose();
 			currentClip = combo.selectedIndex();
 		}
 
@@ -1778,18 +1782,20 @@ private:
 	}
 
 	void _defaultSetAnimInfo() {
+		auto& restPose = _skeleton.restPose();
+
 		_cpuAnimInfo.playback = 0.f;
-		_cpuAnimInfo.animatedPose = _skeleton.restPose();
-		_cpuAnimInfo.additivePose = _skeleton.restPose();
+		_cpuAnimInfo.animatedPose = restPose;
+		_cpuAnimInfo.additivePose = restPose;
 		_skeleton.getInvBindPose(_cpuAnimInfo.invBindPosePalette);
 
 		_gpuAnimInfo.playback = 0.f;
-		_gpuAnimInfo.animatedPose = _skeleton.restPose();
+		_gpuAnimInfo.animatedPose = restPose;
 		_gpuAnimInfo.animatedPose.getMatrixPalette(_gpuAnimInfo.posePalette);
 		_gpuAnimInfo.animatedPose.getDualQuaternionPalette(_gpuAnimInfo.dqPosePalette);
 		_skeleton.getInvBindPose(_gpuAnimInfo.invBindPosePalette);
 		_skeleton.getInvBindPose(_gpuAnimInfo.dqInvBindPalette);
-		_gpuAnimInfo.additivePose = _skeleton.restPose();
+		_gpuAnimInfo.additivePose = restPose;
 	}
 
 	void _defaultSelectClip() {
@@ -1953,6 +1959,8 @@ public:
 	static constexpr float kMaxMouseDecayFactor = 0.5f;
 
 	void _cameraMove(float dt) {
+		if (_cameraMoveFactor.equals0()) return;
+
 		static Vec3f sCameraOffset{ 1,0,1 };
 		sCameraOffset *= _cameraMoveFactor;
 

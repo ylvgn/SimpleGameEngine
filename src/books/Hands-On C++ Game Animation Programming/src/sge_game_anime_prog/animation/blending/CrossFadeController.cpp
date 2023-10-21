@@ -31,7 +31,9 @@ void CrossFadeController::setSkeleton(Skeleton* skeleton) {
 }
 
 void CrossFadeController::play(const Clip* target) {
+	if (!_isSetSkeleton) return;
 	SGE_ASSERT(_curSkeleton != nullptr);
+
 	_curClip = target;
 	_curPose = _curSkeleton->restPose();
 	_curPlaybackTime = 0.f;
@@ -66,17 +68,20 @@ void CrossFadeController::update(float dt) {
 		return;
 	}
 
-#if 0 // move all faded-out targets per frame. is it right ???
-	for (int i = _fadingTargets.size() - 1; i >= 0; --i) {
-		const auto& target    = _targets[i];
-		float fadeDuration    = target.fadeDuration;
-		float elapsedFadeTime = target.elapsedFadeTime;
+	SGE_ASSERT(_curSkeleton != nullptr);
+
+#if 0 // move all faded-out targets per frame. is it right as follow???
+	for (size_t i = _fadingTargets.size(); i > 0; --i) {
+		size_t index = i - 1;
+		const auto& target    = _fadingTargets[index];
+		float fadeDuration    = target->fadeDuration;
+		float elapsedFadeTime = target->elapsedFadeTime;
 
 		if (elapsedFadeTime >= fadeDuration) {
-			_curClip         = target.clip;
-			_curPlaybackTime = target.playbackTime;
-			_curPose         = target.pose;
-			_fadingTargets.erase(_fadingTargets.begin() + i);
+			_curClip         = target->clip;
+			_curPlaybackTime = target->playbackTime;
+			_curPose         = target->pose;
+			_fadingTargets.erase(_fadingTargets.begin() + index);
 		}
 	}
 

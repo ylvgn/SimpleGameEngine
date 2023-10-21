@@ -1,4 +1,5 @@
 #pragma once
+
 #include <sge_game_anime_prog/math/Transform.h>
 
 namespace sge{
@@ -10,6 +11,7 @@ namespace sge{
 			that can be used to control how close the target has to be to the goal before the chain is considered solved.
 */
 
+// CCD: Cyclic Coordinate Descent
 class CCDSolver : public NonCopyable {
 	using This = CCDSolver;
 public:

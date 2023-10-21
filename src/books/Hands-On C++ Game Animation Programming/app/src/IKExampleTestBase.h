@@ -13,8 +13,8 @@ class DebugDraw_PointLines;
 template<class IKSolver>
 class IKExampleTestBase : public ExampleTestBase {
 	using Base			= ExampleTestBase;
-	using DebugDrawPL	= DebugDraw_PointLines;
 	using SampleRequest = Track_SampleRequest;
+	using DebugDrawPL	= DebugDraw_PointLines;
 public:
 	IKExampleTestBase();
 

@@ -7,7 +7,8 @@ namespace sge {
 struct Line {
 	inline Line() = default;
 	inline Line(const vec3f& start_, const vec3f& end_)
-		: start(start_), end(end_) {}
+		: start(start_)
+		, end(end_) {}
 
 	vec3f start;
 	vec3f end;
@@ -16,7 +17,8 @@ struct Line {
 struct Ray {
 	inline Ray() = default;
 	inline Ray(const vec3f& origin_, const vec3f& direction_)
-		: origin(origin_), direction(direction_) {}
+		: origin(origin_)
+		, direction(direction_) {}
 
 	vec3f origin;
 	vec3f direction;
@@ -25,16 +27,14 @@ struct Ray {
 struct Triangle {
 	inline Triangle() = default;
 	inline Triangle(const vec3f& v0_, const vec3f& v1_, const vec3f& v2_)
-		: v0(v0_), v1(v1_), v2(v2_) { }
+		: v0(v0_)
+		, v1(v1_)
+		, v2(v2_) {}
 
 	inline void set(const vec3f& v0_, const vec3f& v1_, const vec3f& v2_) {
 		v0 = v0_;
 		v1 = v1_;
 		v2 = v2_;
-	}
-
-	inline bool equals(const Triangle& r, float epsilon = Math::epsilon<float>()) const {
-		return v0.equals(r.v0, epsilon) && v1.equals(r.v1, epsilon) && v2.equals(r.v2, epsilon);
 	}
 
 	inline vec3f normal() const {

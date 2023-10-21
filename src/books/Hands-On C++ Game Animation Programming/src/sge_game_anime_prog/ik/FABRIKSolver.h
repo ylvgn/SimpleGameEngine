@@ -4,6 +4,7 @@
 
 namespace sge {
 
+// FABRIK: Forward And Backward Reaching Inverse Kinematics
 class FABRIKSolver : public NonCopyable {
 	using This = FABRIKSolver;
 public:

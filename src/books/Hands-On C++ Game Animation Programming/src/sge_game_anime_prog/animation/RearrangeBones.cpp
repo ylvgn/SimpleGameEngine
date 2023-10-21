@@ -11,14 +11,13 @@ void RearrangeBones::_internalRearrangeClip(ClipT<T>& out) {
 	}
 }
 
-template <typename T>
-void RearrangeBones::s_internalRearrange(Skeleton& outSkeleton, Span<Mesh> outMeshes, Span< ClipT<T> > outClips) {
+template<typename T>
+void RearrangeBones::_s_internal_rearrange(Skeleton& outSkeleton, Span<Mesh> outMeshes, Span< ClipT<T> > outClips) {
 	RearrangeBones re;
-	re.create(outSkeleton);
+	re._create(outSkeleton);
 
-	re.rearrangeSkeleton(outSkeleton);
-	for (auto& mesh : outMeshes) re.rearrangeMesh(mesh);
-	for (auto& clip : outClips)  re.rearrangeClip(clip);
+	for (auto& mesh : outMeshes) re._rearrangeMesh(mesh);
+	for (auto& clip : outClips)  re._rearrangeClip(clip);
 }
 
 int RearrangeBones::_rearrangeIdx(int oldJointIndex) const {
@@ -31,25 +30,22 @@ int RearrangeBones::_originalIdx(int newJointIndex) const {
 	return _n2o.at(newJointIndex);
 }
 
-void RearrangeBones::clear() {
+void RearrangeBones::_clear() {
 	_o2n.clear();
 	_n2o.clear();
-	_skeleton.clear();
+	_outSkeleton = nullptr;
 }
 
-void RearrangeBones::create(const Skeleton& skeleton) {
-	clear();
-	const auto& bindPose = skeleton.bindPose();
-	const auto& restPose = skeleton.restPose();
+void RearrangeBones::_create(Skeleton& outSkeleton) {
+	_clear();
+	_outSkeleton = &outSkeleton;
+
+	const auto& restPose = _outSkeleton->restPose();
 
 	size_t jointCount = restPose.getJointCount();
 	if (jointCount == 0) {
 		return;
 	}
-
-	_skeleton.setBindPose(bindPose);
-	_skeleton.setRestPose(restPose);
-	_skeleton.setJointNames(skeleton.jointNames());
 
 	Vector< Vector<int> > children;
 	children.resize(jointCount);
@@ -82,17 +78,21 @@ void RearrangeBones::create(const Skeleton& skeleton) {
 
 	_n2o[-1] = -1;
 	_o2n[-1] = -1;
+
+	_rearrangeSkeleton();
 }
 
-void RearrangeBones::rearrangeSkeleton(Skeleton& out) {
-	size_t jointCount = _skeleton.getJointCount();
+void RearrangeBones::_rearrangeSkeleton() {
+	if (!_outSkeleton) { SGE_ASSERT(false); return; }
+
+	size_t jointCount = _outSkeleton->getJointCount();
 	if (jointCount == 0) {
 		return;
 	}
 
-	const auto& restPose   = _skeleton.restPose();
-	const auto& bindPose   = _skeleton.bindPose();
-	const auto& jointNames = _skeleton.jointNames();
+	const auto& restPose   = _outSkeleton->restPose();
+	const auto& bindPose   = _outSkeleton->bindPose();
+	const auto& jointNames = _outSkeleton->jointNames();
 
 	Pose newRestPose (jointCount);
 	Pose newBindPose (jointCount);
@@ -113,12 +113,12 @@ void RearrangeBones::rearrangeSkeleton(Skeleton& out) {
 		newBindPose.setParent(i, newParent);
 	}
 
-	out.setRestPose(newRestPose);
-	out.setBindPose(newBindPose);
-	out.setJointNames(newJointNames);
+	_outSkeleton->setRestPose(newRestPose);
+	_outSkeleton->setBindPose(newBindPose);
+	_outSkeleton->setJointNames(newJointNames);
 }
 
-void RearrangeBones::rearrangeMesh(Mesh& out) {
+void RearrangeBones::_rearrangeMesh(Mesh& out) {
 /*
 	Changing the mesh in this way only edits the CPU copy of the mesh.
 	Call 'uploadToGpu' to upload the new attribute to the GPU as well
@@ -137,8 +137,8 @@ void RearrangeBones::rearrangeMesh(Mesh& out) {
 }
 
 // explict template instantiation
-template void RearrangeBones::s_internalRearrange(Skeleton& outSkeleton, Span<Mesh> outMeshes, Span< Clip > outClips);
-template void RearrangeBones::s_internalRearrange(Skeleton& outSkeleton, Span<Mesh> outMeshes, Span< FastClip > outClips);
+template void RearrangeBones::_s_internal_rearrange(Skeleton& outSkeleton, Span<Mesh> outMeshes, Span< Clip > outClips);
+template void RearrangeBones::_s_internal_rearrange(Skeleton& outSkeleton, Span<Mesh> outMeshes, Span< FastClip > outClips);
 
 template void RearrangeBones::_internalRearrangeClip(Clip& out);
 template void RearrangeBones::_internalRearrangeClip(FastClip& out);

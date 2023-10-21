@@ -17,7 +17,6 @@ namespace sge {
 
 class CrossFadeController : public NonCopyable {
 private:
-
 	struct MyTarget : public NonCopyable {
 		MyTarget() = default;
 		MyTarget(const Clip* clip_, const Pose& pose_, float fadeDuration_)
@@ -57,11 +56,12 @@ private:
 	static CrossFadeController* _instance;
 
 	const Clip*					_curClip = nullptr;
+
+	const Skeleton*				_curSkeleton = nullptr;
+	bool						_isSetSkeleton;
+
 	float						_curPlaybackTime;
 	Pose						_curPose;
-
-	SPtr<Skeleton>				_curSkeleton;
-	bool						_isSetSkeleton;
 
 	// The entire '_fadingTargets' list is evaluated with every frame.
 	// Each animation is evaluated and blended into the currently playing animation.

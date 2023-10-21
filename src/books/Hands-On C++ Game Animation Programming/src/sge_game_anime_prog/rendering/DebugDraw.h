@@ -3,7 +3,6 @@
 #include <sge_core/pointer/SPtr.h>
 #include <sge_core/graph/Color.h>
 
-#include <sge_game_anime_prog/math/vec3.h>
 #include <sge_game_anime_prog/math/mat4.h>
 
 #include <sge_game_anime_prog/opengl/Shader.h>
@@ -102,10 +101,12 @@ class DebugDraw_PointLines : public RefCountBase {
 public:
 	using Mask = DebugDraw_PointLines_Mask;
 
-	DebugDraw_PointLines()
+	inline DebugDraw_PointLines()
 		: _lines(new DebugDraw())
 		, _pointColor(DebugDraw::kPurple)
 		, _lineColor(DebugDraw::kYellow) {}
+
+	inline void clear() { _lines->clear(); }
 
 	inline void add(const vec3f& from, const vec3f& to) {
 		_lines->push_back(from);
@@ -121,12 +122,10 @@ public:
 	template<class IKSolver>
 	void fromIKSolver(const IKSolver& solver);
 
-	inline void lineFromPose(const Pose& pose) { _lines->lineFromPose(pose); }
+	inline void lineFromPose(const Pose& pose)	{ _lines->lineFromPose(pose); }
 
-	inline void clear			()			{ _lines->clear(); }
-
-	inline Color4f pointColor	() const	{ return _pointColor; }
-	inline Color4f lineColor	() const	{ return _lineColor; }
+	inline Color4f pointColor() const	{ return _pointColor; }
+	inline Color4f lineColor () const	{ return _lineColor; }
 
 	inline void setPointColor(const Color4f& color) { _pointColor = color; }
 	inline void setLineColor (const Color4f& color)	{ _lineColor  = color; }

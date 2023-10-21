@@ -77,10 +77,10 @@ void IKExampleTestBase<IKSolver>::onUpdate(Request& req) {
 
 template<class IKSolver>
 void IKExampleTestBase<IKSolver>::onRender(Request& req) {
-	mat4f proj(req.camera.projMatrix());
+	mat4f projection(req.camera.projMatrix());
 	mat4f view(req.camera.viewMatrix());
 
-	mat4f mvp = proj * view * mat4f::s_identity();
+	mat4f mvp = projection * view * mat4f::s_identity();
 
 	{ // draw ikChains
 		_ikChainsVisual->fromIKSolver(*_solver);

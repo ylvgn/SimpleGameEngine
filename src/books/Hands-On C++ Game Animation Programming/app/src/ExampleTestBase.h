@@ -11,11 +11,10 @@ class ExampleTestBase : public RefCountBase {
 public:
 	using Request = SampleRequest;
 
-	const float kCamPitch	= 45.0f;
-	const float kCamYaw		= 60.0f;
-	const float kCamDist	= 7.0f;
-
-	const float kGizmoSize	= 0.25f;
+	static constexpr const float kCamPitch	= 45.0f;
+	static constexpr const float kCamYaw	= 60.0f;
+	static constexpr const float kCamDist	= 7.0f;
+	static constexpr const float kGizmoSize	= 0.25f;
 
 public:
 	virtual ~ExampleTestBase() = default;
