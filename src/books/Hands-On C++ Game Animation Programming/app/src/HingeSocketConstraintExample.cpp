@@ -33,13 +33,13 @@ void HingeSocketConstraintExample<IKSolver>::s_constraintHandler(int i, IKSolver
 	if (map.find(i) == map.end()) return;
 	const vec3f& axis = map[i];
 
-	const quat& thisLocalRot = solver->operator[](i).rotation;
-	quat parentRot = i == 0
-		? thisLocalRot
-		: solver->getWorldTransform(i-1).rotation;
+	Transform world  = solver->getWorldTransform(i);
+	Transform parent = i > 0
+		? solver->getWorldTransform(i - 1)
+		: world;
 
-	vec3f currentHinge		= thisLocalRot * axis;
-	vec3f desiredHinge		= parentRot * axis;
+	vec3f  currentHinge		= world.rotation * axis;
+	vec3f  desiredHinge		= parent.rotation * axis;
 	quat4f currentToDesired = quat4f::s_fromTo(currentHinge, desiredHinge);
 
 	solver->operator[](i).rotation = solver->operator[](i).rotation * currentToDesired;

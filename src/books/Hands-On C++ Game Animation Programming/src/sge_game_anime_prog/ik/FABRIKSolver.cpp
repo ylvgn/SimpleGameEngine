@@ -117,7 +117,9 @@ bool FABRIKSolver::solve(const Transform& target) {
 
 		if (_constraintsHandler != nullptr) {
 			_worldToIkChains(); // NEEDED FOR CONSTRAINTS
-			_constraintsHandler(i, this);
+			for (int j = 1; j < jointCount; ++j) {
+				_constraintsHandler(j, this);
+			}
 			_ikChainsToWorld(); // NEEDED FOR CONSTRAINTS
 		}
 	}
