@@ -59,8 +59,29 @@ Mat4<T> Camera3<T>::viewMatrix() const {
 
 template<class T>
 Mat4<T> Camera3<T>::projMatrix() const {
-	T aspect = _viewport.h != 0 ? _viewport.w / _viewport.h : T(0);
-	return Mat4::s_perspective(Math::radians(_fov), aspect, _nearClip, _farClip);
+	switch (_type) {
+		case Type::Perpective: {
+			T aspect = _viewport.h != 0 ? _viewport.w / _viewport.h : T(0);
+			return Mat4::s_perspective(Math::radians(_fov), aspect, _nearClip, _farClip);
+		} break;
+		case Type::Orthogrphic: {
+			T halfW = _viewport.w * T(0.5);
+			T halfH = _viewport.h * T(0.5);
+			T cx	= _viewport.x + halfW;
+			T cy	= _viewport.y + halfH;
+
+			halfW *= _size;
+			halfH *= _size;
+
+			T l = cx - halfW;
+			T r = cx + halfW;
+			T t = cy + halfH;
+			T b = cy - halfH;
+			return Mat4::s_ortho(l, r, b, t, _nearClip, _farClip);
+		}break;
+	}
+
+	return Mat4::s_identity();
 }
 
 template struct Camera3<float>;

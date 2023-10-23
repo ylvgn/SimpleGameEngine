@@ -7,8 +7,16 @@
 namespace sge {
 namespace Math {
 
+enum class CameraProjectionType {
+	Perpective,
+	Orthogrphic,
+};
+SGE_ENUM_ALL_OPERATOR(CameraProjectionType)
+
 template<class T>
 struct Camera3 {
+	using Type  = CameraProjectionType;
+
 	using Vec2  = Vec2<T>;
 	using Vec3  = Vec3<T>;
 	using Vec4  = Vec4<T>;
@@ -37,6 +45,8 @@ struct Camera3 {
 	void setFov(const T& fov)			{ _fov = fov;			}
 	void setNearClip(const T& nearClip) { _nearClip = nearClip; }
 	void setFarClip(const T& farClip)	{ _farClip = farClip;	}
+	void setProjectionType(Type type)	{ _type = type;			}
+	void setSize(const T& size)			{ _size = size;			}
 
 	const Vec3& pos()	const { return _pos; }
 	const Vec3& aim()	const { return _aim; }
@@ -44,22 +54,8 @@ struct Camera3 {
 	const T&	fov()	const { return _fov; }
 	const T& nearClip() const { return _nearClip; }
 	const T& farClip()	const { return _farClip; }
-
-	Vec3 forward()	const { return _aim - _pos; }
-	Vec3 back()		const { return _pos - _aim; }
-	Vec3 down()		const { return Vec3(-_up.x, -_up.y, -_up.z); }
-
-	Vec3 right() const {
-		Vec3 v = forward();
-		auto dir = v.normalize();
-		return _up.cross(dir);
-	}
-
-	Vec3 left() const {
-		Vec3 v = forward();
-		auto dir = v.normalize();
-		return dir.cross(_up);
-	}
+	const Type& type()	const { return _type; }
+	const T& size()		const { return _size; }
 
 	const Rect2& viewport() const { return _viewport; }
 
@@ -72,13 +68,15 @@ struct Camera3 {
 	Frustum3 frustum() const { Frustum3 o; o.setByViewProjMatrix(viewProjMatrix()); return o; };
 
 private:
-	T _fov = T(50.0);
+	T _size		= T(1.0);
+	T _fov		= T(50.0);
 	T _nearClip = T(0.1);
-	T _farClip = T(10000.0);
+	T _farClip	= T(10000.0);
 	Rect2 _viewport;
 	Vec3 _pos {150, 150, 200};
 	Vec3 _aim {0,0,0};
 	Vec3 _up  {0,1,0};
+	Type _type = Type::Perpective;
 };
 
 using Camera3f = Camera3<float>;
