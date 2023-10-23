@@ -339,7 +339,7 @@ struct mat4 {
 		}
 
 		float ymax = zNear * tanf(Math::radians(fov / 2.0f));
-		float xmax = ymax * aspect;
+		float xmax = ymax  * aspect;
 
 		return s_frustum(-xmax, xmax, -ymax, ymax, zNear, zFar);
 //		It serves as an easy way to create a view frustum.
@@ -348,12 +348,18 @@ struct mat4 {
 	// An orthographic projection maps linearly to NDC space.
 	// Orthographic view projections are generally useful for displaying UI or other two-dimensional elements.
 	inline static mat4 s_ortho(float l, float r, float b, float t, float n, float f) {
-		SGE_ASSERT(!Math::equals(l, r) && !Math::equals(t, b) && !Math::equals(n, f));
-		
-		return mat4(2/(r-l),      0,            0,            0,
-			        0,            2/(t-b),      0,            0,
-			        0,            0,            -2/(f-n),     0,
-			        -(r+l)/(r-l), -(t+b)/(t-b), -(f+n)/(f-n), 1);
+		float w = r - l;
+		float h = t - b;
+		float d = f - n;
+
+		if (w == 0 || h == 0 || d == 0) {
+			return s_identity();
+		}
+
+		return mat4(2/w,      0,        0,        0,
+			        0,        2/h,      0,        0,
+			        0,        0,        -2/d,     0,
+			        -(r+l)/w, -(t+b)/h, -(f+n)/d, 1);
 	}
 
 	static mat4 s_lookAt(const vec3& eye, const vec3& aim, const vec3& up);

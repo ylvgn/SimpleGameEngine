@@ -8,6 +8,7 @@ class Shader : public RefCountBase {
 public:
 	Shader();
 	Shader(StrView vertex, StrView fragment);
+
 	~Shader();
 
 	// load shaders from files and compile them

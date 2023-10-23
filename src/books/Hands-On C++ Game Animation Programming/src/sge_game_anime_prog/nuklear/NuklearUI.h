@@ -112,8 +112,8 @@ void onUIKeyboardEvent(UIKeyboardEvent& ev);
 void render(const Vec2f& viewportSize);
 void demo();
 
-inline void WindowSetBounds(StrView name, const Rect2f& bounds)	{ ::nk_window_set_bounds(g_ctx, name.data(), Util::toNKRect(bounds)); }
-inline void WindowSetPosition(StrView name, const Vec2f& pos)	{ ::nk_window_set_position(g_ctx, name.data(), Util::toNKVec2(pos)); }
+inline void WindowSetBounds  (StrView name, const Rect2f& bounds)	{ ::nk_window_set_bounds  (g_ctx, name.data(), Util::toNKRect(bounds)); }
+inline void WindowSetPosition(StrView name, const Vec2f& pos)		{ ::nk_window_set_position(g_ctx, name.data(), Util::toNKVec2(pos)); }
 
 inline bool windowIsAnyHovered()		{ return ::nk_window_is_any_hovered(g_ctx); }
 inline sge::Vec2f windowGetPosition()	{ return Util::toVec2<float>(nk_window_get_position(g_ctx)); }
@@ -150,11 +150,11 @@ inline void LayoutRowPush(float ratio_or_width) {
 	::nk_layout_row_push(g_ctx, ratio_or_width);
 }
 
-inline int Progress(size_t& cur,
-					size_t max,
+inline int Progress(size_t* cur,
+					size_t  max,
 					int is_modifyable = NK_FIXED)
 {
-	return ::nk_progress(g_ctx, static_cast<nk_size*>(&cur), static_cast<nk_size>(max), is_modifyable);
+	return ::nk_progress(g_ctx, static_cast<nk_size*>(cur), static_cast<nk_size>(max), is_modifyable);
 }
 
 inline void LayoutRowDynamic(float height, int cols = 1) {
@@ -169,13 +169,13 @@ public:
 
 class Window : public NonCopyable {
 public:
-	static constexpr float kTitleHeight = 25.f;
+	static constexpr const float kTitleHeight = 25.f;
 
-	static constexpr nk_flags kDefaultStyle   = NK_WINDOW_TITLE | NK_WINDOW_NO_SCROLLBAR;
-	static constexpr nk_flags kMovableStyle   = kDefaultStyle | NK_WINDOW_MOVABLE;
-	static constexpr nk_flags kMinizableStyle = kDefaultStyle | NK_WINDOW_MINIMIZABLE;
-	static constexpr nk_flags kCloseableStyle = kDefaultStyle | NK_WINDOW_CLOSABLE;
-	static constexpr nk_flags kScalableStyle = kDefaultStyle | NK_WINDOW_SCALABLE;
+	static constexpr const nk_flags kDefaultStyle   = NK_WINDOW_TITLE | NK_WINDOW_NO_SCROLLBAR;
+	static constexpr const nk_flags kMovableStyle   = kDefaultStyle | NK_WINDOW_MOVABLE;
+	static constexpr const nk_flags kMinizableStyle = kDefaultStyle | NK_WINDOW_MINIMIZABLE;
+	static constexpr const nk_flags kCloseableStyle = kDefaultStyle | NK_WINDOW_CLOSABLE;
+	static constexpr const nk_flags kScalableStyle  = kDefaultStyle | NK_WINDOW_SCALABLE;
 	
 	Window(	const Rect2f& bounds,
 			StrView title = "",
@@ -211,8 +211,8 @@ private:
 
 class LayoutRowStatic : public NonCopyable {
 public:
-	static constexpr float kItemWMargin = 10.f;
-	static constexpr float kItemHMargin = 5.f;
+	static constexpr const float kItemWMargin = 10.f;
+	static constexpr const float kItemHMargin = 5.f;
 
 	LayoutRowStatic(float height,
 					float item_width,
@@ -235,11 +235,11 @@ public:
 
 class LayoutRowBegin : public NonCopyable {
 public:
-	LayoutRowBegin(enum nk_layout_format flag,
+	LayoutRowBegin(	enum nk_layout_format fmt,
 					float row_height,
 					int cols = 1)
 	{
-		::nk_layout_row_begin(g_ctx, flag, row_height, cols);
+		::nk_layout_row_begin(g_ctx, fmt, row_height, cols);
 	}
 	~LayoutRowBegin() { ::nk_layout_row_end(g_ctx); }
 };
@@ -275,11 +275,11 @@ public:
 
 	bool isOpen()	const { return _isOpen; }
 	bool isActive() const { return static_cast<bool>(_isActive); }
+
 private:
 	int		_isActive;
 	bool	_isOpen;
 };
-
 
 } // NuklearUI
 } // sge

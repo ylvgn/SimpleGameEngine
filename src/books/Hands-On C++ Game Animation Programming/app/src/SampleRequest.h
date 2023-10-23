@@ -31,12 +31,10 @@ public:
 	using Type = MySampleType;
 
 	const Type& type;
-	const float& aspect;
 	bool& bWireFrame;
 	Math::Camera3f& camera;
 
 	float dt;
-	float mTimeMod;
 
 	bool bShowCurrentPose;
 	bool bShowRestPose;
@@ -44,6 +42,14 @@ public:
 	bool bShowIKPose;
 	bool bShowLinearSkinning;
 	bool bShowDualQuaternionSkinning;
+	bool bShowModelMesh;
+	bool bShowEnvironment;
+	bool bShowGroundRayCast;
+	bool bShowAnkleRayCast;
+	bool bShowAnkle2ToeRayCast;
+	bool bShowToeRayCast;
+	bool bShowToeAdjustRayCast;
+	bool bIsCameraFollow;
 
 	void reset() {
 		bWireFrame					= false;
@@ -54,14 +60,23 @@ public:
 		bShowLinearSkinning			= false;
 		bShowDualQuaternionSkinning = false;
 
-		mTimeMod = 1.0f;
+		bShowIKPose					= false;
+		bShowCurrentPose			= false;
+		bShowModelMesh				= false;
+		bShowEnvironment			= false;
+		bShowGroundRayCast			= false;
+		bShowAnkleRayCast			= false;
+		bShowAnkle2ToeRayCast		= false;
+		bShowToeRayCast				= false;
+		bShowToeAdjustRayCast		= false;
+		bIsCameraFollow				= false;
 
-		// mat4f::s_lookAt(vec3f(0, 0, -5), vec3f::s_zero(), vec3f::s_up());
+		camera.setProjectionType(Math::CameraProjectionType::Perpective);
 		camera.setPos(0, 0, -5);
 		camera.setAim(0, 0, 0);
-
-		// mat4f::s_perspective(60.0f, req.aspect, 0.01f, 1000.0f);
+		camera.setUp (0, 1, 0);
 		camera.setFov(60.f);
+		camera.setSize(1.f);
 		camera.setNearClip(0.01f);
 		camera.setFarClip(1000.0f);
 	}

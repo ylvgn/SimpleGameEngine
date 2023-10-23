@@ -9,6 +9,7 @@ Texture::Texture() :
 	_height(0),
 	_channels(0)
 {
+	// call any opengl function after "gladLoadGL" done
 	glGenTextures(1, &_handle);
 }
 
@@ -17,6 +18,7 @@ Texture::~Texture() {
 }
 
 Texture::Texture(StrView path) {
+	// call any opengl function after "gladLoadGL" done
 	glGenTextures(1, &_handle);
 	load(path);
 }
@@ -38,16 +40,14 @@ void Texture::load(StrView path) {
 		);
 
 		// use glTexImage2D to upload the texture to the GPU
-		glTexImage2D(
-			GL_TEXTURE_2D,
-			0,
-			GL_RGBA, width, height,
-			0,
-			GL_RGBA,
-			GL_UNSIGNED_BYTE,
-			data
+		glTexImage2D(GL_TEXTURE_2D,
+					 0,
+					 GL_RGBA, width, height,
+					 0,
+					 GL_RGBA,
+					 GL_UNSIGNED_BYTE,
+					 data
 		);
-
 
 		// and glGenerateMipmap to generate the appropriate mipmaps for the image
 		glGenerateMipmap(GL_TEXTURE_2D);

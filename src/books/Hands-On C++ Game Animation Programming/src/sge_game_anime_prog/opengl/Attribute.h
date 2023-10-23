@@ -1,16 +1,19 @@
 #pragma once
 
-/*
-Attributes are per-vertex data in the graphics pipeline.
-A vertex is made up of attributes.
-For example, a vertex has a position and a normal, which are both attributes.
+#include "OpenGL_Common.h"
 
-start implementing an Attribute class to hold vertex data that is passed to shaders.
-Attributes can have different data types.
-
-Attributes aka vertex buffer (GPU buffer)
-*/
 namespace sge {
+
+/*
+	Attributes are per-vertex data in the graphics pipeline.
+	A vertex is made up of attributes.
+	For example, a vertex has a position and a normal, which are both attributes.
+
+	start implementing an Attribute class to hold vertex data that is passed to shaders.
+	Attributes can have different data types.
+
+	Attributes aka vertex buffer (GPU buffer)
+*/
 
 template<typename T>
 class Attribute : public NonCopyable {

@@ -1,18 +1,20 @@
 #pragma once
 
+namespace sge {
+
 /*
 	The Texture class only needs a few important functions.
 	-load a texture from a file
 	-bind a texture index to a uniform index
 	-deactivate a texture index
 */
-namespace sge {
 
 class Texture : public RefCountBase {
 public:
 	Texture();
-	~Texture();
 	Texture(StrView path);
+
+	~Texture();
 
 	void load(StrView path);
 

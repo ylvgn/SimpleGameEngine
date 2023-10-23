@@ -1,28 +1,30 @@
 #pragma once
 
 namespace sge {
+
 /*
 	IndexBuffer is bound to GL_ELEMENT_ARRAY_BUFFER and can be used to draw primitives.
 	IndexBuffer aka index buffer (GPU buffer), similar to Attribute
 */
+
 class IndexBuffer : public NonCopyable {
 public:
+	using DataType = u32;
+
 	IndexBuffer();
 	~IndexBuffer();
 
-	inline void uploadToGpu(ByteSpan data) {
-		auto s = spanCast<const u32>(data);
-		_internalUploadToGpu(s.data(), s.size());
-	}
+	void uploadToGpu(ByteSpan data);
 
-	inline u32		handle() const { return _handle; }
-	inline size_t	count()  const { return _count;  }
+	inline u32		handle()	const { return _handle; }
+	inline size_t	dataSize()  const { return _dataSize; }
+	inline size_t	count()		const { return _dataSize / sizeof(DataType); }
 
 private:
-	void _internalUploadToGpu(const u32* data, size_t dataSize);
+	void _internal_uploadToGpu(const DataType* data, size_t dataSize);
 
 	u32		_handle;	// OpenGL buffer handle
-	size_t	_count;		// The count represents how many total indexbuffer there are
+	size_t	_dataSize;	// The count represents how many total indexbuffer there are
 };
 
 }

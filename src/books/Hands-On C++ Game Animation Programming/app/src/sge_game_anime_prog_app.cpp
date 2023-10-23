@@ -653,19 +653,19 @@ private:
 		_ankleToCurrentToeDebugDraw->setColor(DebugDraw::kRed);
 		_ankleToDesiredToeDebugDraw->setColor(DebugDraw::kGreen);
 
-		req.bWireFrame			= false;
-		_depthTest				= false;
+		_depthTest					= false;
 
-		_showIKPose				= false;
-		_showCurrentPose		= false;
-		_showEnvironment		= true;
-		_showMesh				= true;
-		_showGroundRayCast		= false;
-		_showAnkleRayCast		= false;
-		_showAnkle2ToeRayCast	= false;
-		_showToeRayCast			= false;
-		_showToeAdjustRayCast	= false;
-		_isCameraFollow			= true;
+		req.bWireFrame				= false;
+		req.bShowIKPose				= false;
+		req.bShowCurrentPose		= false;
+		req.bShowEnvironment		= true;
+		req.bShowModelMesh			= true;
+		req.bShowGroundRayCast		= false;
+		req.bShowAnkleRayCast		= false;
+		req.bShowAnkle2ToeRayCast	= false;
+		req.bShowToeRayCast			= false;
+		req.bShowToeAdjustRayCast	= false;
+		req.bIsCameraFollow			= true;
 
 		_walkingTime			= 0.f;
 		_lastModelY				= 0.f;
@@ -688,8 +688,6 @@ private:
 		}
 		model.position.y -= _sinkIntoGround;
 		_lastModelY = model.position.y;
-
-		req.mTimeMod = 1.0f;
 	}
 	void test_DualQuaterionMeshSkinning_onCreate(Request& req) {
 		_loadExampleAsset_DualQuaterionMeshSkinning();
@@ -915,7 +913,7 @@ private:
 #endif
 	}
 	void test_AlignFeetOnTheGround_onUpdate(Request& req) {
-		auto dt = req.dt * req.mTimeMod;
+		auto& dt = req.dt;
 
 		_groundRayDebugDraw->clear();
 		_ankleRayDebugDraw->clear();
@@ -1244,15 +1242,31 @@ private:
 		_staticShader->unbind();
 	}
 	void test_AnimationScalarTrack_onRender(Request& req) {
+		auto clientSize = req.camera.viewport().size;
+		float aspect = clientSize.y != 0 ? clientSize.x / clientSize.y : 0;
+#if 1
+		req.camera.setProjectionType(Math::CameraProjectionType::Orthogrphic);
+		req.camera.setViewport(Rect2f{ 0, 0, aspect * 22.f, 22.f });
+		req.camera.setNearClip(0.01f);
+		req.camera.setFarClip(5.0f);
+		req.camera.setPos(0, 0, 2.5f);
+		req.camera.setAim(0, 0, 0);
+		req.camera.setUp(0, 1, 0);
+
+		mat4f projection(req.camera.projMatrix());
+		mat4f view(req.camera.viewMatrix());
+#else
+		float l = 0;
 		float t = 22.f;
 		float b = 0;
-		float l = 0;
-		float r = req.aspect * t;
+		float r = aspect * t;
 		float n = 0.01f;
 		float f = 5.f;
 		mat4f projection = mat4f::s_ortho(l, r, b, t, n, f);
-		mat4f view       = mat4f::s_lookAt(vec3f(0, 0, (n + f) / 2), vec3f::s_zero(), vec3f::s_up());
-		mat4f mvp        = projection * view * mat4f::s_identity();
+		mat4f view = mat4f::s_lookAt(vec3f(0, 0, (n + f) / 2), vec3f::s_zero(), vec3f::s_up());
+#endif
+
+		mat4f mvp = projection * view /** mat4f::s_identity()*/;
 
 		_referenceLines->draw(DebugDrawMode::Lines, mvp, DebugDraw::kYellow);
 		_scalarTrackLines->draw(DebugDrawMode::Lines, mvp, DebugDraw::kGreen);
@@ -1269,17 +1283,20 @@ private:
 	void test_AnimationClip_onRender(Request& req) {
 		mat4f projection(req.camera.projMatrix());
 		mat4f view(req.camera.viewMatrix());
-		mat4f mvp = projection * view;
+		mat4f vp = projection * view;
 
 		if (req.bShowRestPose) {
+			mat4f mvp = vp * mat4f::s_translate(vec3f(-3,0,0));
 			_restPoseVisual->draw(DebugDrawMode::Lines, mvp, DebugDraw::kRed);
 		}
 
 		if (req.bShowCurrentPose) {
+			mat4f mvp = vp * mat4f::s_identity();
 			_currentPoseVisual->uploadToGpu();
 			_currentPoseVisual->draw(DebugDrawMode::Lines, mvp, DebugDraw::kBlue);
 		}
 		if (req.bShowBindPose) {
+			mat4f mvp = vp * mat4f::s_translate(vec3f(3, 0, 0));
 			_bindPoseVisual->draw(DebugDrawMode::Lines, mvp, DebugDraw::kGreen);
 		}
 	}
@@ -1380,11 +1397,12 @@ private:
 		float modelPosZ = modelTran.position.z;
 		mat4f model		= mat4f::s_transform(modelTran);
 
-		if (_isCameraFollow) {
-			vec3f eye = vec3f(modelPosX, 0, modelPosZ) + vec3f(0, 5, 10);
+		if (req.bIsCameraFollow) {
+			vec3f eye    = vec3f(modelPosX, 0, modelPosZ) + vec3f(0, 5, 10);
 			vec3f target = vec3f(modelPosX, 0, modelPosZ) + vec3f(0, 3, 0);
 			req.camera.setPos(eye.x, eye.y, eye.z);
 			req.camera.setAim(target.x, target.y, target.z);
+			req.camera.setUp(0,1,0);
 		}
 
 		mat4f projection(req.camera.projMatrix());
@@ -1393,38 +1411,38 @@ private:
 		mat4f vp	= projection * view;
 		mat4f mvp	= vp * model;
 
-		if (_showMesh) {
+		if (req.bShowModelMesh) {
 			_onDrawGpuSkinning(projection, view);
 		}
 
-		if (_showEnvironment) {
+		if (req.bShowEnvironment) {
 			_onDrawStaticMesh(projection, view, _ikCourse, _ikCourseTexture);
 		}
 
 		if (!_depthTest) glDisable(GL_DEPTH_TEST);
 		{
-			if (_showCurrentPose) {
+			if (req.bShowCurrentPose) {
 				_animatedPoseDebugDraw->draw(mvp, DebugDrawPL::Mask::Line);
 			}
-			if (_showIKPose) {
+			if (req.bShowIKPose) {
 				_leftLegDebugDraw->draw(vp, DebugDrawPL::Mask::Line);
 				_rightLegDebugDraw->draw(vp, DebugDrawPL::Mask::Line);
 			}
-			if (_showGroundRayCast) {
+			if (req.bShowGroundRayCast) {
 				_groundRayDebugDraw->draw(vp);
 			}
-			if (_showAnkleRayCast) {
+			if (req.bShowAnkleRayCast) {
 				_ankleRayCastHitDebugDraw->draw(vp);
 				_ankleRayDebugDraw->draw(vp);
 			}
-			if (_showAnkle2ToeRayCast) {
+			if (req.bShowAnkle2ToeRayCast) {
 				_ankle2ToeRayCastDebugDraw->draw(vp);
 			}
-			if (_showToeRayCast) {
+			if (req.bShowToeRayCast) {
 				_toeRayCastHitDebugDraw->draw(vp);
 				_toeRayDebugDraw->draw(vp);
 			}
-			if (_showToeAdjustRayCast) {
+			if (req.bShowToeAdjustRayCast) {
 				_ankleToCurrentToeDebugDraw->draw(vp);
 				_ankleToDesiredToeDebugDraw->draw(vp);
 			}
@@ -1475,10 +1493,9 @@ private:
 		float duration	= clip.getDuration();
 		float progress = (_playbackTime - startTime) / duration;
 		size_t prog = static_cast<size_t>(progress * 200.0f);
-		NuklearUI::Progress(prog, 200, NK_FIXED);
+		NuklearUI::Progress(&prog, 200, NK_FIXED);
 
 		NuklearUI::LayoutRowDynamic(20, 1);
-
 #define E(NAME, VALUE) \
 		{ \
 			NuklearUI::CheckboxLabel cb(NAME, VALUE); \
@@ -1491,7 +1508,6 @@ private:
 		E("Show Current Pose", req.bShowCurrentPose)
 		E("Show Bind Pose", req.bShowBindPose)
 #undef E
-
 	}
 	void test_MeshSkinning_onDrawUI(Request& req) {}
 	void test_AnimationBlending_onDrawUI(Request& req) {}
@@ -1515,12 +1531,12 @@ private:
 		}
 
 		NuklearUI::Label("Playback:");
-		auto& clip = _clips[currentClip];
+		auto& clip		= _clips[currentClip];
 		float startTime = clip.getStartTime();
-		float duration = clip.getDuration();
-		float progress = (playbackTime - startTime) / duration;
+		float duration  = clip.getDuration();
+		float progress  = (playbackTime - startTime) / duration;
 		size_t prog = static_cast<size_t>(progress * 200.0f);
-		NuklearUI::Progress(prog, 200, NK_FIXED);
+		NuklearUI::Progress(&prog, 200, NK_FIXED);
 
 		NuklearUI::LayoutRowDynamic(20, 1);
 #if 0
@@ -1561,29 +1577,33 @@ private:
 		static const float layout[] = { 75, 200 };
 		NuklearUI::LayoutRow row(NK_STATIC, 25, 2, layout);
 
-		NuklearUI::Label("Time speed:");
-		NuklearUI::SliderFloat(&req.mTimeMod, 0.0f, 2.0f);
 		NuklearUI::LayoutRowDynamic(20, 1);
+		{
+			NuklearUI::CheckboxLabel cb("Is Depth Test", _depthTest);
+			if (cb.isOpen()) {
+				_depthTest = cb.isActive();
+			}
+		}
 
-#define E(MemberName) \
+#define E(NAME, VALUE) \
 		{ \
-			NuklearUI::CheckboxLabel cb(#MemberName, MemberName); \
+			NuklearUI::CheckboxLabel cb(NAME, VALUE); \
 			if (cb.isOpen()) { \
-				MemberName = cb.isActive(); \
+				VALUE = cb.isActive(); \
 			} \
 		} \
 // ----
-		E(_depthTest)
-		E(_showMesh)
-		E(_showEnvironment)
-		E(_showCurrentPose)
-		E(_showIKPose)
-		E(_showGroundRayCast)
-		E(_showAnkleRayCast)
-		E(_showAnkle2ToeRayCast)
-		E(_showToeRayCast)
-		E(_showToeAdjustRayCast)
-		E(_isCameraFollow)
+		E("Show Bind Pose", req.bShowIKPose)
+		E("Show IK Pose", req.bShowIKPose)
+		E("Show Current Pose", req.bShowCurrentPose)
+		E("Show Model Mesh", req.bShowModelMesh)
+		E("Show Environment", req.bShowEnvironment)
+		E("Show Ground RayCast", req.bShowGroundRayCast)
+		E("Show Ankle RayCast", req.bShowAnkleRayCast)
+		E("Show Ankle To Toe RayCast", req.bShowAnkle2ToeRayCast)
+		E("Show Toe RayCast", req.bShowToeRayCast)
+		E("Show Toe Adjust RayCast", req.bShowToeAdjustRayCast)
+		E("Is Camera Follow", req.bIsCameraFollow)
 #undef E
 	}
 	void test_DualQuaterionMeshSkinning_onDrawUI(Request& req) {
@@ -1610,24 +1630,6 @@ private:
 		mat4f projection(req.camera.projMatrix());
 		mat4f view(req.camera.viewMatrix());
 		_onDrawGpuSkinning(projection, view);
-
-#if 0
-		mat4f model = mat4f::s_transform(_gpuAnimInfo.model);
-		mat4f mvp = projection * view * model;
-		glDisable(GL_DEPTH_TEST);
-		if (req.mShowRestPose) {
-			_restPoseVisual->draw(DebugDrawMode::Lines, mvp, DebugDraw::kRed);
-		}
-
-		if (req.mShowCurrentPose) {
-			_currentPoseVisual->uploadToGpu();
-			_currentPoseVisual->draw(DebugDrawMode::Lines, mvp, DebugDraw::kBlue);
-		}
-		if (req.mShowBindPose) {
-			_bindPoseVisual->draw(DebugDrawMode::Lines, mvp, DebugDraw::kGreen);
-		}
-		glEnable(GL_DEPTH_TEST);
-#endif
 	}
 
 	void _onDrawGpuSkinning(const mat4f& projection, const mat4f& view) {
@@ -1919,17 +1921,7 @@ private:
 	float										_toeLength;
 	float										_lastModelY;
 
-	bool										_showIKPose;
-	bool										_showCurrentPose;
 	bool										_depthTest;
-	bool										_showMesh;
-	bool										_showEnvironment;
-	bool										_showGroundRayCast;
-	bool										_showAnkleRayCast;
-	bool										_showAnkle2ToeRayCast;
-	bool										_showToeRayCast;
-	bool										_showToeAdjustRayCast;
-	bool										_isCameraFollow;
 
 	SPtr<DebugDrawPL>							_animatedPoseDebugDraw;
 	SPtr<DebugDrawPL>							_leftLegDebugDraw;
@@ -1953,47 +1945,38 @@ public:
 	using Type = MySampleType;
 
 	static constexpr const int kSampleCount = enumInt(Type::_END);
+	static constexpr float kMouseDecayFactor = 0.15f;
 
-	static constexpr float kMaxCameraMoveOffset = 0.3f;
-	static constexpr float kMaxMouseFactor		= 0.3f;
-	static constexpr float kMaxMouseDecayFactor = 0.5f;
+	void _cameraMove() {
+		if (_cameraDeltaPos.equals0()) return;
 
-	void _cameraMove(float dt) {
-		if (_cameraMoveFactor.equals0()) return;
+		auto d = _cameraDeltaPos * 0.05f;
+		_camera.move(d.x, 0, d.y);
 
-		static Vec3f sCameraOffset{ 1,0,1 };
-		sCameraOffset *= _cameraMoveFactor;
-
-		sCameraOffset.z = _cameraMoveFactor.z > 0
-			? Math::min(_cameraMoveFactor.z, kMaxCameraMoveOffset)
-			: Math::max(_cameraMoveFactor.z, -kMaxCameraMoveOffset);
-
-		sCameraOffset.x = _cameraMoveFactor.x > 0
-			? Math::min(_cameraMoveFactor.x, kMaxCameraMoveOffset)
-			: Math::max(_cameraMoveFactor.x, -kMaxCameraMoveOffset);
-
-		if (_cameraMoveFactor.z != 0) {
-			_cameraMoveFactor.z = _cameraMoveFactor.z > 0
-				? Math::max(0.f, _cameraMoveFactor.z - dt * kMaxMouseDecayFactor)
-				: Math::min(0.f, _cameraMoveFactor.z + dt * kMaxMouseDecayFactor);
+		if (_cameraDeltaPos.x > 0) {
+			_cameraDeltaPos.x = Math::max(0.f, _cameraDeltaPos.x - kMouseDecayFactor);
 		}
-
-		if (_cameraMoveFactor.x != 0) {
-			_cameraMoveFactor.x = _cameraMoveFactor.x > 0
-				? Math::max(0.f, _cameraMoveFactor.x - dt * kMaxMouseDecayFactor)
-				: Math::min(0.f, _cameraMoveFactor.x + dt * kMaxMouseDecayFactor);
+		else if (_cameraDeltaPos.x < 0) {
+			_cameraDeltaPos.x = Math::min(0.f, _cameraDeltaPos.x + kMouseDecayFactor);
 		}
-
-		_camera.move(sCameraOffset);
+		if (_cameraDeltaPos.y > 0) {
+			_cameraDeltaPos.y = Math::max(0.f, _cameraDeltaPos.y - kMouseDecayFactor);
+		}
+		else if (_cameraDeltaPos.y < 0) {
+			_cameraDeltaPos.y = Math::min(0.f, _cameraDeltaPos.y + kMouseDecayFactor);
+		}
 	}
 
 	void update(float dt) {
-		_sampleRequest.dt = dt;
-		_cameraMove(dt);
+		_sampleRequest.dt = dt * _dtFactor;
 
-		if (_vertexArrayObject == 0) return;
+		if (_vertexArrayObject == 0)
+			return;
+		
+		_cameraMove();
 
-		if (_sampleContext) _sampleContext->update(_sampleRequest);
+		if (_sampleContext)
+			_sampleContext->update(_sampleRequest);
 	}
 
 	void render() {
@@ -2039,8 +2022,7 @@ protected:
 			wglMakeCurrent(dc, tempRC);
 
 			// legacy render context just for get function pointer of 'wglCreateContextAttribsARB'
-			PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;
-			wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)wglGetProcAddress("wglCreateContextAttribsARB");
+			PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = reinterpret_cast<PFNWGLCREATECONTEXTATTRIBSARBPROC>(wglGetProcAddress("wglCreateContextAttribsARB"));
 			const int attribList[] = {
 				WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
 				WGL_CONTEXT_MINOR_VERSION_ARB, 3,
@@ -2066,13 +2048,13 @@ protected:
 		}
 
 		{ // vsynch: https://www.khronos.org/opengl/wiki/Swap_Interval
-			PFNWGLGETEXTENSIONSSTRINGEXTPROC _wglGetExtensionsStringEXT = (PFNWGLGETEXTENSIONSSTRINGEXTPROC)wglGetProcAddress("wglGetExtensionsStringEXT");
+			PFNWGLGETEXTENSIONSSTRINGEXTPROC _wglGetExtensionsStringEXT = reinterpret_cast<PFNWGLGETEXTENSIONSSTRINGEXTPROC>(wglGetProcAddress("wglGetExtensionsStringEXT"));
 			bool isSwapControlSupported = strstr(_wglGetExtensionsStringEXT(), "WGL_EXT_swap_control") != 0;
 
 			_vsynch = 0;
 			if (isSwapControlSupported) {
-				PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
-				PFNWGLGETSWAPINTERVALEXTPROC wglGetSwapIntervalEXT = (PFNWGLGETSWAPINTERVALEXTPROC)wglGetProcAddress("wglGetSwapIntervalEXT");
+				PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = reinterpret_cast<PFNWGLSWAPINTERVALEXTPROC>(wglGetProcAddress("wglSwapIntervalEXT"));
+				PFNWGLGETSWAPINTERVALEXTPROC wglGetSwapIntervalEXT = reinterpret_cast<PFNWGLGETSWAPINTERVALEXTPROC>(wglGetProcAddress("wglGetSwapIntervalEXT"));
 
 				if (wglSwapIntervalEXT(1)) {
 					SGE_LOG("Enabled vsynch\n");
@@ -2184,32 +2166,24 @@ protected:
 			}
 			else if (ev.isDown(KeyCode::R)) {
 				scaleFactor = 1.0f;
+				_dtFactor = 1.0f;
 			}
 			else if (ev.isDown(KeyCode::H)) {
 				_bShowUI = !_bShowUI;
 			}
 		}
 
-		bool isClick = false;
 		if (ev.isDown(KeyCode::W)) {
-			_cameraMoveFactor.z += 0.1f;
-			isClick = true;
+			_cameraDeltaPos.y += 1;
 		}
 		if (ev.isDown(KeyCode::S)) {
-			_cameraMoveFactor.z -= 0.1f;
-			isClick = true;
+			_cameraDeltaPos.y -= 1;
 		}
 		if (ev.isDown(KeyCode::A)) {
-			_cameraMoveFactor.x += 0.1f;
-			isClick = true;
+			_cameraDeltaPos.x += 1;
 		}
 		if (ev.isDown(KeyCode::D)) {
-			_cameraMoveFactor.x -= 0.1f;
-			isClick = true;
-		}
-		if (isClick) {
-			_cameraMoveFactor.z = Math::clamp(_cameraMoveFactor.z, -kMaxMouseFactor, kMaxMouseFactor);
-			_cameraMoveFactor.x = Math::clamp(_cameraMoveFactor.x, -kMaxMouseFactor, kMaxMouseFactor);
+			_cameraDeltaPos.x -= 1;
 		}
 	}
 
@@ -2219,7 +2193,7 @@ private:
 		_camera.setViewport(clientRect());
 
 		const Vec2f& clientSize	= clientRect().size;
-		_aspect = clientSize.x / clientSize.y;
+		_aspect = clientSize.y != 0 ? clientSize.x / clientSize.y : 0;
 
 		glViewport(0, 0, static_cast<GLsizei>(clientSize.x), static_cast<GLsizei>(clientSize.y));
 		glEnable(GL_DEPTH_TEST);
@@ -2242,7 +2216,7 @@ private:
 	}
 
 	void _drawSampleSelectorWindow() {
-		const Vec2f& clientSize = clientRect().size;
+		const auto& clientSize = clientRect().size;
 
 		TempString title;
 		if (_type != Type::None) {
@@ -2258,7 +2232,7 @@ private:
 		static vec2f pos		{ 50.f,  20.f };
 		static vec2f sItemSize	{ 250.f, 25.f };
 		static const int sItemCount = kSampleCount - 1;
-		Rect2f xywh = {
+		Rect2f xywh {
 			pos.x,
 			pos.y,
 			sItemSize.x + NuklearUI::LayoutRowStatic::kItemWMargin,
@@ -2281,22 +2255,23 @@ private:
 	
 	void _drawSettingWindow() {
 		if (!_bShowSettingWindow) return;
+
 		auto& scaleFactor = NuklearUI::scaleFactor;
-		// Rect2f xywh = { 0, clientSize.y - h * scaleFactor, clientSize.x / scaleFactor, 60.f }; // why ???
-		static constexpr Rect2f xywh { 0, 0, 220.f, 60.f };
+		// Rect2f xywh = { 0, clientSize.y - h * scaleFactor, clientSize.x / scaleFactor, 100.f }; // why ???
+		static constexpr Rect2f xywh { 0, 0, 220.f, 100.f };
 		NuklearUI::Window window(xywh, "ScaleFactor:");
-		if (!window.isOpen()) {
-			_bShowSettingWindow = false;
-			return;
-		}
+
 		auto windowSize = NuklearUI::windowGetSize();
 		NuklearUI::LayoutRowStatic layout(0, windowSize.x - 25.f);
 		NuklearUI::SliderFloat(&scaleFactor, 1.0f, 2.0f);
+
+		NuklearUI::Label("DeltaTime Speed:");
+		NuklearUI::SliderFloat(&_dtFactor, 0.0f, 2.0f);
 	}
 
 	void _drawUI() {
 		{
-			auto noWireFrame = makeScopedValue(&_bWireFrame, false);
+			auto bWithoutWireFrame = makeScopedValue(&_bWireFrame, false);
 			_uploadWireFrameMode();
 
 			_drawSampleSelectorWindow();
@@ -2356,11 +2331,12 @@ private:
 
 	bool	_bShowUI			= true;
 	bool	_bShowSettingWindow	= false;
+	float	_dtFactor			= 1.0f;
 
 	Math::Camera3f	_camera;
-	Vec3f			_cameraMoveFactor {0,0,0};
+	Vec2f			_cameraDeltaPos {0,0};
 
-	SampleRequest		_sampleRequest { _type, _aspect, _bWireFrame, _camera };
+	SampleRequest		_sampleRequest { _type, _bWireFrame, _camera };
 	UPtr<SampleContext>	_sampleContext;
 };
 
@@ -2392,7 +2368,7 @@ protected:
 	virtual void onUpdate(float dt) override {
 		_mainWin.update(dt);
 		_mainWin.render();
-		NuklearUI::UIInput input; // is it trickk ???
+		NuklearUI::UIInput input; // is it tricky ???
 	}
 
 private:

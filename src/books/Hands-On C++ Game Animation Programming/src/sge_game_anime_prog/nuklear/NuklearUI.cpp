@@ -13,7 +13,7 @@ namespace NuklearUI {
 
 nk_context* NuklearUI::g_ctx = nullptr;
 
-float NuklearUI::scaleFactor = 1.5f;
+float NuklearUI::scaleFactor = 1.5f; // scaleFactor default value is 1.f, but i like 1.5f
 
 void createContext() {
 	SGE_ASSERT(g_ctx == nullptr);

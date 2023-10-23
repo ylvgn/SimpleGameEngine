@@ -27,7 +27,7 @@ enum class DrawMode {
 struct DrawUtil {
 	DrawUtil() = delete;
 
-	static GLenum getGLEnum(sge::DrawMode mode);
+	static GLenum getGLDrawMode(sge::DrawMode mode);
 
 	static void draw(size_t vertexCount, DrawMode mode = DrawMode::Triangles);
 	static void drawInstanced(size_t vertexCount, u32 instanceCount, DrawMode mode = DrawMode::Triangles);
@@ -36,9 +36,8 @@ struct DrawUtil {
 	static void drawInstanced(const IndexBuffer& indexBuf, u32 instanceCount, DrawMode mode = DrawMode::Triangles);
 };
 
-
 inline
-GLenum DrawUtil::getGLEnum(DrawMode mode) {
+GLenum DrawUtil::getGLDrawMode(DrawMode mode) {
 	switch (mode)
 	{
 		case DrawMode::Points:			return GL_POINTS;
