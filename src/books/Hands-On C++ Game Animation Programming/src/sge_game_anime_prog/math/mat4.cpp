@@ -203,7 +203,7 @@ mat4 mat4::s_transform(const Transform& t) {
 
 mat4 mat4::s_dual_quat(const dual_quat& dq) {
 	// dual-quaternions can be converted to and from matrices as well;
-	// however, that operation 's_dual_quat' is generally not used.
+	// however, that operation 'mat4::s_dual_quat' is generally not used.
 
 	// result = mat4::s_trs(dq.toTranslation(), dq.toRotation(), vec3f::s_one());
 

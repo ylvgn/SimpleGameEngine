@@ -212,6 +212,7 @@ struct TVec3<int> {
 		ElementType data[3];
 	};
 
+	inline TVec3() = default;
 	inline TVec3(const ElementType& x_, const ElementType& y_, const ElementType& z_)
 		: x(x_), y(y_), z(z_) {}
 };
@@ -224,6 +225,7 @@ struct TVec3<unsigned int> {
 		ElementType data[3];
 	};
 
+	inline TVec3() = default;
 	inline TVec3(const ElementType& x_, const ElementType& y_, const ElementType& z_)
 		: x(x_), y(y_), z(z_) {}
 };

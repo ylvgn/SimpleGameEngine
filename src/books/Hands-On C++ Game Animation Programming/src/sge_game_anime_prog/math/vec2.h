@@ -85,6 +85,7 @@ struct TVec2<int> {
 		ElementType data[2];
 	};
 
+	inline TVec2<ElementType>() = default;
 	inline TVec2(const ElementType& x_, const ElementType& y_)
 		: x(x_), y(y_) {}
 };
@@ -96,7 +97,8 @@ struct TVec2<unsigned int> {
 		struct { ElementType x, y; };
 		ElementType data[2];
 	};
-
+	
+	inline TVec2<ElementType>() = default;
 	inline TVec2(const ElementType& x_, const ElementType& y_)
 		: x(x_), y(y_) {}
 };

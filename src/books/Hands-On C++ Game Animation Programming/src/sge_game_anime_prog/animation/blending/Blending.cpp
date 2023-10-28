@@ -28,7 +28,7 @@ void Blending::blend(Pose& out, const Pose& from, const Pose& to, float t, int b
 			continue;
 		}
 
-		// blending must in local space
+		// blending must in local space ??? cuz pose in local space?
 		out.setLocalTransform(i,
 			from.getLocalTransform(i).lerp(to.getLocalTransform(i), t)
 		);

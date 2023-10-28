@@ -118,8 +118,7 @@ void main() {
 #endif
 
 	gl_Position = projection * view * model * skinnedPos;
-	
-	fragPos = vec3(model * skinnedPos);
-	norm = vec3(model * skinnedNormal);
-    uv = texCoord;
+	fragPos 	= vec3(model * skinnedPos);
+	norm 		= vec3(model * skinnedNormal);
+    uv 			= texCoord;
 }

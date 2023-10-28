@@ -2,6 +2,7 @@
 
 #include "glad/glad.h"
 #include "IndexBuffer.h"
+#include <sge_game_anime_prog/opengl/OpenGL_Common.h>
 
 /*
 	You have classes for dealing with vertex data, uniforms, and index buffers, but no code to draw any of it.
@@ -30,10 +31,10 @@ struct DrawUtil {
 	static GLenum getGLDrawMode(sge::DrawMode mode);
 
 	static void draw(size_t vertexCount, DrawMode mode = DrawMode::Triangles);
-	static void drawInstanced(size_t vertexCount, u32 instanceCount, DrawMode mode = DrawMode::Triangles);
+	static void drawInstanced(size_t vertexCount, size_t instanceCount, DrawMode mode = DrawMode::Triangles);
 
 	static void draw(const IndexBuffer& indexBuf, DrawMode mode = DrawMode::Triangles);
-	static void drawInstanced(const IndexBuffer& indexBuf, u32 instanceCount, DrawMode mode = DrawMode::Triangles);
+	static void drawInstanced(const IndexBuffer& indexBuf, size_t instanceCount, DrawMode mode = DrawMode::Triangles);
 };
 
 inline

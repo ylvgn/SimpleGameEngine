@@ -9,11 +9,11 @@ void DrawUtil::draw(size_t vertexCount, DrawMode mode/*= DrawMode::Triangles*/) 
 	);
 }
 
-void DrawUtil::drawInstanced(size_t vertexCount, u32 instanceCount, DrawMode mode/*=DrawMode::Triangles*/) {
+void DrawUtil::drawInstanced(size_t vertexCount, size_t instanceCount, DrawMode mode/*=DrawMode::Triangles*/) {
 	glDrawArraysInstanced(DrawUtil::getGLDrawMode(mode),
 						  0,
 						  static_cast<GLsizei>(vertexCount),
-						  instanceCount
+						  static_cast<GLsizei>(instanceCount)
 	);
 }
 
@@ -53,7 +53,7 @@ void DrawUtil::draw(const IndexBuffer& indexBuf, DrawMode mode/*=DrawMode::Trian
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-void DrawUtil::drawInstanced(const IndexBuffer& indexBuf, u32 instanceCount, DrawMode mode/*=DrawMode::Triangles*/) {
+void DrawUtil::drawInstanced(const IndexBuffer& indexBuf, size_t instanceCount, DrawMode mode/*=DrawMode::Triangles*/) {
 	// This instanceCount variable controls how many instances of the geometry will be rendered
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuf.handle());
 	{

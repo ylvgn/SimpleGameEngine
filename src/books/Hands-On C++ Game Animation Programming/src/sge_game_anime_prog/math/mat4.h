@@ -12,6 +12,7 @@ struct mat4 {
 
 	using vec3 = TVec3<float>;
 	using vec4 = TVec4<float>;
+	using quat = quat4f;
 
 	static const size_t kElementCount = 16;
 

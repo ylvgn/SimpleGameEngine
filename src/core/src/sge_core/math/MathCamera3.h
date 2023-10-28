@@ -42,11 +42,11 @@ struct Camera3 {
 	void setUp (const Vec3& up)		{ _up  = up;  }
 
 	void setViewport(const Rect2& v)	{ _viewport = v;		}
-	void setFov(const T& fov)			{ _fov = fov;			}
+	void setFov(const T& fov)			{ _fov		= fov;		}
 	void setNearClip(const T& nearClip) { _nearClip = nearClip; }
-	void setFarClip(const T& farClip)	{ _farClip = farClip;	}
-	void setProjectionType(Type type)	{ _type = type;			}
-	void setSize(const T& size)			{ _size = size;			}
+	void setFarClip(const T& farClip)	{ _farClip	= farClip;	}
+	void setProjectionType(Type type)	{ _type		= type;		}
+	void setSize(const T& size)			{ _size		= size;		}
 
 	const Vec3& pos()	const { return _pos; }
 	const Vec3& aim()	const { return _aim; }
@@ -68,15 +68,15 @@ struct Camera3 {
 	Frustum3 frustum() const { Frustum3 o; o.setByViewProjMatrix(viewProjMatrix()); return o; };
 
 private:
-	T _size		= T(1.0);
-	T _fov		= T(50.0);
-	T _nearClip = T(0.1);
-	T _farClip	= T(10000.0);
-	Rect2 _viewport;
-	Vec3 _pos {150, 150, 200};
-	Vec3 _aim {0,0,0};
-	Vec3 _up  {0,1,0};
-	Type _type = Type::Perpective;
+	T		_size		= T(1.0);
+	T		_fov		= T(50.0);
+	T		_nearClip	= T(0.1);
+	T		_farClip	= T(10000.0);
+	Rect2	_viewport;
+	Vec3	_pos {150, 150, 200};
+	Vec3	_aim {0,0,0};
+	Vec3	_up  {0,1,0};
+	Type	_type = Type::Perpective;
 };
 
 using Camera3f = Camera3<float>;

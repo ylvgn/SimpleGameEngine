@@ -202,7 +202,7 @@ void Mesh::draw() {
 	}
 }
 
-void Mesh::drawInstanced(u32 instanceCount) {
+void Mesh::drawInstanced(size_t instanceCount) {
 	size_t indexCount = getIndexCount();
 	if (indexCount > 0) {
 		DrawUtil::drawInstanced(*_indexBuffer.get(), instanceCount);

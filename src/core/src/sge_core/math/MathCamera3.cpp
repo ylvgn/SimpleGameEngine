@@ -27,9 +27,9 @@ void Camera3<T>::orbit(T x, T y) {
 
 template<class T>
 void Camera3<T>::move(T x, T y, T z) {
-	auto v = _aim - _pos;
-	auto dir = v.normalize();
-	auto right = _up.cross(dir);
+	auto v		= _aim - _pos;
+	auto dir	= v.normalize();
+	auto right	= _up.cross(dir);
 
 	auto t = right * x + _up * y + dir * z;
 	_pos += t;
@@ -70,17 +70,16 @@ Mat4<T> Camera3<T>::projMatrix() const {
 			T cx	= _viewport.x + halfW;
 			T cy	= _viewport.y + halfH;
 
-			halfW *= _size;
-			halfH *= _size;
+			halfW	*= _size;
+			halfH	*= _size;
 
 			T l = cx - halfW;
 			T r = cx + halfW;
 			T t = cy + halfH;
 			T b = cy - halfH;
 			return Mat4::s_ortho(l, r, b, t, _nearClip, _farClip);
-		}break;
+		} break;
 	}
-
 	return Mat4::s_identity();
 }
 

@@ -43,7 +43,7 @@ public:
 	void unbind(int pos, int normal, int uv, int jointWeight = kInvalidSlotIndex, int jointInflucence = kInvalidSlotIndex);
 
 	void draw();
-	void drawInstanced(u32 instanceCount);
+	void drawInstanced(size_t instanceCount);
 
 	inline size_t getVertexCount()	const { return pos.size(); };
 	inline size_t getIndexCount()	const { return indices.size(); };

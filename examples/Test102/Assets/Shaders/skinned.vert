@@ -11,8 +11,8 @@ in vec3 normal;
 in vec2 texCoord;
 
 // skinning info
-in vec4 weights;
-in ivec4 joints;
+in vec4 weights; // jointWeights
+in ivec4 joints; // jointInfluences
 uniform mat4 pose[120]; // 120 is arbitrary, according to jointCount
 uniform mat4 invBindPose[120];
 
@@ -33,10 +33,9 @@ void main() {
 	vec4 skinnedNormal = skin * vec4(normal, 0.0);
 	
 	gl_Position = projection * view * model * skinnedPos;
-	
-	fragPos = vec3(model * skinnedPos);
-	norm = vec3(model * skinnedNormal);
-    uv = texCoord;
+	fragPos 	= vec3(model * skinnedPos);
+	norm 		= vec3(model * skinnedNormal);
+    uv 			= texCoord;
 }
 
 
