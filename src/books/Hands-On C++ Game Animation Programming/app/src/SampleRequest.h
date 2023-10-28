@@ -21,17 +21,17 @@ namespace sge {
 	E(RayCastTriangle,) \
 	E(AlignFeetOnTheGround,) \
 	E(DualQuaterionMeshSkinning,) \
+	E(InstancedCrowds,) \
 	E(_END,) \
 // ----------
 SGE_ENUM_CLASS(MySampleType, u8)
 SGE_ENUM_ALL_OPERATOR(MySampleType)
 
-class SampleRequest {
-public:
+struct SampleRequest {
 	using Type = MySampleType;
 
-	const Type& type;
-	bool& bWireFrame;
+	const Type&		type;
+	bool&			bWireFrame;
 	Math::Camera3f& camera;
 
 	float dt;
@@ -59,7 +59,6 @@ public:
 		bShowIKPose					= false;
 		bShowLinearSkinning			= false;
 		bShowDualQuaternionSkinning = false;
-
 		bShowIKPose					= false;
 		bShowCurrentPose			= false;
 		bShowModelMesh				= false;
@@ -73,8 +72,8 @@ public:
 
 		camera.setProjectionType(Math::CameraProjectionType::Perpective);
 		camera.setPos(0, 0, -5);
-		camera.setAim(0, 0, 0);
-		camera.setUp (0, 1, 0);
+		camera.setAim(0, 0,  0);
+		camera.setUp (0, 1,  0);
 		camera.setFov(60.f);
 		camera.setSize(1.f);
 		camera.setNearClip(0.01f);

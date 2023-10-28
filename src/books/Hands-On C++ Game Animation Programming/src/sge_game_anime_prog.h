@@ -19,6 +19,9 @@
 #include <sge_game_anime_prog/opengl/Texture.h>
 
 #include <sge_game_anime_prog/rendering/Mesh.h>
+#include <sge_game_anime_prog/rendering/AnimTexture.h>
+#include <sge_game_anime_prog/rendering/AnimBaker.h>
+#include <sge_game_anime_prog/rendering/Crowd.h>
 #include <sge_game_anime_prog/rendering/DebugDraw.h>
 
 #include <sge_game_anime_prog/animation/Interpolation.h>

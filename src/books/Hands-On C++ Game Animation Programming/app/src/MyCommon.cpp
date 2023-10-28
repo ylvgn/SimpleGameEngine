@@ -18,9 +18,15 @@ void AnimationAttribLocation::setByStaticShader(const Shader* const shader) {
 	joints  = Mesh::kInvalidSlotIndex;
 }
 
-void AnimationAttribLocation::uploadToGpu(Mesh& mesh) const {
+void AnimationAttribLocation::bindAttribAndDraw(Mesh& mesh) const {
 	mesh.bind(pos, normal, uv, weights, joints);
 	mesh.draw();
+	mesh.unbind(pos, normal, uv, weights, joints);
+}
+
+void AnimationAttribLocation::bindAttribAndDrawInstanced(Mesh& mesh, size_t instanceCount) const {
+	mesh.bind(pos, normal, uv, weights, joints);
+	mesh.drawInstanced(instanceCount);
 	mesh.unbind(pos, normal, uv, weights, joints);
 }
 

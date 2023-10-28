@@ -45,7 +45,7 @@ class SampleContext : public NonCopyable {
 // ----------
 public:
 
-	static constexpr const Type kStartUpDefaultType = Type::None;
+	static constexpr const Type kStartUpDefaultType = Type::InstancedCrowds;
 
 	void create(Request& req)	{ RUN_SAMPLE(onCreate) }
 	void update(Request& req)	{ RUN_SAMPLE(onUpdate) }
@@ -701,6 +701,13 @@ private:
 		req.bShowLinearSkinning = true;
 		req.bShowDualQuaternionSkinning = true;
 	}
+	void test_InstancedCrowds_onCreate(Request& req) {
+		_createExampleShader();
+		_loadExampleAsset();
+		_defaultSetAnimInfo();
+		_defaultSetCamera(req, { 0,15,40 }, { 0,3,0 });
+		_loadExampleAsset_InstancedCrowds();
+	}
 
 	void test_None_onUpdate(Request& req) {}
 	void test__END_onUpdate(Request& req) {}
@@ -1202,6 +1209,15 @@ private:
 		_gpuAnimInfo.animatedPose.getMatrixPalette(_gpuAnimInfo.posePalette);
 		_gpuAnimInfo.animatedPose.getDualQuaternionPalette(_gpuAnimInfo.dqPosePalette);
 	}
+	void test_InstancedCrowds_onUpdate(Request& req) {
+		int i = 0;
+		size_t clipCount = _clips.size();
+		for (auto& c : _crowds) {
+			int clipIndex = i % clipCount;
+			c->update(req.dt, _clips[clipIndex], _crowdAnimTextures[clipIndex]->texSize());
+			++i;
+		}
+	}
 
 	void test_None_onRender(Request& req) {}
 	void test__END_onRender(Request& req) {}
@@ -1318,7 +1334,7 @@ private:
 				}
 
 				for(auto& mesh : _cpuMeshes) {
-					_cpuAttribLoc.uploadToGpu(mesh);
+					_cpuAttribLoc.bindAttribAndDraw(mesh);
 				}
 				_texture->unset(0);
 			}
@@ -1346,7 +1362,7 @@ private:
 				}
 
 				for (auto& mesh : _gpuMeshes) {
-					_gpuAttribLoc.uploadToGpu(mesh);
+					_gpuAttribLoc.bindAttribAndDraw(mesh);
 				}
 				_texture->unset(0);
 			}
@@ -1454,17 +1470,53 @@ private:
 		mat4f view(req.camera.viewMatrix());
 
 		Transform linearModel   = _gpuAnimInfo.model;
-		Transform DualQuatModel = _gpuAnimInfo.model;
+		Transform dualQuatModel = _gpuAnimInfo.model;
 
 		linearModel.position += vec3f(7, 0, 0);
-		DualQuatModel.position += vec3f(-7, 0, 0);
+		dualQuatModel.position += vec3f(-7, 0, 0);
 
 		if (req.bShowLinearSkinning) {
 			test_DualQuaterionMeshSkinning_onRender_Inner(req, _skinnedShader, _gpuAttribLoc, mat4f::s_transform(linearModel), true);
 		}
 		if (req.bShowDualQuaternionSkinning) {
-			test_DualQuaterionMeshSkinning_onRender_Inner(req, _dqSkinnedShader, _dqGpuAttribLoc, mat4f::s_transform(DualQuatModel), false);
+			test_DualQuaterionMeshSkinning_onRender_Inner(req, _dqSkinnedShader, _gpuAttribLoc, mat4f::s_transform(dualQuatModel), false);
 		}
+	}
+	void test_InstancedCrowds_onRender(Request& req) {
+		mat4f projection(req.camera.projMatrix());
+		mat4f view(req.camera.viewMatrix());
+
+		_crowdSkinnedShader->bind();
+		{
+			{ // bind uniforms
+				Uniform<mat4f>::set(_crowdSkinnedShader->findUniformByName("view"), view);
+				Uniform<mat4f>::set(_crowdSkinnedShader->findUniformByName("projection"), projection);
+				Uniform<mat4f>::set(_crowdSkinnedShader->findUniformByName("invBindPose"), _gpuAnimInfo.invBindPosePalette);
+				Uniform<vec3f>::set(_crowdSkinnedShader->findUniformByName("light"), vec3f::s_one());
+				_texture->set(_crowdSkinnedShader->findUniformByName("tex0"), 0);	
+			}
+
+			{
+				size_t clipCount = _clips.size();
+				int i = 0;
+				for (auto& c : _crowds) {
+					int clipIndex = i % clipCount;
+					{ // bind instance-specific uniforms
+						c->bindUniforms();
+						_crowdAnimTextures[clipIndex]->set(_crowdSkinnedShader->findUniformByName("animTex"), 1);
+					}
+
+					// draw instanced
+					for (int j = 0; j < _gpuMeshes.size(); ++j) {
+						_gpuAttribLoc.bindAttribAndDrawInstanced(_gpuMeshes[j], c->getCrowdCount());
+					}
+					_crowdAnimTextures[clipIndex]->unset(1);
+					++i;
+				}
+			}
+			_texture->unset(0);
+		}
+		_crowdSkinnedShader->unbind();
 	}
 
 	void test_None_onDrawUI(Request& req) {
@@ -1623,6 +1675,9 @@ private:
 		E("showDualQuaternionSkinning", req.bShowDualQuaternionSkinning)
 #undef E
 	}
+	void test_InstancedCrowds_onDrawUI(Request& req) {
+
+	}
 
 private:
 
@@ -1649,7 +1704,7 @@ private:
 			}
 
 			for (int i = 0; i < _gpuMeshes.size(); ++i) {
-				_gpuAttribLoc.uploadToGpu(_gpuMeshes[i]);
+				_gpuAttribLoc.bindAttribAndDraw(_gpuMeshes[i]);
 			}
 			_texture->unset(0);
 		}
@@ -1668,7 +1723,7 @@ private:
 				tex->set(_staticShader->findUniformByName("tex0"), 0);
 			}
 			for (auto& mesh : meshes) {
-				_cpuAttribLoc.uploadToGpu(mesh);
+				_cpuAttribLoc.bindAttribAndDraw(mesh);
 			}
 		}
 		tex->unset(0);
@@ -1704,7 +1759,7 @@ private:
 			}
 
 			for (int i = 0; i < _gpuMeshes.size(); ++i) {
-				attrLoc.uploadToGpu(_gpuMeshes[i]);
+				attrLoc.bindAttribAndDraw(_gpuMeshes[i]);
 			}
 			_texture->unset(0);
 		}
@@ -1765,12 +1820,58 @@ private:
 		_texture = new Texture(kTextureFileName);
 	}
 
+	void _loadExampleAsset_InstancedCrowds() {
+		size_t clipCount = _clips.size();
+		_crowds.resize(clipCount);
+
+		_loadAssetOrBakeAnimToTex();
+		_randomSetCrowdSize(20);
+	}
+
+	void _loadAssetOrBakeAnimToTex() {
+		size_t clipCount = _clips.size();
+		_crowdAnimTextures.resize(clipCount);
+
+		for (int i = 0; i < clipCount; ++i) {
+			TempString filename;
+			const auto& clip = _clips[i];
+			FmtTo(filename, "Assets/Textures/{}.animTex", clip.name());
+
+			SPtr<AnimTexture> tex = new AnimTexture();
+			if (File::exists(filename)) {
+				tex->load(filename);
+			}
+			else {
+				tex->resize(512);
+				AnimBaker::bakeAnimationClipToTex(tex, _skeleton, clip);
+				tex->save(filename, true);
+			}
+			_crowdAnimTextures[i].reset(tex);
+		}
+	}
+
+	void _randomSetCrowdSize(size_t crowdCount) {
+		Vector<vec3f> occupiedPoints;
+		size_t crowdsSize = _crowds.size();
+		for (int i = 0; i < crowdsSize; ++i) {
+			UPtr<Crowd> c = make_unique<Crowd>();
+			c->setShader(_crowdSkinnedShader);
+			c->resize(crowdCount);
+			c->randomizeTimes(_clips[i]);
+			c->randomizePositions(occupiedPoints, vec3f(-40, 0, -80.0f), vec3f(40, 0, 30.0f), 8.f);
+			if (_crowds[i]) {
+				_crowds[i].release();
+			}
+			_crowds[i] = std::move(c);
+		}
+	}
+
 	void _createExampleShader() {
-		_staticShader = new Shader (
+		_staticShader = new Shader(
 			"Assets/Shaders/static.vert",
 			"Assets/Shaders/lit.frag"
 		);
-		_skinnedShader = new Shader (
+		_skinnedShader = new Shader(
 			"Assets/Shaders/skinned.vert",
 			"Assets/Shaders/lit.frag"
 		);
@@ -1778,9 +1879,12 @@ private:
 			"Assets/Shaders/dualquaternion.vert",
 			"Assets/Shaders/lit.frag"
 		);
+		_crowdSkinnedShader = new Shader(
+			"Assets/Shaders/crowd.vert",
+			"Assets/Shaders/lit.frag"
+		);
 		_cpuAttribLoc.setByStaticShader(_staticShader);
 		_gpuAttribLoc.setBySkinnedShader(_skinnedShader);
-		_dqGpuAttribLoc.setBySkinnedShader(_dqSkinnedShader);
 	}
 
 	void _defaultSetAnimInfo() {
@@ -1936,7 +2040,10 @@ private:
 	SPtr<DebugDrawPL>							_ankleToDesiredToeDebugDraw;
 
 	SPtr<Shader>								_dqSkinnedShader;
-	AnimationAttribLocation						_dqGpuAttribLoc;
+
+	Vector<UPtr<Crowd>>							_crowds;
+	SPtr<Shader>								_crowdSkinnedShader;
+	Vector<SPtr<AnimTexture>>					_crowdAnimTextures;
 };
 
 class GameAnimeProgMainWin : public NativeUIWindow {
@@ -2166,25 +2273,17 @@ protected:
 			}
 			else if (ev.isDown(KeyCode::R)) {
 				scaleFactor = 1.0f;
-				_dtFactor = 1.0f;
+				_dtFactor   = 1.0f;
 			}
 			else if (ev.isDown(KeyCode::H)) {
 				_bShowUI = !_bShowUI;
 			}
 		}
 
-		if (ev.isDown(KeyCode::W)) {
-			_cameraDeltaPos.y += 1;
-		}
-		if (ev.isDown(KeyCode::S)) {
-			_cameraDeltaPos.y -= 1;
-		}
-		if (ev.isDown(KeyCode::A)) {
-			_cameraDeltaPos.x += 1;
-		}
-		if (ev.isDown(KeyCode::D)) {
-			_cameraDeltaPos.x -= 1;
-		}
+		if (ev.isDown(KeyCode::W)) _cameraDeltaPos.y += 1;
+		if (ev.isDown(KeyCode::S)) _cameraDeltaPos.y -= 1;
+		if (ev.isDown(KeyCode::A)) _cameraDeltaPos.x += 1;
+		if (ev.isDown(KeyCode::D)) _cameraDeltaPos.x -= 1;
 	}
 
 private:

@@ -11,7 +11,8 @@ struct AnimationAttribLocation {
 
 	void setBySkinnedShader(const Shader* const shader);
 	void setByStaticShader (const Shader* const shader);
-	void uploadToGpu(Mesh& mesh) const;
+	void bindAttribAndDraw(Mesh& mesh) const;
+	void bindAttribAndDrawInstanced(Mesh& mesh, size_t instanceCount) const;
 };
 
 struct AnimationInstance {

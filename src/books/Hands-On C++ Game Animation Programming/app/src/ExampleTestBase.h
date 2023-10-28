@@ -5,7 +5,7 @@
 
 namespace sge {
 
-class SampleRequest;
+struct SampleRequest;
 
 class ExampleTestBase : public RefCountBase {
 public:
