@@ -52,8 +52,19 @@ struct quat {
 		return quat(a.x*s, a.y*s, a.z*s, c);
 	}
 
-	// To retrieve the axis of rotation, normalize the vector part of the quaternion. maybe no need normalize ???
-	inline vec3 axis() const { return vec3(x,y,z).normalize(); }
+	inline vec3 axis(bool isNomalized = false) const {
+		float sqCos = 1.f - w * w;
+		if (sqCos <= 0) { // when θ == 0
+			return vec3::s_forward();
+		}
+
+		auto a = vec3(x, y, z);
+		if (isNomalized) {
+			return a.normalize();
+		}
+		float b = 1.f / Math::sqrt(sqCos);
+		return a * b;
+	}
 
 	// The angle(radians) of rotation is double the inverse cosine of the real component.
 	inline float angle() const { return 2.0f * Math::acos(w); }
