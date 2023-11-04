@@ -6,7 +6,7 @@ namespace sge {
 namespace NuklearUI {
 
 extern nk_context* g_ctx;
-extern float scaleFactor;
+extern float g_scaleFactor;
 
 struct NuklearUI_Util {
 	NuklearUI_Util() = delete;
@@ -16,18 +16,18 @@ struct NuklearUI_Util {
 
 	template<typename T> inline
 	static void convert(struct nk_color& o, const sge::ColorRGBA<T>& i) {
-		o.r = static_cast<nk_byte>(i.r);
-		o.g = static_cast<nk_byte>(i.g);
-		o.b = static_cast<nk_byte>(i.b);
-		o.a = static_cast<nk_byte>(i.a);
+		o.r = static_cast<nk_byte>(i.r * 255);
+		o.g = static_cast<nk_byte>(i.g * 255);
+		o.b = static_cast<nk_byte>(i.b * 255);
+		o.a = static_cast<nk_byte>(i.a * 255);
 	}
 
 	template<typename T> inline
 	static void convert(struct nk_colorf& o, const sge::ColorRGBA<T>& i) {
-		o.r = static_cast<nk_byte>(i.r);
-		o.g = static_cast<nk_byte>(i.g);
-		o.b = static_cast<nk_byte>(i.b);
-		o.a = static_cast<nk_byte>(i.a);
+		o.r = static_cast<nk_byte>(i.r * 255);
+		o.g = static_cast<nk_byte>(i.g * 255);
+		o.b = static_cast<nk_byte>(i.b * 255);
+		o.a = static_cast<nk_byte>(i.a * 255);
 	}
 
 	template<typename T> inline
@@ -51,8 +51,8 @@ struct NuklearUI_Util {
 	}
 
 	template<typename T> inline
-	static void convertNKSize(Vec2<T>& o)		{ o /= NuklearUI::scaleFactor; }
-	inline static void convertNKSize(float& o)	{ o /= NuklearUI::scaleFactor; }
+	static void convertNKSize(Vec2<T>& o)		{ o /= NuklearUI::g_scaleFactor; }
+	inline static void convertNKSize(float& o)	{ o /= NuklearUI::g_scaleFactor; }
 
 	template<typename T> inline
 	static nk_color toNKColor(const sge::ColorRGBA<T>& i) {
@@ -62,7 +62,7 @@ struct NuklearUI_Util {
 	}
 	
 	template<typename T> inline
-		static nk_colorf toNKColorf(const sge::ColorRGBA<T>& i) {
+	static nk_colorf toNKColorf(const sge::ColorRGBA<T>& i) {
 		nk_colorf o;
 		convert(o, i);
 		return o;
@@ -172,18 +172,18 @@ public:
 	static constexpr const float kTitleHeight = 25.f;
 
 	static constexpr const nk_flags kDefaultStyle   = NK_WINDOW_TITLE | NK_WINDOW_NO_SCROLLBAR;
-	static constexpr const nk_flags kMovableStyle   = kDefaultStyle | NK_WINDOW_MOVABLE;
-	static constexpr const nk_flags kMinizableStyle = kDefaultStyle | NK_WINDOW_MINIMIZABLE;
-	static constexpr const nk_flags kCloseableStyle = kDefaultStyle | NK_WINDOW_CLOSABLE;
-	static constexpr const nk_flags kScalableStyle  = kDefaultStyle | NK_WINDOW_SCALABLE;
-	
+	static constexpr const nk_flags kMovableStyle   = kDefaultStyle   | NK_WINDOW_MOVABLE;
+	static constexpr const nk_flags kMinizableStyle = kDefaultStyle   | NK_WINDOW_MINIMIZABLE;
+	static constexpr const nk_flags kCloseableStyle = kDefaultStyle   | NK_WINDOW_CLOSABLE;
+	static constexpr const nk_flags kScalableStyle  = kDefaultStyle   | NK_WINDOW_SCALABLE;
+
 	Window(	const Rect2f& bounds,
 			StrView title = "",
 			nk_flags flags = kDefaultStyle)
 	{
 		auto rect = Util::toNKRect(bounds);
-		rect.x /= scaleFactor;
-		rect.y /= scaleFactor;
+		rect.x /= g_scaleFactor;
+		rect.y /= g_scaleFactor;
 		if (flags & NK_WINDOW_TITLE) {
 			rect.h += kTitleHeight;
 		}
@@ -194,7 +194,7 @@ public:
 	bool isOpen() const { return _isOpen; }
 
 private:
-	bool _isOpen;
+	bool _isOpen : 1;
 };
 
 class ButtonLabel : public NonCopyable {
@@ -206,7 +206,7 @@ public:
 	bool isOpen() const { return _isOpen; }
 
 private:
-	bool _isOpen;
+	bool _isOpen : 1;
 };
 
 class LayoutRowStatic : public NonCopyable {
@@ -258,10 +258,10 @@ public:
 		_selectedIndex = ::nk_combo(g_ctx, _names, count, cur_selected, item_height, Util::toNKVec2(size));
 	}
 
-	int selectedIndex() const { return _selectedIndex; }
+	inline int selectedIndex() const { return _selectedIndex; }
 
 private:
-	int _selectedIndex;
+	int			_selectedIndex;
 	const char* _names[200];
 };
 
@@ -273,12 +273,42 @@ public:
 		_isOpen = ::nk_checkbox_label(g_ctx, label.data(), &_isActive);
 	}
 
-	bool isOpen()	const { return _isOpen; }
-	bool isActive() const { return static_cast<bool>(_isActive); }
+	inline bool isOpen()	const { return _isOpen; }
+	inline bool isActive()	const { return static_cast<bool>(_isActive); }
 
 private:
+	bool	_isOpen : 1;
 	int		_isActive;
-	bool	_isOpen;
+};
+
+struct ScopedStyleTextColor : public NonCopyable {
+	ScopedStyleTextColor(const Color4f& newColor)
+		: _oldColor(g_ctx->style.text.color)
+	{
+		set(newColor);
+	}
+
+	ScopedStyleTextColor(const nk_color& newColor)
+		: _oldColor(g_ctx->style.text.color)
+	{
+		set(newColor);
+	}
+
+	~ScopedStyleTextColor() { detect(); }
+
+	inline void set(const nk_color& v) { g_ctx->style.text.color = v; }
+	inline void set(const Color4f&  v) { set(Util::toNKColor(v)); }
+
+
+	void detect() {
+		if (_oldColor.has_value()) {
+			g_ctx->style.text.color = _oldColor.value();
+			_oldColor.reset();
+		}
+	}
+
+private:
+	Opt<nk_color> _oldColor;
 };
 
 } // NuklearUI

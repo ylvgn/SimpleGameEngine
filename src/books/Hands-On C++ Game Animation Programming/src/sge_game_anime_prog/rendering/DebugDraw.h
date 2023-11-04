@@ -47,6 +47,8 @@ public:
 	constexpr static const Color4f kYellow	=	{1,1,0,1};
 	constexpr static const Color4f kPurple	=	{1,0,1,1};
 	constexpr static const Color4f kCyan	=	{0,1,1,1};
+	constexpr static const Color4f kOrange	=	{1,165.f/255.f,0,1};
+	constexpr static const Color4f kGray	=	{175.f/255.f,175.f/255.f,175.f/255.f,1};
 public:
 
 #if 0

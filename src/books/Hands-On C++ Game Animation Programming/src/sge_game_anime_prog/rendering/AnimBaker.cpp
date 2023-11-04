@@ -7,7 +7,7 @@ void AnimBaker::bakeAnimationClipToTex(SPtr<AnimTexture>& tex, const Skeleton& s
 	size_t	jointCount	= bindPose.getJointCount();
 	size_t	texSize		= tex->texSize();
 
-	auto maxX = static_cast<float>(texSize - 1);
+	float maxX = static_cast<float>(texSize - 1);
 	for (int x = 0; x < texSize; ++x) {
 		float t = static_cast<float>(x) / maxX; // 0~1
 		float time = (clip.getStartTime() + clip.getDuration()) * t;

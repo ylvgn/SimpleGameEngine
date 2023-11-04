@@ -33,8 +33,8 @@ struct AnimationInstance {
 	Pose additiveBasePose;
 
 	// dual quaternion
-	Vector<dual_quat> dqPosePalette;
-	Vector<dual_quat> dqInvBindPalette;
+	Vector<dual_quat4f> dqPosePalette;
+	Vector<dual_quat4f> dqInvBindPosePalette;
 
 	void animatedSample(const Span<const Clip> clips, float dt) {
 		if (clips.size() <= clip) return;

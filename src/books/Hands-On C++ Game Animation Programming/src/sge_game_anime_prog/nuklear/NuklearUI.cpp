@@ -13,7 +13,7 @@ namespace NuklearUI {
 
 nk_context* NuklearUI::g_ctx = nullptr;
 
-float NuklearUI::scaleFactor = 1.5f; // scaleFactor default value is 1.f, but i like 1.5f
+float NuklearUI::g_scaleFactor = 1.5f; // g_scaleFactor default value is 1.f, but i like 1.5f on start
 
 void createContext() {
 	SGE_ASSERT(g_ctx == nullptr);
@@ -31,7 +31,7 @@ bool onUIMouseEvent(UIMouseEvent& ev) {
 	using Button	= UIMouseEventButton;
 	using Type		= UIMouseEventType;
 
-	Vec2i pos = Vec2i::s_cast(ev.pos / NuklearUI::scaleFactor);
+	Vec2i pos = Vec2i::s_cast(ev.pos / NuklearUI::g_scaleFactor);
 
 	switch (ev.type) {
 		case Type::Move: {
@@ -118,8 +118,9 @@ void onUIKeyboardEvent(UIKeyboardEvent& ev) {
 }
 
 void render(const Vec2f& viewportSize) {
-	nk_win32_render(static_cast<int>(viewportSize.x / NuklearUI::scaleFactor),
-					static_cast<int>(viewportSize.y / NuklearUI::scaleFactor),
+	const auto& scaleFactor = NuklearUI::g_scaleFactor;
+	nk_win32_render(static_cast<int>(viewportSize.x / scaleFactor),
+					static_cast<int>(viewportSize.y / scaleFactor),
 					static_cast<int>(viewportSize.x),
 					static_cast<int>(viewportSize.y));
 }
