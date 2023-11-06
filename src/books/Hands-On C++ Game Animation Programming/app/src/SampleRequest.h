@@ -4,7 +4,7 @@ namespace sge {
 
 enum class MySampleType : u8;
 
-struct SampleRequest {
+struct SampleRequest /*: public NonCopyable*/ {
 	using Type = MySampleType;
 
 	const Type&		type;

@@ -24,7 +24,7 @@ public:
 	using Type = MySampleType;
 
 	static constexpr const int kSampleCount = enumInt(Type::_END);
-	static constexpr float kMouseDecayFactor = 0.15f;
+	static constexpr float kMouseDecayFactor = 0.3f;
 
 	void _cameraMove() {
 		if (_cameraDeltaPos.equals0()) return;
@@ -34,14 +34,12 @@ public:
 
 		if (_cameraDeltaPos.x > 0) {
 			_cameraDeltaPos.x = Math::max(0.f, _cameraDeltaPos.x - kMouseDecayFactor);
-		}
-		else if (_cameraDeltaPos.x < 0) {
+		} else if (_cameraDeltaPos.x < 0) {
 			_cameraDeltaPos.x = Math::min(0.f, _cameraDeltaPos.x + kMouseDecayFactor);
 		}
 		if (_cameraDeltaPos.y > 0) {
 			_cameraDeltaPos.y = Math::max(0.f, _cameraDeltaPos.y - kMouseDecayFactor);
-		}
-		else if (_cameraDeltaPos.y < 0) {
+		} else if (_cameraDeltaPos.y < 0) {
 			_cameraDeltaPos.y = Math::min(0.f, _cameraDeltaPos.y + kMouseDecayFactor);
 		}
 	}
@@ -56,7 +54,7 @@ public:
 		_timingInfo.cpu->beginUpdate(dt);
 #endif
 
-		_cameraMove();
+		_cameraMove(); // is it right place ???
 
 		if (_sampleContext)
 			_sampleContext->update(_sampleRequest);
@@ -98,8 +96,6 @@ public:
 		_timingInfo.cpu->beginFrame();
 #endif
 	}
-
-	static float s_UIHeaderHeight();
 
 protected:
 	virtual void onCreate(CreateDesc& desc) override  {
@@ -187,7 +183,7 @@ protected:
 		_camera.setPos(0, 10, 10);
 		_camera.setAim(0, 0, 0);
 
-		// create Nuklear
+		// create Nuklear (imgui)
 		NuklearUI::createContext();
 
 		// create sample
@@ -283,10 +279,12 @@ protected:
 			}
 		}
 
-		if (ev.isDown(KeyCode::W)) _cameraDeltaPos.y += 1;
-		if (ev.isDown(KeyCode::S)) _cameraDeltaPos.y -= 1;
-		if (ev.isDown(KeyCode::A)) _cameraDeltaPos.x += 1;
-		if (ev.isDown(KeyCode::D)) _cameraDeltaPos.x -= 1;
+		_showText.clear();
+		if (ev.isDown(KeyCode::W)) { _cameraDeltaPos.y += 1; _showText += "W"; }
+		if (ev.isDown(KeyCode::S)) { _cameraDeltaPos.y -= 1; _showText += "S"; }
+		if (ev.isDown(KeyCode::A)) { _cameraDeltaPos.x += 1; _showText += "A"; }
+		if (ev.isDown(KeyCode::D)) { _cameraDeltaPos.x -= 1; _showText += "D"; }
+		if (_showText.size() > 0) SGE_LOG("{}", _showText);
 	}
 
 private:
@@ -371,8 +369,13 @@ private:
 		if (!_bShowSettingWindow) return;
 
 		auto& scaleFactor = NuklearUI::g_scaleFactor;
-		// Rect2f xywh = { 0, clientSize.y - h * scaleFactor, clientSize.x / scaleFactor, 100.f }; // why ???
+#if 0 // why ???
+		const Vec2f& clientSize = clientRect().size;
+		float height = 100.f;
+		Rect2f xywh = { 0, clientSize.y - height * scaleFactor, clientSize.x / scaleFactor, height };
+#else
 		static constexpr Rect2f xywh { 0, 0, 220.f, 100.f };
+#endif
 		NuklearUI::Window window(xywh, "ScaleFactor:");
 
 		auto windowSize = NuklearUI::windowGetSize();
@@ -384,14 +387,14 @@ private:
 	}
 
 	void _drawStatsWindow() {
+		static constexpr const nk_flags kWindowStyle	= NK_WINDOW_BORDER | NK_WINDOW_NO_SCROLLBAR;
+		static constexpr const float kTextSingleHeight	= 20.f;
+		static constexpr const float kWindowWidth		= 200.f;
+
 		const auto& scaleFactor = NuklearUI::g_scaleFactor;
 		const Vec2f& clientSize = clientRect().size;
-		float imguiXPosition = clientSize.x - (205.0f * scaleFactor);
-		float imguiYPosition = NuklearUI::Window::kTitleHeight * NuklearUI::g_scaleFactor;
-
-		static constexpr const nk_flags kWindowStyle = NK_WINDOW_BORDER | NK_WINDOW_NO_SCROLLBAR;
-		static constexpr const float kTextSingleHeight = 20.f;
-		static constexpr const float kWindowWidth = 200.f;
+		float imguiXPosition = clientSize.x - ( (kWindowWidth+2.f) * scaleFactor);
+		float imguiYPosition = 17.f * NuklearUI::g_scaleFactor;
 
 		#define SHOW_TEXT(FORMAT, ...) \
 				_showText.clear(); \
@@ -432,7 +435,7 @@ private:
 			NuklearUI::LayoutRowStatic layout(15, 200, 1);
 
 			SHOW_TEXT("Game GPU: {:0.5f} ms\0", _timingInfo.appGPU());
-			SHOW_TEXT("IMGUI GPU: {:0.5f} ms\0", _timingInfo.imguiGPU());
+			SHOW_TEXT("Nuklear GPU: {:0.5f} ms\0", _timingInfo.imguiGPU());
 			imguiYPosition += xywh.h * scaleFactor;
 		}
 
@@ -444,8 +447,8 @@ private:
 			//SHOW_TEXT("Win32 Events: {:0.5f} ms\0", _timingInfo.win32Events());
 			SHOW_TEXT("Game Update: {:0.5f} ms\0",  _timingInfo.frameUpdate());
 			SHOW_TEXT("Game Render: {:0.5f} ms\0",  _timingInfo.frameRender());
-			SHOW_TEXT("IMGUI logic: {:0.5f} ms\0",  _timingInfo.imguiLogic());
-			SHOW_TEXT("IMGUI render: {:0.5f} ms\0", _timingInfo.imguiRender());
+			SHOW_TEXT("Nuklear Logic: {:0.5f} ms\0",  _timingInfo.imguiLogic());
+			SHOW_TEXT("Nuklear Render: {:0.5f} ms\0", _timingInfo.imguiRender());
 			SHOW_TEXT("Swap Buffers: {:0.5f} ms\0", _timingInfo.swapBuffer());
 			imguiYPosition += xywh.h * scaleFactor;
 		}

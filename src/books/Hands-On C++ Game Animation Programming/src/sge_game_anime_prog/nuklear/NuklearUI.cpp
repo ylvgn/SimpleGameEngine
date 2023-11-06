@@ -35,16 +35,16 @@ bool onUIMouseEvent(UIMouseEvent& ev) {
 
 	switch (ev.type) {
 		case Type::Move: {
-			nk_input_motion(g_ctx, pos.x, pos.y);
+			::nk_input_motion(g_ctx, pos.x, pos.y);
 		} break;
 		case Type::Down: {
-			nk_input_button(g_ctx, Util::mouseButton(ev.button), pos.x, pos.y, 1);
+			::nk_input_button(g_ctx, Util::mouseButton(ev.button), pos.x, pos.y, 1);
 		} break;
 		case Type::Up: {
-			nk_input_button(g_ctx, Util::mouseButton(ev.button), pos.x, pos.y, 0);
+			::nk_input_button(g_ctx, Util::mouseButton(ev.button), pos.x, pos.y, 0);
 		} break;
 		case Type::Scroll: {
-			nk_input_scroll(g_ctx, Util::toNKVec2(ev.scroll));
+			::nk_input_scroll(g_ctx, Util::toNKVec2(ev.scroll));
 		} break;
 	}
 
@@ -61,45 +61,41 @@ void onUIKeyboardEvent(UIKeyboardEvent& ev) {
 	int  down = ev.isDown() ? 1 : 0;
 	switch (ev.keyCode) {
 		case KeyCode::LeftArrow: {
-			if (ctrl) nk_input_key(g_ctx, NK_KEY_TEXT_WORD_LEFT, down);
-			else nk_input_key(g_ctx, NK_KEY_LEFT, down);
-			ev.keyCodesMap.erase(ev.keyCode);
+			if (ctrl) ::nk_input_key(g_ctx, NK_KEY_TEXT_WORD_LEFT, down);
+			else ::nk_input_key(g_ctx, NK_KEY_LEFT, down);
 		} break;
 		case KeyCode::RightArrow: {
-			if (ctrl) nk_input_key(g_ctx, NK_KEY_TEXT_WORD_RIGHT, down);
-			else nk_input_key(g_ctx, NK_KEY_LEFT, down);
-			ev.keyCodesMap.erase(ev.keyCode);
+			if (ctrl) ::nk_input_key(g_ctx, NK_KEY_TEXT_WORD_RIGHT, down);
+			else ::nk_input_key(g_ctx, NK_KEY_LEFT, down);
 		} break;
 		case KeyCode::Home: {
-			nk_input_key(g_ctx, NK_KEY_TEXT_START, down);
-			nk_input_key(g_ctx, NK_KEY_SCROLL_START, down);
-			ev.keyCodesMap.erase(ev.keyCode);
+			::nk_input_key(g_ctx, NK_KEY_TEXT_START, down);
+			::nk_input_key(g_ctx, NK_KEY_SCROLL_START, down);
 		} break;
 		case KeyCode::End: {
-			nk_input_key(g_ctx, NK_KEY_TEXT_END, down);
-			nk_input_key(g_ctx, NK_KEY_SCROLL_END, down);
-			ev.keyCodesMap.erase(ev.keyCode);
+			::nk_input_key(g_ctx, NK_KEY_TEXT_END, down);
+			::nk_input_key(g_ctx, NK_KEY_SCROLL_END, down);
 		} break;
 
 		case KeyCode::C: {
-			if (ctrl) nk_input_key(g_ctx, NK_KEY_COPY, down);
+			if (ctrl) ::nk_input_key(g_ctx, NK_KEY_COPY, down);
 		} break;
 		case KeyCode::V: {
-			if (ctrl) nk_input_key(g_ctx, NK_KEY_PASTE, down);
+			if (ctrl) ::nk_input_key(g_ctx, NK_KEY_PASTE, down);
 		} break;
 		case KeyCode::X: {
-			if (ctrl) nk_input_key(g_ctx, NK_KEY_CUT, down);
+			if (ctrl) ::nk_input_key(g_ctx, NK_KEY_CUT, down);
 		} break;
 		case KeyCode::Z: {
-			if (ctrl) nk_input_key(g_ctx, NK_KEY_TEXT_UNDO, down);
+			if (ctrl) ::nk_input_key(g_ctx, NK_KEY_TEXT_UNDO, down);
 		} break;
 		case KeyCode::R: {
-			if (ctrl) nk_input_key(g_ctx, NK_KEY_TEXT_REDO, down);
+			if (ctrl) ::nk_input_key(g_ctx, NK_KEY_TEXT_REDO, down);
 		} break;
 	}
 
 	if (ev.isChar()) {
-		nk_input_unicode(g_ctx, ev.charCode);
+		::nk_input_unicode(g_ctx, ev.charCode);
 	}
 
 	for (auto& kv : ev.keyCodesMap) {

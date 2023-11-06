@@ -37,13 +37,11 @@ SGE_ENUM_ALL_OPERATOR(MySampleType)
 struct SampleRequest;
 class DebugDraw;
 class DebugDraw_PointLines;
-class GameAnimeProgMainWin;
 
 class SampleContext : public NonCopyable {
 	using Request		= SampleRequest;
 	using Type			= MySampleType;
 	using DebugDrawPL	= DebugDraw_PointLines;
-	using MainWin		= GameAnimeProgMainWin;
 
 #define RUN_SAMPLE__ITEM(E, SGE_FN, ...) \
 	case Type::E: { \
@@ -190,7 +188,6 @@ private:
 	void _defaultSetAdditiveBasePose();
 
 	void _defaultSetCamera(Request& req, const vec3f& pos = vec3f(0,0,0), const vec3f& aim = vec3f(0,3,7));
-
 
 private:
 	float										_testRotation = 0.0f;

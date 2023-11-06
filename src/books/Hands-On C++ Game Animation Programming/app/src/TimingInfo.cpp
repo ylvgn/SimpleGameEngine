@@ -70,10 +70,10 @@ TimingInfo_CPUStage::TimingInfo_CPUStage(TimingInfo* info)
 	: Base(info)
 {
 	memset(&_timerStart, 0, sizeof(LARGE_INTEGER));
-	memset(&_timerStop, 0, sizeof(LARGE_INTEGER));
+	memset(&_timerStop,  0, sizeof(LARGE_INTEGER));
 
 	memset(&_frameStart, 0, sizeof(LARGE_INTEGER));
-	memset(&_frameStop, 0, sizeof(LARGE_INTEGER));
+	memset(&_frameStop,  0, sizeof(LARGE_INTEGER));
 
 	QueryPerformanceFrequency(&_timerFrequency);
 }
@@ -108,6 +108,7 @@ void TimingInfo_CPUStage::endAppRender() {
 void TimingInfo_CPUStage::beginImGuiUpdate() {
 	QueryPerformanceCounter(&_timerStart);
 }
+
 void TimingInfo_CPUStage::endImGuiUpdate() {
 	QueryPerformanceCounter(&_timerStop);
 	_addTimeDiff(_info->_accumulator.imguiLogic);
@@ -124,6 +125,7 @@ void TimingInfo_CPUStage::endImGuiRender() {
 void TimingInfo_CPUStage::beginSwapBuffer() {
 	QueryPerformanceCounter(&_timerStart);
 }
+
 void TimingInfo_CPUStage::endSwapBuffer() {
 	QueryPerformanceCounter(&_timerStop);
 	_addTimeDiff(_info->_accumulator.swapBuffer);

@@ -299,7 +299,6 @@ struct ScopedStyleTextColor : public NonCopyable {
 	inline void set(const nk_color& v) { g_ctx->style.text.color = v; }
 	inline void set(const Color4f&  v) { set(Util::toNKColor(v)); }
 
-
 	void detect() {
 		if (_oldColor.has_value()) {
 			g_ctx->style.text.color = _oldColor.value();
