@@ -254,19 +254,56 @@ int ImGui_SGE::_mouseButton(UIMouseEventButton v) {
 void ImGui_SGE::onUIKeyboardEvent(UIKeyboardEvent& ev) {
 	using Modifier	= UIEventModifier;
 	using Type		= UIKeyCodeEventType;
+	using KeyCode	= UIKeyboardEvent::KeyCode;
 
 	ImGuiIO& io		= ImGui::GetIO();
 
-	for (auto& kv : ev.keyCodesMap) {
-		const auto& type = kv.second;
-		const auto& keyCode = kv.first;
-		switch (type) {
-			case Type::Down: {
-				io.AddKeyEvent(_keyCode(keyCode), true);
-			} break;
-			case Type::Up: {
-				io.AddKeyEvent(_keyCode(keyCode), false);
-			} break;
+	if (ev.isChar()) {
+		io.AddInputCharacter(ev.charCode);
+	}
+
+	if (ev.isDown()) {
+		io.AddKeyEvent(_keyCode(ev.keyCode), true);
+	}
+	if (ev.isUp()) {
+		io.AddKeyEvent(_keyCode(ev.keyCode), false);
+	}
+
+	// special handle, cuz ev.isModifierKey must be a key-down keycode, any good practise ???
+	{ // ctrl
+		{
+			auto k = KeyCode::LCtrl;
+			if (ev.isDown(k)) io.AddKeyEvent(_keyCode(k), true);
+			else if (ev.isUp(k)) io.AddKeyEvent(_keyCode(k), false);
+		}
+		{
+			auto k = KeyCode::RCtrl;
+			if (ev.isDown(k)) io.AddKeyEvent(_keyCode(k), true);
+			else if (ev.isUp(k)) io.AddKeyEvent(_keyCode(k), false);
+		}
+	}
+	{ // alt
+		{
+			auto k = KeyCode::LAlt;
+			if (ev.isDown(k)) io.AddKeyEvent(_keyCode(k), true);
+			else if (ev.isUp(k)) io.AddKeyEvent(_keyCode(k), false);
+		}
+		{
+			auto k = KeyCode::RAlt;
+			if (ev.isDown(k)) io.AddKeyEvent(_keyCode(k), true);
+			else if (ev.isUp(k)) io.AddKeyEvent(_keyCode(k), false);
+		}
+	}
+	{ // shift
+		{
+			auto k = KeyCode::LShift;
+			if (ev.isDown(k)) io.AddKeyEvent(_keyCode(k), true);
+			else if (ev.isUp(k)) io.AddKeyEvent(_keyCode(k), false);
+		}
+		{
+			auto k = KeyCode::RShift;
+			if (ev.isDown(k)) io.AddKeyEvent(_keyCode(k), true);
+			else if (ev.isUp(k)) io.AddKeyEvent(_keyCode(k), false);
 		}
 	}
 }
@@ -322,6 +359,9 @@ ImGuiKey ImGui_SGE::_keyCode(UIKeyboardEventKeyCode v) {
 	case KeyCode::KeypadMultiply:	return ImGuiKey_KeypadMultiply;
 	case KeyCode::KeypadMinus:		return ImGuiKey_KeypadSubtract;
 	case KeyCode::KeypadPlus:	 	return ImGuiKey_KeypadAdd;
+	case KeyCode::Ctrl:				return ImGuiKey_ModCtrl;
+	case KeyCode::Shift:			return ImGuiKey_ModShift;
+	case KeyCode::Alt:				return ImGuiKey_ModAlt;
 	case KeyCode::LShift:			return ImGuiKey_LeftShift;
 	case KeyCode::LCtrl:			return ImGuiKey_LeftCtrl;
 	case KeyCode::LAlt:				return ImGuiKey_LeftAlt;

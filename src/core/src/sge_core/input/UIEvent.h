@@ -31,14 +31,6 @@ enum class UIEventModifier {
 	Alt		= 1 << 2,
 	Cmd		= 1 << 3,
 	Fn		= 1 << 4,
-	LShift	= 1 << 5,
-	RShift	= 1 << 6,
-	LCtrl	= 1 << 7,
-	RCtrl	= 1 << 8,
-	LAlt	= 1 << 9,
-	RAlt	= 1 << 10,
-	LCmd	= 1 << 11,
-	RCmd	= 1 << 12,
 };
 SGE_ENUM_ALL_OPERATOR(UIEventModifier)
 
@@ -118,13 +110,15 @@ struct UIMouseEvent {
 	_E(Keypad5,) _E(Keypad6,) _E(Keypad7,) _E(Keypad8,) _E(Keypad9,) \
 	_E(_End,) \
 //----
-SGE_ENUM_CLASS(UIKeyboardEventKeyCode, u32)
+SGE_ENUM_CLASS(UIKeyboardEventKeyCode, u64)
+SGE_ENUM_ALL_OPERATOR(UIKeyboardEventKeyCode)
 
-#define UIKeyCodeEventType_ENUM_LIST(_E) \
-	_E(None,) \
-	_E(Up,) \
-	_E(Down,) \
-	_E(Char,) \
+#define UIKeyCodeEventType_ENUM_LIST(E) \
+	E(None,		= 0) \
+	E(Up,		= 1 << 0) \
+	E(Down,		= 1 << 1) \
+	E(Char,		= 1 << 2) \
+	E(Toggled,	= 1 << 3) \
 // ----
 SGE_ENUM_CLASS(UIKeyCodeEventType, u8)
 SGE_ENUM_ALL_OPERATOR(UIKeyCodeEventType)
@@ -134,102 +128,43 @@ struct UIKeyboardEvent {
 	using Type			= UIKeyCodeEventType;
 	using Modifier		= UIEventModifier;
 
-	bool isUp(KeyCode k)			const { return getType(k) == Type::Up; }
-	bool isDown(KeyCode k)			const { return getType(k) == Type::Down; }
-	bool isChar(KeyCode k)			const { return getType(k) == Type::Char; }
+	bool isUp()			const { return BitUtil::hasAny(type, Type::Up); }
+	bool isDown()		const { return BitUtil::hasAny(type, Type::Down); }
+	bool isChar()		const { return BitUtil::hasAny(type, Type::Char); }
+	bool isToogled()	const { return BitUtil::hasAny(type, Type::Toggled); }
 
-	bool isUp()						const { return type == Type::Up; }
-	bool isDown()					const { return type == Type::Down; }
-	bool isChar()					const { return type == Type::Char; }
+	bool isUp(KeyCode k)		const { return BitUtil::hasAny(_keyCodeState(k), Type::Up); }
+	bool isDown(KeyCode k)		const { return BitUtil::hasAny(_keyCodeState(k), Type::Down); }
 
-	StrView data()					const { return charCodeStr; }
+	StrView data()	const { return charCodeStr; }
 
-	Type getType(KeyCode k) const {
-		auto it = keyCodesMap.find(k);
-		return it == keyCodesMap.end() ? Type::None : it->second;
-	}
+	bool isModifierKey() const { return modifier != Modifier::None; }
+	bool isModifierKeyDown(const Modifier& k) const { return BitUtil::hasAny(modifier, k); }
 
-	bool isModifierKey()				const { return modifier != Modifier::None; }
-	bool hasAnyModifierKey(Modifier k)	const { return BitUtil::hasAny(modifier, k); }
-
-	Type getModifierKeyType(Modifier k) const {
-		switch (k) {
-			case Modifier::Shift:	return getType(KeyCode::Shift);
-			case Modifier::Ctrl:	return getType(KeyCode::Ctrl);
-			case Modifier::Alt:		return getType(KeyCode::Alt);
-			case Modifier::Cmd:		return getType(KeyCode::Cmd);
-			case Modifier::LShift:	return getType(KeyCode::LShift);
-			case Modifier::RShift:	return getType(KeyCode::RShift);
-			case Modifier::LCtrl:	return getType(KeyCode::LCtrl);
-			case Modifier::RCtrl:	return getType(KeyCode::RCtrl);
-			case Modifier::LAlt:	return getType(KeyCode::LAlt);
-			case Modifier::RAlt:	return getType(KeyCode::RAlt);
-		}
-		return Type::None;
-	}
-
-	bool IsModifierKeyDown(KeyCode k) const {
-		switch (k) {
-			case KeyCode::Ctrl:
+	static Modifier convert(const KeyCode& i) {
+		switch (i)
+		{
 			case KeyCode::LCtrl:
 			case KeyCode::RCtrl:
-			case KeyCode::Shift:
-			case KeyCode::LShift:
-			case KeyCode::RShift:
-			case KeyCode::Alt:
-			case KeyCode::LAlt:
-			case KeyCode::RAlt:
-			case KeyCode::Cmd:
-			case KeyCode::LCmd:
-			case KeyCode::RCmd: {
-				return isDown(k);
-			} break;
-			default: throw SGE_ERROR("not support {}", k);
-		}
-	}
-	bool IsCharKeyDown(KeyCode k) const {
-		switch (k) {
 			case KeyCode::Ctrl:
-			case KeyCode::LCtrl:
-			case KeyCode::RCtrl:
-			case KeyCode::Shift:
-			case KeyCode::LShift:
-			case KeyCode::RShift:
-			case KeyCode::Alt:
+				return Modifier::Ctrl;
+
 			case KeyCode::LAlt:
 			case KeyCode::RAlt:
-			case KeyCode::Cmd:
+			case KeyCode::Alt:
+				return Modifier::Alt;
+
+			case KeyCode::LShift:
+			case KeyCode::RShift:
+			case KeyCode::Shift:
+				return Modifier::Shift;
+
 			case KeyCode::LCmd:
 			case KeyCode::RCmd:
-			case KeyCode::Escape:
-			case KeyCode::CapsLock:
-			case KeyCode::F1:
-			case KeyCode::F2:
-			case KeyCode::F3:
-			case KeyCode::F4:
-			case KeyCode::F5:
-			case KeyCode::F6:
-			case KeyCode::F7:
-			case KeyCode::F8:
-			case KeyCode::F9:
-			case KeyCode::F10:
-			case KeyCode::F11:
-			case KeyCode::F12:
-			case KeyCode::Delete:
-			case KeyCode::Insert:
-			case KeyCode::Home:
-			case KeyCode::End:
-			case KeyCode::PageDown:
-			case KeyCode::PageUp:
-			case KeyCode::PrintScreen:
-			case KeyCode::ScrollLock:
-			case KeyCode::Pause:
-			case KeyCode::NumLock:
-			{
-				return false;
-			} break;
+			case KeyCode::Cmd:
+				return Modifier::Cmd;
 		}
-		return true;
+		return Modifier::None;
 	}
 
 	Type				type	 = Type::None;
@@ -238,7 +173,19 @@ struct UIKeyboardEvent {
 	u32					charCode = 0;
 	String				charCodeStr;
 
-	Map<KeyCode, Type>	keyCodesMap;
+	Map<KeyCode, Type>  pressedKeyCodes;
+
+private:
+	Type _keyCodeState(const KeyCode& v) const {
+		auto m = convert(v);
+
+		if (isModifierKeyDown(m))
+			return Type::Down;
+
+		auto it = pressedKeyCodes.find(v);
+		if (it == pressedKeyCodes.end()) return Type::None;
+		return it->second;
+	}
 };
 
 }

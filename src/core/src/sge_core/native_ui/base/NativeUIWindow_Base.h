@@ -7,6 +7,8 @@ namespace sge {
 
 class NativeUIWindow_Base : public NonCopyable {
 public:
+	using KeyCode		= UIKeyboardEventKeyCode;
+	using KeyCodeState  = UIKeyCodeEventType;
 
 	struct CreateDesc {
 		CreateDesc()
@@ -60,6 +62,9 @@ public:
 	virtual void onUINativeKeyboardEvent(UIKeyboardEvent& ev);
 	virtual void onUIKeyboardEvent(UIKeyboardEvent& ev) {}
 
+	inline bool isKeyUp(const KeyCode& k)	const { return BitUtil::hasAny(_keyCodeState(k), KeyCodeState::Up); }
+	inline bool isKeyDown(const KeyCode& k)	const { return BitUtil::hasAny(_keyCodeState(k), KeyCodeState::Down); }
+
 protected:
 	virtual void onCreate(CreateDesc& desc) {}
 	virtual void onSetWindowTitle(StrView title) {}
@@ -67,12 +72,23 @@ protected:
 	virtual void onClientRectChanged(const Rect2f& rc) { _clientRect = rc; }
 	virtual void onDrawNeeded() {}
 
+	KeyCodeState _keyCodeState(const KeyCode& k) const;
+
 	Rect2f	_clientRect {0,0,0,0};
 
 	UIMouseEventButton	_pressedMouseButtons = UIMouseEventButton::None;
 	Vec2f				_mousePos{0,0};
 
-	Map<UIKeyboardEventKeyCode, UIKeyCodeEventType> _keyCodesMap;
+	Map<KeyCode, KeyCodeState> 	_keyCodesMap;
+	KeyCode						_keyCode = KeyCode::None;
 };
+
+inline
+NativeUIWindow_Base::KeyCodeState NativeUIWindow_Base::_keyCodeState(const KeyCode& k) const {
+	using KeyCodeState = NativeUIWindow_Base::KeyCodeState;
+	auto it = _keyCodesMap.find(k);
+	if (it == _keyCodesMap.end()) return KeyCodeState::None;
+	return it->second;
+}
 
 }

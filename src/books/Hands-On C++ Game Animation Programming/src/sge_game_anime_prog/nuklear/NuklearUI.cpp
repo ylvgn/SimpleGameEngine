@@ -98,17 +98,47 @@ void onUIKeyboardEvent(UIKeyboardEvent& ev) {
 		::nk_input_unicode(g_ctx, ev.charCode);
 	}
 
-	for (auto& kv : ev.keyCodesMap) {
-		const auto& keyCode = kv.first;
-		const auto& type	= kv.second;
+	if (ev.isDown()) {
+		::nk_input_key(g_ctx, Util::keyCode(ev.keyCode), 1);
+	}
+	else if (ev.isUp()) {
+		::nk_input_key(g_ctx, Util::keyCode(ev.keyCode), 0);
+	}
 
-		switch (type) {
-			case Type::Down: {
-				nk_input_key(g_ctx, Util::keyCode(keyCode), 1);
-			} break;
-			case Type::Up: {
-				nk_input_key(g_ctx, Util::keyCode(keyCode), 0);
-			} break;
+	{ // ctrl
+		{
+			auto k = KeyCode::LCtrl;
+			if (ev.isDown(k)) ::nk_input_key(g_ctx, Util::keyCode(k), 1);
+			else if (ev.isUp(k)) ::nk_input_key(g_ctx, Util::keyCode(k), 0);
+		}
+		{
+			auto k = KeyCode::RCtrl;
+			if (ev.isDown(k)) ::nk_input_key(g_ctx, Util::keyCode(k), 1);
+			else if (ev.isUp(k)) ::nk_input_key(g_ctx, Util::keyCode(k), 0);
+		}
+	}
+	{ // alt
+		{
+			auto k = KeyCode::LAlt;
+			if (ev.isDown(k)) ::nk_input_key(g_ctx, Util::keyCode(k), 1);
+			else if (ev.isUp(k)) ::nk_input_key(g_ctx, Util::keyCode(k), 0);
+		}
+		{
+			auto k = KeyCode::RAlt;
+			if (ev.isDown(k)) ::nk_input_key(g_ctx, Util::keyCode(k), 1);
+			else if (ev.isUp(k)) ::nk_input_key(g_ctx, Util::keyCode(k), 0);
+		}
+	}
+	{ // shift
+		{
+			auto k = KeyCode::LShift;
+			if (ev.isDown(k)) ::nk_input_key(g_ctx, Util::keyCode(k), 1);
+			else if (ev.isUp(k)) ::nk_input_key(g_ctx, Util::keyCode(k), 0);
+		}
+		{
+			auto k = KeyCode::RShift;
+			if (ev.isDown(k)) ::nk_input_key(g_ctx, Util::keyCode(k), 1);
+			else if (ev.isUp(k)) ::nk_input_key(g_ctx, Util::keyCode(k), 0);
 		}
 	}
 }

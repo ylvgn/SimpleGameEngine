@@ -250,7 +250,7 @@ protected:
 			_exitSample();
 		}
 		if (ev.isDown(KeyCode::Tab)) {
-			if (ev.IsModifierKeyDown(KeyCode::Shift)) {
+			if (ev.isDown(KeyCode::Shift)) {
 				_switchToLastSample(); 
 			} else {
 				_switchToNextSample();
@@ -261,7 +261,7 @@ protected:
 			_bShowSettingWindow = !_bShowSettingWindow;
 		}
 
-		if (ev.IsModifierKeyDown(KeyCode::Ctrl)) {
+		if (ev.isDown(KeyCode::Ctrl)) {
 			static float const kValueStep = 0.1f;
 			auto& scaleFactor = NuklearUI::g_scaleFactor;
 			if (ev.isDown(KeyCode::Equals)) {

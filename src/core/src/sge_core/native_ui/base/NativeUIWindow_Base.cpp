@@ -26,65 +26,26 @@ void NativeUIWindow_Base::onUINativeKeyboardEvent(UIKeyboardEvent& ev) {
 	using Modifier		= UIKeyboardEvent::Modifier;
 
 	if (ev.keyCode != KeyCode::None) {
-
-	#define E(SGE_T) \
-		if (_keyCodesMap[KeyCode::SGE_T] == Type::Down) { \
-			if (!ev.hasAnyModifierKey(Modifier::SGE_T)) { \
-				_keyCodesMap[KeyCode::SGE_T] = Type::Up; \
-			} \
-		} \
-	//---- Modifier Key Down -> Up
-		E(LCtrl)
-		E(LShift)
-		E(LAlt)
-		E(RCtrl)
-		E(RShift)
-		E(RAlt)
-	#undef E
-
-		if (ev.isModifierKey()) {
-			#define E(SGE_T) \
-				case KeyCode::SGE_T: { \
-					if (ev.hasAnyModifierKey(Modifier::L##SGE_T)) _keyCodesMap[KeyCode::L##SGE_T] = Type::Down; \
-					if (ev.hasAnyModifierKey(Modifier::R##SGE_T)) _keyCodesMap[KeyCode::R##SGE_T] = Type::Down; \
-				} break; \
-			// ----
-			switch (ev.keyCode) {
-				E(Ctrl)
-				E(Shift)
-				E(Alt)
-				E(Cmd)
-			}
-			#undef E
-		}
-
-		switch (ev.type)
-		{
-			case Type::Down: { _keyCodesMap[ev.keyCode] = ev.type; } break;
-			case Type::Up:	 { _keyCodesMap[ev.keyCode] = ev.type; } break;
+		switch (ev.type) {
+			case Type::Down:	{ _keyCodesMap[ev.keyCode] = ev.type; } break;
+			case Type::Up:		{ _keyCodesMap[ev.keyCode] = ev.type; } break;
 		}
 	}
 
-	if (ev.type == Type::Char) {
-		for (auto& kv : _keyCodesMap) {
-			if (kv.second == Type::Down) {
-				_keyCodesMap[kv.first] = Type::None;
-			}
-		}
+	if (ev.type == Type::Char && _keyCode != KeyCode::None) {
+		_keyCodesMap[_keyCode] = ev.type;
 	}
 
-	ev.keyCodesMap = _keyCodesMap;
+	ev.pressedKeyCodes = _keyCodesMap;
+	_keyCode = ev.keyCode;
 
 	onUIKeyboardEvent(ev);
 
-	// reset Up -> None
+	// reset
 	for (auto& kv : _keyCodesMap) {
-		if (kv.second == Type::Up) {
+		if (kv.second == Type::Up || ev.type == Type::Char) {
 			_keyCodesMap[kv.first] = Type::None;
 		}
-	}
-	if (ev.type == Type::Char && ev.keyCode != KeyCode::None) {
-		_keyCodesMap[ev.keyCode] = Type::None;
 	}
 }
 
