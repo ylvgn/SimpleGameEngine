@@ -32,11 +32,11 @@ public:
 	inline const Pose& outPose()	const	{ return _outPose; }
 	inline const IKSolver& solver()	const	{ return _solver; }
 
-	void setByJointNames(	const Skeleton& skeleton,
-							StrView hipJointName,
-							StrView kneeJointName,
-							StrView ankleJointName,
-							StrView toeJointName);
+	void setByJointNames(const Skeleton* skeleton,
+						 StrView hipJointName,
+						 StrView kneeJointName,
+						 StrView ankleJointName,
+						 StrView toeJointName);
 
 	void solveForLeg(const Transform& model, const Pose& animatedPose, const vec3f& ankleTargetPosition);
 

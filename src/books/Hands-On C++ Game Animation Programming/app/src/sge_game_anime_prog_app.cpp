@@ -23,13 +23,14 @@ class GameAnimeProgMainWin : public NativeUIWindow {
 public:
 	using Type = MySampleType;
 
-	static constexpr const int kSampleCount = enumInt(Type::_END);
-	static constexpr float kMouseDecayFactor = 0.3f;
+	static constexpr const int		kSampleCount		= enumInt(Type::_END);
+	static constexpr const float	kMouseDecayFactor	= 0.3f;
+	static constexpr const float	kMouseMaxDelta		= 10.f;
 
 	void _cameraMove() {
 		if (_cameraDeltaPos.equals0()) return;
 
-		auto d = _cameraDeltaPos * 0.05f;
+		auto d = _cameraDeltaPos * 0.15f;
 		_camera.move(d.x, 0, d.y);
 
 		if (_cameraDeltaPos.x > 0) {
@@ -51,7 +52,7 @@ public:
 			return;
 
 #if SGE_OS_WINDOWS
-		_timingInfo.cpu->beginUpdate(dt);
+		_timingInfo.cpu->beginUpdate(_sampleRequest.dt);
 #endif
 
 		_cameraMove(); // is it right place ???
@@ -60,7 +61,7 @@ public:
 			_sampleContext->update(_sampleRequest);
 
 #if SGE_OS_WINDOWS
-		_timingInfo.cpu->endUpdate(dt);
+		_timingInfo.cpu->endUpdate(_sampleRequest.dt);
 #endif
 	}
 
@@ -90,6 +91,7 @@ public:
 		_drawUI();
 
 		_endRender();
+
 #if SGE_OS_WINDOWS
 		_timingInfo.cpu->endFrame();
 		_timingInfo.profilingHouseKeeping();
@@ -251,7 +253,7 @@ protected:
 		}
 		if (ev.isDown(KeyCode::Tab)) {
 			if (ev.isDown(KeyCode::Shift)) {
-				_switchToLastSample(); 
+				_switchToLastSample();
 			} else {
 				_switchToNextSample();
 			}
@@ -262,29 +264,29 @@ protected:
 		}
 
 		if (ev.isDown(KeyCode::Ctrl)) {
-			static float const kValueStep = 0.1f;
+			static constexpr float const kValueStep = 0.1f;
 			auto& scaleFactor = NuklearUI::g_scaleFactor;
 			if (ev.isDown(KeyCode::Equals)) {
 				scaleFactor += kValueStep;
 			}
-			else if (ev.isDown(KeyCode::Hyphen)) {
+			if (ev.isDown(KeyCode::Hyphen)) {
 				scaleFactor = Math::max(1.0f, scaleFactor - kValueStep);
 			}
-			else if (ev.isDown(KeyCode::R)) {
+			if (ev.isDown(KeyCode::R)) {
 				scaleFactor = 1.0f;
 				_dtFactor   = 1.0f;
 			}
-			else if (ev.isDown(KeyCode::H)) {
+			if (ev.isDown(KeyCode::H)) {
 				_bShowUI = !_bShowUI;
 			}
 		}
 
 		_showText.clear();
-		if (ev.isDown(KeyCode::W)) { _cameraDeltaPos.y += 1; _showText += "W"; }
-		if (ev.isDown(KeyCode::S)) { _cameraDeltaPos.y -= 1; _showText += "S"; }
-		if (ev.isDown(KeyCode::A)) { _cameraDeltaPos.x += 1; _showText += "A"; }
-		if (ev.isDown(KeyCode::D)) { _cameraDeltaPos.x -= 1; _showText += "D"; }
-		if (_showText.size() > 0) SGE_LOG("{}", _showText);
+		if (ev.isDown(KeyCode::W)) { _cameraDeltaPos.y = Math::clamp(_cameraDeltaPos.y + 1, -kMouseMaxDelta, kMouseMaxDelta); _showText += "W"; }
+		if (ev.isDown(KeyCode::S)) { _cameraDeltaPos.y = Math::clamp(_cameraDeltaPos.y - 1, -kMouseMaxDelta, kMouseMaxDelta); _showText += "S"; }
+		if (ev.isDown(KeyCode::A)) { _cameraDeltaPos.x = Math::clamp(_cameraDeltaPos.x + 1, -kMouseMaxDelta, kMouseMaxDelta); _showText += "A"; }
+		if (ev.isDown(KeyCode::D)) { _cameraDeltaPos.x = Math::clamp(_cameraDeltaPos.x - 1, -kMouseMaxDelta, kMouseMaxDelta); _showText += "D"; }
+		if (_showText.size() > 0) SGE_LOG("{}\tdelta: {}", _showText, _cameraDeltaPos);
 	}
 
 private:

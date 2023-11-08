@@ -20,6 +20,7 @@ namespace sge {
 
 template<typename TRACK>
 class ClipT {
+	using SampleRequest = Track_SampleRequest;
 public:
 	inline ClipT()
 		: _name("")

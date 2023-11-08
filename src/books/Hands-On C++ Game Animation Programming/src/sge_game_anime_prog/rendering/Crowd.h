@@ -8,7 +8,7 @@ class Shader;
 
 class Crowd : public NonCopyable {
 	using SampleRequest = Track_SampleRequest;
-	static const int kCrowdMaxCount = 80;
+	static const int kCrowdMaxCount = 80; // same as crowd.vert `MAX_INSTANCES`
 
 	struct MyRequest {
 		float  dt;

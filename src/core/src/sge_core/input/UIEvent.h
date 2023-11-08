@@ -131,10 +131,10 @@ struct UIKeyboardEvent {
 	bool isUp()			const { return BitUtil::hasAny(type, Type::Up); }
 	bool isDown()		const { return BitUtil::hasAny(type, Type::Down); }
 	bool isChar()		const { return BitUtil::hasAny(type, Type::Char); }
-	bool isToogled()	const { return BitUtil::hasAny(type, Type::Toggled); }
+	bool isToogled()	const { return BitUtil::hasAny(type, Type::Toggled); } // todo ???
 
-	bool isUp(KeyCode k)		const { return BitUtil::hasAny(_keyCodeState(k), Type::Up); }
-	bool isDown(KeyCode k)		const { return BitUtil::hasAny(_keyCodeState(k), Type::Down); }
+	bool isUp(const KeyCode& k)		const { return BitUtil::hasAny(_keyCodeState(k), Type::Up); }
+	bool isDown(const KeyCode& k)	const { return BitUtil::hasAny(_keyCodeState(k), Type::Down); }
 
 	StrView data()	const { return charCodeStr; }
 
@@ -169,20 +169,20 @@ struct UIKeyboardEvent {
 
 	Type				type	 = Type::None;
 	KeyCode				keyCode  = KeyCode::None;
+
 	Modifier			modifier = Modifier::None;
+	
 	u32					charCode = 0;
 	String				charCodeStr;
-
+	
 	Map<KeyCode, Type>  pressedKeyCodes;
 
 private:
-	Type _keyCodeState(const KeyCode& v) const {
-		auto m = convert(v);
+	Type _keyCodeState(const KeyCode& k) const {
+		auto m = convert(k);
+		if (isModifierKeyDown(m)) return Type::Down;
 
-		if (isModifierKeyDown(m))
-			return Type::Down;
-
-		auto it = pressedKeyCodes.find(v);
+		auto it = pressedKeyCodes.find(k);
 		if (it == pressedKeyCodes.end()) return Type::None;
 		return it->second;
 	}

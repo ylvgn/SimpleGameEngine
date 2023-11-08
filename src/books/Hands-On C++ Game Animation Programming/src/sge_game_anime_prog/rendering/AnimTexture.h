@@ -11,10 +11,7 @@ class AnimTexture : public RefCountBase {
 public:
 	AnimTexture();
 	~AnimTexture();
-#if 0 // is it no need ???
-	AnimTexture(const AnimTexture&);
-	AnimTexture& operator=(const AnimTexture&);
-#endif
+
 	void setTexel(u32 x, u32 y, const vec3f& v);
 	void setTexel(u32 x, u32 y, const quat4f& v);
 

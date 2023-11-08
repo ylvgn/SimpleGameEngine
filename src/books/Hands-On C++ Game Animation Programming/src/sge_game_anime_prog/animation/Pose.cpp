@@ -55,7 +55,7 @@ dual_quat4f Pose::getGlobalDualQuaternion(int i) const {
 	dual_quat4f result = dual_quat4f::s_Transform(getLocalTransform(i));
 	for (int p = _parentIds[i]; p >= 0; p = _parentIds[p]) {
 		dual_quat4f parent = dual_quat4f::s_Transform(_jointTrans[p]);
-		result = result * parent; // Remember, multiplication is in reverse!
+		result = result * parent; // Remember, multiplication is left to right!!!
 	}
 	return result;
 }
@@ -69,16 +69,16 @@ void Pose::getMatrixPalette(Vector<mat4f>& out) const {
 	for (; i < jointCount; ++i) { // first loop
 		int p = _parentIds[i];
 		if (p > i) {
-			// If the joint parent has a smaller index than the joint, the optimized method is used.
-			// If the joint's parent isn't smaller, the first loop breaks out and gives the second loop a chance to run.
+			// if the joint's parent has a smaller index than the joint, the optimized method is used.
+			// if the joint's parent isn't smaller, the first loop breaks out and gives the second loop a chance to run.
 			break;
 		}
 
 		mat4f local = mat4f::s_transform(_jointTrans[i]);
-		if (p >= 0) { // maybe p == -1
+		if (p >= 0) {
 			out[i] = out[p] * local;
 		} else {
-			out[i] = local;
+			out[i] = local; // maybe p == -1, means no parent
 		}
 	}
 
@@ -93,7 +93,7 @@ void Pose::getMatrixPalette(Vector<mat4f>& out) const {
 	// converts a pose into a linear array of matrices
 	// For every transform, find the global transform, convert it into a matrix
 
-	size_t jointCount = size();
+	size_t jointCount = getJointCount();
 	out.resize(jointCount);
 	for (int i = 0; i < jointCount; ++i) {
 		Transform global = getGlobalTransform(i);

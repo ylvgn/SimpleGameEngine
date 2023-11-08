@@ -15,60 +15,31 @@ AnimTexture::~AnimTexture() {
 	glDeleteTextures(1, &_handle);
 }
 
-#if 0 // is it no need???
-AnimTexture::AnimTexture(const AnimTexture& r) {
-	_data = nullptr;
-	_texSize = 0;
-
-	glGenTextures(1, &_handle);
-	*this = r;
-}
-
-AnimTexture& AnimTexture::operator=(const AnimTexture& r) {
-	if (this == &r) return *this;
-
-	_texSize = r._texSize;
-
-	if (_data) {
-		delete[] _data;
-		_data = nullptr;
-	}
-	
-	auto data = r.span();
-	if (data.size() != 0) {
-		size_t len = r.dataSize();
-		_data = new f32[len];
-		memcpy(_data, data.data(), data.size());
-	}
-	return *this;
-}
-#endif
-
 void AnimTexture::setTexel(u32 x, u32 y, const vec3f& v) {
 	u32 index = _getTexelIndex(x, y);
 
-	_data[index + 0] = v.x;
-	_data[index + 1] = v.y;
-	_data[index + 2] = v.z;
-	_data[index + 3] = 0;
+	_data[index+0] = v.x;
+	_data[index+1] = v.y;
+	_data[index+2] = v.z;
+	_data[index+3] = 0;
 }
 
 void AnimTexture::setTexel(u32 x, u32 y, const quat4f& v) {
 	u32 index = _getTexelIndex(x, y);
 
-	_data[index + 0] = v.x;
-	_data[index + 1] = v.y;
-	_data[index + 2] = v.z;
-	_data[index + 3] = v.w;
+	_data[index+0] = v.x;
+	_data[index+1] = v.y;
+	_data[index+2] = v.z;
+	_data[index+3] = v.w;
 }
 
 void AnimTexture::getTexel(vec4f& out, u32 x, u32 y) {
 	u32 index = _getTexelIndex(x, y);
 
-	out.set(_data[index + 0],
-			_data[index + 1],
-			_data[index + 2],
-			_data[index + 3]);
+	out.set(_data[index+0],
+			_data[index+1],
+			_data[index+2],
+			_data[index+3]);
 }
 
 void AnimTexture::save(StrView filename, bool createDir, bool logResult /*= true*/) const {
@@ -85,7 +56,7 @@ void AnimTexture::load(StrView filename) {
 void AnimTexture::_load(ByteSpan data, StrView filename) {
 	TempString s = filename;
 
-	// _texSize * _texSize * 4 * sizeof(f32) = data.size()
+	// supposed: _texSize * _texSize * 4 * sizeof(f32) == data.size()
 	size_t texSize = static_cast<size_t>(
 		Math::sqrt(static_cast<f32>(
 			data.size() / sizeof(f32) / 4
@@ -94,9 +65,11 @@ void AnimTexture::_load(ByteSpan data, StrView filename) {
 
 	resize(texSize);
 
-//	SGE_LOG("load {}:\n\ttexSize={}\n\tdataSize={}\n\tbyteSize={}", filename, _texSize, dataSize(), byteSize());
+#if _DEBUG
+	SGE_LOG("AnimTexture load {}:\n\ttexSize={}\n\tdataSize={}\n\tbyteSize={}", filename, _texSize, dataSize(), byteSize());
+#endif
 
-	memcpy(_data, data.data(), data.size());
+	std::memcpy(_data, data.data(), data.size());
 
 	uploadToGpu();
 }

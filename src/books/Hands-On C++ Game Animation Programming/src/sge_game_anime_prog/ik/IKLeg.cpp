@@ -15,10 +15,12 @@ IKLeg::IKLeg()
 // for Woman.gltf
 	// hipJointName,	kneeJointName,	ankleJointName, toeJointName
 	// "LeftUpLeg",		"LeftLeg",		"LeftFoot",		"LeftToeBase"
-void IKLeg::setByJointNames(const Skeleton& skeleton, StrView hipJointName, StrView kneeJointName, StrView ankleJointName, StrView toeJointName) {
-	size_t jointCount = skeleton.getJointCount();
+void IKLeg::setByJointNames(const Skeleton* skeleton, StrView hipJointName, StrView kneeJointName, StrView ankleJointName, StrView toeJointName) {
+	if (skeleton == nullptr) return;
+
+	size_t jointCount = skeleton->getJointCount();
 	for (int i = 0; i < jointCount; ++i) {
-		StrView jointName = skeleton.getJointName(i);
+		StrView jointName = skeleton->getJointName(i);
 		if (jointName == hipJointName) {
 			_hipIndex = i;
 		}

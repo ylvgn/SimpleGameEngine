@@ -37,11 +37,13 @@ public:
 
 	inline Transform getLocalTransform(int i) const          { return _jointTrans[i]; }
 	inline void setLocalTransform(int i, const Transform& t) { _jointTrans[i] = t; }
-	Transform getGlobalTransform(int i) const;
+
+	Transform	getGlobalTransform(int i) const;
 	dual_quat4f getGlobalDualQuaternion(int i) const;
 
-	inline Transform getWorldTransform(int i)			const { return getGlobalTransform(i); }
-	inline const Transform operator[] (int i)			const { return getGlobalTransform(i); }
+	inline			Transform getWorldTransform(int i)	const { return getGlobalTransform(i); }
+	inline const	Transform operator[] (int i)		const { return getGlobalTransform(i); }
+
 	inline dual_quat4f getWorldDualQuaternion(int i)	const { return getGlobalDualQuaternion(i); }
 
 	// For a Pose class to be passed to OpenGL, it needs to be converted into a linear array of matrices.

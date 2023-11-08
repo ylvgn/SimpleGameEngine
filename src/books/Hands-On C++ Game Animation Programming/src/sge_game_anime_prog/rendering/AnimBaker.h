@@ -8,7 +8,8 @@
 namespace sge {
 
 /*
-	The skeleton is important as it provides the rest pose, which will be used for any joint that isn't present in the animation clip.
+	The skeleton is important as it provides the rest pose,
+	which will be used for any joint that isn't present in the animation clip.
 	Every joint of the skeleton will get baked into the texture.
 */
 
@@ -17,7 +18,7 @@ struct AnimBaker {
 
 	// This Bake function will sample the animation at set intervals
 	// and write the skeleton hierarchy for each sample into a floating-point texture.
-	static void bakeAnimationClipToTex(SPtr<AnimTexture>& tex, const Skeleton& skel, const Clip& clip);
+	static void bakeAnimationClipToTex(SPtr<AnimTexture>& tex, const Skeleton* skel, const Clip& clip);
 };
 
 }

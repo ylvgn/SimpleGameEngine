@@ -2,8 +2,10 @@
 
 namespace sge {
 
-void AnimBaker::bakeAnimationClipToTex(SPtr<AnimTexture>& tex, const Skeleton& skel, const Clip& clip) {
-	Pose	bindPose	= skel.bindPose();
+void AnimBaker::bakeAnimationClipToTex(SPtr<AnimTexture>& tex, const Skeleton* skel, const Clip& clip) {
+	if (skel == nullptr) return;
+
+	Pose	bindPose	= skel->bindPose();
 	size_t	jointCount	= bindPose.getJointCount();
 	size_t	texSize		= tex->texSize();
 

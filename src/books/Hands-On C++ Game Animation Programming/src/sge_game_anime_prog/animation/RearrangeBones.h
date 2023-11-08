@@ -14,9 +14,15 @@ namespace sge {
 
 class RearrangeBones : public NonCopyable {
 public:
-	static void s_rearrange(Skeleton& outSkeleton, Span<Mesh> outMeshes, Span<Clip> outClips)		{ _s_internal_rearrange(outSkeleton, outMeshes, outClips); }
-	static void s_rearrange(Skeleton& outSkeleton, Span<Mesh> outMeshes, Span<FastClip> outClips)	{ _s_internal_rearrange(outSkeleton, outMeshes, outClips); }
-
+	static void s_rearrange(Skeleton& outSkeleton, Span<Mesh> outMeshes, Span<Clip> outClips) {
+		_s_internal_rearrange(outSkeleton, outMeshes, outClips);
+	}
+	static void s_rearrange(Skeleton& outSkeleton, Span<Mesh> outMeshes, Span<FastClip> outClips) {
+		_s_internal_rearrange(outSkeleton, outMeshes, outClips);
+	}
+	static void s_rearrange(SPtr<Skeleton>& outSkeleton, Span<Mesh> outMeshes, Span<FastClip> outClips) {
+		_s_internal_rearrange(*outSkeleton.ptr(), outMeshes, outClips);
+	}
 private:
 	void _create(Skeleton& outSkeleton);
 	void _clear();

@@ -154,9 +154,7 @@ private:
 	void test_InstancedCrowds_onDrawUI(Request& req);
 
 	void _onDrawGpuSkinningByDefault(Request& req);
-
-	void _onDrawGpuSkinning(const mat4f& projection, const mat4f& view);
-
+	void _onDrawGpuSkinning(Request& req);
 	void _onDrawStaticMesh(const mat4f& projection, const mat4f& view, Span<Mesh> meshes, SPtr<Texture> tex);
 
 	void _populatePosePalette();
@@ -168,26 +166,19 @@ private:
 														bool isDualSkinning);
 
 	void _loadExampleAsset();
-
 	void _loadExampleAsset_AlignFeetOnTheGround();
-
 	void _loadExampleAsset_DualQuaterionMeshSkinning();
-
 	void _loadExampleAsset_InstancedCrowds();
-
-	void _loadOrBakeAnimTex();
-
-	void _randomSetCrowdSize(size_t crowdCount);
-
-	void _createExampleShader();
+	void _loadExampleShader();
 
 	void _defaultSetAnimInfo();
-
 	void _defaultSelectClip();
-
 	void _defaultSetAdditiveBasePose();
-
+	void _defaultSetPoseDebugDraw();
 	void _defaultSetCamera(Request& req, const vec3f& pos = vec3f(0,0,0), const vec3f& aim = vec3f(0,3,7));
+
+	void _loadOrBakeAnimTex();
+	void _randomSetCrowdSize(size_t crowdCount);
 
 private:
 	float										_testRotation = 0.0f;
@@ -211,7 +202,7 @@ private:
 	SPtr<DebugDraw>								_handleLines;
 	SPtr<DebugDraw>								_referenceLines;
 
-	Skeleton									_skeleton;
+	SPtr<Skeleton>								_skeleton;
 	Pose										_currentPose;
 	Vector<Clip>								_clips;
 	Vector<String>								_clipNames;

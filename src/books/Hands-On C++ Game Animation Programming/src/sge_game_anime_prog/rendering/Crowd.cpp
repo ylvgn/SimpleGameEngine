@@ -6,13 +6,15 @@
 namespace sge {
 
 void Crowd::resize(size_t newCrowdCount) {
+	SGE_ASSERT(newCrowdCount <= kCrowdMaxCount);
+
 	if (newCrowdCount > kCrowdMaxCount) {
 		newCrowdCount = kCrowdMaxCount;
 	}
 
-	_positions.resize(newCrowdCount,	vec3f::s_zero());
-	_rotations.resize(newCrowdCount,	quat4f::s_identity());
-	_scales.resize(newCrowdCount,		vec3f::s_one());
+	_positions.resize(newCrowdCount, vec3f::s_zero());
+	_rotations.resize(newCrowdCount, quat4f::s_identity());
+	_scales.resize(newCrowdCount, vec3f::s_one());
 
 	_currentAnimPlaybackTimes.resize(newCrowdCount);
 	_nextAnimPlaybackTimes.resize(newCrowdCount);
@@ -40,11 +42,11 @@ void Crowd::update(float dt, const Clip& clip, size_t texSize) {
 }
 
 void Crowd::bindUniforms() {
-	Uniform<vec3f>::set(_shader->findUniformByName("model_pos"),  _positions); // uniform vec3 model_pos[MAX_INSTANCES];
-	Uniform<quat4f>::set(_shader->findUniformByName("model_rot"), _rotations); // uniform vec4 model_rot[MAX_INSTANCES];
-	Uniform<vec3f>::set(_shader->findUniformByName("model_scl"),  _scales); // uniform vec3 model_scl[MAX_INSTANCES];
-	Uniform<vec2i>::set(_shader->findUniformByName("frames"), _frames); // uniform ivec2 frames[MAX_INSTANCES];
-	Uniform<float>::set(_shader->findUniformByName("time"), _blendTimes); // uniform float time[MAX_INSTANCES];
+	Uniform<vec3f>::set(_shader->findUniformByName("model_pos"),  _positions);	// uniform vec3 model_pos[MAX_INSTANCES];
+	Uniform<quat4f>::set(_shader->findUniformByName("model_rot"), _rotations);	// uniform vec4 model_rot[MAX_INSTANCES];
+	Uniform<vec3f>::set(_shader->findUniformByName("model_scl"),  _scales);		// uniform vec3 model_scl[MAX_INSTANCES];
+	Uniform<vec2i>::set(_shader->findUniformByName("frames"), _frames);			// uniform ivec2 frames[MAX_INSTANCES];
+	Uniform<float>::set(_shader->findUniformByName("time"), _blendTimes);		// uniform float time[MAX_INSTANCES];
 }
 
 float Crowd::_getAdjustClipTime(const MyRequest& req) const {
@@ -83,7 +85,7 @@ void Crowd::_updateFrameIndices(const MyRequest& req) {
 	const auto& duration	= req.duration;
 	const auto& texSize		= req.texSize;
 
-	float durationFrame	= static_cast<float>(texSize - 1);
+	float durationFrame		= static_cast<float>(texSize - 1);
 
 	size_t crowdCount = getCrowdCount();
 	for (int i = 0; i < crowdCount; ++i) {
@@ -112,7 +114,7 @@ void Crowd::_updateInterplation(const MyRequest& req) {
 	const auto& start		= req.start;
 	const auto& duration	= req.duration;
 
-	float durationFrame	= static_cast<float>(texSize - 1);
+	float durationFrame		= static_cast<float>(texSize - 1);
 
 	size_t crowdCount = getCrowdCount();
 	for (int i = 0; i < crowdCount; ++i) {
@@ -144,8 +146,8 @@ void Crowd::_updateInterplation(const MyRequest& req) {
 void Crowd::randomizeTimes(const Clip& clip) {
 	float start			= clip.getStartTime();
 	float duration		= clip.getDuration();
-	size_t crwodCount	= getCrowdCount();
 
+	size_t crwodCount = getCrowdCount();
 	for (int i = 0; i < crwodCount; ++i) {
 		float random01 = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
 		_currentAnimPlaybackTimes[i] = start + (random01 * duration);
@@ -156,8 +158,8 @@ void Crowd::randomizePositions(Span<vec3f> existPositions, const vec3f& min, con
 	Vector<vec3f> newPositions;
 	size_t crwodCount = getCrowdCount();
 
-	float sqRadius = crowdGapRadius * crowdGapRadius;
-	vec3f delta = max - min;
+	float sqRadius	= crowdGapRadius * crowdGapRadius;
+	vec3f delta		= max - min;
 
 	newPositions.reserve(crwodCount);
 
@@ -207,7 +209,7 @@ void Crowd::randomizePositions(Span<vec3f> existPositions, const vec3f& min, con
 		resize(newPositions.size());
 	}
 
-	memcpy(_positions.data()->ptr(), newPositions.data()->ptr(), sizeof(float) * 3 * newPositions.size());
+	std::memcpy(_positions.data()->ptr(), newPositions.data()->ptr(), sizeof(float) * 3 * newPositions.size());
 }
 
 }

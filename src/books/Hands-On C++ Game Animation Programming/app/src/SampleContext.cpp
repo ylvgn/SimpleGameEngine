@@ -367,26 +367,13 @@ void SampleContext::test_BezierAndHermiteCurve_onCreate(Request& req) {
 	_debugLines->uploadToGpu();
 }
 void SampleContext::test_AnimationClip_onCreate(Request& req) {
-	_restPoseVisual    = new DebugDraw();
-	_bindPoseVisual    = new DebugDraw();
-	_currentPoseVisual = new DebugDraw();
-
-	const auto& restPose = _skeleton.restPose();
-
 	_loadExampleAsset();
+	_defaultSetPoseDebugDraw();
 	_defaultSetCamera(req, { 0,4,7 }, { 0,4,0 });
-
-	_restPoseVisual->lineFromPose(restPose);
-	_restPoseVisual->uploadToGpu();
-
-	_bindPoseVisual->lineFromPose(restPose);
-	_bindPoseVisual->uploadToGpu();
 
 	_currentClip  = 0;
 	_playbackTime = 0.f;
-	_currentPose  = restPose;
-	_currentPoseVisual->lineFromPose(_currentPose);
-	_currentPoseVisual->uploadToGpu();
+	_currentPose  = _skeleton->restPose();
 
 	// play 'Walking' animation clip
 	for (int i = 0; i < _clips.size(); ++i) {
@@ -401,7 +388,6 @@ void SampleContext::test_AnimationClip_onCreate(Request& req) {
 	req.bShowBindPose		= true;
 }
 void SampleContext::test_MeshSkinning_onCreate(Request& req) {
-	_defaultSetCamera(req, { 0,5,7 }, { 0,3,0 });
 	_texture = new Texture("Assets/Textures/Woman.png");
 	GLTFInfo info;
 	GLTFLoader::s_readFile(info, "Assets/Mesh/Woman.gltf");
@@ -412,9 +398,12 @@ void SampleContext::test_MeshSkinning_onCreate(Request& req) {
 		_fastClips[i] = ClipUtil::optimizeClip(info.animationClips[i]);
 	}
 #endif
-	_skeleton.create(info);
+	_skeleton = new Skeleton();
+	_skeleton->create(info);
 	_clips = std::move(info.animationClips);
 	RearrangeBones::s_rearrange(_skeleton, info.skinMeshes, _fastClips);
+
+	const auto& restPose = _skeleton->restPose();
 
 	{ // test cpu skinning
 		_staticShader = new Shader(
@@ -422,7 +411,7 @@ void SampleContext::test_MeshSkinning_onCreate(Request& req) {
 			"Assets/Shaders/lit.frag"
 		);
 		_cpuMeshes.appendRange(info.skinMeshes);
-		_cpuAnimInfo.animatedPose = _skeleton.restPose();
+		_cpuAnimInfo.animatedPose = restPose;
 	}
 
 	{ // test gpu skinning
@@ -438,7 +427,7 @@ void SampleContext::test_MeshSkinning_onCreate(Request& req) {
 		);
 #endif
 		_gpuMeshes.appendRange(info.skinMeshes); // trigger Mesh::operator= and it will uploadToGpu
-		_gpuAnimInfo.animatedPose = _skeleton.restPose();
+		_gpuAnimInfo.animatedPose = restPose;
 	}
 
 	_cpuAnimInfo.model.position = vec3f(-2, 0, 0);
@@ -456,16 +445,18 @@ void SampleContext::test_MeshSkinning_onCreate(Request& req) {
 			_gpuAnimInfo.clip = i;
 		}
 	}
+
+	_defaultSetCamera(req, { 0,5,7 }, { 0,3,0 });
 }
 void SampleContext::test_AnimationBlending_onCreate(Request& req) {
 	_loadExampleAsset();
-	_createExampleShader();
+	_loadExampleShader();
 	_defaultSetAnimInfo();
 	_defaultSetCamera(req, { 0,4,7 }, { 0,3,0 });
-	_blendAnimA.animatedPose = _skeleton.restPose();
+	_blendAnimA.animatedPose = _skeleton->restPose();
 	_blendAnimA.playback = 0.f;
 
-	_blendAnimB.animatedPose = _skeleton.restPose();
+	_blendAnimB.animatedPose = _skeleton->restPose();
 	_blendAnimB.playback = 0.f;
 
 	_elapsedBlendTime = 0.f;
@@ -487,28 +478,30 @@ void SampleContext::test_AnimationBlending_onCreate(Request& req) {
 }
 void SampleContext::test_Crossfading_onCreate(Request& req) {
 	_loadExampleAsset();
-	_createExampleShader();
+	_loadExampleShader();
 	_defaultSetAnimInfo();
-	_defaultSetCamera(req, { 0,4,7 }, { 0,3,0 });
+	_defaultSetCamera(req, { 0,4,6 }, { 0,3,0 });
 
 	CrossFadeController* fadeController = CrossFadeController::instance();
 	if (fadeController == nullptr) {
 		fadeController = new CrossFadeController();
 	}
-	fadeController->setSkeleton(&_skeleton); // todo gyh
+	fadeController->setSkeleton(_skeleton);
 	fadeController->play(&_clips[0]);
 
 	_fadeTimer = 2.0f;
 }
 void SampleContext::test_AdditiveBlending_onCreate(Request& req) {
 	_loadExampleAsset();
-	_createExampleShader();
+	_loadExampleShader();
 	_defaultSetAnimInfo();
 	_defaultSelectClip();
 	_defaultSetAdditiveBasePose();
-	_defaultSetCamera(req, { 0,3,7 }, { 0,3,0 });
-	_additiveTime = 0.f;
-	_additiveDirection = 1.f;
+	_defaultSetPoseDebugDraw();
+	_defaultSetCamera(req, { 0,5,6 }, { 0,3,0 });
+
+	_additiveTime		= 0.f;
+	_additiveDirection	= 1.f;
 }
 void SampleContext::test_CCD_onCreate(Request& req) {
 	_ccdSolver = make_unique< IKSolverExample<CCDSolver> >();
@@ -536,8 +529,8 @@ void SampleContext::test_FABRIK_HingeSocketConstraint_onCreate(Request& req) {
 }
 void SampleContext::test_RayCastTriangle_onCreate(Request& req) {
 	_loadExampleAsset_AlignFeetOnTheGround();
-	_createExampleShader();
-	_defaultSetCamera(req, vec3f(0, 7, 20), vec3f::s_zero());
+	_loadExampleShader();
+	_defaultSetCamera(req, { 0,7,20 }, vec3f::s_zero());
 
 	_groundRayDebugDraw = new DebugDrawPL();
 	_debugPoints		= new DebugDraw();
@@ -545,7 +538,7 @@ void SampleContext::test_RayCastTriangle_onCreate(Request& req) {
 void SampleContext::test_AlignFeetOnTheGround_onCreate(Request& req) {
 	_loadExampleAsset();
 	_loadExampleAsset_AlignFeetOnTheGround();
-	_createExampleShader();
+	_loadExampleShader();
 	_defaultSetAnimInfo();
 	_defaultSelectClip();
 	_defaultSetCamera(req);
@@ -644,14 +637,14 @@ void SampleContext::test_AlignFeetOnTheGround_onCreate(Request& req) {
 }
 void SampleContext::test_DualQuaterionMeshSkinning_onCreate(Request& req) {
 	_loadExampleAsset_DualQuaterionMeshSkinning();
-	_createExampleShader();
+	_loadExampleShader();
 	_defaultSetAnimInfo();
 	_defaultSelectClip();
 	_defaultSetCamera(req, { 0,0,15 }, { 0,0,0 });
 	//_gpuAnimInfo.model.position.set(0,0,0);
 }
 void SampleContext::test_InstancedCrowds_onCreate(Request& req) {
-	_createExampleShader();
+	_loadExampleShader();
 	_loadExampleAsset();
 	_defaultSetAnimInfo();
 	_defaultSetCamera(req, { 0,15,40 }, { 0,3,0 });
@@ -682,7 +675,7 @@ void SampleContext::test_AnimationClip_onUpdate(Request& req) {
 		s_clipLoopingTime = 0.f;
 		_currentClip  = (_currentClip + 1) % _clips.size();
 		_playbackTime = 0.f;
-		_currentPose  = _skeleton.restPose();
+		_currentPose  = _skeleton->restPose();
 	}
 	_currentPoseVisual->lineFromPose(_currentPose);
 }
@@ -698,7 +691,7 @@ void SampleContext::test_MeshSkinning_onUpdate(Request& req) {
 		_cpuAnimInfo.playback = clip.sample(_cpuAnimInfo.animatedPose, _cpuAnimInfo.playback + dt);
 #if 1 // test pre-multiplied skin matrix
 		_cpuAnimInfo.animatedPose.getMatrixPalette(_cpuAnimInfo.posePalette);
-		const auto& invBindPose = _skeleton.invBindPose();
+		const auto& invBindPose = _skeleton->invBindPose();
 		for (int i = 0; i < _cpuAnimInfo.posePalette.size(); ++i) {
 			_cpuAnimInfo.posePalette[i] = _cpuAnimInfo.posePalette[i] * invBindPose[i];
 		}
@@ -724,7 +717,7 @@ void SampleContext::test_MeshSkinning_onUpdate(Request& req) {
 		_populatePosePalette();
 
 #if 1 // test pre-multiplied skin matrix
-		const auto& invBindPose = _skeleton.invBindPose();
+		const auto& invBindPose = _skeleton->invBindPose();
 		for (int i = 0; i < _gpuAnimInfo.posePalette.size(); ++i) {
 			_gpuAnimInfo.posePalette[i] = _gpuAnimInfo.posePalette[i] * invBindPose[i];
 		}
@@ -749,7 +742,7 @@ void SampleContext::test_AnimationBlending_onUpdate(Request& req) {
 	if (_elapsedBlendTime >= 3.0f) { // each 3s switch animation between _blendAnimA and _blendAnimB
 		_elapsedBlendTime = 0.f;
 		_isInvertBlend = !_isInvertBlend;
-		_gpuAnimInfo.animatedPose = _skeleton.restPose();
+		_gpuAnimInfo.animatedPose = _skeleton->restPose();
 	}
 }
 void SampleContext::test_Crossfading_onUpdate(Request& req) {
@@ -800,6 +793,8 @@ void SampleContext::test_AdditiveBlending_onUpdate(Request& req) {
 	}
 
 	_populatePosePalette();
+
+	_currentPoseVisual->lineFromPose(_gpuAnimInfo.animatedPose);
 }
 void SampleContext::test_CCD_onUpdate(Request& req) {
 	_ccdSolver->update(req);
@@ -1250,7 +1245,7 @@ void SampleContext::test_AnimationClip_onRender(Request& req) {
 	mat4f vp = projection * view;
 
 	if (req.bShowRestPose) {
-		mat4f mvp = vp * mat4f::s_translate(vec3f(-3,0,0));
+		mat4f mvp = vp * mat4f::s_translate(vec3f(-3, 0, 0));
 		_restPoseVisual->draw(DebugDrawMode::Lines, mvp, DebugDraw::kRed);
 	}
 	if (req.bShowCurrentPose) {
@@ -1263,6 +1258,7 @@ void SampleContext::test_AnimationClip_onRender(Request& req) {
 		_bindPoseVisual->draw(DebugDrawMode::Lines, mvp, DebugDraw::kGreen);
 	}
 }
+
 void SampleContext::test_MeshSkinning_onRender(Request& req) {
 	mat4f projection(req.camera.projMatrix());
 	mat4f view(req.camera.viewMatrix());
@@ -1302,7 +1298,7 @@ void SampleContext::test_MeshSkinning_onRender(Request& req) {
 #if 1 // test pre-multiplied skin matrix
 				Uniform<mat4f>::set(_skinnedShader->findUniformByName("animated"), _gpuAnimInfo.posePalette);
 #else
-				Uniform<mat4f>::set(_skinnedShader->findUniformByName("invBindPose"), _skeleton.invBindPose());
+				Uniform<mat4f>::set(_skinnedShader->findUniformByName("invBindPose"), _skeleton->invBindPose());
 				Uniform<mat4f>::set(_skinnedShader->findUniformByName("pose"), _gpuAnimInfo.posePalette);
 #endif
 				_texture->set(_skinnedShader->findUniformByName("tex0"), 0);
@@ -1374,7 +1370,7 @@ void SampleContext::test_AlignFeetOnTheGround_onRender(Request& req) {
 	mat4f mvp	= vp * model;
 
 	if (req.bShowModelMesh) {
-		_onDrawGpuSkinning(projection, view);
+		_onDrawGpuSkinning(req);
 	}
 
 	if (req.bShowEnvironment) {
@@ -1473,7 +1469,7 @@ void SampleContext::test_AnimationClip_onDrawUI(Request& req) {
 	NuklearUI::Label("Animation:");
 	NuklearUI::Combo combo(_clipNames, _currentClip, 25, { 200, 200 });
 	if (combo.selectedIndex() != _currentClip) {
-		_currentPose = _skeleton.restPose();
+		_currentPose = _skeleton->restPose();
 		_currentClip = combo.selectedIndex();
 	}
 
@@ -1495,8 +1491,8 @@ void SampleContext::test_AnimationClip_onDrawUI(Request& req) {
 		} \
 // ----
 	E("Show Rest Pose", req.bShowRestPose)
-		E("Show Current Pose", req.bShowCurrentPose)
-		E("Show Bind Pose", req.bShowBindPose)
+	E("Show Current Pose", req.bShowCurrentPose)
+	E("Show Bind Pose", req.bShowBindPose)
 #undef E
 }
 void SampleContext::test_MeshSkinning_onDrawUI(Request& req) {}
@@ -1516,7 +1512,7 @@ void SampleContext::test_AdditiveBlending_onDrawUI(Request& req) {
 	NuklearUI::Label("Animation:");
 	NuklearUI::Combo combo(_clipNames, currentClip, 25, { 200, 200 });
 	if (combo.selectedIndex() != currentClip) {
-		_gpuAnimInfo.animatedPose = _skeleton.restPose();
+		_gpuAnimInfo.animatedPose = _skeleton->restPose();
 		currentClip = combo.selectedIndex();
 	}
 
@@ -1528,31 +1524,31 @@ void SampleContext::test_AdditiveBlending_onDrawUI(Request& req) {
 	size_t prog     = static_cast<size_t>(progress * 200.0f);
 	NuklearUI::Progress(&prog, 200, NK_FIXED);
 
-	NuklearUI::LayoutRowDynamic(20, 1);
-#if 0 // todo
-	NuklearUI::CheckboxLabel cb1("Show Rest Pose", req.bShowRestPose);
-	if (cb1.isOpen()) {
-		req.bShowRestPose = cb1.isActive();
-	}
-#endif
 	NuklearUI::Label("Additive:");
 	NuklearUI::Combo combo2(_clipNames, mAdditiveIndex, 25, { 200, 200 });
 	if (combo2.selectedIndex() != mAdditiveIndex) {
 		_clips[mAdditiveIndex].setIsLoop(true);
 		mAdditiveIndex = combo2.selectedIndex();
-		mAdditiveBase  = Blending::makeAdditiveBasePose(_skeleton, _clips[mAdditiveIndex]);
+		mAdditiveBase  = Blending::makeAdditiveBasePose(*_skeleton.ptr(), _clips[mAdditiveIndex]);
 		_clips[mAdditiveIndex].setIsLoop(true);
 	}
 
 	NuklearUI::Label("Strength:");
 	NuklearUI::SliderFloat(&_additiveTime, 0.0f, 1.0f);
-#if 0 // todo
+
 	NuklearUI::LayoutRowDynamic(20, 1);
-	NuklearUI::CheckboxLabel cb("Show Current Pose", req.bShowCurrentPose);
-	if (cb.isOpen()) {
-		req.bShowCurrentPose = cb.isActive();
-	}
-#endif
+#define E(NAME, VALUE) \
+	{ \
+		NuklearUI::CheckboxLabel cb(NAME, VALUE); \
+		if (cb.isOpen()) { \
+			VALUE = cb.isActive(); \
+		} \
+	} \
+// ----
+	E("Show Rest Pose", req.bShowRestPose)
+	E("Show Bind Pose", req.bShowBindPose)
+	E("Show Current Pose", req.bShowCurrentPose)
+#undef E
 }
 void SampleContext::test_CCD_onDrawUI(Request& req) {}
 void SampleContext::test_FABRIK_onDrawUI(Request& req) {}
@@ -1619,13 +1615,14 @@ void SampleContext::test_InstancedCrowds_onDrawUI(Request& req) {}
 #pragma mark ================= helper function ====================
 #endif
 void SampleContext::_onDrawGpuSkinningByDefault(Request& req) {
-	mat4f projection(req.camera.projMatrix());
-	mat4f view(req.camera.viewMatrix());
-	_onDrawGpuSkinning(projection, view);
+	_onDrawGpuSkinning(req);
 }
 
-void SampleContext::_onDrawGpuSkinning(const mat4f& projection, const mat4f& view) {
+void SampleContext::_onDrawGpuSkinning(Request& req) {
+	mat4f projection(req.camera.projMatrix());
+	mat4f view(req.camera.viewMatrix());
 	mat4f model = mat4f::s_transform(_gpuAnimInfo.model);
+	mat4f mvp = projection * view * model;
 
 	// bind shader
 	_skinnedShader->bind();
@@ -1646,6 +1643,19 @@ void SampleContext::_onDrawGpuSkinning(const mat4f& projection, const mat4f& vie
 		_texture->unset(0);
 	}
 	_skinnedShader->unbind();
+
+	if (!_depthTest) glDisable(GL_DEPTH_TEST);
+	if (req.bShowRestPose) {
+		_restPoseVisual->draw(DebugDrawMode::Lines, mvp, DebugDraw::kRed);
+	}
+	if (req.bShowCurrentPose) {
+		_currentPoseVisual->uploadToGpu();
+		_currentPoseVisual->draw(DebugDrawMode::Lines, mvp, DebugDraw::kBlue);
+	}
+	if (req.bShowBindPose) {
+		_bindPoseVisual->draw(DebugDrawMode::Lines, mvp, DebugDraw::kGreen);
+	}
+	if (!_depthTest) glEnable(GL_DEPTH_TEST);
 }
 
 void SampleContext::_onDrawStaticMesh(const mat4f& projection, const mat4f& view, Span<Mesh> meshes, SPtr<Texture> tex) {
@@ -1710,7 +1720,8 @@ void SampleContext::_loadExampleAsset() {
 	GLTFInfo info;
 	GLTFLoader::s_readFile(info, kGltfFileName);
 
-	_skeleton.create(info);
+	_skeleton = new Skeleton();
+	_skeleton->create(info);
 	_clips.reserve(info.animationClips.size());
 	_clips = std::move(info.animationClips);
 	_clipNames = std::move(info.animationClipNames);
@@ -1743,7 +1754,8 @@ void SampleContext::_loadExampleAsset_DualQuaterionMeshSkinning() {
 	GLTFInfo info;
 	GLTFLoader::s_readFile(info, kGltfFileName);
 
-	_skeleton.create(info);
+	_skeleton = new Skeleton();
+	_skeleton->create(info);
 	_clips.reserve(info.animationClips.size());
 	_clips = std::move(info.animationClips);
 	_clipNames = std::move(info.animationClipNames);
@@ -1765,47 +1777,7 @@ void SampleContext::_loadExampleAsset_InstancedCrowds() {
 	_randomSetCrowdSize(20); // actorCount: 20 x clipCount: 20 crowds
 }
 
-void SampleContext::_loadOrBakeAnimTex() {
-	size_t clipCount = _clips.size();
-	_crowdAnimTextures.resize(clipCount);
-
-	static constexpr const int kTexSize = 512;
-
-	for (int i = 0; i < clipCount; ++i) {
-		TempString filename;
-		const auto& clip = _clips[i];
-		FmtTo(filename, "Assets/Textures/{}.animTex", clip.name());
-
-		SPtr<AnimTexture> tex = new AnimTexture();
-		if (File::exists(filename)) {
-			tex->load(filename);
-		}
-		else {
-			tex->resize(kTexSize);
-			AnimBaker::bakeAnimationClipToTex(tex, _skeleton, clip);
-			tex->save(filename, true, false);
-		}
-		_crowdAnimTextures[i].reset(tex);
-	}
-}
-
-void SampleContext::_randomSetCrowdSize(size_t crowdCount) {
-	Vector<vec3f> occupiedPoints;
-	for (int i = 0; i < _crowds.size(); ++i) {
-		auto c = make_unique<Crowd>();
-		c->setShader(_crowdSkinnedShader);
-		c->resize(crowdCount);
-		c->randomizeTimes(_clips[i]);
-		c->randomizePositions(occupiedPoints, vec3f(-40, 0, -80.0f), vec3f(40, 0, 30.0f), 8.f);
-		if (_crowds[i]) {
-			_crowds[i].release();
-			_crowds[i] = nullptr;
-		}
-		_crowds[i] = std::move(c);
-	}
-}
-
-void SampleContext::_createExampleShader() {
+void SampleContext::_loadExampleShader() {
 	_staticShader = new Shader(
 		"Assets/Shaders/static.vert",
 		"Assets/Shaders/lit.frag"
@@ -1827,19 +1799,19 @@ void SampleContext::_createExampleShader() {
 }
 
 void SampleContext::_defaultSetAnimInfo() {
-	auto& restPose = _skeleton.restPose();
+	auto& restPose = _skeleton->restPose();
 
 	_cpuAnimInfo.playback     = 0.f;
 	_cpuAnimInfo.animatedPose = restPose;
 	_cpuAnimInfo.additivePose = restPose;
-	_skeleton.getInvBindPose(_cpuAnimInfo.invBindPosePalette);
+	_skeleton->getInvBindPose(_cpuAnimInfo.invBindPosePalette);
 
 	_gpuAnimInfo.playback     = 0.f;
 	_gpuAnimInfo.animatedPose = restPose;
 	_gpuAnimInfo.animatedPose.getMatrixPalette(_gpuAnimInfo.posePalette);
 	_gpuAnimInfo.animatedPose.getDualQuaternionPalette(_gpuAnimInfo.dqPosePalette);
-	_skeleton.getInvBindPose(_gpuAnimInfo.invBindPosePalette);
-	_skeleton.getInvBindPose(_gpuAnimInfo.dqInvBindPosePalette);
+	_skeleton->getInvBindPose(_gpuAnimInfo.invBindPosePalette);
+	_skeleton->getInvBindPose(_gpuAnimInfo.dqInvBindPosePalette);
 	_gpuAnimInfo.additivePose = restPose;
 }
 
@@ -1869,15 +1841,27 @@ void SampleContext::_defaultSetAdditiveBasePose() {
 
 	{
 		auto& clip = _clips[_cpuAnimInfo.additiveClip];
-		_cpuAnimInfo.additiveBasePose = Blending::makeAdditiveBasePose(_skeleton, clip);
+		_cpuAnimInfo.additiveBasePose = Blending::makeAdditiveBasePose(*_skeleton.ptr(), clip);
 		clip.setIsLoop(false);
 	}
 
 	{
 		auto& clip = _clips[_gpuAnimInfo.additiveClip];
-		_gpuAnimInfo.additiveBasePose = Blending::makeAdditiveBasePose(_skeleton, clip);
+		_gpuAnimInfo.additiveBasePose = Blending::makeAdditiveBasePose(*_skeleton.ptr(), clip);
 		clip.setIsLoop(false);
 	}
+}
+
+void SampleContext::_defaultSetPoseDebugDraw() {
+	_restPoseVisual		= new DebugDraw();
+	_bindPoseVisual		= new DebugDraw();
+	_currentPoseVisual	= new DebugDraw();
+
+	_restPoseVisual->lineFromPose(_skeleton->restPose());
+	_restPoseVisual->uploadToGpu();
+
+	_bindPoseVisual->lineFromPose(_skeleton->bindPose());
+	_bindPoseVisual->uploadToGpu();
 }
 
 void SampleContext::_defaultSetCamera(Request& req, const vec3f& pos /*= vec3f(0,0,0)*/, const vec3f& aim /*= vec3f(0,3,7)*/) {
@@ -1887,6 +1871,45 @@ void SampleContext::_defaultSetCamera(Request& req, const vec3f& pos /*= vec3f(0
 	req.camera.setFov(60.f);
 	req.camera.setNearClip(0.01f);
 	req.camera.setFarClip(1000.0f);
+}
+
+void SampleContext::_loadOrBakeAnimTex() {
+	size_t clipCount = _clips.size();
+	_crowdAnimTextures.resize(clipCount);
+
+	static constexpr const int kTexSize = 512;
+
+	for (int i = 0; i < clipCount; ++i) {
+		TempString filename;
+		const auto& clip = _clips[i];
+		FmtTo(filename, "Assets/Textures/{}.animTex", clip.name());
+
+		SPtr<AnimTexture> tex = new AnimTexture();
+		if (File::exists(filename)) {
+			tex->load(filename);
+		} else {
+			tex->resize(kTexSize);
+			AnimBaker::bakeAnimationClipToTex(tex, _skeleton, clip);
+			tex->save(filename, true, false);
+		}
+		_crowdAnimTextures[i].reset(tex);
+	}
+}
+
+void SampleContext::_randomSetCrowdSize(size_t crowdCount) {
+	Vector<vec3f> occupiedPoints;
+	for (int i = 0; i < _crowds.size(); ++i) {
+		auto c = make_unique<Crowd>();
+		c->setShader(_crowdSkinnedShader);
+		c->resize(crowdCount);
+		c->randomizeTimes(_clips[i]);
+		c->randomizePositions(occupiedPoints, vec3f(-40, 0, -80.0f), vec3f(40, 0, 30.0f), 8.f);
+		if (_crowds[i]) {
+			_crowds[i].release();
+			_crowds[i] = nullptr;
+		}
+		_crowds[i] = std::move(c);
+	}
 }
 
 } // namespace

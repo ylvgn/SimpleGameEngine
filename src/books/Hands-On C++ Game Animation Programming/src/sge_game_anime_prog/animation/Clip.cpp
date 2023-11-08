@@ -55,7 +55,7 @@ float ClipT<TRACK>::sample(Pose& out, float time) const {
 	// make sure the clip is valid and that the time is in the range of the clip.
 	time = _adjustTimeToFitRange(time);
 
-	Track_SampleRequest sr;
+	SampleRequest sr;
 	sr.isLoop = _isLoop;
 	
 	for (auto& track : _tracks) {
