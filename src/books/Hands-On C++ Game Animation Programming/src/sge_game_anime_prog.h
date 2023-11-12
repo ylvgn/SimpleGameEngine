@@ -8,6 +8,7 @@
 #include <sge_game_anime_prog/math/quat.h>
 #include <sge_game_anime_prog/math/dual_quat.h>
 #include <sge_game_anime_prog/math/mat4.h>
+#include <sge_game_anime_prog/math/Transform.h>
 #include <sge_game_anime_prog/math/MathGeometry.h>
 #include <sge_game_anime_prog/math/Intersections.h>
 

@@ -31,6 +31,7 @@ vec4 mulQ(vec4 Q1, vec4 Q2) {
 }
 
 vec3 mulQV(vec4 Q, vec3 v) {
+	// nVidia SDK implementation
 	vec3 qv  = Q.xyz;
 	vec3 uv  = cross(qv, v);
 	vec3 uuv = cross(qv, uv);

@@ -6,7 +6,6 @@
 #include <sge_game_anime_prog/animation/Clip.h>
 
 namespace sge {
-
 /*
 	The skeleton is important as it provides the rest pose,
 	which will be used for any joint that isn't present in the animation clip.

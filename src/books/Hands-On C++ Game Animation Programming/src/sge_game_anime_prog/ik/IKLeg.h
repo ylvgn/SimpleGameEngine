@@ -13,10 +13,10 @@ class IKLeg : public RefCountBase {
 public:
 	IKLeg();
 
-	inline int hip()	const	{ return _hipIndex;		}
-	inline int knee()	const	{ return _kneeIndex;	}
-	inline int ankle()	const	{ return _ankleIndex;	}
-	inline int toe()	const	{ return _toeIndex;		}
+	inline int hip()	const		{ return _hipIndex;		}
+	inline int knee()	const		{ return _kneeIndex;	}
+	inline int ankle()	const		{ return _ankleIndex;	}
+	inline int toe()	const		{ return _toeIndex;		}
 
 	inline int setHip(int index)	{ _hipIndex		= index; }
 	inline int setKnee(int index)	{ _kneeIndex	= index; }

@@ -30,7 +30,7 @@ void DebugDraw::draw(DebugDrawMode mode, const mat4f& mvp, const Color4f& color 
 		case DebugDrawMode::Loop:	DrawUtil::draw(vertexCount, DrawMode::LineLoop); break;
 		case DebugDrawMode::Strip:	DrawUtil::draw(vertexCount, DrawMode::LineStrip); break;
 		case DebugDrawMode::Points:	DrawUtil::draw(vertexCount, DrawMode::Points); break;
-		default:					throw SGE_ERROR("not supported"); break;
+		default:					throw SGE_ERROR("unsupported DebugDrawMode"); break;
 	}
 
 	_attribs.unbind(_shader->findAttributeByName("position"));

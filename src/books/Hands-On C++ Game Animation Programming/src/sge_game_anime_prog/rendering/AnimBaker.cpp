@@ -11,8 +11,9 @@ void AnimBaker::bakeAnimationClipToTex(SPtr<AnimTexture>& tex, const Skeleton* s
 
 	float maxX = static_cast<float>(texSize - 1);
 	for (int x = 0; x < texSize; ++x) {
-		float t = static_cast<float>(x) / maxX; // 0~1
-		float time = (clip.getStartTime() + clip.getDuration()) * t;
+
+		float normTime = static_cast<float>(x) / maxX; // 0~1
+		float time = (clip.getStartTime() + clip.getDuration()) * normTime;
 		clip.sample(bindPose, time);
 
 		// write current pose data(all bones) into texture

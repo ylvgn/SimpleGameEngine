@@ -2,23 +2,12 @@
 
 namespace sge {
 
-void Pose::resize(size_t newJointCount) {
-	// Since the parent and joint vectors are parallel, the resize function needs to set the size of both.
-	// at initialization, joint's parent is self, parentIds[i]==-1 means no parent
-	_parentIds.resize(newJointCount);
-	_jointTrans.resize(newJointCount);
-}
-
-void Pose::clear() {
-	resize(0);
+Pose::Pose(const Pose& r) {
+	*this = r; // will also call operator=
 }
 
 Pose& Pose::operator=(const Pose& r) {
-	// overload operator=, use std::memcpy for quick copy
-
-	if (&r == this) {
-		return *this;
-	}
+	if (&r == this) return *this;
 
 	_parentIds.resize(r._parentIds.size());
 	_jointTrans.resize(r._jointTrans.size());
@@ -29,6 +18,7 @@ Pose& Pose::operator=(const Pose& r) {
 			        sizeof(int) * _parentIds.size()
 		);
 	}
+
 	if (_jointTrans.size() != 0) {
 		std::memcpy(_jointTrans.data(),
 			        r._jointTrans.data(),
@@ -38,6 +28,39 @@ Pose& Pose::operator=(const Pose& r) {
 
 	SGE_ASSERT(_parentIds.size() == _jointTrans.size());
 	return *this;
+}
+
+bool Pose::operator==(const Pose& r) const {
+	if (_jointTrans.size() != r._jointTrans.size()
+	 || _parentIds.size()  != r._parentIds.size())
+	{
+		return false;
+	}
+
+	for (int i = 0; i < _parentIds.size(); ++i) {
+		if (_parentIds[i] != r._parentIds[i]) return false;
+	}
+
+	for (int i = 0; i < _jointTrans.size(); ++i) {
+		if (_jointTrans[i] != r._jointTrans[i]) return false;
+	}
+
+	return true;
+}
+
+bool Pose::operator!=(const Pose& r) const {
+	return !this->operator==(r);
+}
+
+void Pose::clear() {
+	resize(0);
+}
+
+void Pose::resize(size_t newJointCount) {
+	// Since the parent and joint vectors are parallel, the resize function needs to set the size of both.
+	// at initialization, joint's parent is self, parentIds[i]==-1 means no parent
+	_parentIds.resize(newJointCount);
+	_jointTrans.resize(newJointCount);
 }
 
 Transform Pose::getGlobalTransform(int i) const {
@@ -52,10 +75,10 @@ Transform Pose::getGlobalTransform(int i) const {
 }
 
 dual_quat4f Pose::getGlobalDualQuaternion(int i) const {
-	dual_quat4f result = dual_quat4f::s_Transform(getLocalTransform(i));
+	auto result = dual_quat4f::s_Transform(getLocalTransform(i));
 	for (int p = _parentIds[i]; p >= 0; p = _parentIds[p]) {
-		dual_quat4f parent = dual_quat4f::s_Transform(_jointTrans[p]);
-		result = result * parent; // Remember, multiplication is left to right!!!
+		auto parent = dual_quat4f::s_Transform(_jointTrans[p]);
+		result = result * parent; // Remember, dual quat multiplication is left to right!!!
 	}
 	return result;
 }
@@ -125,29 +148,6 @@ void Pose::getDualQuaternionPalette(Vector<dual_quat4f>& out) const {
 	for (; i < jointCount; ++i) { // second loop
 		out[i] = getGlobalDualQuaternion(i);
 	}
-}
-
-bool Pose::operator==(const Pose& r) const {
-	if ((_jointTrans.size() != r._jointTrans.size())
-	 || (_parentIds.size()  != r._parentIds.size()))
-	{
-		return false;
-	}
-
-	for (int i = 0; i < _parentIds.size(); ++i) {
-		if (_parentIds[i] != r._parentIds[i])
-			return false;
-	}
-	for (int i = 0; i < _jointTrans.size(); ++i) {
-		if (_jointTrans[i] != r._jointTrans[i])
-			return false;
-	}
-
-	return true;
-}
-
-bool Pose::operator!=(const Pose& r) const {
-	return !this->operator==(r);
 }
 
 }

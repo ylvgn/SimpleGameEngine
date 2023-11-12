@@ -30,7 +30,9 @@ public:
 	void _cameraMove() {
 		if (_cameraDeltaPos.equals0()) return;
 
-		auto d = _cameraDeltaPos * 0.15f;
+		static const Vec2f  kMouseSensitivity { 0.1f, 0.15f };
+
+		auto d = _cameraDeltaPos * kMouseSensitivity;
 		_camera.move(d.x, 0, d.y);
 
 		if (_cameraDeltaPos.x > 0) {
@@ -69,15 +71,11 @@ public:
 		if (_vertexArrayObject == 0)
 			return;
 
-#if SGE_OS_WINDOWS
-		if (_sampleContext) {
-			_timingInfo.cpu->beginAppRender();
-		}
-#endif
 		_beginRender();
 
 		if (_sampleContext) {
 #if SGE_OS_WINDOWS
+			_timingInfo.cpu->beginAppRender();
 			_timingInfo.gpu->beginAppRender();
 #endif
 			_sampleContext->render(_sampleRequest);
@@ -224,21 +222,21 @@ protected:
 		if (ev.isDragging()) {
 			switch (ev.pressedButtons) {
 			case Button::Left: {
-				auto d = ev.deltaPos * 0.01f;
+				auto d = ev.deltaPos * 0.005f;
 				_camera.pan(-d.x, d.y);
 			}break;
 			case Button::Middle: {
-				auto d = ev.deltaPos * 0.01f;
+				auto d = ev.deltaPos * 0.05f;
 				_camera.move(d.x, d.y, 0);
 			}break;
 			case Button::Right: {
-				auto d = ev.deltaPos * 0.01f;
+				auto d = ev.deltaPos * 0.005f;
 				_camera.orbit(d.x, d.y);
 			}break;
 			}
 		}
 		if (ev.isScroll()) {
-			auto d = ev.scroll * -0.005f;
+			auto d = ev.scroll * -0.02f;
 			_camera.dolly(d.y);
 		}
 	}
@@ -282,10 +280,10 @@ protected:
 		}
 
 		_showText.clear();
-		if (ev.isDown(KeyCode::W)) { _cameraDeltaPos.y = Math::clamp(_cameraDeltaPos.y + 1, -kMouseMaxDelta, kMouseMaxDelta); _showText += "W"; }
-		if (ev.isDown(KeyCode::S)) { _cameraDeltaPos.y = Math::clamp(_cameraDeltaPos.y - 1, -kMouseMaxDelta, kMouseMaxDelta); _showText += "S"; }
-		if (ev.isDown(KeyCode::A)) { _cameraDeltaPos.x = Math::clamp(_cameraDeltaPos.x + 1, -kMouseMaxDelta, kMouseMaxDelta); _showText += "A"; }
-		if (ev.isDown(KeyCode::D)) { _cameraDeltaPos.x = Math::clamp(_cameraDeltaPos.x - 1, -kMouseMaxDelta, kMouseMaxDelta); _showText += "D"; }
+		if (ev.isDown(KeyCode::W)) { _cameraDeltaPos.y = Math::clamp(_cameraDeltaPos.y+1, -kMouseMaxDelta, kMouseMaxDelta); _showText += "W"; }
+		if (ev.isDown(KeyCode::S)) { _cameraDeltaPos.y = Math::clamp(_cameraDeltaPos.y-1, -kMouseMaxDelta, kMouseMaxDelta); _showText += "S"; }
+		if (ev.isDown(KeyCode::A)) { _cameraDeltaPos.x = Math::clamp(_cameraDeltaPos.x+1, -kMouseMaxDelta, kMouseMaxDelta); _showText += "A"; }
+		if (ev.isDown(KeyCode::D)) { _cameraDeltaPos.x = Math::clamp(_cameraDeltaPos.x-1, -kMouseMaxDelta, kMouseMaxDelta); _showText += "D"; }
 		if (_showText.size() > 0) SGE_LOG("{}\tdelta: {}", _showText, _cameraDeltaPos);
 	}
 
@@ -330,7 +328,8 @@ private:
 	}
 
 	void _drawSampleSelectorWindow() {
-		const auto& clientSize = clientRect().size;
+		const auto& scaleFactor = NuklearUI::g_scaleFactor;
+		const auto& clientSize  = clientRect().size;
 
 		TempString title;
 		if (_type != Type::None) {
@@ -343,41 +342,52 @@ private:
 			return;
 		}
 
-		static vec2f pos		{ 50.f,  20.f };
-		static vec2f sItemSize	{ 250.f, 25.f };
-		static const int sItemCount = kSampleCount - 1;
-		Rect2f xywh {
-			pos.x,
-			pos.y,
-			sItemSize.x + NuklearUI::LayoutRowStatic::kItemWMargin,
-			sItemCount * (sItemSize.y + NuklearUI::LayoutRowStatic::kItemHMargin)
-		};
-		NuklearUI::Window window(xywh, "My Sample Selector", NuklearUI::Window::kMovableStyle);
-		if (!window.isOpen()) {
-			return;
+		{
+			Rect2f xywh { 0, 0, NuklearUI::Util::toNKSize(clientSize.x), 0 };
+			NuklearUI::Window window(xywh, "My Sample Selector");
 		}
-		NuklearUI::LayoutRowStatic layout(sItemSize.y, sItemSize.x);
-		for (auto flag = Type::None + 1; flag != Type::_END; flag += 1) {
-			title.clear();
-			FmtTo(title, "{}. {}", enumInt(flag), flag);
-			NuklearUI::ButtonLabel btn(title);
-			if (btn.isOpen()) {
-				_switchSample(flag);
+
+		{
+			static vec2f pos		{ 20.f * scaleFactor,  40.f * scaleFactor };
+			static vec2f sItemSize	{ 250.f, 25.f };
+			static const int sItemCount = kSampleCount - 1;
+			Rect2f xywh {
+				pos.x, pos.y,
+				sItemSize.x + NuklearUI::LayoutRowStatic::kItemWMargin,
+				sItemCount * (sItemSize.y + NuklearUI::LayoutRowStatic::kItemHMargin)
+			};
+			NuklearUI::Window window(xywh, "My Samples", NuklearUI::Window::kMovableStyle);
+			if (!window.isOpen()) {
+				return;
+			}
+			NuklearUI::LayoutRowStatic layout(sItemSize.y, sItemSize.x);
+			for (auto flag = Type::None + 1; flag != Type::_END; flag += 1) {
+				title.clear();
+				FmtTo(title, "{}. {}", enumInt(flag), flag);
+				NuklearUI::ButtonLabel btn(title);
+				if (btn.isOpen()) {
+					_switchSample(flag);
+				}
 			}
 		}
 	}
 	
 	void _drawSettingWindow() {
 		if (!_bShowSettingWindow) return;
+		auto& scaleFactor		= NuklearUI::g_scaleFactor;
 
-		auto& scaleFactor = NuklearUI::g_scaleFactor;
 #if 0 // why ???
 		const Vec2f& clientSize = clientRect().size;
-		float height = 100.f;
-		Rect2f xywh = { 0, clientSize.y - height * scaleFactor, clientSize.x / scaleFactor, height };
-#else
-		static constexpr Rect2f xywh { 0, 0, 220.f, 100.f };
+		float height = 120.f;
+	#if 1
+		Rect2f xywh { 0, clientSize.y - height * scaleFactor, clientSize.x / scaleFactor, height };
+	#else
+		Rect2f xywh { 0, 0, clientSize.x / scaleFactor, height };
+	#endif
 #endif
+
+		static constexpr Rect2f xywh { 0, 0, 220.f, 100.f};
+
 		NuklearUI::Window window(xywh, "ScaleFactor:");
 
 		auto windowSize = NuklearUI::windowGetSize();
@@ -395,22 +405,23 @@ private:
 
 		const auto& scaleFactor = NuklearUI::g_scaleFactor;
 		const Vec2f& clientSize = clientRect().size;
+
 		float imguiXPosition = clientSize.x - ( (kWindowWidth+2.f) * scaleFactor);
-		float imguiYPosition = 17.f * NuklearUI::g_scaleFactor;
+		float imguiYPosition = 17.f * scaleFactor;
 
 		#define SHOW_TEXT(FORMAT, ...) \
 				_showText.clear(); \
 				FmtTo(_showText, FORMAT, __VA_ARGS__); \
 				NuklearUI::Label(_showText); \
 		// -----
-
 		{
 			imguiYPosition += 15.f * scaleFactor;
-			Rect2f xywh { imguiXPosition, imguiYPosition, kWindowWidth, kTextSingleHeight * 3 };
+			Rect2f xywh { imguiXPosition, imguiYPosition, kWindowWidth, kTextSingleHeight * 4 };
 			NuklearUI::Window window(xywh, "Display Stats", kWindowStyle);
 
 			NuklearUI::LayoutRowStatic layout(15, 200, 1);
 
+			SHOW_TEXT("Display Stats:\0");
 			SHOW_TEXT("Display frequency: {}\0", _timingInfo.displayFrequency())
 			SHOW_TEXT(_vsynch != 0 ? "VSynch: on" : "VSynch: off")
 			SHOW_TEXT("Frame budget: {:0.2f} ms\0", _timingInfo.frameBudget())
@@ -418,34 +429,36 @@ private:
 		}
 
 		{
-			Rect2f xywh{ imguiXPosition, imguiYPosition, kWindowWidth, kTextSingleHeight * 2 };
+			Rect2f xywh{ imguiXPosition, imguiYPosition, kWindowWidth, kTextSingleHeight * 3 };
 			NuklearUI::Window window(xywh, "High Level Timers", kWindowStyle);
 
 			NuklearUI::LayoutRowStatic layout(15, 200, 1);
 
+			SHOW_TEXT("High Level Timers:\0");
 			NuklearUI::ScopedStyleTextColor c(_timingInfo.isSlowFrame() ? DebugDraw::kRed : DebugDraw::kGray);
-
 			SHOW_TEXT("Frame Time: {:0.5f} ms\0", _timingInfo.frameTime());
 			SHOW_TEXT("Delta Time: {:0.5f} ms\0", _timingInfo.deltaTime());
 			imguiYPosition += xywh.h * scaleFactor;
 		}
 
 		{
-			Rect2f xywh{ imguiXPosition, imguiYPosition, kWindowWidth, kTextSingleHeight * 2 };
+			Rect2f xywh{ imguiXPosition, imguiYPosition, kWindowWidth, kTextSingleHeight * 3 };
 			NuklearUI::Window window(xywh, "GPU Timers", kWindowStyle);
 
 			NuklearUI::LayoutRowStatic layout(15, 200, 1);
 
+			SHOW_TEXT("GPU Timers:\0");
 			SHOW_TEXT("Game GPU: {:0.5f} ms\0", _timingInfo.appGPU());
 			SHOW_TEXT("Nuklear GPU: {:0.5f} ms\0", _timingInfo.imguiGPU());
 			imguiYPosition += xywh.h * scaleFactor;
 		}
 
 		{
-			Rect2f xywh{ imguiXPosition, imguiYPosition, kWindowWidth, kTextSingleHeight * 5 };
+			Rect2f xywh{ imguiXPosition, imguiYPosition, kWindowWidth, kTextSingleHeight * 6 };
 			NuklearUI::Window window(xywh, "CPU Timers", kWindowStyle);
 			NuklearUI::LayoutRowStatic layout(15, 200, 1);
 
+			SHOW_TEXT("CPU Timers:\0");
 			//SHOW_TEXT("Win32 Events: {:0.5f} ms\0", _timingInfo.win32Events());
 			SHOW_TEXT("Game Update: {:0.5f} ms\0",  _timingInfo.frameUpdate());
 			SHOW_TEXT("Game Render: {:0.5f} ms\0",  _timingInfo.frameRender());

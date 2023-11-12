@@ -18,8 +18,7 @@ Shader::~Shader() {
 // Once the shaders are read, call the Compile, Link, and Populate helper functions to load the shader
 void Shader::load(StrView vertex, StrView fragment) {
 	// This function takes two strings, which are either filenames or inline shader definitions.
-	// what is inline shader definitions???
-	
+
 	u32 v_shader, f_shader;
 	if (File::exists(vertex)) {
 		v_shader = _compileVertexShader(_readFile(vertex));

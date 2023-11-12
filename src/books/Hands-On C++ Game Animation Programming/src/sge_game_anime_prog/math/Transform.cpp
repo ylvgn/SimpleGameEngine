@@ -1,5 +1,5 @@
 #include "Transform.h"
-#include "mat4.h"
+
 #include "dual_quat.h"
 
 namespace sge {

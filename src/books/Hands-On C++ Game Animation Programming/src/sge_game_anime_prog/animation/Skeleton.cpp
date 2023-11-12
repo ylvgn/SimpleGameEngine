@@ -1,7 +1,14 @@
 #include "Skeleton.h"
+
 #include <sge_game_anime_prog/gltf/GLTFInfo.h>
 
 namespace sge {
+
+void Skeleton::create(const GLTFInfo& src) {
+	setRestPose(src.restPose());
+	setBindPose(src.bindPose());
+	setJointNames(src.jointNames());
+}
 
 void Skeleton::clear() {
 	_restPose.clear();
@@ -24,6 +31,22 @@ void Skeleton::setJointNames(const Span<const String>& names) {
 	_jointNames.appendRange(names); // StringT need add copy constructor and operator=
 }
 
+void Skeleton::getInvBindPose(Vector<mat4f>& out) const {
+	out.clear();
+	out.reserve(_invBindPose.size());
+	out.appendRange(_invBindPose);
+}
+
+void Skeleton::getInvBindPose(Vector<dual_quat4f>& out) const {
+	size_t jointCount = _bindPose.getJointCount();
+	out.resize(jointCount);
+
+	for (int i = 0; i < jointCount; ++i) {
+		dual_quat4f world = _bindPose.getGlobalDualQuaternion(i);
+		out[i] = world.conjugate();
+	}
+}
+
 void Skeleton::_updateInverseBindPose() {
 	size_t jointCount = _bindPose.getJointCount();
 	_invBindPose.resize(jointCount);
@@ -39,28 +62,6 @@ void Skeleton::_updateInverseBindPose() {
 		// The performance delta between the two is minimal.
 		_invBindPose[i] = mat4f::s_transform(world.inverse());
 #endif
-	}
-}
-
-void Skeleton::create(const GLTFInfo& src) {
-	setRestPose(src.restPose());
-	setBindPose(src.bindPose());
-	setJointNames(src.jointNames());
-}
-
-void Skeleton::getInvBindPose(Vector<mat4f>& out) const {
-	out.clear();
-	out.reserve(_invBindPose.size());
-	out.appendRange(_invBindPose);
-}
-
-void Skeleton::getInvBindPose(Vector<dual_quat>& out) const {
-	size_t jointCount = _bindPose.getJointCount();
-	out.resize(jointCount);
-
-	for (int i = 0; i < jointCount; ++i) {
-		dual_quat4f world = _bindPose.getGlobalDualQuaternion(i);
-		out[i] = world.conjugate();
 	}
 }
 

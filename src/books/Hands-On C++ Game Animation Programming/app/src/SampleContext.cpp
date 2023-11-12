@@ -3,15 +3,15 @@
 
 namespace sge {
 
-static float sUIHeaderHeight() {
+static float SampleContext_sUIHeaderHeight() {
 	return (NuklearUI::Window::kTitleHeight + 5) * NuklearUI::g_scaleFactor;
 }
 
 void SampleContext::test_None_onCreate(Request& req) {}
 void SampleContext::test__END_onCreate(Request& req) {}
 void SampleContext::test_LitTexture_onCreate(Request& req) {
-	_debugPoints = new DebugDraw();
-	_debugLines  = new DebugDraw();
+	_debugPoints	= new DebugDraw();
+	_debugLines		= new DebugDraw();
 
 	_texture		= new Texture("Assets/Textures/uvChecker.png");
 	_staticShader	= new Shader(
@@ -459,8 +459,8 @@ void SampleContext::test_AnimationBlending_onCreate(Request& req) {
 	_blendAnimB.animatedPose = _skeleton->restPose();
 	_blendAnimB.playback = 0.f;
 
-	_elapsedBlendTime = 0.f;
-	_isInvertBlend = false;
+	_elapsedBlendTime	= 0.f;
+	_isInvertBlend		= false;
 
 	int i = 0;
 	for (auto& clip : _clips) {
@@ -1104,7 +1104,7 @@ void SampleContext::test_AlignFeetOnTheGround_onUpdate(Request& req) {
 	_ankleToCurrentToeDebugDraw->add(leftToeWorldPos, leftAnkleWorld.position);
 	_ankleToDesiredToeDebugDraw->add(leftToeTarget,   leftAnkleWorld.position);
 
-	if (leftAnkleToCurrentToe.dot(leftAnkleToDesiredToe) > kEpsilon) { // degrees range (-90, 90), why ???
+	if (leftAnkleToCurrentToe.dot(leftAnkleToDesiredToe) > kEpsilon) { // degrees range (-90, 90)
 		Transform ankleLocalTran = curAnimatedPose.getLocalTransform(_leftLeg->ankle());
 		const quat4f& leftAnkleWorldRot = leftAnkleWorld.rotation;
 	#if 1 // calc in world space
@@ -1343,7 +1343,7 @@ void SampleContext::test_RayCastTriangle_onRender(Request& req) {
 	mat4f projection(req.camera.projMatrix());
 	mat4f view(req.camera.viewMatrix());
 	mat4f mvp = projection * view * mat4f::s_identity();
-	_onDrawStaticMesh(projection, view, _ikCourse, _ikCourseTexture);
+	_onDrawStaticMesh(req, _ikCourse, _ikCourseTexture);
 
 	_debugPoints->uploadToGpu();
 	_debugPoints->draw(DebugDrawMode::Points, mvp, DebugDraw::kGreen);
@@ -1374,7 +1374,7 @@ void SampleContext::test_AlignFeetOnTheGround_onRender(Request& req) {
 	}
 
 	if (req.bShowEnvironment) {
-		_onDrawStaticMesh(projection, view, _ikCourse, _ikCourseTexture);
+		_onDrawStaticMesh(req, _ikCourse, _ikCourseTexture);
 	}
 
 	if (!_depthTest) glDisable(GL_DEPTH_TEST);
@@ -1454,14 +1454,14 @@ void SampleContext::test_InstancedCrowds_onRender(Request& req) {
 }
 
 void SampleContext::test_None_onDrawUI(Request& req) {
-	NuklearUI::demo();
+//	NuklearUI::demo();
 }
 void SampleContext::test__END_onDrawUI(Request& req) {}
 void SampleContext::test_LitTexture_onDrawUI(Request& req) {}
 void SampleContext::test_AnimationScalarTrack_onDrawUI(Request& req) {}
 void SampleContext::test_BezierAndHermiteCurve_onDrawUI(Request& req) {}
 void SampleContext::test_AnimationClip_onDrawUI(Request& req) {
-	Rect2f xywh{ 5.0f, 5.0f + sUIHeaderHeight(), 300.0f, 135.0f };
+	Rect2f xywh{ 5.0f, 5.0f + SampleContext_sUIHeaderHeight(), 300.0f, 135.0f };
 	NuklearUI::Window window(xywh);
 
 	static const float layout[] = { 75, 200 };
@@ -1504,7 +1504,7 @@ void SampleContext::test_AdditiveBlending_onDrawUI(Request& req) {
 	auto& mAdditiveIndex	= _gpuAnimInfo.additiveClip;
 	auto& mAdditiveBase		= _gpuAnimInfo.additiveBasePose;
 
-	Rect2f xywh{ 5.0f, 5.0f + sUIHeaderHeight(), 300.0f, 225.0f };
+	Rect2f xywh{ 5.0f, 5.0f + SampleContext_sUIHeaderHeight(), 300.0f, 225.0f };
 	NuklearUI::Window window(xywh);
 	static const float layout[] = { 75, 200 };
 	NuklearUI::LayoutRow(NK_STATIC, 25, 2, layout);
@@ -1558,7 +1558,7 @@ void SampleContext::test_CCD_HingeSocketConstraint_onDrawUI(Request& req) {}
 void SampleContext::test_FABRIK_HingeSocketConstraint_onDrawUI(Request& req) {}
 void SampleContext::test_RayCastTriangle_onDrawUI(Request& req) {}
 void SampleContext::test_AlignFeetOnTheGround_onDrawUI(Request& req) {
-	Rect2f xywh { 5.0f, 5.0f + sUIHeaderHeight(), 300.0f, 330.0f };
+	Rect2f xywh { 5.0f, 5.0f + SampleContext_sUIHeaderHeight(), 300.0f, 330.0f };
 	NuklearUI::Window window(xywh);
 	static const float layout[] = { 75, 200 };
 	NuklearUI::LayoutRow row(NK_STATIC, 25, 2, layout);
@@ -1593,7 +1593,7 @@ void SampleContext::test_AlignFeetOnTheGround_onDrawUI(Request& req) {
 #undef E
 }
 void SampleContext::test_DualQuaterionMeshSkinning_onDrawUI(Request& req) {
-	Rect2f xywh{ 5.0f, 5.0f + sUIHeaderHeight(), 300.0f, 60.0f };
+	Rect2f xywh{ 5.0f, 5.0f + SampleContext_sUIHeaderHeight(), 300.0f, 60.0f };
 	NuklearUI::Window window(xywh);
 
 	static const float layout[] = { 75, 200 };
@@ -1658,7 +1658,10 @@ void SampleContext::_onDrawGpuSkinning(Request& req) {
 	if (!_depthTest) glEnable(GL_DEPTH_TEST);
 }
 
-void SampleContext::_onDrawStaticMesh(const mat4f& projection, const mat4f& view, Span<Mesh> meshes, SPtr<Texture> tex) {
+void SampleContext::_onDrawStaticMesh(Request& req, Span<Mesh> meshes, Texture* tex) {
+	mat4f projection(req.camera.projMatrix());
+	mat4f view(req.camera.viewMatrix());
+
 	// bind shader
 	_staticShader->bind();
 	{
@@ -1682,7 +1685,12 @@ void SampleContext::_populatePosePalette() {
 	_gpuAnimInfo.animatedPose.getMatrixPalette(_gpuAnimInfo.posePalette);
 }
 
-void SampleContext::test_DualQuaterionMeshSkinning_onRender_Inner(Request& req, Shader* shader, const AnimationAttribLocation& attrLoc, const mat4f& model, bool isDualSkinning) {
+void SampleContext::test_DualQuaterionMeshSkinning_onRender_Inner(	Request& req,
+																	Shader* shader,
+																	const AnimationAttribLocation& attrLoc,
+																	const mat4f& model,
+																	bool isDualSkinning)
+{
 	mat4f projection(req.camera.projMatrix());
 	mat4f view(req.camera.viewMatrix());
 
@@ -1742,7 +1750,7 @@ void SampleContext::_loadExampleAsset_AlignFeetOnTheGround() {
 	GLTFInfo info;
 	GLTFLoader::s_readFile(info, kGltfFileName);
 
-	_ikCourse = info.staticMeshes;
+	_ikCourse  = info.staticMeshes;
 	_triangles = IntersectionsUtil::meshesToTriangles(_ikCourse);
 	_ikCourseTexture = new Texture(kTextureFileName);
 }
@@ -1768,7 +1776,7 @@ void SampleContext::_loadExampleAsset_DualQuaterionMeshSkinning() {
 
 	_texture = new Texture(kTextureFileName);
 }
-
+   
 void SampleContext::_loadExampleAsset_InstancedCrowds() {
 	size_t clipCount = _clips.size();
 	_crowds.resize(clipCount);
@@ -1896,12 +1904,12 @@ void SampleContext::_loadOrBakeAnimTex() {
 	}
 }
 
-void SampleContext::_randomSetCrowdSize(size_t crowdCount) {
+void SampleContext::_randomSetCrowdSize(size_t newCrowdCount) {
 	Vector<vec3f> occupiedPoints;
 	for (int i = 0; i < _crowds.size(); ++i) {
 		auto c = make_unique<Crowd>();
 		c->setShader(_crowdSkinnedShader);
-		c->resize(crowdCount);
+		c->resize(newCrowdCount);
 		c->randomizeTimes(_clips[i]);
 		c->randomizePositions(occupiedPoints, vec3f(-40, 0, -80.0f), vec3f(40, 0, 30.0f), 8.f);
 		if (_crowds[i]) {

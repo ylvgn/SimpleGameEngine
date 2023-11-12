@@ -12,7 +12,7 @@ void RearrangeBones::_internalRearrangeClip(ClipT<T>& out) {
 }
 
 template<typename T>
-void RearrangeBones::_s_internal_rearrange(Skeleton& outSkeleton, Span<Mesh> outMeshes, Span< ClipT<T> > outClips) {
+void RearrangeBones::_s_internal_rearrange(Skeleton* outSkeleton, Span<Mesh> outMeshes, Span< ClipT<T> > outClips) {
 	RearrangeBones re;
 	re._create(outSkeleton);
 
@@ -36,9 +36,9 @@ void RearrangeBones::_clear() {
 	_outSkeleton = nullptr;
 }
 
-void RearrangeBones::_create(Skeleton& outSkeleton) {
+void RearrangeBones::_create(Skeleton* outSkeleton) {
 	_clear();
-	_outSkeleton = &outSkeleton;
+	_outSkeleton = outSkeleton;
 
 	const auto& restPose = _outSkeleton->restPose();
 
@@ -104,7 +104,7 @@ void RearrangeBones::_rearrangeSkeleton() {
 		int oldParent		= bindPose.getParent(oldJointId);
 		int newParent		= _rearrangeIdx(oldParent);
 
-		newJointNames[i]	= jointNames[oldJointId];
+		newJointNames[i].assign(jointNames[oldJointId]);
 
 		newRestPose.setLocalTransform(i, restPose.getLocalTransform(oldJointId));
 		newBindPose.setLocalTransform(i, bindPose.getLocalTransform(oldJointId));
@@ -136,11 +136,13 @@ void RearrangeBones::_rearrangeMesh(Mesh& out) {
 	out.uploadToGpu();
 }
 
+#if 1
 // explict template instantiation
-template void RearrangeBones::_s_internal_rearrange(Skeleton& outSkeleton, Span<Mesh> outMeshes, Span< Clip > outClips);
-template void RearrangeBones::_s_internal_rearrange(Skeleton& outSkeleton, Span<Mesh> outMeshes, Span< FastClip > outClips);
+template void RearrangeBones::_s_internal_rearrange(Skeleton* outSkeleton, Span<Mesh> outMeshes, Span< Clip > outClips);
+template void RearrangeBones::_s_internal_rearrange(Skeleton* outSkeleton, Span<Mesh> outMeshes, Span< FastClip > outClips);
 
 template void RearrangeBones::_internalRearrangeClip(Clip& out);
 template void RearrangeBones::_internalRearrangeClip(FastClip& out);
+#endif
 
 }

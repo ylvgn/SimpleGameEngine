@@ -98,9 +98,12 @@ bool TVec4<T>::equals0(const T& epsilon) const {
 template<>
 struct TVec4<int> {
 	using ElementType = int;
+
+	static const size_t kElementCount = 4;
+
 	union {
 		struct { ElementType x, y, z, w; };
-		ElementType data[4];
+		ElementType data[kElementCount];
 	};
 
 	inline TVec4() = default;
@@ -111,9 +114,12 @@ struct TVec4<int> {
 template<>
 struct TVec4<unsigned int> {
 	using ElementType = unsigned int;
+
+	static const size_t kElementCount = 4;
+
 	union {
 		struct { ElementType x, y, z, w; };
-		ElementType data[4];
+		ElementType data[kElementCount];
 	};
 
 	inline TVec4() = default;

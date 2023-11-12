@@ -4,20 +4,23 @@
 #include <sge_core/graph/Color.h>
 
 #include <sge_game_anime_prog/math/mat4.h>
+#include <sge_game_anime_prog/math/MathGeometry.h>
 
 #include <sge_game_anime_prog/opengl/Shader.h>
 #include <sge_game_anime_prog/opengl/Attribute.h>
 
-#include <sge_game_anime_prog/math/MathGeometry.h>
-
 namespace sge {
-
 /*
 	The DebugDraw class is not very efficient
 	it's only meant to be used for debugging
 */
 
-enum class DebugDrawMode { Lines, Loop, Strip, Points };
+enum class DebugDrawMode {
+	Lines,
+	Loop,
+	Strip,
+	Points,
+};
 
 class CCDSolver;
 class FABRIKSolver;
@@ -25,6 +28,7 @@ class Pose;
 
 class DebugDraw : public RefCountBase {
 
+	// inline shader definitions
 	static constexpr const char* kVert = "#version 330 core\n"
 		"uniform mat4 mvp;\n"
 		"in vec3 position;\n"
@@ -38,6 +42,7 @@ class DebugDraw : public RefCountBase {
 		"void main() {\n"
 		"	FragColor = color;\n"
 		"}";
+
 public:
 	constexpr static const Color4f kWhite	=	{1,1,1,1};
 	constexpr static const Color4f kBlack	=	{0,0,0,1};
@@ -71,8 +76,8 @@ public:
 	inline Span<      vec3f> span()						{ return _points.span(); }
 	inline Span<const vec3f> span() const				{ return _points.span(); }
 
-	inline       vec3f& operator[] (int index)       { return _points[index]; }
-	inline const vec3f& operator[] (int index) const { return _points[index]; }
+	inline       vec3f& operator[] (int index)			{ return _points[index]; }
+	inline const vec3f& operator[] (int index) const	{ return _points[index]; }
 
 	void draw(DebugDrawMode mode, const mat4f& mvp, const Color4f& color = kYellow);
 
@@ -85,7 +90,6 @@ public:
 	void pointsFromIKSolver(const FABRIKSolver& solver);
 
 private:
-
 	Vector<vec3f>		_points;
 	Attribute<vec3f>	_attribs;
 	SPtr<Shader>		_shader;
@@ -124,7 +128,7 @@ public:
 	template<class IKSolver>
 	void fromIKSolver(const IKSolver& solver);
 
-	inline void lineFromPose(const Pose& pose)	{ _lines->lineFromPose(pose); }
+	inline void lineFromPose(const Pose& pose) { _lines->lineFromPose(pose); }
 
 	inline Color4f pointColor() const	{ return _pointColor; }
 	inline Color4f lineColor () const	{ return _lineColor; }

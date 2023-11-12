@@ -4,15 +4,18 @@
 #include <sge_game_anime_prog/math/quat.h>
 
 namespace sge {
+/*
+	write animation data to A 32-bit floating-point texture
+*/
 
-// write animation data to A 32-bit floating-point texture
 class AnimTexture : public RefCountBase {
-	using Util = OpenGLUtil;
 public:
+	using Util = OpenGLUtil;
+
 	AnimTexture();
 	~AnimTexture();
 
-	void setTexel(u32 x, u32 y, const vec3f& v);
+	void setTexel(u32 x, u32 y, const vec3f&  v);
 	void setTexel(u32 x, u32 y, const quat4f& v);
 
 	void getTexel(vec4f& out, u32 x, u32 y);
@@ -43,7 +46,9 @@ public:
 	}
 
 private:
-	inline u32 _getTexelIndex(u32 x, u32 y) const { return (y * static_cast<u32>(_texSize) * 4) + (x * 4); }
+	inline u32 _getTexelIndex(u32 x, u32 y) const {
+		return (y * static_cast<u32>(_texSize) * 4) + (x * 4);
+	}
 
 	void _load(ByteSpan data, StrView filename);
 

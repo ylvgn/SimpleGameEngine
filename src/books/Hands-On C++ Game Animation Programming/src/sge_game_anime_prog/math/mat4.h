@@ -1,12 +1,11 @@
 #pragma once
 
-#include "vec4.h"
 #include "quat.h"
 
 namespace sge {
 
-struct Transform;
 struct dual_quat;
+struct Transform;
 
 struct mat4 {
 

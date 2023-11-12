@@ -27,7 +27,8 @@ struct dual_quat {
 	static const size_t kElementCount = 8;
 
 	union {
-		struct { // 2x4 matrix aka mat2x4
+		// 2x4 matrix aka mat2x4
+		struct {
 			float x,  y,  z,  w;
 			float dx, dy, dz, dw;
 		};
@@ -63,7 +64,11 @@ struct dual_quat {
 		, dw(-0.5f * ( t.x*x + t.y*y + t.z*z )) {}
 #endif
 
+	inline static dual_quat s_identity()			{ return dual_quat(0,0,0,1, 0,0,0,0); }
+	inline static dual_quat s_zero()				{ return dual_quat(0,0,0,0, 0,0,0,0); }
+
 	inline void set(const quat& real_, const quat& dual_) { real = real_; dual = dual_; }
+
 	inline void set(float x_,  float y_,  float z_,	 float w_,
 					float dx_, float dy_, float dz_, float dw_)
 	{
@@ -71,11 +76,8 @@ struct dual_quat {
 		setDual(dx_, dy_, dz_, dw_);
 	}
 
-	inline void setReal(float x_,  float y_,  float z_,  float w_)	{ x = x_;	y = y_;	  z = z_;	w = w_; }
+	inline void setReal(float x_,  float y_,  float z_,  float w_)	{ x = x_;	y = y_;   z = z_;	w = w_; }
 	inline void setDual(float dx_, float dy_, float dz_, float dw_) { dx = dx_; dy = dy_; dz = dz_;	dw = dw_; }
-
-	inline static dual_quat s_identity()			{ return dual_quat(0,0,0,1, 0,0,0,0); }
-	inline static dual_quat s_zero()				{ return dual_quat(0,0,0,0, 0,0,0,0); }
 
 	inline			float& operator[](int i)		{ SGE_ASSERT(i < kElementCount); return data[i]; }
 	inline const	float& operator[](int i) const	{ SGE_ASSERT(i < kElementCount); return data[i]; }
@@ -199,11 +201,13 @@ struct dual_quat {
 };
 
 inline bool dual_quat::equals(const dual_quat& r, float epsilon) const {
-	return real.equals(r.real, epsilon) && dual.equals(r.dual, epsilon);
+	return real.equals(r.real, epsilon)
+		&& dual.equals(r.dual, epsilon);
 }
 
 inline bool dual_quat::equals0(float epsilon) const {
-	return real.equals0(epsilon) && dual.equals0(epsilon);
+	return real.equals0(epsilon)
+		&& dual.equals0(epsilon);
 }
 
 using dual_quat4f = dual_quat;

@@ -5,7 +5,7 @@ namespace sge {
 
 template<typename TRACK>
 float ClipT<TRACK>::_adjustTimeToFitRange(float time) const {
-	// same logic as Track.h 's _adjustTimeToFitTrack function
+	// same logic as Track.h '_adjustTimeToFitTrack' function
 
 	float duration = getDuration();
 	if (duration <= 0) {
@@ -59,8 +59,8 @@ float ClipT<TRACK>::sample(Pose& out, float time) const {
 	sr.isLoop = _isLoop;
 	
 	for (auto& track : _tracks) {
-		u32 joint		= track->id();
-		Transform local = out.getLocalTransform(joint);
+		u32 jointId		= track->id();
+		Transform local = out.getLocalTransform(jointId);
 
 		// If a component of a transform isn't animated,
 		// the reference components are used to provide default values.
@@ -68,7 +68,7 @@ float ClipT<TRACK>::sample(Pose& out, float time) const {
 		sr.time = time;
 		Transform animated = track->sample(local, sr);
 
-		out.setLocalTransform(joint, animated);
+		out.setLocalTransform(jointId, animated);
 	}
 
 	return time;
@@ -96,6 +96,9 @@ TRACK& ClipT<TRACK>::operator[] (u32 jointId) {
 template ClipT<TransformTrack>;
 template ClipT<FastTransformTrack>;
 
+#if 0
+#pragma mark ================= ClipUtil ====================
+#endif
 FastClip ClipUtil::optimizeClip(const Clip& src) {
 	FastClip res;
 	res.reserve(src.getTrackCount());

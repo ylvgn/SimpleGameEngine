@@ -2,11 +2,22 @@
 
 namespace sge {
 
+GLenum DrawUtil::getGLDrawMode(DrawMode v) {
+	switch (v)
+	{
+		case DrawMode::Points:			return GL_POINTS;
+		case DrawMode::LineStrip:		return GL_LINE_STRIP;
+		case DrawMode::LineLoop:		return GL_LINE_LOOP;
+		case DrawMode::Lines:			return GL_LINES;
+		case DrawMode::Triangles:		return GL_TRIANGLES;
+		case DrawMode::TriangleStrip:	return GL_TRIANGLE_STRIP;
+		case DrawMode::TriangleFan:		return GL_TRIANGLE_FAN;
+		default:						throw  SGE_ERROR("unsupported DrawMode");
+	}
+}
+
 void DrawUtil::draw(size_t vertexCount, DrawMode mode/*= DrawMode::Triangles*/) {
-	glDrawArrays(DrawUtil::getGLDrawMode(mode),
-				 0,
-				 static_cast<GLsizei>(vertexCount)
-	);
+	glDrawArrays(DrawUtil::getGLDrawMode(mode), 0, static_cast<GLsizei>(vertexCount));
 }
 
 void DrawUtil::drawInstanced(size_t vertexCount, size_t instanceCount, DrawMode mode/*=DrawMode::Triangles*/) {
@@ -22,7 +33,7 @@ void DrawUtil::draw(const IndexBuffer& indexBuf, DrawMode mode/*=DrawMode::Trian
 	{
 		glDrawElements(	DrawUtil::getGLDrawMode(mode),
 						static_cast<GLuint>(indexBuf.count()),
-						OpenGLUtil::getGLFormat<IndexBuffer::DataType>(),
+						OpenGLUtil::getGLFormat<IndexBuffer::IndexType>(),
 						0
 		);
 		/*
@@ -59,7 +70,7 @@ void DrawUtil::drawInstanced(const IndexBuffer& indexBuf, size_t instanceCount, 
 	{
 		glDrawElementsInstanced(DrawUtil::getGLDrawMode(mode),
 								static_cast<GLsizei>(indexBuf.count()),
-								OpenGLUtil::getGLFormat<IndexBuffer::DataType>(),
+								OpenGLUtil::getGLFormat<IndexBuffer::IndexType>(),
 								0,
 								static_cast<GLsizei>(instanceCount)
 		);

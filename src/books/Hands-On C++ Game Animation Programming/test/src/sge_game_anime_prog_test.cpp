@@ -11,7 +11,7 @@
 namespace sge {
 
 void run_temp_test() {
-	RUN_TEST(test_dual_qual)
+	RUN_TEST(test_qual)
 }
 
 void run_all_test() {
@@ -22,7 +22,7 @@ void run_all_test() {
 }
 
 int test_main() {
-#if 0
+#if 1
 	run_temp_test();
 #else
 	run_all_test();

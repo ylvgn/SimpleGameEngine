@@ -1,10 +1,8 @@
 #pragma once
 
-#include <sge_core/math/Math.h>
 #include "vec4.h"
 
 namespace sge {
-
 /*
 	FYI:
 	- https://gabormakesgames.com/quaternions.html
@@ -112,16 +110,16 @@ struct quat {
 #endif
 	}
 
+#if 0 // something wrong, but no why ??? when use q2 = q1 * vec3f::right(), then mat4::s_quat(q2)
 	inline vec3 operator* (const vec3& v) const {
-#if 0
-		// something wrong, but no why ??? when use q2 = q1 * vec3f::right(), then mat4::s_quat(q2)
 		// FYI: https://gabormakesgames.com/blog_quats_multiply_vec.html
 		vec3 qv(x,y,z);
 		return qv * 2.0f * qv.dot(v) +
 			v * (w*w - qv.dot(qv)) +
 			qv.cross(v) * 2.0f * w;
-#endif
-
+	}
+#else
+	inline vec3 operator* (const vec3& v) const {
 #if 0
 		// MS XNA framework implementation
 		float num12 = x + x;
@@ -150,6 +148,7 @@ struct quat {
 		return v + (uv * w + uuv) * 2;
 #endif
 	}
+#endif
 
 	inline quat operator+ (float s)	const	{ return quat(x+s, y+s, z+s, w+s); }
 	inline quat operator- (float s)	const	{ return quat(x-s, y-s, z-s, w-s); }
@@ -170,14 +169,12 @@ struct quat {
 	inline bool operator!= (const quat& r) const { return !this->operator==(r); }
 
 	inline bool sameOrientation(const quat& r) const {
+		// The sameOrientation function is not as useful
+		// because the rotation that a quaternion takes can be changed if the quaternion is inverted.
 		return equals(r) || (Math::equals0(x+r.x)
 						  && Math::equals0(y+r.y)
 						  && Math::equals0(z+r.z)
 						  && Math::equals0(w+r.w));
-/*
-		The sameOrientation function is not as useful
-		because the rotation that a quaternion takes can be changed if the quaternion is inverted.
-*/
 	}
 
 	// Like with vectors, the dot product measures how similar two quaternions are.
@@ -234,7 +231,8 @@ struct quat {
 	}
 
 	// Remember that these functions(mix/nlerp/slerp) expect the quaternion to already be in its desired neighborhood.
-	// desired neighborhood means that you need to choose short-arc or long-arc. Generally, shortest arc is desirable.
+	// desired neighborhood means that you need to choose short-arc or long-arc.
+	// Generally, shortest arc is desirable.
 
 	// This function achieves the same result as lerp does, but it's not really a lerp function
 	// as the quaternion still travels on an arc, and arc is not linear.

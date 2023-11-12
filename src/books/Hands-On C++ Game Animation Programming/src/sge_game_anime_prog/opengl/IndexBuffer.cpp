@@ -14,12 +14,12 @@ IndexBuffer::~IndexBuffer() {
 }
 
 void IndexBuffer::uploadToGpu(ByteSpan data) {
-	auto s = spanCast<const DataType>(data);
+	auto s = spanCast<const IndexType>(data);
 	_internal_uploadToGpu(s.data(), s.size());
 }
 
-void IndexBuffer::_internal_uploadToGpu(const DataType* data, size_t len) {
-	_dataSize = sizeof(DataType) * len;
+void IndexBuffer::_internal_uploadToGpu(const IndexType* data, size_t len) {
+	_dataSize = sizeof(IndexType) * len;
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _handle);
 	{

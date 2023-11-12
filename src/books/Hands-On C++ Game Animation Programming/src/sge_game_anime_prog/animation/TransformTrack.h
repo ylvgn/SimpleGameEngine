@@ -1,10 +1,9 @@
 #pragma once
 
-#include <sge_game_anime_prog/math/Transform.h>
 #include "Track.h"
+#include <sge_game_anime_prog/math/Transform.h>
 
 namespace sge {
-
 /*
 	For any animated transform, you don't want to maintain separate vector and quaternion tracks;
 	instead, you build a higher-level structure
@@ -19,37 +18,30 @@ namespace sge {
 	// the type of vector track and the type of quaternion
 	// use the same code and accommodate for FastTrack
 template<typename VTRACK, typename QTRACK>
-class TransformTrackT : public NonCopyable {
+struct TransformTrackT {
 public:
 	using SampleRequest = Track_SampleRequest;
 
 	float getStartTime() const;
-	float getEndTime() const;
+	float getEndTime()	 const;
 
+	// Not all of the component tracks in a transform track need to be valid.
+		// For example, if only the position of a transform is animated,
+		// the rotation and scale component tracks can be left as invalid.
 	// valid means at least one component track is valid.
-	inline bool isValid() const { return _position.isValid() || _rotation.isValid() || _scale.isValid(); }
+	inline bool isValid() const { return position.isValid() || rotation.isValid() || scale.isValid(); }
 
 	Transform sample(const Transform& t, const SampleRequest& sr) const;
 
-	inline u32 id()			 const { return _id; }
-	const VTRACK& position() const { return _position; }
-	const QTRACK& rotation() const { return _rotation; }
-	const VTRACK& scale()	 const { return _scale; }
+	inline void setId(u32 id)	{ _id = id; }
+	inline u32	id() const		{ return _id; }
 
-	inline void setId(u32 id)				 { _id = id; }
-	inline void setPosition(const VTRACK& p) { _position = p; }
-	inline void setRotation(const QTRACK& r) { _rotation = r; }
-	inline void setScale(const VTRACK& s)	 { _scale = s; }
+	VTRACK	position;
+	QTRACK	rotation;
+	VTRACK	scale;
 
 private:
-	u32 _id = 0; // jointId
-
-	// Not all of the component tracks in a transform track need to be valid.
-	// For example, if only the position of a transform is animated,
-	// the rotation and scale component tracks can be left as invalid.
-	VTRACK	_position;
-	QTRACK	_rotation;
-	VTRACK	_scale;
+	u32		_id = 0; // jointId
 };
 
 using TransformTrack	 = TransformTrackT<VectorTrack, QuaternionTrack>;
@@ -60,6 +52,5 @@ struct TransformTrackUtil {
 
 	static UPtr<FastTransformTrack> optimizeTransformTrack(const TransformTrack& src);
 };
-
 
 }

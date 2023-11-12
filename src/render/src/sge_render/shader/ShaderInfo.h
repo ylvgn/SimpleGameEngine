@@ -7,25 +7,12 @@
 
 namespace sge {
 
-enum class ShaderStageMask {
-	None,
-	Vertex	= 1 << 0,
-	Pixel	= 1 << 1,
-};
-
-inline
-const char* enumStr(ShaderStageMask v) {
-	switch (v)
-	{
-#define E(T) case ShaderStageMask::T: return #T;
-		E(None)
-		E(Vertex)
-		E(Pixel)
-#undef E
-	default: SGE_ASSERT(false); return "";
-	}
-}
-SGE_FORMATTER_ENUM(ShaderStageMask)
+#define ShaderStageMask_ENUM_LIST(E) \
+	E(None,   = 0) \
+	E(Vertex, = 1 << 0) \
+	E(Pixel,  = 1 << 1) \
+//----
+SGE_ENUM_CLASS(ShaderStageMask, u8)
 
 #define ShaderPropType_ENUM_LIST(E) \
 	E(None,) \
@@ -38,6 +25,21 @@ SGE_FORMATTER_ENUM(ShaderStageMask)
 	E(Texture2D,) \
 //----
 SGE_ENUM_CLASS(ShaderPropType, u8)
+
+struct ShaderPropTypeUtil {	
+	ShaderPropTypeUtil() = delete;
+
+	using Type = ShaderPropType;
+
+	template<class T> static constexpr Type get();
+
+	template<> static constexpr	Type get<i32>()		{ return Type::Int; }
+	template<> static constexpr	Type get<f32>()		{ return Type::Float; }
+	template<> static constexpr	Type get<Vec2f>()	{ return Type::Vec2f; }
+	template<> static constexpr	Type get<Vec3f>()	{ return Type::Vec3f; }
+	template<> static constexpr	Type get<Vec4f>()	{ return Type::Vec4f; }
+	template<> static constexpr	Type get<Color4f>()	{ return Type::Color4f; }
+};
 
 struct ShaderInfo {
 

@@ -68,14 +68,12 @@ void Uniform<T>::set(u32 slot, const Span<const T>& value) {
 template Uniform<int>;
 template Uniform<vec2i>;
 template Uniform<vec4i>;
-
 template Uniform<float>;
 template Uniform<vec2f>;
 template Uniform<vec3f>;
 template Uniform<vec4f>;
 template Uniform<quat4f>;
 template Uniform<Color4f>;
-
 template Uniform<mat4f>;
 template Uniform<dual_quat4f>;
 

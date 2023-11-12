@@ -155,7 +155,7 @@ private:
 
 	void _onDrawGpuSkinningByDefault(Request& req);
 	void _onDrawGpuSkinning(Request& req);
-	void _onDrawStaticMesh(const mat4f& projection, const mat4f& view, Span<Mesh> meshes, SPtr<Texture> tex);
+	void _onDrawStaticMesh(Request& req, Span<Mesh> meshes, Texture* tex);
 
 	void _populatePosePalette();
 
@@ -175,10 +175,10 @@ private:
 	void _defaultSelectClip();
 	void _defaultSetAdditiveBasePose();
 	void _defaultSetPoseDebugDraw();
-	void _defaultSetCamera(Request& req, const vec3f& pos = vec3f(0,0,0), const vec3f& aim = vec3f(0,3,7));
+	void _defaultSetCamera(Request& req, const vec3f& pos = { 0,0,0 }, const vec3f& aim = { 0,3,7 });
 
 	void _loadOrBakeAnimTex();
-	void _randomSetCrowdSize(size_t crowdCount);
+	void _randomSetCrowdSize(size_t newCrowdCount);
 
 private:
 	float										_testRotation = 0.0f;

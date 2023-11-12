@@ -12,14 +12,21 @@ namespace sge {
 
 	The skeleton is shared;
 	you can have many characters, each with a unique animated pose, but they can all share the same skeleton.
-
-	Some engines call the skeleton as "armature" or "rig."
 */
 
 struct GLTFInfo;
 
+// Some engines call the skeleton as "armature" or "rig"
 class Skeleton : public RefCountBase {
 public:
+
+	void create(const GLTFInfo& src);
+	void clear();
+
+	void setRestPose(const Pose& p);
+	void setBindPose(const Pose& p);
+	void setJointNames(const Span<const String>& names);
+
 	inline const Pose& restPose() const { return _restPose; }
 	inline const Pose& bindPose() const { return _bindPose; }
 
@@ -33,15 +40,8 @@ public:
 
 	inline size_t getJointCount() const { return _restPose.getJointCount(); }
 
-	void setRestPose(const Pose& p);
-	void setBindPose(const Pose& p);
-	void setJointNames(const Span<const String>& names);
-
-	void create(const GLTFInfo& src);
-	void clear();
-
 	void getInvBindPose(Vector<mat4f>& out) const;
-	void getInvBindPose(Vector<dual_quat>& out) const;
+	void getInvBindPose(Vector<dual_quat4f>& out) const;
 
 private:
 

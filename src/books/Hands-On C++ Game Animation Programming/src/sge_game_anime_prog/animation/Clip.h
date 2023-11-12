@@ -3,6 +3,7 @@
 #include "TransformTrack.h"
 #include "Pose.h"
 
+namespace sge {
 /*
 	An animation clip is a collection of animation tracks.
 
@@ -16,12 +17,11 @@
 	There is no need to re-set the pose that is sampled into so that it is the bind pose every frame.
 */
 
-namespace sge {
-
 template<typename TRACK>
-class ClipT {
-	using SampleRequest = Track_SampleRequest;
+struct ClipT {
 public:
+	using SampleRequest = Track_SampleRequest;
+
 	inline ClipT()
 		: _name("")
 		, _startTime(0.f)
@@ -42,7 +42,7 @@ public:
 	inline float	getEndTime()	const  { return _endTime; }
 	inline float	getDuration()	const  { return _endTime - _startTime; }
 
-	inline bool		isLoop()		const  { return _isLoop; };
+	inline bool		isLoop()		const  { return _isLoop; }
 	inline void		setIsLoop(bool isLoop) { _isLoop = isLoop; }
 
 	inline StrView	name()			const  { return _name; }
@@ -62,6 +62,7 @@ private:
 	float _adjustTimeToFitRange(float time) const;
 
 	Vector< UPtr<TRACK> > _tracks;
+
 	String			      _name;
 	float			      _startTime;
 	float			      _endTime;

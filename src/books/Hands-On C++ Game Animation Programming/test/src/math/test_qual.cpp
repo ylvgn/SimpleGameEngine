@@ -14,7 +14,7 @@ public:
 		}
 
 		{
-			quat q(1, 2, 3, 4);
+			quat q (1,2,3,4);
 			SGE_ASSERT(q.x == q.data[0]);
 			SGE_ASSERT(q.y == q.data[1]);
 			SGE_ASSERT(q.z == q.data[2]);
@@ -24,51 +24,59 @@ public:
 
 	void test_1() {
 		quat q{ 1,2,3,4 };
-		quat result{ -1,-2,-3, 4 };
-		SGE_ASSERT(result == q.conjugate());
+		quat result = q.conjugate();
+		quat expect{ -1,-2,-3,4 };
+		SGE_ASSERT(expect == result);
 	}
 
 	void test_2() {
+		// The inverse of a normalized quaternion is its conjugate.
+
 		quat q{ 1,2,3,4 };
 		q.normalized();
-		// The inverse of a normalized quaternion is its conjugate.
-		SGE_ASSERT(q.inverse().equals(q.conjugate()));
+		quat result1 = q.inverse();
+		quat result2 = q.conjugate();
+		SGE_ASSERT(result1.equals(result2));
 	}
 
 	void test_3() {
 		quat  q      = quat::s_angleAxis(Math::radians(45.f), vec3f::s_right());
 		vec3f v      = vec3f::s_up();
-		vec3f ans    = vec3f(0, 1, 1).normalize();
-		SGE_ASSERT(ans.equals(q * v));
+		vec3f result = q * v;
+		vec3f expect = vec3f(0, 1, 1).normalize();
+		SGE_ASSERT(expect.equals(result));
 	}
 
 	void test_4() {
-
 		{
 			quat q{ 0,0,0,1 };
-			mat4 m({ 1, 0, 0, 0 },
-				   { 0, 1, 0, 0 },
-				   { 0, 0, 1, 0 },
-				   { 0, 0, 0, 1 });
-			SGE_ASSERT(m.equals(mat4::s_quat(q)));
+			mat4 result = mat4::s_quat(q);
+			mat4 expect({ 1, 0, 0, 0 },
+					    { 0, 1, 0, 0 },
+					    { 0, 0, 1, 0 },
+					    { 0, 0, 0, 1 });
+			SGE_ASSERT(expect.equals(result));
 		}
 		
 		{
 			quat q{ 1,2,3,4 };
-			mat4 m({-25,  28, -10, 0},
-				   {-20, -19,  20, 0},
-				   { 22,  4,  -9,  0},
-				   { 0,   0,   0,  1});
-			SGE_ASSERT(m.equals(mat4::s_quat(q)));
+			mat4 result = mat4::s_quat(q);
+			mat4 expect({-25,  28, -10, 0},
+						{-20, -19,  20, 0},
+						{ 22,  4,  -9,  0},
+						{ 0,   0,   0,  1});
+//			SGE_LOG("result={}", result);
+			SGE_ASSERT(expect.equals(result));
 		}
 		 
 		{
 			quat q{ 2,2,5,7 };
-			mat4 m({-57,  78, -8,  0 },
-				   {-62, -57,  48, 0 },
-				   {48,  -8,  -15, 0 },
-				   {0,    0,   0,  1 });
-			SGE_ASSERT(m.equals(mat4::s_quat(q)));
+			mat4 result = mat4::s_quat(q);
+			mat4 expect({-57,  78, -8,  0 },
+						{-62, -57,  48, 0 },
+						{48,  -8,  -15, 0 },
+						{0,    0,   0,  1 });
+			SGE_ASSERT(expect.equals(result));
 		}
 	}
 };

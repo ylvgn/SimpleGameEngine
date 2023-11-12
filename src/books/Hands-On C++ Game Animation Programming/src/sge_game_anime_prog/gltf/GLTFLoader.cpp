@@ -1,9 +1,13 @@
 #include "GLTFLoader.h"
+
 #include <sge_game_anime_prog/math/Transform.h>
 #include <sge_game_anime_prog/animation/Track.h>
 
 namespace sge {
 
+#if 0
+#pragma mark ================= GLTFHelpers ====================
+#endif
 namespace GLTFHelpers {
 /*
 	These functions are internal to the glTF loader and should not be exposed in the header file.
@@ -66,8 +70,7 @@ void getTrackFromChannel(Track<T, N>& out, const cgltf_animation_channel& channe
 	Interpolation interpolation = Interpolation::Constant;
 	if (sampler->interpolation == cgltf_interpolation_type_linear) {
 		interpolation = Interpolation::Linear;
-	}
-	else if (sampler->interpolation == cgltf_interpolation_type_cubic_spline) {
+	} else if (sampler->interpolation == cgltf_interpolation_type_cubic_spline) {
 		interpolation = Interpolation::Cubic;
 	}
 	out.setType(interpolation);
@@ -119,8 +122,8 @@ void getTrackFromChannel(Track<T, N>& out, const cgltf_animation_channel& channe
 	}
 }
 
-size_t getComponentCount(cgltf_type dataType) {
-	switch (dataType)
+size_t getComponentCount(cgltf_type v) {
+	switch (v)
 	{
 		case cgltf_type_scalar: return 1;
 		case cgltf_type_vec2:   return 2;
@@ -129,12 +132,16 @@ size_t getComponentCount(cgltf_type dataType) {
 		case cgltf_type_mat2:   return 4;
 		case cgltf_type_mat3:   return 9;
 		case cgltf_type_mat4:   return 16;
-		default:				throw SGE_ERROR("not support"); break;
+		default:				throw SGE_ERROR("unsupported cgltf_type {}", v); break;
 	}
 }
 
-void skinMeshFromAttribute(Mesh& outMesh, const cgltf_attribute& attribute, const cgltf_skin* skin, const cgltf_node* nodes, cgltf_size nodeCount) {
-
+void skinMeshFromAttribute(	Mesh& outMesh,
+							const cgltf_attribute& attribute,
+							const cgltf_skin* skin,
+							const cgltf_node* nodes,
+							cgltf_size nodeCount)
+{
 	// 1. figuring out how many attributes the current component has
 	const cgltf_accessor& accessor = *attribute.data;
 	cgltf_type dataType = accessor.type;
@@ -144,14 +151,14 @@ void skinMeshFromAttribute(Mesh& outMesh, const cgltf_attribute& attribute, cons
 	Vector<float> values;
 	getScalarValues(values, componentCount, accessor);
 
-	// 3.write data to Mesh by loop through all the values in the current accessor
+	// 3. write data to Mesh by loop through all the values in the current accessor
 	// and assign them to the appropriate vector based on the accessor type.
 	auto& pos			= outMesh.pos;
 	auto& normal		= outMesh.normal;
 	auto& uv			= outMesh.uv;
 	auto& influences	= outMesh.jointInfluences;
 	auto& weights		= outMesh.jointWeights;
-	auto& color			= outMesh.color;
+//	auto& color			= outMesh.color;
 
 	cgltf_attribute_type attribType = attribute.type;
 	cgltf_size accessorCount		= accessor.count;
@@ -163,8 +170,7 @@ void skinMeshFromAttribute(Mesh& outMesh, const cgltf_attribute& attribute, cons
 				SGE_ASSERT(dataType == cgltf_type_vec3);
 				pos.push_back({values[index+0], values[index+1], values[index+2]});
 				break;
-			case cgltf_attribute_type_normal:
-			{
+			case cgltf_attribute_type_normal: {
 				SGE_ASSERT(dataType == cgltf_type_vec3);
 				vec3f norm (values[index+0],
 							values[index+1],
@@ -179,21 +185,18 @@ void skinMeshFromAttribute(Mesh& outMesh, const cgltf_attribute& attribute, cons
 				SGE_ASSERT(dataType == cgltf_type_vec2);
 				uv.push_back({values[index+0], values[index+1]});
 				break;
-			case cgltf_attribute_type_joints:
-			{
-				// These joints are stored as floating-point numbers. Convert them into integers
-				// These indices are skin relative. 
+			case cgltf_attribute_type_joints: {
+				// These joints are stored as floating-point numbers(json file no integer type). Convert them into integers
+				// These indices are skin relative.
 				// This function has no information about the skin that is being parsed.
-				// Add +0.5f to round, since we can not read integers -> same as Math::roundToInt
+				// Add +0.5f to round, since we can not read integers, and use `Math::roundToInt` is better
 
 				SGE_ASSERT(dataType == cgltf_type_vec4);
 
-				vec4i joints(
-					Math::roundToInt(values[index + 0]),
-					Math::roundToInt(values[index + 1]),
-					Math::roundToInt(values[index + 2]),
-					Math::roundToInt(values[index + 3])
-				);
+				vec4i joints(Math::roundToInt(values[index+0]), // instead of (int)(values[index + 0] + 0.5f),
+							 Math::roundToInt(values[index+1]),
+							 Math::roundToInt(values[index+2]),
+							 Math::roundToInt(values[index+3]));
 
 				// Make sure that even the invalid nodes have a value of 0.
 				// Any negative joint indices will break the skinning implementation.
@@ -211,11 +214,12 @@ void skinMeshFromAttribute(Mesh& outMesh, const cgltf_attribute& attribute, cons
 			case cgltf_attribute_type_tangent:
 				SGE_ASSERT(dataType == cgltf_type_vec4); // x, y, z + sign
 				break;
-			case cgltf_attribute_type_color:
-				SGE_ASSERT(dataType == cgltf_type_vec4);
-				color.push_back({values[index+ 0], values[index+1], values[index+2], values[index+3]});
-				break;
-			default: throw SGE_ERROR("not support cgltf_attribute_type"); break;
+			//case cgltf_attribute_type_color:
+			//	SGE_ASSERT(dataType == cgltf_type_vec4);
+			//	color.push_back({values[index+ 0], values[index+1], values[index+2], values[index+3]});
+			//	break;
+			default:
+				throw SGE_ERROR("unsupported cgltf_attribute_type {}", attribType); break;
 		}
 	}
 }
@@ -233,7 +237,7 @@ void staticMeshFromAttribute(Mesh& outMesh, const cgltf_attribute& attribute) {
 	auto& pos						= outMesh.pos;
 	auto& normal					= outMesh.normal;
 	auto& uv						= outMesh.uv;
-	auto& color						= outMesh.color;
+//	auto& color						= outMesh.color;
 
 	cgltf_attribute_type attribType = attribute.type;
 	cgltf_size accessorCount		= accessor.count;
@@ -261,16 +265,19 @@ void staticMeshFromAttribute(Mesh& outMesh, const cgltf_attribute& attribute) {
 				SGE_ASSERT(dataType == cgltf_type_vec2);
 				uv.push_back({values[index+0], values[index+1]});
 				break;
-			case cgltf_attribute_type_color:
-				SGE_ASSERT(dataType == cgltf_type_vec4);
-				color.push_back({values[index+ 0], values[index+1], values[index+2], values[index+3] });
-				break;
+			//case cgltf_attribute_type_color:
+			//	SGE_ASSERT(dataType == cgltf_type_vec4);
+			//	color.push_back({values[index+ 0], values[index+1], values[index+2], values[index+3] });
+			//	break;
 		}
 	}
 }
 
 } // GLTFHelpers namespace
 
+#if 0
+#pragma mark ================= GLTFLoader ====================
+#endif
 void GLTFLoader::s_readFile(Info& outInfo, StrView filename) {
 	MemMapFile mm;
 	mm.open(filename);
@@ -384,15 +391,15 @@ void GLTFLoader::_loadAnimationClips() {
 			// The[] operator of the Clip class either retrieves the current track or creates a new one.
 			// This means the TransformTrack function for the node that you are parsing is always valid
 			if (channel.target_path == cgltf_animation_path_type_translation) {
-				VectorTrack& track = constCast(o[i][nodeIndex].position());
+				VectorTrack& track = o[i][nodeIndex].position;
 				GLTFHelpers::getTrackFromChannel<vec3f, 3>(track, channel);
 			}
 			else if (channel.target_path == cgltf_animation_path_type_rotation) {
-				QuaternionTrack& track = constCast(o[i][nodeIndex].rotation());
+				QuaternionTrack& track = o[i][nodeIndex].rotation;
 				GLTFHelpers::getTrackFromChannel<quat4f, 4>(track, channel);
 			}
 			else if (channel.target_path == cgltf_animation_path_type_scale) {
-				VectorTrack& track = constCast(o[i][nodeIndex].scale());
+				VectorTrack& track = o[i][nodeIndex].scale;
 				GLTFHelpers::getTrackFromChannel<vec3f, 3>(track, channel);
 			}
 		}
@@ -402,11 +409,14 @@ void GLTFLoader::_loadAnimationClips() {
 
 void GLTFLoader::_loadAnimationClipNames() {
 	auto& src = _outInfo->animationClips;
+
 	if (src.size() == 0) {
 		_loadAnimationClips();
 	}
+
 	auto& o = _outInfo->animationClipNames;
 	o.resize(src.size());
+
 	int i = 0;
 	for (auto& clip : src) {
 		const auto& name = clip.name();

@@ -1,17 +1,12 @@
 #include "Track.h"
-#include <sge_game_anime_prog/math/vec3.h>
+
 #include <sge_game_anime_prog/math/quat.h>
 
 namespace sge {
 
-template Track <float, 1>;
-template Track <vec3f, 3>;
-template Track <quat4f,4>;
-
-template FastTrack <float, 1>;
-template FastTrack <vec3f, 3>;
-template FastTrack <quat4f,4>;
-
+#if 0
+#pragma mark ================= TrackHelpers ====================
+#endif
 namespace TrackHelpers {
 /*
 	These helper functions are not a part of the Track class;
@@ -21,9 +16,9 @@ namespace TrackHelpers {
 		- and are in the right neighborhood.
 */
 
-inline float	interpolate(float a, float b, double t)				 { return static_cast<float>(a + (b-a)*t); }
-inline float	interpolate(float a, float b, float t)				 { return Math::lerp(a,b,t); }
-inline vec3f	interpolate(const vec3f& a, const vec3f& b, float t) { return a.lerp(b, t); }
+inline float	interpolate(float a, float b, double t)				   { return static_cast<float>(a + (b-a)*t); }
+inline float	interpolate(float a, float b, float t)				   { return Math::lerp(a,b,t); }
+inline vec3f	interpolate(const vec3f& a, const vec3f& b, float t)   { return a.lerp(b, t); }
 inline quat4f	interpolate(const quat4f& a, const quat4f& b, float t) { // nlerp
 	quat4f q = a.mix(b, t);
 	if (a.dot(b) < 0) {
@@ -37,12 +32,15 @@ inline float  adjustHermiteResult(float f)			{ return f; }
 inline vec3f  adjustHermiteResult(const vec3f& v)	{ return v; }
 inline quat4f adjustHermiteResult(const quat4f& q)	{ return q.normalize(); }
 
-inline void neighborhood(const float& a, float& b)	{ }
-inline void neighborhood(const vec3f& a, vec3f& b)	{ }
+inline void neighborhood(const float& a, float& b)	{}
+inline void neighborhood(const vec3f& a, vec3f& b)	{}
 inline void neighborhood(const quat4f& a, quat4f& b){ if (a.dot(b) < 0) b = -b; }
 
 } // TrackHelpers namespace
 
+#if 0
+#pragma mark ================= Track ====================
+#endif
 template<> float  Track<float, 1>::s_toValue(const float* v) { return *v; }
 template<> vec3f  Track<vec3f, 3>::s_toValue(const float* v) { return vec3f(v[0], v[1], v[2]); }
 template<> quat4f Track<quat4f,4>::s_toValue(const float* v) { return quat4f(v[0], v[1], v[2], v[3]).normalize(); }
@@ -54,7 +52,7 @@ T Track<T, N>::sample(const SampleRequest& sr) const {
 		case Interpolation::Constant:	return _sampleConstant(sr);
 		case Interpolation::Linear:		return _sampleLinear(sr);
 		case Interpolation::Cubic:		return _sampleCubic(sr);
-		default:						throw SGE_ERROR("not supported");
+		default:						throw SGE_ERROR("unsupported Interpolation type: {}", _type);
 	}
 }
 
@@ -63,7 +61,7 @@ T Track<T, N>::_sampleConstant(const SampleRequest& sr) const {
 	int i = getFrameIndex(sr);
 
 	// Make sure the frame is valid
-	if (i == kInvalidFrameIndex || i >= _frames.size()) {
+	if (i == kInvalidFrameIndex || i >= _frames.size() - 1) {
 		return T();
 	}
 	SGE_ASSERT(i >= 0);
@@ -198,16 +196,13 @@ int Track<T, N>::getFrameIndex(const SampleRequest& sr) const {
 
 template<typename T, size_t N>
 float Track<T, N>::_adjustTimeToFitTrack(const SampleRequest& sr) const {
-	int frameCount = static_cast<int>(_frames.size());
+	size_t frameCount = _frames.size();
+	if (frameCount <= 1) return 0;
 
-	if (frameCount <= 1) {
-		return 0;
-	}
-
-	float time = sr.time;
+	float time		= sr.time;
 	float startTime = getStartTime();
-	float endTime = getEndTime();
-	float duration = endTime - startTime;
+	float endTime	= getEndTime();
+	float duration	= endTime - startTime;
 
 	if (duration <= 0) {
 		return 0;
@@ -226,6 +221,13 @@ float Track<T, N>::_adjustTimeToFitTrack(const SampleRequest& sr) const {
 	return time;
 }
 
+template Track<float,  1>;
+template Track<vec3f,  3>;
+template Track<quat4f, 4>;
+
+#if 0
+#pragma mark ================= FastTrack ====================
+#endif
 template<typename T, size_t N>
 void FastTrack<T, N>::updateIndexLookupTable() {
 /*
@@ -258,7 +260,6 @@ void FastTrack<T, N>::updateIndexLookupTable() {
 				break;
 			}
 		}
-
 		_sampled2FrameIndex[i] = static_cast<int>(Math::min(frameIndex, frameCount - 2));
 	}
 }
@@ -302,22 +303,29 @@ int FastTrack<T, N>::getFrameIndex(const SampleRequest& sr) const {
 	return _sampled2FrameIndex[index];
 }
 
+template FastTrack<float,  1>;
+template FastTrack<vec3f,  3>;
+template FastTrack<quat4f, 4>;
+
+#if 0
+#pragma mark ================= TrackUtil ====================
+#endif
 template<typename T>
 T TrackUtil::hermite(float t, const T& p1, const T& s1, const T& p2_, const T& s2) {
-	float tt = t * t;
-	float tt2 = tt * 2;
-	float tt3 = tt * 3;
-	float ttt = tt * t;
-	float ttt2 = ttt * 2;
+	float tt	= t*t;
+	float tt2	= tt*2;
+	float tt3	= tt*3;
+	float ttt	= tt*t;
+	float ttt2	= ttt*2;
 
-	T p2 = constCast(p2_);
+	T p2 = p2_;
 	TrackHelpers::neighborhood(p1, p2);
 
 	return p1*(ttt2-tt3+1) + s1*(ttt-tt2+t) + p2*(-ttt2+tt3) + s2*(ttt-tt);
 }
 
-#if 0
-// explicit instantiation why no need???
+#if 0 // why no need explicit instantiation is ok ???
+// explicit instantiation
 // Declare the template specializations of the optimizeTrack function for all three types
 // This means declaring specializations that work with the scalar, vector 3, and quaternion tracks
 template FastTrack<float, 1> TrackUtil::optimizeTrack(const Track<float, 1>& src);
@@ -340,4 +348,4 @@ FastTrack<T, N> TrackUtil::optimizeTrack(const Track<T, N>& src) {
 	return res;
 }
 
-}
+} // namespace

@@ -80,9 +80,12 @@ bool TVec2<T>::equals0(const T& epsilon) const {
 template<>
 struct TVec2<int> {
 	using ElementType = int;
+	
+	static const size_t kElementCount = 2;
+
 	union {
 		struct { ElementType x, y; };
-		ElementType data[2];
+		ElementType data[kElementCount];
 	};
 
 	inline TVec2<ElementType>() = default;
@@ -93,9 +96,12 @@ struct TVec2<int> {
 template<>
 struct TVec2<unsigned int> {
 	using ElementType = unsigned int;
+	
+	static const size_t kElementCount = 2;
+
 	union {
 		struct { ElementType x, y; };
-		ElementType data[2];
+		ElementType data[kElementCount];
 	};
 	
 	inline TVec2<ElementType>() = default;

@@ -1,12 +1,11 @@
 #pragma once
 
-#include <sge_core/math/Math.h>
-
 #include "vec2.h"
 
 namespace sge {
-
-//FYI: https://gabormakesgames.com/vectors.html
+/*
+	FYI: https://gabormakesgames.com/vectors.html
+*/
 
 template<typename T>
 struct TVec3 {
@@ -207,9 +206,12 @@ bool TVec3<T>::equals0(const T& epsilon) const {
 template<>
 struct TVec3<int> {
 	using ElementType = int;
+
+	static const size_t kElementCount = 3;
+
 	union {
 		struct { ElementType x, y, z; };
-		ElementType data[3];
+		ElementType data[kElementCount];
 	};
 
 	inline TVec3() = default;
@@ -220,9 +222,12 @@ struct TVec3<int> {
 template<>
 struct TVec3<unsigned int> {
 	using ElementType = unsigned int;
+
+	static const size_t kElementCount = 3;
+
 	union {
 		struct { ElementType x, y, z; };
-		ElementType data[3];
+		ElementType data[kElementCount];
 	};
 
 	inline TVec3() = default;

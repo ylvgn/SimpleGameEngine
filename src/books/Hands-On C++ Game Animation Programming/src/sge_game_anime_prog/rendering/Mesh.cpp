@@ -1,4 +1,5 @@
 #include "Mesh.h"
+
 #include <sge_game_anime_prog/opengl/Draw.h>
 
 namespace sge {
@@ -24,7 +25,7 @@ Mesh::Mesh(const Mesh& r) {
 }
 
 Mesh& Mesh::operator=(const Mesh& r) {
-	// copy out the CPU-side members(all of the vectors)
+	// copy out the CPU-side members (all of the vectors)
 	// and then call the 'uploadToGpu' function to upload the attribute data to the GPU
 
 	if (this == &r) {
@@ -37,6 +38,7 @@ Mesh& Mesh::operator=(const Mesh& r) {
 	indices			= r.indices;
 	jointWeights	= r.jointWeights;
 	jointInfluences	= r.jointInfluences;
+
 	uploadToGpu();
 
 	return *this;
@@ -45,7 +47,8 @@ Mesh& Mesh::operator=(const Mesh& r) {
 void Mesh::cpuSkin(const Skeleton& skeleton, const Pose& pose) {
 /*
 	CPU mesh-skinning to animate a mesh
-	CPU skinning is useful if the platform you are developing for has a limited number of uniform registers or a small uniform buffer.
+	CPU skinning is useful
+		if the platform you are developing for has a limited number of uniform registers or a small uniform buffer.
 */
 
 	size_t vertexCount = getVertexCount();
@@ -158,39 +161,44 @@ void Mesh::cpuSkin(const Span<const mat4f>& animatedPose) {
 	_normalAttrib->uploadToGpu(ByteSpan_make(_skinnedNormal.span()));
 }
 
-void Mesh::uploadToGpu() {
-
-	// syncs the vectors holding data to the GPU
-	// If one of the CPU-side vectors has a size of 0, then there is nothing to set
-	if (pos.size() > 0)				{ _posAttrib->uploadToGpu(ByteSpan_make(pos.span())); }
-	if (normal.size() > 0)			{ _normalAttrib->uploadToGpu(ByteSpan_make(normal.span())); }
-	if (uv.size() > 0)				{ _uvAttrib->uploadToGpu(ByteSpan_make(uv.span())); }
-	if (indices.size() > 0)			{ _indexBuffer->uploadToGpu(ByteSpan_make(indices.span())); }
-	if (jointWeights.size() > 0)	{ _jointWeightsAttrib->uploadToGpu(ByteSpan_make(jointWeights.span())); }
-	if (jointInfluences.size() > 0)	{ _jointInfluencesAttrib->uploadToGpu(ByteSpan_make(jointInfluences.span())); }
-
-}
-
-void Mesh::bind(int pos_, int normal_, int uv_, int jointWeight_/*=kInvalidSlotIndex*/, int jointInflucence_/*=kInvalidSlotIndex*/) {
-
+void Mesh::bind(int pos_,
+				int normal_,
+				int uv_,
+				int jointWeight_/*=kInvalidSlotIndex*/,
+				int jointInflucence_/*=kInvalidSlotIndex*/)
+{
 	// This takes integers that are bind slot indices.
 	// If the bind slot is valid, valid means slot >= 0, call the 'bind' function of attribute
-	if (pos_ >= 0)					{ _posAttrib->bind(pos_); }
-	if (normal_ >= 0)				{ _normalAttrib->bind(normal_); }
-	if (uv_ >= 0)					{ _uvAttrib->bind(uv_); }
-	if (jointWeight_ >= 0)			{ _jointWeightsAttrib->bind(jointWeight_); }
-	if (jointInflucence_ >= 0)		{ _jointInfluencesAttrib->bind(jointInflucence_); }
-
+	if (pos_ >= 0)				{ _posAttrib->bind(pos_); }
+	if (normal_ >= 0)			{ _normalAttrib->bind(normal_); }
+	if (uv_ >= 0)				{ _uvAttrib->bind(uv_); }
+	if (jointWeight_ >= 0)		{ _jointWeightsAttrib->bind(jointWeight_); }
+	if (jointInflucence_ >= 0)	{ _jointInfluencesAttrib->bind(jointInflucence_); }
 }
 
-void Mesh::unbind(int pos_, int normal_, int uv_, int jointWeight_, int jointInflucence_) {
+void Mesh::unbind(	int pos_,
+					int normal_,
+					int uv_,
+					int jointWeight_/*= kInvalidSlotIndex*/,
+					int jointInflucence_/*= kInvalidSlotIndex*/)
+{
+	if (pos_ >= 0)				{ _posAttrib->unbind(pos_); }
+	if (normal_ >= 0)			{ _normalAttrib->unbind(normal_); }
+	if (uv_ >= 0)				{ _uvAttrib->unbind(uv_); }
+	if (jointWeight_ >= 0)		{ _jointWeightsAttrib->unbind(jointWeight_); }
+	if (jointInflucence_ >= 0)	{ _jointInfluencesAttrib->unbind(jointInflucence_); }
+}
 
-	if (pos_ >= 0)					{ _posAttrib->unbind(pos_); }
-	if (normal_ >= 0)				{ _normalAttrib->unbind(normal_); }
-	if (uv_ >= 0)					{ _uvAttrib->unbind(uv_); }
-	if (jointWeight_ >= 0)			{ _jointWeightsAttrib->unbind(jointWeight_); }
-	if (jointInflucence_ >= 0)		{ _jointInfluencesAttrib->unbind(jointInflucence_); }
+void Mesh::uploadToGpu() {
+	// syncs the vectors holding data to the GPU
+	// If one of the CPU-side vectors has a size of 0, then there is nothing to set
 
+	if (!pos.empty())				{ _posAttrib->uploadToGpu(ByteSpan_make(pos.span())); }
+	if (!normal.empty())			{ _normalAttrib->uploadToGpu(ByteSpan_make(normal.span())); }
+	if (!uv.empty())				{ _uvAttrib->uploadToGpu(ByteSpan_make(uv.span())); }
+	if (!indices.empty())			{ _indexBuffer->uploadToGpu(ByteSpan_make(indices.span())); }
+	if (!jointWeights.empty())		{ _jointWeightsAttrib->uploadToGpu(ByteSpan_make(jointWeights.span())); }
+	if (!jointInfluences.empty())	{ _jointInfluencesAttrib->uploadToGpu(ByteSpan_make(jointInfluences.span())); }
 }
 
 void Mesh::draw() {

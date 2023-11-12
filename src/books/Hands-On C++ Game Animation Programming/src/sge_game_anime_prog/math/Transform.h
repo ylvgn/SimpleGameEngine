@@ -1,26 +1,23 @@
 #pragma once
 
-#include "vec3.h"
-#include "quat.h"
+#include "mat4.h"
 
 namespace sge {
-
 /*
 	The reason you need an explicit Transform struct is that matrices don't interpolate well.
 	Interpolating transforms is very important for animation. 
 	It's how you create in-between poses to display two given keyframes.
 */
 
-struct mat4;
 struct dual_quat;
 
 struct Transform {
-
-	using mat4f = mat4;
-
+public:
 	inline Transform() = default;
 	inline Transform(const vec3f& t, const quat4f& r, const vec3f& s)
-		: position(t), rotation(r), scale(s) {}
+		: position(t)
+		, rotation(r)
+		, scale(s) {}
 
 	inline bool operator==(const Transform& r) const { return position == r.position && rotation == r.rotation && scale == r.scale; }
 	inline bool operator!=(const Transform& r) const { return !this->operator==(r); }
@@ -61,7 +58,7 @@ struct Transform {
 	static Transform s_dual_quat(const dual_quat& dq);
 
 	vec3f  position {0,0,0};
-	quat4f rotation {0,0,0,1}; // do not set '{0,0,0,0}', '{0,0,0,1}' it means quat4f::s_identity
+	quat4f rotation {0,0,0,1}; // do not set '{0,0,0,0}', cuz '{0,0,0,1}' it means quat4f::s_identity
 	vec3f  scale	{1,1,1};
 };
 

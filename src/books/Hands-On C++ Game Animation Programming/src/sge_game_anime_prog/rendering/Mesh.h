@@ -1,12 +1,7 @@
 #pragma once
 
-#include <sge_game_anime_prog/math/vec3.h>
-#include <sge_game_anime_prog/math/vec4.h>
-#include <sge_game_anime_prog/math/mat4.h>
-
 #include <sge_game_anime_prog/opengl/Attribute.h>
 #include <sge_game_anime_prog/opengl/IndexBuffer.h>
-
 #include <sge_game_anime_prog/animation/Skeleton.h>
 
 namespace sge {
@@ -37,10 +32,10 @@ public:
 
 	void cpuSkin(const Skeleton& skeleton, const Pose& pose);
 	void cpuSkin(const Span<const mat4f>& animatedPose);
-	void uploadToGpu();
 
 	void bind(  int pos, int normal, int uv, int jointWeight = kInvalidSlotIndex, int jointInflucence = kInvalidSlotIndex);
 	void unbind(int pos, int normal, int uv, int jointWeight = kInvalidSlotIndex, int jointInflucence = kInvalidSlotIndex);
+	void uploadToGpu();
 
 	void draw();
 	void drawInstanced(size_t instanceCount);
@@ -53,8 +48,7 @@ public:
 	Vector<vec3f>	pos;
 	Vector<vec3f>	normal;
 	Vector<vec2f>	uv;
-
-	Vector<vec4f>	color;
+//	Vector<vec4f>	color;
 
 	// smooth skinned mesh
 	Vector<vec4f>	jointWeights;    // values from [0, 1], expected added together is equal 1.

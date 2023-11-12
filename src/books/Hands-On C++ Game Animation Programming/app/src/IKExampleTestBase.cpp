@@ -25,25 +25,25 @@ void IKExampleTestBase<IKSolver>::_createLoopingClip() {
 	_sr.time	= 0.0f;
 	_sr.isLoop	= true;
 
-	vec3f startPos = vec3f(1,-2,0);
+	vec3f startPos { 1,-2,0 };
 	_target.position = startPos;
 
-	VectorTrack& posTrack = constCast(_targetPath.position());
-	posTrack.resize(kFrameCount);
-	posTrack[0 ] = FrameUtil::createFrame(0.f,   startPos       * kFactor);
-	posTrack[1 ] = FrameUtil::createFrame(1.0f,  vec3f(1, 2, 0) * kFactor);
-	posTrack[2 ] = FrameUtil::createFrame(2.0f,  vec3f(1, 4, 0) * kFactor);
-	posTrack[3 ] = FrameUtil::createFrame(3.0f,  vec3f(3, 4, 0) * kFactor);
-	posTrack[4 ] = FrameUtil::createFrame(4.0f,  vec3f(5, 4, 0) * kFactor);
-	posTrack[5 ] = FrameUtil::createFrame(5.0f,  vec3f(5, 4, 2) * kFactor);
-	posTrack[6 ] = FrameUtil::createFrame(6.0f,  vec3f(5, 4, 4) * kFactor);
-	posTrack[7 ] = FrameUtil::createFrame(7.0f,  vec3f(3, 4, 4) * kFactor);
-	posTrack[8 ] = FrameUtil::createFrame(8.0f,  vec3f(3, 2, 4) * kFactor);
-	posTrack[9 ] = FrameUtil::createFrame(9.0f,  vec3f(3, 2, 2) * kFactor);
-	posTrack[10] = FrameUtil::createFrame(10.0f, vec3f(1, 2, 2) * kFactor);
-	posTrack[11] = FrameUtil::createFrame(11.0f, vec3f(1, 0, 2) * kFactor);
-	posTrack[12] = FrameUtil::createFrame(12.0f, vec3f(1,-2, 2) * kFactor);
-	posTrack[13] = FrameUtil::createFrame(13.0f, startPos       * kFactor);
+	VectorTrack& track = _targetPath.position;
+	track.resize(kFrameCount);
+	track[0 ] = FrameUtil::createFrame(0.f,   startPos       * kFactor);
+	track[1 ] = FrameUtil::createFrame(1.0f,  vec3f(1, 2, 0) * kFactor);
+	track[2 ] = FrameUtil::createFrame(2.0f,  vec3f(1, 4, 0) * kFactor);
+	track[3 ] = FrameUtil::createFrame(3.0f,  vec3f(3, 4, 0) * kFactor);
+	track[4 ] = FrameUtil::createFrame(4.0f,  vec3f(5, 4, 0) * kFactor);
+	track[5 ] = FrameUtil::createFrame(5.0f,  vec3f(5, 4, 2) * kFactor);
+	track[6 ] = FrameUtil::createFrame(6.0f,  vec3f(5, 4, 4) * kFactor);
+	track[7 ] = FrameUtil::createFrame(7.0f,  vec3f(3, 4, 4) * kFactor);
+	track[8 ] = FrameUtil::createFrame(8.0f,  vec3f(3, 2, 4) * kFactor);
+	track[9 ] = FrameUtil::createFrame(9.0f,  vec3f(3, 2, 2) * kFactor);
+	track[10] = FrameUtil::createFrame(10.0f, vec3f(1, 2, 2) * kFactor);
+	track[11] = FrameUtil::createFrame(11.0f, vec3f(1, 0, 2) * kFactor);
+	track[12] = FrameUtil::createFrame(12.0f, vec3f(1,-2, 2) * kFactor);
+	track[13] = FrameUtil::createFrame(13.0f, startPos       * kFactor);
 }
 
 template<class IKSolver>

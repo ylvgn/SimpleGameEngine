@@ -60,8 +60,8 @@ struct Plane {
 		vec3f v10(v1-v0);
 		vec3f v20(v2-v0);
 
-		normal		= v10.cross(v20).normalize();
-		distance	= normal.dot(v0);
+		normal	 = v10.cross(v20).normalize();
+		distance = normal.dot(v0);
 	}
 
 	inline float dot(const vec3f& pt) const { return normal.dot(pt) - distance; }
