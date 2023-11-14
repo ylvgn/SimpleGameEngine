@@ -14,7 +14,7 @@ namespace sge {
 		- scale track
 */
 
-// The template takes two arguments—
+// The template takes two arguments-
 	// the type of vector track and the type of quaternion
 	// use the same code and accommodate for FastTrack
 template<typename VTRACK, typename QTRACK>

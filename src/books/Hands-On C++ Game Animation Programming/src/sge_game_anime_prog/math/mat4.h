@@ -232,7 +232,7 @@ struct mat4 {
 #undef E
 	}
 
-	// The W component is a reference — it is a read-write.
+	// The W component is a reference - it is a read-write.
 	// After the function is executed,
 	// the w component holds the value for W, if the input vector had been vec4
 	inline vec3 transformPoint(const vec3& point, float& w) const {

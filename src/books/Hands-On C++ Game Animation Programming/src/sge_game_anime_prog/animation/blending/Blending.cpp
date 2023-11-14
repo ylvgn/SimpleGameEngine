@@ -47,7 +47,7 @@ void Blending::add(Pose& out, const Pose& inputPose, const Pose& additivePose, c
 	// additiveBasePose comes from Blending::makeAdditiveBasePose
 
 	// The additive blending formula is 
-	// out pose = input pose + (additive pose – additive base pose)
+	// out pose = input pose + (additive pose - additive base pose)
 	// using the local Transform of each joint
 	size_t jointCount = additivePose.getJointCount();
 	for (int i = 0; i < jointCount; ++i) {
@@ -68,7 +68,7 @@ void Blending::add(Pose& out, const Pose& inputPose, const Pose& additivePose, c
 		The inverse of a quaternion applies the opposite of a rotation,
 		which is why a quaternion multiplied by its inverse results in the identity.
 
-		so "additive pose – additive base pose", means remove "additive base pose" from "additive pose"
+		so "additive pose - additive base pose", means remove "additive base pose" from "additive pose"
 			and equivalent to multiply "additive pose" by the "inverse(additive base pose)"
 */
 		result.rotation = input.rotation.normalize() * (additiveBase.rotation.inverse() * additive.rotation);
