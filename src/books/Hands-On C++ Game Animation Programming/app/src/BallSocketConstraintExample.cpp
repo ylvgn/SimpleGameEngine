@@ -14,7 +14,7 @@ BallSocketConstraintExample<IKSolver>* BallSocketConstraintExample<IKSolver>::in
 template<class IKSolver>
 void BallSocketConstraintExample<IKSolver>::onCreate(Request& req) {
 	Base::onCreate(req);
-	constexpr float kLimitDegrees = 60.f;
+	const constexpr float kLimitDegrees = 60.f;
 
 	size_t jointCount =_solver->getJointCount();
 	for (int i = 0; i < jointCount; ++i) {
@@ -33,7 +33,8 @@ void BallSocketConstraintExample<IKSolver>::s_constraintHandler(int i, IKSolver*
 	if (map.find(i) == map.end()) return;
 	float limitAngle = map[i];
 
-	const quat4f& thisLocalRot = solver->operator[](i).rotation;
+	auto& localTrans = solver->getLocalTransform(i);
+	const quat4f& thisLocalRot = localTrans.rotation;
 	const quat4f& parentRot = i == 0
 		? thisLocalRot
 		: solver->getWorldTransform(i-1).rotation;
@@ -49,7 +50,7 @@ void BallSocketConstraintExample<IKSolver>::s_constraintHandler(int i, IKSolver*
 		quat4f parentDirToLimitedThisDir = quat4f::s_angleAxis(limitAngle, worldRotateAxis);
 		quat4f worldLimitedRotation		 = parentRot * parentDirToLimitedThisDir;
 		quat4f localLimitedRotation		 = worldLimitedRotation * parentRot.inverse();
-		solver->operator[](i).rotation   = localLimitedRotation;
+		localTrans.rotation				 = localLimitedRotation;
 	}
 }
 

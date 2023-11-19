@@ -2,7 +2,7 @@
 
 namespace sge {
 
-Transform CCDSolver::getGlobalTransform(int i) const {
+Transform CCDSolver::getWorldTransform(int i) const {
 	SGE_ASSERT(i >= 0 && i < _ikChains.size());
 	Transform world(_ikChains[i]);
 	for (int p = i - 1; p >= 0; --p) {
@@ -31,14 +31,14 @@ bool CCDSolver::solve(const Transform& target) {
 	int last = static_cast<int>(jointCount) - 1;
 
 	for (int i = 0; i < _stepCount; ++i) {
-		vec3f effector = getGlobalTransform(last).position;
+		vec3f effector = getWorldTransform(last).position;
 		if ((goal - effector).lenSq() < thresholdSq) {
 			return true;
 		}
 
 		for (int j = last - 1; j >= 0; --j) {
-			effector		= getGlobalTransform(last).position;
-			Transform world = getGlobalTransform(j);
+			effector		= getWorldTransform(last).position;
+			Transform world = getWorldTransform(j);
 
 			const vec3f&  worldPos	= world.position;
 			const quat4f& worldRot	= world.rotation;
@@ -48,8 +48,8 @@ bool CCDSolver::solve(const Transform& target) {
 
 #if 1 // calc in world space
 			quat4f effectorToGoal = quat4f::s_identity();
-			if (toGoal.lenSq() > kEpsilon) { // maybe no need ???
-				// There is an edge case in which the vector pointing to the effector or to the goal could be a zero vector
+			if (toGoal.lenSq() > kEpsilon) {
+				// There is an edge case in which the vector pointing to the effector or to the goal could be a zero vector (in case come up 0)
 				effectorToGoal = quat4f::s_fromTo(toEffector, toGoal);
 			}
 
@@ -66,7 +66,7 @@ bool CCDSolver::solve(const Transform& target) {
 				_constraintsHandler(j, this);
 			}
 
-			effector = getGlobalTransform(last).position;
+			effector = getWorldTransform(last).position;
 			if ((goal - effector).lenSq() < thresholdSq) {
 				return true;
 			}

@@ -112,9 +112,9 @@ T Track<T, N>::_sampleCubic(const SampleRequest& sr) const {
 	const auto& thisFrame = _frames[i];
 	const auto& nextFrame = _frames[i+1];
 
-	float trackStartTime = thisFrame.time;
-	float trackEndTime   = nextFrame.time;
-	float trackDeltaTime = trackEndTime - trackStartTime;
+	float trackStartTime  = thisFrame.time;
+	float trackEndTime    = nextFrame.time;
+	float trackDeltaTime  = trackEndTime - trackStartTime;
 
 	if (trackDeltaTime <= 0.0f) {
 		return T();
@@ -129,12 +129,12 @@ T Track<T, N>::_sampleCubic(const SampleRequest& sr) const {
 	// Both slopes need to be scaled by the frame delta
 	// slope1 = p1.out * frameDelta
 	T slope1;
-	std::memcpy(&slope1, thisFrame.out, N * sizeof(float));
+	memcpy(&slope1, thisFrame.out, N * sizeof(float));
 	slope1 *= trackDeltaTime;
 
 	// slope2 = p2.in * frameDelta 
 	T slope2;
-	std::memcpy(&slope2, nextFrame.in, N * sizeof(float));
+	memcpy(&slope2, nextFrame.in, N * sizeof(float));
 	slope2 *= trackDeltaTime;
 
 	T result = TrackUtil::hermite(t, p1, slope1, p2, slope2);
@@ -324,14 +324,12 @@ T TrackUtil::hermite(float t, const T& p1, const T& s1, const T& p2_, const T& s
 	return p1*(ttt2-tt3+1) + s1*(ttt-tt2+t) + p2*(-ttt2+tt3) + s2*(ttt-tt);
 }
 
-#if 0 // why no need explicit instantiation is ok ???
 // explicit instantiation
 // Declare the template specializations of the optimizeTrack function for all three types
 // This means declaring specializations that work with the scalar, vector 3, and quaternion tracks
 template FastTrack<float, 1> TrackUtil::optimizeTrack(const Track<float, 1>& src);
 template FastTrack<vec3f, 3> TrackUtil::optimizeTrack(const Track<vec3f, 3>& src);
 template FastTrack<quat4f,4> TrackUtil::optimizeTrack(const Track<quat4f,4>& src);
-#endif
 
 template<typename T, size_t N>
 FastTrack<T, N> TrackUtil::optimizeTrack(const Track<T, N>& src) {

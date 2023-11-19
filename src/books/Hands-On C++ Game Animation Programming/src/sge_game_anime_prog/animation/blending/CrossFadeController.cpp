@@ -70,22 +70,6 @@ void CrossFadeController::update(float dt) {
 
 	SGE_ASSERT(_curSkeleton != nullptr);
 
-#if 0 // move all faded-out targets per frame. is it right as follow???
-	for (size_t i = _fadingTargets.size(); i > 0; --i) {
-		size_t index = i - 1;
-		const auto& target    = _fadingTargets[index];
-		float fadeDuration    = target->fadeDuration;
-		float elapsedFadeTime = target->elapsedFadeTime;
-
-		if (elapsedFadeTime >= fadeDuration) {
-			_curClip         = target->clip;
-			_curPlaybackTime = target->playbackTime;
-			_curPose         = target->pose;
-			_fadingTargets.erase(_fadingTargets.begin() + index);
-		}
-	}
-
-#else // Only one target is removed per frame
 	int i = 0;
 	for (const auto& target : _fadingTargets) {
 		float fadeDuration    = target->fadeDuration;
@@ -100,9 +84,7 @@ void CrossFadeController::update(float dt) {
 		}
 		++i;
 	}
-#endif
 
-	_curPose = _curSkeleton->restPose();
 	_curPlaybackTime = _curClip->sample(_curPose, _curPlaybackTime + dt);
 	for (auto& target : _fadingTargets) {
 		target->clip->sample(target->pose, target->playbackTime + dt);

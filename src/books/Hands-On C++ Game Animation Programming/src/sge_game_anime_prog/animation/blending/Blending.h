@@ -11,6 +11,7 @@ namespace sge {
 	* Additive animations are most often used to create new animation variants
 		* for example, mixing a walking animation with a crouching pose to create a crouched walk.
 */
+
 struct Blending {
 	Blending() = delete;
 

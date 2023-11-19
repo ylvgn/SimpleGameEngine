@@ -15,31 +15,27 @@ namespace sge{
 class CCDSolver : public NonCopyable {
 	using This = CCDSolver;
 public:
-
 	using ConstraintsHandler = void(*) (int i, This* solver);
 
-	inline       Transform& operator[](int i)		{ return _ikChains[i]; }
-	inline const Transform& operator[](int i) const	{ return _ikChains[i]; }
+	void setLocalTransform(int i, const Transform& t)	{ _ikChains[i] = t; }
 
-	inline void setLocalTransform(int i, const Transform& t)	{ _ikChains[i] = t; }
-	inline Transform& getLocalTransform(int i)					{ return _ikChains[i]; }
-	inline const Transform& getLocalTransform(int i) const		{ return _ikChains[i]; }
+			Transform& getLocalTransform(int i)			{ return _ikChains[i]; }
+	const	Transform& getLocalTransform(int i) const	{ return _ikChains[i]; }
 
-	Transform getGlobalTransform(int i) const;
-	inline Transform getWorldTransform(int i) const { return getGlobalTransform(i); }
+	Transform getWorldTransform(int i) const;
 
-	inline void setStepCount(int stepCount)			{ _stepCount = stepCount; }
-	inline int  stepCount() const					{ return _stepCount; }
+	void setStepCount(int stepCount)					{ _stepCount = stepCount; }
+	int  stepCount() const								{ return _stepCount; }
 
-	inline float setThreshold(float threshold)		{ _threshold = threshold; }
-	inline float threshold() const					{ return _threshold; }
+	float setThreshold(float threshold)					{ _threshold = threshold; }
+	float threshold() const								{ return _threshold; }
 
-	inline size_t getJointCount() const				{ return _ikChains.size(); }
-	inline void resize(size_t jointCount)			{ _ikChains.resize(jointCount); }
+	size_t getJointCount() const						{ return _ikChains.size(); }
+	void resize(size_t jointCount)						{ _ikChains.resize(jointCount); }
 
 	bool solve(const Transform& target);
 
-	inline void setConstraintsHandler(void (*handler)(int i, This* solver) ) {
+	void setConstraintsHandler(void (*handler)(int i, This* solver) ) {
 		_constraintsHandler = reinterpret_cast<ConstraintsHandler>(handler);
 	}
 

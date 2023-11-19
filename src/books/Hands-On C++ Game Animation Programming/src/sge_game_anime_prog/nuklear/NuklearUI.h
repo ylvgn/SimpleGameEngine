@@ -255,7 +255,7 @@ public:
 		_selectedIndex = nk_combo(g_ctx, _names, count, cur_selected, item_height, Util::toNKVec2(size));
 	}
 
-	inline int selectedIndex() const { return _selectedIndex; }
+	int selectedIndex() const { return _selectedIndex; }
 
 private:
 	int			_selectedIndex;
@@ -270,8 +270,8 @@ public:
 		_isOpen = nk_checkbox_label(g_ctx, label.data(), &_isActive);
 	}
 
-	inline bool isOpen()	const { return _isOpen; }
-	inline bool isActive()	const { return static_cast<bool>(_isActive); }
+	bool isOpen()	const { return _isOpen; }
+	bool isActive()	const { return static_cast<bool>(_isActive); }
 
 private:
 	bool	_isOpen : 1;
@@ -293,10 +293,10 @@ struct ScopedStyleTextColor : public NonCopyable {
 
 	~ScopedStyleTextColor() { detect(); }
 
-	inline void set(const nk_color& v) { g_ctx->style.text.color = v; }
-	inline void set(const Color4f&  v) { set(Util::toNKColor(v)); }
+	void set(const nk_color& v) { g_ctx->style.text.color = v; }
+	void set(const Color4f&  v) { set(Util::toNKColor(v)); }
 
-	inline void detect() {
+	void detect() {
 		if (_oldColor.has_value()) {
 			g_ctx->style.text.color = _oldColor.value();
 			_oldColor.reset();

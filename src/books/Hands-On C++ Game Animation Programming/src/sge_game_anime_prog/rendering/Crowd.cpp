@@ -12,10 +12,7 @@ void Crowd::resize(size_t newCrowdCount) {
 		newCrowdCount = kCrowdMaxCount;
 	}
 
-	_positions.resize(newCrowdCount, vec3f::s_zero());
-	_rotations.resize(newCrowdCount, quat4f::s_identity());
-	_scales.resize(newCrowdCount, vec3f::s_one());
-
+	_models.resize(newCrowdCount, mat4f::s_identity());
 	_currentAnimPlaybackTimes.resize(newCrowdCount);
 	_nextAnimPlaybackTimes.resize(newCrowdCount);
 
@@ -42,11 +39,9 @@ void Crowd::update(float dt, const Clip& clip, size_t texSize) {
 }
 
 void Crowd::bindUniforms() {
-	Uniform<vec3f>::set(_shader->findUniformByName("model_pos"),  _positions);	// uniform vec3 model_pos[MAX_INSTANCES];
-	Uniform<quat4f>::set(_shader->findUniformByName("model_rot"), _rotations);	// uniform vec4 model_rot[MAX_INSTANCES];
-	Uniform<vec3f>::set(_shader->findUniformByName("model_scl"),  _scales);		// uniform vec3 model_scl[MAX_INSTANCES];
-	Uniform<vec2i>::set(_shader->findUniformByName("frames"), _frames);			// uniform ivec2 frames[MAX_INSTANCES];
-	Uniform<float>::set(_shader->findUniformByName("time"), _blendTimes);		// uniform float time[MAX_INSTANCES];
+	Uniform<mat4f>::set(_shader->findUniformByName("models"), _models);		// uniform mat4 models[MAX_INSTANCES];
+	Uniform<vec2i>::set(_shader->findUniformByName("frames"), _frames);		// uniform ivec2 frames[MAX_INSTANCES];
+	Uniform<float>::set(_shader->findUniformByName("time"), _blendTimes);	// uniform float time[MAX_INSTANCES];
 }
 
 float Crowd::_getAdjustClipTime(const MyRequest& req) const {
@@ -128,7 +123,7 @@ void Crowd::_updateInterplation(const MyRequest& req) {
 		}
 
 		float t = static_cast<float>(currentFrame) / durationFrame;
-		float curFrameTime = start + t * duration; // same to _currentAnimPlaybackTimes[i] ???
+		float curFrameTime = start + t * duration;
 
 		t = static_cast<float>(nextFrame) / durationFrame;
 		float nextFrameTime = start + t * duration;
@@ -138,7 +133,7 @@ void Crowd::_updateInterplation(const MyRequest& req) {
 		}
 
 		float frameDuration = nextFrameTime - curFrameTime;
-
+		
 		_blendTimes[i] = (_currentAnimPlaybackTimes[i] - curFrameTime) / frameDuration;
 	}
 }
@@ -205,11 +200,14 @@ void Crowd::randomizePositions(Span<vec3f> existPositions, const vec3f& min, con
 		}
 	}
 
-	if (newPositions.size() != _positions.size()) {
+	if (newPositions.size() != _models.size()) {
 		resize(newPositions.size());
 	}
 
-	std::memcpy(_positions.data()->ptr(), newPositions.data()->ptr(), sizeof(float) * 3 * newPositions.size());
+	for (int i = 0; i < newPositions.size(); ++i) {
+		auto& pos = newPositions[i];
+		_models[i].setCol(3, vec4f(pos, 1.f));
+	}
 }
 
 }

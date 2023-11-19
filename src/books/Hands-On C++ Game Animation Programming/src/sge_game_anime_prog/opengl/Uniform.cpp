@@ -1,7 +1,6 @@
 #include "Uniform.h"
 
 #include "glad/glad.h"
-
 #include <sge_game_anime_prog/math/vec2.h>
 #include <sge_game_anime_prog/math/vec3.h>
 #include <sge_game_anime_prog/math/vec4.h>

@@ -1,11 +1,11 @@
 #pragma once
 
 namespace sge {
-
 /*
 	uniforms are constant data;
 	they are set once. The value of a uniform remains the same for all vertices processed.
-	there will never be an instance of a Uniform class. It only needs public static functions.
+	there will never be an instance of a Uniform class.
+	It only needs public static functions.
 	In OpenGL, uniforms are set with the glUniform*** family of functions.
 */
 

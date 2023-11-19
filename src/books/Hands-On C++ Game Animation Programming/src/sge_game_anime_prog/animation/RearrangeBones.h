@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Skeleton.h"
 #include <sge_game_anime_prog/rendering/Mesh.h>
 #include "Clip.h"
 
@@ -13,36 +12,24 @@ namespace sge {
 
 class RearrangeBones : public NonCopyable {
 public:
-
-	static void s_rearrange(Skeleton* outSkeleton,
-							Span<Mesh> outMeshes,
-							Span<FastClip> outClips)
-	{
-		_s_internal_rearrange(outSkeleton, outMeshes, outClips);
-	}
+	static void s_rearrange(SPtr<Skeleton>& outSkeleton, Span<Mesh> outMeshes, Span<FastClip> outClips);
+	static void s_rearrange(SPtr<Skeleton>& outSkeleton, Span<Mesh> outMeshes, Span<Clip> outClips);
 
 private:
-	void _create(Skeleton* outSkeleton);
+	void _create(const Pose& bindPose);
 	void _clear();
 
+	void _rearrangeSkeleton(SPtr<Skeleton>& out);
 	void _rearrangeMesh(Mesh& out);
 
-	void _rearrangeClip(Clip& out)		{ _internalRearrangeClip(out); }
-	void _rearrangeClip(FastClip& out)	{ _internalRearrangeClip(out); }
+	template<class T>
+	void _rearrangeClip(ClipT<T>& out);
 
-	void _rearrangeSkeleton();
+	template<class T>
+	static void _s_internal_rearrange(SPtr<Skeleton>& outSkeleton, Span<Mesh> outMeshes, Span< ClipT<T> > outClips);
 
 	int _rearrangeIdx(int oldJointIndex) const;
-	int _originalIdx(int newJointIndex) const;
-
-	template<typename T> static void _s_internal_rearrange(	Skeleton* outSkeleton,
-															Span<Mesh> outMeshes,
-															Span< ClipT<T> > outClips);
-
-	template<typename T> void _internalRearrangeClip(ClipT<T>& out);
-
-private:
-	Skeleton*		_outSkeleton = nullptr;
+	int _originalIdx(int newJointIndex)  const;
 
 	Map<int, int>	_n2o; // new to old (index) forward
 	Map<int, int>	_o2n; // old to new (index) backward

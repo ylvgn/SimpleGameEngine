@@ -13,14 +13,14 @@ Pose& Pose::operator=(const Pose& r) {
 	_jointTrans.resize(r._jointTrans.size());
 
 	if (_parentIds.size() != 0) {
-		std::memcpy(_parentIds.data(),
+		memcpy(_parentIds.data(),
 			        r._parentIds.data(),
 			        sizeof(int) * _parentIds.size()
 		);
 	}
 
 	if (_jointTrans.size() != 0) {
-		std::memcpy(_jointTrans.data(),
+		memcpy(_jointTrans.data(),
 			        r._jointTrans.data(),
 			        sizeof(Transform) * _jointTrans.size()
 		);
@@ -107,8 +107,8 @@ void Pose::getMatrixPalette(Vector<mat4f>& out) const {
 
 	// fallback
 	for (; i < jointCount; ++i) { // second loop
-		Transform global = getGlobalTransform(i);
-		out[i] = mat4f::s_transform(global);
+		Transform world = getWorldTransform(i);
+		out[i] = mat4f::s_transform(world);
 	}
 }
 #else
@@ -119,8 +119,8 @@ void Pose::getMatrixPalette(Vector<mat4f>& out) const {
 	size_t jointCount = getJointCount();
 	out.resize(jointCount);
 	for (int i = 0; i < jointCount; ++i) {
-		Transform global = getGlobalTransform(i);
-		out[i] = mat4f::s_transform(global);
+		Transform world = getWorldTransform(i);
+		out[i] = mat4f::s_transform(world);
 	}
 }
 #endif

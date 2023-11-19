@@ -15,9 +15,9 @@ public:
 
 	void uploadToGpu(ByteSpan data);
 
-	inline u32		handle()	const { return _handle; }
-	inline size_t	dataSize()  const { return _dataSize; }
-	inline size_t	count()		const { return _dataSize / sizeof(IndexType); }
+	u32		handle()	const { return _handle; }
+	size_t	dataSize()  const { return _dataSize; }
+	size_t	count()		const { return _dataSize / sizeof(IndexType); }
 
 private:
 	void _internal_uploadToGpu(const IndexType* data, size_t dataSize);

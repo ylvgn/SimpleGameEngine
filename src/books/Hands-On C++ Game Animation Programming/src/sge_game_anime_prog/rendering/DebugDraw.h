@@ -44,16 +44,16 @@ class DebugDraw : public RefCountBase {
 		"}";
 
 public:
-	constexpr static const Color4f kWhite	=	{1,1,1,1};
-	constexpr static const Color4f kBlack	=	{0,0,0,1};
-	constexpr static const Color4f kRed		=	{1,0,0,1};
-	constexpr static const Color4f kGreen	=	{0,1,0,1};
-	constexpr static const Color4f kBlue	=	{0,0,1,1};
-	constexpr static const Color4f kYellow	=	{1,1,0,1};
-	constexpr static const Color4f kPurple	=	{1,0,1,1};
-	constexpr static const Color4f kCyan	=	{0,1,1,1};
-	constexpr static const Color4f kOrange	=	{1,165.f/255.f,0,1};
-	constexpr static const Color4f kGray	=	{175.f/255.f,175.f/255.f,175.f/255.f,1};
+	constexpr static const Color4f kWhite	= {1,1,1,1};
+	constexpr static const Color4f kBlack	= {0,0,0,1};
+	constexpr static const Color4f kRed		= {1,0,0,1};
+	constexpr static const Color4f kGreen	= {0,1,0,1};
+	constexpr static const Color4f kBlue	= {0,0,1,1};
+	constexpr static const Color4f kYellow	= {1,1,0,1};
+	constexpr static const Color4f kPurple	= {1,0,1,1};
+	constexpr static const Color4f kCyan	= {0,1,1,1};
+	constexpr static const Color4f kOrange	= {1,165.f/255.f,0,1};
+	constexpr static const Color4f kGray	= {175.f/255.f,175.f/255.f,175.f/255.f,1};
 public:
 
 #if 0
@@ -66,18 +66,21 @@ public:
 	}
 #endif
 
-	inline size_t size() const							{ return _points.size(); }
-	inline void resize(size_t newSize)					{ _points.resize(newSize); }
-	inline void clear()									{ _points.clear(); }
-	inline void push_back(const vec3f& v)				{ _points.push_back(v); }
-	inline void appendRange(const Span<const vec3f>& v)	{ _points.appendRange(v); }
-	inline void uploadToGpu()							{ _attribs.uploadToGpu(spanCast<const u8>(_points.span())); }
+	size_t size() const			{ return _points.size(); }
 
-	inline Span<      vec3f> span()						{ return _points.span(); }
-	inline Span<const vec3f> span() const				{ return _points.span(); }
+	void resize(size_t newSize)	{ _points.resize(newSize); }
+	void clear()				{ _points.clear(); }
 
-	inline       vec3f& operator[] (int index)			{ return _points[index]; }
-	inline const vec3f& operator[] (int index) const	{ return _points[index]; }
+	void push_back(const vec3f& v) { _points.push_back(v); }
+	void appendRange(const Span<const vec3f>& v) { _points.appendRange(v); }
+
+	Span<      vec3f> span()		{ return _points.span(); }
+	Span<const vec3f> span() const	{ return _points.span(); }
+
+	      vec3f& operator[] (int index)			{ return _points[index]; }
+	const vec3f& operator[] (int index) const	{ return _points[index]; }
+
+	void uploadToGpu()	{ _attribs.uploadToGpu(spanCast<const u8>(_points.span())); }
 
 	void draw(DebugDrawMode mode, const mat4f& mvp, const Color4f& color = kYellow);
 
@@ -107,19 +110,19 @@ class DebugDraw_PointLines : public RefCountBase {
 public:
 	using Mask = DebugDraw_PointLines_Mask;
 
-	inline DebugDraw_PointLines()
+	DebugDraw_PointLines()
 		: _lines(new DebugDraw())
 		, _pointColor(DebugDraw::kPurple)
 		, _lineColor(DebugDraw::kYellow) {}
 
-	inline void clear() { _lines->clear(); }
+	void clear() { _lines->clear(); }
 
-	inline void add(const vec3f& from, const vec3f& to) {
+	void add(const vec3f& from, const vec3f& to) {
 		_lines->push_back(from);
 		_lines->push_back(to);
 	}
 
-	inline void add(const Triangle& triangle) {
+	void add(const Triangle& triangle) {
 		add(triangle.v0, triangle.v1);
 		add(triangle.v0, triangle.v2);
 		add(triangle.v1, triangle.v2);
@@ -128,14 +131,14 @@ public:
 	template<class IKSolver>
 	void fromIKSolver(const IKSolver& solver);
 
-	inline void lineFromPose(const Pose& pose) { _lines->lineFromPose(pose); }
+	void lineFromPose(const Pose& pose) { _lines->lineFromPose(pose); }
 
-	inline Color4f pointColor() const	{ return _pointColor; }
-	inline Color4f lineColor () const	{ return _lineColor; }
+	Color4f pointColor() const	{ return _pointColor; }
+	Color4f lineColor () const	{ return _lineColor; }
 
-	inline void setPointColor(const Color4f& color) { _pointColor = color; }
-	inline void setLineColor (const Color4f& color)	{ _lineColor  = color; }
-	inline void setColor(const Color4f& color)		{ setPointColor(color); setLineColor(color); }
+	void setPointColor(const Color4f& color) { _pointColor = color; }
+	void setLineColor (const Color4f& color) { _lineColor  = color; }
+	void setColor(const Color4f& color)		 { setPointColor(color); setLineColor(color); }
 
 	void draw(const mat4f& mvp, Mask mask = Mask::Point | Mask::Line);
 

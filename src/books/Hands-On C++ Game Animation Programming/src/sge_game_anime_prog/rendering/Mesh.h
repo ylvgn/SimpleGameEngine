@@ -40,8 +40,8 @@ public:
 	void draw();
 	void drawInstanced(size_t instanceCount);
 
-	inline size_t getVertexCount()	const { return pos.size(); };
-	inline size_t getIndexCount()	const { return indices.size(); };
+	size_t getVertexCount()	const { return pos.size(); };
+	size_t getIndexCount()	const { return indices.size(); };
 
 	Vector<u32>		indices;
 

@@ -32,21 +32,20 @@ public:
 
 	void resize(size_t newTexSize);
 
-	inline u32		handle()	const { return _handle; }
+	u32		handle()	const { return _handle; }
+	size_t	texSize()	const { return _texSize; }
 
-	inline size_t	texSize()	const { return _texSize; }
+	f32*	data()		const { return _data; }
+	size_t	dataSize()	const { return _texSize * _texSize * 4; }
+	size_t	byteSize()	const { return dataSize() * sizeof(f32); }
 
-	inline f32*		data()		const { return _data; }
-	inline size_t	dataSize()	const { return _texSize * _texSize * 4; }
-	inline size_t	byteSize()	const { return dataSize() * sizeof(f32); }
-
-	inline ByteSpan	span() const {
+	ByteSpan span() const {
 		auto* p = reinterpret_cast<u8*>(_data);
 		return ByteSpan(p, p + byteSize());
 	}
 
 private:
-	inline u32 _getTexelIndex(u32 x, u32 y) const {
+	u32 _getTexelIndex(u32 x, u32 y) const {
 		return (y * static_cast<u32>(_texSize) * 4) + (x * 4);
 	}
 

@@ -1,5 +1,8 @@
 #include "AnimBaker.h"
 
+#include <sge_game_anime_prog/animation/Skeleton.h>
+#include <sge_game_anime_prog/animation/Clip.h>
+
 namespace sge {
 
 void AnimBaker::bakeAnimationClipToTex(SPtr<AnimTexture>& tex, const Skeleton* skel, const Clip& clip) {
@@ -12,7 +15,7 @@ void AnimBaker::bakeAnimationClipToTex(SPtr<AnimTexture>& tex, const Skeleton* s
 	float maxX = static_cast<float>(texSize - 1);
 	for (int x = 0; x < texSize; ++x) {
 
-		float normTime = static_cast<float>(x) / maxX; // 0~1
+		float normTime = static_cast<float>(x) / maxX;
 		float time = (clip.getStartTime() + clip.getDuration()) * normTime;
 		clip.sample(bindPose, time);
 

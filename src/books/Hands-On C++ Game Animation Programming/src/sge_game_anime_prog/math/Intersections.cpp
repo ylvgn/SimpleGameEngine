@@ -1,5 +1,6 @@
 #include "Intersections.h"
 
+#include "MathGeometry.h"
 #include <sge_game_anime_prog/rendering/Mesh.h>
 
 namespace sge {

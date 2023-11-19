@@ -6,12 +6,7 @@
 // MVP
 uniform mat4 view;
 uniform mat4 projection;
-// uniform mat4 model; use uniform arrays model_pos[], model_rot[], model_scl[] instead
-
-// unique to each actor in the crowd.
-uniform vec3 model_pos[MAX_INSTANCES];
-uniform vec4 model_rot[MAX_INSTANCES];
-uniform vec3 model_scl[MAX_INSTANCES];
+uniform mat4 models[MAX_INSTANCES];
 
 uniform ivec2 frames[MAX_INSTANCES];	// x: currentFrame y: nextFrame
 uniform float time[MAX_INSTANCES];		// blend time, between currentFrame with nextFrame
@@ -23,6 +18,7 @@ in vec2 texCoord;
 // skinning info
 in vec4 weights;
 in ivec4 joints;
+
 //uniform mat4 pose[MAX_BONES]; // use sampler2D instead
 uniform sampler2D animTex;
 uniform mat4 invBindPose[MAX_BONES];
@@ -74,26 +70,6 @@ mat4 MScale(vec3 s) {
 
 mat4 MTRS(vec3 t, vec4 r, vec3 s) {
 	return MTranslate(t) * MRotation(r) * MScale(s);
-}
-
-// similar to `mat4::s_transform(Transform t)`
-mat4 GetModelMatrix(int instanceId) { // built-in glsl variable, gl_InstanceID.
-	vec3 t = model_pos[instanceId];
-	vec4 r = model_rot[instanceId];
-	vec3 s = model_scl[instanceId];
-#if 0	
-	vec3 r = QMulV(r, vec3(s.x,	0,	 0	))
-	vec3 u = QMulV(r, vec3(0,	s.y, 0	))
-	vec3 f = QMulV(r, vec3(0,	0,	 s.z))
-
-	return mat4(r.x, r.y, r.z, 0.0, // X basis (& scale)
-				u.x, u.y, u.z, 0.0, // Y basis (& scale)
-				f.x, f.y, f.z, 0.0, // Z basis (& scale)
-				t.x, t.y, t.z, 1.0  // Position
-	);
-#else
-	return MTRS(t, r, s);
-#endif
 }
 
 // return the animated world matrix of the joint.
@@ -155,7 +131,7 @@ void main() {
 	vec4 skinnedPos    = skin * vec4(position, 1.0);
 	vec4 skinnedNormal = skin * vec4(normal,   0.0);
 
-	mat4 model = GetModelMatrix(gl_InstanceID);
+	mat4 model = models[gl_InstanceID];
 	
 	gl_Position = projection * view * model * skinnedPos;
 	fragPos 	= vec3(model * skinnedPos);

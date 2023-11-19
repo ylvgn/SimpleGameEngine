@@ -51,8 +51,8 @@ void DebugDraw::lineFromPose(const Pose& pose) {
 		}
 		// To draw a bone using debug lines
 		// draw a line from the position of the joint to the position of its parent.
-		_points.push_back(pose.getGlobalTransform(i).position);
-		_points.push_back(pose.getGlobalTransform(p).position);
+		_points.push_back(pose.getWorldTransform(i).position);
+		_points.push_back(pose.getWorldTransform(p).position);
 	}
 }
 
@@ -62,8 +62,8 @@ void DebugDraw::linesFromIKSolver(const CCDSolver& solver) {
 
 	_points.resize( (jointCount-1) * 2);
 	for (int i = 1, index = 0; i < jointCount; ++i) {
-		_points[index++] = solver.getGlobalTransform(i-1).position;
-		_points[index++] = solver.getGlobalTransform(i).position;
+		_points[index++] = solver.getWorldTransform(i-1).position;
+		_points[index++] = solver.getWorldTransform(i).position;
 	}
 }
 
@@ -73,7 +73,7 @@ void DebugDraw::pointsFromIKSolver(const CCDSolver& solver) {
 
 	_points.resize(jointCount);
 	for (int i = 0; i < jointCount; ++i) {
-		_points[i] = solver.getGlobalTransform(i).position;
+		_points[i] = solver.getWorldTransform(i).position;
 	}
 }
 
@@ -83,8 +83,8 @@ void DebugDraw::linesFromIKSolver(const FABRIKSolver& solver) {
 
 	_points.resize((jointCount - 1) * 2);
 	for (int i = 1, index = 0; i < jointCount; ++i) {
-		_points[index++] = solver.getGlobalTransform(i-1).position;
-		_points[index++] = solver.getGlobalTransform(i).position;
+		_points[index++] = solver.getWorldTransform(i-1).position;
+		_points[index++] = solver.getWorldTransform(i).position;
 	}
 }
 
@@ -94,7 +94,7 @@ void DebugDraw::pointsFromIKSolver(const FABRIKSolver& solver) {
 
 	_points.resize(jointCount);
 	for (int i = 0; i < jointCount; ++i) {
-		_points[i] = solver.getGlobalTransform(i).position;
+		_points[i] = solver.getWorldTransform(i).position;
 	}
 }
 

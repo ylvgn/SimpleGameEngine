@@ -1,13 +1,10 @@
 #pragma once
 
-#include <sge_core/pointer/SPtr.h>
-
 #include "../Clip.h"
 #include "../Pose.h"
 #include "../Skeleton.h"
 
 namespace sge {
-
 /*
 	Another common case for blending animations -- Crossfading animations
 

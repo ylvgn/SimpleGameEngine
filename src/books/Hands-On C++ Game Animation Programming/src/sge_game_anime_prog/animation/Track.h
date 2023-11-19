@@ -24,30 +24,30 @@ public:
 
 	constexpr static int kInvalidFrameIndex = -1;
 
-	inline void clear()						{ _frames.clear(); }
-	inline void resize(size_t frameCount)	{ _frames.resize(frameCount); }
+	void clear()					{ _frames.clear(); }
+	void resize(size_t frameCount)	{ _frames.resize(frameCount); }
 
-	inline size_t getFrameCount()	const { return _frames.size(); }
+	size_t getFrameCount()	 const { return _frames.size(); }
 
-	inline float getStartTime()		const { SGE_ASSERT(isValid()); return _frames[0].time; };
-	inline float getEndTime()		const { SGE_ASSERT(isValid()); return _frames[_frames.size() - 1].time; };
-	inline float getDuration()		const { return getEndTime() - getStartTime(); }
+	float getStartTime()	 const { SGE_ASSERT(isValid()); return _frames[0].time; }
+	float getEndTime()		 const { SGE_ASSERT(isValid()); return _frames[_frames.size() - 1].time; };
+	float getDuration()		 const { return getEndTime() - getStartTime(); }
 
-	inline float saveGetStartTime() const { return isValid() ? _frames[0].time : 0; }
-	inline float saveGetEndTime()   const { return isValid() ? _frames[_frames.size() - 1].time : 0; }
-	inline float saveGetDuration()  const { return isValid() ? saveGetStartTime() - saveGetEndTime() : 0; }
+	float saveGetStartTime() const { return isValid() ? _frames[0].time : 0; }
+	float saveGetEndTime()   const { return isValid() ? _frames[_frames.size() - 1].time : 0; }
+	float saveGetDuration()  const { return isValid() ? saveGetStartTime() - saveGetEndTime() : 0; }
 
 	// For a track to be valid, it needs to have two or more frames
-	inline bool isValid()  const { return _frames.size() > 1; }
-	inline bool isValid2() const { return isValid() && getDuration() > 0; }
+	bool isValid()  const { return _frames.size() > 1; }
+	bool isValid2() const { return isValid() && getDuration() > 0; }
 
 	T sample(const SampleRequest& sr) const;
 
-	inline       Frame<N>& operator[] (int i)       { return _frames[i]; }
-	inline const Frame<N>& operator[] (int i) const { return _frames[i]; }
+	      Frame<N>& operator[] (int i)       { return _frames[i]; }
+	const Frame<N>& operator[] (int i) const { return _frames[i]; }
 
-	inline Type type() const		{ return _type; }
-	inline void setType(Type type)  { _type = type; }
+	Type type() const		 { return _type; }
+	void setType(Type type)  { _type = type; }
 
 protected:
 	virtual int getFrameIndex(const SampleRequest& sr) const;
@@ -69,6 +69,9 @@ using ScalarTrack		= Track<float, 1>;
 using VectorTrack		= Track<vec3f, 3>;
 using QuaternionTrack	= Track<quat4f,4>;
 
+#if 0
+#pragma mark ------------------- FastTrack -------------------
+#endif
 template<typename T, size_t N>
 struct FastTrack : public Track<T, N> {
 public:
@@ -82,8 +85,7 @@ protected:
 	virtual int getFrameIndex(const SampleRequest& sr) const override;
 
 private:
-
-	inline constexpr int _getSampleCount() const {
+	constexpr int _getSampleCount() const {
 		float duration = getDuration();
 		SGE_ASSERT(duration >= 0);
 		return kFrameCountPerSecond + (static_cast<int>(duration * kFrameCountPerSecond));
@@ -96,6 +98,9 @@ using FastScalarTrack		= FastTrack<float, 1>;
 using FastVectorTrack		= FastTrack<vec3f, 3>;
 using FastQuaternionTrack	= FastTrack<quat4f,4>;
 
+#if 0
+#pragma mark ------------------- TrackUtil -------------------
+#endif
 struct TrackUtil {
 	TrackUtil() = delete;
 

@@ -69,7 +69,7 @@ void AnimTexture::_load(ByteSpan data, StrView filename) {
 	SGE_LOG("AnimTexture load {}:\n\ttexSize={}\n\tdataSize={}\n\tbyteSize={}", filename, _texSize, dataSize(), byteSize());
 #endif
 
-	std::memcpy(_data, data.data(), data.size());
+	memcpy(_data, data.data(), data.size());
 
 	uploadToGpu();
 }
@@ -89,8 +89,8 @@ void AnimTexture::uploadToGpu() {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	}
 	glBindTexture(GL_TEXTURE_2D, 0);
 }

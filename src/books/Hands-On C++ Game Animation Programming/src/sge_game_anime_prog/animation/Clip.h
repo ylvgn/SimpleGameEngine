@@ -22,7 +22,7 @@ struct ClipT {
 public:
 	using SampleRequest = Track_SampleRequest;
 
-	inline ClipT()
+	ClipT()
 		: _name("")
 		, _startTime(0.f)
 		, _endTime(0.f)
@@ -38,25 +38,24 @@ public:
 	// []operator is meant to retrieve the TransformTrack object for a specific joint in the clip.
 	TRACK& operator[](u32 jointId);
 
-	inline float	getStartTime()  const  { return _startTime; }
-	inline float	getEndTime()	const  { return _endTime; }
-	inline float	getDuration()	const  { return _endTime - _startTime; }
+	float	getStartTime()  const  { return _startTime; }
+	float	getEndTime()	const  { return _endTime; }
+	float	getDuration()	const  { return _endTime - _startTime; }
 
-	inline bool		isLoop()		const  { return _isLoop; }
-	inline void		setIsLoop(bool isLoop) { _isLoop = isLoop; }
+	bool	isLoop()		const  { return _isLoop; }
+	void	setIsLoop(bool isLoop) { _isLoop = isLoop; }
 
-	inline StrView	name()			const  { return _name; }
-	inline void		setName(StrView name)  { _name = name; }
+	StrView	name()			const  { return _name; }
+	void	setName(StrView name)  { _name = name; }
 
-	inline void setJointIdAtIndex(int i, u32 jointId)	{ _tracks[i]->setId(jointId); }
-	inline u32  getJointIdAtIndex(int i) const			{ return _tracks[i]->id(); }
+	void setJointIdAtIndex(int i, u32 jointId)	{ _tracks[i]->setId(jointId); }
+	u32  getJointIdAtIndex(int i) const			{ return _tracks[i]->id(); }
 
-	inline const Span<const UPtr<TRACK>> tracks() const	{ return _tracks; }
+	size_t getTrackCount() const		{ return _tracks.size(); }
+	void reserve(size_t newtrackCount)	{ _tracks.reserve(newtrackCount); }
 
-	inline size_t getTrackCount() const					{ return _tracks.size(); }
-	inline void reserve(size_t newtrackCount)			{ _tracks.reserve(newtrackCount); }
-
-	inline void appendTrack(UPtr<TRACK>&& t)			{ _tracks.emplace_back(std::move(t)); }
+	const Span<const UPtr<TRACK>> tracks() const	{ return _tracks; }
+	void appendTrack(UPtr<TRACK>&& t)				{ _tracks.emplace_back(std::move(t)); }
 
 private:
 	float _adjustTimeToFitRange(float time) const;

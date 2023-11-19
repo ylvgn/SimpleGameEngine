@@ -29,12 +29,12 @@ public:
 		// For example, if only the position of a transform is animated,
 		// the rotation and scale component tracks can be left as invalid.
 	// valid means at least one component track is valid.
-	inline bool isValid() const { return position.isValid() || rotation.isValid() || scale.isValid(); }
+	bool isValid() const { return position.isValid() || rotation.isValid() || scale.isValid(); }
 
 	Transform sample(const Transform& t, const SampleRequest& sr) const;
 
-	inline void setId(u32 id)	{ _id = id; }
-	inline u32	id() const		{ return _id; }
+	void setId(u32 id)	{ _id = id; }
+	u32	 id() const		{ return _id; }
 
 	VTRACK	position;
 	QTRACK	rotation;

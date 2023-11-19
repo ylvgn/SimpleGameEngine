@@ -1,10 +1,10 @@
 #pragma once
 
-#include "MathGeometry.h"
-
 namespace sge {
 
-class Mesh;
+class  Mesh;
+struct Ray;
+struct Triangle;
 
 struct IntersectionsUtil {
 	IntersectionsUtil() = delete;

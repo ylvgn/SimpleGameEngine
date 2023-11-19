@@ -65,7 +65,7 @@ public:
 						{-20, -19,  20, 0},
 						{ 22,  4,  -9,  0},
 						{ 0,   0,   0,  1});
-//			SGE_LOG("result={}", result);
+			SGE_LOG("result={}", result);
 			SGE_ASSERT(expect.equals(result));
 		}
 		 

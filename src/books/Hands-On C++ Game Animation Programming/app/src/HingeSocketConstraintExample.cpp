@@ -71,39 +71,41 @@ void HingeSocketConstraintExample<IKSolver>::s_constraintHandler(int i, IKSolver
 	if (map.find(i) == map.end()) return;
 	const vec3f& axis = map[i];
 
-	Transform world = solver->getWorldTransform(i);
-	Transform parent = i > 0
-		? solver->getWorldTransform(i - 1)
-		: world;
+	auto& localTrans = solver->getLocalTransform(i);
+	Transform worldTrans = solver->getWorldTransform(i);
 
-	vec3f  currentHinge = world.rotation * axis;
-	vec3f  desiredHinge = parent.rotation * axis;
+	Transform parentTrans = i > 0
+		? solver->getWorldTransform(i-1)
+		: worldTrans;
+
+	vec3f  currentHinge = worldTrans.rotation * axis;
+	vec3f  desiredHinge = parentTrans.rotation * axis;
 	quat4f currentToDesired = quat4f::s_fromTo(currentHinge, desiredHinge);
 
-	solver->operator[](i).rotation = solver->operator[](i).rotation * currentToDesired;
+	localTrans.rotation = localTrans.rotation * currentToDesired;
 
-	// debug drawline start ------------------------
+// debug drawline start ------------------------
 	using TestBase = ExampleTestBase;
-	const vec3f& worldPos = world.position;
+	const vec3f& worldPos = worldTrans.position;
 
 	auto& limitAxisVisual = exampleThis->_limitAxisVisuals[i];
 	limitAxisVisual->clear();
 	limitAxisVisual->add(worldPos - axis * TestBase::kGizmoSize, worldPos + axis * TestBase::kGizmoSize);
 
 	auto& jointAxisVisuals = exampleThis->_jointAxisVisuals;
-	static const vec3f kr = vec3f::s_right()   * TestBase::kGizmoSize;
-	static const vec3f ku = vec3f::s_up()	   * TestBase::kGizmoSize;
-	static const vec3f kf = vec3f::s_forward() * TestBase::kGizmoSize;
+	static const vec3f kRight   = vec3f::s_right()   * TestBase::kGizmoSize;
+	static const vec3f kUp      = vec3f::s_up()	     * TestBase::kGizmoSize;
+	static const vec3f kForward = vec3f::s_forward() * TestBase::kGizmoSize;
 
 	int j = i * 3;
-	jointAxisVisuals[j  ]->clear();
+	jointAxisVisuals[j+0]->clear();
 	jointAxisVisuals[j+1]->clear();
 	jointAxisVisuals[j+2]->clear();
 
-	jointAxisVisuals[j  ]->add(worldPos - kr, worldPos + kr);
-	jointAxisVisuals[j+1]->add(worldPos - ku, worldPos + ku);
-	jointAxisVisuals[j+2]->add(worldPos - kf, worldPos + kf);
-	// debug drawline end ------------------------
+	jointAxisVisuals[j+0]->add(worldPos - kRight,   worldPos + kRight);
+	jointAxisVisuals[j+1]->add(worldPos - kUp,      worldPos + kUp);
+	jointAxisVisuals[j+2]->add(worldPos - kForward, worldPos + kForward);
+// debug drawline end ------------------------
 }
 
 template HingeSocketConstraintExample<CCDSolver>;

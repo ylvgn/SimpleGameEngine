@@ -1,7 +1,6 @@
 #pragma once
 
 namespace sge {
-
 /*
 	The Texture class only needs a few important functions.
 	-load a texture from a file
@@ -21,7 +20,7 @@ public:
 	void set(u32 uniformIndex, u32 textureIndex);
 	void unset(u32 textureIndex);
 
-	inline u32 handle() const { return _handle; }
+	u32 handle() const { return _handle; }
 
 private:
 	u32 _width;

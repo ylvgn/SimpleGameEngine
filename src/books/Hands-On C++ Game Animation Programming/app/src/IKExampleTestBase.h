@@ -2,8 +2,6 @@
 
 #include "ExampleTestBase.h"
 
-#include <sge_game_anime_prog/math/Transform.h>
-#include <sge_game_anime_prog/animation/Track.h>
 #include <sge_game_anime_prog/animation/TransformTrack.h>
 
 namespace sge {
@@ -14,7 +12,7 @@ template<class IKSolver>
 class IKExampleTestBase : public ExampleTestBase {
 	using Base			= ExampleTestBase;
 	using SampleRequest = Track_SampleRequest;
-	using DebugDrawPL	= DebugDraw_PointLines;
+	using DebugDrawPL	= typename DebugDraw_PointLines;
 public:
 	IKExampleTestBase();
 

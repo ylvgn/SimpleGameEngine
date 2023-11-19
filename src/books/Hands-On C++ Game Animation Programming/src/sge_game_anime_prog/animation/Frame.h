@@ -25,12 +25,15 @@ struct Frame {
 	float in[N];	// in-coming tangent
 	float out[N];	// out-going tangent
 	float time;
-}; // Frame
+};
 
 using ScalarFrame		= Frame<1>;
 using VectorFrame		= Frame<3>;
 using QuaternionFrame	= Frame<4>;
 
+#if 0
+#pragma mark ------------------- FrameUtil -------------------
+#endif
 struct FrameUtil {
 	FrameUtil() = delete;
 

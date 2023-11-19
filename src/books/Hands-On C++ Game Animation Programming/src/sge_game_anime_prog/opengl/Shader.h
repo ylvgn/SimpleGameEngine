@@ -23,7 +23,6 @@ public:
 	u32 handle() const { return _handle; }
 
 private:
-
 	// read the contents of a file into string
 	String _readFile(StrView path);
 	String _readMem(ByteSpan data, StrView path);

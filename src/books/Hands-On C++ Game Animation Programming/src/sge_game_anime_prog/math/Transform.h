@@ -13,14 +13,14 @@ struct dual_quat;
 
 struct Transform {
 public:
-	inline Transform() = default;
-	inline Transform(const vec3f& t, const quat4f& r, const vec3f& s)
+	Transform() = default;
+	Transform(const vec3f& t, const quat4f& r, const vec3f& s)
 		: position(t)
 		, rotation(r)
 		, scale(s) {}
 
-	inline bool operator==(const Transform& r) const { return position == r.position && rotation == r.rotation && scale == r.scale; }
-	inline bool operator!=(const Transform& r) const { return !this->operator==(r); }
+	bool operator==(const Transform& r) const { return position == r.position && rotation == r.rotation && scale == r.scale; }
+	bool operator!=(const Transform& r) const { return !this->operator==(r); }
 
 	// Instead of interpolation, this operation is typically called blend or mix.
 	// Being able to mix transformations together is important for creating smooth transitions between animations.
@@ -29,19 +29,19 @@ public:
 
 	Transform inverse() const;
 
-	inline vec3f forward()	const { return rotation * vec3f::s_forward(); }
-	inline vec3f right()	const { return rotation * vec3f::s_right(); }
-	inline vec3f up()		const { return rotation * vec3f::s_up(); }
+	vec3f forward()	const { return rotation * vec3f::s_forward(); }
+	vec3f right()	const { return rotation * vec3f::s_right(); }
+	vec3f up()		const { return rotation * vec3f::s_up(); }
 
 	// same as multiplying a matrix and a point, but just step by step (SRT) in function transformPoint.
-	inline vec3f transformPoint(const vec3f& point) const {
+	vec3f transformPoint(const vec3f& point) const {
 		// first, apply the scale, then rotation, and finally, the translation
 		return position + (rotation * (scale * point));
 //		transformPoint aka move points
 	}
 
 	// same as multiplying a matrix and a vector, just like transformPoint but no need add position
-	inline vec3f transformVector(const vec3f& vector) const {
+	vec3f transformVector(const vec3f& vector) const {
 		// first, apply the scale, then rotation, and finally, the translation, but don't add the position
 		return rotation * (scale * vector);
 //		transformVector aka rotate vectors

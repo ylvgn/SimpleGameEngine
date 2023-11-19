@@ -16,11 +16,11 @@ namespace sge {
 	// In this context a joint is expressed as a Transform object. --> '_jointTrans[i]'
 class Pose {
 public:
-	inline Pose() = default;
-	inline Pose(size_t jointCount) { resize(jointCount); }
+	Pose() = default;
+	Pose(size_t jointCount) { resize(jointCount); }
 
 	Pose(const Pose& r);
-	Pose& operator=(const Pose& r); // overload operator=, use std::memcpy for quick copy
+	Pose& operator=(const Pose& r); // overload operator=, use memcpy for quick copy
 
 	bool operator== (const Pose& r) const;
 	bool operator!= (const Pose& r) const;
@@ -28,21 +28,19 @@ public:
 	void clear();
 	void resize(size_t newJointCount);
 
-	inline size_t getJointCount() const { return _jointTrans.size(); }
+	size_t getJointCount() const	{ return _jointTrans.size(); }
 
-	inline int	getParent(int i) const	{ return _parentIds[i]; }
-	inline void setParent(int i, int p)	{ _parentIds[i] = p; }
+	int	getParent(int i) const		{ return _parentIds[i]; }
+	void setParent(int i, int p)	{ _parentIds[i] = p; }
 
-	inline Transform	getLocalTransform(int i) const					{ return _jointTrans[i]; }
-	inline void			setLocalTransform(int i, const Transform& t)	{ _jointTrans[i] = t; }
+	Transform	getLocalTransform(int i) const					{ return _jointTrans[i]; }
+	void		setLocalTransform(int i, const Transform& t)	{ _jointTrans[i] = t; }
 
 	Transform	getGlobalTransform(int i) const;
 	dual_quat4f getGlobalDualQuaternion(int i) const;
 
-	inline			Transform getWorldTransform(int i)	const { return getGlobalTransform(i); }
-	inline const	Transform operator[] (int i)		const { return getGlobalTransform(i); }
-
-	inline dual_quat4f getWorldDualQuaternion(int i)	const { return getGlobalDualQuaternion(i); }
+	Transform	getWorldTransform(int i)		const { return getGlobalTransform(i); }
+	dual_quat4f getWorldDualQuaternion(int i)	const { return getGlobalDualQuaternion(i); }
 
 	// For a Pose class to be passed to OpenGL, it needs to be converted into a linear array of matrices.
 	// The function takes a reference to a vector of matrices

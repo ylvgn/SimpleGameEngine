@@ -13,24 +13,24 @@ class IKLeg : public RefCountBase {
 public:
 	IKLeg();
 
-	inline int hip()	const		{ return _hipIndex;		}
-	inline int knee()	const		{ return _kneeIndex;	}
-	inline int ankle()	const		{ return _ankleIndex;	}
-	inline int toe()	const		{ return _toeIndex;		}
+	int hip()	const		{ return _hipIndex;		}
+	int knee()	const		{ return _kneeIndex;	}
+	int ankle()	const		{ return _ankleIndex;	}
+	int toe()	const		{ return _toeIndex;		}
 
-	inline int setHip(int index)	{ _hipIndex		= index; }
-	inline int setKnee(int index)	{ _kneeIndex	= index; }
-	inline int setAnkle(int index)	{ _ankleIndex	= index; }
-	inline int setToe(int index)	{ _toeIndex		= index; }
+	int setHip(int index)	{ _hipIndex		= index; }
+	int setKnee(int index)	{ _kneeIndex	= index; }
+	int setAnkle(int index)	{ _ankleIndex	= index; }
+	int setToe(int index)	{ _toeIndex		= index; }
 
-	inline float ankleToGroundOffset() const { return _ankleToGroundOffset; }
-	inline void setAnkleToGroundOffset(float offset) { _ankleToGroundOffset = offset; }
+	float ankleToGroundOffset() const { return _ankleToGroundOffset; }
+	void setAnkleToGroundOffset(float offset) { _ankleToGroundOffset = offset; }
 
-	inline const ScalarTrack& pinTrack() const		{ return _pinTrack; }
-	inline void setPinTrack(const ScalarTrack& t)	{ _pinTrack = t; }
+	const ScalarTrack& pinTrack() const		{ return _pinTrack; }
+	void setPinTrack(const ScalarTrack& t)	{ _pinTrack = t; }
 
-	inline const Pose& outPose()	const	{ return _outPose; }
-	inline const IKSolver& solver()	const	{ return _solver; }
+	const Pose& outPose()		const	{ return _outPose; }
+	const IKSolver& solver()	const	{ return _solver; }
 
 	void setByJointNames(const Skeleton* skeleton,
 						 StrView hipJointName,

@@ -7,6 +7,7 @@ namespace sge {
 	The ball-and-socket constraint is usually applied to the hip or shoulder joints of a character.
 	These also tend to be the root joints for the limb IK chains.
 */
+
 template<class IKSolver>
 class BallSocketConstraintExample : public IKExampleTestBase<IKSolver> {
 	using Base = typename IKExampleTestBase<IKSolver>;

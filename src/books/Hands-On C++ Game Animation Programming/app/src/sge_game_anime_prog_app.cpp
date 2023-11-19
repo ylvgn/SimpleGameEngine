@@ -57,7 +57,7 @@ public:
 		_timingInfo.cpu->beginUpdate(_sampleRequest.dt);
 #endif
 
-		_cameraMove(); // is it right place ???
+		_cameraMove();
 
 		if (_sampleContext)
 			_sampleContext->update(_sampleRequest);
@@ -279,12 +279,12 @@ protected:
 			}
 		}
 
-		_showText.clear();
-		if (ev.isDown(KeyCode::W)) { _cameraDeltaPos.y = Math::clamp(_cameraDeltaPos.y+1, -kMouseMaxDelta, kMouseMaxDelta); _showText += "W"; }
-		if (ev.isDown(KeyCode::S)) { _cameraDeltaPos.y = Math::clamp(_cameraDeltaPos.y-1, -kMouseMaxDelta, kMouseMaxDelta); _showText += "S"; }
-		if (ev.isDown(KeyCode::A)) { _cameraDeltaPos.x = Math::clamp(_cameraDeltaPos.x+1, -kMouseMaxDelta, kMouseMaxDelta); _showText += "A"; }
-		if (ev.isDown(KeyCode::D)) { _cameraDeltaPos.x = Math::clamp(_cameraDeltaPos.x-1, -kMouseMaxDelta, kMouseMaxDelta); _showText += "D"; }
-		if (_showText.size() > 0) SGE_LOG("{}\tdelta: {}", _showText, _cameraDeltaPos);
+		//_showText.clear();
+		if (ev.isDown(KeyCode::W)) { _cameraDeltaPos.y = Math::clamp(_cameraDeltaPos.y+1, -kMouseMaxDelta, kMouseMaxDelta); /*_showText += "W";*/ }
+		if (ev.isDown(KeyCode::S)) { _cameraDeltaPos.y = Math::clamp(_cameraDeltaPos.y-1, -kMouseMaxDelta, kMouseMaxDelta); /*_showText += "S";*/ }
+		if (ev.isDown(KeyCode::A)) { _cameraDeltaPos.x = Math::clamp(_cameraDeltaPos.x+1, -kMouseMaxDelta, kMouseMaxDelta); /*_showText += "A";*/ }
+		if (ev.isDown(KeyCode::D)) { _cameraDeltaPos.x = Math::clamp(_cameraDeltaPos.x-1, -kMouseMaxDelta, kMouseMaxDelta); /*_showText += "D";*/ }
+		//if (_showText.size() > 0) SGE_LOG("{}\tdelta: {}", _showText, _cameraDeltaPos);
 	}
 
 private:
@@ -595,7 +595,7 @@ protected:
 	virtual void onUpdate(float dt) override {
 		_mainWin.update(dt);
 		_mainWin.render();
-		NuklearUI::UIInput input; // is it tricky ???
+		NuklearUI::UIInput input; // tricky
 	}
 
 private:
