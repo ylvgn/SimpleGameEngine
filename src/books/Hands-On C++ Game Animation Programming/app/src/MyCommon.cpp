@@ -1,5 +1,8 @@
 #include "MyCommon.h"
 
+#include <sge_game_anime_prog/opengl/Shader.h>
+#include <sge_game_anime_prog/rendering/Mesh.h>
+
 namespace sge {
 
 void AnimationAttribLocation::setBySkinnedShader(const Shader* const shader) {

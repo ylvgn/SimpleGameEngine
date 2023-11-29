@@ -132,7 +132,7 @@ size_t getComponentCount(cgltf_type v) {
 		case cgltf_type_mat2:   return 4;
 		case cgltf_type_mat3:   return 9;
 		case cgltf_type_mat4:   return 16;
-		default:				throw SGE_ERROR("unsupported cgltf_type {}", v); break;
+		default:				throw SGE_ERROR("unsupported cgltf_type {}", static_cast<int>(v)); break;
 	}
 }
 
@@ -219,7 +219,7 @@ void skinMeshFromAttribute(	Mesh& outMesh,
 			//	color.push_back({values[index+ 0], values[index+1], values[index+2], values[index+3]});
 			//	break;
 			default:
-				throw SGE_ERROR("unsupported cgltf_attribute_type {}", attribType); break;
+				throw SGE_ERROR("unsupported cgltf_attribute_type {}", static_cast<int>(attribType)); break;
 		}
 	}
 }

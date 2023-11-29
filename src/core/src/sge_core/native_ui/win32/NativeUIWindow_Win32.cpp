@@ -11,7 +11,7 @@ void NativeUIWindow_Win32::onCreate(CreateDesc& desc) {
 
 	const wchar_t* clsName = L"NativeUIWindow";
 
-	auto hInstance = ::GetModuleHandle(nullptr);
+	auto hInstance		= ::GetModuleHandle(nullptr);
 	WNDCLASSEX wc       = {}; // ZeroMemory
 	wc.cbSize			= sizeof(wc);
 	wc.style			= CS_HREDRAW | CS_VREDRAW; // | CS_DROPSHADOW;

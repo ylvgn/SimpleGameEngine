@@ -2,6 +2,9 @@
 
 namespace sge {
 
+class Mesh;
+class Shader;
+
 struct AnimationAttribLocation {
 	int pos;
 	int normal;
