@@ -1,22 +1,24 @@
 #include "PW5_HelloWin.h"
 
+#if SGE_OS_WINDOWS
+
 #pragma comment(lib, "Winmm.lib")
 
 namespace sge {
 
 // Byte  (1 byte)
 // WORD  (2 bytes) 16 bit
-// DWORD (4 bytes) 32 bit, DW means double WORD
+// DWORD (4 bytes) 32 bit, 'DW' -> double WORD
 // Long  (4 bytes)
 void PW5_HelloWin::onCreate(CreateDesc& desc) {
 
-	// static const LPWSTR   szAppName = L"PW5_HelloWin";
-	// static const wchar_t* szAppName = L"PW5_HelloWin";
-	// static const TCHAR*	 szAppName = TEXT("PW5_HelloWin");
-	static const TCHAR		 szAppName[] = TEXT ("PW5_HelloWin");
+	// static const LPWSTR   clsName = L"PW5_HelloWin";
+	// static const wchar_t* clsName = L"PW5_HelloWin";
+	// static const TCHAR*	 clsName = TEXT("PW5_HelloWin");
+	static const TCHAR		 clsName[] = TEXT ("PW5_HelloWin");
 
     WNDCLASS wndclass;
-	my_bzero(wndclass);
+	g_bzero(wndclass);
 
 	auto hInstance			= GetModuleHandle(nullptr);
     wndclass.style			= CS_HREDRAW | CS_VREDRAW;
@@ -28,42 +30,41 @@ void PW5_HelloWin::onCreate(CreateDesc& desc) {
     wndclass.hCursor		= LoadCursor (NULL, IDC_ARROW);
     wndclass.hbrBackground	= (HBRUSH) GetStockObject (WHITE_BRUSH);
     wndclass.lpszMenuName	= NULL;
-    wndclass.lpszClassName	= szAppName;
+
+    wndclass.lpszClassName	= clsName;
 
     if (!RegisterClass (&wndclass)) {
-        MessageBox (NULL, TEXT ("This program requires Windows NT!"),  szAppName, MB_ICONERROR);
+        MessageBox (NULL, TEXT ("This program requires Windows NT!"), clsName, MB_ICONERROR);
 		throw SGE_ERROR("error RegisterClassEx");
     }
-     
-	HWND hwnd = CreateWindow (szAppName,            // window class name
-                        TEXT ("The Hello Program"), // window caption
-                        WS_OVERLAPPEDWINDOW,        // window style
-                        CW_USEDEFAULT,              // initial x position
-                        CW_USEDEFAULT,              // initial y position
-                        CW_USEDEFAULT,              // initial x size
-                        CW_USEDEFAULT,              // initial y size
-                        NULL,                       // parent window handle
-                        NULL,                       // window menu handle
-                        hInstance,                  // program instance handle
-                        NULL);                      // creation parameters
-     
-    ShowWindow (hwnd, SW_SHOWDEFAULT);
+
+	DWORD dwStyle = WS_OVERLAPPEDWINDOW /*& ~WS_THICKFRAME*/;
+
+	HWND hwnd = CreateWindow(clsName,				// window class name
+							 TEXT ("PW5 HelloWin"),	// window caption title
+							 dwStyle,				// 'WS' -> window style
+							 CW_USEDEFAULT,			// initial x position
+							 CW_USEDEFAULT,			// initial y position
+							 CW_USEDEFAULT,			// initial x size
+							 CW_USEDEFAULT,			// initial y size
+							 NULL,					// parent window handle
+							 NULL,					// window menu handle
+							 hInstance,				// program instance handle
+							 NULL);					// creation parameters
+
+    ShowWindow (hwnd, SW_SHOWDEFAULT); // 'SW' -> show window
     UpdateWindow (hwnd);
 }
 
-// LRESULT int (32 bit), L means long
-// Win16: LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam)
+// LRESULT same as int (32 bit), 'L' -> long
 LRESULT CALLBACK PW5_HelloWin::s_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
-// LPARAM (4 bytes) 32 bit
-	// LWORD (16 bit) L low-order,  [ 0~15] in LPARAM
-	// HWORD (16 bit) H high-order, [16~31] in LPARAM
-
     HDC         hdc;
     PAINTSTRUCT ps;
     RECT        rect;
-     
+    
     switch (message)
     {
+	// "WM" -> window message
     case WM_CREATE:
         PlaySound (TEXT ("hellowin.wav"), NULL, SND_FILENAME | SND_ASYNC);
         return 0;
@@ -75,11 +76,23 @@ LRESULT CALLBACK PW5_HelloWin::s_WndProc (HWND hwnd, UINT message, WPARAM wParam
 		}
         EndPaint (hwnd, &ps);
         return 0;
+	case WM_RBUTTONDOWN: {
+		int ret = MessageBox(hwnd, TEXT ("My message"), L"My title", MB_YESNOCANCEL | MB_ICONERROR); // "MB" -> message box
+		if (ret == IDYES) {
+			SGE_LOG("Click Yes!");
+		} else if (ret == IDNO) {
+			SGE_LOG("Click No!");
+		} else if (ret == IDCANCEL) {
+			SGE_LOG("Click Cancel!");
+		}
+	}break;
     case WM_DESTROY:
-        PostQuitMessage (0);
+        PostQuitMessage(0);
         return 0;
     }
     return DefWindowProc (hwnd, message, wParam, lParam);
 }
+
+#endif // SGE_OS_WINDOWS
 
 }

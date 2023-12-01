@@ -2,6 +2,8 @@
 
 #include "ProgWin5WindowBase.h"
 
+#if SGE_OS_WINDOWS
+
 namespace sge {
 
 class PW5_HelloMsg : public ProgWin5WindowBase {
@@ -11,4 +13,5 @@ protected:
 	virtual void onCreate(CreateDesc& desc) override;
 };
 
+#endif
 }

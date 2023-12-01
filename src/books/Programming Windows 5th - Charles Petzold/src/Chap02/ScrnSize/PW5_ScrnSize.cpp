@@ -1,5 +1,7 @@
 #include "PW5_ScrnSize.h"
 
+#if SGE_OS_WINDOWS
+
 namespace sge {
 
 int CDECL PW5_ScrnSize::s_messageBoxPrintf(TCHAR* szCaption, TCHAR* szFormat, ...) {
@@ -20,7 +22,7 @@ int CDECL PW5_ScrnSize::s_messageBoxPrintf(TCHAR* szCaption, TCHAR* szFormat, ..
 	// The va_end macro just zeroes out pArgList for no good reason
 	va_end(pArgList);
 
-	return MessageBox(NULL, szBuffer, szCaption, 0); //  prefix "MB" -> message box
+	return MessageBox(NULL, szBuffer, szCaption, 0);
 }
 
 HMONITOR PW5_ScrnSize::s_getPrimaryMonitor() {
@@ -31,16 +33,19 @@ HMONITOR PW5_ScrnSize::s_getPrimaryMonitor() {
 float PW5_ScrnSize::s_getMonitorScalingRatio(HMONITOR monitor)
 {
 	MONITORINFOEX info;
+	g_bzero(info);
 	info.cbSize = sizeof(info);
 	GetMonitorInfo(monitor, &info);
 
 	DEVMODE devmode;
+	g_bzero(devmode);
 	devmode.dmSize = sizeof(DEVMODE);
 	EnumDisplaySettings(info.szDevice, ENUM_CURRENT_SETTINGS, &devmode);
-	return (float)(devmode.dmPelsWidth) / (info.rcMonitor.right - info.rcMonitor.left);
+	return static_cast<float>(devmode.dmPelsWidth) / (info.rcMonitor.right - info.rcMonitor.left);
 }
 
 void PW5_ScrnSize::onCreate(CreateDesc& desc) {
+	// 'SM' -> System Metrics
 	int cyCaption = GetSystemMetrics(SM_CYCAPTION); // The height of a caption area, in pixels.
 	s_messageBoxPrintf(TEXT("PW5_ScrnSize"),
 		TEXT("caption height = %d"),
@@ -50,8 +55,9 @@ void PW5_ScrnSize::onCreate(CreateDesc& desc) {
 	int cxScreen = GetSystemMetrics(SM_CXSCREEN);
 	int cyScreen = GetSystemMetrics(SM_CYSCREEN);
 
-	auto hMonitor	= s_getPrimaryMonitor();
-	float scale		= s_getMonitorScalingRatio(hMonitor);
+	// H -> Handle
+	HMONITOR hMonitor = s_getPrimaryMonitor();
+	float scale		  = s_getMonitorScalingRatio(hMonitor);
 
 	s_messageBoxPrintf(TEXT("PW5_ScrnSize"),
 		TEXT("screen physics size: %.0f x %.0f"),
@@ -64,4 +70,5 @@ void PW5_ScrnSize::onCreate(CreateDesc& desc) {
 	);
 }
 
+#endif // SGE_OS_WINDOWS
 }
