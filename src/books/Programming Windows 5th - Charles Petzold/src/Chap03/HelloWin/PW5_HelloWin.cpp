@@ -12,8 +12,8 @@ namespace sge {
 // Long  (4 bytes)
 void PW5_HelloWin::onCreate(CreateDesc& desc) {
 
-	// static const LPWSTR   clsName = L"PW5_HelloWin";
-	// static const wchar_t* clsName = L"PW5_HelloWin";
+	// static const LPWSTR   clsName = TEXT("PW5_HelloWin");
+	// static const wchar_t* clsName = TEXT("PW5_HelloWin");
 	// static const TCHAR*	 clsName = TEXT("PW5_HelloWin");
 	static const TCHAR		 clsName[] = TEXT ("PW5_HelloWin");
 
@@ -66,6 +66,8 @@ LRESULT CALLBACK PW5_HelloWin::s_WndProc (HWND hwnd, UINT message, WPARAM wParam
     {
 	// "WM" -> window message
     case WM_CREATE:
+		// The window procedure of the new window receives this message after the window is created,
+		// but before the window becomes visible.
         PlaySound (TEXT ("hellowin.wav"), NULL, SND_FILENAME | SND_ASYNC);
         return 0;
     case WM_PAINT:
@@ -77,7 +79,8 @@ LRESULT CALLBACK PW5_HelloWin::s_WndProc (HWND hwnd, UINT message, WPARAM wParam
         EndPaint (hwnd, &ps);
         return 0;
 	case WM_RBUTTONDOWN: {
-		int ret = MessageBox(hwnd, TEXT ("My message"), L"My title", MB_YESNOCANCEL | MB_ICONERROR); // "MB" -> message box
+		// "MB" -> message box
+		int ret = MessageBox(hwnd, L"My message", L"My title", MB_YESNOCANCEL | MB_ICONERROR);
 		if (ret == IDYES) {
 			SGE_LOG("Click Yes!");
 		} else if (ret == IDNO) {
@@ -85,6 +88,7 @@ LRESULT CALLBACK PW5_HelloWin::s_WndProc (HWND hwnd, UINT message, WPARAM wParam
 		} else if (ret == IDCANCEL) {
 			SGE_LOG("Click Cancel!");
 		}
+		return 0;
 	}break;
     case WM_DESTROY:
         PostQuitMessage(0);

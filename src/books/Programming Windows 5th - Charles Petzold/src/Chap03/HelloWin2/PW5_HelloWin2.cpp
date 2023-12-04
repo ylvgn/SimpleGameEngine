@@ -68,4 +68,5 @@ LRESULT CALLBACK PW5_HelloWin2::s_WndProc (HWND hwnd, UINT message, WPARAM wPara
 }
 
 #endif // SGE_OS_WINDOWS
+
 }

@@ -15,7 +15,11 @@ protected:
 	using WndProcHandler = LRESULT(CALLBACK*) (HWND, UINT, WPARAM, LPARAM);
 
 	virtual void onCreate(CreateDesc& desc) override;
+	virtual void onSetWindowTitle(StrView title) override;
+
 	virtual WndProcHandler onGetWndProc() { return nullptr; }
+
+	static LRESULT CALLBACK s_WndProcDefault(HWND, UINT, WPARAM, LPARAM);
 
 	HWND _hwnd;
 };

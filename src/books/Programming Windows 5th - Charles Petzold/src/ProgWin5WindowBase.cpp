@@ -34,7 +34,7 @@ void ProgWin5WindowBase::onCreate(CreateDesc& desc) {
 
 	_hwnd = CreateWindowEx(	dwExStyle, clsName, clsName, dwStyle,
 							CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
-							nullptr, nullptr, hInstance, nullptr);
+							nullptr, nullptr, hInstance, this);
 
 	if (!_hwnd) {
 		throw SGE_ERROR("cannot create native window");
@@ -42,6 +42,30 @@ void ProgWin5WindowBase::onCreate(CreateDesc& desc) {
 
     ShowWindow (_hwnd, SW_SHOWDEFAULT);
     UpdateWindow (_hwnd);
+}
+
+void ProgWin5WindowBase::onSetWindowTitle(StrView title) {
+	if (!_hwnd) return;
+	TempStringW tmp = UtfUtil::toStringW(title);
+	SetWindowText(_hwnd, tmp.c_str());
+}
+
+LRESULT CALLBACK ProgWin5WindowBase::s_WndProcDefault(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
+
+	switch (message)
+	{
+	case WM_CREATE: {
+		auto createStruct = reinterpret_cast<CREATESTRUCT*>(lParam);
+		auto* thisObj = static_cast<This*>(createStruct->lpCreateParams);
+		thisObj->_hwnd = hwnd;
+		SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(thisObj));
+		return 0;
+	} break;
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		return 0;
+	}
+	return DefWindowProc(hwnd, message, wParam, lParam);
 }
 
 }

@@ -37,6 +37,7 @@ protected:
 				case Type::SGE_E: { \
 					_mainWin = eastl::make_unique<PW5_##SGE_E>(); \
 					_mainWin->create(winDesc); \
+					_mainWin->setWindowTitle(SGE_STRINGIFY(PW5_, SGE_E)); \
 				} break; \
 			// ----------
 
