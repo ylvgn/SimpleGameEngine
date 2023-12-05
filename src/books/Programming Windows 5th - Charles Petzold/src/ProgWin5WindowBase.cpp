@@ -7,11 +7,9 @@ namespace sge {
 void ProgWin5WindowBase::onCreate(CreateDesc& desc) {
 	const wchar_t* clsName = L"ProgWin5WindowBase";
 
-	HMODULE hInstance	= GetModuleHandle(nullptr);
-
 	WNDCLASSEX wc;
 	g_bzero(wc);
-
+	HMODULE hInstance	= GetModuleHandle(nullptr);
 	wc.cbSize			= sizeof(WNDCLASSEX);
     wc.style			= CS_HREDRAW | CS_VREDRAW;
     wc.lpfnWndProc		= onGetWndProc();
@@ -32,8 +30,18 @@ void ProgWin5WindowBase::onCreate(CreateDesc& desc) {
 	DWORD dwExStyle = 0;
 	DWORD dwStyle   = WS_OVERLAPPEDWINDOW;
 
+	if (desc.centerToScreen) {
+		int screenWidth  = GetSystemMetrics(SM_CXSCREEN);
+		int screenHeight = GetSystemMetrics(SM_CYSCREEN);
+		Vec2f screenSize = Vec2f(static_cast<float>(screenWidth), static_cast<float>(screenHeight));
+		desc.rect.pos = (screenSize - desc.rect.size) * 0.5f;
+	}
+
 	_hwnd = CreateWindowEx(	dwExStyle, clsName, clsName, dwStyle,
-							CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+							static_cast<int>(desc.rect.x),
+							static_cast<int>(desc.rect.y),
+							static_cast<int>(desc.rect.w),
+							static_cast<int>(desc.rect.h),
 							nullptr, nullptr, hInstance, this);
 
 	if (!_hwnd) {
@@ -51,16 +59,28 @@ void ProgWin5WindowBase::onSetWindowTitle(StrView title) {
 }
 
 LRESULT CALLBACK ProgWin5WindowBase::s_WndProcDefault(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
-
 	switch (message)
 	{
 	case WM_CREATE: {
-		auto createStruct = reinterpret_cast<CREATESTRUCT*>(lParam);
-		auto* thisObj = static_cast<This*>(createStruct->lpCreateParams);
+		auto* cs = reinterpret_cast<CREATESTRUCT*>(lParam);
+		auto* thisObj = static_cast<This*>(cs->lpCreateParams);
 		thisObj->_hwnd = hwnd;
 		SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(thisObj));
 		return 0;
 	} break;
+
+	case WM_SIZE: {
+		// CreateWindowEx -> WM_CREATE -> ShowWindow -> WM_SIZE -> UpdateWindow, ...
+		// resize by user drag this window instance
+		if (auto* thisObj = s_getThis(hwnd)) {
+			RECT clientRect;
+			::GetClientRect(hwnd, &clientRect);
+			Rect2f newClientRect = Win32Util::toRect2f(clientRect);
+			thisObj->onClientRectChanged(newClientRect);
+			return 0;
+		}
+	}break;
+
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		return 0;
@@ -68,6 +88,6 @@ LRESULT CALLBACK ProgWin5WindowBase::s_WndProcDefault(HWND hwnd, UINT message, W
 	return DefWindowProc(hwnd, message, wParam, lParam);
 }
 
-}
+} // namespace
 
-#endif
+#endif // SGE_OS_WINDOWS

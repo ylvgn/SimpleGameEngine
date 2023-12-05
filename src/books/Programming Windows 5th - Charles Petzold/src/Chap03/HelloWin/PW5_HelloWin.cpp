@@ -78,18 +78,6 @@ LRESULT CALLBACK PW5_HelloWin::s_WndProc (HWND hwnd, UINT message, WPARAM wParam
 		}
         EndPaint (hwnd, &ps);
         return 0;
-	case WM_RBUTTONDOWN: {
-		// "MB" -> message box
-		int ret = MessageBox(hwnd, L"My message", L"My title", MB_YESNOCANCEL | MB_ICONERROR);
-		if (ret == IDYES) {
-			SGE_LOG("Click Yes!");
-		} else if (ret == IDNO) {
-			SGE_LOG("Click No!");
-		} else if (ret == IDCANCEL) {
-			SGE_LOG("Click Cancel!");
-		}
-		return 0;
-	}break;
     case WM_DESTROY:
         PostQuitMessage(0);
         return 0;
@@ -97,6 +85,6 @@ LRESULT CALLBACK PW5_HelloWin::s_WndProc (HWND hwnd, UINT message, WPARAM wParam
     return DefWindowProc (hwnd, message, wParam, lParam);
 }
 
-#endif // SGE_OS_WINDOWS
-
 }
+
+#endif // SGE_OS_WINDOWS

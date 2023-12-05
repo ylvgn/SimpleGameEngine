@@ -9,15 +9,16 @@ int CDECL PW5_ScrnSize::s_messageBoxPrintf(TCHAR* szCaption, TCHAR* szFormat, ..
 	va_list pArgList;
 
 	// The va_start macro (defined in STDARG.H) is usually equivalent to:
-	// pArgList = (char *) &szFormat + sizeof (szFormat) ;
-	va_start(pArgList, szFormat);
+	va_start(pArgList, szFormat); // pArgList = (char *) &szFormat + sizeof (szFormat) ;
 
+#if 0
 	// The last argument to wvsprintf points to the arguments
-
-	//_vsntprintf(szBuffer, sizeof(szBuffer) / sizeof(TCHAR), szFormat, pArgList);
-	// _vsntprintf is deprecated
-	// corrects this warning using safe string manipulation: https://learn.microsoft.com/en-us/cpp/code-quality/c6053?view=msvc-170
-	_vsnwprintf_s(szBuffer, sizeof(szBuffer) / sizeof(TCHAR), szFormat, pArgList);
+	// _vsntprintf (Warning C6053): https://learn.microsoft.com/en-us/cpp/code-quality/c6053?view=msvc-170
+	_vsntprintf(szBuffer, sizeof(szBuffer) / sizeof(TCHAR), szFormat, pArgList);
+#else
+	// corrects this warning using safe string manipulation: 
+	_vsntprintf_s(szBuffer, sizeof(szBuffer) / sizeof(TCHAR), szFormat, pArgList);
+#endif
 
 	// The va_end macro just zeroes out pArgList for no good reason
 	va_end(pArgList);
@@ -30,11 +31,10 @@ HMONITOR PW5_ScrnSize::s_getPrimaryMonitor() {
 	return MonitorFromPoint(ptZero, MONITOR_DEFAULTTOPRIMARY);
 }
 
-float PW5_ScrnSize::s_getMonitorScalingRatio(HMONITOR monitor)
-{
+float PW5_ScrnSize::s_getMonitorScalingRatio(HMONITOR monitor) {
 	MONITORINFOEX info;
 	g_bzero(info);
-	info.cbSize = sizeof(info);
+	info.cbSize = sizeof(MONITORINFOEX);
 	GetMonitorInfo(monitor, &info);
 
 	DEVMODE devmode;
@@ -45,30 +45,32 @@ float PW5_ScrnSize::s_getMonitorScalingRatio(HMONITOR monitor)
 }
 
 void PW5_ScrnSize::onCreate(CreateDesc& desc) {
-	// 'SM' -> System Metrics
 	int cyCaption = GetSystemMetrics(SM_CYCAPTION); // The height of a caption area, in pixels.
-	s_messageBoxPrintf(TEXT("PW5_ScrnSize"),
-		TEXT("caption height = %d"),
+	s_messageBoxPrintf(TEXT("SM_CYCAPTION"),
+		TEXT("caption height: %d"),
 		cyCaption
 	);
 
-	int cxScreen = GetSystemMetrics(SM_CXSCREEN);
-	int cyScreen = GetSystemMetrics(SM_CYSCREEN);
+	int cxScreen = GetSystemMetrics(SM_CXSCREEN); // 'SM' -> System Metrics
+	int cyScreen = GetSystemMetrics(SM_CYSCREEN); // The height of the screen primary display monitor in pixels (main display monitor)
 
-	// H -> Handle
+	// 'H' -> Handle
 	HMONITOR hMonitor = s_getPrimaryMonitor();
 	float scale		  = s_getMonitorScalingRatio(hMonitor);
 
-	s_messageBoxPrintf(TEXT("PW5_ScrnSize"),
+	SGE_LOG("Monitor Scaling Ratio={}", scale);
+
+	s_messageBoxPrintf(TEXT("GetSystemMetrics With Scale"),
 		TEXT("screen physics size: %.0f x %.0f"),
 		cxScreen * scale, cyScreen * scale
 	);
 
-	s_messageBoxPrintf(TEXT("PW5_ScrnSize"),
+	s_messageBoxPrintf(TEXT("SM_CXSCREEN x SM_CYSCREEN"),
 		TEXT("The screen is %i pixels wide by %i pixels high."),
 		cxScreen, cyScreen
 	);
 }
 
-#endif // SGE_OS_WINDOWS
 }
+
+#endif // SGE_OS_WINDOWS

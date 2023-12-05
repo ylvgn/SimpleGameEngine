@@ -15,6 +15,6 @@ private:
 	static LRESULT CALLBACK s_WndProc(HWND, UINT, WPARAM, LPARAM);
 };
 
-#endif
-
 }
+
+#endif // SGE_OS_WINDOWS

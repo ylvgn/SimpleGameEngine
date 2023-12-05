@@ -19,8 +19,8 @@ LRESULT CALLBACK PW5_HelloWin2::s_WndProc (HWND hwnd, UINT message, WPARAM wPara
 		return 0;
 	} break;
 	case WM_SIZE: {
-		i16 width  = static_cast<i16>(lParam & 0xffff);			// same as GET_X_LPARAM(lParam)
-		i16 height = static_cast<i16>(lParam >> 16 & 0xffff);	// same as GET_Y_LPARAM(lParam)
+		auto width  = static_cast<i16>(lParam & 0xffff);		// same as GET_X_LPARAM(lParam)
+		auto height = static_cast<i16>(lParam >> 16 & 0xffff);	// same as GET_Y_LPARAM(lParam)
 		SGE_LOG("WM_SIZE {}x{}\n", width, height);
 	} break;
 	case WM_LBUTTONDOWN: {
@@ -50,11 +50,11 @@ LRESULT CALLBACK PW5_HelloWin2::s_WndProc (HWND hwnd, UINT message, WPARAM wPara
 
 		HDC hdc = BeginPaint(hwnd, &ps);
 		{
-			int sx = GetSystemMetrics(SM_CXSCREEN); // SM -> System Metrics
-			int sy = GetSystemMetrics(SM_CYSCREEN); // The height of the screen primary display monitor in pixels (main display monitor)
+			int sx = GetSystemMetrics(SM_CXSCREEN);
+			int sy = GetSystemMetrics(SM_CYSCREEN);
 
 			TCHAR text[128];
-			swprintf_s(text, 128, L"The display monitor resolution is %ix%i.", sx, sy);
+			_stprintf_s(text, 128, L"The display monitor resolution is %ix%i.", sx, sy);
 
 			DrawText(hdc, text, -1 /*lstrlenW(text)*/, &rect, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
 		}
@@ -67,6 +67,6 @@ LRESULT CALLBACK PW5_HelloWin2::s_WndProc (HWND hwnd, UINT message, WPARAM wPara
     return DefWindowProc (hwnd, message, wParam, lParam);
 }
 
-#endif // SGE_OS_WINDOWS
-
 }
+
+#endif // SGE_OS_WINDOWS
