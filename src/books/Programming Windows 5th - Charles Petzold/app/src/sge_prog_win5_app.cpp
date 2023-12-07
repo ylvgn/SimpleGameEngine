@@ -3,21 +3,28 @@
 namespace sge {
 
 #define MySampleType_ENUM_LIST(E) \
-	/* Chap01 */	\
+	/* Chap01 MessageBox */ \
 	E(HelloMsg,)	\
 	E(HelloMsg2,)	\
-	/* Chap02 */	\
+	/* Chap02 Unicode */ \
 	E(ScrnSize,)	\
-	/* Chap03 */	\
+	/* Chap03 CreateWindow and WndProc */ \
 	E(HelloWin,)	\
 	E(HelloWin2,)	\
+	/* Chap04 */	\
+	E(SysMets1,)	\
 // ----------
 SGE_ENUM_CLASS(MySampleType, u32)
 SGE_ENUM_ALL_OPERATOR(MySampleType)
 
-class ProgWin5App : public NativeUIApp {
-	using Base = NativeUIApp;
+#if SGE_OS_WINDOWS
+
+class ProgWin5App : public NativeUIApp_Base {
+	using Base = NativeUIApp_Base;
 	using Type = MySampleType;
+
+	MySampleType _sampleType = MySampleType::SysMets1;
+
 protected:
 	virtual void onCreate(CreateDesc& desc) override {
 		{ // set working dir
@@ -54,12 +61,31 @@ protected:
 		}
 	}
 
+	virtual void onRun() override {
+		Base::onRun();
+
+		// message loop
+		while (GetMessage(&_msg, NULL, 0, 0)) // Obtains a message from the message queue
+		{
+			TranslateMessage(&_msg); // Translates some keyboard messages
+			DispatchMessage(&_msg);  // Sends a message to a window procedure
+		}
+		willQuit();
+	}
+
+	virtual void onQuit() override {
+		Base::onQuit();
+		::PostQuitMessage(_exitCode);
+	}
+
 private:
-	MySampleType			 _sampleType = MySampleType::HelloWin2;
+	MSG _msg;
 	UPtr<ProgWin5WindowBase> _mainWin;
 };
 
 }
+
+#endif // SGE_OS_WINDOWS
 
 int main(int argc, const TCHAR** argv) {
 	sge::ProgWin5App app;

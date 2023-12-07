@@ -70,7 +70,7 @@ LRESULT CALLBACK ProgWin5WindowBase::s_WndProcDefault(HWND hwnd, UINT message, W
 	} break;
 
 	case WM_SIZE: {
-		// CreateWindowEx -> WM_CREATE -> ShowWindow -> WM_SIZE -> UpdateWindow, ...
+		// CreateWindowEx -> WM_CREATE -> ShowWindow -> WM_SIZE -> UpdateWindow -> WM_PAINT -> ...
 		// resize by user drag this window instance
 		if (auto* thisObj = s_getThis(hwnd)) {
 			RECT clientRect;

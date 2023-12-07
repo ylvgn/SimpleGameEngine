@@ -2,7 +2,7 @@
 
 #if SGE_OS_WINDOWS
 
-#pragma comment(lib, "Winmm.lib")
+#pragma comment(lib, "Winmm.lib") // Windows multimedia
 
 namespace sge {
 
@@ -38,11 +38,11 @@ void PW5_HelloWin::onCreate(CreateDesc& desc) {
 		throw SGE_ERROR("error RegisterClassEx");
     }
 
-	DWORD dwStyle = WS_OVERLAPPEDWINDOW /*& ~WS_THICKFRAME*/;
+	DWORD dwStyle = WS_OVERLAPPEDWINDOW /*& ~WS_THICKFRAME*/; // 'WS' -> window style
 
 	HWND hwnd = CreateWindow(clsName,				// window class name
 							 TEXT ("PW5 HelloWin"),	// window caption title
-							 dwStyle,				// 'WS' -> window style
+							 dwStyle,				// window style
 							 CW_USEDEFAULT,			// initial x position
 							 CW_USEDEFAULT,			// initial y position
 							 CW_USEDEFAULT,			// initial x size
@@ -53,7 +53,7 @@ void PW5_HelloWin::onCreate(CreateDesc& desc) {
 							 NULL);					// creation parameters
 
     ShowWindow (hwnd, SW_SHOWDEFAULT); // 'SW' -> show window
-    UpdateWindow (hwnd);
+    UpdateWindow (hwnd); // Directs the window to paint itself -> WM_PAINT
 }
 
 // LRESULT same as int (32 bit), 'L' -> long
@@ -61,28 +61,28 @@ LRESULT CALLBACK PW5_HelloWin::s_WndProc (HWND hwnd, UINT message, WPARAM wParam
     HDC         hdc;
     PAINTSTRUCT ps;
     RECT        rect;
-    
+
     switch (message)
     {
-	// "WM" -> window message
+	// 'WM' -> window message
     case WM_CREATE:
-		// The window procedure of the new window receives this message after the window is created,
+		// the window procedure of the new window receives this message after the window is created,
 		// but before the window becomes visible.
         PlaySound (TEXT ("hellowin.wav"), NULL, SND_FILENAME | SND_ASYNC);
         return 0;
     case WM_PAINT:
-        hdc = BeginPaint (hwnd, &ps);
+        hdc = BeginPaint (hwnd, &ps); // Initiates the beginning of window painting
 		{
-			GetClientRect (hwnd, &rect);
-			DrawText (hdc, TEXT ("Hello, Windows 98!"), -1, &rect, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
+			GetClientRect (hwnd, &rect); // Obtains the dimensions of the window's client area
+			DrawText (hdc, TEXT ("Hello, Windows 98!"), -1, &rect, DT_SINGLELINE | DT_CENTER | DT_VCENTER); // Displays a text string
 		}
-        EndPaint (hwnd, &ps);
+        EndPaint (hwnd, &ps); // Ends window painting
         return 0;
     case WM_DESTROY:
-        PostQuitMessage(0);
+        PostQuitMessage(0); // Inserts a "quit" message into the message queue
         return 0;
     }
-    return DefWindowProc (hwnd, message, wParam, lParam);
+    return DefWindowProc (hwnd, message, wParam, lParam); // Performs default processing of messages
 }
 
 }
