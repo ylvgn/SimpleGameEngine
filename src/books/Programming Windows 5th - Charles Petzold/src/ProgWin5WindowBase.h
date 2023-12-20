@@ -13,15 +13,14 @@ namespace sge {
 class ProgWin5WindowBase : public NativeUIWindow_Base {
 	using Base = NativeUIWindow_Base;
 	using This = ProgWin5WindowBase;
+	using Util = Win32Util;
 protected:
-	using WndProcHandler = LRESULT(CALLBACK*) (HWND, UINT, WPARAM, LPARAM);
-
 	virtual void onCreate(CreateDesc& desc) override;
 	virtual void onSetWindowTitle(StrView title) override;
 
-	virtual WndProcHandler onGetWndProc() { return nullptr; }
+	virtual WNDPROC onGetWndProc() { return s_WndProc; }
 
-	static LRESULT CALLBACK s_WndProcDefault(HWND, UINT, WPARAM, LPARAM);
+	static LRESULT CALLBACK s_WndProc(HWND, UINT, WPARAM, LPARAM);
 
 	static SGE_INLINE LONG_PTR	s_getWindowUserData(HWND hwnd)	{ return GetWindowLongPtr(hwnd, GWLP_USERDATA); }
 	static SGE_INLINE This*		s_getThis(HWND hwnd)			{ return reinterpret_cast<This*>(s_getWindowUserData(hwnd)); }

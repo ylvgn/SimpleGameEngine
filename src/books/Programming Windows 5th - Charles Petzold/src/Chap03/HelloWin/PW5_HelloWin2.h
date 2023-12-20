@@ -10,7 +10,7 @@ class PW5_HelloWin2 : public ProgWin5WindowBase {
 	using This = PW5_HelloWin2;
 	using Base = ProgWin5WindowBase;
 protected:
-	virtual WndProcHandler onGetWndProc() override { return &s_WndProc; }
+	virtual WNDPROC onGetWndProc() override { return s_WndProc; }
 private:
 	static LRESULT CALLBACK s_WndProc(HWND, UINT, WPARAM, LPARAM);
 };

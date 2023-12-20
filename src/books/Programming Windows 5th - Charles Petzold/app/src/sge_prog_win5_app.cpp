@@ -11,7 +11,8 @@ namespace sge {
 	/* Chap03 CreateWindow and WndProc */ \
 	E(HelloWin,)	\
 	E(HelloWin2,)	\
-	/* Chap04 */	\
+	E(HelloWin3,)	\
+	/* Chap04 Text Output */	\
 	E(SysMets1,)	\
 // ----------
 SGE_ENUM_CLASS(MySampleType, u32)
@@ -23,7 +24,7 @@ class ProgWin5App : public NativeUIApp_Base {
 	using Base = NativeUIApp_Base;
 	using Type = MySampleType;
 
-	MySampleType _sampleType = MySampleType::SysMets1;
+	MySampleType _sampleType = MySampleType::HelloWin3;
 
 protected:
 	virtual void onCreate(CreateDesc& desc) override {
@@ -43,7 +44,7 @@ protected:
 			NativeUIWindow::CreateDesc winDesc;
 			winDesc.isMainWindow	= true;
 			winDesc.centerToScreen	= true;
-			winDesc.rect = { 10, 10, 800, 600 };
+			winDesc.rect			= { 10, 10, 800, 600 };
 
 			#define E(SGE_E, ...) \
 				case Type::SGE_E: { \
@@ -65,11 +66,13 @@ protected:
 		Base::onRun();
 
 		// message loop
-		while (GetMessage(&_msg, NULL, 0, 0)) // Obtains a message from the message queue
+		while (GetMessage(&_msg, NULL, 0, 0)) // the 2,3,4 arguments is NULL means wants all messages for all windows created by the program
 		{
 			TranslateMessage(&_msg); // Translates some keyboard messages
-			DispatchMessage(&_msg);  // Sends a message to a window procedure
+			DispatchMessage(&_msg);  // Sends a message to a window procedure(WndProc)
 		}
+		// when _msg.message == WM_QUIT, GetMessage will break the loop
+
 		willQuit();
 	}
 

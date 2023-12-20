@@ -5,7 +5,8 @@
 namespace sge {
 
 LRESULT CALLBACK PW5_HelloWin2::s_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
-// LPARAM (4 bytes) 32 bit
+// WPARAM is UINT(32 bit) in Win32 and WORD(16 bit) in Win16
+// LPARAM is LONG (4 bytes) 32 bit
 	// LWORD (16 bit) L low-order,  [ 0~15] in LPARAM
 	// HWORD (16 bit) H high-order, [16~31] in LPARAM
 

@@ -51,10 +51,12 @@ void PW5_ScrnSize::onCreate(CreateDesc& desc) {
 		cyCaption
 	);
 
-	int cxScreen = GetSystemMetrics(SM_CXSCREEN); // 'SM' -> System Metrics
+	int cxScreen = GetSystemMetrics(SM_CXSCREEN); // 'SM' -> System Metrics, `cx` -> x length, c stands for 'count'
 	int cyScreen = GetSystemMetrics(SM_CYSCREEN); // The height of the screen primary display monitor in pixels (main display monitor)
 
-	// 'H' -> Handle
+	// 'Hxxx' -> Handle xxx
+		// A handle is simply a number (usually 32 bits in size) that refers to an object
+		// The actual value of the handle is unimportant. just kind of used in conventional C or MS−DOS programming.
 	HMONITOR hMonitor = s_getPrimaryMonitor();
 	float scale		  = s_getMonitorScalingRatio(hMonitor);
 
