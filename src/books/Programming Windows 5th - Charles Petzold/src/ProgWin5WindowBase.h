@@ -1,7 +1,6 @@
 #pragma once
 
 #include <sge_core/native_ui/base/NativeUIWindow_Base.h>
-
 #include "MyCommon.h"
 
 #if SGE_OS_WINDOWS
@@ -18,9 +17,9 @@ protected:
 	virtual void onCreate(CreateDesc& desc) override;
 	virtual void onSetWindowTitle(StrView title) override;
 
-	virtual WNDPROC onGetWndProc() { return s_WndProc; }
+	virtual WNDPROC onGetWndProc() { return This::s_WndProc; }
 
-	static LRESULT CALLBACK s_WndProc(HWND, UINT, WPARAM, LPARAM);
+	static LRESULT CALLBACK		s_WndProc(HWND, UINT, WPARAM, LPARAM);
 
 	static SGE_INLINE LONG_PTR	s_getWindowUserData(HWND hwnd)	{ return GetWindowLongPtr(hwnd, GWLP_USERDATA); }
 	static SGE_INLINE This*		s_getThis(HWND hwnd)			{ return reinterpret_cast<This*>(s_getWindowUserData(hwnd)); }

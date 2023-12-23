@@ -65,33 +65,37 @@ void ProgWin5WindowBase::onSetWindowTitle(StrView title) {
 LRESULT CALLBACK ProgWin5WindowBase::s_WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	switch (message)
 	{
-	case WM_CREATE: {
-		auto* cs = reinterpret_cast<CREATESTRUCT*>(lParam);
-		auto* thisObj = static_cast<This*>(cs->lpCreateParams);
-		thisObj->_hwnd = hwnd;
-		SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(thisObj));
-		return 0;
-	} break;
-
-	case WM_SHOWWINDOW: {
-		SGE_LOG("WM_SHOWWINDOW");
-	} break;
-
-	case WM_SIZE: {
-		// CreateWindowEx -> WM_CREATE -> ShowWindow -> WM_SHOWWINDOW -> WM_SIZE -> UpdateWindow -> WM_PAINT -> ...
-		if (auto* thisObj = s_getThis(hwnd)) {
-			RECT clientRect;
-			::GetClientRect(hwnd, &clientRect);
-			Rect2f newClientRect = Win32Util::toRect2f(clientRect);
-			thisObj->onClientRectChanged(newClientRect);
+		case WM_CREATE: {
+			auto* cs = reinterpret_cast<CREATESTRUCT*>(lParam);
+			auto* thisObj = static_cast<This*>(cs->lpCreateParams);
+			thisObj->_hwnd = hwnd;
+			SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(thisObj));
 			return 0;
-		}
-	}break;
-
-	case WM_DESTROY:
-		PostQuitMessage(0);
-		return 0;
-	}
+		} break;
+		case WM_DESTROY: {
+			if (auto* thisObj = s_getThis(hwnd)) {
+				::SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(nullptr));
+				thisObj->_hwnd = nullptr;
+				sge_delete(thisObj);
+			}
+		} break;
+		case WM_SIZE: {
+			// CreateWindowEx -> WM_CREATE -> ShowWindow -> WM_SHOWWINDOW -> WM_SIZE -> UpdateWindow -> WM_PAINT -> ...
+			if (auto* thisObj = s_getThis(hwnd)) {
+				RECT clientRect;
+				::GetClientRect(hwnd, &clientRect);
+				Rect2f newClientRect = Win32Util::toRect2f(clientRect);
+				thisObj->onClientRectChanged(newClientRect);
+				return 0;
+			}
+		} break;
+		case WM_CLOSE: {
+			if (auto* thisObj = s_getThis(hwnd)) {
+				thisObj->onCloseButton();
+				return 0;
+			}
+		} break;
+	} // switch
 	return DefWindowProc(hwnd, message, wParam, lParam);
 }
 

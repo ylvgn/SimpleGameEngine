@@ -7,7 +7,7 @@
 // WINAPI/CALLBACK -> __stdcall function calling convention
 	// involves how machine code is generated to place function call arguments on the stack
 
-// main entry
+// window main entry
 	// Win32: int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int iCmdShow);
 		// HINSTANCE -> instance handle, is simply a number, to uniquely identifies the program.
 		// hPrevInstance is always NULL in 32 bit versions of Windows
@@ -31,8 +31,6 @@
 #include <tchar.h>
 
 namespace sge {
-
-constexpr const u32 kDefaultDT = DT_SINGLELINE | DT_CENTER | DT_VCENTER;
 
 template<class T> constexpr
 void g_bzero(T& s) {
@@ -68,13 +66,38 @@ void g_textOut(HDC hdc, int x, int y, const wchar_t* szText) {
 }
 
 inline
+void g_textOutf(HDC hdc, int x, int y, const wchar_t* szFormat, ...) {
+	wchar_t szBuffer[220];
+	va_list args;
+	va_start(args, szFormat);
+	size_t bufferCount = sizeof(szBuffer) / sizeof(wchar_t);
+	auto len = _vsntprintf_s(szBuffer, bufferCount, szFormat, args);
+	va_end(args);
+	TextOut(hdc, x, y, szBuffer, len);
+}
+
+inline
+void g_rectangle(HDC hdc, const Rect2i& rc) {
+	int l = rc.x;
+	int t = rc.y;
+	int r = rc.x + rc.w;
+	int b = rc.y + rc.h;
+	Rectangle(hdc, l, t, r, b);
+}
+
+inline
+void g_rectangle(HDC hdc, const RECT& rc) {
+	Rectangle(hdc, rc.left, rc.top, rc.right, rc.bottom);
+}
+
+inline
 void g_drawText(HDC				hdc,
-				RECT*			pos,
+				RECT*			rc,
 				const wchar_t*	szText,
 				u32				fDT = DT_SINGLELINE | DT_CENTER | DT_VCENTER)
 {
-	if (!szText) return;
-	DrawText(hdc, szText, -1, pos, fDT);
+	if (!szText || !rc) return;
+	DrawText(hdc, szText, -1, rc, fDT);
 }
 
 
@@ -83,37 +106,40 @@ public:
 	ScopedHDCBase(HWND& hwnd) : _hwnd(hwnd) , _hdc(nullptr) {}
 	virtual ~ScopedHDCBase() = default;
 
+	void textOut(int x, int y, const wchar_t* szText) const { g_textOut(_hdc, x, y, szText); }
+
+	template<class... Args>
+	void textOutf(int x, int y, Args&&... args) const {
+		TempStringW tmp;
+		FmtTo(tmp, SGE_FORWARD(args)...);
+		TextOut(_hdc, x, y, tmp.c_str(), static_cast<int>(tmp.size()));
+	}
+
+	void rectangle(int left, int top, int right, int bottom) const { Rectangle(_hdc, left, top, right, bottom); }
+	void rectangle(const RECT& rc) const	{ g_rectangle(_hdc, rc); }
+	void rectangle(const Rect2i& rc) const	{ g_rectangle(_hdc, rc); }
+
+	TEXTMETRIC getTextMetrics() { TEXTMETRIC tm; GetTextMetrics(_hdc, &tm); return tm; }
+
+	const HDC& hdc() const { return _hdc; }
 	operator const HDC& () const { return _hdc; }
-
-	void textOut(int x, int y, const wchar_t* text) const { g_textOut(_hdc, x, y, text); }
-
-	void drawText(RECT* pos, const wchar_t* text, u32 fDT = kDefaultDT) const { g_drawText(_hdc, pos, text, fDT); }
-
-	void rectangle(int l, int t, int r, int b) const { Rectangle(_hdc, l, t, r, b); }
-	void rectangle(const RECT& r) const { rectangle(r.left, r.top, r.right, r.bottom); }
 
 protected:
 	HWND&	_hwnd;
 	HDC		_hdc;
 };
 
-class ScopedPaint : public ScopedHDCBase {
+class ScopedPaintStruct : public ScopedHDCBase {
 	using Base = ScopedHDCBase;
 public:
-	ScopedPaint(HWND& hwnd, PAINTSTRUCT& ps)
-		: Base(hwnd)
-		, _ps(ps)
-	{
-		_hdc = BeginPaint(hwnd, &ps);
-	}
+	ScopedPaintStruct(HWND& hwnd) : Base(hwnd) { _hdc = BeginPaint(hwnd, &_ps); }
+	~ScopedPaintStruct() { EndPaint(_hwnd, &_ps); }
 
-	~ScopedPaint() { EndPaint(_hwnd, &_ps); }
-
-	BOOL fErase()	const { return _ps.fErase; }
-	RECT rcPaint()  const { return _ps.rcPaint; }
+	BOOL fErase()			const { return _ps.fErase; }
+	const RECT& rcPaint()	const { return _ps.rcPaint; }
 
 private:
-	PAINTSTRUCT& _ps;
+	PAINTSTRUCT _ps;
 };
 
 class ScopedHDC : public ScopedHDCBase {
@@ -121,6 +147,51 @@ class ScopedHDC : public ScopedHDCBase {
 public:
 	ScopedHDC(HWND& hwnd) : Base(hwnd) { _hdc = GetDC(hwnd); }
 	~ScopedHDC() { ReleaseDC(_hwnd, _hdc); }
+};
+
+class MyTextMetric : public NonCopyable {
+public:
+	MyTextMetric(HWND hwnd) {
+		ScopedHDC hdc(hwnd);
+		TEXTMETRIC tm			= hdc.getTextMetrics();
+
+		_height					= tm.tmHeight;
+		_ascent					= tm.tmAscent;
+		_descent				= tm.tmDescent;
+		_internalLeading		= tm.tmInternalLeading;
+		_maxCharWidth			= tm.tmMaxCharWidth;
+		_externalLeading		= tm.tmExternalLeading;
+		_aveCharWidth			= tm.tmAveCharWidth;
+
+		_isFixedPitch			= (tm.tmPitchAndFamily & 1) == 0;
+		_aveCharHeight			= _height + _externalLeading;
+		_aveUpperCaseCharHeight = _isFixedPitch ? _aveCharWidth : static_cast<int>(1.5f * _aveCharWidth);
+	}
+
+	int		height()				const	{ return _height; }
+	int		ascent()				const	{ return _ascent; }
+	int		descent()				const	{ return _descent; }
+	int		internalLeading()		const	{ return _internalLeading; }
+	int		maxCharWidth()			const	{ return _maxCharWidth; }
+	int		externalLeading()		const	{ return _externalLeading; }
+	int		aveCharWidth()			const	{ return _aveCharWidth; }
+	int		aveCharHeight()			const	{ return _aveCharHeight; }
+	int		aveUpperCaseCharWidth()	const	{ return _aveUpperCaseCharHeight; }
+	bool	isFixedPitch()			const	{ return _isFixedPitch; }
+	bool	isVariableWidth()		const	{ return !_isFixedPitch; }
+
+private:
+	int _height;
+	int _ascent;
+	int _descent;
+	int _internalLeading;
+	int _maxCharWidth;
+	int _externalLeading;
+	int _aveCharWidth;
+
+	bool _isFixedPitch : 1;
+	int _aveCharHeight;
+	int _aveUpperCaseCharHeight;
 };
 
 }

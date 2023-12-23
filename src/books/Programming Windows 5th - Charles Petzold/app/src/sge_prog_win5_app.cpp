@@ -11,8 +11,9 @@ namespace sge {
 	/* Chap03 CreateWindow and WndProc */ \
 	E(HelloWin,)	\
 	E(HelloWin2,)	\
-	E(HelloWin3,)	\
-	/* Chap04 Text Output */	\
+	/* Chap04 Text Output */ \
+	E(MyDrawText,)	\
+	E(TextMetric,)	\
 	E(SysMets1,)	\
 // ----------
 SGE_ENUM_CLASS(MySampleType, u32)
@@ -24,7 +25,7 @@ class ProgWin5App : public NativeUIApp_Base {
 	using Base = NativeUIApp_Base;
 	using Type = MySampleType;
 
-	MySampleType _sampleType = MySampleType::HelloWin3;
+	MySampleType _sampleType = MySampleType::SysMets1;
 
 protected:
 	virtual void onCreate(CreateDesc& desc) override {

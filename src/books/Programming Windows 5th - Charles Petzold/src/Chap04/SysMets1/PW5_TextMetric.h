@@ -6,13 +6,14 @@
 
 namespace sge {
 
-class PW5_HelloWin3 : public ProgWin5WindowBase {
-	using This = PW5_HelloWin3;
+class PW5_TextMetric : public ProgWin5WindowBase {
+	using This = PW5_TextMetric;
 	using Base = ProgWin5WindowBase;
-protected:
-	virtual void onCreate(CreateDesc& desc) override;
-private:
+
 	static LRESULT CALLBACK s_WndProc(HWND, UINT, WPARAM, LPARAM);
+
+protected:
+	virtual WNDPROC onGetWndProc() override { return s_WndProc; }
 };
 
 }
