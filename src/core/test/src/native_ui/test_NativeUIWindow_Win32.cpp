@@ -53,7 +53,7 @@ private:
 	ID3D11Buffer* pVBuffer;
 	ID3D11InputLayout* pLayout;
 
-	static LRESULT WINAPI s_WndProcImGUI(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+	static LRESULT WINAPI s_wndProcImGUI(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	{
 		if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
 			return true;
@@ -519,7 +519,7 @@ LRESULT WINAPI Test_NativeUIWindow_Win32::MyWindowWithImGUI(HINSTANCE hInstance,
 
 	wc.cbSize = sizeof(WNDCLASSEX);
 	wc.style = CS_HREDRAW | CS_VREDRAW;
-	wc.lpfnWndProc = s_WndProcImGUI;
+	wc.lpfnWndProc = s_wndProcImGUI;
 	wc.hInstance = hInstance;
 	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
 	wc.lpszClassName = szClassName;
