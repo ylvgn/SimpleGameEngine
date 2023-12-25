@@ -1,19 +1,16 @@
 #pragma once
 
-#include "ProgWin5WindowBase.h"
+#include "PW5_NativeUI.h"
 
 #if SGE_OS_WINDOWS
 
 namespace sge {
 
-class PW5_TextMetric : public ProgWin5WindowBase {
+class PW5_TextMetric : public PW5_NativeUIWindow {
+	using Base = PW5_NativeUIWindow;
 	using This = PW5_TextMetric;
-	using Base = ProgWin5WindowBase;
-
-	static LRESULT CALLBACK s_WndProc(HWND, UINT, WPARAM, LPARAM);
-
 protected:
-	virtual WNDPROC onGetWndProc() override { return s_WndProc; }
+	virtual void onPaint(ScopedPaintStruct& ps) override;
 };
 
 }

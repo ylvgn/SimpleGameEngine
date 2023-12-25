@@ -5,12 +5,12 @@ namespace sge {
 #define MySampleType_ENUM_LIST(E) \
 	/* Chap01 MessageBox */ \
 	E(HelloMsg,)	\
-	E(HelloMsg2,)	\
+	E(MyMessageBox,)	\
 	/* Chap02 Unicode */ \
 	E(ScrnSize,)	\
 	/* Chap03 CreateWindow and WndProc */ \
 	E(HelloWin,)	\
-	E(HelloWin2,)	\
+	E(MyHelloWin,)	\
 	/* Chap04 Text Output */ \
 	E(MyDrawText,)	\
 	E(TextMetric,)	\
@@ -21,12 +21,39 @@ SGE_ENUM_ALL_OPERATOR(MySampleType)
 
 #if SGE_OS_WINDOWS
 
-class ProgWin5App : public NativeUIApp_Base {
-	using Base = NativeUIApp_Base;
-	using Type = MySampleType;
+class ProgWin5MainWin : public PW5_NativeUIWindow {
+	using Base = PW5_NativeUIWindow;
+	using This = ProgWin5MainWin;
 
 	MySampleType _sampleType = MySampleType::SysMets1;
+	UPtr<PW5_NativeUIWindow> _sampleWindow;
 
+public:
+	virtual void onCreate(CreateDesc& desc) override {
+		{ // create window
+			NativeUIWindow::CreateDesc winDesc;
+			winDesc.isMainWindow = true;
+			winDesc.centerToScreen = true;
+			winDesc.rect = { 10, 10, 800, 600 };
+
+#define E(SGE_E, ...) \
+				case MySampleType::SGE_E: { \
+					_sampleWindow = eastl::make_unique<PW5_##SGE_E>(); \
+					_sampleWindow->create(winDesc); \
+					_sampleWindow->setWindowTitle(SGE_STRINGIFY(PW5_, SGE_E)); \
+				} break; \
+			// ----------
+			switch (_sampleType) {
+				MySampleType_ENUM_LIST(E)
+				default: throw SGE_ERROR("unsupported sample type {}", _sampleType);
+			}
+#undef E
+		}
+	}
+};
+
+class ProgWin5App : public PW5_NativeUIApp {
+	using Base = PW5_NativeUIApp;
 protected:
 	virtual void onCreate(CreateDesc& desc) override {
 		{ // set working dir
@@ -43,48 +70,15 @@ protected:
 
 		{ // create window
 			NativeUIWindow::CreateDesc winDesc;
-			winDesc.isMainWindow	= true;
-			winDesc.centerToScreen	= true;
-			winDesc.rect			= { 10, 10, 800, 600 };
-
-			#define E(SGE_E, ...) \
-				case Type::SGE_E: { \
-					_mainWin = eastl::make_unique<PW5_##SGE_E>(); \
-					_mainWin->create(winDesc); \
-					_mainWin->setWindowTitle(SGE_STRINGIFY(PW5_, SGE_E)); \
-				} break; \
-			// ----------
-			switch (_sampleType) {
-				MySampleType_ENUM_LIST(E)
-				default:
-					throw SGE_ERROR("unsupported sample type {}", _sampleType);
-			}
-			#undef E
+//			winDesc.isMainWindow = true;
+//			winDesc.rect = { 10, 10, 1500, 900 };
+			_mainWin.create(winDesc);
+//			_mainWin.setWindowTitle("SGE Prog Win5 Window");
 		}
-	}
-
-	virtual void onRun() override {
-		Base::onRun();
-
-		// message loop
-		while (GetMessage(&_msg, NULL, 0, 0)) // the 2,3,4 arguments is NULL means wants all messages for all windows created by the program
-		{
-			TranslateMessage(&_msg); // Translates some keyboard messages
-			DispatchMessage(&_msg);  // Sends a message to a window procedure(WndProc)
-		}
-		// when _msg.message == WM_QUIT, GetMessage will break the loop
-
-		willQuit();
-	}
-
-	virtual void onQuit() override {
-		Base::onQuit();
-		::PostQuitMessage(_exitCode);
 	}
 
 private:
-	MSG _msg;
-	UPtr<ProgWin5WindowBase> _mainWin;
+	ProgWin5MainWin _mainWin;
 };
 
 }

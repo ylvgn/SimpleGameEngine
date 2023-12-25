@@ -1,48 +1,23 @@
 #pragma once
 
-#include <sge_core.h>
-
 #if SGE_OS_WINDOWS
 
-// WINAPI/CALLBACK -> __stdcall function calling convention
-	// involves how machine code is generated to place function call arguments on the stack
-
-// window main entry
-	// Win32: int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int iCmdShow);
-		// HINSTANCE -> instance handle, is simply a number, to uniquely identifies the program.
-		// hPrevInstance is always NULL in 32 bit versions of Windows
-	// Win16: int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine, int iCmdShow)
-		// LPSTR == PSTR -> char* (LPSTR is an artifact of 16 bit Windows),
-			// 'NP' -> near pointer, 'LP' -> long pointer
-			// There is no differentiation between near and long pointers in Win32, but two different sizes in Win16.
-
-// window procedure
-	// Win32: LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
-		// WPARAM is UINT, LPARAM is LONG, and both are 32 bit value
-		// LRESULT is LONG
-	// Win16: LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam)
-		// WPARAM is WORD, unsigned short int (16 bit) 
-		// LPARAM is LONG, signed long int (32 bit)
+#include "PW5_Common.h"
+#include <sge_core/native_ui/win32/Win32Util.h>
 
 #include <stdio.h>
+#include <stdint.h>
 #include <windows.h>
 #include <windowsx.h>
-#include <stdint.h>
 #include <tchar.h>
 
 namespace sge {
 
-template<class T> constexpr
-void g_bzero(T& s) {
-	memset(&s, 0, sizeof(s));
-}
-
 inline
-WNDCLASSEX g_createWndClass(const wchar_t* clsName, WNDPROC lpfnWndProc = nullptr) {
+WNDCLASSEX g_createWndClass(HMODULE hInstance, const wchar_t* clsName, WNDPROC lpfnWndProc = nullptr) {
 	WNDCLASSEX wc;
 	g_bzero(wc);
 
-	HMODULE hInstance	= GetModuleHandle(nullptr);
 	wc.cbSize			= sizeof(WNDCLASSEX);
     wc.style			= CS_HREDRAW | CS_VREDRAW;
     wc.lpfnWndProc		= lpfnWndProc;
@@ -57,6 +32,26 @@ WNDCLASSEX g_createWndClass(const wchar_t* clsName, WNDPROC lpfnWndProc = nullpt
 	wc.hIconSm			= LoadIcon(hInstance, IDI_APPLICATION);
 
 	return wc;
+}
+
+inline
+bool g_isRegisterWndClass(HMODULE hInstance, const wchar_t* clsName) {
+	WNDCLASSEX wc;
+	return 0 != GetClassInfoEx(hInstance, clsName, &wc);
+}
+
+inline
+void g_registerWndClass(WNDCLASSEX& wc) {
+	if (g_isRegisterWndClass(wc.hInstance, wc.lpszClassName))
+		return;
+
+	if (!RegisterClassEx(&wc)) {
+		DWORD e = GetLastError();
+		switch (e) {
+			case ERROR_CALL_NOT_IMPLEMENTED: throw SGE_ERROR("calling RegisterClassW in Windows 98");
+			default: throw SGE_ERROR("error g_registerWndClass");
+		}
+	}
 }
 
 inline
@@ -121,7 +116,6 @@ public:
 
 	TEXTMETRIC getTextMetrics() { TEXTMETRIC tm; GetTextMetrics(_hdc, &tm); return tm; }
 
-	const HDC& hdc() const { return _hdc; }
 	operator const HDC& () const { return _hdc; }
 
 protected:
@@ -138,6 +132,8 @@ public:
 	BOOL fErase()			const { return _ps.fErase; }
 	const RECT& rcPaint()	const { return _ps.rcPaint; }
 
+	const PAINTSTRUCT& get() const { return _ps; }
+
 private:
 	PAINTSTRUCT _ps;
 };
@@ -150,11 +146,8 @@ public:
 };
 
 class MyTextMetric : public NonCopyable {
-public:
-	MyTextMetric(HWND hwnd) {
-		ScopedHDC hdc(hwnd);
-		TEXTMETRIC tm			= hdc.getTextMetrics();
 
+	void _init(const TEXTMETRIC& tm) {
 		_height					= tm.tmHeight;
 		_ascent					= tm.tmAscent;
 		_descent				= tm.tmDescent;
@@ -166,6 +159,23 @@ public:
 		_isFixedPitch			= (tm.tmPitchAndFamily & 1) == 0;
 		_aveCharHeight			= _height + _externalLeading;
 		_aveUpperCaseCharHeight = _isFixedPitch ? _aveCharWidth : static_cast<int>(1.5f * _aveCharWidth);
+	}
+
+public:
+	MyTextMetric(HWND hwnd) {
+		ScopedHDC hdc(hwnd);
+		auto tm = hdc.getTextMetrics();
+		_init(tm);
+	}
+
+	MyTextMetric(HDC hdc) {
+		TEXTMETRIC tm;
+		GetTextMetrics(hdc, &tm);
+		_init(tm);
+	}
+
+	MyTextMetric(const TEXTMETRIC& tm) {
+		_init(tm);
 	}
 
 	int		height()				const	{ return _height; }
@@ -181,6 +191,7 @@ public:
 	bool	isVariableWidth()		const	{ return !_isFixedPitch; }
 
 private:
+
 	int _height;
 	int _ascent;
 	int _descent;

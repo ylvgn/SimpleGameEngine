@@ -4,6 +4,26 @@
 
 #pragma comment(lib, "Winmm.lib") // Windows multimedia
 
+// WINAPI/CALLBACK -> __stdcall function calling convention
+	// involves how machine code is generated to place function call arguments on the stack
+
+// window main entry
+	// Win32: int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int iCmdShow);
+		// HINSTANCE -> instance handle, is simply a number, to uniquely identifies the program.
+		// hPrevInstance is always NULL in 32 bit versions of Windows
+	// Win16: int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine, int iCmdShow)
+		// LPSTR == PSTR -> char* (LPSTR is an artifact of 16 bit Windows),
+			// 'NP' -> near pointer, 'LP' -> long pointer
+			// There is no differentiation between near and long pointers in Win32, but two different sizes in Win16.
+
+// window procedure
+	// Win32: LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+		// WPARAM is UINT, LPARAM is LONG, and both are 32 bit value
+		// LRESULT is LONG
+	// Win16: LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam)
+		// WPARAM is WORD, unsigned short int (16 bit) 
+		// LPARAM is LONG, signed long int (32 bit)
+
 namespace sge {
 
 // BYTE  (1 byte)
@@ -23,14 +43,14 @@ void PW5_HelloWin::onCreate(CreateDesc& desc) {
 	auto hInstance			= GetModuleHandle(nullptr); // an instance of the program itself
     wndclass.hInstance		= hInstance;
     wndclass.style			= CS_HREDRAW | CS_VREDRAW; // 'CS' -> class style
-    wndclass.cbClsExtra		= 0; // 'cb' -> count of byte
+    wndclass.cbClsExtra		= 0; // 'cb' -> count of byte, and 'c' -> count
     wndclass.cbWndExtra		= 0;
     wndclass.hIcon			= LoadIcon (NULL, IDI_APPLICATION);			// 'IDI' -> ID of icon
     wndclass.hCursor		= LoadCursor (NULL, IDC_ARROW);				// 'IDC' -> ID of cursor
     wndclass.hbrBackground	= (HBRUSH) GetStockObject (WHITE_BRUSH);	// 'hbr' -> a handle of brush
     wndclass.lpszMenuName	= NULL;
 	// in WNDCLASS two most important fields
-    wndclass.lpfnWndProc	= s_WndProc;
+    wndclass.lpfnWndProc	= s_wndProc;
     wndclass.lpszClassName	= clsName;
 
     if (!RegisterClass (&wndclass)) {
@@ -57,7 +77,7 @@ void PW5_HelloWin::onCreate(CreateDesc& desc) {
     UpdateWindow (hwnd); // Directs the window to paint itself -> WM_PAINT
 }
 
-LRESULT CALLBACK PW5_HelloWin::s_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT CALLBACK PW5_HelloWin::s_wndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
     HDC         hdc;
     PAINTSTRUCT ps;
     RECT        rect;
@@ -81,7 +101,7 @@ LRESULT CALLBACK PW5_HelloWin::s_WndProc (HWND hwnd, UINT message, WPARAM wParam
     case WM_DESTROY:
         PostQuitMessage(0); // Inserts a "quit" message into the message queue
         return 0;
-    }
+    } // switch
     return DefWindowProc (hwnd, message, wParam, lParam); // Performs default processing of messages
 }
 

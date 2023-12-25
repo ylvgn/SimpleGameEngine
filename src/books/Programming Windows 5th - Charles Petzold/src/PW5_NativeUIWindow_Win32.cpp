@@ -1,35 +1,16 @@
-#include "ProgWin5WindowBase.h"
+#include "PW5_NativeUIWindow_Win32.h"
 
 #if SGE_OS_WINDOWS
 
 namespace sge {
 
-void ProgWin5WindowBase::onCreate(CreateDesc& desc) {
-	const wchar_t* clsName = L"ProgWin5WindowBase";
+void PW5_NativeUIWindow_Win32::onCreate(CreateDesc& desc) {
+	HMODULE hInstance = GetModuleHandle(nullptr);
 
-	WNDCLASSEX wc;
-	g_bzero(wc);
-	HMODULE hInstance	= GetModuleHandle(nullptr);
-	wc.cbSize			= sizeof(WNDCLASSEX);
-    wc.style			= CS_HREDRAW | CS_VREDRAW;
-    wc.lpfnWndProc		= onGetWndProc();
-    wc.cbClsExtra		= 0;
-    wc.cbWndExtra		= 0;
-    wc.hInstance		= hInstance;
-    wc.hIcon			= LoadIcon(hInstance, IDI_APPLICATION);
-    wc.hCursor			= LoadCursor(hInstance, IDC_ARROW);
-    wc.hbrBackground	= nullptr;
-    wc.lpszMenuName		= nullptr;
-    wc.lpszClassName	= clsName;
-	wc.hIconSm			= LoadIcon(hInstance, IDI_APPLICATION);
+	constexpr const wchar_t* clsName = L"PW5_NativeUIWindow_Win32";
 
-    if (!RegisterClassEx(&wc)) {
-		DWORD e = GetLastError();
-		switch (e) {
-			case ERROR_CALL_NOT_IMPLEMENTED: throw SGE_ERROR("calling RegisterClassW in Windows 98");
-		}
-		throw SGE_ERROR("error RegisterClassEx");
-    }
+	WNDCLASSEX wc = g_createWndClass(hInstance, clsName, s_wndProc);
+	g_registerWndClass(wc);
 
 	DWORD dwExStyle = 0;
 	DWORD dwStyle   = WS_OVERLAPPEDWINDOW;
@@ -56,21 +37,26 @@ void ProgWin5WindowBase::onCreate(CreateDesc& desc) {
     UpdateWindow (_hwnd);
 }
 
-void ProgWin5WindowBase::onSetWindowTitle(StrView title) {
+void PW5_NativeUIWindow_Win32::onSetWindowTitle(StrView title) {
 	if (!_hwnd) return;
 	TempStringW tmp = UtfUtil::toStringW(title);
 	SetWindowText(_hwnd, tmp.c_str());
 }
 
-LRESULT CALLBACK ProgWin5WindowBase::s_WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
-	switch (message)
+void PW5_NativeUIWindow_Win32::onDraw() {
+	ScopedPaintStruct ps(_hwnd);
+	onPaint(ps);
+}
+
+LRESULT CALLBACK PW5_NativeUIWindow_Win32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+	// CreateWindow(Ex) -> WM_CREATE -> ShowWindow -> WM_SHOWWINDOW -> WM_SIZE -> UpdateWindow -> WM_PAINT -> ... -> WM_CLOSE -> WM_DESTROY
+	switch (msg)
 	{
 		case WM_CREATE: {
 			auto* cs = reinterpret_cast<CREATESTRUCT*>(lParam);
 			auto* thisObj = static_cast<This*>(cs->lpCreateParams);
 			thisObj->_hwnd = hwnd;
 			SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(thisObj));
-			return 0;
 		} break;
 		case WM_DESTROY: {
 			if (auto* thisObj = s_getThis(hwnd)) {
@@ -79,24 +65,43 @@ LRESULT CALLBACK ProgWin5WindowBase::s_WndProc(HWND hwnd, UINT message, WPARAM w
 				sge_delete(thisObj);
 			}
 		} break;
+		case WM_SHOWWINDOW: {
+			if (auto* thisObj = s_getThis(hwnd)) {
+				thisObj->onOpen();
+			}
+		} break;
 		case WM_SIZE: {
-			// CreateWindowEx -> WM_CREATE -> ShowWindow -> WM_SHOWWINDOW -> WM_SIZE -> UpdateWindow -> WM_PAINT -> ...
 			if (auto* thisObj = s_getThis(hwnd)) {
 				RECT clientRect;
 				::GetClientRect(hwnd, &clientRect);
 				Rect2f newClientRect = Win32Util::toRect2f(clientRect);
 				thisObj->onClientRectChanged(newClientRect);
-				return 0;
+				return 0; // capture
 			}
 		} break;
 		case WM_CLOSE: {
 			if (auto* thisObj = s_getThis(hwnd)) {
 				thisObj->onCloseButton();
-				return 0;
+				return 0; // capture
+			}
+		} break;
+		case WM_PAINT: {
+			if (auto* thisObj = s_getThis(hwnd)) {
+				thisObj->onDraw();
+				return 0; // capture
+			}
+		} break;
+		default: {
+			if (auto* thisObj = s_getThis(hwnd)) {
+				return thisObj->_handleNativeEvent(hwnd, msg, wParam, lParam);
 			}
 		} break;
 	} // switch
-	return DefWindowProc(hwnd, message, wParam, lParam);
+	return DefWindowProc(hwnd, msg, wParam, lParam);
+}
+
+LRESULT PW5_NativeUIWindow_Win32::_handleNativeEvent(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+	return DefWindowProc(hwnd, msg, wParam, lParam);
 }
 
 } // namespace

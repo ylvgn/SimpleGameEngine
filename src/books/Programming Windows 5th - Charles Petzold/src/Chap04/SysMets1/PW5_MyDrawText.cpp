@@ -4,7 +4,17 @@
 
 namespace sge {
 
-LRESULT CALLBACK PW5_MyDrawText::s_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
+void PW5_MyDrawText::onCreate(CreateDesc& desc) {
+	const static wchar_t* clsName = L"PW5_MyDrawText";
+	auto hInstance = GetModuleHandle(nullptr);
+	auto wc = g_createWndClass(hInstance, clsName, s_wndProc);
+	
+	CreateDesc_Win32 descWin32(desc, wc);
+	descWin32.cwlpParam = this;
+	Base::s_createWindow(descWin32);
+}
+
+LRESULT CALLBACK PW5_MyDrawText::s_wndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 
 	switch (message)
 	{

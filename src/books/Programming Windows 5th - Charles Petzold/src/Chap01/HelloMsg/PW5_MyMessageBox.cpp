@@ -1,15 +1,13 @@
-#include "PW5_HelloMsg2.h"
+#include "PW5_MyMessageBox.h"
 
 #if SGE_OS_WINDOWS
 
 namespace sge {
 
-void PW5_HelloMsg2::onCreate(CreateDesc& desc) {
-	Base::onCreate(desc);
-
+void PW5_MyMessageBox::onCreate(CreateDesc& desc) {
 	// 'MB' -> message box
 	// https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-messagebox
-	int res = MessageBox(_hwnd, L"my message", L"my caption", MB_APPLMODAL | MB_RIGHT | MB_ICONEXCLAMATION | MB_YESNOCANCEL);
+	int res = MessageBox(nullptr, L"My message", L"", MB_APPLMODAL | MB_RIGHT | MB_ICONEXCLAMATION | MB_YESNOCANCEL);
 	if (res == IDYES) {
 		SGE_LOG("Click Yes!");
 	} else if (res == IDNO) {

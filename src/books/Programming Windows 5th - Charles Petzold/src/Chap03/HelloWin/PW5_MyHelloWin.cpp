@@ -1,10 +1,34 @@
-#include "PW5_HelloWin2.h"
+#include "PW5_MyHelloWin.h"
 
 #if SGE_OS_WINDOWS
 
 namespace sge {
 
-LRESULT CALLBACK PW5_HelloWin2::s_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
+void PW5_MyHelloWin::onCreate(CreateDesc& desc) {
+	const wchar_t* clsName = L"PW5_MyHelloWin";
+	HMODULE hInstance = GetModuleHandle(nullptr);
+
+	auto wc = g_createWndClass(hInstance, clsName, s_wndProc);
+
+	if (!RegisterClassEx(&wc)) {
+		throw SGE_ERROR("error RegisterClassEx");
+	}
+
+	_hwnd = ::CreateWindowEx(0, clsName, clsName, WS_OVERLAPPEDWINDOW,
+								static_cast<int>(desc.rect.x),
+								static_cast<int>(desc.rect.y),
+								static_cast<int>(desc.rect.w),
+								static_cast<int>(desc.rect.h),
+								nullptr, nullptr, hInstance, this);
+	if (!_hwnd) {
+		throw SGE_ERROR("cannot create native window");
+	}
+
+	ShowWindow(_hwnd, SW_SHOW);
+	UpdateWindow(_hwnd);
+}
+
+LRESULT CALLBACK PW5_MyHelloWin::s_wndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 // WPARAM is UINT(32 bit) in Win32 and WORD(16 bit) in Win16
 // LPARAM is LONG (4 bytes) 32 bit
 	// LWORD (16 bit) L low-order,  [ 0~15] in LPARAM
@@ -32,7 +56,7 @@ LRESULT CALLBACK PW5_HelloWin2::s_WndProc (HWND hwnd, UINT message, WPARAM wPara
 		{
 			Rectangle(hdc, x, y, x + 10, y + 10);
 
-			const wchar_t* text = L"Hello Win2";
+			const wchar_t* text = L"MyHelloWin";
 			TextOut(hdc, x, y, text, static_cast<int>(wcslen(text)) /* or lstrlenW(text)*/);
 
 			POINT pt;

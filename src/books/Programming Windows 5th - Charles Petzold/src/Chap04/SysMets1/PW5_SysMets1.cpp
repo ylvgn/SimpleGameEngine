@@ -1,10 +1,20 @@
 #include "PW5_SysMets1.h"
 
-namespace sge {
-
 #if SGE_OS_WINDOWS
 
-LRESULT CALLBACK PW5_SysMets1::s_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
+namespace sge {
+
+void PW5_SysMets1::onCreate(CreateDesc& desc) {
+	const static wchar_t* clsName = L"PW5_SysMets1";
+	auto hInstance = GetModuleHandle(nullptr);
+	auto wc = g_createWndClass(hInstance, clsName, s_wndProc);
+
+	CreateDesc_Win32 descWin32(desc, wc);
+	descWin32.cwlpParam = this;
+	Base::s_createWindow(descWin32);
+}
+
+LRESULT CALLBACK PW5_SysMets1::s_wndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	static int  cxChar, cxCaps, cyChar;
 
 	const auto& sysmetrics	= g_sysmetrics;
@@ -47,11 +57,11 @@ LRESULT CALLBACK PW5_SysMets1::s_WndProc (HWND hwnd, UINT message, WPARAM wParam
 				// I use 22 to add a little extra space between the columns
 				x += 22 * cxCaps;
 				ps.textOut(x, y, sysmetrics[i].szDesc);
-				SetTextAlign(ps.hdc(), TA_RIGHT | TA_TOP);
+				SetTextAlign(ps, TA_RIGHT | TA_TOP);
 
 				x += 40 * cxChar;
 				ps.textOutf(x, y, "{:5}", GetSystemMetrics(sysmetrics[i].iIndex)); //g_textOutf(ps.hdc(), x, y, L"%5d", GetSystemMetrics(sysmetrics[i].iIndex));
-				SetTextAlign(ps.hdc(), TA_LEFT | TA_TOP);
+				SetTextAlign(ps, TA_LEFT | TA_TOP);
 			}
 			return 0;
 		} break;

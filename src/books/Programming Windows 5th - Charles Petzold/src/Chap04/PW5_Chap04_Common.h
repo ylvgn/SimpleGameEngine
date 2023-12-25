@@ -1,6 +1,6 @@
 #pragma once
 
-#include "MyCommon.h"
+#include "PW5_NativeUI.h"
 
 namespace sge {
 

@@ -1,21 +1,21 @@
 #pragma once
 
-#include "ProgWin5WindowBase.h"
-
 #if SGE_OS_WINDOWS
+
+#include "PW5_NativeUI.h"
 
 namespace sge {
 /*
 	-MessageBox
 */
 
-class PW5_HelloMsg : public ProgWin5WindowBase {
+class PW5_HelloMsg : public PW5_NativeUIWindow {
 	using This = PW5_HelloMsg;
-	using Base = ProgWin5WindowBase;
+	using Base = PW5_NativeUIWindow;
 protected:
 	virtual void onCreate(CreateDesc& desc) override;
 };
 
 }
 
-#endif // SGE_OS_WINDOWS
+#endif

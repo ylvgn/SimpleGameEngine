@@ -6,9 +6,9 @@
 
 namespace sge {
 
-class PW5_MyDrawText : public PW5_NativeUIWindow {
-	using This = PW5_MyDrawText;
+class PW5_MyHelloWin : public PW5_NativeUIWindow {
 	using Base = PW5_NativeUIWindow;
+	using This = PW5_MyHelloWin;
 protected:
 	virtual void onCreate(CreateDesc& desc) override;
 private:

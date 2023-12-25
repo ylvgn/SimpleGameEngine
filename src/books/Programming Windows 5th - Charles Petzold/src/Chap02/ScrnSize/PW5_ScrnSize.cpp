@@ -5,7 +5,7 @@
 namespace sge {
 
 int CDECL PW5_ScrnSize::s_messageBoxPrintf(TCHAR* szCaption, TCHAR* szFormat, ...) {
-	TCHAR   szBuffer[1024];
+	TCHAR   szBuffer[220];
 	va_list pArgList;
 
 	// The va_start macro (defined in STDARG.H) is usually equivalent to:
