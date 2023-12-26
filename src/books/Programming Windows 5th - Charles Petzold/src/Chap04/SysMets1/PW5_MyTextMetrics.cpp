@@ -1,4 +1,4 @@
-#include "PW5_TextMetric.h"
+#include "PW5_MyTextMetrics.h"
 
 #if SGE_OS_WINDOWS
 
@@ -20,8 +20,9 @@ namespace sge {
 	TEXTMETRIC, * PTEXTMETRIC;
 */
 
-void PW5_TextMetric::onPaint(ScopedPaintStruct& ps) {
-	TEXTMETRIC tm = ps.getTextMetrics();
+void PW5_MyTextMetrics::onPaint(ScopedPaintStruct& ps) {
+	TEXTMETRIC tm;
+	GetTextMetrics(ps, &tm);
 
 	int cxChar = tm.tmAveCharWidth;
 	int cyChar = tm.tmHeight + tm.tmExternalLeading; // tmExternalLeading is 0

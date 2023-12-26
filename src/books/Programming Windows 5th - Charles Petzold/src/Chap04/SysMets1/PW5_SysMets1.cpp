@@ -24,7 +24,7 @@ LRESULT CALLBACK PW5_SysMets1::s_wndProc (HWND hwnd, UINT message, WPARAM wParam
 	{
 		case WM_DESTROY: PostQuitMessage(0); break;
 		case WM_CREATE: {
-			MyTextMetric tm(hwnd);
+			TextMetrics tm(hwnd);
 			cxChar = tm.aveCharWidth();
 			cxCaps = tm.aveUpperCaseCharWidth();
 			cyChar = tm.aveCharHeight();

@@ -13,7 +13,7 @@ namespace sge {
 	E(MyHelloWin,)	\
 	/* Chap04 Text Output */ \
 	E(MyDrawText,)	\
-	E(TextMetric,)	\
+	E(MyTextMetrics,)	\
 	E(SysMets1,)	\
 // ----------
 SGE_ENUM_CLASS(MySampleType, u32)
@@ -25,7 +25,7 @@ class ProgWin5MainWin : public PW5_NativeUIWindow {
 	using Base = PW5_NativeUIWindow;
 	using This = ProgWin5MainWin;
 
-	MySampleType _sampleType = MySampleType::SysMets1;
+	MySampleType _sampleType = MySampleType::MyTextMetrics;
 	UPtr<PW5_NativeUIWindow> _sampleWindow;
 
 public:

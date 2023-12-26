@@ -11,5 +11,5 @@
 #include "Chap03/HelloWin/PW5_MyHelloWin.h"
 
 #include "Chap04/SysMets1/PW5_MyDrawText.h"
-#include "Chap04/SysMets1/PW5_TextMetric.h"
+#include "Chap04/SysMets1/PW5_MyTextMetrics.h"
 #include "Chap04/SysMets1/PW5_SysMets1.h"

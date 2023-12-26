@@ -95,6 +95,46 @@ void g_drawText(HDC				hdc,
 	DrawText(hdc, szText, -1, rc, fDT);
 }
 
+class TextMetrics : public RefCountBase {
+public:
+	TextMetrics(HWND hwnd);
+	TextMetrics(HDC hdc);
+	TextMetrics(const TEXTMETRIC& tm);
+
+	int		height()				const	{ return _height; }
+	int		ascent()				const	{ return _ascent; }
+	int		descent()				const	{ return _descent; }
+	int		internalLeading()		const	{ return _internalLeading; }
+	int		maxCharWidth()			const	{ return _maxCharWidth; }
+	int		externalLeading()		const	{ return _externalLeading; }
+	int		aveCharWidth()			const	{ return _aveCharWidth; }
+	int		aveCharHeight()			const	{ return _aveCharHeight; }
+	int		aveUpperCaseCharWidth()	const	{ return _aveUpperCaseCharHeight; }
+	bool	isFixedPitch()			const	{ return _isFixedPitch; }
+	bool	isVariableWidth()		const	{ return !_isFixedPitch; }
+
+private:
+
+	void _set(const TEXTMETRIC& tm);
+
+	void _internal_init(HDC hdc) {
+		TEXTMETRIC tm;
+		GetTextMetrics(hdc, &tm);
+		_set(tm);
+	}
+
+	int _height;
+	int _ascent;
+	int _descent;
+	int _internalLeading;
+	int _maxCharWidth;
+	int _externalLeading;
+	int _aveCharWidth;
+
+	bool _isFixedPitch : 1;
+	int _aveCharHeight;
+	int _aveUpperCaseCharHeight;
+};
 
 class ScopedHDCBase : public NonCopyable {
 public:
@@ -114,7 +154,7 @@ public:
 	void rectangle(const RECT& rc) const	{ g_rectangle(_hdc, rc); }
 	void rectangle(const Rect2i& rc) const	{ g_rectangle(_hdc, rc); }
 
-	TEXTMETRIC getTextMetrics() { TEXTMETRIC tm; GetTextMetrics(_hdc, &tm); return tm; }
+	SPtr<TextMetrics> createTextMetrics() { return SPtr<TextMetrics>(new TextMetrics(_hdc)); }
 
 	operator const HDC& () const { return _hdc; }
 
@@ -143,66 +183,6 @@ class ScopedHDC : public ScopedHDCBase {
 public:
 	ScopedHDC(HWND& hwnd) : Base(hwnd) { _hdc = GetDC(hwnd); }
 	~ScopedHDC() { ReleaseDC(_hwnd, _hdc); }
-};
-
-class MyTextMetric : public NonCopyable {
-
-	void _init(const TEXTMETRIC& tm) {
-		_height					= tm.tmHeight;
-		_ascent					= tm.tmAscent;
-		_descent				= tm.tmDescent;
-		_internalLeading		= tm.tmInternalLeading;
-		_maxCharWidth			= tm.tmMaxCharWidth;
-		_externalLeading		= tm.tmExternalLeading;
-		_aveCharWidth			= tm.tmAveCharWidth;
-
-		_isFixedPitch			= (tm.tmPitchAndFamily & 1) == 0;
-		_aveCharHeight			= _height + _externalLeading;
-		_aveUpperCaseCharHeight = _isFixedPitch ? _aveCharWidth : static_cast<int>(1.5f * _aveCharWidth);
-	}
-
-public:
-	MyTextMetric(HWND hwnd) {
-		ScopedHDC hdc(hwnd);
-		auto tm = hdc.getTextMetrics();
-		_init(tm);
-	}
-
-	MyTextMetric(HDC hdc) {
-		TEXTMETRIC tm;
-		GetTextMetrics(hdc, &tm);
-		_init(tm);
-	}
-
-	MyTextMetric(const TEXTMETRIC& tm) {
-		_init(tm);
-	}
-
-	int		height()				const	{ return _height; }
-	int		ascent()				const	{ return _ascent; }
-	int		descent()				const	{ return _descent; }
-	int		internalLeading()		const	{ return _internalLeading; }
-	int		maxCharWidth()			const	{ return _maxCharWidth; }
-	int		externalLeading()		const	{ return _externalLeading; }
-	int		aveCharWidth()			const	{ return _aveCharWidth; }
-	int		aveCharHeight()			const	{ return _aveCharHeight; }
-	int		aveUpperCaseCharWidth()	const	{ return _aveUpperCaseCharHeight; }
-	bool	isFixedPitch()			const	{ return _isFixedPitch; }
-	bool	isVariableWidth()		const	{ return !_isFixedPitch; }
-
-private:
-
-	int _height;
-	int _ascent;
-	int _descent;
-	int _internalLeading;
-	int _maxCharWidth;
-	int _externalLeading;
-	int _aveCharWidth;
-
-	bool _isFixedPitch : 1;
-	int _aveCharHeight;
-	int _aveUpperCaseCharHeight;
 };
 
 }

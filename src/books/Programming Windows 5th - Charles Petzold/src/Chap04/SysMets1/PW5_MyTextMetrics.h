@@ -6,9 +6,9 @@
 
 namespace sge {
 
-class PW5_TextMetric : public PW5_NativeUIWindow {
+class PW5_MyTextMetrics : public PW5_NativeUIWindow {
 	using Base = PW5_NativeUIWindow;
-	using This = PW5_TextMetric;
+	using This = PW5_MyTextMetrics;
 protected:
 	virtual void onPaint(ScopedPaintStruct& ps) override;
 };
