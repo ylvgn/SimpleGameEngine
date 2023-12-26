@@ -14,22 +14,23 @@ void PW5_SysMets1::onCreate(CreateDesc& desc) {
 	Base::s_createWindow(descWin32);
 }
 
-LRESULT CALLBACK PW5_SysMets1::s_wndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
-	static int  cxChar, cxCaps, cyChar;
+LRESULT CALLBACK PW5_SysMets1::s_wndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
+	static int cxChar, cxCaps, cyChar;
 
-	const auto& sysmetrics	= g_sysmetrics;
-	const auto& NUMLINES	= g_sysmetricsCount;
-
-	switch (message)
-	{
+	switch (message) {
 		case WM_DESTROY: PostQuitMessage(0); break;
+
 		case WM_CREATE: {
 			TextMetrics tm(hwnd);
 			cxChar = tm.aveCharWidth();
 			cxCaps = tm.aveUpperCaseCharWidth();
 			cyChar = tm.aveCharHeight();
 		} break;
+
 		case WM_PAINT: {
+			const auto& sysmetrics	= g_sysmetrics;
+			const auto& NUMLINES	= g_sysmetricsCount;
+
 			/*
 				typedef struct tagPAINTSTRUCT {
 					HDC hdc ;
@@ -65,7 +66,9 @@ LRESULT CALLBACK PW5_SysMets1::s_wndProc (HWND hwnd, UINT message, WPARAM wParam
 			}
 			return 0;
 		} break;
+
 	} // switch
+
 	return DefWindowProc(hwnd, message, wParam, lParam);
 }
 

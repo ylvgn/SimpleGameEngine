@@ -95,6 +95,7 @@ void g_drawText(HDC				hdc,
 	DrawText(hdc, szText, -1, rc, fDT);
 }
 
+
 class TextMetrics : public RefCountBase {
 public:
 	TextMetrics(HWND hwnd);
@@ -114,26 +115,20 @@ public:
 	bool	isVariableWidth()		const	{ return !_isFixedPitch; }
 
 private:
-
 	void _set(const TEXTMETRIC& tm);
+	void _internal_init(HDC hdc);
 
-	void _internal_init(HDC hdc) {
-		TEXTMETRIC tm;
-		GetTextMetrics(hdc, &tm);
-		_set(tm);
-	}
+	int		_height;
+	int		_ascent;
+	int		_descent;
+	int		_internalLeading;
+	int		_maxCharWidth;
+	int		_externalLeading;
+	int		_aveCharWidth;
 
-	int _height;
-	int _ascent;
-	int _descent;
-	int _internalLeading;
-	int _maxCharWidth;
-	int _externalLeading;
-	int _aveCharWidth;
-
-	bool _isFixedPitch : 1;
-	int _aveCharHeight;
-	int _aveUpperCaseCharHeight;
+	int		_aveCharHeight;
+	int		_aveUpperCaseCharHeight;
+	bool	_isFixedPitch : 1;
 };
 
 class ScopedHDCBase : public NonCopyable {
@@ -151,7 +146,7 @@ public:
 	}
 
 	void rectangle(int left, int top, int right, int bottom) const { Rectangle(_hdc, left, top, right, bottom); }
-	void rectangle(const RECT& rc) const	{ g_rectangle(_hdc, rc); }
+	void rectangle(const RECT& rc)   const	{ g_rectangle(_hdc, rc); }
 	void rectangle(const Rect2i& rc) const	{ g_rectangle(_hdc, rc); }
 
 	SPtr<TextMetrics> createTextMetrics() { return SPtr<TextMetrics>(new TextMetrics(_hdc)); }

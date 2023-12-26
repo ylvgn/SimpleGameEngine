@@ -2,19 +2,19 @@
 
 namespace sge {
 
-#define MySampleType_ENUM_LIST(E) \
-	/* Chap01 MessageBox */ \
-	E(HelloMsg,)	\
-	E(MyMessageBox,)	\
-	/* Chap02 Unicode */ \
-	E(ScrnSize,)	\
-	/* Chap03 CreateWindow and WndProc */ \
-	E(HelloWin,)	\
-	E(MyHelloWin,)	\
-	/* Chap04 Text Output */ \
-	E(MyDrawText,)	\
-	E(MyTextMetrics,)	\
-	E(SysMets1,)	\
+#define MySampleType_ENUM_LIST(E)			\
+	/* Chap01 MessageBox */					\
+	E(HelloMsg,)							\
+	E(MyMessageBox,)						\
+	/* Chap02 Unicode */					\
+	E(ScrnSize,)							\
+	/* Chap03 CreateWindow and WndProc */	\
+	E(HelloWin,)							\
+	E(MyHelloWin,)							\
+	/* Chap04 Client Rect and Scroll Bar */ \
+	E(MyDrawText,)							\
+	E(MyTextMetrics,)						\
+	E(SysMets1,)							\
 // ----------
 SGE_ENUM_CLASS(MySampleType, u32)
 SGE_ENUM_ALL_OPERATOR(MySampleType)
@@ -24,8 +24,9 @@ SGE_ENUM_ALL_OPERATOR(MySampleType)
 class ProgWin5MainWin : public PW5_NativeUIWindow {
 	using Base = PW5_NativeUIWindow;
 	using This = ProgWin5MainWin;
+	using Type = MySampleType;
 
-	MySampleType _sampleType = MySampleType::MyTextMetrics;
+	Type _sampleType = Type::SysMets1;
 	UPtr<PW5_NativeUIWindow> _sampleWindow;
 
 public:
@@ -37,7 +38,7 @@ public:
 			winDesc.rect = { 10, 10, 800, 600 };
 
 #define E(SGE_E, ...) \
-				case MySampleType::SGE_E: { \
+				case Type::SGE_E: { \
 					_sampleWindow = eastl::make_unique<PW5_##SGE_E>(); \
 					_sampleWindow->create(winDesc); \
 					_sampleWindow->setWindowTitle(SGE_STRINGIFY(PW5_, SGE_E)); \

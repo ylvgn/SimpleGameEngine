@@ -3,7 +3,8 @@
 namespace sge {
 
 TextMetrics::TextMetrics(HWND hwnd) {
-	ScopedHDC hdc(hwnd); _internal_init(hdc);
+	ScopedHDC hdc(hwnd);
+	_internal_init(hdc);
 }
 
 TextMetrics::TextMetrics(HDC hdc) {
@@ -26,6 +27,12 @@ void TextMetrics::_set(const TEXTMETRIC& tm) {
 	_isFixedPitch			= (tm.tmPitchAndFamily & 1) == 0;
 	_aveCharHeight			= _height + _externalLeading;
 	_aveUpperCaseCharHeight = _isFixedPitch ? _aveCharWidth : static_cast<int>(1.5f * _aveCharWidth);
+}
+
+void TextMetrics::_internal_init(HDC hdc) {
+	TEXTMETRIC tm;
+	GetTextMetrics(hdc, &tm);
+	_set(tm);
 }
 
 }
