@@ -14,7 +14,7 @@
 namespace sge {
 
 inline
-WNDCLASSEX g_createWndClass(HMODULE hInstance, const wchar_t* clsName, WNDPROC lpfnWndProc = nullptr) {
+WNDCLASSEX g_createWndClass(HMODULE hInstance, const wchar_t* clsName, WNDPROC lpfnWndProc) {
 	WNDCLASSEX wc;
 	g_bzero(wc);
 
@@ -166,8 +166,6 @@ public:
 
 	BOOL fErase()			const { return _ps.fErase; }
 	const RECT& rcPaint()	const { return _ps.rcPaint; }
-
-	const PAINTSTRUCT& get() const { return _ps; }
 
 private:
 	PAINTSTRUCT _ps;

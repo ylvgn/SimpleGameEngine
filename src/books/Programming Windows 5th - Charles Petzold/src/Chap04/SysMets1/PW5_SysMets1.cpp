@@ -5,20 +5,33 @@
 namespace sge {
 
 void PW5_SysMets1::onCreate(CreateDesc& desc) {
-	const static wchar_t* clsName = L"PW5_SysMets1";
 	auto hInstance = GetModuleHandle(nullptr);
-	auto wc = g_createWndClass(hInstance, clsName, s_wndProc);
+	constexpr const static wchar_t* clsName = L"PW5_SysMets1";
 
-	CreateDesc_Win32 descWin32(desc, wc);
-	descWin32.cwlpParam = this;
-	Base::s_createWindow(descWin32);
+	auto wc = g_createWndClass(hInstance, clsName, s_wndProc);
+	g_registerWndClass(wc);
+
+	_hwnd = CreateWindowEx( 0, clsName, clsName, WS_OVERLAPPEDWINDOW,
+							static_cast<int>(desc.rect.x),
+							static_cast<int>(desc.rect.y),
+							static_cast<int>(desc.rect.w),
+							static_cast<int>(desc.rect.h),
+							nullptr, nullptr, hInstance, nullptr);
+	if (!_hwnd) {
+		throw SGE_ERROR("cannot create native window");
+	}
+
+	ShowWindow(_hwnd, SW_NORMAL);
+	UpdateWindow(_hwnd);
 }
 
 LRESULT CALLBACK PW5_SysMets1::s_wndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	static int cxChar, cxCaps, cyChar;
 
 	switch (message) {
-		case WM_DESTROY: PostQuitMessage(0); break;
+		case WM_DESTROY:
+			PostQuitMessage(0);
+			break;
 
 		case WM_CREATE: {
 			TextMetrics tm(hwnd);
@@ -66,9 +79,7 @@ LRESULT CALLBACK PW5_SysMets1::s_wndProc(HWND hwnd, UINT message, WPARAM wParam,
 			}
 			return 0;
 		} break;
-
 	} // switch
-
 	return DefWindowProc(hwnd, message, wParam, lParam);
 }
 

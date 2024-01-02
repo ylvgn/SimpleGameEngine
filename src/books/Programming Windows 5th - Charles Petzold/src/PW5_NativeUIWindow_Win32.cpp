@@ -6,7 +6,6 @@ namespace sge {
 
 void PW5_NativeUIWindow_Win32::onCreate(CreateDesc& desc) {
 	HMODULE hInstance = GetModuleHandle(nullptr);
-
 	constexpr const wchar_t* clsName = L"PW5_NativeUIWindow_Win32";
 
 	WNDCLASSEX wc = g_createWndClass(hInstance, clsName, s_wndProc);
@@ -34,13 +33,16 @@ void PW5_NativeUIWindow_Win32::onCreate(CreateDesc& desc) {
 	}
 
     ShowWindow (_hwnd, SW_SHOWDEFAULT);
-    UpdateWindow (_hwnd);
 }
 
 void PW5_NativeUIWindow_Win32::onSetWindowTitle(StrView title) {
 	if (!_hwnd) return;
 	TempStringW tmp = UtfUtil::toStringW(title);
 	SetWindowText(_hwnd, tmp.c_str());
+}
+
+void PW5_NativeUIWindow_Win32::onSetWindowSize(const Rect2i& xywh) {
+	SetWindowPos(_hwnd, HWND_TOP, xywh.x, xywh.y, xywh.w, xywh.h, SWP_ASYNCWINDOWPOS);
 }
 
 void PW5_NativeUIWindow_Win32::onDraw() {
@@ -60,7 +62,7 @@ LRESULT CALLBACK PW5_NativeUIWindow_Win32::s_wndProc(HWND hwnd, UINT msg, WPARAM
 		} break;
 		case WM_DESTROY: {
 			if (auto* thisObj = s_getThis(hwnd)) {
-				::SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(nullptr));
+				SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(nullptr));
 				thisObj->_hwnd = nullptr;
 				sge_delete(thisObj);
 			}
@@ -73,7 +75,7 @@ LRESULT CALLBACK PW5_NativeUIWindow_Win32::s_wndProc(HWND hwnd, UINT msg, WPARAM
 		case WM_SIZE: {
 			if (auto* thisObj = s_getThis(hwnd)) {
 				RECT clientRect;
-				::GetClientRect(hwnd, &clientRect);
+				GetClientRect(hwnd, &clientRect);
 				Rect2f newClientRect = Win32Util::toRect2f(clientRect);
 				thisObj->onClientRectChanged(newClientRect);
 				return 0; // capture

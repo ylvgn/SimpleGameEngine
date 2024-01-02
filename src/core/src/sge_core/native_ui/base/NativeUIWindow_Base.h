@@ -46,6 +46,7 @@ public:
 
 	void create			(CreateDesc& desc)		{ onCreate(desc); }
 	void setWindowTitle	(StrView title)			{ onSetWindowTitle(title); }
+	void setWindowSize	(const Rect2i& xywh)	{ onSetWindowSize(xywh); }
 	void setCursor(UIMouseCursor cursor)		{ onSetCursor(cursor); }
 
 	void drawNeeded() { onDrawNeeded(); }
@@ -68,6 +69,7 @@ public:
 protected:
 	virtual void onCreate(CreateDesc& desc) {}
 	virtual void onSetWindowTitle(StrView title) {}
+	virtual void onSetWindowSize(const Rect2i& xywh) {};
 	virtual void onSetCursor(UIMouseCursor type) {}
 	virtual void onClientRectChanged(const Rect2f& rc) { _clientRect = rc; }
 	virtual void onDrawNeeded() {}

@@ -31,25 +31,18 @@ class ProgWin5MainWin : public PW5_NativeUIWindow {
 
 public:
 	virtual void onCreate(CreateDesc& desc) override {
-		{ // create window
-			NativeUIWindow::CreateDesc winDesc;
-			winDesc.isMainWindow = true;
-			winDesc.centerToScreen = true;
-			winDesc.rect = { 10, 10, 800, 600 };
-
-#define E(SGE_E, ...) \
-				case Type::SGE_E: { \
-					_sampleWindow = eastl::make_unique<PW5_##SGE_E>(); \
-					_sampleWindow->create(winDesc); \
-					_sampleWindow->setWindowTitle(SGE_STRINGIFY(PW5_, SGE_E)); \
-				} break; \
-			// ----------
-			switch (_sampleType) {
-				MySampleType_ENUM_LIST(E)
-				default: throw SGE_ERROR("unsupported sample type {}", _sampleType);
-			}
-#undef E
+		#define E(SGE_E, ...) \
+		case Type::SGE_E: { \
+			_sampleWindow = eastl::make_unique<PW5_##SGE_E>(); \
+			_sampleWindow->create(desc); \
+			_sampleWindow->setWindowTitle(SGE_STRINGIFY(PW5_, SGE_E)); \
+		} break; \
+		// ----------
+		switch (_sampleType) {
+			MySampleType_ENUM_LIST(E)
+			default: throw SGE_ERROR("unsupported sample type {}", _sampleType);
 		}
+		#undef E
 	}
 };
 
@@ -71,10 +64,9 @@ protected:
 
 		{ // create window
 			NativeUIWindow::CreateDesc winDesc;
-//			winDesc.isMainWindow = true;
-//			winDesc.rect = { 10, 10, 1500, 900 };
+			winDesc.isMainWindow = true;
+			winDesc.rect = { 10, 10, 1500, 900 };
 			_mainWin.create(winDesc);
-//			_mainWin.setWindowTitle("SGE Prog Win5 Window");
 		}
 	}
 

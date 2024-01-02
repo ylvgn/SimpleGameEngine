@@ -32,24 +32,15 @@ private:
 
 class PW5_NativeUIWindow : public PW5_NativeUIWindow_Impl {
 	using Base = PW5_NativeUIWindow_Impl;
-public:
-	struct CreateDesc_Win32 {
-		CreateDesc_Win32(Base::CreateDesc& desc, WNDCLASSEX& wc_)
-			: baseDesc(desc)
-			, wc(wc_)
-			, cwlpParam(nullptr) {}
-
-		Base::CreateDesc& baseDesc;
-		WNDCLASSEX& wc;
-		LPVOID cwlpParam = nullptr;
-	};
-
-	static void s_registerClass(HMODULE hInstance, const wchar_t* clsName, WNDPROC wndProc = nullptr);
-	static void s_createWindow(CreateDesc_Win32& desc);
+	using This = PW5_NativeUIWindow;
 protected:
-	virtual void onCloseButton() override {
-		PW5_NativeUIApp::instance()->quit(0);
+	virtual void onCloseButton() override;
+	virtual void onCreate(CreateDesc& desc) {
+		Base::onCreate(desc);
+		onPostCreate();
 	}
+
+	virtual void onPostCreate() {}
 };
 
 }
