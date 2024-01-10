@@ -15,3 +15,4 @@
 #include "Chap04/SysMets1/PW5_SysMets1.h"
 #include "Chap04/SysMets2/PW5_SysMets2.h"
 #include "Chap04/SysMets2/PW5_MySysMets2.h"
+#include "Chap04/SysMets3/PW5_SysMets3.h"

@@ -5,14 +5,14 @@
 #include "PW5_Common.h"
 #include <sge_core/native_ui/win32/Win32Util.h>
 
-#include <stdio.h>
-#include <stdint.h>
-#include <windows.h>
 #include <windowsx.h>
 #include <tchar.h>
 
 namespace sge {
 
+#if 0
+#pragma mark ========= handy ============
+#endif
 inline
 WNDCLASSEX g_createWndClass(HMODULE hInstance, const wchar_t* clsName, WNDPROC lpfnWndProc) {
 	WNDCLASSEX wc;
@@ -37,6 +37,7 @@ WNDCLASSEX g_createWndClass(HMODULE hInstance, const wchar_t* clsName, WNDPROC l
 inline
 bool g_isRegisterWndClass(HMODULE hInstance, const wchar_t* clsName) {
 	WNDCLASSEX wc;
+	g_bzero(wc);
 	return 0 != GetClassInfoEx(hInstance, clsName, &wc);
 }
 
@@ -95,7 +96,9 @@ void g_drawText(HDC				hdc,
 	DrawText(hdc, szText, -1, rc, fDT);
 }
 
-
+#if 0
+#pragma mark ========= TextMetrics ============
+#endif
 class TextMetrics : public RefCountBase {
 public:
 	TextMetrics(HWND hwnd);
@@ -115,8 +118,8 @@ public:
 	bool	isVariableWidth()		const	{ return !_isFixedPitch; }
 
 private:
-	void _set(const TEXTMETRIC& tm);
-	void _internal_init(HDC hdc);
+	void	_set(const TEXTMETRIC& tm);
+	void	_internal_init(HDC hdc);
 
 	int		_height;
 	int		_ascent;
@@ -131,6 +134,127 @@ private:
 	bool	_isFixedPitch : 1;
 };
 
+#if 0
+#pragma mark ========= ScrollInfo ============
+#endif
+#define ScrollBarConstants_ENUM_LIST(E) \
+	E(Horizontal,) \
+	E(Vertical,) \
+	E(Control,)  \
+	E(Both,) \
+//----
+SGE_ENUM_CLASS(ScrollBarConstants, u8)
+
+class ScrollInfo : public NonCopyable {
+	using This = ScrollInfo;
+public:
+
+	ScrollInfo() : This(ScrollBarConstants::Vertical) { }
+
+	ScrollInfo(ScrollBarConstants type) : _dirty(false) {
+		reset();
+		setType(type);
+	}
+
+	void reset();
+	void reset(HWND hwnd, bool redraw = true);
+
+	void setType(ScrollBarConstants type);
+
+	SGE_NODISCARD ScrollInfo& setRange(int minRange, int maxRange) {
+		if (_si.nMin != minRange || _si.nMax != maxRange) {
+			_dirty = true;
+			_si.fMask |= SIF_RANGE;
+
+			_si.nMin = minRange;
+			_si.nMax = maxRange;
+		}
+		return *this;
+	}
+
+	SGE_NODISCARD ScrollInfo& setPage(UINT newPage) {
+		// set a proportional scroll bar thumb
+		if (_si.nPage != newPage) {
+			_dirty = true;
+			_si.fMask |= SIF_PAGE;
+
+			_si.nPage = newPage;
+		}
+		return *this;
+	}
+
+	SGE_NODISCARD ScrollInfo& setPos(int newPos) {
+		if (_si.nPos != newPos) {
+			_dirty = true;
+			_si.fMask |= SIF_POS;
+
+			_si.nPos = newPos;
+		}
+		return *this;
+	}
+
+	SGE_NODISCARD ScrollInfo& setTrackPos(HWND hwnd, int newTrackPos) {
+		if (_si.nTrackPos != newTrackPos) {
+			_dirty = true;
+			_si.fMask |= SIF_TRACKPOS;
+
+			_si.nTrackPos	= newTrackPos;
+		}
+		return *this;
+	}
+
+	void getRange(HWND hwnd, int& outMin, int& outMax) {
+		_retrieve(hwnd, SIF_RANGE);
+		outMin = _si.nMin;
+		outMax = _si.nMax;
+	}
+
+	void getPage(HWND hwnd, UINT& out) {
+		_retrieve(hwnd, SIF_PAGE);
+		out = _si.nPage;
+	}
+
+	void getPos(HWND hwnd, int& out) {
+		_retrieve(hwnd, SIF_POS);
+		out = _si.nPos;
+	}
+
+	void getTrackPos(HWND hwnd, int& out) {
+		// only while processing a WM_VSCROLL or WM_HSCROLL message
+			// with a notification code of SB_THUMBTRACK or SB_THUMBPOSITION
+		_retrieve(hwnd, SIF_TRACKPOS, false);
+		out = _si.nTrackPos; // 32-bit thumb position
+	}
+
+	SCROLLINFO operator() (HWND hwnd) {
+		_retrieve(hwnd);
+		SCROLLINFO res = _si;
+		res.fMask = SIF_ALL;
+		return res;
+	}
+
+	int		rangeMin()	const { return _si.nMin;  }
+	int		rangeMax()	const { return _si.nMax;  }
+	UINT	page()		const { return _si.nPage; }
+	int		pos()		const { return _si.nPos;  }
+	//int	trackPos()	const { return _si.nTrackPos; } not provide such function, and use getTrackPos instead
+
+private:
+	void _retrieve(HWND hwnd, int flag = SIF_ALL, bool redraw = true) {
+		reset(hwnd, redraw);
+		ScopedValue<UINT> scoped(&_si.fMask, flag);
+		GetScrollInfo(hwnd, _type, &_si);
+	}
+
+	bool		_dirty : 1;
+	int			_type;
+
+	SCROLLINFO	_si;
+};
+
+#if 0
+#pragma mark ========= HDC ============
+#endif
 class ScopedHDCBase : public NonCopyable {
 public:
 	ScopedHDCBase(HWND& hwnd) : _hwnd(hwnd) , _hdc(nullptr) {}

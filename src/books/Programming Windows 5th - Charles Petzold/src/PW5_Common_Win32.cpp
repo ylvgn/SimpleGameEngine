@@ -1,7 +1,10 @@
-#include "PW5_Common_Win32.h"
+#include "PW5_Win32Util.h"
 
 namespace sge {
 
+#if 0
+#pragma mark ========= TextMetrics ============
+#endif
 TextMetrics::TextMetrics(HWND hwnd) {
 	ScopedHDC hdc(hwnd);
 	_internal_init(hdc);
@@ -33,6 +36,27 @@ void TextMetrics::_internal_init(HDC hdc) {
 	TEXTMETRIC tm;
 	GetTextMetrics(hdc, &tm);
 	_set(tm);
+}
+
+#if 0
+#pragma mark ========= ScrollInfo ============
+#endif
+
+void ScrollInfo::reset() {
+	g_bzero(_si);
+	_si.cbSize = sizeof(_si);
+}
+
+void ScrollInfo::reset(HWND hwnd, bool redraw /*= true*/) {
+	if (!_dirty)
+		return;
+
+	SetScrollInfo(hwnd, _type, &_si, redraw);
+	_dirty = false;
+}
+
+void ScrollInfo::setType(ScrollBarConstants v) {
+	_type = PW5_Win32Util::getScrollBarConstants(v);
 }
 
 }
