@@ -13,9 +13,11 @@ void PW5_MySysMets2::onPostCreate() {
 
 void PW5_MySysMets2::onOpen() {
 	// WM_SHOWWINDOW
-	int NUMLINES = static_cast<int>(g_sysmetricsCount);
 
-	_iVscrollPos = 0;
+	_scrollPosV = 0;
+
+	const int NUMLINES = static_cast<int>(g_sysmetricsCount);
+
 	{
 		ScopedHDC hdc(_hwnd);
 		auto tm = hdc.createTextMetrics();
@@ -26,16 +28,17 @@ void PW5_MySysMets2::onOpen() {
 	
 	RECT rc;
 	GetClientRect(_hwnd, &rc);
-	int clientRectHeight = static_cast<int>(rc.bottom);
-	int contentMaxHeight = _cyChar * NUMLINES;
-	int contentVRange = Math::max(0, contentMaxHeight - clientRectHeight);
+	int clientRectH = static_cast<int>(rc.bottom);
+	int contentMaxH = _cyChar * NUMLINES;
+	_viewportH = Math::max(0, contentMaxH - clientRectH);
 
-	SetScrollRange(_hwnd, SB_VERT, 0, contentVRange, FALSE);
-	SetScrollPos(_hwnd, SB_VERT, _iVscrollPos, TRUE);
+	SetScrollRange(_hwnd, SB_VERT, 0, _viewportH, FALSE);
+	SetScrollPos(_hwnd, SB_VERT, _scrollPosV, TRUE);
 }
 
 void PW5_MySysMets2::onPaint(ScopedPaintStruct& ps) {
 	// WM_PAINT
+
 	int NUMLINES = static_cast<int>(g_sysmetricsCount);
 	const auto& sysmetrics = g_sysmetrics;
 
@@ -47,11 +50,12 @@ void PW5_MySysMets2::onPaint(ScopedPaintStruct& ps) {
 
 	for (int i = 0; i < NUMLINES; i++) {
 		int x = 0;
-		int y = _cyChar * i - _iVscrollPos;
+		int y = _cyChar * i - _scrollPosV;
 
-		ps.textOut(x, y, sysmetrics[i].szLabel);
+		StrViewW s(sysmetrics[i].szLabel);
+		ps.textOutf(x, y, "{:003} {}", i, s);
 
-		x += 22 * _cxCaps;
+		x += 24 * _cxCaps;
 		ps.textOut(x, y, sysmetrics[i].szDesc);
 		SetTextAlign(ps, TA_RIGHT | TA_TOP);
 
@@ -62,9 +66,25 @@ void PW5_MySysMets2::onPaint(ScopedPaintStruct& ps) {
 }
 
 void PW5_MySysMets2::_onScrollV(int y) {
-	_iVscrollPos = y;
-	SetScrollPos(_hwnd, SB_VERT, y, TRUE);
-	InvalidateRect(_hwnd, NULL, TRUE);
+	y = Math::clamp(y, 0, _viewportH);
+	SetScrollPos(_hwnd, SB_VERT, y, true);
+
+#if true
+	// If you prefer to update the invalid area immediately, you can call UpdateWindow after you call InvalidateRect
+	// UpdateWindow causes the window procedure to be called immediately with a WM_PAINT message if any part of the client area is invalid
+	// (UpdateWindow will not call the window procedure if the entire client area is valid.)
+	// In this case, the WM_PAINT message bypasses the message queue
+	// UpdateWindow directs the window procedure(WM_PAINT) to paint it
+	ScrollWindow(_hwnd, 0, _scrollPosV - y, nullptr, nullptr);
+	_scrollPosV = y;
+	UpdateWindow(_hwnd);
+#else
+	// However, Windows treats WM_PAINT messages as low priority, so if a lot of other activity is occurring in the system,
+	// it may be a while before your window procedure receives the WM_PAINT message.
+	// Everyone has seen blank, white "holes" in Windows after a dialog box is removed and the program is still waiting to refresh its window.
+	_scrollPosV = y;
+	InvalidateRect(_hwnd, nullptr, true);
+#endif
 }
 
 LRESULT CALLBACK PW5_MySysMets2::s_wndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
@@ -72,11 +92,18 @@ LRESULT CALLBACK PW5_MySysMets2::s_wndProc(HWND hwnd, UINT message, WPARAM wPara
 		case WM_VSCROLL: {
 			if (auto* thisObj = s_getThis(hwnd)) {
 				int request = LOWORD(wParam);
-				thisObj->_cyClient = HIWORD(lParam);
-				if (request == SB_THUMBPOSITION || request == SB_THUMBTRACK) {
-					thisObj->_onScrollV(HIWORD(wParam));
-					return 0;
+				switch (request) {
+					case SB_LINEUP:		thisObj->_onScrollV(thisObj->_scrollPosV - thisObj->_cyChar); break;
+					case SB_LINEDOWN:	thisObj->_onScrollV(thisObj->_scrollPosV + thisObj->_cyChar); break;
+					case SB_PAGEUP:		thisObj->_onScrollV(thisObj->_scrollPosV - thisObj->_viewportH); break;
+					case SB_PAGEDOWN:	thisObj->_onScrollV(thisObj->_scrollPosV + thisObj->_viewportH); break;
+
+					case SB_THUMBPOSITION:
+					case SB_THUMBTRACK:
+						thisObj->_onScrollV(HIWORD(wParam));
+						break;
 				}
+				return 0;
 			}
 		} break;
 	} // switch

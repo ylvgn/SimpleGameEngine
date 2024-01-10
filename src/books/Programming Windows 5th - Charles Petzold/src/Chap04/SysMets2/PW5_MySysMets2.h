@@ -14,12 +14,11 @@ protected:
 	virtual void onOpen() override;
 	virtual void onPaint(ScopedPaintStruct& ps) override;
 private:
-
 	static LRESULT CALLBACK s_wndProc(HWND, UINT, WPARAM, LPARAM);
 	static WNDPROC s_defaultWndProc;
 
 	SGE_INLINE static This* s_getThis(HWND hwnd) {
-		return reinterpret_cast<This*>(::GetWindowLongPtr(hwnd, GWLP_USERDATA));
+		return reinterpret_cast<This*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
 	}
 
 	void _onScrollV(int y);
@@ -27,9 +26,8 @@ private:
 	int _cxChar;
 	int _cyChar;
 	int _cxCaps;
-
-	int _cyClient;
-	int _iVscrollPos;
+	int _viewportH;
+	int _scrollPosV;
 };
 
 }

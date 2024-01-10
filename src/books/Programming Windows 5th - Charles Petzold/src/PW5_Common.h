@@ -2,9 +2,6 @@
 
 #include <sge_core.h>
 
-#include <stdio.h>
-#include <stdint.h>
-
 namespace sge {
 
 template<class T> constexpr

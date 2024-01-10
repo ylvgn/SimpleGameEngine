@@ -7,9 +7,9 @@ namespace sge {
 #if SGE_OS_WINDOWS
 
 struct MySysMetrics {
-     int     iIndex;
-     TCHAR*  szLabel;
-     TCHAR*  szDesc;
+     int		iIndex;
+     wchar_t*	szLabel;
+	 wchar_t*	szDesc;
 };
 
 extern MySysMetrics g_sysmetrics[];
