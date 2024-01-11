@@ -18,6 +18,7 @@ namespace sge {
 	E(SysMets2,)							\
 	E(MySysMets2,)							\
 	E(SysMets3,)							\
+	E(MySysMets3,)							\
 // ----------
 SGE_ENUM_CLASS(MySampleType, u32)
 SGE_ENUM_ALL_OPERATOR(MySampleType)
@@ -29,7 +30,7 @@ class ProgWin5MainWin : public PW5_NativeUIWindow {
 	using This = ProgWin5MainWin;
 	using Type = MySampleType;
 
-	Type _sampleType = Type::SysMets3;
+	Type _sampleType = Type::MySysMets3;
 	UPtr<PW5_NativeUIWindow> _sampleWindow;
 
 public:
