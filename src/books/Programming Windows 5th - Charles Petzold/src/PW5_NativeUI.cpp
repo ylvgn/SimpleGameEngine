@@ -14,6 +14,11 @@ PW5_NativeUIApp::~PW5_NativeUIApp() {
 	s_instance = nullptr;
 }
 
+void PW5_NativeUIWindow::onCreate(CreateDesc& desc) {
+	Base::onCreate(desc);
+	onPostCreate();
+}
+
 void PW5_NativeUIWindow::onCloseButton() {
 	PW5_NativeUIApp::instance()->quit(0);
 }

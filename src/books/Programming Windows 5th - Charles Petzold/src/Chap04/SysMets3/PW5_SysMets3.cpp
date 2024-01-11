@@ -32,9 +32,6 @@ void PW5_SysMets3::onCreate(CreateDesc& desc) {
 LRESULT CALLBACK PW5_SysMets3::s_wndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	static int cxChar, cxCaps, cyChar, cxClient, cyClient, iMaxWidth;
 
-	const auto& sysmetrics = g_sysmetrics;
-	auto NUMLINES = static_cast<int>(g_sysmetricsCount);
-
 	/*
 		typedef struct tagSCROLLINFO
 		{
@@ -49,6 +46,9 @@ LRESULT CALLBACK PW5_SysMets3::s_wndProc (HWND hwnd, UINT message, WPARAM wParam
 	*/
 	static ScrollInfo siV(ScrollBarConstants::Vertical);
 	static ScrollInfo siH(ScrollBarConstants::Horizontal);
+
+	const auto& sysmetrics = g_sysmetrics;
+	const auto& NUMLINES = static_cast<int>(g_sysmetricsCount);
 
 	switch (message) {
 
@@ -65,20 +65,19 @@ LRESULT CALLBACK PW5_SysMets3::s_wndProc (HWND hwnd, UINT message, WPARAM wParam
 			// Save the width of the three columns
 			iMaxWidth = 40 * cxChar + 22 * cxCaps;
 			return 0;
-		} break;
+		}
 
 		case WM_SIZE: {
 			cxClient = LOWORD(lParam);
 			cyClient = HIWORD(lParam);
 
 			// Set vertical scroll bar range and page size
-			siV.setRange(0, NUMLINES - 1).setPage(cyClient / cyChar)/*.reset(hwnd)*/;
+			siV.setRange(0, NUMLINES - 1).setPage(cyClient / cyChar).reset(hwnd);
 
 			// Set horizontal scroll bar range and page size
-			siH.setRange(0, 2 + iMaxWidth / cxChar).setPage(cxClient / cxChar)/*.reset(hwnd)*/;
-
+			siH.setRange(0, 2 + iMaxWidth / cxChar).setPage(cxClient / cxChar).reset(hwnd);
 			return 0;
-		} break;
+		}
 		
 		case WM_VSCROLL: {
 			// Save the position for comparison later on
@@ -115,7 +114,7 @@ LRESULT CALLBACK PW5_SysMets3::s_wndProc (HWND hwnd, UINT message, WPARAM wParam
 				UpdateWindow(hwnd);
 			}
 			return 0;
-		} break;
+		}
 
 		case WM_HSCROLL: {
 			int iOldPos;
@@ -146,7 +145,7 @@ LRESULT CALLBACK PW5_SysMets3::s_wndProc (HWND hwnd, UINT message, WPARAM wParam
 				UpdateWindow(hwnd);
 			}
 			return 0;
-		} break;
+		}
 
 		case WM_PAINT: {
 			// Get vertical scroll bar position
@@ -178,7 +177,8 @@ LRESULT CALLBACK PW5_SysMets3::s_wndProc (HWND hwnd, UINT message, WPARAM wParam
 				SetTextAlign(ps, TA_LEFT | TA_TOP);
 			}
 			return 0;
-		} break;
+		}
+
 	} // switch
 	return DefWindowProc(hwnd, message, wParam, lParam);
 }

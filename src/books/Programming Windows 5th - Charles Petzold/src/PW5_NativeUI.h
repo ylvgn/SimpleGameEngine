@@ -20,6 +20,7 @@ namespace sge {
 
 class PW5_NativeUIApp : public PW5_NativeUIApp_Impl {
 	using Base = PW5_NativeUIApp_Impl;
+	using This = PW5_NativeUIApp;
 public:
 	PW5_NativeUIApp();
 	~PW5_NativeUIApp();
@@ -34,11 +35,8 @@ class PW5_NativeUIWindow : public PW5_NativeUIWindow_Impl {
 	using Base = PW5_NativeUIWindow_Impl;
 	using This = PW5_NativeUIWindow;
 protected:
+	virtual void onCreate(CreateDesc& desc) override;
 	virtual void onCloseButton() override;
-	virtual void onCreate(CreateDesc& desc) {
-		Base::onCreate(desc);
-		onPostCreate();
-	}
 
 	virtual void onPostCreate() {}
 };

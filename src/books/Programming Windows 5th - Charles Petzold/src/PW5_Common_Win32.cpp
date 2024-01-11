@@ -41,10 +41,15 @@ void TextMetrics::_internal_init(HDC hdc) {
 #if 0
 #pragma mark ========= ScrollInfo ============
 #endif
-
 void ScrollInfo::reset() {
 	g_bzero(_si);
 	_si.cbSize = sizeof(_si);
+}
+
+void ScrollInfo::reset(Type type) {
+	reset();
+	setType(type);
+	_dirty = false;
 }
 
 void ScrollInfo::reset(HWND hwnd, bool redraw /*= true*/) {
@@ -55,8 +60,8 @@ void ScrollInfo::reset(HWND hwnd, bool redraw /*= true*/) {
 	_dirty = false;
 }
 
-void ScrollInfo::setType(ScrollBarConstants v) {
-	_type = PW5_Win32Util::getScrollBarConstants(v);
+void ScrollInfo::setType(Type type) {
+	_type = PW5_Win32Util::getScrollBarConstants(type);
 }
 
 }

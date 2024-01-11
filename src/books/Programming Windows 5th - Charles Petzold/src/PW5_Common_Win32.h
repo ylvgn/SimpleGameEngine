@@ -148,20 +148,24 @@ SGE_ENUM_CLASS(ScrollBarConstants, u8)
 class ScrollInfo : public NonCopyable {
 	using This = ScrollInfo;
 public:
+	using Type = ScrollBarConstants;
 
-	ScrollInfo() : This(ScrollBarConstants::Vertical) { }
+	ScrollInfo() : This(Type::Vertical) {}
 
-	ScrollInfo(ScrollBarConstants type) : _dirty(false) {
+	ScrollInfo(Type type)
+		: _dirty(false)
+	{
 		reset();
 		setType(type);
 	}
 
 	void reset();
+	void reset(Type type);
 	void reset(HWND hwnd, bool redraw = true);
 
-	void setType(ScrollBarConstants type);
+	void setType(Type type);
 
-	SGE_NODISCARD ScrollInfo& setRange(int minRange, int maxRange) {
+	This& setRange(int minRange, int maxRange) {
 		if (_si.nMin != minRange || _si.nMax != maxRange) {
 			_dirty = true;
 			_si.fMask |= SIF_RANGE;
@@ -172,7 +176,7 @@ public:
 		return *this;
 	}
 
-	SGE_NODISCARD ScrollInfo& setPage(UINT newPage) {
+	This& setPage(UINT newPage) {
 		// set a proportional scroll bar thumb
 		if (_si.nPage != newPage) {
 			_dirty = true;
@@ -183,7 +187,7 @@ public:
 		return *this;
 	}
 
-	SGE_NODISCARD ScrollInfo& setPos(int newPos) {
+	This& setPos(int newPos) {
 		if (_si.nPos != newPos) {
 			_dirty = true;
 			_si.fMask |= SIF_POS;
@@ -193,12 +197,12 @@ public:
 		return *this;
 	}
 
-	SGE_NODISCARD ScrollInfo& setTrackPos(HWND hwnd, int newTrackPos) {
+	This& setTrackPos(HWND hwnd, int newTrackPos) {
 		if (_si.nTrackPos != newTrackPos) {
 			_dirty = true;
 			_si.fMask |= SIF_TRACKPOS;
 
-			_si.nTrackPos	= newTrackPos;
+			_si.nTrackPos = newTrackPos;
 		}
 		return *this;
 	}
@@ -226,8 +230,9 @@ public:
 		out = _si.nTrackPos; // 32-bit thumb position
 	}
 
-	SCROLLINFO operator() (HWND hwnd) {
+	SCROLLINFO toSCROLLINFO (HWND hwnd) {
 		_retrieve(hwnd);
+
 		SCROLLINFO res = _si;
 		res.fMask = SIF_ALL;
 		return res;
@@ -237,18 +242,17 @@ public:
 	int		rangeMax()	const { return _si.nMax;  }
 	UINT	page()		const { return _si.nPage; }
 	int		pos()		const { return _si.nPos;  }
-	//int	trackPos()	const { return _si.nTrackPos; } not provide such function, and use getTrackPos instead
+//	int	trackPos()		const { return _si.nTrackPos; } // <--- not provide such function, and use getTrackPos instead
 
 private:
 	void _retrieve(HWND hwnd, int flag = SIF_ALL, bool redraw = true) {
 		reset(hwnd, redraw);
-		ScopedValue<UINT> scoped(&_si.fMask, flag);
+		ScopedValue<UINT> v(&_si.fMask, flag);
 		GetScrollInfo(hwnd, _type, &_si);
 	}
 
 	bool		_dirty : 1;
 	int			_type;
-
 	SCROLLINFO	_si;
 };
 
@@ -257,7 +261,10 @@ private:
 #endif
 class ScopedHDCBase : public NonCopyable {
 public:
-	ScopedHDCBase(HWND& hwnd) : _hwnd(hwnd) , _hdc(nullptr) {}
+	ScopedHDCBase(HWND& hwnd)
+		: _hwnd(hwnd)
+		, _hdc(nullptr) {}
+
 	virtual ~ScopedHDCBase() = default;
 
 	void textOut(int x, int y, const wchar_t* szText) const { g_textOut(_hdc, x, y, szText); }
@@ -288,8 +295,8 @@ public:
 	ScopedPaintStruct(HWND& hwnd) : Base(hwnd) { _hdc = BeginPaint(hwnd, &_ps); }
 	~ScopedPaintStruct() { EndPaint(_hwnd, &_ps); }
 
-	BOOL fErase()			const { return _ps.fErase; }
-	const RECT& rcPaint()	const { return _ps.rcPaint; }
+			BOOL	fErase()	const { return _ps.fErase; }
+	const	RECT&	rcPaint()	const { return _ps.rcPaint; }
 
 private:
 	PAINTSTRUCT _ps;

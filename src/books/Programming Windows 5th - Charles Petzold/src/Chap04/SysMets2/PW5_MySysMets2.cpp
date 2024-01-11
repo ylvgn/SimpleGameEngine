@@ -42,6 +42,7 @@ void PW5_MySysMets2::onPaint(ScopedPaintStruct& ps) {
 	int NUMLINES = static_cast<int>(g_sysmetricsCount);
 	const auto& sysmetrics = g_sysmetrics;
 
+	// clear bg
 	auto brush = static_cast<HBRUSH>(GetStockBrush(WHITE_BRUSH));
 	SelectObject(ps, brush);
 	RECT rc;
@@ -77,13 +78,13 @@ void PW5_MySysMets2::_onScrollV(int y) {
 	// UpdateWindow directs the window procedure(WM_PAINT) to paint it
 	ScrollWindow(_hwnd, 0, _scrollPosV - y, nullptr, nullptr);
 	_scrollPosV = y;
-	UpdateWindow(_hwnd);
+	UpdateWindow(_hwnd); // call WM_PAINT directly
 #else
 	// However, Windows treats WM_PAINT messages as low priority, so if a lot of other activity is occurring in the system,
 	// it may be a while before your window procedure receives the WM_PAINT message.
 	// Everyone has seen blank, white "holes" in Windows after a dialog box is removed and the program is still waiting to refresh its window.
 	_scrollPosV = y;
-	InvalidateRect(_hwnd, nullptr, true);
+	InvalidateRect(_hwnd, nullptr, true); // call WM_PAINT by windows message queue
 #endif
 }
 
