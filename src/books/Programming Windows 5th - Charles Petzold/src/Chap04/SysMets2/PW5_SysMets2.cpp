@@ -9,7 +9,7 @@ void PW5_SysMets2::onCreate(CreateDesc& desc) {
 	constexpr const static wchar_t* clsName = L"PW5_SysMets2";
 
 	auto wc = g_createWndClass(hInstance, clsName, s_wndProc);
-	wc.hbrBackground = static_cast<HBRUSH>(GetStockObject(WHITE_BRUSH)); // SetScrollPos will redraw using this brush to erase bg
+	wc.hbrBackground = static_cast<HBRUSH>(::GetStockObject(WHITE_BRUSH)); // SetScrollPos will redraw using this brush to erase bg
 	g_registerWndClass(wc);
 
 	DWORD dwStyle = WS_OVERLAPPEDWINDOW | WS_VSCROLL;
@@ -25,8 +25,8 @@ void PW5_SysMets2::onCreate(CreateDesc& desc) {
 		throw SGE_ERROR("cannot create native window");
 	}
 
-	ShowWindow(_hwnd, SW_NORMAL);
-	UpdateWindow(_hwnd);
+	::ShowWindow(_hwnd, SW_NORMAL);
+	::UpdateWindow(_hwnd);
 }
 
 LRESULT CALLBACK PW5_SysMets2::s_wndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
@@ -38,7 +38,7 @@ LRESULT CALLBACK PW5_SysMets2::s_wndProc (HWND hwnd, UINT message, WPARAM wParam
 	switch (message) {
 
 		case WM_DESTROY:
-			PostQuitMessage(0);
+			::PostQuitMessage(0);
 			break;
 
 		case WM_CREATE: {
@@ -55,16 +55,16 @@ LRESULT CALLBACK PW5_SysMets2::s_wndProc (HWND hwnd, UINT message, WPARAM wParam
 			//  and you set bRedraw to TRUE if you want Windows to redraw the scroll bar based on the new range.
 				//	(If you will be calling other functions that affect the appearance of the scroll bar after you call SetScrollRange
 				// 	you'll probably want to set bRedraw to FALSE to avoid excessive redrawing.)
-			SetScrollRange(hwnd, SB_VERT, 0, NUMLINES - 1, FALSE);
-			SetScrollPos(hwnd, SB_VERT, s_iVscrollPos, TRUE);
+			::SetScrollRange(hwnd, SB_VERT, 0, NUMLINES - 1, FALSE);
+			::SetScrollPos(hwnd, SB_VERT, s_iVscrollPos, TRUE);
 		} break;
 
 		case WM_LBUTTONDOWN: {
 			// obtain the current range and position of a scroll bar
 			int minRange, maxRange;
-			GetScrollRange(hwnd, SB_VERT, &minRange, &maxRange);
+			::GetScrollRange(hwnd, SB_VERT, &minRange, &maxRange);
 
-			int scrollVPos = GetScrollPos(hwnd, SB_VERT);
+			int scrollVPos = ::GetScrollPos(hwnd, SB_VERT);
 			SGE_DUMP_VAR(minRange, maxRange, scrollVPos);
 		} break;
 
@@ -103,14 +103,14 @@ LRESULT CALLBACK PW5_SysMets2::s_wndProc (HWND hwnd, UINT message, WPARAM wParam
 
 			s_iVscrollPos = Math::max(0, Math::min(s_iVscrollPos, NUMLINES - 1));
 
-			if (s_iVscrollPos != GetScrollPos(hwnd, SB_VERT))
+			if (s_iVscrollPos != ::GetScrollPos(hwnd, SB_VERT))
 			{
 				/*
 					You can generally ignore messages with the SB_ENDSCROLL notification code.
 					Windows will not change the position of the scroll bar thumb. Your application does that by calling SetScrollPos.
 				*/
-				SetScrollPos(hwnd, SB_VERT, s_iVscrollPos, TRUE);
-				InvalidateRect(hwnd, NULL, TRUE);
+				::SetScrollPos(hwnd, SB_VERT, s_iVscrollPos, TRUE);
+				::InvalidateRect(hwnd, NULL, TRUE);
 			}
 			return 0;
 		} break;
@@ -123,27 +123,27 @@ LRESULT CALLBACK PW5_SysMets2::s_wndProc (HWND hwnd, UINT message, WPARAM wParam
 				// scroll up means moving toward the beginning of the document;
 				// scroll down means moving toward the end
 			ScopedPaintStruct ps(hwnd);
+			const static int s_szLabelMaxWidth = 22 * s_cxCaps;
+			const static int s_szDescMaxWidth  = 40 * s_cxChar;
+
 			for (int i = 0; i < NUMLINES; i++) {
 				int x = 0;
 				int y = s_cyChar * (i - s_iVscrollPos);
 
-				const static int s_szLabelMaxWidth = 22 * s_cxCaps;
-				const static int s_szDescMaxWidth  = 40 * s_cxChar;
-
 				ps.textOut(x, y, sysmetrics[i].szLabel);
+
 				x += s_szLabelMaxWidth;
-
 				ps.textOut(x, y, sysmetrics[i].szDesc);
-				SetTextAlign(ps, TA_RIGHT | TA_TOP);
-				x += s_szDescMaxWidth;
 
-				ps.textOutf(x, y, "{:5}", GetSystemMetrics(sysmetrics[i].iIndex));
-				SetTextAlign(ps, TA_LEFT | TA_TOP);
+				::SetTextAlign(ps, TA_RIGHT | TA_TOP);
+				x += s_szDescMaxWidth;
+				ps.textOutf(x, y, "{:5}", ::GetSystemMetrics(sysmetrics[i].iIndex));
+
+				::SetTextAlign(ps, TA_LEFT | TA_TOP); // reset text align to left-top(default), 
 			}
 			return 0;
 		} break;
-
-	} // switch
+	} // end switch
 	return DefWindowProc(hwnd, message, wParam, lParam);
 }
 

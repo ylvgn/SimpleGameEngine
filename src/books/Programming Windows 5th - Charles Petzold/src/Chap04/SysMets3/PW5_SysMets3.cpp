@@ -9,7 +9,7 @@ void PW5_SysMets3::onCreate(CreateDesc& desc) {
 	constexpr const static wchar_t* clsName = L"PW5_SysMets3";
 
 	auto wc = g_createWndClass(hInstance, clsName, s_wndProc);
-	wc.hbrBackground = static_cast<HBRUSH>(GetStockObject(WHITE_BRUSH)); // SetScrollPos will redraw using this brush to erase bg
+	wc.hbrBackground = static_cast<HBRUSH>(::GetStockObject(WHITE_BRUSH)); // SetScrollPos will redraw using this brush to erase bg
 	g_registerWndClass(wc);
 
 	DWORD dwStyle = WS_OVERLAPPEDWINDOW | WS_VSCROLL | WS_HSCROLL;
@@ -25,8 +25,8 @@ void PW5_SysMets3::onCreate(CreateDesc& desc) {
 		throw SGE_ERROR("cannot create native window");
 	}
 
-	ShowWindow(_hwnd, SW_NORMAL);
-	UpdateWindow(_hwnd);
+	::ShowWindow(_hwnd, SW_NORMAL);
+	::UpdateWindow(_hwnd);
 }
 
 LRESULT CALLBACK PW5_SysMets3::s_wndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
@@ -44,8 +44,8 @@ LRESULT CALLBACK PW5_SysMets3::s_wndProc (HWND hwnd, UINT message, WPARAM wParam
 			int nTrackPos;	// current tracking position
 		} SCROLLINFO, * PSCROLLINFO;
 	*/
-	static ScrollInfo siV(ScrollBarConstants::Vertical);
-	static ScrollInfo siH(ScrollBarConstants::Horizontal);
+	static ScrollInfo siV(ScrollBarConstant::Vertical);
+	static ScrollInfo siH(ScrollBarConstant::Horizontal);
 
 	const auto& sysmetrics = g_sysmetrics;
 	const auto& NUMLINES = static_cast<int>(g_sysmetricsCount);
@@ -53,7 +53,7 @@ LRESULT CALLBACK PW5_SysMets3::s_wndProc (HWND hwnd, UINT message, WPARAM wParam
 	switch (message) {
 
 		case WM_DESTROY:
-			PostQuitMessage(0);
+			::PostQuitMessage(0);
 			break;
 
 		case WM_CREATE: {
@@ -95,13 +95,13 @@ LRESULT CALLBACK PW5_SysMets3::s_wndProc (HWND hwnd, UINT message, WPARAM wParam
 					indicating that the scroll bar has been moved to its minimum or maximum position.
 					However, you will never receive these notification codes for a scroll bar created as part of your application window
 				*/
-				//case SB_TOP:		newPos = siV.rangeMin(); break; // no use
-				//case SB_BOTTOM:	newPos = siV.rangeMax(); break; // no use
-				case SB_LINEUP:		newPos -= 1; break;
-				case SB_LINEDOWN:	newPos += 1; break;
-				case SB_PAGEUP:		newPos -= siV.page(); break;
-				case SB_PAGEDOWN:	newPos += siV.page(); break;
-				case SB_THUMBTRACK: siV.getTrackPos(hwnd, newPos); break;
+				//case SB_TOP:		newPos = siV.rangeMin(); break; // no use (superfluous code)
+				//case SB_BOTTOM:	newPos = siV.rangeMax(); break; // no use (superfluous code)
+				case SB_LINEUP:		newPos -= 1;					break;
+				case SB_LINEDOWN:	newPos += 1;					break;
+				case SB_PAGEUP:		newPos -= siV.page();			break;
+				case SB_PAGEDOWN:	newPos += siV.page();			break;
+				case SB_THUMBTRACK: siV.getTrackPos(hwnd, newPos);	break;
 			}
 			siV.setPos(newPos);
 
@@ -110,8 +110,8 @@ LRESULT CALLBACK PW5_SysMets3::s_wndProc (HWND hwnd, UINT message, WPARAM wParam
 			siV.getPos(hwnd, curPos);
 			if (curPos != iOldPos) {
 				int deltaY = cyChar * (iOldPos - curPos);
-				ScrollWindow(hwnd, 0, deltaY, nullptr, nullptr);
-				UpdateWindow(hwnd);
+				::ScrollWindow(hwnd, 0, deltaY, nullptr, nullptr);
+				::UpdateWindow(hwnd);
 			}
 			return 0;
 		}
@@ -126,13 +126,13 @@ LRESULT CALLBACK PW5_SysMets3::s_wndProc (HWND hwnd, UINT message, WPARAM wParam
 			int request = LOWORD(wParam);
 			switch (request)
 			{
-				//case SB_LEFT:			newPos = siH.rangeMin(); break; // no use
-				//case SB_RIGHT:		newPos = siH.rangeMax(); break; // no use
-				case SB_LINELEFT:		newPos -= 1; break;
-				case SB_LINERIGHT:		newPos += 1; break;
-				case SB_PAGELEFT:		newPos -= siH.page(); break;
-				case SB_PAGERIGHT:		newPos += siH.page(); break;
-				case SB_THUMBPOSITION:	siH.getTrackPos(hwnd, newPos); break;
+				//case SB_LEFT:			newPos = siH.rangeMin(); break; // no use (superfluous code)
+				//case SB_RIGHT:		newPos = siH.rangeMax(); break; // no use (superfluous code)
+				case SB_LINELEFT:		newPos -= 1;					break;
+				case SB_LINERIGHT:		newPos += 1;					break;
+				case SB_PAGELEFT:		newPos -= siH.page();			break;
+				case SB_PAGERIGHT:		newPos += siH.page();			break;
+				case SB_THUMBPOSITION:	siH.getTrackPos(hwnd, newPos);	break;
 			}
 			siH.setPos(newPos);
 
@@ -141,8 +141,8 @@ LRESULT CALLBACK PW5_SysMets3::s_wndProc (HWND hwnd, UINT message, WPARAM wParam
 			siH.getPos(hwnd, curPos);
 			if (curPos != iOldPos) {
 				int deltaX = cxChar * (iOldPos - curPos);
-				ScrollWindow(hwnd, deltaX, 0, nullptr, nullptr);
-				UpdateWindow(hwnd);
+				::ScrollWindow(hwnd, deltaX, 0, nullptr, nullptr);
+				::UpdateWindow(hwnd);
 			}
 			return 0;
 		}
@@ -170,16 +170,16 @@ LRESULT CALLBACK PW5_SysMets3::s_wndProc (HWND hwnd, UINT message, WPARAM wParam
 
 				x += 22 * cxCaps;
 				ps.textOut(x, y, sysmetrics[i].szDesc);
-				SetTextAlign(ps, TA_RIGHT | TA_TOP);
 
+				::SetTextAlign(ps, TA_RIGHT | TA_TOP);
 				x += 40 * cxChar;
-				ps.textOutf(x, y, "{:5}", GetSystemMetrics(sysmetrics[i].iIndex));
-				SetTextAlign(ps, TA_LEFT | TA_TOP);
+				ps.textOutf(x, y, "{:5}", ::GetSystemMetrics(sysmetrics[i].iIndex));
+
+				::SetTextAlign(ps, TA_LEFT | TA_TOP);
 			}
 			return 0;
 		}
-
-	} // switch
+	} // end switch
 	return DefWindowProc(hwnd, message, wParam, lParam);
 }
 

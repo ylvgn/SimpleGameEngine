@@ -17,12 +17,13 @@ void PW5_SysMets1::onCreate(CreateDesc& desc) {
 							static_cast<int>(desc.rect.w),
 							static_cast<int>(desc.rect.h),
 							nullptr, nullptr, hInstance, nullptr);
+
 	if (!_hwnd) {
 		throw SGE_ERROR("cannot create native window");
 	}
 
-	ShowWindow(_hwnd, SW_NORMAL);
-	UpdateWindow(_hwnd);
+	::ShowWindow(_hwnd, SW_NORMAL);
+	::UpdateWindow(_hwnd);
 }
 
 LRESULT CALLBACK PW5_SysMets1::s_wndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
@@ -30,7 +31,7 @@ LRESULT CALLBACK PW5_SysMets1::s_wndProc(HWND hwnd, UINT message, WPARAM wParam,
 
 	switch (message) {
 		case WM_DESTROY:
-			PostQuitMessage(0);
+			::PostQuitMessage(0);
 			break;
 
 		case WM_CREATE: {
@@ -71,11 +72,11 @@ LRESULT CALLBACK PW5_SysMets1::s_wndProc(HWND hwnd, UINT message, WPARAM wParam,
 				// I use 22 to add a little extra space between the columns
 				x += 22 * cxCaps;
 				ps.textOut(x, y, sysmetrics[i].szDesc);
-				SetTextAlign(ps, TA_RIGHT | TA_TOP);
+				::SetTextAlign(ps, TA_RIGHT | TA_TOP);
 
 				x += 40 * cxChar;
-				ps.textOutf(x, y, "{:5}", GetSystemMetrics(sysmetrics[i].iIndex)); //g_textOutf(ps.hdc(), x, y, L"%5d", GetSystemMetrics(sysmetrics[i].iIndex));
-				SetTextAlign(ps, TA_LEFT | TA_TOP);
+				ps.textOutf(x, y, "{:5}", ::GetSystemMetrics(sysmetrics[i].iIndex)); //g_textOutf(ps.hdc(), x, y, L"%5d", GetSystemMetrics(sysmetrics[i].iIndex));
+				::SetTextAlign(ps, TA_LEFT | TA_TOP);
 			}
 			return 0;
 		} break;

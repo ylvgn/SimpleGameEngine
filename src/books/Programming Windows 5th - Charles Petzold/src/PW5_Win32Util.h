@@ -6,18 +6,33 @@ namespace sge {
 struct PW5_Win32Util {
 	PW5_Win32Util() = delete;
 
-	static int PW5_Win32Util::getScrollBarConstants(ScrollBarConstants v);
+	static int PW5_Win32Util::getScrollBarConstant(ScrollBarConstant v);
+	static int PW5_Win32Util::getTextAlignment(TextAlignment v);
 };
 
 inline
-int PW5_Win32Util::getScrollBarConstants(ScrollBarConstants v) {
-	using SRC = ScrollBarConstants;
+int PW5_Win32Util::getScrollBarConstant(ScrollBarConstant v) {
+	using SRC = ScrollBarConstant;
 	switch (v) {
 		case SRC::Horizontal:	return SB_HORZ;
 		case SRC::Vertical:		return SB_VERT;
 		case SRC::Control:		return SB_CTL;
 		case SRC::Both:			return SB_BOTH;
-		default: throw SGE_ERROR("unsupported ScrollBarConstants");
+		default:				throw  SGE_ERROR("unsupported ScrollBarConstant");
+	}
+}
+
+inline
+int PW5_Win32Util::getTextAlignment(TextAlignment v) {
+	using SRC = TextAlignment;
+	switch (v) {
+		case SRC::Left:		return TA_LEFT;
+		case SRC::Right:	return TA_RIGHT;
+		case SRC::Top:		return TA_TOP;
+		case SRC::Bottom:	return TA_BOTTOM;
+		case SRC::Center:	return TA_CENTER;
+		case SRC::BaseLine: return TA_BASELINE;
+		default:			throw  SGE_ERROR("unsupported TextAlignment");
 	}
 }
 

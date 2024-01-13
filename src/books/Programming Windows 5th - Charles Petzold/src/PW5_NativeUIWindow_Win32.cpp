@@ -15,8 +15,8 @@ void PW5_NativeUIWindow_Win32::onCreate(CreateDesc& desc) {
 	DWORD dwStyle   = WS_OVERLAPPEDWINDOW;
 
 	if (desc.centerToScreen) {
-		int screenWidth  = GetSystemMetrics(SM_CXSCREEN);
-		int screenHeight = GetSystemMetrics(SM_CYSCREEN);
+		int screenWidth  = ::GetSystemMetrics(SM_CXSCREEN);
+		int screenHeight = ::GetSystemMetrics(SM_CYSCREEN);
 		Vec2f screenSize = Vec2f(static_cast<float>(screenWidth), static_cast<float>(screenHeight));
 		desc.rect.pos = (screenSize - desc.rect.size) * 0.5f;
 	}
@@ -32,7 +32,7 @@ void PW5_NativeUIWindow_Win32::onCreate(CreateDesc& desc) {
 		throw SGE_ERROR("cannot create native window");
 	}
 
-    ShowWindow (_hwnd, SW_SHOWDEFAULT);
+    ::ShowWindow (_hwnd, SW_SHOWDEFAULT);
 }
 
 void PW5_NativeUIWindow_Win32::onSetWindowTitle(StrView title) {
@@ -52,8 +52,7 @@ void PW5_NativeUIWindow_Win32::onDraw() {
 
 LRESULT CALLBACK PW5_NativeUIWindow_Win32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	// CreateWindow(Ex) -> WM_CREATE -> ShowWindow -> WM_SHOWWINDOW -> WM_SIZE -> UpdateWindow -> WM_PAINT -> ... -> WM_CLOSE -> WM_DESTROY
-	switch (msg)
-	{
+	switch (msg) {
 		case WM_CREATE: {
 			auto* cs = reinterpret_cast<CREATESTRUCT*>(lParam);
 			auto* thisObj = static_cast<This*>(cs->lpCreateParams);
@@ -74,8 +73,8 @@ LRESULT CALLBACK PW5_NativeUIWindow_Win32::s_wndProc(HWND hwnd, UINT msg, WPARAM
 		} break;
 		case WM_SIZE: {
 			if (auto* thisObj = s_getThis(hwnd)) {
-				RECT clientRect;
-				GetClientRect(hwnd, &clientRect);
+				::RECT clientRect;
+				::GetClientRect(hwnd, &clientRect);
 				Rect2f newClientRect = Win32Util::toRect2f(clientRect);
 				thisObj->onClientRectChanged(newClientRect);
 				return 0; // capture
@@ -98,7 +97,7 @@ LRESULT CALLBACK PW5_NativeUIWindow_Win32::s_wndProc(HWND hwnd, UINT msg, WPARAM
 				return thisObj->_handleNativeEvent(hwnd, msg, wParam, lParam);
 			}
 		} break;
-	} // switch
+	} // end switch
 	return DefWindowProc(hwnd, msg, wParam, lParam);
 }
 

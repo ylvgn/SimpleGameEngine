@@ -28,7 +28,7 @@ int CDECL PW5_ScrnSize::s_messageBoxPrintf(TCHAR* szCaption, TCHAR* szFormat, ..
 
 HMONITOR PW5_ScrnSize::s_getPrimaryMonitor() {
 	POINT ptZero = { 0, 0 };
-	return MonitorFromPoint(ptZero, MONITOR_DEFAULTTOPRIMARY);
+	return ::MonitorFromPoint(ptZero, MONITOR_DEFAULTTOPRIMARY);
 }
 
 float PW5_ScrnSize::s_getMonitorScalingRatio(HMONITOR monitor) {
@@ -45,14 +45,15 @@ float PW5_ScrnSize::s_getMonitorScalingRatio(HMONITOR monitor) {
 }
 
 void PW5_ScrnSize::onCreate(CreateDesc& desc) {
-	int cyCaption = GetSystemMetrics(SM_CYCAPTION); // The height of a caption area, in pixels.
-	s_messageBoxPrintf(TEXT("SM_CYCAPTION"),
+	int cyCaption = ::GetSystemMetrics(SM_CYCAPTION); // The height of a caption area, in pixels.
+	s_messageBoxPrintf(
+		TEXT("SM_CYCAPTION"),
 		TEXT("caption height: %d"),
 		cyCaption
 	);
 
-	int cxScreen = GetSystemMetrics(SM_CXSCREEN); // 'SM' -> System Metrics, `cx` -> x length, c stands for 'count'
-	int cyScreen = GetSystemMetrics(SM_CYSCREEN); // The height of the screen primary display monitor in pixels (main display monitor)
+	int cxScreen = ::GetSystemMetrics(SM_CXSCREEN); // 'SM' -> System Metrics, `cx` -> x length, c stands for 'count'
+	int cyScreen = ::GetSystemMetrics(SM_CYSCREEN); // The height of the screen primary display monitor in pixels (main display monitor)
 
 	// 'Hxxx' -> Handle xxx
 		// A handle is simply a number (usually 32 bits in size) that refers to an object
@@ -62,12 +63,14 @@ void PW5_ScrnSize::onCreate(CreateDesc& desc) {
 
 	SGE_LOG("Monitor Scaling Ratio={}", scale);
 
-	s_messageBoxPrintf(TEXT("GetSystemMetrics With Scale"),
+	s_messageBoxPrintf(
+		TEXT("GetSystemMetrics With Scale"),
 		TEXT("screen physics size: %.0f x %.0f"),
 		cxScreen * scale, cyScreen * scale
 	);
 
-	s_messageBoxPrintf(TEXT("SM_CXSCREEN x SM_CYSCREEN"),
+	s_messageBoxPrintf(
+		TEXT("SM_CXSCREEN x SM_CYSCREEN"),
 		TEXT("The screen is %i pixels wide by %i pixels high."),
 		cxScreen, cyScreen
 	);

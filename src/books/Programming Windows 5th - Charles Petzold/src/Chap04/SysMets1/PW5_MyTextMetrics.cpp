@@ -21,7 +21,7 @@ namespace sge {
 */
 
 void PW5_MyTextMetrics::onPaint(ScopedPaintStruct& ps) {
-	TEXTMETRIC tm;
+	::TEXTMETRIC tm;
 	GetTextMetrics(ps, &tm);
 
 	int cxChar = tm.tmAveCharWidth;

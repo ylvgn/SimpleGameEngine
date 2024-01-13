@@ -45,6 +45,9 @@ namespace Math {
 		return x + 1;
 	}
 
+	template<class T, class ENABLE = std::enable_if< std::is_integral_v<T> > >
+	constexpr T lowbit(T x) { return x & -x; }
+
 	//Splits a floating-point value into fractional and integer parts
 	SGE_INLINE float	modf	( float  v, float  *i ) { return std::modf( v, i ); }
 	SGE_INLINE double	modf	( double v, double *i ) { return std::modf( v, i ); }

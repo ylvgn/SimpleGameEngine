@@ -8,7 +8,7 @@ WNDPROC PW5_MySysMets3::s_defaultWndProc;
 
 void PW5_MySysMets3::onPostCreate() {
 	s_defaultWndProc = reinterpret_cast<WNDPROC>(SetWindowLongPtr(_hwnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(s_wndProc)));
-	UpdateWindow(_hwnd);
+	::UpdateWindow(_hwnd);
 }
 
 void PW5_MySysMets3::onOpen() {
@@ -30,9 +30,9 @@ void PW5_MySysMets3::onClientRectChanged(const Rect2f& rc) {
 	// WM_SIZE
 	Base::onClientRectChanged(rc);
 
-	const int NUMLINES = static_cast<int>(g_sysmetricsCount);
-	const int contentMaxHeight = _cyChar * NUMLINES;
-	const int contentMaxWidth  = 24 * _cxCaps + 40 * _cxChar;
+	int NUMLINES		 = static_cast<int>(g_sysmetricsCount);
+	int contentMaxHeight = _cyChar * NUMLINES;
+	int contentMaxWidth  = 24 * _cxCaps + 40 * _cxChar;
 
 	_siV.setRange(0, contentMaxHeight).setPage(static_cast<UINT>(_clientRect.h));
 	_siH.setRange(0, contentMaxWidth).setPage(static_cast<UINT>(_clientRect.w));
@@ -45,10 +45,10 @@ void PW5_MySysMets3::onPaint(ScopedPaintStruct& ps) {
 	const auto& sysmetrics = g_sysmetrics;
 
 	auto brush = static_cast<HBRUSH>(GetStockBrush(WHITE_BRUSH));
-	SelectObject(ps, brush);
-	RECT rc;
-	GetClientRect(_hwnd, &rc);
-	FillRect(ps, &rc, brush);
+	::SelectObject(ps, brush);
+	::RECT rc;
+	::GetClientRect(_hwnd, &rc);
+	::FillRect(ps, &rc, brush);
 
 	int offsetY;
 	_siV.getPos(_hwnd, offsetY);
@@ -56,20 +56,21 @@ void PW5_MySysMets3::onPaint(ScopedPaintStruct& ps) {
 	int offsetX;
 	_siH.getPos(_hwnd, offsetX);
 	
-	for (int i = 0; i < NUMLINES; i++) {
+	for (int i = 0; i < NUMLINES; ++i) {
 		int x = 0 - offsetX;
 		int y = _cyChar * i - offsetY;
 
-		StrViewW s(sysmetrics[i].szLabel);
-		ps.textOutf(x, y, "{:003} {}", i, s);
+		StrViewW label(sysmetrics[i].szLabel);
+		ps.textOutf(x, y, "{:003} {}", i, label);
 
 		x += 24 * _cxCaps;
 		ps.textOut(x, y, sysmetrics[i].szDesc);
-		SetTextAlign(ps, TA_RIGHT | TA_TOP);
 
+		ps.setTextAlign(TextAlignment::Right | TextAlignment::Top);
 		x += 40 * _cxChar;
 		ps.textOutf(x, y, "{:5}", GetSystemMetrics(sysmetrics[i].iIndex));
-		SetTextAlign(ps, TA_LEFT | TA_TOP);
+
+		ps.setTextAlign(TextAlignment::Left | TextAlignment::Top); // reset text align
 	}
 }
 
@@ -81,8 +82,8 @@ void PW5_MySysMets3::_onScrollH(int newX) {
 	_siH.getPos(_hwnd, curX);
 	if (curX != oldX) {
 		int deltaX = oldX - curX;
-		ScrollWindow(_hwnd, deltaX, 0, nullptr, nullptr);
-		UpdateWindow(_hwnd);
+		::ScrollWindow(_hwnd, deltaX, 0, nullptr, nullptr);
+		::UpdateWindow(_hwnd);
 	}
 }
 
@@ -130,12 +131,13 @@ void PW5_MySysMets3::_onScrollV(int newY) {
 	_siV.getPos(_hwnd, curY);
 	if (curY != oldY) {
 		int deltaY = oldY - curY;
-		ScrollWindow(_hwnd, 0, deltaY, nullptr, nullptr);
-		UpdateWindow(_hwnd);
+		::ScrollWindow(_hwnd, 0, deltaY, nullptr, nullptr);
+		::UpdateWindow(_hwnd);
 	}
 }
 
 LRESULT CALLBACK PW5_MySysMets3::s_wndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
+
 	switch (message) {
 
 		case WM_KEYUP: {
@@ -188,6 +190,9 @@ LRESULT CALLBACK PW5_MySysMets3::s_wndProc(HWND hwnd, UINT message, WPARAM wPara
 				return 0;
 			}
 		} break;
+		
+		// if your code run on a slow machine, 
+		// and perhaps think about using the SB_SLOWMACHINE argument to GetSystemMetrics for alternative processing for slow machines
 
 		case WM_HSCROLL: {
 			if (auto* thisObj = s_getThis(hwnd)) {
@@ -216,7 +221,7 @@ LRESULT CALLBACK PW5_MySysMets3::s_wndProc(HWND hwnd, UINT message, WPARAM wPara
 				return 0;
 			}
 		} break;
-	} // end switch window message
+	} // end switch message
 	return s_defaultWndProc(hwnd, message, wParam, lParam);
 }
 

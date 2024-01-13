@@ -65,30 +65,37 @@ inline
 void g_textOutf(HDC hdc, int x, int y, const wchar_t* szFormat, ...) {
 	wchar_t szBuffer[220];
 	va_list args;
+
 	va_start(args, szFormat);
 	size_t bufferCount = sizeof(szBuffer) / sizeof(wchar_t);
 	auto len = _vsntprintf_s(szBuffer, bufferCount, szFormat, args);
 	va_end(args);
+
 	TextOut(hdc, x, y, szBuffer, len);
 }
 
 inline
-void g_rectangle(HDC hdc, const Rect2i& rc) {
+bool g_rectangle(HDC hdc, const Rect2i& rc) {
 	int l = rc.x;
 	int t = rc.y;
 	int r = rc.x + rc.w;
 	int b = rc.y + rc.h;
-	Rectangle(hdc, l, t, r, b);
+	return ::Rectangle(hdc, l, t, r, b);
 }
 
 inline
-void g_rectangle(HDC hdc, const RECT& rc) {
-	Rectangle(hdc, rc.left, rc.top, rc.right, rc.bottom);
+bool g_rectangle(HDC hdc, const RECT& rc) {
+	return ::Rectangle(hdc, rc.left, rc.top, rc.right, rc.bottom);
+}
+
+inline
+bool g_lineTo(HDC hdc, const Vec2i& pt) {
+	return ::LineTo(hdc, pt.x, pt.y);
 }
 
 inline
 void g_drawText(HDC				hdc,
-				RECT*			rc,
+				::RECT*			rc,
 				const wchar_t*	szText,
 				u32				fDT = DT_SINGLELINE | DT_CENTER | DT_VCENTER)
 {
@@ -105,17 +112,17 @@ public:
 	TextMetrics(HDC hdc);
 	TextMetrics(const TEXTMETRIC& tm);
 
-	int		height()				const	{ return _height; }
-	int		ascent()				const	{ return _ascent; }
-	int		descent()				const	{ return _descent; }
-	int		internalLeading()		const	{ return _internalLeading; }
-	int		maxCharWidth()			const	{ return _maxCharWidth; }
-	int		externalLeading()		const	{ return _externalLeading; }
-	int		aveCharWidth()			const	{ return _aveCharWidth; }
-	int		aveCharHeight()			const	{ return _aveCharHeight; }
-	int		aveUpperCaseCharWidth()	const	{ return _aveUpperCaseCharHeight; }
-	bool	isFixedPitch()			const	{ return _isFixedPitch; }
-	bool	isVariableWidth()		const	{ return !_isFixedPitch; }
+	int		height()				const	{ return _height;					}
+	int		ascent()				const	{ return _ascent;					}
+	int		descent()				const	{ return _descent;					}
+	int		internalLeading()		const	{ return _internalLeading;			}
+	int		maxCharWidth()			const	{ return _maxCharWidth;				}
+	int		externalLeading()		const	{ return _externalLeading;			}
+	int		aveCharWidth()			const	{ return _aveCharWidth;				}
+	int		aveCharHeight()			const	{ return _aveCharHeight;			}
+	int		aveUpperCaseCharWidth()	const	{ return _aveUpperCaseCharHeight;	}
+	bool	isFixedPitch()			const	{ return _isFixedPitch;				}
+	bool	isVariableWidth()		const	{ return !_isFixedPitch;			}
 
 private:
 	void	_set(const TEXTMETRIC& tm);
@@ -137,18 +144,10 @@ private:
 #if 0
 #pragma mark ========= ScrollInfo ============
 #endif
-#define ScrollBarConstants_ENUM_LIST(E) \
-	E(Horizontal,) \
-	E(Vertical,) \
-	E(Control,)  \
-	E(Both,) \
-//----
-SGE_ENUM_CLASS(ScrollBarConstants, u8)
-
 class ScrollInfo : public NonCopyable {
 	using This = ScrollInfo;
 public:
-	using Type = ScrollBarConstants;
+	using Type = ScrollBarConstant;
 
 	ScrollInfo() : This(Type::Vertical) {}
 
@@ -242,13 +241,13 @@ public:
 	int		rangeMax()	const { return _si.nMax;  }
 	UINT	page()		const { return _si.nPage; }
 	int		pos()		const { return _si.nPos;  }
-//	int	trackPos()		const { return _si.nTrackPos; } // <--- not provide such function, and use getTrackPos instead
+//	int		trackPos()	const { return _si.nTrackPos; } // <--- not provide such function, and use getTrackPos instead
 
 private:
 	void _retrieve(HWND hwnd, int flag = SIF_ALL, bool redraw = true) {
 		reset(hwnd, redraw);
 		ScopedValue<UINT> v(&_si.fMask, flag);
-		GetScrollInfo(hwnd, _type, &_si);
+		::GetScrollInfo(hwnd, _type, &_si);
 	}
 
 	bool		_dirty : 1;
@@ -260,6 +259,7 @@ private:
 #pragma mark ========= HDC ============
 #endif
 class ScopedHDCBase : public NonCopyable {
+	using Util = Win32Util;
 public:
 	ScopedHDCBase(HWND& hwnd)
 		: _hwnd(hwnd)
@@ -276,11 +276,19 @@ public:
 		TextOut(_hdc, x, y, tmp.c_str(), static_cast<int>(tmp.size()));
 	}
 
-	void rectangle(int left, int top, int right, int bottom) const { Rectangle(_hdc, left, top, right, bottom); }
-	void rectangle(const RECT& rc)   const	{ g_rectangle(_hdc, rc); }
+	UINT setTextAlign(TextAlignment align = TextAlignment::Left | TextAlignment::Top);
+
+	void rectangle(int left, int top, int right, int bottom) const { ::Rectangle(_hdc, left, top, right, bottom); }
+	void rectangle(const ::RECT& rc) const	{ g_rectangle(_hdc, rc); }
 	void rectangle(const Rect2i& rc) const	{ g_rectangle(_hdc, rc); }
 
-	SPtr<TextMetrics> createTextMetrics() { return SPtr<TextMetrics>(new TextMetrics(_hdc)); }
+	void lineTo(int x, int y)		const	{ g_lineTo(_hdc, { x, y }); }
+	void lineTo(const ::POINT& pt)	const	{ g_lineTo(_hdc, Util::toVec2i(pt)); }
+	void lineTo(const Vec2i& pt)	const	{ g_lineTo(_hdc, pt); }
+
+	SPtr<TextMetrics> createTextMetrics() {
+		return SPtr<TextMetrics>(new TextMetrics(_hdc));
+	}
 
 	operator const HDC& () const { return _hdc; }
 
@@ -292,11 +300,11 @@ protected:
 class ScopedPaintStruct : public ScopedHDCBase {
 	using Base = ScopedHDCBase;
 public:
-	ScopedPaintStruct(HWND& hwnd) : Base(hwnd) { _hdc = BeginPaint(hwnd, &_ps); }
-	~ScopedPaintStruct() { EndPaint(_hwnd, &_ps); }
+	ScopedPaintStruct(HWND& hwnd) : Base(hwnd) { _hdc = ::BeginPaint(hwnd, &_ps); }
+	~ScopedPaintStruct() { ::EndPaint(_hwnd, &_ps); }
 
-			BOOL	fErase()	const { return _ps.fErase; }
-	const	RECT&	rcPaint()	const { return _ps.rcPaint; }
+			bool	fErase()	const { return _ps.fErase; }
+	const	::RECT&	rcPaint()	const { return _ps.rcPaint; }
 
 private:
 	PAINTSTRUCT _ps;
@@ -306,7 +314,7 @@ class ScopedHDC : public ScopedHDCBase {
 	using Base = ScopedHDCBase;
 public:
 	ScopedHDC(HWND& hwnd) : Base(hwnd) { _hdc = GetDC(hwnd); }
-	~ScopedHDC() { ReleaseDC(_hwnd, _hdc); }
+	~ScopedHDC() { ::ReleaseDC(_hwnd, _hdc); }
 };
 
 }
