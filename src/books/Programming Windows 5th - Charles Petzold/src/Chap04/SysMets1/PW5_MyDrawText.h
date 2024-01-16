@@ -1,6 +1,6 @@
 #pragma once
 
-#include "PW5_NativeUI.h"
+#include "../../PW5_NativeUI.h"
 
 #if SGE_OS_WINDOWS
 

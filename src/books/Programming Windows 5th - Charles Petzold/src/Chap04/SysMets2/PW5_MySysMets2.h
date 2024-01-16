@@ -10,9 +10,8 @@ class PW5_MySysMets2 : public PW5_NativeUIWindow {
 	using Base = PW5_NativeUIWindow;
 	using This = PW5_MySysMets2;
 protected:
-	virtual void onPostCreate() override;
-	virtual void onOpen() override;
-	virtual void onPaint(ScopedPaintStruct& ps) override;
+	virtual void onCreate(CreateDesc& desc) override;
+	virtual void onDraw() override;
 private:
 	static LRESULT CALLBACK s_wndProc(HWND, UINT, WPARAM, LPARAM);
 	static WNDPROC s_defaultWndProc;

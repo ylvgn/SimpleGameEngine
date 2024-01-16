@@ -1,10 +1,10 @@
 #pragma once
 
-#include "PW5_NativeUI.h"
+#if SGE_OS_WINDOWS
+
+#include "../PW5_NativeUI.h"
 
 namespace sge {
-
-#if SGE_OS_WINDOWS
 
 struct MySysMetrics {
      int		iIndex;

@@ -6,15 +6,12 @@ namespace sge {
 
 WNDPROC PW5_MySysMets2::s_defaultWndProc;
 
-void PW5_MySysMets2::onPostCreate() {
-	s_defaultWndProc = reinterpret_cast<WNDPROC>(SetWindowLongPtr(_hwnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(s_wndProc)));
-	::UpdateWindow(_hwnd);
-}
-
-void PW5_MySysMets2::onOpen() {
-	// WM_SHOWWINDOW
-
+void PW5_MySysMets2::onCreate(CreateDesc& desc) {
 	_scrollPosV = 0;
+
+	Base::onCreate(desc);
+	s_defaultWndProc = reinterpret_cast<WNDPROC>(SetWindowLongPtr(_hwnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(s_wndProc)));
+
 
 	const auto& NUMLINES = g_sysmetricsCount;
 
@@ -25,7 +22,7 @@ void PW5_MySysMets2::onOpen() {
 		_cxCaps = tm->aveUpperCaseCharWidth();
 		_cyChar = tm->aveCharHeight();
 	}
-	
+
 	::RECT rc;
 	::GetClientRect(_hwnd, &rc);
 	int clientRectH = static_cast<int>(rc.bottom);
@@ -34,35 +31,36 @@ void PW5_MySysMets2::onOpen() {
 
 	::SetScrollRange(_hwnd, SB_VERT, 0, _viewportH, false);
 	::SetScrollPos(_hwnd, SB_VERT, _scrollPosV, true);
+
+	::UpdateWindow(_hwnd);
 }
 
-void PW5_MySysMets2::onPaint(ScopedPaintStruct& ps) {
-	// WM_PAINT
-
+void PW5_MySysMets2::onDraw() {
+	ScopedHDC hdc(_hwnd);
 	int NUMLINES = static_cast<int>(g_sysmetricsCount);
 	const auto& sysmetrics = g_sysmetrics;
 
 	// clear bg
 	auto brush = static_cast<HBRUSH>(GetStockBrush(WHITE_BRUSH));
-	::SelectObject(ps, brush);
+	::SelectObject(hdc, brush);
 	::RECT rc;
 	::GetClientRect(_hwnd, &rc);
-	::FillRect(ps, &rc, brush);
+	::FillRect(hdc, &rc, brush);
 
 	for (int i = 0; i < NUMLINES; i++) {
 		int x = 0;
 		int y = _cyChar * i - _scrollPosV;
 
 		StrViewW s(sysmetrics[i].szLabel);
-		ps.textOutf(x, y, "{:003} {}", i, s);
+		hdc.textOutf(x, y, "{:003} {}", i, s);
 
 		x += 24 * _cxCaps;
-		ps.textOut(x, y, sysmetrics[i].szDesc);
-		::SetTextAlign(ps, TA_RIGHT | TA_TOP);
+		hdc.textOut(x, y, sysmetrics[i].szDesc);
+		::SetTextAlign(hdc, TA_RIGHT | TA_TOP);
 
 		x += 40 * _cxChar;
-		ps.textOutf(x, y, "{:5}", ::GetSystemMetrics(sysmetrics[i].iIndex));
-		::SetTextAlign(ps, TA_LEFT | TA_TOP);
+		hdc.textOutf(x, y, "{:5}", ::GetSystemMetrics(sysmetrics[i].iIndex));
+		::SetTextAlign(hdc, TA_LEFT | TA_TOP);
 	}
 }
 

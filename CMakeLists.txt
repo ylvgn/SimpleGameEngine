@@ -100,4 +100,3 @@ add_subdirectory(src/books/Hands-On\ C++\ Game\ Animation\ Programming/test)
 
 #-- Programming Windows 5th - Charles Petzold
 add_subdirectory(src/books/Programming\ Windows\ 5th\ -\ Charles\ Petzold)
-add_subdirectory(src/books/Programming\ Windows\ 5th\ -\ Charles\ Petzold/app)

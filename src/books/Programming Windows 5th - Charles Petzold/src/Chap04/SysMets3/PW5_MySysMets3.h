@@ -10,10 +10,10 @@ class PW5_MySysMets3 : public PW5_NativeUIWindow {
 	using Base = PW5_NativeUIWindow;
 	using This = PW5_MySysMets3;
 protected:
-	virtual void onPostCreate() override;
-	virtual void onOpen() override;
+	virtual void onCreate(CreateDesc& desc) override;
+	virtual void onShow() override;
 	virtual void onClientRectChanged(const Rect2f& rc) override;
-	virtual void onPaint(ScopedPaintStruct& ps) override;
+	virtual void onDraw() override;
 private:
 	static LRESULT CALLBACK s_wndProc(HWND, UINT, WPARAM, LPARAM);
 	static WNDPROC s_defaultWndProc;

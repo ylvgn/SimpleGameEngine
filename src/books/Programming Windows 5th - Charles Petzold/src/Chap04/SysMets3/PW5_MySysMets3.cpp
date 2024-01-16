@@ -6,21 +6,18 @@ namespace sge {
 
 WNDPROC PW5_MySysMets3::s_defaultWndProc;
 
-void PW5_MySysMets3::onPostCreate() {
+void PW5_MySysMets3::onCreate(CreateDesc& desc) {
+	Base::onCreate(desc);
 	s_defaultWndProc = reinterpret_cast<WNDPROC>(SetWindowLongPtr(_hwnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(s_wndProc)));
 	::UpdateWindow(_hwnd);
 }
 
-void PW5_MySysMets3::onOpen() {
-	// WM_SHOWWINDOW
-
-	{
-		ScopedHDC hdc(_hwnd);
-		auto tm = hdc.createTextMetrics();
-		_cxChar = tm->aveCharWidth();
-		_cxCaps = tm->aveUpperCaseCharWidth();
-		_cyChar = tm->aveCharHeight();
-	}
+void PW5_MySysMets3::onShow() {
+	ScopedHDC hdc(_hwnd);
+	auto tm = hdc.createTextMetrics();
+	_cxChar = tm->aveCharWidth();
+	_cxCaps = tm->aveUpperCaseCharWidth();
+	_cyChar = tm->aveCharHeight();
 
 	_siV.reset(ScrollInfo::Type::Vertical);
 	_siH.reset(ScrollInfo::Type::Horizontal);
@@ -38,17 +35,17 @@ void PW5_MySysMets3::onClientRectChanged(const Rect2f& rc) {
 	_siH.setRange(0, contentMaxWidth).setPage(static_cast<UINT>(_clientRect.w));
 }
 
-void PW5_MySysMets3::onPaint(ScopedPaintStruct& ps) {
-	// WM_PAINT
+void PW5_MySysMets3::onDraw() {
+	ScopedHDC hdc(_hwnd);
 
 	int NUMLINES = static_cast<int>(g_sysmetricsCount);
 	const auto& sysmetrics = g_sysmetrics;
 
 	auto brush = static_cast<HBRUSH>(GetStockBrush(WHITE_BRUSH));
-	::SelectObject(ps, brush);
+	::SelectObject(hdc, brush);
 	::RECT rc;
 	::GetClientRect(_hwnd, &rc);
-	::FillRect(ps, &rc, brush);
+	::FillRect(hdc, &rc, brush);
 
 	int offsetY;
 	_siV.getPos(_hwnd, offsetY);
@@ -61,16 +58,16 @@ void PW5_MySysMets3::onPaint(ScopedPaintStruct& ps) {
 		int y = _cyChar * i - offsetY;
 
 		StrViewW label(sysmetrics[i].szLabel);
-		ps.textOutf(x, y, "{:003} {}", i, label);
+		hdc.textOutf(x, y, "{:003} {}", i, label);
 
 		x += 24 * _cxCaps;
-		ps.textOut(x, y, sysmetrics[i].szDesc);
+		hdc.textOut(x, y, sysmetrics[i].szDesc);
 
-		ps.setTextAlign(TextAlignment::Right | TextAlignment::Top);
+		hdc.setTextAlign(TextAlignment::Right | TextAlignment::Top);
 		x += 40 * _cxChar;
-		ps.textOutf(x, y, "{:5}", GetSystemMetrics(sysmetrics[i].iIndex));
+		hdc.textOutf(x, y, "{:5}", GetSystemMetrics(sysmetrics[i].iIndex));
 
-		ps.setTextAlign(TextAlignment::Left | TextAlignment::Top); // reset text align
+		hdc.setTextAlign(TextAlignment::Left | TextAlignment::Top); // reset text align
 	}
 }
 

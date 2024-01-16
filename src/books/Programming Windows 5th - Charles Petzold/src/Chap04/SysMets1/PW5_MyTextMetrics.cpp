@@ -20,9 +20,10 @@ namespace sge {
 	TEXTMETRIC, * PTEXTMETRIC;
 */
 
-void PW5_MyTextMetrics::onPaint(ScopedPaintStruct& ps) {
+void PW5_MyTextMetrics::onDraw() {
+	ScopedHDC hdc(_hwnd);
 	::TEXTMETRIC tm;
-	GetTextMetrics(ps, &tm);
+	GetTextMetrics(hdc, &tm);
 
 	int cxChar = tm.tmAveCharWidth;
 	int cyChar = tm.tmHeight + tm.tmExternalLeading; // tmExternalLeading is 0
@@ -35,7 +36,7 @@ void PW5_MyTextMetrics::onPaint(ScopedPaintStruct& ps) {
 		// For a variable−width font, cxCaps is set to 150 percent of cxChar.
 		cxCaps = static_cast<int>(1.5f * cxChar);
 	}
-	ps.textOutf(300, 300, "cxChar={}, cyChar={}, cxCaps={}", cxChar, cyChar, cxCaps); // g_textOutf(hdc, 200, 200, L"cxChar=%i, cyChar=%i, cxCaps=%i", cxChar, cyChar, cxCaps);
+	hdc.textOutf(300, 300, "cxChar={}, cyChar={}, cxCaps={}", cxChar, cyChar, cxCaps);
 }
 
 }

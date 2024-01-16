@@ -2,7 +2,7 @@
 
 #if SGE_OS_WINDOWS
 
-#include "PW5_NativeUI.h"
+#include "../../PW5_NativeUI.h"
 
 namespace sge {
 
