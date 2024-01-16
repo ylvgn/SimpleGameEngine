@@ -101,8 +101,9 @@ protected:
 	virtual void onCreate(CreateDesc& desc) override  {
 		Base::onCreate(desc);
 
+		_hdc = ::GetDC(_hwnd);
+
 		{ // create opengl render context
-			const HDC dc = hdc();
 
 			PIXELFORMATDESCRIPTOR pfd;
 			pfd 				= {};
@@ -115,12 +116,12 @@ protected:
 			pfd.cStencilBits 	= 8;
 			pfd.iLayerType 		= PFD_MAIN_PLANE;
 
-			int pixelFormat 	= ChoosePixelFormat(dc, &pfd);
-			SetPixelFormat(dc, pixelFormat, &pfd);
+			int pixelFormat 	= ChoosePixelFormat(_hdc, &pfd);
+			SetPixelFormat(_hdc, pixelFormat, &pfd);
 
 			// legacy render context
-			HGLRC tempRC = wglCreateContext(dc);
-			wglMakeCurrent(dc, tempRC);
+			HGLRC tempRC = wglCreateContext(_hdc);
+			wglMakeCurrent(_hdc, tempRC);
 
 			// legacy render context just for get function pointer of 'wglCreateContextAttribsARB'
 			PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = reinterpret_cast<PFNWGLCREATECONTEXTATTRIBSARBPROC>(wglGetProcAddress("wglCreateContextAttribsARB"));
@@ -134,11 +135,11 @@ protected:
 			};
 
 			// modern render context
-			HGLRC hglrc = wglCreateContextAttribsARB(dc, 0, attribList);
+			HGLRC hglrc = wglCreateContextAttribsARB(_hdc, 0, attribList);
 
 			wglMakeCurrent(NULL, NULL);
 			wglDeleteContext(tempRC);
-			wglMakeCurrent(dc, hglrc);
+			wglMakeCurrent(_hdc, hglrc);
 
 			// use 'glad' to load all opengl core function
 			if (!gladLoadGL()) {
@@ -192,7 +193,6 @@ protected:
 
 	virtual void onCloseButton() override {
 		if (_vertexArrayObject != 0) {
-			HDC dc		= hdc();
 			HGLRC hglrc = wglGetCurrentContext();
 
 			// delete VAO
@@ -206,9 +206,9 @@ protected:
 			// delete render context
 			wglMakeCurrent(NULL, NULL);
 			wglDeleteContext(hglrc);
-			ReleaseDC(_hwnd, dc);
 		}
 
+		::ReleaseDC(_hwnd, _hdc);
 		NativeUIApp::current()->quit(0);
 	}
 
@@ -315,7 +315,7 @@ private:
 		_timingInfo.cpu->beginSwapBuffer();
 #endif
 
-		SwapBuffers(hdc());
+		::SwapBuffers(_hdc);
 		if (_vsynch != 0) {
 			glFinish();
 		}
@@ -546,6 +546,7 @@ private:
 
 	GLuint	_vertexArrayObject	= 0;
 	int		_vsynch				= 0;
+	HDC		_hdc				= nullptr;
 
 	Type	_type				= SampleContext::kStartUpDefaultType;
 	float	_aspect				= 0;

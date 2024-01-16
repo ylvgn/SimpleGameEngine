@@ -88,7 +88,6 @@ void NativeUIWindow_Win32::onCreate(CreateDesc& desc) {
 		throw SGE_ERROR("cannot create native window");
 	}
 
-	_hdc = GetDC(_hwnd);
 	ShowWindow(_hwnd, SW_SHOW);
 }
 
@@ -136,10 +135,6 @@ LRESULT WINAPI NativeUIWindow_Win32::s_wndProc(HWND hwnd, UINT msg, WPARAM wPara
 			if (auto* thisObj = s_getThis(hwnd)) {
 				::SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(nullptr));
 				thisObj->_hwnd = nullptr;
-				if (thisObj->_hdc != nullptr) {
-					ReleaseDC(hwnd, thisObj->_hdc);
-					thisObj->_hdc = nullptr;
-				}
 				sge_delete(thisObj);
 			}
 		}break;
