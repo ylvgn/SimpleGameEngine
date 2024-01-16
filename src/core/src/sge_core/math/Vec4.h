@@ -16,5 +16,6 @@ namespace sge {
 
 using Vec4f = Vec4<float>;
 using Vec4d = Vec4<double>;
+using Vec4i = Vec4<i32>;
 
 }

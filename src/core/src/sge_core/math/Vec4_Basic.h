@@ -81,8 +81,8 @@ public:
 		fmt::format_to(ctx.out(), "({}, {}, {}, {})", x, y, z, w);
 	}
 
-	template<class R>
-	static Vec4 s_cast(const Vec4_Basic<R>& r) { return Vec4(static_cast<T>(r.x), static_cast<T>(r.y), static_cast<T>(r.z), static_cast<T>(r.w)); }
+	template<class R, class R_DATA>
+	static Vec4 s_cast(const Vec4_Basic<R, R_DATA>& r) { return Vec4(static_cast<T>(r.x), static_cast<T>(r.y), static_cast<T>(r.z), static_cast<T>(r.w)); }
 };
 
 using Vec4f_Basic = Vec4_Basic<float>;
