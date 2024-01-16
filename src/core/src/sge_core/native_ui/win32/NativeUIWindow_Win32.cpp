@@ -70,7 +70,7 @@ void NativeUIWindow_Win32::onCreate(CreateDesc& desc) {
 		}
 	}
 
-	auto rect = desc.rect;
+	auto& rect = desc.rect;
 	if (desc.centerToScreen) {
 		int screenWidth	 = GetSystemMetrics(SM_CXSCREEN);
 		int screenHeight = GetSystemMetrics(SM_CYSCREEN);
