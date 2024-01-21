@@ -29,6 +29,9 @@ void NativeUIWindow_Win32::onCreate(CreateDesc& desc) {
 	if (!desc.closeButton) {
 		wc.style |= CS_NOCLOSE;
 	}
+	if (desc.ownDC) {
+		wc.style |= CS_OWNDC;
+	}
 
 	DWORD dwStyle = 0;
 	DWORD dwExStyle = WS_EX_ACCEPTFILES;
@@ -47,6 +50,8 @@ void NativeUIWindow_Win32::onCreate(CreateDesc& desc) {
 			if (desc.titleBar   ) dwStyle |= WS_CAPTION;
 			if (desc.minButton  ) dwStyle |= WS_MINIMIZEBOX;
 			if (desc.maxButton  ) dwStyle |= WS_MAXIMIZEBOX;
+			if (desc.vScrollBar ) dwStyle |= WS_VSCROLL;
+			if (desc.hScrollBar ) dwStyle |= WS_HSCROLL;
 		}break;
 
 		case CreateDesc::Type::PopupWindow: {
@@ -88,6 +93,17 @@ void NativeUIWindow_Win32::onCreate(CreateDesc& desc) {
 		throw SGE_ERROR("cannot create native window");
 	}
 
+	if (desc.vScrollBar) {
+		ScrollInfo::CreateDesc vScrollInfo(ScrollInfo::CreateDesc::Axis::Vertical);
+		_vScrollInfo.reset(static_cast<ScrollInfo*>(createScrollBar()));
+		_vScrollInfo->create(vScrollInfo);
+	}
+	if (desc.hScrollBar) {
+		ScrollInfo::CreateDesc hScrollInfo(ScrollInfo::CreateDesc::Axis::Horizontal);
+		_hScrollInfo.reset(static_cast<ScrollInfo*>(createScrollBar()));
+		_hScrollInfo->create(hScrollInfo);
+	}
+
 	ShowWindow(_hwnd, SW_SHOW);
 }
 
@@ -120,6 +136,10 @@ void NativeUIWindow_Win32::onSetCursor(UIMouseCursor type) {
 
 void NativeUIWindow_Win32::onDrawNeeded() {
 	::InvalidateRect(_hwnd, nullptr, false);
+}
+
+NativeUIWindow_Win32::Base::ScrollInfo* NativeUIWindow_Win32::onCreateScrollBar() {
+	return new NativeUIScrollInfo_Win32();
 }
 
 LRESULT WINAPI NativeUIWindow_Win32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
@@ -480,9 +500,80 @@ bool NativeUIWindow_Win32::_handleNativeUIKeyboardEvent(HWND hwnd,
 	return true;
 }
 
+bool NativeUIWindow_Win32::_handleNativeUIScrollBarEvent(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+	using Mode = UIScrollBarEvent::Mode;
+
+	UIScrollBarEvent ev;
+
+	switch(msg) {
+		case WM_HSCROLL: {
+			if (auto* thisObj = s_getThis(hwnd)) {
+				int request = LOWORD(wParam);
+				auto& si = thisObj->_hScrollInfo;
+				int oldPos;
+				si->getPos(hwnd, oldPos);
+				switch (request) {
+				case SB_LINELEFT:		ev.mode = Mode::Step;   si->scrollTo(oldPos - si->step());	break;
+					case SB_LINERIGHT:	ev.mode = Mode::Step;   si->scrollTo(oldPos + si->step());	break;
+					case SB_PAGELEFT:	ev.mode = Mode::Page;   si->scrollTo(oldPos - si->page());	break;
+					case SB_PAGERIGHT:	ev.mode = Mode::Page;   si->scrollTo(oldPos + si->page());	break;
+					case SB_THUMBTRACK:	ev.mode = Mode::Scroll; si->scrollTo(HIWORD(wParam));		break;
+				}
+				ev.pos.x = si->pos();
+				ev.deltaPos.x = ev.pos.x - oldPos;
+			}
+		} break;
+
+		case WM_VSCROLL: {
+			if (auto* thisObj = s_getThis(hwnd)) {
+				int request = LOWORD(wParam);
+				auto& si = thisObj->_vScrollInfo;
+				int oldPos;
+				si->getPos(hwnd, oldPos);
+				switch (request) {
+					case SB_LINEUP:		ev.mode = Mode::Step;   si->scrollTo(oldPos - si->step());	break;
+					case SB_LINEDOWN:	ev.mode = Mode::Step;   si->scrollTo(oldPos + si->step());	break;
+					case SB_PAGEUP:		ev.mode = Mode::Page;   si->scrollTo(oldPos - si->page());	break;
+					case SB_PAGEDOWN:	ev.mode = Mode::Page;   si->scrollTo(oldPos + si->page());	break;
+					case SB_THUMBTRACK:	ev.mode = Mode::Scroll; si->scrollTo(HIWORD(wParam));		break;
+				}
+				ev.pos.y = si->pos();
+				ev.deltaPos.y = ev.pos.y - oldPos;
+			}
+		} break;
+
+		default:
+			return false;
+	}
+
+	if (ev.deltaPos.x || ev.deltaPos.y) {
+		::ScrollWindow(_hwnd, -ev.deltaPos.x, -ev.deltaPos.y, nullptr, nullptr);
+		onUINativeScrollBarEvent(ev);
+	}
+
+	return true;
+}
+
+void NativeUIWindow_Win32::onScrollWindow(const Vec2i& delta) {
+	int oldPos;
+	if (delta.x) {
+		_hScrollInfo->getPos(_hwnd, oldPos);
+		int newPos = oldPos + delta.x;
+		WPARAM wParam = MAKELONG(SB_THUMBTRACK, newPos);
+		_handleNativeUIScrollBarEvent(_hwnd, WM_HSCROLL, wParam, 0);
+	}
+	if (delta.y) {
+		_vScrollInfo->getPos(_hwnd, oldPos);
+		int newPos = oldPos + delta.y;
+		WPARAM wParam = MAKELONG(SB_THUMBTRACK, newPos);
+		_handleNativeUIScrollBarEvent(_hwnd, WM_VSCROLL, wParam, 0);
+	}
+}
+
 LRESULT NativeUIWindow_Win32::_handleNativeEvent(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	if (_handleNativeUIMouseEvent(hwnd, msg, wParam, lParam)) return 0;
 	if (_handleNativeUIKeyboardEvent(hwnd, msg, wParam, lParam)) return 0;
+	if (_handleNativeUIScrollBarEvent(hwnd, msg, wParam, lParam)) return 0;
 	return ::DefWindowProc(hwnd, msg, wParam, lParam);
 }
 

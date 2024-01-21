@@ -4,14 +4,6 @@
 
 namespace sge {
 
-#define ScrollBarConstant_ENUM_LIST(E) \
-	E(Horizontal,) \
-	E(Vertical,) \
-	E(Control,) \
-	E(Both,) \
-//----
-SGE_ENUM_CLASS(ScrollBarConstant, u8)
-
 #define TextAlignment_ENUM_LIST(E) \
 	E(Left,) \
 	E(Right,) \

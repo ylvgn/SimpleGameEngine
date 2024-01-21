@@ -311,4 +311,46 @@ private:
 template<class T> ScopedValue<T> makeScopedValue(T* p) { return ScopedValue<T>(p); }
 template<class T> ScopedValue<T> makeScopedValue(T* p, const T& newValue) { return ScopedValue<T>(p, newValue); }
 
+template<typename T>
+class RangeMinMaxValue : public NonCopyable {
+	using This = RangeMinMaxValue;
+public:
+	This() = default;
+
+	This(T min, T max)
+		: _min(min)
+		, _max(max)
+		, _value(min) {}
+
+	This(T min, T max, T value)
+		: _min(min)
+		, _max(max)
+		, _value(value) {}
+
+	void setMinMax(T min, T max) {
+		if (min < max) return;
+		_min = min;
+		_max = max;
+		setValue(_value);
+	}
+
+	void setValue(T value)	{ _value = Math::clamp(value, _min, _max); }
+
+	T min()		{ return _min;		}
+	T max()		{ return _max;		}
+	T value()	{ return _value;	}
+
+private:
+	T _min;
+	T _max;
+	T _value;
+};
+
+using RangeMinMaxValuei = RangeMinMaxValue<int>;
+using RangeMinMaxValuef = RangeMinMaxValue<float>;
+using RangeMinMaxValued = RangeMinMaxValue<double>;
+
+template<typename T> inline RangeMinMaxValue<T> makeRangeMinMaxValue(T min, T max) { return RangeMinMaxValue<T>(min, max); }
+template<typename T> inline RangeMinMaxValue<T> makeRangeMinMaxValue(T min, T max, T v) { return RangeMinMaxValue<T>(min, max, v); }
+
 } // namespace

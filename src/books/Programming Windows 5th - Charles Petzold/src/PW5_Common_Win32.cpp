@@ -38,32 +38,6 @@ void TextMetrics::_internal_init(HDC hdc) {
 	_set(tm);
 }
 
-#if 0
-#pragma mark ========= ScrollInfo ============
-#endif
-void ScrollInfo::reset() {
-	g_bzero(_si);
-	_si.cbSize = sizeof(_si);
-}
-
-void ScrollInfo::reset(Type type) {
-	reset();
-	setType(type);
-	_dirty = false;
-}
-
-void ScrollInfo::reset(HWND hwnd, bool redraw /*= true*/) {
-	if (!_dirty)
-		return;
-
-	::SetScrollInfo(hwnd, _type, &_si, redraw);
-	_dirty = false;
-}
-
-void ScrollInfo::setType(Type type) {
-	_type = PW5_Win32Util::getScrollBarConstant(type);
-}
-
 UINT ScopedHDCBase::setTextAlign(TextAlignment align) {
 	// https://github.com/MicrosoftDocs/win32/blob/docs/desktop-src/gdi/text-formatting-attributes.md
 	int res = 0;

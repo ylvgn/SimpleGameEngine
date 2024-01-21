@@ -5,10 +5,13 @@
 
 namespace sge {
 
+class NativeUIScrollInfo_Base;
+
 class NativeUIWindow_Base : public NonCopyable {
 public:
 	using KeyCode		= UIKeyboardEventKeyCode;
-	using KeyCodeState  = UIKeyCodeEventType;
+	using KeyCodeState	= UIKeyCodeEventType;
+	using ScrollInfo	= NativeUIScrollInfo_Base;
 
 	struct CreateDesc {
 		CreateDesc()
@@ -21,6 +24,9 @@ public:
 			, maxButton(true)
 			, centerToScreen(true)
 			, alwaysOnTop(false)
+			, vScrollBar(false)
+			, hScrollBar(false)
+			, ownDC(false)
 		{}
 
 		enum class Type {
@@ -42,12 +48,16 @@ public:
 		bool		maxButton		: 1;
 		bool		centerToScreen	: 1;
 		bool		alwaysOnTop		: 1;
+		bool		vScrollBar		: 1;
+		bool		hScrollBar		: 1;
+		bool		ownDC			: 1;
 	};
 
 	void create			(CreateDesc& desc)		{ onCreate(desc); }
 	void setWindowTitle	(StrView title)			{ onSetWindowTitle(title); }
 	void setWindowSize	(const Rect2i& xywh)	{ onSetWindowSize(xywh); }
 	void setCursor(UIMouseCursor cursor)		{ onSetCursor(cursor); }
+	void scrollWindow(const Vec2i& delta)		{ onScrollWindow(delta); }
 
 	void drawNeeded() { onDrawNeeded(); }
 
@@ -63,8 +73,13 @@ public:
 	virtual void onUINativeKeyboardEvent(UIKeyboardEvent& ev);
 	virtual void onUIKeyboardEvent(UIKeyboardEvent& ev) {}
 
+	virtual void onUINativeScrollBarEvent(UIScrollBarEvent& ev);
+	virtual void onUIScrollBarEvent(UIScrollBarEvent& ev) {}
+
 	inline bool isKeyUp(const KeyCode& k)	const { return BitUtil::hasAny(_keyCodeState(k), KeyCodeState::Up); }
 	inline bool isKeyDown(const KeyCode& k)	const { return BitUtil::hasAny(_keyCodeState(k), KeyCodeState::Down); }
+
+	ScrollInfo* createScrollBar() { return onCreateScrollBar(); }
 
 protected:
 	virtual void onCreate(CreateDesc& desc) {}
@@ -74,6 +89,9 @@ protected:
 	virtual void onSetCursor(UIMouseCursor type) {}
 	virtual void onClientRectChanged(const Rect2f& rc) { _clientRect = rc; }
 	virtual void onDrawNeeded() {}
+	virtual void onScrollWindow(const Vec2i& delta) {}
+
+	virtual ScrollInfo* onCreateScrollBar() = 0;
 
 	KeyCodeState _keyCodeState(const KeyCode& k) const;
 
@@ -84,6 +102,8 @@ protected:
 
 	Map<KeyCode, KeyCodeState> 	_keyCodesMap;
 	KeyCode						_keyCode = KeyCode::None;
+
+	Vec2i _scrollBarPos{0,0};
 };
 
 inline

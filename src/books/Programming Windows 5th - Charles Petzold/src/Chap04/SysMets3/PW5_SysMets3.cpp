@@ -44,8 +44,10 @@ LRESULT CALLBACK PW5_SysMets3::s_wndProc (HWND hwnd, UINT message, WPARAM wParam
 			int nTrackPos;	// current tracking position
 		} SCROLLINFO, * PSCROLLINFO;
 	*/
-	static ScrollInfo siV(ScrollBarConstant::Vertical);
-	static ScrollInfo siH(ScrollBarConstant::Horizontal);
+	using ScrollInfo = PW5_SysMets3::ScrollInfo;
+
+	static ScrollInfo siV;
+	static ScrollInfo siH;
 
 	const auto& sysmetrics = g_sysmetrics;
 	const auto& NUMLINES = static_cast<int>(g_sysmetricsCount);
@@ -57,6 +59,9 @@ LRESULT CALLBACK PW5_SysMets3::s_wndProc (HWND hwnd, UINT message, WPARAM wParam
 			break;
 
 		case WM_CREATE: {
+			using SB_CreateDesc = ScrollInfo::CreateDesc;
+			using SB_Axis = ScrollInfo::CreateDesc::Axis;
+
 			TextMetrics tm(hwnd);
 			cxChar = tm.aveCharWidth();
 			cxCaps = tm.aveUpperCaseCharWidth();
@@ -64,6 +69,16 @@ LRESULT CALLBACK PW5_SysMets3::s_wndProc (HWND hwnd, UINT message, WPARAM wParam
 
 			// Save the width of the three columns
 			iMaxWidth = 40 * cxChar + 22 * cxCaps;
+
+			{
+				SB_CreateDesc sbDesc(SB_Axis::Horizontal);
+				siH.create(sbDesc);
+			}
+			{
+				SB_CreateDesc sbDesc(SB_Axis::Vertical);
+				siV.create(sbDesc);
+			}
+			
 			return 0;
 		}
 
@@ -72,10 +87,15 @@ LRESULT CALLBACK PW5_SysMets3::s_wndProc (HWND hwnd, UINT message, WPARAM wParam
 			cyClient = HIWORD(lParam);
 
 			// Set vertical scroll bar range and page size
-			siV.setRange(0, NUMLINES - 1).setPage(cyClient / cyChar).reset(hwnd);
+			siV.setRange(0, NUMLINES - 1);
+			siV.setPage(cyClient / cyChar);
+			siV.reset(hwnd);
 
 			// Set horizontal scroll bar range and page size
-			siH.setRange(0, 2 + iMaxWidth / cxChar).setPage(cxClient / cxChar).reset(hwnd);
+			siH.setRange(0, 2 + iMaxWidth / cxChar);
+			siH.setPage(cxClient / cxChar);
+			siH.reset(hwnd);
+
 			return 0;
 		}
 		

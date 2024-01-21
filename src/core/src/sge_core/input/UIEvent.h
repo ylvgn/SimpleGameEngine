@@ -188,4 +188,21 @@ private:
 	}
 };
 
+#define UIScrollBarEventMode_ENUM_LIST(E) \
+	E(None,) \
+	E(Step,) \
+	E(Page,) \
+	E(Scroll,) \
+// ---------
+SGE_ENUM_CLASS(UIScrollBarEventMode, u8)
+
+struct UIScrollBarEvent {
+	using Mode = UIScrollBarEventMode;
+
+	Mode  mode = Mode::None;
+
+	Vec2i pos{0,0};
+	Vec2i deltaPos{0,0};
+};
+
 }

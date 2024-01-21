@@ -49,4 +49,12 @@ void NativeUIWindow_Base::onUINativeKeyboardEvent(UIKeyboardEvent& ev) {
 	}
 }
 
+void NativeUIWindow_Base::onUINativeScrollBarEvent(UIScrollBarEvent& ev) {
+	ev.deltaPos = ev.pos - _scrollBarPos;
+	_scrollBarPos = ev.pos;
+
+	SGE_DUMP_VAR(_scrollBarPos, ev.deltaPos);
+	onUIScrollBarEvent(ev);
+}
+
 }

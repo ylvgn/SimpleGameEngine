@@ -13,27 +13,10 @@ protected:
 	virtual void onCreate(CreateDesc& desc) override;
 	virtual void onShow() override;
 	virtual void onClientRectChanged(const Rect2f& rc) override;
+	virtual void onUIScrollBarEvent(UIScrollBarEvent& ev) override;
 	virtual void onDraw() override;
 private:
-	static LRESULT CALLBACK s_wndProc(HWND, UINT, WPARAM, LPARAM);
-	static WNDPROC s_defaultWndProc;
-
-	SGE_INLINE static This* s_getThis(HWND hwnd) {
-		return reinterpret_cast<This*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
-	}
-
-	void _onScrollHLine(bool isLeft);
-	void _onScrollHPage(bool isLeft);
-	void _onScrollH(bool isLeft, bool isPage);
-	void _onScrollH(int newX);
-
-	void _onScrollVLine(bool isUp);
-	void _onScrollVPage(bool isUp);
-	void _onScrollV(bool isUp, bool isPage);
-	void _onScrollV(int newY);
-
 	int _cxChar, _cyChar, _cxCaps;
-	ScrollInfo _siV, _siH;
 };
 
 }
