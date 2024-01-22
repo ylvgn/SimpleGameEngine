@@ -1,3 +1,5 @@
+#if SGE_OS_WINDOWS
+
 #include "NativeUIScrollInfo_Win32.h"
 #include <sge_core/math/Math.h>
 
@@ -12,6 +14,7 @@ void NativeUIScrollInfo_Win32::onCreate(CreateDesc& desc) {
 	_step = desc.step;
 
 	setRange(desc.range.min(), desc.range.max());
+	setPage(desc.page);
 	scrollTo(desc.range.value());
 }
 
@@ -104,3 +107,5 @@ void NativeUIScrollInfo_Win32::_retrieve(HWND hwnd, int flag /*= SIF_ALL*/, bool
 }
 
 }
+
+#endif // SGE_OS_WINDOWS

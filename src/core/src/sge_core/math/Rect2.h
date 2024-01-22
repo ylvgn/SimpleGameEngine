@@ -32,6 +32,9 @@ public:
 
 	SGE_INLINE T xMax() const { return x + w; }
 	SGE_INLINE T yMax() const { return y + h; }
+
+	SGE_INLINE bool operator== (const Rect2& r) const { return x == r.x && y == r.y && w == r.w && h == r.h; }
+	SGE_INLINE bool operator!= (const Rect2& r) const { return !(this->operator==(r)); }
 };
 
 using Rect2i = Rect2<int>;

@@ -8,10 +8,10 @@ WNDPROC PW5_MySysMets2::s_defaultWndProc;
 
 void PW5_MySysMets2::onCreate(CreateDesc& desc) {
 	_scrollPosV = 0;
-
+	desc.ownDC = true;
 	Base::onCreate(desc);
-	s_defaultWndProc = reinterpret_cast<WNDPROC>(SetWindowLongPtr(_hwnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(s_wndProc)));
 
+	s_defaultWndProc = reinterpret_cast<WNDPROC>(SetWindowLongPtr(_hwnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(s_wndProc)));
 
 	const auto& NUMLINES = g_sysmetricsCount;
 
@@ -31,7 +31,6 @@ void PW5_MySysMets2::onCreate(CreateDesc& desc) {
 
 	::SetScrollRange(_hwnd, SB_VERT, 0, _viewportH, false);
 	::SetScrollPos(_hwnd, SB_VERT, _scrollPosV, true);
-
 	::UpdateWindow(_hwnd);
 }
 
@@ -82,7 +81,7 @@ void PW5_MySysMets2::_onScrollV(int y) {
 	// it may be a while before your window procedure receives the WM_PAINT message.
 	// Everyone has seen blank, white "holes" in Windows after a dialog box is removed and the program is still waiting to refresh its window.
 	_scrollPosV = y;
-	InvalidateRect(_hwnd, nullptr, true); // call WM_PAINT by windows message queue
+	::InvalidateRect(_hwnd, nullptr, true); // call WM_PAINT by windows message queue
 #endif
 }
 

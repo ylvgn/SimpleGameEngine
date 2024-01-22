@@ -56,8 +56,8 @@ public:
 	void create			(CreateDesc& desc)		{ onCreate(desc); }
 	void setWindowTitle	(StrView title)			{ onSetWindowTitle(title); }
 	void setWindowSize	(const Rect2i& xywh)	{ onSetWindowSize(xywh); }
-	void setCursor(UIMouseCursor cursor)		{ onSetCursor(cursor); }
-	void scrollWindow(const Vec2i& delta)		{ onScrollWindow(delta); }
+	void setCursor		(UIMouseCursor cursor)	{ onSetCursor(cursor); }
+	void scrollWindow	(const Vec2i& delta)	{ onScrollWindow(delta); }
 
 	void drawNeeded() { onDrawNeeded(); }
 
@@ -86,9 +86,9 @@ protected:
 	virtual void onShow() {}
 	virtual void onSetWindowTitle(StrView title) {}
 	virtual void onSetWindowSize(const Rect2i& xywh) {};
-	virtual void onSetCursor(UIMouseCursor type) {}
 	virtual void onClientRectChanged(const Rect2f& rc) { _clientRect = rc; }
 	virtual void onDrawNeeded() {}
+	virtual void onSetCursor(UIMouseCursor type) {}
 	virtual void onScrollWindow(const Vec2i& delta) {}
 
 	virtual ScrollInfo* onCreateScrollBar() = 0;

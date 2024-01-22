@@ -84,27 +84,37 @@ void NativeUIWindow_Win32::onCreate(CreateDesc& desc) {
 	}
 
 	_hwnd = ::CreateWindowEx(dwExStyle, clsName, clsName, dwStyle,
-								static_cast<int>(desc.rect.x),
-								static_cast<int>(desc.rect.y),
-								static_cast<int>(desc.rect.w),
-								static_cast<int>(desc.rect.h),
-								nullptr, nullptr, hInstance, this);
+							 static_cast<int>(desc.rect.x),
+							 static_cast<int>(desc.rect.y),
+							 static_cast<int>(desc.rect.w),
+							 static_cast<int>(desc.rect.h),
+							 nullptr, nullptr, hInstance, this);
+
 	if (!_hwnd) {
 		throw SGE_ERROR("cannot create native window");
 	}
 
-	if (desc.vScrollBar) {
-		ScrollInfo::CreateDesc vScrollInfo(ScrollInfo::CreateDesc::Axis::Vertical);
-		_vScrollInfo.reset(static_cast<ScrollInfo*>(createScrollBar()));
-		_vScrollInfo->create(vScrollInfo);
-	}
-	if (desc.hScrollBar) {
-		ScrollInfo::CreateDesc hScrollInfo(ScrollInfo::CreateDesc::Axis::Horizontal);
-		_hScrollInfo.reset(static_cast<ScrollInfo*>(createScrollBar()));
-		_hScrollInfo->create(hScrollInfo);
+	{
+		using ScrollInfo_CreateDesc = NativeUIScrollInfo_CreateDesc;
+		using ScrollInfo_CreateDesc_Axis = ScrollInfo_CreateDesc::Axis;
+		using ScrollInfo_Win32 = NativeUIScrollInfo_Win32;
+
+		if (desc.vScrollBar) {
+			ScrollInfo_CreateDesc scrollInfoDesc(ScrollInfo_CreateDesc_Axis::Vertical);
+			scrollInfoDesc.page = static_cast<u32>(desc.rect.h);
+			_vScrollInfo.reset(static_cast<ScrollInfo_Win32*>(createScrollBar()));
+			_vScrollInfo->create(scrollInfoDesc);
+		}
+
+		if (desc.hScrollBar) {
+			ScrollInfo_CreateDesc scrollInfoDesc(ScrollInfo_CreateDesc_Axis::Horizontal);
+			scrollInfoDesc.page = static_cast<u32>(desc.rect.w);
+			_hScrollInfo.reset(static_cast<ScrollInfo_Win32*>(createScrollBar()));
+			_hScrollInfo->create(scrollInfoDesc);
+		}
 	}
 
-	ShowWindow(_hwnd, SW_SHOW);
+	::ShowWindow(_hwnd, SW_SHOW);
 }
 
 void NativeUIWindow_Win32::onSetWindowTitle(StrView title) {
@@ -120,22 +130,38 @@ void NativeUIWindow_Win32::onSetCursor(UIMouseCursor type) {
 	LPTSTR cursor	= IDC_ARROW;
 	switch (type)
 	{
-	case Cursor::Arrow:		cursor = IDC_ARROW;		break;
-	case Cursor::IBeam:		cursor = IDC_IBEAM;		break;
-	case Cursor::SizeAll:	cursor = IDC_SIZEALL;	break;
-	case Cursor::SizeWE:	cursor = IDC_SIZEWE;	break;
-	case Cursor::SizeNS:	cursor = IDC_SIZENS;	break;
-	case Cursor::SizeNESW:	cursor = IDC_SIZENESW;	break;
-	case Cursor::SizeNWSE:	cursor = IDC_SIZENWSE;	break;
-	case Cursor::Hand:		cursor = IDC_HAND;		break;
-	case Cursor::No:		cursor = IDC_NO;		break;
-	case Cursor::None:		::SetCursor(NULL);		return;
+		case Cursor::Arrow:		cursor = IDC_ARROW;		break;
+		case Cursor::IBeam:		cursor = IDC_IBEAM;		break;
+		case Cursor::SizeAll:	cursor = IDC_SIZEALL;	break;
+		case Cursor::SizeWE:	cursor = IDC_SIZEWE;	break;
+		case Cursor::SizeNS:	cursor = IDC_SIZENS;	break;
+		case Cursor::SizeNESW:	cursor = IDC_SIZENESW;	break;
+		case Cursor::SizeNWSE:	cursor = IDC_SIZENWSE;	break;
+		case Cursor::Hand:		cursor = IDC_HAND;		break;
+		case Cursor::No:		cursor = IDC_NO;		break;
+		case Cursor::None:		::SetCursor(NULL);		return;
 	}
 	::SetCursor(LoadCursor(0, cursor));
 }
 
 void NativeUIWindow_Win32::onDrawNeeded() {
 	::InvalidateRect(_hwnd, nullptr, false);
+}
+
+void NativeUIWindow_Win32::onScrollWindow(const Vec2i& delta) {
+	int oldPos;
+	if (delta.x) {
+		_hScrollInfo->getPos(_hwnd, oldPos);
+		int newPos = oldPos + delta.x;
+		WPARAM wParam = MAKELONG(SB_THUMBTRACK, newPos);
+		_handleNativeUIScrollBarEvent(_hwnd, WM_HSCROLL, wParam, 0);
+	}
+	if (delta.y) {
+		_vScrollInfo->getPos(_hwnd, oldPos);
+		int newPos = oldPos + delta.y;
+		WPARAM wParam = MAKELONG(SB_THUMBTRACK, newPos);
+		_handleNativeUIScrollBarEvent(_hwnd, WM_VSCROLL, wParam, 0);
+	}
 }
 
 NativeUIWindow_Win32::Base::ScrollInfo* NativeUIWindow_Win32::onCreateScrollBar() {
@@ -187,8 +213,9 @@ LRESULT WINAPI NativeUIWindow_Win32::s_wndProc(HWND hwnd, UINT msg, WPARAM wPara
 				RECT clientRect;
 				::GetClientRect(hwnd, &clientRect);
 				Rect2f newClientRect = Win32Util::toRect2f(clientRect);
-
-				thisObj->onClientRectChanged(newClientRect);
+				if (newClientRect != thisObj->_clientRect) {
+					thisObj->onClientRectChanged(newClientRect);
+				}
 				return 0;
 			}
  		}break;
@@ -463,7 +490,8 @@ bool NativeUIWindow_Win32::_handleNativeUIKeyboardEvent(HWND hwnd,
 			break;
 		}
 		case WM_CHAR: { ev.charCode = static_cast<u32>(wParam); } break;
-		default: return false;
+		default:
+			return false;
 	}
 
 	// https://learn.microsoft.com/en-us/windows/win32/inputdev/wm-char
@@ -552,22 +580,6 @@ bool NativeUIWindow_Win32::_handleNativeUIScrollBarEvent(HWND hwnd, UINT msg, WP
 	}
 
 	return true;
-}
-
-void NativeUIWindow_Win32::onScrollWindow(const Vec2i& delta) {
-	int oldPos;
-	if (delta.x) {
-		_hScrollInfo->getPos(_hwnd, oldPos);
-		int newPos = oldPos + delta.x;
-		WPARAM wParam = MAKELONG(SB_THUMBTRACK, newPos);
-		_handleNativeUIScrollBarEvent(_hwnd, WM_HSCROLL, wParam, 0);
-	}
-	if (delta.y) {
-		_vScrollInfo->getPos(_hwnd, oldPos);
-		int newPos = oldPos + delta.y;
-		WPARAM wParam = MAKELONG(SB_THUMBTRACK, newPos);
-		_handleNativeUIScrollBarEvent(_hwnd, WM_VSCROLL, wParam, 0);
-	}
 }
 
 LRESULT NativeUIWindow_Win32::_handleNativeEvent(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {

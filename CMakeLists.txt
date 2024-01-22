@@ -17,7 +17,6 @@ find_package(nlohmann_json CONFIG REQUIRED)
 find_package(libpng CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
 find_package(glad CONFIG REQUIRED)
-#find_package(unofficial-nuklear CONFIG REQUIRED)
 
 function(sge_source_group src_path src_files)
 	foreach(FILE ${src_files}) 
@@ -47,7 +46,7 @@ function(sge_set_target_unity_build_mode target_name)
 							UNITY_BUILD ON
 							UNITY_BUILD_MODE BATCH
 							UNITY_BUILD_BATCH_SIZE 16
-							)	
+							)
 endfunction()
 
 function(sge_add_library target_name src_path)
@@ -66,12 +65,12 @@ endfunction()
 function(sge_add_executable target_name src_path)
 	file(GLOB_RECURSE src_files
 		"${src_path}/src/*.*"
-	)	
+	)
 	sge_source_group(${src_path} "${src_files}")
-	
-	add_executable(${target_name} ${src_files})	
+
+	add_executable(${target_name} ${src_files})
 	target_precompile_headers(${target_name} PUBLIC src/${target_name}-pch.h)
-	sge_set_target_warning_level(${target_name})	
+	sge_set_target_warning_level(${target_name})
 	sge_set_target_unity_build_mode(${target_name})
 endfunction()
 

@@ -308,21 +308,20 @@ private:
 	T _oldValue;
 };
 
-template<class T> ScopedValue<T> makeScopedValue(T* p) { return ScopedValue<T>(p); }
-template<class T> ScopedValue<T> makeScopedValue(T* p, const T& newValue) { return ScopedValue<T>(p, newValue); }
+template<class T> inline ScopedValue<T> makeScopedValue(T* p) { return ScopedValue<T>(p); }
+template<class T> inline ScopedValue<T> makeScopedValue(T* p, const T& newValue) { return ScopedValue<T>(p, newValue); }
 
 template<typename T>
 class RangeMinMaxValue : public NonCopyable {
-	using This = RangeMinMaxValue;
 public:
-	This() = default;
+	RangeMinMaxValue() = default;
 
-	This(T min, T max)
+	RangeMinMaxValue(T min, T max)
 		: _min(min)
 		, _max(max)
 		, _value(min) {}
 
-	This(T min, T max, T value)
+	RangeMinMaxValue(T min, T max, T value)
 		: _min(min)
 		, _max(max)
 		, _value(value) {}
@@ -334,11 +333,13 @@ public:
 		setValue(_value);
 	}
 
-	void setValue(T value)	{ _value = Math::clamp(value, _min, _max); }
+	void setValue(T value) {
+		_value = Math::clamp(value, _min, _max);
+	}
 
-	T min()		{ return _min;		}
-	T max()		{ return _max;		}
-	T value()	{ return _value;	}
+	T min()		const { return _min;	}
+	T max()		const { return _max;	}
+	T value()	const { return _value;	}
 
 private:
 	T _min;

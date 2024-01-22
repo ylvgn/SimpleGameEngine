@@ -1,8 +1,9 @@
 #pragma once
 
+#include "PW5_Common.h"
+
 #if SGE_OS_WINDOWS
 
-#include "PW5_Common.h"
 #include <sge_core/native_ui/win32/Win32Util.h>
 
 #include <windowsx.h>
@@ -14,12 +15,12 @@ namespace sge {
 #pragma mark ========= handy ============
 #endif
 inline
-WNDCLASSEX g_createWndClass(HMODULE hInstance, const wchar_t* clsName, WNDPROC lpfnWndProc) {
+WNDCLASSEX g_createWndClass(HMODULE hInstance, const wchar_t* clsName, WNDPROC lpfnWndProc, UINT style = 0) {
 	WNDCLASSEX wc;
 	g_bzero(wc);
 
 	wc.cbSize			= sizeof(WNDCLASSEX);
-    wc.style			= CS_HREDRAW | CS_VREDRAW;
+    wc.style			= CS_HREDRAW | CS_VREDRAW | style;
     wc.lpfnWndProc		= lpfnWndProc;
     wc.cbClsExtra		= 0;
     wc.cbWndExtra		= 0;
@@ -38,7 +39,7 @@ inline
 bool g_isRegisterWndClass(HMODULE hInstance, const wchar_t* clsName) {
 	WNDCLASSEX wc;
 	g_bzero(wc);
-	return 0 != GetClassInfoEx(hInstance, clsName, &wc);
+	return 0 != ::GetClassInfoEx(hInstance, clsName, &wc);
 }
 
 inline
@@ -58,7 +59,7 @@ void g_registerWndClass(WNDCLASSEX& wc) {
 inline
 void g_textOut(HDC hdc, int x, int y, const wchar_t* szText) {
 	if (!szText) return;
-	TextOut(hdc, x, y, szText, lstrlenW(szText) /*or static_cast<int>(wcslen(text))*/);
+	::TextOut(hdc, x, y, szText, lstrlenW(szText) /*or static_cast<int>(wcslen(text))*/);
 }
 
 inline
@@ -100,7 +101,7 @@ void g_drawText(HDC				hdc,
 				u32				fDT = DT_SINGLELINE | DT_CENTER | DT_VCENTER)
 {
 	if (!szText || !rc) return;
-	DrawText(hdc, szText, -1, rc, fDT);
+	::DrawText(hdc, szText, -1, rc, fDT);
 }
 
 #if 0
@@ -159,7 +160,7 @@ public:
 	void textOutf(int x, int y, Args&&... args) const {
 		TempStringW tmp;
 		FmtTo(tmp, SGE_FORWARD(args)...);
-		TextOut(_hdc, x, y, tmp.c_str(), static_cast<int>(tmp.size()));
+		::TextOut(_hdc, x, y, tmp.c_str(), static_cast<int>(tmp.size()));
 	}
 
 	UINT setTextAlign(TextAlignment align = TextAlignment::Left | TextAlignment::Top);
@@ -199,7 +200,7 @@ private:
 class ScopedHDC : public ScopedHDCBase {
 	using Base = ScopedHDCBase;
 public:
-	ScopedHDC(HWND& hwnd) : Base(hwnd) { _hdc = GetDC(hwnd); }
+	ScopedHDC(HWND& hwnd) : Base(hwnd) { _hdc = ::GetDC(hwnd); }
 	~ScopedHDC() { ::ReleaseDC(_hwnd, _hdc); }
 };
 

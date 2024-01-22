@@ -1,7 +1,5 @@
 #pragma once
 
-#include <sge_core/base/Object.h>
-
 namespace sge {
 
 struct NativeUIScrollInfo_CreateDesc {
@@ -16,15 +14,16 @@ struct NativeUIScrollInfo_CreateDesc {
 
 	Axis				axis;
 	RangeMinMaxValuei	range { 0,0,0 };
-	int					step = 1;
+	int					step = 0;
+	u32					page = 0;
 };
 
 class NativeUIScrollInfo_Base : public NonCopyable {
 public:
 	using CreateDesc = NativeUIScrollInfo_CreateDesc;
 
-	void create(CreateDesc& desc) { onCreate(desc); }
-	void scrollTo(int pos) { onScrollTo(pos); }
+	void create(CreateDesc& desc)	{ onCreate(desc); }
+	void scrollTo(int pos)			{ onScrollTo(pos); }
 
 protected:
 	virtual void onCreate(CreateDesc& desc) {}

@@ -1,5 +1,4 @@
 #pragma once
-
 #include "../base/NativeUIScrollInfo_Base.h"
 
 #if SGE_OS_WINDOWS
@@ -50,4 +49,4 @@ private:
 
 }
 
-#endif
+#endif // SGE_OS_WINDOWS

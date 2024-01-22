@@ -59,9 +59,6 @@ LRESULT CALLBACK PW5_SysMets3::s_wndProc (HWND hwnd, UINT message, WPARAM wParam
 			break;
 
 		case WM_CREATE: {
-			using SB_CreateDesc = ScrollInfo::CreateDesc;
-			using SB_Axis = ScrollInfo::CreateDesc::Axis;
-
 			TextMetrics tm(hwnd);
 			cxChar = tm.aveCharWidth();
 			cxCaps = tm.aveUpperCaseCharWidth();
@@ -70,13 +67,17 @@ LRESULT CALLBACK PW5_SysMets3::s_wndProc (HWND hwnd, UINT message, WPARAM wParam
 			// Save the width of the three columns
 			iMaxWidth = 40 * cxChar + 22 * cxCaps;
 
-			{
-				SB_CreateDesc sbDesc(SB_Axis::Horizontal);
-				siH.create(sbDesc);
-			}
-			{
-				SB_CreateDesc sbDesc(SB_Axis::Vertical);
-				siV.create(sbDesc);
+			{ // create scroll bar
+				using CreateDesc = ScrollInfo::CreateDesc;
+				using Axis = ScrollInfo::CreateDesc::Axis;
+				{
+					CreateDesc desc(Axis::Horizontal);
+					siH.create(desc);
+				}
+				{
+					CreateDesc desc(Axis::Vertical);
+					siV.create(desc);
+				}
 			}
 			
 			return 0;

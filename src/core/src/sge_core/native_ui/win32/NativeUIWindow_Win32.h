@@ -1,10 +1,9 @@
 #pragma once
 
 #include "../base/NativeUIWindow_Base.h"
+#include "NativeUIScrollInfo_Win32.h"
 
 #if SGE_OS_WINDOWS
-
-#include "NativeUIScrollInfo_Win32.h"
 
 namespace sge {
 
@@ -23,12 +22,12 @@ public:
 	const HWND	hwnd()	const	{ return _hwnd; }
 
 protected:
+	virtual Base::ScrollInfo* onCreateScrollBar() override;
+
 	HWND _hwnd = nullptr;
 
 	UPtr<ScrollInfo> _hScrollInfo = nullptr;
 	UPtr<ScrollInfo> _vScrollInfo = nullptr;
-
-	virtual Base::ScrollInfo* onCreateScrollBar() override;
 
 private:
 	static LRESULT WINAPI s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -41,6 +40,7 @@ private:
 	bool _handleNativeUIMouseEvent(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 	bool _handleNativeUIKeyboardEvent(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 	bool _handleNativeUIScrollBarEvent(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
 	UIEventModifier _getWin32Modifier();
 };
 
