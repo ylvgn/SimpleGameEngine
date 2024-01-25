@@ -1,25 +1,24 @@
-#include "PW5_MyHelloWin.h"
-
 #if SGE_OS_WINDOWS
+
+#include "PW5_MyHelloWin.h"
 
 namespace sge {
 
 void PW5_MyHelloWin::onCreate(CreateDesc& desc) {
 	const wchar_t* clsName = L"PW5_MyHelloWin";
-	HMODULE hInstance = GetModuleHandle(nullptr);
+	HMODULE hInstance = ::GetModuleHandle(nullptr);
 
-	auto wc = g_createWndClass(hInstance, clsName, s_wndProc);
+	auto wc = PW5_Win32Util::createWndClass(hInstance, clsName, s_wndProc);
+	PW5_Win32Util::registerWndClass(wc);
 
-	if (!RegisterClassEx(&wc)) {
-		throw SGE_ERROR("error RegisterClassEx");
-	}
+	auto dwStyle = WS_OVERLAPPEDWINDOW;
 
-	_hwnd = ::CreateWindowEx(0, clsName, clsName, WS_OVERLAPPEDWINDOW,
-								static_cast<int>(desc.rect.x),
-								static_cast<int>(desc.rect.y),
-								static_cast<int>(desc.rect.w),
-								static_cast<int>(desc.rect.h),
-								nullptr, nullptr, hInstance, this);
+	_hwnd = ::CreateWindowEx(0, clsName, clsName, dwStyle,
+							 static_cast<int>(desc.rect.x),
+							 static_cast<int>(desc.rect.y),
+							 static_cast<int>(desc.rect.w),
+							 static_cast<int>(desc.rect.h),
+							 nullptr, nullptr, hInstance, this);
 
 	if (!_hwnd) {
 		throw SGE_ERROR("cannot create native window");
@@ -63,7 +62,7 @@ LRESULT CALLBACK PW5_MyHelloWin::s_wndProc(HWND hwnd, UINT message, WPARAM wPara
 			TempStringW s;
 			Vec2i from, to;
 
-			ScopedHDC hdc(hwnd);
+			ScopedGetDC hdc(hwnd);
 			hdc.rectangle(x, y, x + 10, y + 10);
 			hdc.textOut(x, y, L"MyHelloWin");
 
@@ -102,11 +101,10 @@ LRESULT CALLBACK PW5_MyHelloWin::s_wndProc(HWND hwnd, UINT message, WPARAM wPara
 			_stprintf_s(text, 128, L"The display monitor resolution is %ix%i.", sx, sy);
 			DrawText(ps, text, -1, &rect, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
 		} break;
-
 	} // end switch
     return DefWindowProc (hwnd, message, wParam, lParam);
 }
 
 }
 
-#endif // SGE_OS_WINDOWS
+#endif

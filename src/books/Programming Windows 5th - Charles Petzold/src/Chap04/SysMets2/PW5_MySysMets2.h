@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../PW5_Chap04_Common.h"
-
 #if SGE_OS_WINDOWS
+
+#include "../PW5_Chap04_Common.h"
 
 namespace sge {
 
@@ -13,6 +13,7 @@ protected:
 	virtual void onCreate(CreateDesc& desc) override;
 	virtual void onDraw() override;
 private:
+
 	static LRESULT CALLBACK s_wndProc(HWND, UINT, WPARAM, LPARAM);
 	static WNDPROC s_defaultWndProc;
 
@@ -22,11 +23,11 @@ private:
 
 	void _onScrollV(int y);
 
-	int _cxChar;
-	int _cyChar;
-	int _cxCaps;
-	int _viewportH;
-	int _scrollPosV;
+	int  _cxChar;
+	int  _cyChar;
+	int  _cxCaps;
+	int  _viewportH;
+	int  _scrollPosV;
 };
 
 }

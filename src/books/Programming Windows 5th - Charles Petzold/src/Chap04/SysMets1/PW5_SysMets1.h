@@ -1,8 +1,7 @@
 #pragma once
+#if SGE_OS_WINDOWS
 
 #include "../PW5_Chap04_Common.h"
-
-#if SGE_OS_WINDOWS
 
 namespace sge {
 

@@ -1,6 +1,6 @@
-#include "PW5_MyTextMetrics.h"
-
 #if SGE_OS_WINDOWS
+
+#include "PW5_MyTextMetrics.h"
 
 namespace sge {
 /*
@@ -21,7 +21,8 @@ namespace sge {
 */
 
 void PW5_MyTextMetrics::onDraw() {
-	ScopedHDC hdc(_hwnd);
+	ScopedGetDC hdc(_hwnd);
+
 	::TEXTMETRIC tm;
 	GetTextMetrics(hdc, &tm);
 

@@ -1,6 +1,6 @@
-#include "PW5_MySysMets3.h"
-
 #if SGE_OS_WINDOWS
+
+#include "PW5_MySysMets3.h"
 
 namespace sge {
 
@@ -8,15 +8,16 @@ void PW5_MySysMets3::onCreate(CreateDesc& desc) {
 	desc.ownDC = true;
 	desc.hScrollBar = true;
 	desc.vScrollBar = true;
+
 	Base::onCreate(desc);
 }
 
 void PW5_MySysMets3::onShow() {
-	ScopedHDC hdc(_hwnd);
+	ScopedGetDC hdc(_hwnd);
 	auto tm = hdc.createTextMetrics();
-	_cxChar = tm->aveCharWidth();
-	_cxCaps = tm->aveUpperCaseCharWidth();
-	_cyChar = tm->aveCharHeight();
+	_cxChar = tm.aveCharWidth;
+	_cxCaps = tm.aveCharWidthUpperCase;
+	_cyChar = tm.aveCharHeight;
 
 	_hScrollInfo->setStep(_cxChar);
 	_vScrollInfo->setStep(_cyChar);
@@ -42,7 +43,7 @@ void PW5_MySysMets3::onUIScrollBarEvent(UIScrollBarEvent& ev) {
 }
 
 void PW5_MySysMets3::onDraw() {
-	ScopedHDC hdc(_hwnd);
+	ScopedGetDC hdc(_hwnd);
 
 	int NUMLINES = static_cast<int>(g_sysmetricsCount);
 	const auto& sysmetrics = g_sysmetrics;

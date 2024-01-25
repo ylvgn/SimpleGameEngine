@@ -15,6 +15,6 @@ struct MySysMetrics {
 extern MySysMetrics g_sysmetrics[];
 extern size_t		g_sysmetricsCount;
 
-#endif
-
 }
+
+#endif

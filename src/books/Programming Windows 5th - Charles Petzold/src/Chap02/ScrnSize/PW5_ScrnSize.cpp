@@ -1,6 +1,5 @@
-#include "PW5_ScrnSize.h"
-
 #if SGE_OS_WINDOWS
+#include "PW5_ScrnSize.h"
 
 namespace sge {
 
@@ -35,12 +34,12 @@ float PW5_ScrnSize::s_getMonitorScalingRatio(HMONITOR monitor) {
 	MONITORINFOEX info;
 	g_bzero(info);
 	info.cbSize = sizeof(MONITORINFOEX);
-	GetMonitorInfo(monitor, &info);
+	::GetMonitorInfo(monitor, &info);
 
 	DEVMODE devmode;
 	g_bzero(devmode);
 	devmode.dmSize = sizeof(DEVMODE);
-	EnumDisplaySettings(info.szDevice, ENUM_CURRENT_SETTINGS, &devmode);
+	::EnumDisplaySettings(info.szDevice, ENUM_CURRENT_SETTINGS, &devmode);
 	return static_cast<float>(devmode.dmPelsWidth) / (info.rcMonitor.right - info.rcMonitor.left);
 }
 

@@ -1,6 +1,6 @@
-#include "PW5_HelloMsg.h"
-
 #if SGE_OS_WINDOWS
+
+#include "PW5_HelloMsg.h"
 
 namespace sge {
 

@@ -1,9 +1,7 @@
 #pragma once
 
 #include "PW5_Common.h"
-#include "PW5_Common_Win32.h"
-
-#include <sge_core/native_ui/NativeUI.h>
+#include "PW5_Win32Util.h"
 
 namespace sge {
 

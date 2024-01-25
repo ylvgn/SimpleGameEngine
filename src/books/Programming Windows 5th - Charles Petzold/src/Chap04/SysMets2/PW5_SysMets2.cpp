@@ -5,21 +5,21 @@
 namespace sge {
 
 void PW5_SysMets2::onCreate(CreateDesc& desc) {
-	auto hInstance = GetModuleHandle(nullptr);
-	constexpr const static wchar_t* clsName = L"PW5_SysMets2";
+	const wchar_t* clsName = L"PW5_SysMets2";
+	auto hInstance = ::GetModuleHandle(nullptr);
 
-	auto wc = g_createWndClass(hInstance, clsName, s_wndProc);
+	auto wc = PW5_Win32Util::createWndClass(hInstance, clsName, s_wndProc);
 	wc.hbrBackground = static_cast<HBRUSH>(::GetStockObject(WHITE_BRUSH)); // SetScrollPos will redraw using this brush to erase bg
-	g_registerWndClass(wc);
+	PW5_Win32Util::registerWndClass(wc);
 
-	DWORD dwStyle = WS_OVERLAPPEDWINDOW | WS_VSCROLL;
+	auto dwStyle = WS_OVERLAPPEDWINDOW | WS_VSCROLL;
 
-	_hwnd = CreateWindowEx( 0, clsName, clsName, dwStyle,
-							static_cast<int>(desc.rect.x),
-							static_cast<int>(desc.rect.y),
-							static_cast<int>(desc.rect.w),
-							static_cast<int>(desc.rect.h),
-							nullptr, nullptr, hInstance, nullptr);
+	_hwnd = ::CreateWindowEx(0, clsName, clsName, dwStyle,
+							 static_cast<int>(desc.rect.x),
+							 static_cast<int>(desc.rect.y),
+							 static_cast<int>(desc.rect.w),
+							 static_cast<int>(desc.rect.h),
+							 nullptr, nullptr, hInstance, nullptr);
 
 	if (!_hwnd) {
 		throw SGE_ERROR("cannot create native window");
@@ -43,9 +43,9 @@ LRESULT CALLBACK PW5_SysMets2::s_wndProc (HWND hwnd, UINT message, WPARAM wParam
 
 		case WM_CREATE: {
 			TextMetrics tm(hwnd);
-			s_cxChar = tm.aveCharWidth();
-			s_cxCaps = tm.aveUpperCaseCharWidth();
-			s_cyChar = tm.aveCharHeight();
+			s_cxChar = tm.aveCharWidth;
+			s_cxCaps = tm.aveCharWidthUpperCase;
+			s_cyChar = tm.aveCharHeight;
 
 			// SetScrollRange:
 				// When the thumb is at the top(or left) of the scroll bar, the position of the

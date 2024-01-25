@@ -1,22 +1,24 @@
-#include "PW5_SysMets1.h"
-
 #if SGE_OS_WINDOWS
+
+#include "PW5_SysMets1.h"
 
 namespace sge {
 
 void PW5_SysMets1::onCreate(CreateDesc& desc) {
-	auto hInstance = GetModuleHandle(nullptr);
-	constexpr const static wchar_t* clsName = L"PW5_SysMets1";
+	const wchar_t* clsName = L"PW5_SysMets1";
+	auto hInstance = ::GetModuleHandle(nullptr);
 
-	auto wc = g_createWndClass(hInstance, clsName, s_wndProc);
-	g_registerWndClass(wc);
+	auto wc = PW5_Win32Util::createWndClass(hInstance, clsName, s_wndProc);
+	PW5_Win32Util::registerWndClass(wc);
 
-	_hwnd = CreateWindowEx( 0, clsName, clsName, WS_OVERLAPPEDWINDOW,
-							static_cast<int>(desc.rect.x),
-							static_cast<int>(desc.rect.y),
-							static_cast<int>(desc.rect.w),
-							static_cast<int>(desc.rect.h),
-							nullptr, nullptr, hInstance, nullptr);
+	auto dwStyle = WS_OVERLAPPEDWINDOW;
+
+	_hwnd = ::CreateWindowEx(0, clsName, clsName, dwStyle,
+							 static_cast<int>(desc.rect.x),
+							 static_cast<int>(desc.rect.y),
+							 static_cast<int>(desc.rect.w),
+							 static_cast<int>(desc.rect.h),
+							 nullptr, nullptr, hInstance, nullptr);
 
 	if (!_hwnd) {
 		throw SGE_ERROR("cannot create native window");
@@ -36,9 +38,9 @@ LRESULT CALLBACK PW5_SysMets1::s_wndProc(HWND hwnd, UINT message, WPARAM wParam,
 
 		case WM_CREATE: {
 			TextMetrics tm(hwnd);
-			cxChar = tm.aveCharWidth();
-			cxCaps = tm.aveUpperCaseCharWidth();
-			cyChar = tm.aveCharHeight();
+			cxChar = tm.aveCharWidth;
+			cxCaps = tm.aveCharWidthUpperCase;
+			cyChar = tm.aveCharHeight;
 		} break;
 
 		case WM_PAINT: {

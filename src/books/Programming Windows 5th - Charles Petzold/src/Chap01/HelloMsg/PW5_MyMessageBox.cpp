@@ -1,6 +1,6 @@
-#include "PW5_MyMessageBox.h"
-
 #if SGE_OS_WINDOWS
+
+#include "PW5_MyMessageBox.h"
 
 namespace sge {
 

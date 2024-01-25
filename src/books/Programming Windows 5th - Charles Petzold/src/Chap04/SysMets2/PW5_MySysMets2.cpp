@@ -1,6 +1,6 @@
-#include "PW5_MySysMets2.h"
-
 #if SGE_OS_WINDOWS
+
+#include "PW5_MySysMets2.h"
 
 namespace sge {
 
@@ -16,11 +16,11 @@ void PW5_MySysMets2::onCreate(CreateDesc& desc) {
 	const auto& NUMLINES = g_sysmetricsCount;
 
 	{
-		ScopedHDC hdc(_hwnd);
+		ScopedGetDC hdc(_hwnd);
 		auto tm = hdc.createTextMetrics();
-		_cxChar = tm->aveCharWidth();
-		_cxCaps = tm->aveUpperCaseCharWidth();
-		_cyChar = tm->aveCharHeight();
+		_cxChar = tm.aveCharWidth;
+		_cxCaps = tm.aveCharWidthUpperCase;
+		_cyChar = tm.aveCharHeight;
 	}
 
 	::RECT rc;
@@ -35,7 +35,7 @@ void PW5_MySysMets2::onCreate(CreateDesc& desc) {
 }
 
 void PW5_MySysMets2::onDraw() {
-	ScopedHDC hdc(_hwnd);
+	ScopedGetDC hdc(_hwnd);
 	int NUMLINES = static_cast<int>(g_sysmetricsCount);
 	const auto& sysmetrics = g_sysmetrics;
 

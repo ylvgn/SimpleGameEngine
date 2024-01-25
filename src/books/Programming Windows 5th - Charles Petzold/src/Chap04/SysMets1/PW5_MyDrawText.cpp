@@ -1,22 +1,24 @@
-#include "PW5_MyDrawText.h"
-
 #if SGE_OS_WINDOWS
+
+#include "PW5_MyDrawText.h"
 
 namespace sge {
 
 void PW5_MyDrawText::onCreate(CreateDesc& desc) {
-	auto hInstance = GetModuleHandle(nullptr);
-	constexpr const static wchar_t* clsName = L"PW5_MyDrawText";
+	auto hInstance = ::GetModuleHandle(nullptr);
+	const wchar_t* clsName = L"PW5_MyDrawText";
 
-	auto wc = g_createWndClass(hInstance, clsName, s_wndProc);
-	g_registerWndClass(wc);
+	auto wc = PW5_Win32Util::createWndClass(hInstance, clsName, s_wndProc);
+	PW5_Win32Util::registerWndClass(wc);
 
-	_hwnd = CreateWindowEx( 0, clsName, clsName, WS_OVERLAPPEDWINDOW,
-							static_cast<int>(desc.rect.x),
-							static_cast<int>(desc.rect.y),
-							static_cast<int>(desc.rect.w),
-							static_cast<int>(desc.rect.h),
-							nullptr, nullptr, hInstance, nullptr);
+	auto dwStyle = WS_OVERLAPPEDWINDOW;
+
+	_hwnd = ::CreateWindowEx(0, clsName, clsName, dwStyle,
+							 static_cast<int>(desc.rect.x),
+							 static_cast<int>(desc.rect.y),
+							 static_cast<int>(desc.rect.w),
+							 static_cast<int>(desc.rect.h),
+							 nullptr, nullptr, hInstance, nullptr);
 
 	if (!_hwnd) {
 		throw SGE_ERROR("cannot create native window");
@@ -42,18 +44,18 @@ LRESULT CALLBACK PW5_MyDrawText::s_wndProc(HWND hwnd, UINT message, WPARAM wPara
 			::SelectObject(ps, brush);
 			ps.rectangle(rc);
 
-			g_drawText(ps, &rc, L"DT\r\nLEFT", DT_LEFT | DT_WORDBREAK);
-			g_drawText(ps, &rc, L"DT\r\nCENTER", DT_CENTER | DT_WORDBREAK);
-			g_drawText(ps, &rc, L"DT\r\nRIGHT", DT_RIGHT | DT_WORDBREAK);
+			GDI::drawText(ps, &rc, L"DT\r\nLEFT", DT_LEFT | DT_WORDBREAK);
+			GDI::drawText(ps, &rc, L"DT\r\nCENTER", DT_CENTER | DT_WORDBREAK);
+			GDI::drawText(ps, &rc, L"DT\r\nRIGHT", DT_RIGHT | DT_WORDBREAK);
 
-			g_drawText(ps, &rc, L"DT_LEFT | DT_VCENTER", DT_LEFT | DT_VCENTER | DT_SINGLELINE);
-			g_drawText(ps, &rc, L"DT_CENTER | DT_VCENTER", DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-			g_drawText(ps, &rc, L"DT_RIGHT | DT_VCENTER", DT_RIGHT | DT_VCENTER | DT_SINGLELINE);
+			GDI::drawText(ps, &rc, L"DT_LEFT | DT_VCENTER", DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+			GDI::drawText(ps, &rc, L"DT_CENTER | DT_VCENTER", DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+			GDI::drawText(ps, &rc, L"DT_RIGHT | DT_VCENTER", DT_RIGHT | DT_VCENTER | DT_SINGLELINE);
 
-			g_drawText(ps, &rc, L"DT_LEFT | DT_BOTTOM", DT_LEFT | DT_BOTTOM | DT_SINGLELINE);
-			g_drawText(ps, &rc, L"DT_CENTER | DT_BOTTOM ", DT_CENTER | DT_BOTTOM | DT_SINGLELINE);
-			g_drawText(ps, &rc, L"DT_RIGHT | DT_BOTTOM", DT_RIGHT | DT_BOTTOM | DT_SINGLELINE);
-			
+			GDI::drawText(ps, &rc, L"DT_LEFT | DT_BOTTOM", DT_LEFT | DT_BOTTOM | DT_SINGLELINE);
+			GDI::drawText(ps, &rc, L"DT_CENTER | DT_BOTTOM ", DT_CENTER | DT_BOTTOM | DT_SINGLELINE);
+			GDI::drawText(ps, &rc, L"DT_RIGHT | DT_BOTTOM", DT_RIGHT | DT_BOTTOM | DT_SINGLELINE);
+
 			::DeleteObject(brush);
 		} break;
 	} // switch
