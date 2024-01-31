@@ -40,10 +40,7 @@ void TextMetrics::_set(const TEXTMETRIC& tm) {
 	aveCharWidthUpperCase   = isFixedPitch ? aveCharWidth : static_cast<int>(1.5f * aveCharWidth);
 }
 
-#if 0
-#pragma mark ========= Scoped HDC ============
-#endif
-UINT ScopedHDC_Base::setTextAlign(TextAlignment align) {
+UINT MyHDC::setTextAlign(TextAlignment align) {
 	// https://github.com/MicrosoftDocs/win32/blob/docs/desktop-src/gdi/text-formatting-attributes.md
 	int res = 0;
 	int bits = static_cast<int>(align);

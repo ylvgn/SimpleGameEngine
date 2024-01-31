@@ -109,16 +109,16 @@ LRESULT CALLBACK PW5_MyHelloWin::s_wndProc(HWND hwnd, UINT message, WPARAM wPara
 			ScopedPaintStruct ps(hwnd);
 			HDC hdc = ps.hdc();
 
-			::RECT rect;
-			::GetClientRect(hwnd, &rect);
+			::RECT rc;
+			::GetClientRect(hwnd, &rc);
 
 			{
-				auto brush = CreateSolidBrush(RGB(sRed, 0, 0));
 				sRed += 10;
 				sRed = sRed % 256;
 
-				ScopedSelectObject sObj(hdc, brush);
-				auto& rc = ps.rcPaint();
+				auto brush = CreateSolidBrush(RGB(sRed, 0, 0));
+				::SelectObject(hdc, brush);
+
 				int right = rc.left + 20;
 				int bottom = rc.top + 20;
 				::Rectangle(hdc, rc.left, rc.top, right, bottom);
@@ -129,6 +129,7 @@ LRESULT CALLBACK PW5_MyHelloWin::s_wndProc(HWND hwnd, UINT message, WPARAM wPara
 				wsprintf(buf, L"%02d:%02d:%02d", st.wHour, st.wMinute, st.wSecond);
 
 				::TextOut(hdc, right, rc.top + 5, buf, static_cast<int>(wcslen(buf)));
+				::DeleteObject(brush);
 			}
 
 			{
@@ -136,7 +137,7 @@ LRESULT CALLBACK PW5_MyHelloWin::s_wndProc(HWND hwnd, UINT message, WPARAM wPara
 				int sy = ::GetSystemMetrics(SM_CYSCREEN);
 				TCHAR text[128];
 				_stprintf_s(text, 128, L"The display monitor resolution is %ix%i.", sx, sy);
-				::DrawText(ps, text, -1, &rect, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
+				::DrawText(ps, text, -1, &rc, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
 			}
 		} break;
 	} // end switch

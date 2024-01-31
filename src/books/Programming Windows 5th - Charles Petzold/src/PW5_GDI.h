@@ -107,16 +107,13 @@ private:
 	void	_set(const TEXTMETRIC& tm);
 };
 
-#if 0
-#pragma mark ========= Scoped HDC ============
-#endif
-class ScopedHDC_Base : public NonCopyable {
+class MyHDC : public NonCopyable {
 public:
-	ScopedHDC_Base(HWND& hwnd)
+	MyHDC(HWND& hwnd)
 		: _hwnd(hwnd)
 		, _hdc(nullptr) {}
 
-	virtual ~ScopedHDC_Base() = default;
+	virtual ~MyHDC() = default;
 
 	void textOut(int x, int y, const wchar_t* szText) const { GDI::textOut(_hdc, x, y, szText); }
 
@@ -151,8 +148,11 @@ protected:
 	HDC		_hdc;
 };
 
-class ScopedPaintStruct : public ScopedHDC_Base {
-	using Base = ScopedHDC_Base;
+#if 0
+#pragma mark ========= Scoped HDC ============
+#endif
+class ScopedPaintStruct : public MyHDC {
+	using Base = MyHDC;
 public:
 	ScopedPaintStruct(HWND& hwnd) : Base(hwnd) { _hdc = ::BeginPaint(hwnd, &_ps); }
 	~ScopedPaintStruct() { ::EndPaint(_hwnd, &_ps); }
@@ -165,19 +165,11 @@ private:
 	::PAINTSTRUCT _ps;
 };
 
-class ScopedGetDC : public ScopedHDC_Base {
-	using Base = ScopedHDC_Base;
+class ScopedGetDC : public MyHDC {
+	using Base = MyHDC;
 public:
 	ScopedGetDC(HWND& hwnd) : Base(hwnd) { _hdc = ::GetDC(hwnd); }
 	~ScopedGetDC() { ::ReleaseDC(_hwnd, _hdc); }
-};
-
-class ScopedSelectObject : public NonCopyable {
-public:
-	ScopedSelectObject(HDC hdc, HGDIOBJ obj) { _obj = ::SelectObject(hdc, obj); }
-	~ScopedSelectObject() { if (_obj) ::DeleteObject(_obj); }
-private:
-	HGDIOBJ _obj = nullptr;
 };
 
 }
