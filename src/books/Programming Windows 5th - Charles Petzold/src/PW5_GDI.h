@@ -157,6 +157,7 @@ public:
 	ScopedPaintStruct(HWND& hwnd) : Base(hwnd) { _hdc = ::BeginPaint(hwnd, &_ps); }
 	~ScopedPaintStruct() { ::EndPaint(_hwnd, &_ps); }
 
+			HDC		hdc()		const { return _ps.hdc; }
 			bool	fErase()	const { return _ps.fErase; }
 	const	::RECT&	rcPaint()	const { return _ps.rcPaint; }
 
@@ -169,6 +170,14 @@ class ScopedGetDC : public ScopedHDC_Base {
 public:
 	ScopedGetDC(HWND& hwnd) : Base(hwnd) { _hdc = ::GetDC(hwnd); }
 	~ScopedGetDC() { ::ReleaseDC(_hwnd, _hdc); }
+};
+
+class ScopedSelectObject : public NonCopyable {
+public:
+	ScopedSelectObject(HDC hdc, HGDIOBJ obj) { _obj = ::SelectObject(hdc, obj); }
+	~ScopedSelectObject() { if (_obj) ::DeleteObject(_obj); }
+private:
+	HGDIOBJ _obj = nullptr;
 };
 
 }

@@ -34,7 +34,22 @@ LRESULT CALLBACK PW5_MyHelloWin::s_wndProc(HWND hwnd, UINT message, WPARAM wPara
 	// LWORD (16 bit) L low-order,  [ 0~15] in LPARAM
 	// HWORD (16 bit) H high-order, [16~31] in LPARAM
 
+	static const int sTimerId = 9;
+	static int sRed = 0;
+
 	switch (message) {
+
+		case WM_CREATE: {
+			int elapse = 100; // us
+			SetTimer(hwnd, sTimerId, elapse, nullptr);
+		}break;
+
+		case WM_TIMER: {
+			SGE_LOG("wParam={}", wParam);
+			if (wParam == sTimerId) { // better to set as enum
+				InvalidateRect(hwnd, nullptr, true);
+			}
+		}break;
 
 		case WM_DESTROY:
 			::PostQuitMessage(0);
@@ -91,15 +106,38 @@ LRESULT CALLBACK PW5_MyHelloWin::s_wndProc(HWND hwnd, UINT message, WPARAM wPara
 		}
 
 		case WM_PAINT: {
+			ScopedPaintStruct ps(hwnd);
+			HDC hdc = ps.hdc();
+
 			::RECT rect;
 			::GetClientRect(hwnd, &rect);
-			ScopedPaintStruct ps(hwnd);
-			int sx = ::GetSystemMetrics(SM_CXSCREEN);
-			int sy = ::GetSystemMetrics(SM_CYSCREEN);
 
-			TCHAR text[128];
-			_stprintf_s(text, 128, L"The display monitor resolution is %ix%i.", sx, sy);
-			DrawText(ps, text, -1, &rect, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
+			{
+				auto brush = CreateSolidBrush(RGB(sRed, 0, 0));
+				sRed += 10;
+				sRed = sRed % 256;
+
+				ScopedSelectObject sObj(hdc, brush);
+				auto& rc = ps.rcPaint();
+				int right = rc.left + 20;
+				int bottom = rc.top + 20;
+				::Rectangle(hdc, rc.left, rc.top, right, bottom);
+
+				wchar_t buf[64];
+				SYSTEMTIME st;
+				::GetSystemTime(&st);
+				wsprintf(buf, L"%02d:%02d:%02d", st.wHour, st.wMinute, st.wSecond);
+
+				::TextOut(hdc, right, rc.top + 5, buf, static_cast<int>(wcslen(buf)));
+			}
+
+			{
+				int sx = ::GetSystemMetrics(SM_CXSCREEN);
+				int sy = ::GetSystemMetrics(SM_CYSCREEN);
+				TCHAR text[128];
+				_stprintf_s(text, 128, L"The display monitor resolution is %ix%i.", sx, sy);
+				::DrawText(ps, text, -1, &rect, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
+			}
 		} break;
 	} // end switch
     return DefWindowProc (hwnd, message, wParam, lParam);
