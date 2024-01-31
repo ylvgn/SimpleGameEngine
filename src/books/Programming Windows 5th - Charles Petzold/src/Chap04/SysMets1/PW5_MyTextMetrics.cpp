@@ -37,7 +37,7 @@ void PW5_MyTextMetrics::onDraw() {
 		// For a variable−width font, cxCaps is set to 150 percent of cxChar.
 		cxCaps = static_cast<int>(1.5f * cxChar);
 	}
-	hdc.textOutf(300, 300, "cxChar={}, cyChar={}, cxCaps={}", cxChar, cyChar, cxCaps);
+	hdc.Fmt_textOut(300, 300, "cxChar={}, cyChar={}, cxCaps={}", cxChar, cyChar, cxCaps);
 }
 
 }

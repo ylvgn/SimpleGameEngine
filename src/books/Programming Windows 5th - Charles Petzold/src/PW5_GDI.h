@@ -118,7 +118,7 @@ public:
 	void textOut(int x, int y, const wchar_t* szText) const { GDI::textOut(_hdc, x, y, szText); }
 
 	template<class... Args>
-	void textOutf(int x, int y, Args&&... args) const {
+	void Fmt_textOut(int x, int y, Args&&... args) const {
 		TempStringW tmp;
 		FmtTo(tmp, SGE_FORWARD(args)...);
 		::TextOut(_hdc, x, y, tmp.c_str(), static_cast<int>(tmp.size()));

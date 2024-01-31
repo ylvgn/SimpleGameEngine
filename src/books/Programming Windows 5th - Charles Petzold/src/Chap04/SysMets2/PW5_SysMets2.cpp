@@ -137,7 +137,7 @@ LRESULT CALLBACK PW5_SysMets2::s_wndProc (HWND hwnd, UINT message, WPARAM wParam
 
 				::SetTextAlign(ps, TA_RIGHT | TA_TOP);
 				x += s_szDescMaxWidth;
-				ps.textOutf(x, y, "{:5}", ::GetSystemMetrics(sysmetrics[i].iIndex));
+				ps.Fmt_textOut(x, y, "{:5}", ::GetSystemMetrics(sysmetrics[i].iIndex));
 
 				::SetTextAlign(ps, TA_LEFT | TA_TOP); // reset text align to left-top(default), 
 			}

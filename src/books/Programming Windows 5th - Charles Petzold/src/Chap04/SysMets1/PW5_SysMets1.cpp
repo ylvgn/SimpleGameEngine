@@ -77,7 +77,7 @@ LRESULT CALLBACK PW5_SysMets1::s_wndProc(HWND hwnd, UINT message, WPARAM wParam,
 				::SetTextAlign(ps, TA_RIGHT | TA_TOP);
 
 				x += 40 * cxChar;
-				ps.textOutf(x, y, "{:5}", ::GetSystemMetrics(sysmetrics[i].iIndex)); //g_textOutf(ps.hdc(), x, y, L"%5d", GetSystemMetrics(sysmetrics[i].iIndex));
+				ps.Fmt_textOut(x, y, "{:5}", ::GetSystemMetrics(sysmetrics[i].iIndex)); //g_textOutf(ps.hdc(), x, y, L"%5d", GetSystemMetrics(sysmetrics[i].iIndex));
 				::SetTextAlign(ps, TA_LEFT | TA_TOP);
 			}
 			return 0;

@@ -8,6 +8,7 @@
 /* Chap03 CreateWindow and WndProc */
 #include "Chap03/HelloWin/PW5_HelloWin.h"
 #include "Chap03/HelloWin/PW5_MyHelloWin.h"
+#include "Chap03/HelloWin/PW5_MyMineSweeper.h"
 /* Chap04 Client Rect and Scroll Bar */
 #include "Chap04/SysMets1/PW5_MyDrawText.h"
 #include "Chap04/SysMets1/PW5_MyTextMetrics.h"
@@ -21,7 +22,7 @@ namespace sge {
 
 class ProgWin5App : public NativeUIApp {
 	using Base = NativeUIApp;
-	using ProgWin5MainWin = PW5_MyHelloWin;
+	using ProgWin5MainWin = PW5_MyMineSweeper;
 protected:
 	virtual void onCreate(CreateDesc& desc) override {
 		{ // set working dir

@@ -194,7 +194,7 @@ LRESULT CALLBACK PW5_SysMets3::s_wndProc (HWND hwnd, UINT message, WPARAM wParam
 
 				::SetTextAlign(ps, TA_RIGHT | TA_TOP);
 				x += 40 * cxChar;
-				ps.textOutf(x, y, "{:5}", ::GetSystemMetrics(sysmetrics[i].iIndex));
+				ps.Fmt_textOut(x, y, "{:5}", ::GetSystemMetrics(sysmetrics[i].iIndex));
 
 				::SetTextAlign(ps, TA_LEFT | TA_TOP);
 			}
