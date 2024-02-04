@@ -83,7 +83,6 @@ public:
 
 protected:
 	virtual void onCreate(CreateDesc& desc) {}
-	virtual void onShow() {}
 	virtual void onSetWindowTitle(StrView title) {}
 	virtual void onSetWindowSize(const Rect2i& xywh) {};
 	virtual void onClientRectChanged(const Rect2f& rc) { _clientRect = rc; }

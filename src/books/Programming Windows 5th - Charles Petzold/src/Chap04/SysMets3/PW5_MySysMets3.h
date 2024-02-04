@@ -11,7 +11,6 @@ class PW5_MySysMets3 : public PW5_NativeUIWindow {
 	using This = PW5_MySysMets3;
 protected:
 	virtual void onCreate(CreateDesc& desc) override;
-	virtual void onShow() override;
 	virtual void onClientRectChanged(const Rect2f& rc) override;
 	virtual void onUIScrollBarEvent(UIScrollBarEvent& ev) override;
 	virtual void onDraw() override;

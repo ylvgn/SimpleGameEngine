@@ -10,9 +10,7 @@ void PW5_MySysMets3::onCreate(CreateDesc& desc) {
 	desc.vScrollBar = true;
 
 	Base::onCreate(desc);
-}
 
-void PW5_MySysMets3::onShow() {
 	ScopedGetDC hdc(_hwnd);
 	auto tm = hdc.createTextMetrics();
 	_cxChar = tm.aveCharWidth;
