@@ -51,14 +51,14 @@ void PW5_MySysMets2::onDraw() {
 		int y = _cyChar * i - _scrollPosV;
 
 		StrViewW s(sysmetrics[i].szLabel);
-		hdc.Fmt_textOut(x, y, "{:003} {}", i, s);
+		hdc.Fmt_textOut(x, y, "{:03d} {}", i, s);
 
 		x += 24 * _cxCaps;
 		hdc.textOut(x, y, sysmetrics[i].szDesc);
 		::SetTextAlign(hdc, TA_RIGHT | TA_TOP);
 
 		x += 40 * _cxChar;
-		hdc.Fmt_textOut(x, y, "{:5}", ::GetSystemMetrics(sysmetrics[i].iIndex));
+		hdc.Fmt_textOut(x, y, "{:5d}", ::GetSystemMetrics(sysmetrics[i].iIndex));
 		::SetTextAlign(hdc, TA_LEFT | TA_TOP);
 	}
 }

@@ -65,14 +65,14 @@ void PW5_MySysMets3::onDraw() {
 		int y = _cyChar * i - offsetY;
 
 		StrViewW label(sysmetrics[i].szLabel);
-		hdc.Fmt_textOut(x, y, "{:003} {}", i, label);
+		hdc.Fmt_textOut(x, y, "{:03d} {}", i, label);
 
 		x += 24 * _cxCaps;
 		hdc.textOut(x, y, sysmetrics[i].szDesc);
 
 		hdc.setTextAlign(TextAlignment::Right | TextAlignment::Top);
 		x += 40 * _cxChar;
-		hdc.Fmt_textOut(x, y, "{:5}", GetSystemMetrics(sysmetrics[i].iIndex));
+		hdc.Fmt_textOut(x, y, "{:5d}", GetSystemMetrics(sysmetrics[i].iIndex));
 
 		hdc.setTextAlign(TextAlignment::Left | TextAlignment::Top); // reset text align
 	}
