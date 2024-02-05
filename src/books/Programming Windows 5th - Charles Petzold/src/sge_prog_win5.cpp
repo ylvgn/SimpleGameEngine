@@ -17,12 +17,14 @@
 #include "Chap04/SysMets2/PW5_MySysMets2.h"
 #include "Chap04/SysMets3/PW5_SysMets3.h"
 #include "Chap04/SysMets3/PW5_MySysMets3.h"
+/* Chap04 Device Context */
+#include "Chap05/DevCaps1/PW5_DevCaps1.h"
 
 namespace sge {
 
 class ProgWin5App : public NativeUIApp {
 	using Base = NativeUIApp;
-	using ProgWin5MainWin = PW5_MyMineSweeper;
+	using ProgWin5MainWin = PW5_DevCaps1;
 protected:
 	virtual void onCreate(CreateDesc& desc) override {
 		{ // set working dir
@@ -42,7 +44,6 @@ protected:
 			winDesc.isMainWindow = true;
 			winDesc.rect = { 10, 10, 1500, 900 };
 			_mainWin.create(winDesc);
-			_mainWin.setWindowTitle(SGE_STRINGIFY(PW5_, SGE_E));
 		}
 	}
 

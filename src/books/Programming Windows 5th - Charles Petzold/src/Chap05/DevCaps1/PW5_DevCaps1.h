@@ -2,13 +2,13 @@
 
 #if SGE_OS_WINDOWS
 
-#include "../PW5_Chap04_Common.h"
+#include "../../Chap04/PW5_Chap04_Common.h"
 
 namespace sge {
 
-class PW5_MySysMets3 : public PW5_MyDefineMarkInfoWindow {
+class PW5_DevCaps1 : public PW5_MyDefineMarkInfoWindow {
+	using This = PW5_DevCaps1;
 	using Base = PW5_MyDefineMarkInfoWindow;
-	using This = PW5_MySysMets3;
 protected:
 	virtual void onCreate(CreateDesc& desc) override;
 };
