@@ -30,8 +30,6 @@ void PW5_SysMets3::onCreate(CreateDesc& desc) {
 }
 
 LRESULT CALLBACK PW5_SysMets3::s_wndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
-	static int cxChar, cxCaps, cyChar, cxClient, cyClient, iMaxWidth;
-
 	/*
 		typedef struct tagSCROLLINFO
 		{
@@ -49,8 +47,11 @@ LRESULT CALLBACK PW5_SysMets3::s_wndProc (HWND hwnd, UINT message, WPARAM wParam
 	static ScrollInfo siV;
 	static ScrollInfo siH;
 
-	const auto& sysmetrics = g_sysmetrics;
-	const auto& NUMLINES = static_cast<int>(g_sysmetricsCount);
+	static int cxChar, cxCaps, cyChar, cxClient, cyClient, iMaxWidth;
+
+	auto* dm				= MySysmetricsDM::s_getMarkOf();
+	const auto& sysmetrics	= dm->data;
+	auto NUMLINES			= static_cast<int>(dm->dataSize);
 
 	switch (message) {
 

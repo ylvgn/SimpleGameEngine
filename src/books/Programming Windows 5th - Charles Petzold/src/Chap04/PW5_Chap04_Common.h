@@ -6,14 +6,7 @@
 
 namespace sge {
 
-struct MySysMetrics {
-     int		iIndex;
-     wchar_t*	szLabel;
-	 wchar_t*	szDesc;
-};
-
-extern MySysMetrics g_sysmetrics[];
-extern size_t		g_sysmetricsCount;
+SGE_DEFINE_MARK_STRUCT(MySysmetricsDM)
 
 }
 

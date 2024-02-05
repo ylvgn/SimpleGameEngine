@@ -1,6 +1,6 @@
-#include "PW5_HelloWin.h"
-
 #if SGE_OS_WINDOWS
+
+#include "PW5_HelloWin.h"
 
 #pragma comment(lib, "Winmm.lib") // Windows multimedia
 

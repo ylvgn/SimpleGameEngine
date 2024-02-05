@@ -44,8 +44,9 @@ LRESULT CALLBACK PW5_SysMets1::s_wndProc(HWND hwnd, UINT message, WPARAM wParam,
 		} break;
 
 		case WM_PAINT: {
-			const auto& sysmetrics	= g_sysmetrics;
-			const auto& NUMLINES	= g_sysmetricsCount;
+			auto* dm				= MySysmetricsDM::s_getMarkOf();
+			const auto& sysmetrics	= dm->data;
+			auto NUMLINES			= static_cast<int>(dm->dataSize);
 
 			/*
 				typedef struct tagPAINTSTRUCT {

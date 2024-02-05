@@ -109,7 +109,7 @@ private:
 
 class MyHDC : public NonCopyable {
 public:
-	MyHDC(HWND& hwnd)
+	MyHDC(HWND hwnd)
 		: _hwnd(hwnd)
 		, _hdc(nullptr) {}
 
@@ -154,11 +154,14 @@ protected:
 class ScopedPaintStruct : public MyHDC {
 	using Base = MyHDC;
 public:
-	ScopedPaintStruct(HWND& hwnd) : Base(hwnd) { _hdc = ::BeginPaint(hwnd, &_ps); }
+	ScopedPaintStruct(HWND& hwnd) : Base(hwnd) {
+		_hdc = ::BeginPaint(hwnd, &_ps);
+	}
+
 	~ScopedPaintStruct() { ::EndPaint(_hwnd, &_ps); }
 
-			HDC		hdc()		const { return _ps.hdc; }
-			bool	fErase()	const { return _ps.fErase; }
+			HDC		hdc()		const { return _ps.hdc;		}
+			bool	fErase()	const { return _ps.fErase;	}
 	const	::RECT&	rcPaint()	const { return _ps.rcPaint; }
 
 private:
@@ -168,8 +171,59 @@ private:
 class ScopedGetDC : public MyHDC {
 	using Base = MyHDC;
 public:
-	ScopedGetDC(HWND& hwnd) : Base(hwnd) { _hdc = ::GetDC(hwnd); }
+	ScopedGetDC(HWND& hwnd) : Base(hwnd) {
+		_hdc = ::GetDC(hwnd);
+	}
+
 	~ScopedGetDC() { ::ReleaseDC(_hwnd, _hdc); }
+};
+
+class ScopedGetWindowDC : public MyHDC {
+	using Base = MyHDC;
+public:
+	ScopedGetWindowDC(HWND hwnd) : Base(hwnd) {
+		_hdc = ::GetWindowDC(hwnd);
+	}
+
+	~ScopedGetWindowDC() { ::ReleaseDC(_hwnd, _hdc); }
+};
+
+class ScopedCreateDC : public MyHDC {
+	using Base = MyHDC;
+public:
+	ScopedCreateDC( const wchar_t* pszDriver,
+					const wchar_t* pszDevice = nullptr,
+					const wchar_t* pszOutput = nullptr,
+					const ::DEVMODEW* pData  = nullptr) : Base(nullptr)
+	{
+		_hdc = ::CreateDC(pszDriver, pszDevice, pszOutput, pData);
+	}
+
+	~ScopedCreateDC() { ::DeleteDC(_hdc); }
+};
+
+class ScopedCreateIC : public MyHDC {
+	using Base = MyHDC;
+public:
+	ScopedCreateIC( const wchar_t* pszDriver,
+					const wchar_t* pszDevice = nullptr,
+					const wchar_t* pszOutput = nullptr,
+					const ::DEVMODEW* pData = nullptr) : Base(nullptr)
+	{
+		_hdc = ::CreateIC(pszDriver, pszDevice, pszOutput, pData);
+	}
+
+	~ScopedCreateIC() { ::DeleteDC(_hdc); }
+};
+
+class ScopedCreateCompatibleDC : public MyHDC {
+	using Base = MyHDC;
+public:
+	ScopedCreateCompatibleDC(HDC srcHdc) : Base(nullptr) {
+		_hdc = ::CreateCompatibleDC(srcHdc);
+	}
+
+	~ScopedCreateCompatibleDC() { ::DeleteDC(_hdc); }
 };
 
 }

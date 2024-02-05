@@ -25,7 +25,9 @@ void PW5_MySysMets3::onClientRectChanged(const Rect2f& rc) {
 	// WM_SIZE
 	Base::onClientRectChanged(rc);
 
-	int NUMLINES		 = static_cast<int>(g_sysmetricsCount);
+	auto* dm		= MySysmetricsDM::s_getMarkOf();
+	auto NUMLINES	= static_cast<int>(dm->dataSize);
+
 	int contentMaxHeight = _cyChar * NUMLINES;
 	int contentMaxWidth  = 24 * _cxCaps + 40 * _cxChar;
 
@@ -43,8 +45,9 @@ void PW5_MySysMets3::onUIScrollBarEvent(UIScrollBarEvent& ev) {
 void PW5_MySysMets3::onDraw() {
 	ScopedGetDC hdc(_hwnd);
 
-	int NUMLINES = static_cast<int>(g_sysmetricsCount);
-	const auto& sysmetrics = g_sysmetrics;
+	auto* dm				= MySysmetricsDM::s_getMarkOf();
+	const auto& sysmetrics	= dm->data;
+	auto NUMLINES			= static_cast<int>(dm->dataSize);
 
 	auto brush = static_cast<HBRUSH>(GetStockBrush(WHITE_BRUSH));
 	::SelectObject(hdc, brush);

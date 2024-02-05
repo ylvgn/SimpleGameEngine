@@ -13,7 +13,8 @@ void PW5_MySysMets2::onCreate(CreateDesc& desc) {
 
 	s_defaultWndProc = reinterpret_cast<WNDPROC>(SetWindowLongPtr(_hwnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(s_wndProc)));
 
-	const auto& NUMLINES = g_sysmetricsCount;
+	auto* dm		= MySysmetricsDM::s_getMarkOf();
+	auto NUMLINES	= static_cast<int>(dm->dataSize);
 
 	{
 		ScopedGetDC hdc(_hwnd);
@@ -23,9 +24,7 @@ void PW5_MySysMets2::onCreate(CreateDesc& desc) {
 		_cyChar = tm.aveCharHeight;
 	}
 
-	::RECT rc;
-	::GetClientRect(_hwnd, &rc);
-	int clientRectH = static_cast<int>(rc.bottom);
+	int clientRectH = static_cast<int>(_clientRect.h);
 	int contentMaxH = static_cast<int>(_cyChar * NUMLINES);
 	_viewportH = Math::max(0, contentMaxH - clientRectH);
 
@@ -36,8 +35,10 @@ void PW5_MySysMets2::onCreate(CreateDesc& desc) {
 
 void PW5_MySysMets2::onDraw() {
 	ScopedGetDC hdc(_hwnd);
-	int NUMLINES = static_cast<int>(g_sysmetricsCount);
-	const auto& sysmetrics = g_sysmetrics;
+
+	auto* dm				= MySysmetricsDM::s_getMarkOf();;
+	const auto& sysmetrics	= dm->data;
+	auto NUMLINES			= static_cast<int>(dm->dataSize);
 
 	// clear bg
 	auto brush = static_cast<HBRUSH>(GetStockBrush(WHITE_BRUSH));
