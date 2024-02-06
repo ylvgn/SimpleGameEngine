@@ -11,6 +11,7 @@ class PW5_DevCaps1 : public PW5_MyDefineMarkInfoWindow {
 	using Base = PW5_MyDefineMarkInfoWindow;
 protected:
 	virtual void onCreate(CreateDesc& desc) override;
+	virtual void onDraw() override;
 };
 
 }

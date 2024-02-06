@@ -50,8 +50,8 @@ LRESULT CALLBACK PW5_SysMets3::s_wndProc (HWND hwnd, UINT message, WPARAM wParam
 	static int cxChar, cxCaps, cyChar, cxClient, cyClient, iMaxWidth;
 
 	auto* dm				= MySysmetricsDM::s_getMarkOf();
-	const auto& sysmetrics	= dm->data;
-	auto NUMLINES			= static_cast<int>(dm->dataSize);
+	const auto& sysmetrics	= dm->data();
+	auto NUMLINES			= static_cast<int>(sysmetrics.size());
 
 	switch (message) {
 
@@ -188,14 +188,14 @@ LRESULT CALLBACK PW5_SysMets3::s_wndProc (HWND hwnd, UINT message, WPARAM wParam
 				int x = cxChar * (1 - iHorzPos);
 				int y = cyChar * (i - iVertPos);
 
-				ps.textOut(x, y, sysmetrics[i].szLabel);
+				ps.textOut(x, y, sysmetrics[i].name);
 
 				x += 22 * cxCaps;
-				ps.textOut(x, y, sysmetrics[i].szDesc);
+				ps.textOut(x, y, sysmetrics[i].mark);
 
 				::SetTextAlign(ps, TA_RIGHT | TA_TOP);
 				x += 40 * cxChar;
-				ps.Fmt_textOut(x, y, "{:5}", ::GetSystemMetrics(sysmetrics[i].iIndex));
+				ps.Fmt_textOut(x, y, "{:5d}", ::GetSystemMetrics(sysmetrics[i].id));
 
 				::SetTextAlign(ps, TA_LEFT | TA_TOP);
 			}

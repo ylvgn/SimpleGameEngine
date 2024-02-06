@@ -45,8 +45,8 @@ LRESULT CALLBACK PW5_SysMets1::s_wndProc(HWND hwnd, UINT message, WPARAM wParam,
 
 		case WM_PAINT: {
 			auto* dm				= MySysmetricsDM::s_getMarkOf();
-			const auto& sysmetrics	= dm->data;
-			auto NUMLINES			= static_cast<int>(dm->dataSize);
+			const auto& sysmetrics	= dm->data();
+			auto NUMLINES			= static_cast<int>(sysmetrics.size());
 
 			/*
 				typedef struct tagPAINTSTRUCT {
@@ -68,17 +68,17 @@ LRESULT CALLBACK PW5_SysMets1::s_wndProc(HWND hwnd, UINT message, WPARAM wParam,
 				int y = cyChar * i;
 
 				// The second argument to TextOut is 0 to begin the text at the left edge of the client area
-				ps.textOut(x, y, sysmetrics[i].szLabel);
+				ps.textOut(x, y, sysmetrics[i].name);
 
 				// The longest uppercase identifier displayed in the first column is 20 characters,
 				// so the second column must begin at least 20*cxCaps to the right of the beginning of the first column of text.
 				// I use 22 to add a little extra space between the columns
 				x += 22 * cxCaps;
-				ps.textOut(x, y, sysmetrics[i].szDesc);
+				ps.textOut(x, y, sysmetrics[i].mark);
 				::SetTextAlign(ps, TA_RIGHT | TA_TOP);
 
 				x += 40 * cxChar;
-				ps.Fmt_textOut(x, y, "{:5}", ::GetSystemMetrics(sysmetrics[i].iIndex)); //g_textOutf(ps.hdc(), x, y, L"%5d", GetSystemMetrics(sysmetrics[i].iIndex));
+				ps.Fmt_textOut(x, y, "{:5}", ::GetSystemMetrics(sysmetrics[i].id)); //g_textOutf(ps.hdc(), x, y, L"%5d", GetSystemMetrics(sysmetrics[i].iIndex));
 				::SetTextAlign(ps, TA_LEFT | TA_TOP);
 			}
 			return 0;

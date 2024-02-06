@@ -15,11 +15,8 @@ protected:
 	virtual void onCreate(CreateDesc& desc) override;
 	virtual void onClientRectChanged(const Rect2f& rc) override;
 	virtual void onUIScrollBarEvent(UIScrollBarEvent& ev) override;
-	virtual void onDraw() override;
 
-	const DefineMarkInfo* _dmInfo = nullptr;
-
-private:
+	const DefineMark* _dmInfo = nullptr;
 	int _cxChar, _cyChar, _cxCaps;
 };
 

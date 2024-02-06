@@ -14,7 +14,7 @@ void PW5_MySysMets2::onCreate(CreateDesc& desc) {
 	s_defaultWndProc = reinterpret_cast<WNDPROC>(SetWindowLongPtr(_hwnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(s_wndProc)));
 
 	auto* dm		= MySysmetricsDM::s_getMarkOf();
-	auto NUMLINES	= static_cast<int>(dm->dataSize);
+	auto NUMLINES	= static_cast<int>(dm->size());
 
 	{
 		ScopedGetDC hdc(_hwnd);
@@ -37,8 +37,8 @@ void PW5_MySysMets2::onDraw() {
 	ScopedGetDC hdc(_hwnd);
 
 	auto* dm				= MySysmetricsDM::s_getMarkOf();;
-	const auto& sysmetrics	= dm->data;
-	auto NUMLINES			= static_cast<int>(dm->dataSize);
+	const auto& sysmetrics	= dm->data();
+	auto NUMLINES			= static_cast<int>(sysmetrics.size());
 
 	// clear bg
 	auto brush = static_cast<HBRUSH>(GetStockBrush(WHITE_BRUSH));
@@ -51,15 +51,15 @@ void PW5_MySysMets2::onDraw() {
 		int x = 0;
 		int y = _cyChar * i - _scrollPosV;
 
-		StrViewW s(sysmetrics[i].szLabel);
+		StrViewW s(sysmetrics[i].name);
 		hdc.Fmt_textOut(x, y, "{:03d} {}", i, s);
 
 		x += 24 * _cxCaps;
-		hdc.textOut(x, y, sysmetrics[i].szDesc);
+		hdc.textOut(x, y, sysmetrics[i].mark);
 		::SetTextAlign(hdc, TA_RIGHT | TA_TOP);
 
 		x += 40 * _cxChar;
-		hdc.Fmt_textOut(x, y, "{:5d}", ::GetSystemMetrics(sysmetrics[i].iIndex));
+		hdc.Fmt_textOut(x, y, "{:5d}", ::GetSystemMetrics(sysmetrics[i].id));
 		::SetTextAlign(hdc, TA_LEFT | TA_TOP);
 	}
 }

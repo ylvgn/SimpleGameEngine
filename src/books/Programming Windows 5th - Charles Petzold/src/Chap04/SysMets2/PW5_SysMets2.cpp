@@ -32,9 +32,9 @@ void PW5_SysMets2::onCreate(CreateDesc& desc) {
 LRESULT CALLBACK PW5_SysMets2::s_wndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	static int s_cxChar, s_cxCaps, s_cyChar, s_cyClient, s_iVscrollPos, s_textLineCount;
 
-	auto* dm = MySysmetricsDM::s_getMarkOf();
-	const auto& sysmetrics = dm->data;
-	auto NUMLINES = static_cast<int>(dm->dataSize);
+	auto* dm				= MySysmetricsDM::s_getMarkOf();
+	const auto& sysmetrics	= dm->data();
+	auto NUMLINES			= static_cast<int>(sysmetrics.size());
 
 	switch (message) {
 
@@ -131,14 +131,14 @@ LRESULT CALLBACK PW5_SysMets2::s_wndProc (HWND hwnd, UINT message, WPARAM wParam
 				int x = 0;
 				int y = s_cyChar * (i - s_iVscrollPos);
 
-				ps.textOut(x, y, sysmetrics[i].szLabel);
+				ps.textOut(x, y, sysmetrics[i].name);
 
 				x += s_szLabelMaxWidth;
-				ps.textOut(x, y, sysmetrics[i].szDesc);
+				ps.textOut(x, y, sysmetrics[i].mark);
 
 				::SetTextAlign(ps, TA_RIGHT | TA_TOP);
 				x += s_szDescMaxWidth;
-				ps.Fmt_textOut(x, y, "{:5}", ::GetSystemMetrics(sysmetrics[i].iIndex));
+				ps.Fmt_textOut(x, y, "{:5}", ::GetSystemMetrics(sysmetrics[i].id));
 
 				::SetTextAlign(ps, TA_LEFT | TA_TOP); // reset text align to left-top(default), 
 			}
