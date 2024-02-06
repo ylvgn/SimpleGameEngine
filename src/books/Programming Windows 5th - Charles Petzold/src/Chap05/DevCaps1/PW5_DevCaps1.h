@@ -6,12 +6,11 @@
 
 namespace sge {
 
-class PW5_DevCaps1 : public PW5_MyDefineMarkInfoWindow {
+class PW5_DevCaps1 : public PW5_MyDefineMarkWindow {
 	using This = PW5_DevCaps1;
-	using Base = PW5_MyDefineMarkInfoWindow;
+	using Base = PW5_MyDefineMarkWindow;
 protected:
 	virtual void onCreate(CreateDesc& desc) override;
-	virtual void onDraw() override;
 };
 
 }

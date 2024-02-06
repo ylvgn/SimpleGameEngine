@@ -49,7 +49,7 @@ LRESULT CALLBACK PW5_SysMets3::s_wndProc (HWND hwnd, UINT message, WPARAM wParam
 
 	static int cxChar, cxCaps, cyChar, cxClient, cyClient, iMaxWidth;
 
-	auto* dm				= MySysmetricsDM::s_getMarkOf();
+	auto* dm				= MySysmetricsDM::s_getMark();
 	const auto& sysmetrics	= dm->data();
 	auto NUMLINES			= static_cast<int>(sysmetrics.size());
 

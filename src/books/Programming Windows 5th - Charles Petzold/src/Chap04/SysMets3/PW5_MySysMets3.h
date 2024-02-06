@@ -6,12 +6,11 @@
 
 namespace sge {
 
-class PW5_MySysMets3 : public PW5_MyDefineMarkInfoWindow {
-	using Base = PW5_MyDefineMarkInfoWindow;
+class PW5_MySysMets3 : public PW5_MyDefineMarkWindow {
+	using Base = PW5_MyDefineMarkWindow;
 	using This = PW5_MySysMets3;
 protected:
 	virtual void onCreate(CreateDesc& desc) override;
-	virtual void onDraw() override;
 };
 
 }

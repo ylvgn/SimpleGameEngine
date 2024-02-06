@@ -7,14 +7,16 @@ namespace sge {
 WNDPROC PW5_MySysMets2::s_defaultWndProc;
 
 void PW5_MySysMets2::onCreate(CreateDesc& desc) {
+	_dm = MySysmetricsDM::s_getMark();
 	_scrollPosV = 0;
+
 	desc.ownDC = true;
 	Base::onCreate(desc);
 
 	s_defaultWndProc = reinterpret_cast<WNDPROC>(SetWindowLongPtr(_hwnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(s_wndProc)));
-
-	auto* dm		= MySysmetricsDM::s_getMarkOf();
-	auto NUMLINES	= static_cast<int>(dm->size());
+	
+	const auto& sysmetrics = _dm->data();
+	auto NUMLINES = static_cast<int>(sysmetrics.size());
 
 	{
 		ScopedGetDC hdc(_hwnd);
@@ -36,8 +38,7 @@ void PW5_MySysMets2::onCreate(CreateDesc& desc) {
 void PW5_MySysMets2::onDraw() {
 	ScopedGetDC hdc(_hwnd);
 
-	auto* dm				= MySysmetricsDM::s_getMarkOf();;
-	const auto& sysmetrics	= dm->data();
+	const auto& sysmetrics	= _dm->data();
 	auto NUMLINES			= static_cast<int>(sysmetrics.size());
 
 	// clear bg

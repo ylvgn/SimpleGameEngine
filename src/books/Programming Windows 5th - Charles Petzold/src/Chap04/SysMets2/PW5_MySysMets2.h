@@ -13,13 +13,12 @@ protected:
 	virtual void onCreate(CreateDesc& desc) override;
 	virtual void onDraw() override;
 private:
-
-	static LRESULT CALLBACK s_wndProc(HWND, UINT, WPARAM, LPARAM);
-	static WNDPROC s_defaultWndProc;
-
 	SGE_INLINE static This* s_getThis(HWND hwnd) {
 		return reinterpret_cast<This*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
 	}
+
+	static LRESULT CALLBACK s_wndProc(HWND, UINT, WPARAM, LPARAM);
+	static WNDPROC s_defaultWndProc;
 
 	void _onScrollV(int y);
 
@@ -28,6 +27,8 @@ private:
 	int  _cxCaps;
 	int  _viewportH;
 	int  _scrollPosV;
+	
+	const DefineMark* _dm = nullptr;
 };
 
 }

@@ -32,7 +32,7 @@ void PW5_SysMets2::onCreate(CreateDesc& desc) {
 LRESULT CALLBACK PW5_SysMets2::s_wndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	static int s_cxChar, s_cxCaps, s_cyChar, s_cyClient, s_iVscrollPos, s_textLineCount;
 
-	auto* dm				= MySysmetricsDM::s_getMarkOf();
+	auto* dm				= MySysmetricsDM::s_getMark();
 	const auto& sysmetrics	= dm->data();
 	auto NUMLINES			= static_cast<int>(sysmetrics.size());
 
