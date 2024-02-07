@@ -2,7 +2,7 @@
 
 #if SGE_OS_WINDOWS
 
-#include <sge_core/native_ui/NativeUI.h>
+#include "NeheOGL_Common.h"
 
 namespace sge {
 

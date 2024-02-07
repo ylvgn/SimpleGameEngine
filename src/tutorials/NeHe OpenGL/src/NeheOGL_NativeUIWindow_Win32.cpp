@@ -1,5 +1,6 @@
+#if SGE_OS_WINDOWS
+
 #include "NeheOGL_NativeUIWindow_Win32.h"
-#include "NeheOGL_Common.h"
 
 namespace sge {
 
@@ -15,10 +16,10 @@ void NeheOGL_NativeUIWindow_Win32::_initGL() {
 	if (!_dc)
 		throw SGE_ERROR("GetDC");
 
-	PIXELFORMATDESCRIPTOR pfd;	// pfd Tells Windows How We Want Things To Be
+	PIXELFORMATDESCRIPTOR pfd;		// pfd Tells Windows How We Want Things To Be
 	g_bzero(pfd);
-	pfd.nSize = sizeof(pfd);	// Size Of This Pixel Format Descriptor
-	pfd.nVersion = 1;			// Version Number
+	pfd.nSize = sizeof(pfd);		// Size Of This Pixel Format Descriptor
+	pfd.nVersion = 1;				// Version Number
 	pfd.dwFlags = PFD_DOUBLEBUFFER	// Must Support Double Buffering
 		| PFD_DRAW_TO_WINDOW		// Format Must Support Window
 		| PFD_SUPPORT_OPENGL;		// Format Must Support OpenGL
@@ -105,3 +106,5 @@ void NeheOGL_NativeUIWindow_Win32::onCloseButton() {
 }
 
 }
+
+#endif
