@@ -1,7 +1,6 @@
 #pragma once
 
 #include <sge_core.h>
-#include <sge_core/native_ui/NativeUI.h>
 
 #if SGE_OS_WINDOWS
 	#include <windowsx.h>
@@ -20,9 +19,6 @@
 
 namespace sge {
 
-template<class T> constexpr
-	void g_bzero(T& s) {
-	memset(&s, 0, sizeof(s));
-}
+template<class T> constexpr void g_bzero(T& s) { memset(&s, 0, sizeof(s)); }
 
 }

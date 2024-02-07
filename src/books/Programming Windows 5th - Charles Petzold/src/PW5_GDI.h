@@ -119,21 +119,20 @@ public:
 
 	template<class... Args>
 	void Fmt_textOut(int x, int y, Args&&... args) const {
-		TempStringW tmp;
-		FmtTo(tmp, SGE_FORWARD(args)...);
-		::TextOut(_hdc, x, y, tmp.c_str(), static_cast<int>(tmp.size()));
+		auto s = Fmt(SGE_FORWARD(args)...);
+		auto ws = UtfUtil::toStringW(s);
+		::TextOut(_hdc, x, y, ws.c_str(), static_cast<int>(ws.size()));
 	}
 
-	inline void drawText(::RECT* rc, const wchar_t* szText, u32	fDT = DT_SINGLELINE | DT_CENTER | DT_VCENTER)
-	{
+	inline void drawText(::RECT* rc, const wchar_t* szText, u32	fDT = DT_SINGLELINE | DT_CENTER | DT_VCENTER) {
 		GDI::drawText(_hdc, rc, szText, fDT);
 	}
 
 	UINT setTextAlign(TextAlignment align = TextAlignment::Left | TextAlignment::Top);
 
-	void rectangle(int left, int top, int right, int bottom) const { ::Rectangle(_hdc, left, top, right, bottom); }
-	void rectangle(const ::RECT& rc) const	{ GDI::rectangle(_hdc, rc); }
-	void rectangle(const Rect2i& rc) const	{ GDI::rectangle(_hdc, rc); }
+	void rectangle(int left, int top, int right, int bottom)	const { ::Rectangle(_hdc, left, top, right, bottom); }
+	void rectangle(const ::RECT& rc)							const { GDI::rectangle(_hdc, rc); }
+	void rectangle(const Rect2i& rc)							const { GDI::rectangle(_hdc, rc); }
 
 	void lineTo(int x, int y)		const	{ GDI::lineTo(_hdc, {x,y}); }
 	void lineTo(const ::POINT& pt)	const	{ GDI::lineTo(_hdc, Win32Util::toVec2i(pt)); }

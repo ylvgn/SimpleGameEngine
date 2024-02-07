@@ -1,12 +1,16 @@
-#include "NeheOGL_NativeUI.h"
+#include "NeheOGL_NativeUIWindow_Win32.h"
+#include "NeheOGL_Common.h"
 
 namespace sge {
 
 void NeheOGL_NativeUIWindow_Win32::onCreate(CreateDesc& desc) {
 	desc.ownDC = true;
-
 	Base::onCreate(desc);
 
+	_initGL();
+}
+
+void NeheOGL_NativeUIWindow_Win32::_initGL() {
 	_dc = ::GetDC(_hwnd);
 	if (!_dc)
 		throw SGE_ERROR("GetDC");
@@ -58,15 +62,29 @@ void NeheOGL_NativeUIWindow_Win32::onCreate(CreateDesc& desc) {
 
 	_rc = ::wglCreateContext(_dc);
 	if (!_rc) // Are We Able To Get A Rendering Context?
-		throw SGE_ERROR("SetPixelFormat");
+		throw SGE_ERROR("wglCreateContext");
 
 	makeCurrent();
 }
 
 void NeheOGL_NativeUIWindow_Win32::destroy() {
-	if (_dc)	{ ::ReleaseDC(_hwnd, _dc); _dc   = nullptr; }
-	if (_rc)	{ ::wglDeleteContext(_rc); _rc   = nullptr; }
-	//if (_hwnd)	{ ::DestroyWindow(_hwnd);  _hwnd = nullptr; } maybe no need ???
+	if (_rc) {
+		::wglMakeCurrent(nullptr, nullptr);
+		::wglDeleteContext(_rc);
+		_rc = nullptr;
+	}
+
+	if (_dc) {
+		::ReleaseDC(_hwnd, _dc);
+		_dc = nullptr;
+	}
+
+#if 0 // maybe no need ???
+	if (_hwnd) {
+		::DestroyWindow(_hwnd);
+		_hwnd = nullptr;
+	}
+#endif
 }
 
 void NeheOGL_NativeUIWindow_Win32::makeCurrent() {
