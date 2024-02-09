@@ -1,5 +1,3 @@
-#include "PW5_NativeUI.h"
-
 /* Chap01 MessageBox */
 #include "Chap01/HelloMsg/PW5_HelloMsg.h"
 #include "Chap01/HelloMsg/PW5_MyMessageBox.h"
@@ -17,14 +15,15 @@
 #include "Chap04/SysMets2/PW5_MySysMets2.h"
 #include "Chap04/SysMets3/PW5_SysMets3.h"
 #include "Chap04/SysMets3/PW5_MySysMets3.h"
-/* Chap04 Device Context */
+/* Chap04 Device Context and Basic Drawing */
 #include "Chap05/DevCaps1/PW5_DevCaps1.h"
+#include "Chap05/SineWave/PW5_SineWave.h"
 
 namespace sge {
 
 class ProgWin5App : public NativeUIApp {
 	using Base = NativeUIApp;
-	using ProgWin5MainWin = PW5_DevCaps1;
+	using ProgWin5MainWin = PW5_SineWave;
 protected:
 	virtual void onCreate(CreateDesc& desc) override {
 		{ // set working dir
