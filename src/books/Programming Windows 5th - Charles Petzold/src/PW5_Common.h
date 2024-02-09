@@ -11,6 +11,8 @@
 
 namespace sge {
 
-template<class T> constexpr void g_bzero(T& s) { ::memset(&s, 0, sizeof(s)); }
+template<class T> constexpr void g_bzero(T& s) {
+	memset(&s, 0, sizeof(s));
+}
 
 }

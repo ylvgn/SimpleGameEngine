@@ -36,7 +36,7 @@ void PW5_MySysMets2::onCreate(CreateDesc& desc) {
 }
 
 void PW5_MySysMets2::onDraw() {
-	ScopedGetDC hdc(_hwnd);
+	ScopedGetDC hdc(_hwnd); // Even if you use CS_OWNDC, you should still release the device context handle before exiting the window procedure
 
 	const auto& sysmetrics	= _dm->data();
 	auto NUMLINES			= static_cast<int>(sysmetrics.size());

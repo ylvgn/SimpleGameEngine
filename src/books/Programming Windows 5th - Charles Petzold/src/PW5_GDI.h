@@ -225,6 +225,18 @@ public:
 	~ScopedCreateCompatibleDC() { ::DeleteDC(_hdc); }
 };
 
+class ScopedSaveDC : public MyHDC {
+	using Base = MyHDC;
+public:
+	ScopedSaveDC(HDC srcHdc) : Base(nullptr) {
+		_hdc = srcHdc;
+		_id = ::SaveDC(srcHdc);
+	}
+	~ScopedSaveDC() { ::RestoreDC(_hdc, _id); }
+private:
+	int _id;
+};
+
 }
 
 #endif
