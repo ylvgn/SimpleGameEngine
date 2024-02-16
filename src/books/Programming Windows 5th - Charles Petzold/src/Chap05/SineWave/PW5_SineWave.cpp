@@ -4,10 +4,6 @@
 
 namespace sge {
 
-void PW5_SineWave::onCreate(CreateDesc& desc) {
-	Base::onCreate(desc);
-}
-
 void PW5_SineWave::onDraw() {
 	//_example1();
 	//_example2();
@@ -64,12 +60,11 @@ void PW5_SineWave::_example2() {
 void PW5_SineWave::_example3() {
 	ScopedGetDC hdc(_hwnd);
 
-	float width = _clientRect.w;
-	float height = _clientRect.h;
+	float width    = _clientRect.w;
+	float height   = _clientRect.h;
 	int halfHeight = static_cast<int>(height * 0.5f);
 
-	::MoveToEx(hdc, 0, halfHeight, nullptr);
-	::LineTo(hdc, static_cast<int>(width), halfHeight);
+	GDI::drawLine(hdc, 0, halfHeight, static_cast<int>(width), halfHeight);
 
 	for (int i = 0; i < kNum; ++i) {
 		float dt = static_cast<float>(i) / kNum;
@@ -80,6 +75,9 @@ void PW5_SineWave::_example3() {
 		points[i].y = y;
 	}
 
+	// The whole curve is drawn using a single Polyline call.
+	// Because the Polyline function is implemented at the device driver level,
+	// it is faster than calling LineTo kNum times
 	::Polyline(hdc, points, kNum);
 }
 

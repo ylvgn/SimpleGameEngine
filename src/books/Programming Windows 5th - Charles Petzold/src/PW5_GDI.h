@@ -22,7 +22,7 @@ namespace GDI {
 		auto len = _vsntprintf_s(szBuffer, bufferCount, szFormat, args);
 		va_end(args);
 
-		TextOut(hdc, x, y, szBuffer, len);
+		::TextOut(hdc, x, y, szBuffer, len);
 	}
 
 	inline bool rectangle(HDC hdc, const Rect2i& rc) {
@@ -33,8 +33,12 @@ namespace GDI {
 		return ::Rectangle(hdc, l, t, r, b);
 	}
 
-	inline bool rectangle(HDC hdc, const RECT& rc) {
+	inline bool rectangle(HDC hdc, const ::RECT& rc) {
 		return ::Rectangle(hdc, rc.left, rc.top, rc.right, rc.bottom);
+	}
+
+	inline bool rectangle(HDC hdc, int left, int top, int right, int bottom) {
+		return ::Rectangle(hdc, left, top, right, bottom);
 	}
 
 	inline bool lineTo(HDC hdc, const Vec2i& pt) {
@@ -48,6 +52,28 @@ namespace GDI {
 	{
 		if (!szText || !rc) return;
 		::DrawText(hdc, szText, -1, rc, fDT);
+	}
+
+	inline void drawLine(HDC hdc, int fromX, int fromY, int toX, int toY) {
+		::POINT pt;
+		::GetCurrentPositionEx(hdc, &pt);
+		::MoveToEx(hdc, fromX, fromY, nullptr);
+		::LineTo(hdc, toX, toY);
+		::MoveToEx(hdc, pt.x, pt.y, nullptr);
+	}
+
+	inline void drawLine(HDC hdc,
+						 const ::POINT& from,
+						 const ::POINT& to)
+	{
+		drawLine(hdc, from.x, from.y, to.x, to.y);
+	}
+
+	inline void drawLine(HDC			hdc,
+						 const Vec2i&	from,
+						 const Vec2i&	to)
+	{
+		drawLine(hdc, from.x, from.y, to.x, to.y);
 	}
 
 } // namespace GDI
@@ -130,11 +156,15 @@ public:
 
 	UINT setTextAlign(TextAlignment align = TextAlignment::Left | TextAlignment::Top);
 
-	void rectangle(int left, int top, int right, int bottom)	const { ::Rectangle(_hdc, left, top, right, bottom); }
+	void rectangle(int left, int top, int right, int bottom)	const { GDI::rectangle(_hdc, left, top, right, bottom); }
 	void rectangle(const ::RECT& rc)							const { GDI::rectangle(_hdc, rc); }
 	void rectangle(const Rect2i& rc)							const { GDI::rectangle(_hdc, rc); }
 
-	void lineTo(int x, int y)		const	{ GDI::lineTo(_hdc, {x,y}); }
+	void drawLine(int fromX, int fromY, int toX, int toY) const { GDI::drawLine(_hdc, fromX, fromY, toX, toY); }
+	void drawLine(const ::POINT& from, const ::POINT& to) const { GDI::drawLine(_hdc, from, to); }
+	void drawLine(const Vec2i& from, const Vec2i& to) const		{ GDI::drawLine(_hdc, from, to); }
+
+	void lineTo(int x, int y)		const	{ GDI::lineTo(_hdc, {x, y}); }
 	void lineTo(const ::POINT& pt)	const	{ GDI::lineTo(_hdc, Win32Util::toVec2i(pt)); }
 	void lineTo(const Vec2i& pt)	const	{ GDI::lineTo(_hdc, pt); }
 

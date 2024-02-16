@@ -10,7 +10,6 @@ class PW5_SineWave : public PW5_NativeUIWindow {
 	using This = PW5_SineWave;
 	using Base = PW5_NativeUIWindow;
 protected:
-	virtual void onCreate(CreateDesc& desc) override;
 	virtual void onDraw() override;
 private:
 	void _example1();

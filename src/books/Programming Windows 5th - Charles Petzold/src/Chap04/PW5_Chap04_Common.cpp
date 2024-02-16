@@ -6,9 +6,13 @@ namespace sge {
 
 const DefineMark* MySysmetricsDM::s_getMark() {
 	class DM : public DefineMark {
-		static void eval(int& v, const PW5_MyDefineMarkWindow* obj, const Item& item) {
+		static void s_eval(	int& v,
+							const Item& item,
+							const DefineMark::NativeUIWindow* obj = nullptr)
+		{
 			v = ::GetSystemMetrics(item.id);
 		}
+
 	public:
 		DM() {
 			static Item dm[] = {
@@ -88,7 +92,7 @@ const DefineMark* MySysmetricsDM::s_getMark() {
 				SGE_DEFINEMARK__ITEM(SM_CMONITORS,          L"Number of monitors"),
 				SGE_DEFINEMARK__ITEM(SM_SAMEDISPLAYFORMAT,  L"Same color format flag"),
 			};
-			set(dm, eval);
+			set(dm, &s_eval);
 		}
 	};
 
@@ -102,6 +106,7 @@ void PW5_MyDefineMarkWindow::onCreate(CreateDesc& desc) {
 	desc.vScrollBar = true;
 
 	Base::onCreate(desc);
+	_hdc = ::GetDC(_hwnd);
 
 	ScopedGetDC hdc(_hwnd);
 	auto tm = hdc.createTextMetrics();
@@ -172,7 +177,7 @@ void PW5_MyDefineMarkWindow::onDraw() {
 		hdc.setTextAlign(TextAlignment::Right | TextAlignment::Top);
 		x += 40 * _cxChar;
 
-		dm->io(out, this, item);
+		dm->io(out, item, this);
 		hdc.Fmt_textOut(x, y, "{:5d}", out);
 
 		hdc.setTextAlign(TextAlignment::Left | TextAlignment::Top); // reset text align

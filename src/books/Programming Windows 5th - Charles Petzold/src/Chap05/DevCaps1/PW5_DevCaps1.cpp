@@ -9,8 +9,12 @@ SGE_DEFINEMARK(MyDevcapsDM)
 const DefineMark* MyDevcapsDM::s_getMark() {
 	class DM : public DefineMark {
 	public:
-		static void s_eval(int& v, const PW5_MyDefineMarkWindow* obj, const Item& item) {
-			v = ::GetDeviceCaps(GetDC(obj->hwnd()), item.id);
+		static void s_eval(	int& v,
+							const Item& item,
+							const DefineMark::NativeUIWindow* obj)
+		{
+			auto* win = static_cast<const PW5_MyDefineMarkWindow*>(obj);
+			v = ::GetDeviceCaps(win->_hdc, item.id);
 		}
 
 		DM() {
