@@ -2,7 +2,8 @@
 
 namespace sge {
 
-void SampleRequest::reset() {
+void SampleRequest::reset(SampleType sampleType_ /*= SampleType::None*/) {
+	sampleType				= sampleType_;
 	curSkinningMethod		= 0;
 
 	bWireFrame				= false;

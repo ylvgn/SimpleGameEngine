@@ -20,32 +20,11 @@ typedef int			(WINAPI* PFNWGLGETSWAPINTERVALEXTPROC) (void);
 
 class GameAnimeProgMainWin : public NativeUIWindow {
 	using Base = NativeUIWindow;
+	using SampleType = MySampleType;
 public:
-	using Type = MySampleType;
-
-	static constexpr const int		kSampleCount		= enumInt(Type::_END);
+	static constexpr const int		kSampleCount		= enumInt(SampleType::_END);
 	static constexpr const float	kMouseDecayFactor	= 0.3f;
 	static constexpr const float	kMouseMaxDelta		= 10.f;
-
-	void _cameraMove() {
-		if (_cameraDeltaPos.equals0()) return;
-
-		static const Vec2f  kMouseSensitivity { 0.1f, 0.15f };
-
-		auto d = _cameraDeltaPos * kMouseSensitivity;
-		_camera.move(d.x, 0, d.y);
-
-		if (_cameraDeltaPos.x > 0) {
-			_cameraDeltaPos.x = Math::max(0.f, _cameraDeltaPos.x - kMouseDecayFactor);
-		} else if (_cameraDeltaPos.x < 0) {
-			_cameraDeltaPos.x = Math::min(0.f, _cameraDeltaPos.x + kMouseDecayFactor);
-		}
-		if (_cameraDeltaPos.y > 0) {
-			_cameraDeltaPos.y = Math::max(0.f, _cameraDeltaPos.y - kMouseDecayFactor);
-		} else if (_cameraDeltaPos.y < 0) {
-			_cameraDeltaPos.y = Math::min(0.f, _cameraDeltaPos.y + kMouseDecayFactor);
-		}
-	}
 
 	void update(float dt) {
 		_sampleRequest.dt = dt * _dtFactor;
@@ -99,6 +78,7 @@ public:
 
 protected:
 	virtual void onCreate(CreateDesc& desc) override  {
+		desc.ownDC = true;
 		Base::onCreate(desc);
 
 		_hdc = ::GetDC(_hwnd);
@@ -310,7 +290,6 @@ private:
 	}
 
 	void _endRender() {
-
 #if SGE_OS_WINDOWS
 		_timingInfo.cpu->beginSwapBuffer();
 #endif
@@ -324,7 +303,26 @@ private:
 		_timingInfo.cpu->endSwapBuffer();
 		_timingInfo.cpu->endFrame();
 #endif
+	}
 
+	void _cameraMove() {
+		if (_cameraDeltaPos.equals0()) return;
+
+		static const Vec2f kMouseSensitivity { 0.1f, 0.15f };
+
+		auto d = _cameraDeltaPos * kMouseSensitivity;
+		_camera.move(d.x, 0, d.y);
+
+		if (_cameraDeltaPos.x > 0) {
+			_cameraDeltaPos.x = Math::max(0.f, _cameraDeltaPos.x - kMouseDecayFactor);
+		} else if (_cameraDeltaPos.x < 0) {
+			_cameraDeltaPos.x = Math::min(0.f, _cameraDeltaPos.x + kMouseDecayFactor);
+		}
+		if (_cameraDeltaPos.y > 0) {
+			_cameraDeltaPos.y = Math::max(0.f, _cameraDeltaPos.y - kMouseDecayFactor);
+		} else if (_cameraDeltaPos.y < 0) {
+			_cameraDeltaPos.y = Math::min(0.f, _cameraDeltaPos.y + kMouseDecayFactor);
+		}
 	}
 
 	void _drawSampleSelectorWindow() {
@@ -332,8 +330,8 @@ private:
 		const auto& clientSize  = clientRect().size;
 
 		TempString title;
-		if (_type != Type::None) {
-			FmtTo(title, "{}. {}", enumInt(_type), _type);
+		if (_sampleType != SampleType::None) {
+			FmtTo(title, "{}. {}", enumInt(_sampleType), _sampleType);
 			Rect2f xywh { 0, 0, NuklearUI::Util::toNKSize(clientSize.x), 0 };
 			NuklearUI::Window window(xywh, title);
 			if (!window.isOpen()) {
@@ -361,7 +359,7 @@ private:
 				return;
 			}
 			NuklearUI::LayoutRowStatic layout(sItemSize.y, sItemSize.x);
-			for (auto flag = Type::None + 1; flag != Type::_END; flag += 1) {
+			for (auto flag = SampleType::None + 1; flag != SampleType::_END; flag += 1) {
 				title.clear();
 				FmtTo(title, "{}. {}", enumInt(flag), flag);
 				NuklearUI::ButtonLabel btn(title);
@@ -387,7 +385,6 @@ private:
 #endif
 
 		static constexpr Rect2f xywh { 0, 0, 220.f, 100.f};
-
 		NuklearUI::Window window(xywh, "ScaleFactor:");
 
 		auto windowSize = NuklearUI::windowGetSize();
@@ -508,26 +505,26 @@ private:
 		glPolygonMode(GL_FRONT_AND_BACK, _bWireFrame ? GL_LINE : GL_FILL);
 	}
 
-	void _switchSample(Type newType) {
-		if (_type == newType)
+	void _switchSample(SampleType newType) {
+		if (_sampleType == newType)
 			return;
 
-		_type = newType;
+		_sampleType = newType;
 		_createSample();
 	}
 
 	void _exitSample() {
-		_switchSample(Type::None);
+		_switchSample(SampleType::None);
 	}
 
 	void _switchToLastSample() {
-		int sampleIndex = (enumInt(_type) - 1 + kSampleCount) % kSampleCount;
-		_switchSample(static_cast<Type>(sampleIndex));
+		int sampleIndex = (enumInt(_sampleType) - 1 + kSampleCount) % kSampleCount;
+		_switchSample(static_cast<SampleType>(sampleIndex));
 	}
 
 	void _switchToNextSample() {
-		int sampleIndex = (enumInt(_type) + 1) % kSampleCount;
-		_switchSample(static_cast<Type>(sampleIndex));
+		int sampleIndex = (enumInt(_sampleType) + 1) % kSampleCount;
+		_switchSample(static_cast<SampleType>(sampleIndex));
 	}
 
 	void _destroySample() {
@@ -540,26 +537,26 @@ private:
 	void _createSample() {
 		_destroySample();
 		_sampleContext = make_unique<SampleContext>();
-		_sampleRequest.reset();
+		_sampleRequest.reset(_sampleType);
 		_sampleContext->create(_sampleRequest);
 	}
 
-	GLuint	_vertexArrayObject	= 0;
-	int		_vsynch				= 0;
 	HDC		_hdc				= nullptr;
 
-	Type	_type				= SampleContext::kStartUpDefaultType;
-	float	_aspect				= 0;
-	bool	_bWireFrame			= false;
+	GLuint	_vertexArrayObject	= 0;
+	int		_vsynch				= 0;
 
+	float	_aspect				= 0;
 	bool	_bShowUI			= true;
 	bool	_bShowSettingWindow	= false;
+	bool	_bWireFrame			= false;
 	float	_dtFactor			= 1.0f;
 
 	Math::Camera3f		_camera;
 	Vec2f				_cameraDeltaPos {0,0};
 
-	SampleRequest		_sampleRequest { _type, _bWireFrame, _camera };
+	SampleType			_sampleType	= SampleType::None;
+	SampleRequest		_sampleRequest { _bWireFrame, _camera };
 	UPtr<SampleContext>	_sampleContext;
 
 #if SGE_OS_WINDOWS

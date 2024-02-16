@@ -1,5 +1,4 @@
 #include "SampleContext.h"
-#include "SampleRequest.h"
 
 namespace sge {
 
@@ -453,6 +452,7 @@ void SampleContext::test_AnimationBlending_onCreate(Request& req) {
 	_loadExampleShader();
 	_defaultSetAnimInfo();
 	_defaultSetCamera(req, { 0,4,7 }, { 0,3,0 });
+	_defaultSetPoseDebugDraw();
 	_blendAnimA.animatedPose = _skeleton->restPose();
 	_blendAnimA.playback = 0.f;
 
@@ -481,6 +481,7 @@ void SampleContext::test_Crossfading_onCreate(Request& req) {
 	_loadExampleShader();
 	_defaultSetAnimInfo();
 	_defaultSetCamera(req, { 0,4,6 }, { 0,3,0 });
+	_defaultSetPoseDebugDraw();
 
 	CrossFadeController* fadeController = CrossFadeController::instance();
 	if (fadeController == nullptr) {
@@ -497,8 +498,8 @@ void SampleContext::test_AdditiveBlending_onCreate(Request& req) {
 	_defaultSetAnimInfo();
 	_defaultSelectClip();
 	_defaultSetAdditiveBasePose();
-	_defaultSetPoseDebugDraw();
 	_defaultSetCamera(req, { 0,5,6 }, { 0,3,0 });
+	_defaultSetPoseDebugDraw();
 
 	_additiveTime		= 0.f;
 	_additiveDirection	= 1.f;
@@ -542,6 +543,7 @@ void SampleContext::test_AlignFeetOnTheGround_onCreate(Request& req) {
 	_defaultSetAnimInfo();
 	_defaultSelectClip();
 	_defaultSetCamera(req);
+	_defaultSetPoseDebugDraw();
 
 	_motionTrack = TrackUtil::createVectorTrack(Interpolation::Linear, 5,
 		FrameUtil::createFrame(0, vec3f(0,  0, 1 )),
@@ -1579,7 +1581,7 @@ void SampleContext::test_AlignFeetOnTheGround_onDrawUI(Request& req) {
 		} \
 	} \
 // ----
-	E("Show Bind Pose", req.bShowIKPose)
+	E("Show Bind Pose", req.bShowBindPose)
 	E("Show IK Pose", req.bShowIKPose)
 	E("Show Current Pose", req.bShowCurrentPose)
 	E("Show Model Mesh", req.bShowModelMesh)
@@ -1649,6 +1651,7 @@ void SampleContext::_onDrawGpuSkinning(Request& req) {
 		_restPoseVisual->draw(DebugDrawMode::Lines, mvp, DebugDraw::kRed);
 	}
 	if (req.bShowCurrentPose) {
+		_currentPoseVisual->lineFromPose(_gpuAnimInfo.animatedPose);
 		_currentPoseVisual->uploadToGpu();
 		_currentPoseVisual->draw(DebugDrawMode::Lines, mvp, DebugDraw::kBlue);
 	}
@@ -1870,6 +1873,9 @@ void SampleContext::_defaultSetPoseDebugDraw() {
 
 	_bindPoseVisual->lineFromPose(_skeleton->bindPose());
 	_bindPoseVisual->uploadToGpu();
+
+	_currentPoseVisual->lineFromPose(_skeleton->bindPose());
+	_currentPoseVisual->uploadToGpu();
 }
 
 void SampleContext::_defaultSetCamera(Request& req, const vec3f& pos /*= vec3f(0,0,0)*/, const vec3f& aim /*= vec3f(0,3,7)*/) {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "MyCommon.h"
+#include "SampleRequest.h"
 
 #include "CubicCurveExample.h"
 #include "IKSolverExample.h"
@@ -9,42 +10,17 @@
 
 namespace sge {
 
-#define MySampleType_ENUM_LIST(E) \
-	E(None,) \
-	E(LitTexture,) \
-	E(AnimationScalarTrack,) \
-	E(BezierAndHermiteCurve, ) \
-	E(AnimationClip,) \
-	E(MeshSkinning,) \
-	E(AnimationBlending,) \
-	E(Crossfading,) \
-	E(AdditiveBlending,) \
-	E(CCD,) \
-	E(FABRIK,) \
-	E(CCD_BallSocketConstraint,) \
-	E(FABRIK_BallSocketConstraint,) \
-	E(CCD_HingeSocketConstraint,) \
-	E(FABRIK_HingeSocketConstraint,) \
-	E(RayCastTriangle,) \
-	E(AlignFeetOnTheGround,) \
-	E(DualQuaterionMeshSkinning,) \
-	E(InstancedCrowds,) \
-	E(_END,) \
-// ----------
-SGE_ENUM_CLASS(MySampleType, u8)
-SGE_ENUM_ALL_OPERATOR(MySampleType)
-
 struct SampleRequest;
 class DebugDraw;
 class DebugDraw_PointLines;
 
 class SampleContext : public NonCopyable {
 	using Request		= SampleRequest;
-	using Type			= MySampleType;
+	using SampleType	= MySampleType;
 	using DebugDrawPL	= DebugDraw_PointLines;
 
 #define RUN_SAMPLE__ITEM(E, SGE_FN, ...) \
-	case Type::E: { \
+	case SampleType::E: { \
 		test_##E##_##SGE_FN(__VA_ARGS__); \
 	} break; \
 // ----------
@@ -54,14 +30,11 @@ class SampleContext : public NonCopyable {
 #define RUN_SAMPLE__onDrawUI(E, ...) RUN_SAMPLE__ITEM(E, onDrawUI, req)
 
 #define RUN_SAMPLE(SGE_FN, ...) \
-	switch (req.type) { \
+	switch (req.sampleType) { \
 		MySampleType_ENUM_LIST(RUN_SAMPLE__##SGE_FN) \
 	} \
 // ----------
 public:
-
-	static constexpr const Type kStartUpDefaultType = Type::None;
-
 	void create(Request& req)	{ RUN_SAMPLE(onCreate) }
 	void update(Request& req)	{ RUN_SAMPLE(onUpdate) }
 	void render(Request& req)	{ RUN_SAMPLE(onRender) }
