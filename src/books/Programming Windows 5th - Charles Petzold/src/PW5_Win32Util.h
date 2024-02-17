@@ -14,12 +14,13 @@ struct PW5_Win32Util {
 	static bool isRegisterWndClass(HMODULE hInstance, const wchar_t* clsName);
 	static void registerWndClass(WNDCLASSEX& wc);
 
-	static int getTextAlignment(TextAlignment v);
+	static int getTextAlignmentOption(TextAlignmentOption v);
+	static int getStockLogicalObject(StockLogicalObject v);
 };
 
 inline
-int PW5_Win32Util::getTextAlignment(TextAlignment v) {
-	using SRC = TextAlignment;
+int PW5_Win32Util::getTextAlignmentOption(TextAlignmentOption v) {
+	using SRC = TextAlignmentOption;
 	switch (v) {
 		case SRC::Left:		return TA_LEFT;
 		case SRC::Right:	return TA_RIGHT;
@@ -27,7 +28,21 @@ int PW5_Win32Util::getTextAlignment(TextAlignment v) {
 		case SRC::Bottom:	return TA_BOTTOM;
 		case SRC::Center:	return TA_CENTER;
 		case SRC::BaseLine: return TA_BASELINE;
-		default:			throw  SGE_ERROR("unsupported TextAlignment");
+		default:			throw  SGE_ERROR("unsupported TextAlignmentOption");
+	}
+}
+
+inline
+int PW5_Win32Util::getStockLogicalObject(StockLogicalObject v) {
+	using SRC = StockLogicalObject;
+	switch (v) {
+		case SRC::None:		return NULL_BRUSH;
+		case SRC::White:	return WHITE_BRUSH;
+		case SRC::LtGray:	return LTGRAY_BRUSH;
+		case SRC::Gray:		return GRAY_BRUSH;
+		case SRC::DkGray:	return DKGRAY_BRUSH;
+		case SRC::Black:	return BLACK_BRUSH;
+		default:			throw  SGE_ERROR("unsupported StockLogicalObject");
 	}
 }
 

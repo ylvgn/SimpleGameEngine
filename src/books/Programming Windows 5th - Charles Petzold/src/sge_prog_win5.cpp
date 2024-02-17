@@ -18,12 +18,13 @@
 /* Chap04 Device Context and Basic Drawing */
 #include "Chap05/DevCaps1/PW5_DevCaps1.h"
 #include "Chap05/SineWave/PW5_SineWave.h"
+#include "Chap05/LineDemo/PW5_LineDemo.h"
 
 namespace sge {
 
 class ProgWin5App : public NativeUIApp {
 	using Base = NativeUIApp;
-	using ProgWin5MainWin = PW5_SineWave;
+	using ProgWin5MainWin = PW5_LineDemo;
 protected:
 	virtual void onCreate(CreateDesc& desc) override {
 		{ // set working dir
