@@ -24,7 +24,7 @@ namespace sge {
 
 class ProgWin5App : public NativeUIApp {
 	using Base = NativeUIApp;
-	using ProgWin5MainWin = PW5_LineDemo;
+	using ProgWin5MainWin = PW5_MyHelloWin;
 protected:
 	virtual void onCreate(CreateDesc& desc) override {
 		{ // set working dir

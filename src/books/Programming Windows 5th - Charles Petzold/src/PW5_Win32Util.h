@@ -15,7 +15,10 @@ struct PW5_Win32Util {
 	static void registerWndClass(WNDCLASSEX& wc);
 
 	static int getTextAlignmentOption(TextAlignmentOption v);
-	static int getStockLogicalObject(StockLogicalObject v);
+	static int getDrawTextFormatFlag(DrawTextFormatFlag v);
+	static int getStockLogicalObject_Brush(StockLogicalObject_Brush v);
+	static int getStockLogicalObject_Pen(StockLogicalObject_Pen v);
+	static int getPenStyle(PenStyle v);
 };
 
 inline
@@ -33,8 +36,30 @@ int PW5_Win32Util::getTextAlignmentOption(TextAlignmentOption v) {
 }
 
 inline
-int PW5_Win32Util::getStockLogicalObject(StockLogicalObject v) {
-	using SRC = StockLogicalObject;
+int PW5_Win32Util::getDrawTextFormatFlag(DrawTextFormatFlag v) {
+	using SRC = DrawTextFormatFlag;
+	switch (v) {
+		case SRC::Top:				return DT_TOP;
+		case SRC::Left:				return DT_LEFT;
+		case SRC::Center:			return DT_CENTER;
+		case SRC::Right:			return DT_RIGHT;
+		case SRC::VCenter:			return DT_VCENTER;
+		case SRC::Bottom:			return DT_BOTTOM;
+		case SRC::WordBreak:		return DT_WORDBREAK;
+		case SRC::SingleLine:		return DT_SINGLELINE;
+		case SRC::ExpandTabs:		return DT_EXPANDTABS;
+		case SRC::TabStop:			return DT_TABSTOP;
+		case SRC::NoClip:			return DT_NOCLIP;
+		case SRC::ExternalLeading:	return DT_EXTERNALLEADING;
+		case SRC::CalcRect:			return DT_CALCRECT;
+		case SRC::NoPrefix:			return DT_NOPREFIX;
+		default:					throw  SGE_ERROR("unsupported DrawTextFormatFlag");
+	}
+}
+
+inline
+int PW5_Win32Util::getStockLogicalObject_Brush(StockLogicalObject_Brush v) {
+	using SRC = StockLogicalObject_Brush;
 	switch (v) {
 		case SRC::None:		return NULL_BRUSH;
 		case SRC::White:	return WHITE_BRUSH;
@@ -42,12 +67,37 @@ int PW5_Win32Util::getStockLogicalObject(StockLogicalObject v) {
 		case SRC::Gray:		return GRAY_BRUSH;
 		case SRC::DkGray:	return DKGRAY_BRUSH;
 		case SRC::Black:	return BLACK_BRUSH;
-		default:			throw  SGE_ERROR("unsupported StockLogicalObject");
+		default:			throw  SGE_ERROR("unsupported StockLogicalObject_Brush");
 	}
 }
 
 inline
-WNDCLASSEX PW5_Win32Util::createWndClass(HMODULE hInstance, const wchar_t* clsName, WNDPROC lpfnWndProc, UINT style /*= 0*/) {
+int PW5_Win32Util::getStockLogicalObject_Pen(StockLogicalObject_Pen v) {
+	using SRC = StockLogicalObject_Pen;
+	switch (v) {
+		case SRC::None:		return NULL_PEN;
+		case SRC::White:	return WHITE_PEN;
+		case SRC::Black:	return BLACK_PEN;
+		default:			throw  SGE_ERROR("unsupported StockLogicalObject_Pen");
+	}
+}
+
+inline
+int PW5_Win32Util::getPenStyle(PenStyle v) {
+	using SRC = PenStyle;
+	switch (v) {
+		case SRC::None:			return PS_NULL;
+		case SRC::Solid:		return PS_SOLID;
+		case SRC::Dash:			return PS_DASH;
+		case SRC::Dot:			return PS_DOT;
+		case SRC::DashDot:		return PS_DASHDOT;
+		case SRC::DashDotDot:	return PS_DASHDOTDOT;
+		default:				throw  SGE_ERROR("unsupported PenStyle");
+	}
+}
+
+inline
+WNDCLASSEX PW5_Win32Util::createWndClass(HMODULE hInstance, const wchar_t* clsName, WNDPROC lpfnWndProc, UINT csStyle /*= 0*/) {
 	WNDCLASSEX wc;
 	g_bzero(wc);
 
@@ -55,7 +105,7 @@ WNDCLASSEX PW5_Win32Util::createWndClass(HMODULE hInstance, const wchar_t* clsNa
     wc.hInstance		= hInstance;
     wc.lpfnWndProc		= lpfnWndProc;
     wc.lpszClassName	= clsName;
-    wc.style			= CS_HREDRAW | CS_VREDRAW | style;
+    wc.style			= CS_HREDRAW | CS_VREDRAW | csStyle;
     wc.cbClsExtra		= 0;
     wc.cbWndExtra		= 0;
     wc.hIcon			= LoadIcon(hInstance, IDI_APPLICATION);

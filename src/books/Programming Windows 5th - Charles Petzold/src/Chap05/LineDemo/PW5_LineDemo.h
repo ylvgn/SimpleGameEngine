@@ -13,6 +13,7 @@ protected:
 	virtual void onDraw() override;
 private:
 	void _example1();
+	void _example2();
 };
 
 }

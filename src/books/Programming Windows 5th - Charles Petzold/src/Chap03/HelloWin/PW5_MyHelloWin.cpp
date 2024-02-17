@@ -115,21 +115,17 @@ LRESULT CALLBACK PW5_MyHelloWin::s_wndProc(HWND hwnd, UINT message, WPARAM wPara
 			{
 				sRed += 10;
 				sRed = sRed % 256;
-
-				auto brush = CreateSolidBrush(RGB(sRed, 0, 0));
-				::SelectObject(hdc, brush);
-
+				
+				ScopedCreateSolidBrush scoped(hdc, GDI::kRed256);
 				int right = rc.left + 20;
 				int bottom = rc.top + 20;
-				::Rectangle(hdc, rc.left, rc.top, right, bottom);
+				ps.rectangle(rc.left, rc.top, right, bottom);
 
 				wchar_t buf[64];
 				SYSTEMTIME st;
 				::GetSystemTime(&st);
 				wsprintf(buf, L"%02d:%02d:%02d", st.wHour, st.wMinute, st.wSecond);
-
-				::TextOut(hdc, right, rc.top + 5, buf, static_cast<int>(wcslen(buf)));
-				::DeleteObject(brush);
+				ps.textOut(right, rc.top + 5, buf);
 			}
 
 			{

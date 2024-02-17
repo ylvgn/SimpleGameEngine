@@ -37,26 +37,23 @@ LRESULT CALLBACK PW5_MyDrawText::s_wndProc(HWND hwnd, UINT message, WPARAM wPara
 			return 0;
 
 		case WM_PAINT: {
+			using DTFlag = ScopedPaintStruct::DTFlag;
+
 			ScopedPaintStruct ps(hwnd);
 			::RECT rc = ps.rcPaint();
 
-			auto brush = GDI::createSolidBrush(0, 200, 200);
-			::SelectObject(ps, brush);
+			ScopedCreateSolidBrush scoped(ps, {0,200,200,255} );
 			ps.rectangle(rc.left, rc.top, rc.right, rc.bottom);
 
-			GDI::drawText(ps, &rc, L"DT\r\nLEFT", DT_LEFT | DT_WORDBREAK);
-			GDI::drawText(ps, &rc, L"DT\r\nCENTER", DT_CENTER | DT_WORDBREAK);
-			GDI::drawText(ps, &rc, L"DT\r\nRIGHT", DT_RIGHT | DT_WORDBREAK);
-
-			GDI::drawText(ps, &rc, L"DT_LEFT | DT_VCENTER", DT_LEFT | DT_VCENTER | DT_SINGLELINE);
-			GDI::drawText(ps, &rc, L"DT_CENTER | DT_VCENTER", DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-			GDI::drawText(ps, &rc, L"DT_RIGHT | DT_VCENTER", DT_RIGHT | DT_VCENTER | DT_SINGLELINE);
-
-			GDI::drawText(ps, &rc, L"DT_LEFT | DT_BOTTOM", DT_LEFT | DT_BOTTOM | DT_SINGLELINE);
-			GDI::drawText(ps, &rc, L"DT_CENTER | DT_BOTTOM ", DT_CENTER | DT_BOTTOM | DT_SINGLELINE);
-			GDI::drawText(ps, &rc, L"DT_RIGHT | DT_BOTTOM", DT_RIGHT | DT_BOTTOM | DT_SINGLELINE);
-
-			::DeleteObject(brush);
+			ps.drawText(&rc, "DT\r\nLEFT",				DTFlag::Left	| DTFlag::WordBreak);
+			ps.drawText(&rc, "DT\r\nCENTER",			DTFlag::Center	| DTFlag::WordBreak);
+			ps.drawText(&rc, "DT\r\nRIGHT",				DTFlag::Right	| DTFlag::WordBreak);
+			ps.drawText(&rc, "DT_LEFT | DT_VCENTER",	DTFlag::Left	| DTFlag::VCenter | DTFlag::SingleLine);
+			ps.drawText(&rc, "DT_CENTER | DT_VCENTER",	DTFlag::Center	| DTFlag::VCenter | DTFlag::SingleLine);
+			ps.drawText(&rc, "DT_RIGHT | DT_VCENTER",	DTFlag::Right	| DTFlag::VCenter | DTFlag::SingleLine);
+			ps.drawText(&rc, "DT_LEFT | DT_BOTTOM",		DTFlag::Left	| DTFlag::Bottom  | DTFlag::SingleLine);
+			ps.drawText(&rc, "DT_CENTER | DT_BOTTOM ",	DTFlag::Center	| DTFlag::Bottom  | DTFlag::SingleLine);
+			ps.drawText(&rc, "DT_RIGHT | DT_BOTTOM",	DTFlag::Right	| DTFlag::Bottom  | DTFlag::SingleLine);
 		} break;
 	} // switch
     return DefWindowProc(hwnd, message, wParam, lParam);
