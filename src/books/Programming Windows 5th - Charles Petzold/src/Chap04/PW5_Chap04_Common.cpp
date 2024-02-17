@@ -146,12 +146,7 @@ void PW5_MyDefineMarkWindow::onDraw() {
 	ScopedGetDC hdc(_hwnd);
 
 	const auto& sysmetrics = _dm->data();
-
-	auto brush = static_cast<HBRUSH>(GetStockBrush(WHITE_BRUSH));
-	::SelectObject(hdc, brush);
-	::RECT rc;
-	::GetClientRect(_hwnd, &rc);
-	::FillRect(hdc, &rc, brush);
+	hdc.clearBg();
 
 	int offsetY;
 	_vScrollInfo->getPos(_hwnd, offsetY);
@@ -174,13 +169,13 @@ void PW5_MyDefineMarkWindow::onDraw() {
 		x += 24 * _cxCaps;
 		hdc.textOut(x, y, item.mark);
 
-		hdc.setTextAlign(TextAlignment::Right | TextAlignment::Top);
+		hdc.setTextAlign(TextAlignmentOption::Right | TextAlignmentOption::Top);
 		x += 40 * _cxChar;
 
 		dm->io(out, item, this);
 		hdc.Fmt_textOut(x, y, "{:5d}", out);
 
-		hdc.setTextAlign(TextAlignment::Left | TextAlignment::Top); // reset text align
+		hdc.setTextAlign(TextAlignmentOption::Left | TextAlignmentOption::Top); // reset text align
 		++i;
 	}
 }

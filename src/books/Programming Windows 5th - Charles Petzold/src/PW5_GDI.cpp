@@ -16,17 +16,17 @@ TextMetrics::TextMetrics(HDC hdc) {
 	_internal_init(hdc);
 }
 
-TextMetrics::TextMetrics(const TEXTMETRIC& tm) {
+TextMetrics::TextMetrics(const ::TEXTMETRIC& tm) {
 	_set(tm);
 }
 
 void TextMetrics::_internal_init(HDC hdc) {
-	TEXTMETRIC tm;
+	::TEXTMETRIC tm;
 	::GetTextMetrics(hdc, &tm);
 	_set(tm);
 }
 
-void TextMetrics::_set(const TEXTMETRIC& tm) {
+void TextMetrics::_set(const ::TEXTMETRIC& tm) {
 	height					= tm.tmHeight;
 	ascent					= tm.tmAscent;
 	descent					= tm.tmDescent;
@@ -40,16 +40,18 @@ void TextMetrics::_set(const TEXTMETRIC& tm) {
 	aveCharWidthUpperCase   = isFixedPitch ? aveCharWidth : static_cast<int>(1.5f * aveCharWidth);
 }
 
-UINT MyHDC::setTextAlign(TextAlignment align) {
+UINT MyHDC_NoHWND::setTextAlign(TextAlignmentOption flags) {
 	// https://github.com/MicrosoftDocs/win32/blob/docs/desktop-src/gdi/text-formatting-attributes.md
-	int res = 0;
-	int bits = static_cast<int>(align);
-	while (bits) {
-		int v = Math::lowbit(bits);
-		res |= PW5_Win32Util::getTextAlignment(static_cast<TextAlignment>(v));
-		bits -= v;
-	}
-	return ::SetTextAlign(_hdc, res); // if failed, return GDI_ERROR
+	UINT align = g_flags2Bits(flags, PW5_Win32Util::getTextAlignmentOption);
+	return ::SetTextAlign(_hdc, align); // if failed, return GDI_ERROR
+}
+
+void MyHDC::clearBg(StockLogicalObject flag /*= StockLogicalObject::White*/) {
+	::RECT rc;
+	::GetClientRect(_hwnd, &rc);
+	int stock = PW5_Win32Util::getStockLogicalObject(flag);
+	auto brush = static_cast<HBRUSH>(GetStockBrush(stock));
+	GDI::fillRect(_hdc, rc, brush);
 }
 
 }

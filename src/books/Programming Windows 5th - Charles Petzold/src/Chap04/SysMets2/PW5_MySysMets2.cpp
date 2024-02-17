@@ -12,8 +12,8 @@ void PW5_MySysMets2::onCreate(CreateDesc& desc) {
 
 	desc.ownDC = true;
 	Base::onCreate(desc);
-
-	s_defaultWndProc = reinterpret_cast<WNDPROC>(SetWindowLongPtr(_hwnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(s_wndProc)));
+	setWindowTitle("PW5_MySysMets2");
+	s_defaultWndProc = reinterpret_cast<WNDPROC>(::SetWindowLongPtr(_hwnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(s_wndProc)));
 	
 	const auto& sysmetrics = _dm->data();
 	auto NUMLINES = static_cast<int>(sysmetrics.size());
@@ -37,16 +37,10 @@ void PW5_MySysMets2::onCreate(CreateDesc& desc) {
 
 void PW5_MySysMets2::onDraw() {
 	ScopedGetDC hdc(_hwnd); // Even if you use CS_OWNDC, you should still release the device context handle before exiting the window procedure
+	hdc.clearBg();
 
 	const auto& sysmetrics	= _dm->data();
 	auto NUMLINES			= static_cast<int>(sysmetrics.size());
-
-	// clear bg
-	auto brush = static_cast<HBRUSH>(GetStockBrush(WHITE_BRUSH));
-	::SelectObject(hdc, brush);
-	::RECT rc;
-	::GetClientRect(_hwnd, &rc);
-	::FillRect(hdc, &rc, brush);
 
 	for (int i = 0; i < NUMLINES; i++) {
 		int x = 0;
@@ -57,11 +51,11 @@ void PW5_MySysMets2::onDraw() {
 
 		x += 24 * _cxCaps;
 		hdc.textOut(x, y, sysmetrics[i].mark);
-		::SetTextAlign(hdc, TA_RIGHT | TA_TOP);
+		hdc.setTextAlign(TextAlignmentOption::Right | TextAlignmentOption::Top);
 
 		x += 40 * _cxChar;
 		hdc.Fmt_textOut(x, y, "{:5d}", ::GetSystemMetrics(sysmetrics[i].id));
-		::SetTextAlign(hdc, TA_LEFT | TA_TOP);
+		hdc.setTextAlign(TextAlignmentOption::Left | TextAlignmentOption::Top);
 	}
 }
 

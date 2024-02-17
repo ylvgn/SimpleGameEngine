@@ -193,11 +193,11 @@ LRESULT CALLBACK PW5_SysMets3::s_wndProc (HWND hwnd, UINT message, WPARAM wParam
 				x += 22 * cxCaps;
 				ps.textOut(x, y, sysmetrics[i].mark);
 
-				::SetTextAlign(ps, TA_RIGHT | TA_TOP);
+				ps.setTextAlign(TextAlignmentOption::Right | TextAlignmentOption::Top);
 				x += 40 * cxChar;
 				ps.Fmt_textOut(x, y, "{:5d}", ::GetSystemMetrics(sysmetrics[i].id));
 
-				::SetTextAlign(ps, TA_LEFT | TA_TOP);
+				ps.setTextAlign(TextAlignmentOption::Left | TextAlignmentOption::Top); // reset text align to left-top(default)
 			}
 			return 0;
 		}

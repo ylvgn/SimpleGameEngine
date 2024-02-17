@@ -40,9 +40,9 @@ LRESULT CALLBACK PW5_MyDrawText::s_wndProc(HWND hwnd, UINT message, WPARAM wPara
 			ScopedPaintStruct ps(hwnd);
 			::RECT rc = ps.rcPaint();
 
-			auto brush = ::CreateSolidBrush(RGB(0, 200, 200));
+			auto brush = GDI::createSolidBrush(0, 200, 200);
 			::SelectObject(ps, brush);
-			ps.rectangle(rc);
+			ps.rectangle(rc.left, rc.top, rc.right, rc.bottom);
 
 			GDI::drawText(ps, &rc, L"DT\r\nLEFT", DT_LEFT | DT_WORDBREAK);
 			GDI::drawText(ps, &rc, L"DT\r\nCENTER", DT_CENTER | DT_WORDBREAK);

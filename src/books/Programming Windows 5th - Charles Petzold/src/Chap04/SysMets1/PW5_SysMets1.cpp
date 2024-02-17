@@ -9,6 +9,7 @@ void PW5_SysMets1::onCreate(CreateDesc& desc) {
 	auto hInstance = ::GetModuleHandle(nullptr);
 
 	auto wc = PW5_Win32Util::createWndClass(hInstance, clsName, s_wndProc);
+	wc.hbrBackground = static_cast<HBRUSH>(::GetStockObject(WHITE_BRUSH)); // WM_SIZE->WM_PAINT->BeginPaint will redraw using this brush to erase bg
 	PW5_Win32Util::registerWndClass(wc);
 
 	auto dwStyle = WS_OVERLAPPEDWINDOW;
@@ -72,14 +73,14 @@ LRESULT CALLBACK PW5_SysMets1::s_wndProc(HWND hwnd, UINT message, WPARAM wParam,
 
 				// The longest uppercase identifier displayed in the first column is 20 characters,
 				// so the second column must begin at least 20*cxCaps to the right of the beginning of the first column of text.
-				// I use 22 to add a little extra space between the columns
+				// use 22 to add a little extra space between the columns
 				x += 22 * cxCaps;
 				ps.textOut(x, y, sysmetrics[i].mark);
-				::SetTextAlign(ps, TA_RIGHT | TA_TOP);
+				ps.setTextAlign(TextAlignmentOption::Right | TextAlignmentOption::Top); // ::SetTextAlign(ps, TA_RIGHT | TA_TOP);
 
 				x += 40 * cxChar;
-				ps.Fmt_textOut(x, y, "{:5}", ::GetSystemMetrics(sysmetrics[i].id)); //g_textOutf(ps.hdc(), x, y, L"%5d", GetSystemMetrics(sysmetrics[i].iIndex));
-				::SetTextAlign(ps, TA_LEFT | TA_TOP);
+				ps.Fmt_textOut(x, y, "{:5d}", ::GetSystemMetrics(sysmetrics[i].id));	// g_textOutf(ps.hdc(), x, y, L"%5d", GetSystemMetrics(sysmetrics[i].iIndex));
+				ps.setTextAlign(TextAlignmentOption::Left | TextAlignmentOption::Top);	// reset text align to left-top(default)
 			}
 			return 0;
 		} break;

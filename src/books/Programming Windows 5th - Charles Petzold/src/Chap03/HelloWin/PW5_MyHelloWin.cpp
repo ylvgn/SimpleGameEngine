@@ -88,7 +88,7 @@ LRESULT CALLBACK PW5_MyHelloWin::s_wndProc(HWND hwnd, UINT message, WPARAM wPara
 
 			::MoveToEx(hdc, from.x, from.y, &pt);
 			FmtTo(s, "p1:({},{})\n", pt.x, pt.y);
-			hdc.lineTo(to.x, to.y);
+			GDI::lineTo(hdc, to.x, to.y);
 			FmtTo(s, "line1:{} -> {}\n", from, to);
 
 			from.x = x;
@@ -98,7 +98,7 @@ LRESULT CALLBACK PW5_MyHelloWin::s_wndProc(HWND hwnd, UINT message, WPARAM wPara
 
 			::MoveToEx(hdc, x, y+15, &pt);
 			FmtTo(s, "p2:({},{})\n", pt.x, pt.y);
-			hdc.lineTo(x + 80, y+15);
+			GDI::lineTo(hdc, x + 80, y + 15);
 			FmtTo(s, "line2:{} -> {}\n", from, to);
 
 			SGE_LOG("WM_LBUTTONDOWN ({}, {})\n{}", x, y, s);

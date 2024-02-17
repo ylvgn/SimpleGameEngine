@@ -80,4 +80,17 @@ private:
 template<class T> inline const DefineMark* DefineMarkOf() { return T::s_getMark(); }
 template<class T> inline const DefineMark* DefineMarkOf(const T&) { return DefineMarkOf<T>(); }
 
+
+template<typename DST, class SRC, class ENABLE = std::enable_if_t<std::is_enum_v<SRC>>> inline
+DST g_flags2Bits(SRC srcFlags, DST (*castor)(SRC) ) {
+	DST res = 0;
+	DST n = static_cast<DST>(srcFlags);
+	while (n) {
+		int v = Math::lowbit(n);
+		res |= castor(static_cast<SRC>(v));
+		n -= v;
+	}
+	return res;
+}
+
 }
