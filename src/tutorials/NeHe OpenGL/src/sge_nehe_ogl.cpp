@@ -1,12 +1,13 @@
 #include "NeheOGL 001/NeheOGL_Lesson001.h"
 #include "NeheOGL 002/NeheOGL_Lesson002.h"
 #include "NeheOGL 003/NeheOGL_Lesson003.h"
+#include "NeheOGL 004/NeheOGL_Lesson004.h"
 
 namespace sge {
 
 class NeheOGLApp : public NativeUIApp {
 	using Base = NativeUIApp;
-	using NeheOGLMainWin = NeheOGL_Lesson003;
+	using NeheOGLMainWin = NeheOGL_Lesson004;
 protected:
 	virtual void onCreate(CreateDesc& desc) override {
 		{ // set working dir

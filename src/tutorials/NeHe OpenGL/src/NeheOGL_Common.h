@@ -20,7 +20,7 @@
 
 namespace sge {
 
-template<class T> constexpr void g_bzero(T& s) {
+template<class T> inline void g_bzero(T& s) {
 	memset(&s, 0, sizeof(s));
 }
 
@@ -29,3 +29,18 @@ inline float g_rad(float degree) {
 }
 
 }
+
+namespace sge {
+namespace OGL {
+
+	inline void glColor4fWhite()	{ glColor4f(1, 1, 1, 1); }
+	inline void glColor4fBlack()	{ glColor4f(0, 0, 0, 1); }
+	inline void glColor4fRed()		{ glColor4f(1, 0, 0, 1); }
+	inline void glColor4fGreen()	{ glColor4f(0, 1, 0, 1); }
+	inline void glColor4fBlue()		{ glColor4f(0, 0, 1, 1); }
+	inline void glColor4fYellow()	{ glColor4f(1, 1, 0, 1); }
+	inline void glColor4fPurple()	{ glColor4f(1, 0, 1, 1); }
+	inline void glColor4fCyan()		{ glColor4f(0, 1, 1, 1); }
+
+} // namespace GL
+} // namespace sge
