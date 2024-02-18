@@ -46,8 +46,7 @@ void PW5_MySysMets2::onDraw() {
 		int x = 0;
 		int y = _cyChar * i - _scrollPosV;
 
-		StrViewW s(sysmetrics[i].name);
-		hdc.Fmt_textOut(x, y, "{:03d} {}", i, s);
+		hdc.Fmt_textOut(x, y, "{:03d} {}", i, sysmetrics[i].name);
 
 		x += 24 * _cxCaps;
 		hdc.textOut(x, y, sysmetrics[i].mark);

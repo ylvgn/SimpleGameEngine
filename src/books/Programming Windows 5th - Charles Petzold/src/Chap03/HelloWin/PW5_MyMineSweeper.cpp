@@ -30,7 +30,7 @@ void Cell::onDraw(const MyHDC& hdc) {
 	if (!opened) return;
 
 	if (hasMine) {
-		hdc.textOut(sx + 3, sy + 3, L"@");
+		hdc.textOut(sx + 3, sy + 3, "@");
 	}
 	else
 	{

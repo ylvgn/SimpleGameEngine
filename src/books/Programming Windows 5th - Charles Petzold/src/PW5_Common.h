@@ -9,7 +9,7 @@
 	#include <tchar.h>
 #endif
 
-#define SGE_DEFINEMARK__ITEM(SGE_ID, SGE_MARK) { SGE_ID, L#SGE_ID, SGE_MARK }
+#define SGE_DEFINEMARK__ITEM(SGE_ID, SGE_MARK) { SGE_ID, #SGE_ID, SGE_MARK }
 #define SGE_DEFINEMARK(T) \
 	struct T; \
 	template<> const DefineMark* DefineMarkOf<T>(); \
@@ -23,7 +23,7 @@
 
 namespace sge {
 
-template<class T> constexpr void g_bzero(T& s) {
+template<class T> inline void g_bzero(T& s) {
 	memset(&s, 0, sizeof(s));
 }
 
@@ -33,14 +33,14 @@ public:
 	using NativeUIWindow = PW5_NativeUIWindow;
 
 	struct Item {
-		Item(int id_, const wchar_t* name_, const wchar_t* mark_)
+		Item(int id_, const char* name_, const char* mark_)
 			: id(id_)
 			, name(name_)
 			, mark(mark_) {}
 
 		int			   id;
-		const wchar_t* name = L"";
-		const wchar_t* mark = L"";
+		const char* name = "";
+		const char* mark = "";
 	};
 
 	using Getter = void (*)(void* v, const Item& item, const NativeUIWindow* obj);

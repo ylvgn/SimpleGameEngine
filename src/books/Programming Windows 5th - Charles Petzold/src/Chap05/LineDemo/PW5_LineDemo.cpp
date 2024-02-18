@@ -42,8 +42,8 @@ void PW5_LineDemo::_example2() {
 	float halfH = _clientRect.h * 0.5f;
 
 	{ // four quadrant with dashed lines
-		GDI::drawDashedLine(hdc, { 0, halfH }, { _clientRect.w, halfH }, GDI::kRed256);
-		GDI::drawDashedLine(hdc, { halfW, 0 }, { halfW, _clientRect.h }, GDI::kRed256);
+		GDI::drawDashedLine(hdc, { 0, halfH }, { _clientRect.w, halfH }, GDI::kRed);
+		GDI::drawDashedLine(hdc, { halfW, 0 }, { halfW, _clientRect.h }, GDI::kRed);
 	}
 
 	{ // drawing an arc in a counterclockwise: from -> to in counterclockwise around arc

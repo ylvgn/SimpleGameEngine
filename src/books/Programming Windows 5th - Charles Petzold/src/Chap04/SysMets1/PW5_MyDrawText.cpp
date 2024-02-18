@@ -40,20 +40,64 @@ LRESULT CALLBACK PW5_MyDrawText::s_wndProc(HWND hwnd, UINT message, WPARAM wPara
 			using DTFlag = ScopedPaintStruct::DTFlag;
 
 			ScopedPaintStruct ps(hwnd);
-			::RECT rc = ps.rcPaint();
+			::RECT rc  = ps.rcPaint();
+			int width  = rc.right - rc.left;
+			int height = rc.bottom - rc.top;
 
-			ScopedCreateSolidBrush scoped(ps, {0,200,200,255} );
+			ScopedCreateSolidBrush scoped(ps, { 0, 0.2f, 0.2f, 1 } );
 			ps.rectangle(rc.left, rc.top, rc.right, rc.bottom);
 
-			ps.drawText(&rc, "DT\r\nLEFT",				DTFlag::Left	| DTFlag::WordBreak);
-			ps.drawText(&rc, "DT\r\nCENTER",			DTFlag::Center	| DTFlag::WordBreak);
-			ps.drawText(&rc, "DT\r\nRIGHT",				DTFlag::Right	| DTFlag::WordBreak);
-			ps.drawText(&rc, "DT_LEFT | DT_VCENTER",	DTFlag::Left	| DTFlag::VCenter | DTFlag::SingleLine);
-			ps.drawText(&rc, "DT_CENTER | DT_VCENTER",	DTFlag::Center	| DTFlag::VCenter | DTFlag::SingleLine);
-			ps.drawText(&rc, "DT_RIGHT | DT_VCENTER",	DTFlag::Right	| DTFlag::VCenter | DTFlag::SingleLine);
-			ps.drawText(&rc, "DT_LEFT | DT_BOTTOM",		DTFlag::Left	| DTFlag::Bottom  | DTFlag::SingleLine);
-			ps.drawText(&rc, "DT_CENTER | DT_BOTTOM ",	DTFlag::Center	| DTFlag::Bottom  | DTFlag::SingleLine);
-			ps.drawText(&rc, "DT_RIGHT | DT_BOTTOM",	DTFlag::Right	| DTFlag::Bottom  | DTFlag::SingleLine);
+			ps.drawText(rc, "DT\r\nLEFT",				DTFlag::Left	| DTFlag::WordBreak);
+			ps.drawText(rc, "DT\r\nCENTER",				DTFlag::Center	| DTFlag::WordBreak);
+			ps.drawText(rc, "DT\r\nRIGHT",				DTFlag::Right	| DTFlag::WordBreak);
+			ps.drawText(rc, "DT_LEFT | DT_VCENTER",		DTFlag::Left	| DTFlag::VCenter | DTFlag::SingleLine);
+			ps.drawText(rc, "DT_CENTER | DT_VCENTER",	DTFlag::Center	| DTFlag::VCenter | DTFlag::SingleLine);
+			ps.drawText(rc, "DT_RIGHT | DT_VCENTER",	DTFlag::Right	| DTFlag::VCenter | DTFlag::SingleLine);
+			ps.drawText(rc, "DT_LEFT | DT_BOTTOM",		DTFlag::Left	| DTFlag::Bottom  | DTFlag::SingleLine);
+			ps.drawText(rc, "DT_CENTER | DT_BOTTOM ",	DTFlag::Center	| DTFlag::Bottom  | DTFlag::SingleLine);
+			ps.drawText(rc, "DT_RIGHT | DT_BOTTOM",		DTFlag::Right	| DTFlag::Bottom  | DTFlag::SingleLine);
+
+			{
+				int x = rc.left + width / 4;
+				int y = rc.top + height / 4;
+				ps.Fmt_drawText(x, y, "NorthWest");
+			}
+			{
+				int x = rc.left + width * 3 / 4;
+				int y = rc.top + height / 4;
+				ps.Fmt_drawText(x, y, "NorthEast");
+			}
+			{
+				int x = rc.left + width / 4;
+				int y = rc.top + height * 3/ 4;
+				ps.Fmt_drawText(x, y, "SouthWest");
+			}
+			{
+				int x = rc.left + width * 3 / 4;
+				int y = rc.top + height * 3 / 4;
+				ps.Fmt_drawText(x, y, "SouthEast");
+			}
+
+			{
+				int x = rc.left + width / 2;
+				int y = rc.top + height / 4;
+				ps.Fmt_drawText(x, y, "North");
+			}
+			{
+				int x = rc.left + width * 3/ 4;
+				int y = rc.top + height / 2;
+				ps.Fmt_drawText(x, y, "East");
+			}
+			{
+				int x = rc.left + width / 4;
+				int y = rc.top + height / 2;
+				ps.Fmt_drawText(x, y, "West");
+			}
+			{
+				int x = rc.left + width / 2;
+				int y = rc.top + height * 3 / 4;
+				ps.Fmt_drawText(x, y, "South");
+			}
 		} break;
 	} // switch
     return DefWindowProc(hwnd, message, wParam, lParam);

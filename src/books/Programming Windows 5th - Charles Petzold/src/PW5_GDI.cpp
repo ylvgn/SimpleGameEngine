@@ -5,7 +5,13 @@
 
 namespace sge {
 namespace GDI {
-	void drawDashedLine(HDC hdc, int fromX, int fromY, int toX, int toY, const Color4f& c/*= kBlack256*/) {
+
+	void drawText(HDC hdc, int left, int top, int right, int bottom, StrView str, DTFlag flags) {
+		UINT fDT = g_flags2Bits(flags, PW5_Win32Util::getDrawTextFormatFlag);
+		GDI::drawText(hdc, left, top, right, bottom, str, fDT);
+	}
+
+	void drawDashedLine(HDC hdc, int fromX, int fromY, int toX, int toY, const Color4f& c) {
 		LOGBRUSH brush;
 		brush.lbColor = COLORREF_make(c);
 		brush.lbStyle = PS_SOLID;
@@ -14,7 +20,7 @@ namespace GDI {
 		drawLine(hdc, fromX, fromY, toX, toY);
 	}
 
-	void drawDashedLine(HDC hdc, const Vec2f& from, const Vec2f& to, const Color4f& c/*= kBlack256*/) {
+	void drawDashedLine(HDC hdc, const Vec2f& from, const Vec2f& to, const Color4f& c) {
 		auto iFrom = Vec2i::s_cast(from);
 		auto iTo   = Vec2i::s_cast(to);
 		drawDashedLine(hdc, iFrom.x, iFrom.y, iTo.x, iTo.y, c);
@@ -67,11 +73,6 @@ UINT MyHDC_NoHWND::setTextAlign(TextAlignmentOption flags) {
 	// https://github.com/MicrosoftDocs/win32/blob/docs/desktop-src/gdi/text-formatting-attributes.md
 	UINT align = g_flags2Bits(flags, PW5_Win32Util::getTextAlignmentOption);
 	return ::SetTextAlign(_hdc, align); // if failed, return GDI_ERROR
-}
-
-void MyHDC_NoHWND::drawText(::RECT* rc, StrView	str, DTFlag flags) const {
-	UINT fDT = g_flags2Bits(flags, PW5_Win32Util::getDrawTextFormatFlag);
-	GDI::drawText(_hdc, rc, str, fDT);
 }
 
 void MyHDC::clearBg(StockLogicalObject_Brush flag /*= StockLogicalObject_Brush::White*/) {

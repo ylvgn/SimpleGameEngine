@@ -6,59 +6,59 @@
 namespace sge {
 
 #define TextAlignmentOption_ENUM_LIST(E) \
-	E(Left,) \
-	E(Right,) \
-	E(Top,) \
-	E(Bottom,) \
-	E(Center,) \
-	E(BaseLine,) \
+	E(Left,)		\
+	E(Right,)		\
+	E(Top,)			\
+	E(Bottom,)		\
+	E(Center,)		\
+	E(BaseLine,)	\
 //----
 SGE_ENUM_CLASS(TextAlignmentOption, u8)
 SGE_ENUM_ALL_OPERATOR(TextAlignmentOption)
 
 #define DrawTextFormatFlag_ENUM_LIST(E) \
-	E(Top,= 0) \
-	E(Left, = 1 << 0) \
-	E(Center, = 1 << 2) \
-	E(Right, = 1 << 3) \
-	E(VCenter, = 1 << 4) \
-	E(Bottom, = 1 << 5) \
-	E(WordBreak, = 1 << 6) \
-	E(SingleLine, = 1 << 7) \
-	E(ExpandTabs, = 1 << 8) \
-	E(TabStop, = 1 << 9) \
-	E(NoClip, = 1 << 10) \
-	E(ExternalLeading, = 1 << 11) \
-	E(CalcRect, = 1 << 12) \
-	E(NoPrefix, = 1 << 13) \
+	E(Top,				= 0)		\
+	E(Left,				= 1 << 0)	\
+	E(Center,			= 1 << 2)	\
+	E(Right,			= 1 << 3)	\
+	E(VCenter,			= 1 << 4)	\
+	E(Bottom,			= 1 << 5)	\
+	E(WordBreak,		= 1 << 6)	\
+	E(SingleLine,		= 1 << 7)	\
+	E(ExpandTabs,		= 1 << 8)	\
+	E(TabStop,			= 1 << 9)	\
+	E(NoClip,			= 1 << 10)	\
+	E(ExternalLeading,	= 1 << 11)	\
+	E(CalcRect,			= 1 << 12)	\
+	E(NoPrefix,			= 1 << 13)	\
 //----
 SGE_ENUM_CLASS(DrawTextFormatFlag, u16)
 SGE_ENUM_ALL_OPERATOR(DrawTextFormatFlag)
 
 #define StockLogicalObject_Brush_ENUM_LIST(E) \
-	E(None,) \
-	E(White,) \
-	E(LtGray,) \
-	E(Gray,) \
-	E(DkGray,) \
-	E(Black,) \
+	E(None,)	\
+	E(White,)	\
+	E(LtGray,)	\
+	E(Gray,)	\
+	E(DkGray,)	\
+	E(Black,)	\
 //----
 SGE_ENUM_CLASS(StockLogicalObject_Brush, u8)
 
 #define StockLogicalObject_Pen_ENUM_LIST(E) \
-	E(None,) \
-	E(White,) \
-	E(Black,) \
+	E(None,)	\
+	E(White,)	\
+	E(Black,)	\
 //----
 SGE_ENUM_CLASS(StockLogicalObject_Pen, u8)
 
 #define PenStyle_ENUM_LIST(E) \
-	E(None,) \
-	E(Solid,) \
-	E(Dash,) \
-	E(Dot,) \
-	E(DashDot,) \
-	E(DashDotDot,) \
+	E(None,)		\
+	E(Solid,)		\
+	E(Dash,)		\
+	E(Dot,)			\
+	E(DashDot,)		\
+	E(DashDotDot,)	\
 //----
 SGE_ENUM_CLASS(PenStyle, u8)
 
@@ -67,15 +67,21 @@ SGE_ENUM_CLASS(PenStyle, u8)
 namespace sge {
 namespace GDI {
 
-	static constexpr Color4f kWhite256	{ 255,255,255,255 };
-	static constexpr Color4f kRed256	{ 255,0,  0,  255 };
-	static constexpr Color4f kGreen256	{ 0,  255,0,  255 };
-	static constexpr Color4f kBlue256	{ 0,  0,  255,255 };
-	static constexpr Color4f kBlack256	{ 0,  0,  0,  255 };
+	using DTFlag = DrawTextFormatFlag;
 
-	inline void textOut(HDC hdc, int x, int y, const wchar_t* szText) {
-		if (!szText) return;
-		::TextOut(hdc, x, y, szText, lstrlenW(szText) /*or static_cast<int>(wcslen(text))*/);
+	static constexpr Color4f kWhite		{ 1,1,1,1 };
+	static constexpr Color4f kBlack		{ 0,0,0,1 };
+	static constexpr Color4f kRed		{ 1,0,0,1 };
+	static constexpr Color4f kGreen		{ 0,1,0,1 };
+	static constexpr Color4f kBlue		{ 0,0,1,1 };
+	static constexpr Color4f kYellow	{ 1,1,0,1 };
+	static constexpr Color4f kViolet	{ 1,0,1,1 };
+	static constexpr Color4f kCyan		{ 0,1,1,1 };
+
+	inline void textOut(HDC hdc, int x, int y, StrView str) {
+		if (str.size() == 0) return;
+		auto s = UtfUtil::toStringW(str);
+		::TextOut(hdc, x, y, s.c_str(), static_cast<int>(s.size()));
 	}
 
 	inline void textOutf(HDC hdc, int x, int y, const wchar_t* szFormat, ...) {
@@ -88,6 +94,28 @@ namespace GDI {
 		va_end(args);
 
 		::TextOut(hdc, x, y, szBuffer, len);
+	}
+
+	void drawText(HDC hdc, int left, int top, int right, int bottom, StrView str, DTFlag flags);
+
+	inline void drawText(HDC hdc,
+						 int left, int top, int right, int bottom,
+						 StrView str,
+						 UINT fDT = DT_SINGLELINE | DT_CENTER | DT_VCENTER)
+	{
+		if (str.size() == 0) return;
+		::RECT ltrb { left, top, right, bottom };
+		auto s = UtfUtil::toStringW(str);
+		::DrawText(hdc, s.c_str(), static_cast<int>(str.size()), &ltrb, fDT);
+	}
+
+	inline void drawText(HDC hdc, const ::RECT& ltrb, StrView str, DTFlag flags) {
+		drawText(hdc, ltrb.left, ltrb.top, ltrb.right, ltrb.bottom, str, flags);
+	}
+	inline void drawText(HDC hdc, const Rect2f& xywh, StrView str, DTFlag flags) {
+		::RECT ltrb;
+		Win32Util::convert(ltrb, xywh);
+		return drawText(hdc, ltrb, str, flags);
 	}
 
 	inline bool rectangle(HDC hdc, int left, int top, int right, int bottom) {
@@ -189,16 +217,6 @@ namespace GDI {
 		return lineTo(hdc, _pt);
 	}
 
-	inline void drawText(HDC			hdc,
-						::RECT*			ltrb,
-						StrView			str,
-						UINT			fDT = DT_SINGLELINE | DT_CENTER | DT_VCENTER)
-	{
-		if (str.size() == 0 || !ltrb) return;
-		auto s = UtfUtil::toStringW(str);
-		::DrawText(hdc, s.c_str(), static_cast<int>(str.size()), ltrb, fDT);
-	}
-
 	inline void drawLine(HDC hdc, int fromX, int fromY, int toX, int toY) {
 		::POINT lastPt;
 		::MoveToEx(hdc, fromX, fromY, &lastPt);
@@ -215,7 +233,7 @@ namespace GDI {
 
 	inline ::COLORREF COLORREF_make(int r, int g, int b)	{ return RGB(r, g, b); }
 	inline ::COLORREF COLORREF_make(const Color4b& c)		{ return RGB(c.r, c.g, c.b); }
-	inline ::COLORREF COLORREF_make(const Color4f& c)		{ return RGB(c.r, c.g, c.b); }
+	inline ::COLORREF COLORREF_make(const Color4f& c)		{ return RGB(c.r*255, c.g*255, c.b*255); }
 
 	inline ::HBRUSH createSolidBrush(int r, int g, int b)	{ return ::CreateSolidBrush(COLORREF_make(r, g, b)); }
 	inline ::HBRUSH createSolidBrush(const ::COLORREF& c)	{ return ::CreateSolidBrush(c); }
@@ -228,8 +246,8 @@ namespace GDI {
 		::SelectObject(hdc, nullptr);
 	}
 
-	void drawDashedLine(HDC hdc, int fromX, int fromY, int toX, int toY, const Color4f& c = kBlack256);
-	void drawDashedLine(HDC hdc, const Vec2f& from, const Vec2f& to, const Color4f& c = kBlack256);
+	void drawDashedLine(HDC hdc, int fromX, int fromY, int toX, int toY, const Color4f& c = kBlack);
+	void drawDashedLine(HDC hdc, const Vec2f& from, const Vec2f& to, const Color4f& c = kBlack);
 
 } // namespace GDI
 } // namespace sge
@@ -265,26 +283,22 @@ private:
 #endif
 class MyHDC_NoHWND : public NonCopyable {
 public:
-	using DTFlag = DrawTextFormatFlag;
+	using DTFlag = GDI::DTFlag;
 
 	virtual ~MyHDC_NoHWND() = default;
 
-	void textOut(int x, int y, const wchar_t* szText) const { GDI::textOut(_hdc, x, y, szText); }
+	operator const HDC& () const { return _hdc; }
 
-	template<class... Args>
-	void Fmt_textOut(int x, int y, Args&&... args) const {
-		auto tmpStr = Fmt(SGE_FORWARD(args)...);
-		auto s = UtfUtil::toStringW(tmpStr);
-		::TextOut(_hdc, x, y, s.c_str(), static_cast<int>(s.size()));
-	}
-
-	TextMetrics createTextMetrics() { return TextMetrics(_hdc); }
+	TextMetrics createTextMetrics() const { return TextMetrics(_hdc); }
 
 	UINT setTextAlign(TextAlignmentOption flags = TextAlignmentOption::Left | TextAlignmentOption::Top);
 
-	void drawText(::RECT* rc,
-					StrView	str,
-					DTFlag flags = DTFlag::SingleLine | DTFlag::Center | DTFlag::VCenter) const;
+	void textOut(int x, int y, StrView str) const { GDI::textOut(_hdc, x, y, str); }
+
+	void drawText(int l, int t, int r, int b, StrView str)					const { GDI::drawText(_hdc, l, t, r, b, str); }
+	void drawText(int l, int t, int r, int b, StrView str, DTFlag flags)	const { GDI::drawText(_hdc, l, t, r, b, str, flags); }
+	void drawText(const ::RECT& ltrb, StrView str, DTFlag flags)			const { GDI::drawText(_hdc, ltrb, str, flags); }
+	void drawText(const Rect2f& xywh, StrView str, DTFlag flags)			const { GDI::drawText(_hdc, xywh, str, flags); }
 
 	void drawLine(int fromX, int fromY, int toX, int toY)					const { GDI::drawLine(_hdc, fromX, fromY, toX, toY); }
 	void drawLine(const ::POINT& from, const ::POINT& to)					const { GDI::drawLine(_hdc, from, to); }
@@ -318,7 +332,19 @@ public:
 	void pie(const ::RECT& ltrb, int fromX, int fromY, int toX, int toY)	const { GDI::pie(_hdc, ltrb, fromX, fromY, toX, toY); }
 	void pie(const Rect2f& xywh, const Vec2f& from, const Vec2f& to)		const { GDI::pie(_hdc, xywh, from, to); }
 
-	operator const HDC& () const { return _hdc; }
+	template<class... Args>
+	void Fmt_textOut(int x, int y, Args&&... args) const {
+		auto tmpStr = Fmt(SGE_FORWARD(args)...);
+		auto s = UtfUtil::toStringW(tmpStr);
+		::TextOut(_hdc, x, y, s.c_str(), static_cast<int>(s.size()));
+	}
+
+	template<class... Args>
+	void Fmt_drawText(int x, int y, Args&&... args) const {
+		auto s = Fmt(SGE_FORWARD(args)...);
+		auto tm = createTextMetrics();
+		GDI::drawText(_hdc, x, y, x + static_cast<int>(s.size() * tm.maxCharWidth), y + tm.aveCharHeight, s.view(), 0);
+	}
 
 protected:
 	HDC	_hdc = nullptr;
@@ -423,8 +449,8 @@ private:
 class ScopedCreateSolidBrush : public MyHDC_NoHWND {
 	using Base = MyHDC_NoHWND;
 public:
-	ScopedCreateSolidBrush(HDC hdc, const Color4f& rgba = GDI::kWhite256) {
-		_brush = GDI::createSolidBrush(GDI::COLORREF_make(rgba));
+	ScopedCreateSolidBrush(HDC hdc, const Color4f& c = GDI::kWhite) {
+		_brush = GDI::createSolidBrush(GDI::COLORREF_make(c));
 		SelectBrush(hdc, _brush);
 	}
 	~ScopedCreateSolidBrush() { DeleteBrush(_brush); }

@@ -185,7 +185,7 @@ LRESULT CALLBACK PW5_SysMets3::s_wndProc (HWND hwnd, UINT message, WPARAM wParam
 			int iPaintEnd = Math::min(NUMLINES - 1, iVertPos + static_cast<int>(ps.rcPaint().bottom / cyChar));
 
 			for (int i = iPaintBeg; i <= iPaintEnd; i++) {
-				int x = cxChar * (1 - iHorzPos);
+				int x = cxChar * (1 - iHorzPos); // or 0
 				int y = cyChar * (i - iVertPos);
 
 				ps.textOut(x, y, sysmetrics[i].name);

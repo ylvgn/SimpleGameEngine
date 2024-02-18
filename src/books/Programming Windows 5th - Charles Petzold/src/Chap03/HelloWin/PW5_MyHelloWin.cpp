@@ -79,7 +79,7 @@ LRESULT CALLBACK PW5_MyHelloWin::s_wndProc(HWND hwnd, UINT message, WPARAM wPara
 
 			ScopedGetDC hdc(hwnd);
 			hdc.rectangle(x, y, x + 10, y + 10);
-			hdc.textOut(x, y, L"MyHelloWin");
+			hdc.textOut(x, y, "MyHelloWin");
 
 			from.x = x;
 			from.y = y;
@@ -116,15 +116,15 @@ LRESULT CALLBACK PW5_MyHelloWin::s_wndProc(HWND hwnd, UINT message, WPARAM wPara
 				sRed += 10;
 				sRed = sRed % 256;
 				
-				ScopedCreateSolidBrush scoped(hdc, GDI::kRed256);
+				ScopedCreateSolidBrush scoped(hdc, GDI::kRed);
 				int right = rc.left + 20;
 				int bottom = rc.top + 20;
 				ps.rectangle(rc.left, rc.top, right, bottom);
 
-				wchar_t buf[64];
+				char buf[64];
 				SYSTEMTIME st;
 				::GetSystemTime(&st);
-				wsprintf(buf, L"%02d:%02d:%02d", st.wHour, st.wMinute, st.wSecond);
+				sprintf(buf, "%02d:%02d:%02d", st.wHour, st.wMinute, st.wSecond);
 				ps.textOut(right, rc.top + 5, buf);
 			}
 
