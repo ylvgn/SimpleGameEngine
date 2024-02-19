@@ -50,26 +50,19 @@ void NeheOGL_Lesson005::_example1() {
 		glLoadIdentity();
 		glTranslatef(-1.5f, 0.f, -6.f);
 		glRotatef(_rtri, 0.0f, 1.0f, 0.0f);
-		glBegin(GL_TRIANGLES);
-			// front
-			OGL::glColor(OGL::kRed);	glVertex3fv(v[0]);
-			OGL::glColor(OGL::kGreen);	glVertex3fv(v[3]);
-			OGL::glColor(OGL::kBlue);	glVertex3fv(v[4]);
+		OGL::glColor(OGL::kWhite);
+		glBegin(GL_LINES);
+			// bottom
+			glVertex3fv(v[1]); glVertex3fv(v[2]);
+			glVertex3fv(v[2]); glVertex3fv(v[4]);
+			glVertex3fv(v[4]); glVertex3fv(v[3]);
+			glVertex3fv(v[3]); glVertex3fv(v[1]);
 
-			// right
-			OGL::glColor(OGL::kRed);	glVertex3fv(v[0]);
-			OGL::glColor(OGL::kGreen);	glVertex3fv(v[4]);
-			OGL::glColor(OGL::kBlue);	glVertex3fv(v[2]);
-
-			// back
-			OGL::glColor(OGL::kRed);	glVertex3fv(v[0]);
-			OGL::glColor(OGL::kGreen);	glVertex3fv(v[2]);
-			OGL::glColor(OGL::kBlue);	glVertex3fv(v[1]);
-
-			// left
-			OGL::glColor(OGL::kRed);	glVertex3fv(v[0]);
-			OGL::glColor(OGL::kGreen);	glVertex3fv(v[1]);
-			OGL::glColor(OGL::kBlue);	glVertex3fv(v[3]);
+			// top
+			glVertex3fv(v[1]); glVertex3fv(v[0]);
+			glVertex3fv(v[2]); glVertex3fv(v[0]);
+			glVertex3fv(v[3]); glVertex3fv(v[0]);
+			glVertex3fv(v[4]); glVertex3fv(v[0]);
 		glEnd();
 	}
 
@@ -93,17 +86,27 @@ void NeheOGL_Lesson005::_example1() {
 			{-d, -d,  d}, // 7
 		};
 		glLoadIdentity();
-		glTranslatef(1.f, 0.f, -6.0f);
+		glTranslatef(1.f, 0.f, -7.0f);
 		glRotatef(_rquad, 1.0f, 1.0f, 1.0f);
-		glBegin(GL_QUADS);
-			OGL::glColor(OGL::kGreen);	glVertex3fv(v[0]); glVertex3fv(v[1]); glVertex3fv(v[2]); glVertex3fv(v[3]); // top
-			OGL::glColor(OGL::kOrange);	glVertex3fv(v[4]); glVertex3fv(v[5]); glVertex3fv(v[6]); glVertex3fv(v[7]); // down
+		OGL::glColor(OGL::kWhite);
+		glBegin(GL_LINES);
+			// top
+			glVertex3fv(v[0]); glVertex3fv(v[1]);
+			glVertex3fv(v[1]); glVertex3fv(v[2]);
+			glVertex3fv(v[2]); glVertex3fv(v[3]);
+			glVertex3fv(v[3]); glVertex3fv(v[0]);
 
-			OGL::glColor(OGL::kRed);	glVertex3fv(v[3]); glVertex3fv(v[2]); glVertex3fv(v[6]); glVertex3fv(v[7]); // front
-			OGL::glColor(OGL::kYellow); glVertex3fv(v[0]); glVertex3fv(v[1]); glVertex3fv(v[5]); glVertex3fv(v[4]); // back
+			// bottom
+			glVertex3fv(v[4]); glVertex3fv(v[5]);
+			glVertex3fv(v[5]); glVertex3fv(v[6]);
+			glVertex3fv(v[6]); glVertex3fv(v[7]);
+			glVertex3fv(v[7]); glVertex3fv(v[4]);
 
-			OGL::glColor(OGL::kBlue);	glVertex3fv(v[0]); glVertex3fv(v[3]); glVertex3fv(v[7]); glVertex3fv(v[4]); // left
-			OGL::glColor(OGL::kViolet); glVertex3fv(v[1]); glVertex3fv(v[5]); glVertex3fv(v[6]); glVertex3fv(v[2]); // right
+			// vertical
+			glVertex3fv(v[0]); glVertex3fv(v[4]);
+			glVertex3fv(v[1]); glVertex3fv(v[5]);
+			glVertex3fv(v[2]); glVertex3fv(v[6]);
+			glVertex3fv(v[3]); glVertex3fv(v[7]);
 		glEnd();
 
 		_rtri  +=  1.f;
@@ -157,19 +160,26 @@ void NeheOGL_Lesson005::_example2() {
 		glLoadIdentity();
 		glTranslatef(-1.5f, 0.f, -6.f);
 		glRotatef(_rtri, 0.0f, 1.0f, 0.0f);
-		OGL::glColor(OGL::kWhite);
-		glBegin(GL_LINES);
-			// bottom
-			glVertex3fv(v[1]); glVertex3fv(v[2]);
-			glVertex3fv(v[2]); glVertex3fv(v[4]);
-			glVertex3fv(v[4]); glVertex3fv(v[3]);
-			glVertex3fv(v[3]); glVertex3fv(v[1]);
+		glBegin(GL_TRIANGLES); // Note that all triangles are drawn in a counter clockwise order rotation
+			// front
+			OGL::glColor(OGL::kRed);	glVertex3fv(v[0]);
+			OGL::glColor(OGL::kGreen);	glVertex3fv(v[3]);
+			OGL::glColor(OGL::kBlue);	glVertex3fv(v[4]);
 
-			// top
-			glVertex3fv(v[1]); glVertex3fv(v[0]);
-			glVertex3fv(v[2]); glVertex3fv(v[0]);
-			glVertex3fv(v[3]); glVertex3fv(v[0]);
-			glVertex3fv(v[4]); glVertex3fv(v[0]);
+			// right
+			OGL::glColor(OGL::kRed);	glVertex3fv(v[0]);
+			OGL::glColor(OGL::kGreen);	glVertex3fv(v[4]);
+			OGL::glColor(OGL::kBlue);	glVertex3fv(v[2]);
+
+			// back
+			OGL::glColor(OGL::kRed);	glVertex3fv(v[0]);
+			OGL::glColor(OGL::kGreen);	glVertex3fv(v[2]);
+			OGL::glColor(OGL::kBlue);	glVertex3fv(v[1]);
+
+			// left
+			OGL::glColor(OGL::kRed);	glVertex3fv(v[0]);
+			OGL::glColor(OGL::kGreen);	glVertex3fv(v[1]);
+			OGL::glColor(OGL::kBlue);	glVertex3fv(v[3]);
 		glEnd();
 	}
 
@@ -193,27 +203,24 @@ void NeheOGL_Lesson005::_example2() {
 			{-d, -d,  d}, // 7
 		};
 		glLoadIdentity();
-		glTranslatef(1.f, 0.f, -6.0f);
+		glTranslatef(1.f, 0.f, -7.0f);
 		glRotatef(_rquad, 1.0f, 1.0f, 1.0f);
-		OGL::glColor(OGL::kWhite);
-		glBegin(GL_LINES);
-			// top
-			glVertex3fv(v[0]); glVertex3fv(v[1]);
-			glVertex3fv(v[1]); glVertex3fv(v[2]);
-			glVertex3fv(v[2]); glVertex3fv(v[3]);
-			glVertex3fv(v[3]); glVertex3fv(v[0]);
+		glBegin(GL_QUADS);
+			// All of the quads are drawn in a counter clockwise order
+				// Meaning the first point is the top right,
+				// the second point is the top left,
+				// third point is bottom left,
+				// and finally bottom right
+			// eyes(viewers) look at each face from cube's outside in front of your screen, TR->TL->BL->BR (counter clockwise order)
+			// ignoring the order the quad is drawn in can cause weird results once you get into fancy things such as texture mapping
+			OGL::glColor(OGL::kGreen);	glVertex3fv(v[1]); glVertex3fv(v[0]); glVertex3fv(v[3]); glVertex3fv(v[2]); // top
+			OGL::glColor(OGL::kOrange);	glVertex3fv(v[6]); glVertex3fv(v[7]); glVertex3fv(v[4]); glVertex3fv(v[5]); // down, rotate 6 to 1 then you see this order
 
-			// bottom
-			glVertex3fv(v[4]); glVertex3fv(v[5]);
-			glVertex3fv(v[5]); glVertex3fv(v[6]);
-			glVertex3fv(v[6]); glVertex3fv(v[7]);
-			glVertex3fv(v[7]); glVertex3fv(v[4]);
+			OGL::glColor(OGL::kRed);	glVertex3fv(v[2]); glVertex3fv(v[3]); glVertex3fv(v[7]); glVertex3fv(v[6]); // front, 'rotate 6 to 1', so 2376 fits to 1032
+			OGL::glColor(OGL::kYellow); glVertex3fv(v[5]); glVertex3fv(v[4]); glVertex3fv(v[0]); glVertex3fv(v[1]); // back
 
-			// vertical
-			glVertex3fv(v[0]); glVertex3fv(v[4]);
-			glVertex3fv(v[1]); glVertex3fv(v[5]);
-			glVertex3fv(v[2]); glVertex3fv(v[6]);
-			glVertex3fv(v[3]); glVertex3fv(v[7]);
+			OGL::glColor(OGL::kBlue);	glVertex3fv(v[0]); glVertex3fv(v[4]); glVertex3fv(v[7]); glVertex3fv(v[3]); // left
+			OGL::glColor(OGL::kViolet); glVertex3fv(v[5]); glVertex3fv(v[1]); glVertex3fv(v[2]); glVertex3fv(v[6]); // right
 		glEnd();
 
 		_rtri  +=  1.f;
@@ -223,4 +230,5 @@ void NeheOGL_Lesson005::_example2() {
 	swapBuffers();
 	drawNeeded();
 }
+
 }

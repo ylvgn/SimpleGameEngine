@@ -16,6 +16,7 @@ public:
 private:
 	void _example1();
 	void _example2();
+	void _example3();
 };
 
 }

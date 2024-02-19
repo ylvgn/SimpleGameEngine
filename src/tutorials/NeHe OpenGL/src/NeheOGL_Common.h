@@ -20,6 +20,21 @@
 
 namespace sge {
 
+#define NeHe_BeginMode_ENUM_LIST(E) \
+	E(None,) \
+	E(Points,) \
+	E(Lines,) \
+	E(LineLoop,) \
+	E(LineStrip,) \
+	E(Triangles,) \
+	E(TriangleStrip,) \
+	E(TriangleFan,) \
+	E(Quads,) \
+	E(QuadStrip,) \
+	E(Polygon,) \
+//----
+SGE_ENUM_CLASS(NeHe_BeginMode, u8)
+
 template<class T> inline void g_bzero(T& s) {
 	memset(&s, 0, sizeof(s));
 }
@@ -29,6 +44,72 @@ inline float g_rad(float degree) {
 }
 
 }
+
+
+namespace sge {
+
+struct OGLUtil {
+	OGLUtil() = delete;
+
+	static void reportError(GLenum errCode = _getErrorCode());
+
+	static void throwIfError(GLenum errCode = _getErrorCode()) {
+		if (_checkError(errCode)) {
+			reportError(errCode);
+			throw SGE_ERROR("errCode = (0x{:0X})", errCode);
+		}
+	}
+
+	static bool assertIfError(GLenum errCode = _getErrorCode()) {
+		if (_checkError(errCode)) {
+			reportError(errCode);
+			SGE_ASSERT(false);
+			return false;
+		}
+		return true;
+	}
+
+	static GLenum getOGLBeginMode(NeHe_BeginMode v);
+
+private:
+	static GLenum _getErrorCode() { return glGetError(); }
+
+	static bool _checkError(GLenum errCode = _getErrorCode()) {
+		return errCode != GL_NO_ERROR; // if got error, return true
+	}
+	
+};
+
+inline
+void OGLUtil::reportError(GLenum errCode) {
+	if (_checkError(errCode)) {
+		auto* errStr = gluErrorStringWIN(errCode);
+		TempString str;
+		UtfUtil::convert(str, errStr);
+		SGE_LOG("errCode = (0x{:0X}) {}", static_cast<u32>(errCode), str);
+	}
+}
+
+inline
+GLenum OGLUtil::getOGLBeginMode(NeHe_BeginMode v) {
+	using SRC = NeHe_BeginMode;
+	switch (v)
+	{
+		case SRC::Points:			return GL_POINTS;
+		case SRC::Lines:			return GL_LINES;
+		case SRC::LineLoop:			return GL_LINE_LOOP;
+		case SRC::LineStrip:		return GL_LINE_STRIP;
+		case SRC::Triangles:		return GL_TRIANGLES;
+		case SRC::TriangleStrip:	return GL_TRIANGLE_STRIP;
+		case SRC::TriangleFan:		return GL_TRIANGLE_FAN;
+		case SRC::Quads:			return GL_QUADS;
+		case SRC::QuadStrip:		return GL_QUAD_STRIP;
+		case SRC::Polygon:			return GL_POLYGON;
+		default:					throw  SGE_ERROR("unsupported OGLBeginMode");
+	}
+}
+
+} // namespace sge
 
 namespace sge {
 namespace OGL {
@@ -44,6 +125,12 @@ namespace OGL {
 	static constexpr Color4f kOrange		{ 1.0f, 0.5f, 0.0f, 1.0f };
 
 	inline void glColor(const Color4f& c)	{ glColor4f(c.r, c.g, c.b, c.a); }
+
+	class ScopedGLBegin {
+	public:
+		ScopedGLBegin(NeHe_BeginMode mode)	{ glBegin(OGLUtil::getOGLBeginMode(mode)); }
+		~ScopedGLBegin() { glEnd(); }
+	};
 
 } // namespace OGL
 } // namespace sge

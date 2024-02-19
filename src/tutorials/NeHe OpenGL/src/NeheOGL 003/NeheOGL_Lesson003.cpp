@@ -65,15 +65,10 @@ void NeheOGL_Lesson003::_example2() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glLoadIdentity();
-	glClearColor(0.f, 0.2f, 0.2f, 0.f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	glLoadIdentity();
-
 	glTranslatef(0.f, 0.f, -8.f);
 
-	float rotateAngleInDegree = 72.f;
-	float starAngleInDegree = 60.f;
+	const float rotateAngleInDegree = 72.f;
+	const float starAngleInDegree = 60.f;
 
 	float hStar = g_rad(starAngleInDegree*0.5f);
 	float hRotate = g_rad(rotateAngleInDegree * 0.5f);

@@ -4,7 +4,8 @@ namespace sge {
 
 void NeheOGL_Lesson002::onDraw() {
 	//_example1();
-	_example2();
+	//_example2();
+	_example3();
 }
 
 void NeheOGL_Lesson002::_example1() {
@@ -92,6 +93,35 @@ void NeheOGL_Lesson002::_example2() {
 		glVertex3f( d, -d, 0.f);
 		glVertex3f(-d, -d, 0.f);
 	glEnd();
+
+	swapBuffers();
+}
+
+void NeheOGL_Lesson002::_example3() {
+	glViewport(0, 0, static_cast<int>(_clientRect.w), static_cast<int>(_clientRect.h));
+
+	glClearColor(0.f, 0.2f, 0.2f, 0.f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	float d = 0.25f;
+
+	glLoadIdentity();
+	glTranslatef(-0.5f, 0, 0);
+	{
+		OGL::ScopedGLBegin scoped(NeHe_BeginMode::Triangles);
+		glVertex3f( 0,  d, 0);
+		glVertex3f(-d, -d, 0);
+		glVertex3f( d, -d, 0);
+	}
+
+	glTranslatef(1, 0, 0);
+	{
+		OGL::ScopedGLBegin scoped(NeHe_BeginMode::Quads);
+		glVertex3f(-d,  d, 0);
+		glVertex3f( d,  d, 0);
+		glVertex3f( d, -d, 0);
+		glVertex3f(-d, -d, 0);
+	}
 
 	swapBuffers();
 }
