@@ -33,14 +33,17 @@ inline float g_rad(float degree) {
 namespace sge {
 namespace OGL {
 
-	inline void glColor4fWhite()	{ glColor4f(1, 1, 1, 1); }
-	inline void glColor4fBlack()	{ glColor4f(0, 0, 0, 1); }
-	inline void glColor4fRed()		{ glColor4f(1, 0, 0, 1); }
-	inline void glColor4fGreen()	{ glColor4f(0, 1, 0, 1); }
-	inline void glColor4fBlue()		{ glColor4f(0, 0, 1, 1); }
-	inline void glColor4fYellow()	{ glColor4f(1, 1, 0, 1); }
-	inline void glColor4fPurple()	{ glColor4f(1, 0, 1, 1); }
-	inline void glColor4fCyan()		{ glColor4f(0, 1, 1, 1); }
+	static constexpr Color4f kWhite			{ 1.0f, 1.0f, 1.0f, 1.0f };
+	static constexpr Color4f kBlack			{ 0.0f, 0.0f, 0.0f, 1.0f };
+	static constexpr Color4f kRed			{ 1.0f, 0.0f, 0.0f, 1.0f };
+	static constexpr Color4f kGreen			{ 0.0f, 1.0f, 0.0f, 1.0f };
+	static constexpr Color4f kBlue			{ 0.0f, 0.0f, 1.0f, 1.0f };
+	static constexpr Color4f kYellow		{ 1.0f, 1.0f, 0.0f, 1.0f };
+	static constexpr Color4f kViolet		{ 1.0f, 0.0f, 1.0f, 1.0f };
+	static constexpr Color4f kCyan			{ 0.0f, 1.0f, 1.0f, 1.0f };
+	static constexpr Color4f kOrange		{ 1.0f, 0.5f, 0.0f, 1.0f };
 
-} // namespace GL
+	inline void glColor(const Color4f& c)	{ glColor4f(c.r, c.g, c.b, c.a); }
+
+} // namespace OGL
 } // namespace sge

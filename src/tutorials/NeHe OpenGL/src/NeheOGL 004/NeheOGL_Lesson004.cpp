@@ -35,9 +35,9 @@ void NeheOGL_Lesson004::_example1() {
 	glRotatef(_rtri, 0.0f, 1.0f, 0.0f);	// Rotate The Triangle On The Y axis
 	float d = 0.5f;
 	glBegin(GL_TRIANGLES);
-		OGL::glColor4fRed();	glVertex3f( 0,  d, 0);
-		OGL::glColor4fGreen();	glVertex3f(-d, -d, 0);
-		OGL::glColor4fBlue();	glVertex3f( d, -d, 0);
+		OGL::glColor(OGL::kRed);	glVertex3f( 0,  d, 0);
+		OGL::glColor(OGL::kGreen);	glVertex3f(-d, -d, 0);
+		OGL::glColor(OGL::kBlue);	glVertex3f( d, -d, 0);
 	glEnd();
 
 	glLoadIdentity();
