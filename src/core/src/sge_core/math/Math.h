@@ -46,7 +46,7 @@ namespace Math {
 	}
 
 	template<class T, class ENABLE = std::enable_if< std::is_integral_v<T> > >
-	constexpr T lowbit(T x) { return x & -x; }
+	constexpr T lowbit(T x) { return x & (-static_cast<i64>(x)); }
 
 	//Splits a floating-point value into fractional and integer parts
 	SGE_INLINE float	modf	( float  v, float  *i ) { return std::modf( v, i ); }

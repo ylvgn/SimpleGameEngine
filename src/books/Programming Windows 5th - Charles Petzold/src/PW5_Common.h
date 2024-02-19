@@ -86,7 +86,7 @@ DST g_flags2Bits(SRC srcFlags, DST (*castor)(SRC) ) {
 	DST res = 0;
 	DST n = static_cast<DST>(srcFlags);
 	while (n) {
-		int v = Math::lowbit(n);
+		auto v = Math::lowbit(n);
 		res |= castor(static_cast<SRC>(v));
 		n -= v;
 	}
