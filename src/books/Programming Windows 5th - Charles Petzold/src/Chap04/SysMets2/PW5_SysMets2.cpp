@@ -136,11 +136,11 @@ LRESULT CALLBACK PW5_SysMets2::s_wndProc (HWND hwnd, UINT message, WPARAM wParam
 				x += s_szLabelMaxWidth;
 				ps.textOut(x, y, sysmetrics[i].mark);
 
-				ps.setTextAlign(TextAlignmentOption::Right | TextAlignmentOption::Top);
+				ps.setTextAlign(PW5_TextAlignmentOption::Right | PW5_TextAlignmentOption::Top);
 				x += s_szDescMaxWidth;
 				ps.Fmt_textOut(x, y, "{:5d}", ::GetSystemMetrics(sysmetrics[i].id));
 
-				ps.setTextAlign(TextAlignmentOption::Left | TextAlignmentOption::Top);
+				ps.setTextAlign(PW5_TextAlignmentOption::Left | PW5_TextAlignmentOption::Top);
 			}
 			return 0;
 		} break;

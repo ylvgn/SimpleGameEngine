@@ -50,11 +50,11 @@ void PW5_MySysMets2::onDraw() {
 
 		x += 24 * _cxCaps;
 		hdc.textOut(x, y, sysmetrics[i].mark);
-		hdc.setTextAlign(TextAlignmentOption::Right | TextAlignmentOption::Top);
+		hdc.setTextAlign(PW5_TextAlignmentOption::Right | PW5_TextAlignmentOption::Top);
 
 		x += 40 * _cxChar;
 		hdc.Fmt_textOut(x, y, "{:5d}", ::GetSystemMetrics(sysmetrics[i].id));
-		hdc.setTextAlign(TextAlignmentOption::Left | TextAlignmentOption::Top);
+		hdc.setTextAlign(PW5_TextAlignmentOption::Left | PW5_TextAlignmentOption::Top);
 	}
 }
 

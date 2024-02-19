@@ -76,11 +76,11 @@ LRESULT CALLBACK PW5_SysMets1::s_wndProc(HWND hwnd, UINT message, WPARAM wParam,
 				// use 22 to add a little extra space between the columns
 				x += 22 * cxCaps;
 				ps.textOut(x, y, sysmetrics[i].mark);
-				ps.setTextAlign(TextAlignmentOption::Right | TextAlignmentOption::Top); // ::SetTextAlign(ps, TA_RIGHT | TA_TOP);
+				ps.setTextAlign(PW5_TextAlignmentOption::Right | PW5_TextAlignmentOption::Top); // ::SetTextAlign(ps, TA_RIGHT | TA_TOP);
 
 				x += 40 * cxChar;
 				ps.Fmt_textOut(x, y, "{:5d}", ::GetSystemMetrics(sysmetrics[i].id));	// g_textOutf(ps.hdc(), x, y, L"%5d", GetSystemMetrics(sysmetrics[i].iIndex));
-				ps.setTextAlign(TextAlignmentOption::Left | TextAlignmentOption::Top);	// reset text align to left-top(default)
+				ps.setTextAlign(PW5_TextAlignmentOption::Left | PW5_TextAlignmentOption::Top);	// reset text align to left-top(default)
 			}
 			return 0;
 		} break;

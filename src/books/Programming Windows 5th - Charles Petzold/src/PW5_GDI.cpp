@@ -7,7 +7,7 @@ namespace sge {
 namespace GDI {
 
 	void drawText(HDC hdc, int left, int top, int right, int bottom, StrView str, DTFlag flags) {
-		UINT fDT = g_flags2Bits(flags, PW5_Win32Util::getDrawTextFormatFlag);
+		UINT fDT = g_flags2Bits(flags, PW5_Win32Util::getPW5_DrawTextFormatFlag);
 		GDI::drawText(hdc, left, top, right, bottom, str, fDT);
 	}
 
@@ -16,7 +16,7 @@ namespace GDI {
 		brush.lbColor = COLORREF_make(c);
 		brush.lbStyle = PS_SOLID;
 
-		ScopedExtCreatePen scoped(hdc, brush, PenStyle::Dash);
+		ScopedExtCreatePen scoped(hdc, brush, PW5_PenStyle::Dash);
 		drawLine(hdc, fromX, fromY, toX, toY);
 	}
 
@@ -69,29 +69,29 @@ void TextMetrics::_set(const ::TEXTMETRIC& tm) {
 #if 0
 #pragma mark ========= HDC ============
 #endif
-UINT MyHDC_NoHWND::setTextAlign(TextAlignmentOption flags) {
+UINT MyHDC_NoHWND::setTextAlign(PW5_TextAlignmentOption flags) {
 	// https://github.com/MicrosoftDocs/win32/blob/docs/desktop-src/gdi/text-formatting-attributes.md
-	UINT align = g_flags2Bits(flags, PW5_Win32Util::getTextAlignmentOption);
+	UINT align = g_flags2Bits(flags, PW5_Win32Util::getPW5_TextAlignmentOption);
 	return ::SetTextAlign(_hdc, align); // if failed, return GDI_ERROR
 }
 
-void MyHDC::clearBg(StockLogicalObject_Brush flag /*= StockLogicalObject_Brush::White*/) {
+void MyHDC::clearBg(PW5_StockLogicalObject_Brush flag /*= PW5_StockLogicalObject_Brush::White*/) {
 	::RECT rc;
 	::GetClientRect(_hwnd, &rc);
-	auto brush = GetStockBrush(PW5_Win32Util::getStockLogicalObject_Brush(flag));
+	auto brush = GetStockBrush(PW5_Win32Util::getPW5_StockLogicalObject_Brush(flag));
 	GDI::fillRect(_hdc, rc, brush);
 }
 
-ScopedExtCreatePen::ScopedExtCreatePen(HDC hdc, const LOGBRUSH& brush, PenStyle flag /*= PenStyle::Solid*/) {
+ScopedExtCreatePen::ScopedExtCreatePen(HDC hdc, const LOGBRUSH& brush, PW5_PenStyle flag /*= PW5_PenStyle::Solid*/) {
 	_hdc = hdc;
-	DWORD dwStyle = PW5_Win32Util::getPenStyle(flag);
+	DWORD dwStyle = PW5_Win32Util::getPW5_PenStyle(flag);
 	_pen = ::ExtCreatePen(dwStyle, 1, &brush, 0, nullptr);
 	SelectPen(_hdc, _pen);
 }
 
 ScopedExtCreatePen::~ScopedExtCreatePen() {
 	DeletePen(_pen);
-	auto pen = GetStockPen(PW5_Win32Util::getStockLogicalObject_Pen(StockLogicalObject_Pen::Black));
+	auto pen = GetStockPen(PW5_Win32Util::getPW5_StockLogicalObject_Pen(PW5_StockLogicalObject_Pen::Black));
 	SelectPen(_hdc, pen);
 }
 

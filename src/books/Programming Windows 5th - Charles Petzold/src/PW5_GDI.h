@@ -5,7 +5,7 @@
 
 namespace sge {
 
-#define TextAlignmentOption_ENUM_LIST(E) \
+#define PW5_TextAlignmentOption_ENUM_LIST(E) \
 	E(Left,)		\
 	E(Right,)		\
 	E(Top,)			\
@@ -13,29 +13,29 @@ namespace sge {
 	E(Center,)		\
 	E(BaseLine,)	\
 //----
-SGE_ENUM_CLASS(TextAlignmentOption, u8)
-SGE_ENUM_ALL_OPERATOR(TextAlignmentOption)
+SGE_ENUM_CLASS(PW5_TextAlignmentOption, u8)
+SGE_ENUM_ALL_OPERATOR(PW5_TextAlignmentOption)
 
-#define DrawTextFormatFlag_ENUM_LIST(E) \
+#define PW5_DrawTextFormatFlag_ENUM_LIST(E) \
 	E(Top,				= 0)		\
 	E(Left,				= 1 << 0)	\
-	E(Center,			= 1 << 2)	\
-	E(Right,			= 1 << 3)	\
-	E(VCenter,			= 1 << 4)	\
-	E(Bottom,			= 1 << 5)	\
-	E(WordBreak,		= 1 << 6)	\
-	E(SingleLine,		= 1 << 7)	\
-	E(ExpandTabs,		= 1 << 8)	\
-	E(TabStop,			= 1 << 9)	\
-	E(NoClip,			= 1 << 10)	\
-	E(ExternalLeading,	= 1 << 11)	\
-	E(CalcRect,			= 1 << 12)	\
-	E(NoPrefix,			= 1 << 13)	\
+	E(Center,			= 1 << 1)	\
+	E(Right,			= 1 << 2)	\
+	E(VCenter,			= 1 << 3)	\
+	E(Bottom,			= 1 << 4)	\
+	E(WordBreak,		= 1 << 5)	\
+	E(SingleLine,		= 1 << 6)	\
+	E(ExpandTabs,		= 1 << 7)	\
+	E(TabStop,			= 1 << 8)	\
+	E(NoClip,			= 1 << 9)	\
+	E(ExternalLeading,	= 1 << 10)	\
+	E(CalcRect,			= 1 << 11)	\
+	E(NoPrefix,			= 1 << 12)	\
 //----
-SGE_ENUM_CLASS(DrawTextFormatFlag, u16)
-SGE_ENUM_ALL_OPERATOR(DrawTextFormatFlag)
+SGE_ENUM_CLASS(PW5_DrawTextFormatFlag, u16)
+SGE_ENUM_ALL_OPERATOR(PW5_DrawTextFormatFlag)
 
-#define StockLogicalObject_Brush_ENUM_LIST(E) \
+#define PW5_StockLogicalObject_Brush_ENUM_LIST(E) \
 	E(None,)	\
 	E(White,)	\
 	E(LtGray,)	\
@@ -43,16 +43,16 @@ SGE_ENUM_ALL_OPERATOR(DrawTextFormatFlag)
 	E(DkGray,)	\
 	E(Black,)	\
 //----
-SGE_ENUM_CLASS(StockLogicalObject_Brush, u8)
+SGE_ENUM_CLASS(PW5_StockLogicalObject_Brush, u8)
 
-#define StockLogicalObject_Pen_ENUM_LIST(E) \
+#define PW5_StockLogicalObject_Pen_ENUM_LIST(E) \
 	E(None,)	\
 	E(White,)	\
 	E(Black,)	\
 //----
-SGE_ENUM_CLASS(StockLogicalObject_Pen, u8)
+SGE_ENUM_CLASS(PW5_StockLogicalObject_Pen, u8)
 
-#define PenStyle_ENUM_LIST(E) \
+#define PW5_PenStyle_ENUM_LIST(E) \
 	E(None,)		\
 	E(Solid,)		\
 	E(Dash,)		\
@@ -60,14 +60,14 @@ SGE_ENUM_CLASS(StockLogicalObject_Pen, u8)
 	E(DashDot,)		\
 	E(DashDotDot,)	\
 //----
-SGE_ENUM_CLASS(PenStyle, u8)
+SGE_ENUM_CLASS(PW5_PenStyle, u8)
 
 } // namespace sge
 
 namespace sge {
 namespace GDI {
 
-	using DTFlag = DrawTextFormatFlag;
+	using DTFlag = PW5_DrawTextFormatFlag;
 
 	static constexpr Color4f kWhite		{ 1,1,1,1 };
 	static constexpr Color4f kBlack		{ 0,0,0,1 };
@@ -291,7 +291,7 @@ public:
 
 	TextMetrics createTextMetrics() const { return TextMetrics(_hdc); }
 
-	UINT setTextAlign(TextAlignmentOption flags = TextAlignmentOption::Left | TextAlignmentOption::Top);
+	UINT setTextAlign(PW5_TextAlignmentOption flags = PW5_TextAlignmentOption::Left | PW5_TextAlignmentOption::Top);
 
 	void textOut(int x, int y, StrView str) const { GDI::textOut(_hdc, x, y, str); }
 
@@ -356,7 +356,7 @@ public:
 	MyHDC(HWND& hwnd)
 		: _hwnd(hwnd) {}
 
-	void clearBg(StockLogicalObject_Brush flag = StockLogicalObject_Brush::White);
+	void clearBg(PW5_StockLogicalObject_Brush flag = PW5_StockLogicalObject_Brush::White);
 
 protected:
 	HWND&	_hwnd;
@@ -461,7 +461,7 @@ private:
 class ScopedExtCreatePen : public MyHDC_NoHWND {
 	using Base = MyHDC_NoHWND;
 public:
-	ScopedExtCreatePen(HDC hdc, const LOGBRUSH& brush, PenStyle flag = PenStyle::Solid);
+	ScopedExtCreatePen(HDC hdc, const LOGBRUSH& brush, PW5_PenStyle flag = PW5_PenStyle::Solid);
 	~ScopedExtCreatePen();
 private:
 	HPEN _pen;
