@@ -14,16 +14,13 @@ class NeheOGL_Lesson004 : public NeheOGL_NativeUIWindow {
 public:
 	virtual void onDraw() override;
 private:
-	void _example1();
-	void _example2();
+	void _example1(float upTime);
+	void _example1_rotateTheory(float upTime);
+	void _example1_rotateInOpenGL(float upTime);
 
-	void _example1_rotateTheory();
-	void _example1_rotateInOpenGL();
+	void _example2(float upTime);
 
-	float _angleInDegree = 0;
-
-	float _rtri  = 0;	// Angle For The Triangle
-	float _rquad = 0;	// Angle For The Quad
+	MyHiResTimer _uptime;
 };
 
 }
