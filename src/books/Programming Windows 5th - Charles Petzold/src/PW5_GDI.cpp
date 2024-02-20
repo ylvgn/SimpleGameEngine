@@ -11,6 +11,13 @@ namespace GDI {
 		GDI::drawText(hdc, left, top, right, bottom, str, fDT);
 	}
 
+	void drawPoint(HDC hdc, int x, int y, const Color4f& c, int pointSize) {
+		ScopedCreateSolidBrush brush(hdc, c);
+		int halfSize = pointSize / 2;
+		::RECT rc { x - halfSize, y - halfSize, x + halfSize, y + halfSize };
+		::FillRect(hdc, &rc, brush);
+	}
+
 	void drawDashedLine(HDC hdc, int fromX, int fromY, int toX, int toY, const Color4f& c) {
 		LOGBRUSH brush;
 		brush.lbColor = COLORREF_make(c);

@@ -97,7 +97,6 @@ namespace GDI {
 	}
 
 	void drawText(HDC hdc, int left, int top, int right, int bottom, StrView str, DTFlag flags);
-
 	inline void drawText(HDC hdc,
 						 int left, int top, int right, int bottom,
 						 StrView str,
@@ -108,7 +107,6 @@ namespace GDI {
 		auto s = UtfUtil::toStringW(str);
 		::DrawText(hdc, s.c_str(), static_cast<int>(str.size()), &ltrb, fDT);
 	}
-
 	inline void drawText(HDC hdc, const ::RECT& ltrb, StrView str, DTFlag flags) {
 		drawText(hdc, ltrb.left, ltrb.top, ltrb.right, ltrb.bottom, str, flags);
 	}
@@ -118,12 +116,8 @@ namespace GDI {
 		return drawText(hdc, ltrb, str, flags);
 	}
 
-	inline bool rectangle(HDC hdc, int left, int top, int right, int bottom) {
-		return ::Rectangle(hdc, left, top, right, bottom);
-	}
-	inline bool rectangle(HDC hdc, const ::RECT& ltrb) {
-		return ::Rectangle(hdc, ltrb.left, ltrb.top, ltrb.right, ltrb.bottom);
-	}
+	inline bool rectangle(HDC hdc, int left, int top, int right, int bottom) { return ::Rectangle(hdc, left, top, right, bottom); }
+	inline bool rectangle(HDC hdc, const ::RECT& ltrb) { return ::Rectangle(hdc, ltrb.left, ltrb.top, ltrb.right, ltrb.bottom); }
 	inline bool rectangle(HDC hdc, const Rect2f& xywh) {
 		::RECT ltrb;
 		Win32Util::convert(ltrb, xywh);
@@ -131,21 +125,17 @@ namespace GDI {
 	}
 
 	inline bool ellipse(HDC hdc, int left, int top, int right, int bottom) { return ::Ellipse(hdc, left, top, right, bottom); }
-	inline bool ellipse(HDC hdc, const ::RECT& ltrb) {
-		return ::Ellipse(hdc, ltrb.left, ltrb.top, ltrb.right, ltrb.bottom);
-	}
+	inline bool ellipse(HDC hdc, const ::RECT& ltrb) { return ::Ellipse(hdc, ltrb.left, ltrb.top, ltrb.right, ltrb.bottom); }
 	inline bool ellipse(HDC hdc, const Rect2f& xywh) {
 		::RECT ltrb;
 		Win32Util::convert(ltrb, xywh);
 		return ellipse(hdc, ltrb);
 	}
 
-	inline bool roundRect(HDC hdc, int left, int top, int right, int bottom, int xEllipse = 0, int yEllipse = 0) {
-		return ::RoundRect(hdc, left, top, right, bottom, xEllipse, yEllipse);
-	}
-	inline bool roundRect(HDC hdc, const ::RECT& ltrb, int xEllipse = 0, int yEllipse = 0) {
-		return ::RoundRect(hdc, ltrb.left, ltrb.top, ltrb.right, ltrb.bottom, xEllipse, yEllipse);
-	}
+	inline bool roundRect(	HDC hdc, int left, int top, int right, int bottom,
+							int xEllipse = 0, int yEllipse = 0) { return ::RoundRect(hdc, left, top, right, bottom, xEllipse, yEllipse); }
+	inline bool roundRect(	HDC hdc, const ::RECT& ltrb,
+							int xEllipse = 0, int yEllipse = 0) { return ::RoundRect(hdc, ltrb.left, ltrb.top, ltrb.right, ltrb.bottom, xEllipse, yEllipse); }
 	inline bool roundRect(HDC hdc, const Rect2f& xywh, const Vec2f& cornerEllipseSize = {0,0}) {
 		::RECT ltrb;
 		Win32Util::convert(ltrb, xywh);
@@ -154,15 +144,9 @@ namespace GDI {
 
 	inline bool arc(HDC hdc,
 					int left, int top, int right, int bottom,
-					int fromX, int fromY, int toX, int toY)
-	{
-		return ::Arc(hdc, left, top, right, bottom, fromX, fromY, toX, toY);
-	}
+					int fromX, int fromY, int toX, int toY) { return ::Arc(hdc, left, top, right, bottom, fromX, fromY, toX, toY); }
 	inline bool arc(HDC hdc, const ::RECT& ltrb,
-					int fromX, int fromY, int toX, int toY)
-	{
-		return ::Arc(hdc, ltrb.left, ltrb.top, ltrb.right, ltrb.bottom, fromX, fromY, toX, toY);
-	}
+					int fromX, int fromY, int toX, int toY) { return ::Arc(hdc, ltrb.left, ltrb.top, ltrb.right, ltrb.bottom, fromX, fromY, toX, toY); }
 	inline bool arc(HDC hdc, const Rect2f& xywh, const Vec2f& from, const Vec2f& to) {
 		::RECT ltrb;
 		Win32Util::convert(ltrb, xywh);
@@ -173,15 +157,9 @@ namespace GDI {
 
 	inline bool chord(	HDC hdc,
 						int left, int top, int right, int bottom,
-						int fromX, int fromY, int toX, int toY)
-	{
-		return ::Chord(hdc, left, top, right, bottom, fromX, fromY, toX, toY);
-	}
+						int fromX, int fromY, int toX, int toY) { return ::Chord(hdc, left, top, right, bottom, fromX, fromY, toX, toY); }
 	inline bool chord(	HDC hdc, const ::RECT& ltrb,
-						int fromX, int fromY, int toX, int toY)
-	{
-		return ::Chord(hdc, ltrb.left, ltrb.top, ltrb.right, ltrb.bottom, fromX, fromY, toX, toY);
-	}
+						int fromX, int fromY, int toX, int toY) { return ::Chord(hdc, ltrb.left, ltrb.top, ltrb.right, ltrb.bottom, fromX, fromY, toX, toY); }
 	inline bool chord(HDC hdc, const Rect2f& xywh, const Vec2f& from, const Vec2f& to) {
 		::RECT ltrb;
 		Win32Util::convert(ltrb, xywh);
@@ -192,15 +170,9 @@ namespace GDI {
 
 	inline bool pie(HDC hdc,
 					int left, int top, int right, int bottom,
-					int fromX, int fromY, int toX, int toY)
-	{
-		return ::Pie(hdc, left, top, right, bottom, fromX, fromY, toX, toY);
-	}
+					int fromX, int fromY, int toX, int toY) { return ::Pie(hdc, left, top, right, bottom, fromX, fromY, toX, toY); }
 	inline bool pie(HDC hdc, const ::RECT& ltrb,
-					int fromX, int fromY, int toX, int toY)
-	{
-		return ::Pie(hdc, ltrb.left, ltrb.top, ltrb.right, ltrb.bottom, fromX, fromY, toX, toY);
-	}
+					int fromX, int fromY, int toX, int toY) { return ::Pie(hdc, ltrb.left, ltrb.top, ltrb.right, ltrb.bottom, fromX, fromY, toX, toY); }
 	inline bool pie(HDC hdc, const Rect2f& xywh, const Vec2f& from, const Vec2f& to) {
 		::RECT ltrb;
 		Win32Util::convert(ltrb, xywh);
@@ -223,13 +195,14 @@ namespace GDI {
 		::LineTo(hdc, toX, toY);
 		::MoveToEx(hdc, lastPt.x, lastPt.y, nullptr);
 	}
-
 	inline void drawLine(HDC hdc, const ::POINT& from, const ::POINT& to) { drawLine(hdc, from.x, from.y, to.x, to.y); }
 	inline void drawLine(HDC hdc, const Vec2f& from, const Vec2f& to) {
 		auto iFrom = Vec2i::s_cast(from);
 		auto iTo   = Vec2i::s_cast(to);
 		drawLine(hdc, iFrom.x, iFrom.y, iTo.x, iTo.y);
 	}
+
+	void drawPoint(HDC hdc, int x, int y, const Color4f& c = kBlack, int pointSize = 10);
 
 	inline ::COLORREF COLORREF_make(int r, int g, int b)	{ return RGB(r, g, b); }
 	inline ::COLORREF COLORREF_make(const Color4b& c)		{ return RGB(c.r, c.g, c.b); }
@@ -454,6 +427,8 @@ public:
 		SelectBrush(hdc, _brush);
 	}
 	~ScopedCreateSolidBrush() { DeleteBrush(_brush); }
+
+	operator const HBRUSH&() const { return _brush; }
 private:
 	HBRUSH _brush;
 };
@@ -463,6 +438,8 @@ class ScopedExtCreatePen : public MyHDC_NoHWND {
 public:
 	ScopedExtCreatePen(HDC hdc, const LOGBRUSH& brush, PW5_PenStyle flag = PW5_PenStyle::Solid);
 	~ScopedExtCreatePen();
+
+	operator const HPEN& () const { return _pen; }
 private:
 	HPEN _pen;
 };
