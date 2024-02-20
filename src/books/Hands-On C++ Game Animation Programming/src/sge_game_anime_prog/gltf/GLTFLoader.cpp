@@ -410,7 +410,7 @@ void GLTFLoader::_loadAnimationClips() {
 void GLTFLoader::_loadAnimationClipNames() {
 	auto& src = _outInfo->animationClips;
 
-	if (src.size() == 0) {
+	if (src.empty()) {
 		_loadAnimationClips();
 	}
 

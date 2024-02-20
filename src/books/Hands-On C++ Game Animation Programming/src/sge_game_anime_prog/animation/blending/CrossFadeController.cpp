@@ -48,7 +48,7 @@ void CrossFadeController::fadeTo(const Clip* target, float fadeDuration) {
 		return;
 	}
 
-	if (_fadingTargets.size() == 0) {
+	if (_fadingTargets.empty()) {
 		if (_curClip == target) { // blending to same _curClip
 			return;
 		}

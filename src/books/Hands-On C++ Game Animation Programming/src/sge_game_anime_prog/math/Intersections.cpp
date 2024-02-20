@@ -85,7 +85,7 @@ Vector<Triangle> IntersectionsUtil::meshToTriangles(const Mesh& mesh) {
 	const auto& indices = mesh.indices;
 	const auto& pos		= mesh.pos;
 
-	if (indices.size() == 0) {
+	if (indices.empty()) {
 		res.resize(pos.size() / 3);
 		for (int i = 0, j = 0; i < pos.size(); i+=3, ++j) {
 			res[j].set(	pos[i],

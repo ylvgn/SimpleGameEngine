@@ -79,7 +79,7 @@ namespace GDI {
 	static constexpr Color4f kCyan		{ 0,1,1,1 };
 
 	inline void textOut(HDC hdc, int x, int y, StrView str) {
-		if (str.size() == 0) return;
+		if (str.empty()) return;
 		auto s = UtfUtil::toStringW(str);
 		::TextOut(hdc, x, y, s.c_str(), static_cast<int>(s.size()));
 	}
@@ -102,7 +102,7 @@ namespace GDI {
 						 StrView str,
 						 UINT fDT = DT_SINGLELINE | DT_CENTER | DT_VCENTER)
 	{
-		if (str.size() == 0) return;
+		if (str.empty()) return;
 		::RECT ltrb { left, top, right, bottom };
 		auto s = UtfUtil::toStringW(str);
 		::DrawText(hdc, s.c_str(), static_cast<int>(str.size()), &ltrb, fDT);
