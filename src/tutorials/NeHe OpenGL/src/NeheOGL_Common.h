@@ -8,12 +8,14 @@
 	#include <windowsx.h>
 
 	#include <GL/gl.h>
-	#include <GL/glu.h>
-	#include <Gl/glaux.h>
-
 	#pragma comment(lib, "Opengl32.lib")
+
+	#include <GL/glu.h>
 	#pragma comment(lib, "GLu32.lib")
-	#pragma comment(lib, "GLaux.lib")
+
+//	Note: glaux has been deprecated for a long time
+//	#include <Gl/glaux.h>
+//	#pragma comment(lib, "GLaux.lib")
 
 	#undef max
 	#undef min
