@@ -15,7 +15,9 @@ void Cell::init(int x_, int y_) {
 	mineCount = 0;
 }
 
-void Cell::onDraw(const MyHDC& hdc) {
+void Cell::onDraw() {
+	auto& hdc = PW5_MyMineSweeper::instance()->hdc();
+
 	int sx = x * kSize;
 	int sy = y * kSize;
 
@@ -30,12 +32,10 @@ void Cell::onDraw(const MyHDC& hdc) {
 	if (!opened) return;
 
 	if (hasMine) {
-		hdc.textOut(sx + 3, sy + 3, "@");
-	}
-	else
-	{
+		GDI::textOut(hdc, sx + 3, sy + 3, "@");
+	} else {
 		if (mineCount > 0) {
-			hdc.Fmt_textOut(sx + 3, sy + 3, "{}", mineCount);
+			GDI::Fmt_textOut(hdc, sx + 3, sy + 3, "{}", mineCount);
 		}
 	}
 }
@@ -94,9 +94,9 @@ Cell* Grid::getCell(int x, int y) {
 	return &_cells[y * _width + x];
 }
 
-void Grid::onDraw(const MyHDC& hdc) {
+void Grid::onDraw() {
 	for (auto& c : _cells) {
-		c.onDraw(hdc);
+		c.onDraw();
 	}
 }
 
@@ -145,16 +145,17 @@ void PW5_MyMineSweeper::onCreate(CreateDesc& desc) {
 	_grid.create(32, 16);
 
 	Base::onCreate(desc);
+
+	_hdc = GetDC(_hwnd);
 }
 
 void PW5_MyMineSweeper::onDraw() {
-	ScopedGetDC hdc(_hwnd);
-	_grid.onDraw(hdc);
+	_grid.onDraw();
 }
 
-
 void PW5_MyMineSweeper::onUIMouseEvent(UIMouseEvent& ev) {
-	if (ev.pressedButtons == UIMouseEvent::Button::Left && ev.isDown()) {
+	using Button = UIMouseEvent::Button;
+	if (ev.pressedButtons == Button::Left && ev.isDown()) {
 		int cx = static_cast<int>(ev.pos.x / Cell::kSize);
 		int cy = static_cast<int>(ev.pos.y / Cell::kSize);
 		_grid.onClick(cx, cy);

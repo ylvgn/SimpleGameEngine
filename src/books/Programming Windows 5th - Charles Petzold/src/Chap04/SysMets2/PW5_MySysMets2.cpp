@@ -20,7 +20,7 @@ void PW5_MySysMets2::onCreate(CreateDesc& desc) {
 
 	{
 		ScopedGetDC hdc(_hwnd);
-		auto tm = hdc.createTextMetrics();
+		auto tm = GDI::createTextMetrics(hdc);
 		_cxChar = tm.aveCharWidth;
 		_cxCaps = tm.aveCharWidthUpperCase;
 		_cyChar = tm.aveCharHeight;

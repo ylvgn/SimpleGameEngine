@@ -15,6 +15,8 @@ protected:
 	virtual void onUIMouseEvent(UIMouseEvent& ev) override;
 private:
 
+	constexpr static const int kPointSize = 10;
+
 	struct CubicBezier {
 		Vec2f p1;
 		Vec2f c1;
@@ -39,21 +41,9 @@ private:
 		}
 	};
 
-	void _toPOINTs() {
-		_points.resize(4);
-		_cubicBezier.toPOINTs(_points[0], _points[1], _points[2], _points[3]);
-	}
-
-	void _drawLines(const HDC& hdc) {
-		::Polyline(hdc, _points.data(), static_cast<int>(_points.size()));
-	}
-
-	void _drawPoints(const HDC& hdc) {
-		GDI::drawPoint(hdc, static_cast<int>(_cubicBezier.p1.x), static_cast<int>(_cubicBezier.p1.y), GDI::kRed);
-		GDI::drawPoint(hdc, static_cast<int>(_cubicBezier.c1.x), static_cast<int>(_cubicBezier.c1.y), GDI::kGreen);
-		GDI::drawPoint(hdc, static_cast<int>(_cubicBezier.c2.x), static_cast<int>(_cubicBezier.c2.y), GDI::kBlue);
-		GDI::drawPoint(hdc, static_cast<int>(_cubicBezier.p2.x), static_cast<int>(_cubicBezier.p2.y), GDI::kViolet);
-	}
+	void _toPOINTs();
+	void _drawLines(const HDC& hdc) const;
+	void _drawPoints(const HDC& hdc) const;
 
 	void _example1();
 	void _example2();

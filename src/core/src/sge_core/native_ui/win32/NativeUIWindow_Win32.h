@@ -19,7 +19,7 @@ public:
 	virtual void onDrawNeeded() override;
 	virtual void onScrollWindow(const Vec2i& delta) override;
 
-	const HWND	hwnd()	const	{ return _hwnd; }
+	const HWND&	hwnd() const { return _hwnd; }
 
 protected:
 	virtual Base::ScrollInfo* onCreateScrollBar() override;

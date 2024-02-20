@@ -84,16 +84,11 @@ namespace GDI {
 		::TextOut(hdc, x, y, s.c_str(), static_cast<int>(s.size()));
 	}
 
-	inline void textOutf(HDC hdc, int x, int y, const wchar_t* szFormat, ...) {
-		wchar_t szBuffer[220];
-		va_list args;
-
-		va_start(args, szFormat);
-		size_t bufferCount = sizeof(szBuffer) / sizeof(wchar_t);
-		auto len = _vsntprintf_s(szBuffer, bufferCount, szFormat, args);
-		va_end(args);
-
-		::TextOut(hdc, x, y, szBuffer, len);
+	template<class... Args>
+	inline void Fmt_textOut(HDC hdc, int x, int y, Args&&... args) {
+		auto tmpStr = Fmt(SGE_FORWARD(args)...);
+		auto s = UtfUtil::toStringW(tmpStr);
+		::TextOut(hdc, x, y, s.c_str(), static_cast<int>(s.size()));
 	}
 
 	void drawText(HDC hdc, int left, int top, int right, int bottom, StrView str, DTFlag flags);
@@ -202,7 +197,15 @@ namespace GDI {
 		drawLine(hdc, iFrom.x, iFrom.y, iTo.x, iTo.y);
 	}
 
-	void drawPoint(HDC hdc, int x, int y, const Color4f& c = kBlack, int pointSize = 10);
+	void drawPoint(HDC hdc, int x, int y, const Color4f& c = kBlack, int ptSize = 10);
+	inline void drawPoint(HDC hdc, const ::POINT& pt, const Color4f& c, int ptSize) {
+		drawPoint(hdc, pt.x, pt.y, c, ptSize);
+	}
+	inline void drawPoint(HDC hdc, const Vec2f& pt, const Color4f& c, int ptSize) {
+		::POINT pt_;
+		Win32Util::convert(pt_, pt);
+		drawPoint(hdc, pt_, c, ptSize);
+	}
 
 	inline ::COLORREF COLORREF_make(int r, int g, int b)	{ return RGB(r, g, b); }
 	inline ::COLORREF COLORREF_make(const Color4b& c)		{ return RGB(c.r, c.g, c.b); }
@@ -220,8 +223,12 @@ namespace GDI {
 	}
 
 	void drawDashedLine(HDC hdc, int fromX, int fromY, int toX, int toY, const Color4f& c = kBlack);
-	void drawDashedLine(HDC hdc, const Vec2f& from, const Vec2f& to, const Color4f& c = kBlack);
-
+	inline void drawDashedLine(HDC hdc, const Vec2f& from, const Vec2f& to, const Color4f& c = kBlack) {
+		auto iFrom = Vec2i::s_cast(from);
+		auto iTo   = Vec2i::s_cast(to);
+		drawDashedLine(hdc, iFrom.x, iFrom.y, iTo.x, iTo.y, c);
+	}
+	
 } // namespace GDI
 } // namespace sge
 
@@ -252,17 +259,15 @@ private:
 };
 
 #if 0
-#pragma mark ========= HDC ============
+#pragma mark ========= Scoped HDC ============
 #endif
-class MyHDC_NoHWND : public NonCopyable {
+class ScopedHDC_NoHWND : public NonCopyable {
 public:
 	using DTFlag = GDI::DTFlag;
 
-	virtual ~MyHDC_NoHWND() = default;
+	virtual ~ScopedHDC_NoHWND() = default;
 
 	operator const HDC& () const { return _hdc; }
-
-	TextMetrics createTextMetrics() const { return TextMetrics(_hdc); }
 
 	UINT setTextAlign(PW5_TextAlignmentOption flags = PW5_TextAlignmentOption::Left | PW5_TextAlignmentOption::Top);
 
@@ -286,9 +291,9 @@ public:
 	void ellipse(const Rect2f& xywh)										const { GDI::ellipse(_hdc, xywh); }
 
 	void roundRect(	int left, int top, int right, int bottom,
-					int xCornerEllipse = 0, int yCornerEllipse = 0)			const { GDI::roundRect(_hdc, left, top, right, bottom, xCornerEllipse, yCornerEllipse); }
+					int xEllipse = 0, int yEllipse = 0)						const { GDI::roundRect(_hdc, left, top, right, bottom, xEllipse, yEllipse); }
 	void roundRect(const ::RECT& ltrb, int xEllipse = 0, int yEllipse = 0)	const { GDI::roundRect(_hdc, ltrb, xEllipse, yEllipse); }
-	void roundRect(const Rect2f& xywh, const Vec2f& cornerEllipseSize)		const { GDI::roundRect(_hdc, xywh, cornerEllipseSize); }
+	void roundRect(const Rect2f& xywh, const Vec2f& ellipseSize)			const { GDI::roundRect(_hdc, xywh, ellipseSize); }
 
 	void arc(	int left, int top, int right, int bottom,
 				int fromX, int fromY, int toX, int toY)						const { GDI::arc(_hdc, left, top, right, bottom, fromX, fromY, toX, toY); }
@@ -305,44 +310,40 @@ public:
 	void pie(const ::RECT& ltrb, int fromX, int fromY, int toX, int toY)	const { GDI::pie(_hdc, ltrb, fromX, fromY, toX, toY); }
 	void pie(const Rect2f& xywh, const Vec2f& from, const Vec2f& to)		const { GDI::pie(_hdc, xywh, from, to); }
 
-	template<class... Args>
-	void Fmt_textOut(int x, int y, Args&&... args) const {
-		auto tmpStr = Fmt(SGE_FORWARD(args)...);
-		auto s = UtfUtil::toStringW(tmpStr);
-		::TextOut(_hdc, x, y, s.c_str(), static_cast<int>(s.size()));
-	}
+	void drawPoint(int x, int y, const Color4f& c, int ptSize)				const { GDI::drawPoint(_hdc, x, y, c, ptSize); }
+	void drawPoint(const ::POINT& pt, const Color4f& c, int ptSize)			const { GDI::drawPoint(_hdc, pt, c, ptSize); }
+	void drawPoint(const Vec2f& pt, const Color4f& c, int ptSize)			const { GDI::drawPoint(_hdc, pt, c, ptSize); }
 
 	template<class... Args>
-	void Fmt_drawText(int x, int y, Args&&... args) const {
-		auto s = Fmt(SGE_FORWARD(args)...);
-		auto tm = createTextMetrics();
-		GDI::drawText(_hdc, x, y, x + static_cast<int>(s.size() * tm.maxCharWidth), y + tm.aveCharHeight, s.view(), 0);
-	}
+	void Fmt_textOut(int x, int y, Args&&... args) const { GDI::Fmt_textOut(_hdc, x, y, SGE_FORWARD(args)...); }
+
+	template<class... Args>
+	void Fmt_drawText(int x, int y, Args&&... args) const;
 
 protected:
 	HDC	_hdc = nullptr;
 };
 
-class MyHDC : public MyHDC_NoHWND {
-	using Base = MyHDC_NoHWND;
+class ScopedHDC : public ScopedHDC_NoHWND {
+	using Base = ScopedHDC_NoHWND;
 public:
-	MyHDC(HWND& hwnd)
+	ScopedHDC(const HWND& hwnd)
 		: _hwnd(hwnd) {}
 
 	void clearBg(PW5_StockLogicalObject_Brush flag = PW5_StockLogicalObject_Brush::White);
 
 protected:
-	HWND&	_hwnd;
+	const HWND& _hwnd;
 };
 
-#if 0
-#pragma mark ========= Scoped HDC ============
-#endif
-class ScopedPaintStruct : public MyHDC {
-	using Base = MyHDC;
+class ScopedPaintStruct : public ScopedHDC {
+	using Base = ScopedHDC;
 public:
-	ScopedPaintStruct(HWND& hwnd) : Base(hwnd) {
+	ScopedPaintStruct(const HWND& hwnd) : Base(hwnd) {
 		_hdc = ::BeginPaint(hwnd, &_ps);
+		if (!_hdc) {
+			SGE_LOG_ERROR("ScopedPaintStruct BeginPaint");
+		}
 	}
 	~ScopedPaintStruct() { ::EndPaint(_hwnd, &_ps); }
 
@@ -354,26 +355,42 @@ private:
 	::PAINTSTRUCT _ps;
 };
 
-class ScopedGetDC : public MyHDC {
-	using Base = MyHDC;
+class ScopedGetDC : public ScopedHDC {
+	using Base = ScopedHDC;
 public:
-	ScopedGetDC(HWND& hwnd) : Base(hwnd) {
+	ScopedGetDC(const HWND& hwnd) : Base(hwnd) {
 		_hdc = ::GetDC(hwnd);
+		if (!_hdc) {
+			SGE_LOG_ERROR("ScopedGetDC GetDC");
+		}
 	}
-	~ScopedGetDC() { ::ReleaseDC(_hwnd, _hdc); }
+	~ScopedGetDC() {
+		if (_hdc) {
+			::ReleaseDC(_hwnd, _hdc);
+			_hdc = nullptr;
+		}
+	}
 };
 
-class ScopedGetWindowDC : public MyHDC {
-	using Base = MyHDC;
+class ScopedGetWindowDC : public ScopedHDC {
+	using Base = ScopedHDC;
 public:
-	ScopedGetWindowDC(HWND& hwnd) : Base(hwnd) {
+	ScopedGetWindowDC(const HWND& hwnd) : Base(hwnd) {
 		_hdc = ::GetWindowDC(hwnd);
+		if (!_hdc) {
+			SGE_LOG_ERROR("ScopedGetWindowDC GetWindowDC");
+		}
 	}
-	~ScopedGetWindowDC() { ::ReleaseDC(_hwnd, _hdc); }
+	~ScopedGetWindowDC() {
+		if (_hdc) {
+			::ReleaseDC(_hwnd, _hdc);
+			_hdc = nullptr;
+		}
+	}
 };
 
-class ScopedCreateDC : public MyHDC_NoHWND {
-	using Base = MyHDC_NoHWND;
+class ScopedCreateDC : public ScopedHDC_NoHWND {
+	using Base = ScopedHDC_NoHWND;
 public:
 	ScopedCreateDC( const wchar_t* pszDriver,
 					const wchar_t* pszDevice = nullptr,
@@ -381,12 +398,21 @@ public:
 					const ::DEVMODEW* pData  = nullptr)
 	{
 		_hdc = ::CreateDC(pszDriver, pszDevice, pszOutput, pData);
+		if (!_hdc) {
+			SGE_LOG_ERROR("ScopedCreateDC CreateDC");
+		}
 	}
-	~ScopedCreateDC() { ::DeleteDC(_hdc); }
+
+	~ScopedCreateDC() {
+		if (_hdc) {
+			if (!::DeleteDC(_hdc)) SGE_LOG_ERROR("~ScopedCreateDC DeleteDC");
+			_hdc = nullptr;
+		}
+	}
 };
 
-class ScopedCreateIC : public MyHDC_NoHWND {
-	using Base = MyHDC_NoHWND;
+class ScopedCreateIC : public ScopedHDC_NoHWND {
+	using Base = ScopedHDC_NoHWND;
 public:
 	ScopedCreateIC( const wchar_t* pszDriver,
 					const wchar_t* pszDevice = nullptr,
@@ -394,56 +420,118 @@ public:
 					const ::DEVMODEW* pData = nullptr)
 	{
 		_hdc = ::CreateIC(pszDriver, pszDevice, pszOutput, pData);
+		if (!_hdc) {
+			SGE_LOG_ERROR("ScopedCreateIC CreateIC");
+		}
 	}
-	~ScopedCreateIC() { ::DeleteDC(_hdc); }
+
+	~ScopedCreateIC() {
+		if (_hdc) {
+			if (!::DeleteDC(_hdc)) SGE_LOG_ERROR("~ScopedCreateIC DeleteDC");
+			_hdc = nullptr;
+		}
+	}
 };
 
-class ScopedCreateCompatibleDC : public MyHDC_NoHWND {
-	using Base = MyHDC_NoHWND;
+class ScopedCreateCompatibleDC : public ScopedHDC_NoHWND {
+	using Base = ScopedHDC_NoHWND;
 public:
 	ScopedCreateCompatibleDC(HDC srcHdc) {
 		_hdc = ::CreateCompatibleDC(srcHdc);
 	}
-	~ScopedCreateCompatibleDC() { ::DeleteDC(_hdc); }
-};
-
-class ScopedSaveDC : public MyHDC_NoHWND {
-	using Base = MyHDC_NoHWND;
-public:
-	ScopedSaveDC(HDC srcHdc) {
-		_hdc = srcHdc;
-		_id = ::SaveDC(srcHdc);
+	~ScopedCreateCompatibleDC() {
+		if (_hdc) {
+			if (!::DeleteDC(_hdc)) SGE_LOG_ERROR("~ScopedCreateCompatibleDC DeleteDC");
+			_hdc = nullptr;
+		}
 	}
-	~ScopedSaveDC() { ::RestoreDC(_hdc, _id); } 
-private:
-	int _id;
 };
 
-class ScopedCreateSolidBrush : public MyHDC_NoHWND {
-	using Base = MyHDC_NoHWND;
+class ScopedSaveDC : public ScopedHDC_NoHWND {
+	using Base = ScopedHDC_NoHWND;
+public:
+	ScopedSaveDC(HDC hdc) : _id(0) {
+		_hdc = hdc;
+		_id = ::SaveDC(hdc);
+		if (!_id) {
+			SGE_LOG_ERROR("ScopedSaveDC SaveDC");
+		}
+	}
+	~ScopedSaveDC() {
+		if (_id && _hdc) {
+			if (!::RestoreDC(_hdc, _id)) {
+				SGE_LOG_ERROR("~ScopedSaveDC RestoreDC");
+				_hdc = nullptr;
+				_id  = 0;
+			}
+		}
+	} 
+private:
+	int _id = 0;
+};
+
+class ScopedCreateSolidBrush : public ScopedHDC_NoHWND {
+	using Base = ScopedHDC_NoHWND;
 public:
 	ScopedCreateSolidBrush(HDC hdc, const Color4f& c = GDI::kWhite) {
 		_brush = GDI::createSolidBrush(GDI::COLORREF_make(c));
-		SelectBrush(hdc, _brush);
+		if (!_brush) {
+			SGE_LOG_ERROR("ScopedCreateSolidBrush CreateSolidBrush");
+		} else {
+			SelectBrush(hdc, _brush);
+		}
 	}
-	~ScopedCreateSolidBrush() { DeleteBrush(_brush); }
+	~ScopedCreateSolidBrush() {
+		if (_brush) {
+			if (!DeleteBrush(_brush)) {
+				SGE_LOG_ERROR("~ScopedCreateSolidBrush DeleteBrush: handle is not valid or is currently selected into a DC");
+			}
+			_brush = nullptr;
+		}
+	}
 
-	operator const HBRUSH&() const { return _brush; }
+	operator const ::HBRUSH&() const { return _brush; }
+
 private:
-	HBRUSH _brush;
+	::HBRUSH _brush = nullptr;
 };
 
-class ScopedExtCreatePen : public MyHDC_NoHWND {
-	using Base = MyHDC_NoHWND;
+class ScopedExtCreatePen : public ScopedHDC_NoHWND {
+	using Base = ScopedHDC_NoHWND;
 public:
-	ScopedExtCreatePen(HDC hdc, const LOGBRUSH& brush, PW5_PenStyle flag = PW5_PenStyle::Solid);
+	ScopedExtCreatePen(HDC hdc, const Color4f& color, PW5_PenStyle flag = PW5_PenStyle::Solid);
 	~ScopedExtCreatePen();
 
-	operator const HPEN& () const { return _pen; }
+	operator const ::HPEN& () const { return _pen; }
+
 private:
-	HPEN _pen;
+	::HPEN _pen = nullptr;
 };
 
+} // namespace sge
+
+namespace sge {
+namespace GDI {
+
+	inline TextMetrics createTextMetrics(HDC hdc) { return TextMetrics(hdc); }
+
+	template<class... Args>
+	inline void Fmt_drawText(HDC hdc, int x, int y, Args&&... args) {
+		auto s = Fmt(SGE_FORWARD(args)...);
+		auto tm = GDI::createTextMetrics(hdc);
+		GDI::drawText(hdc, x, y, x + static_cast<int>(s.size() * tm.maxCharWidth), y + tm.aveCharHeight, s.view(), 0);
+	}
+
+} // namespace GDI
+} // namespace sge
+
+namespace sge {
+
+template<class... Args> inline
+void ScopedHDC_NoHWND::Fmt_drawText(int x, int y, Args&&... args) const {
+	GDI::Fmt_drawText(_hdc, x, y, SGE_FORWARD(args)...);
 }
+
+} // namespace sge
 
 #endif

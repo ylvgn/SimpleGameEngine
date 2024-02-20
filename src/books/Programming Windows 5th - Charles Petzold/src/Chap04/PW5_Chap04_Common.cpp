@@ -109,7 +109,7 @@ void PW5_MyDefineMarkWindow::onCreate(CreateDesc& desc) {
 	_hdc = ::GetDC(_hwnd);
 
 	ScopedGetDC hdc(_hwnd);
-	auto tm = hdc.createTextMetrics();
+	auto tm = GDI::createTextMetrics(hdc);
 	_cxChar = tm.aveCharWidth;
 	_cxCaps = tm.aveCharWidthUpperCase;
 	_cyChar = tm.aveCharHeight;

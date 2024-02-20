@@ -23,26 +23,37 @@ void PW5_Bezier::onUIMouseEvent(UIMouseEvent& ev) {
 	using Button = UIMouseEventButton;
 	using Modifier = UIEventModifier;
 
-	if (ev.isDragging()) {
+	if (ev.isDragging() || ev.isDown()) {
+		bool shift = BitUtil::hasAny(ev.modifier, Modifier::Shift);
 		switch (ev.pressedButtons) {
 			case Button::Left: {
-				if (BitUtil::hasAny(ev.modifier, Modifier::Shift)) {
-					_cubicBezier.c1 = _mousePos;
-				} else {
-					_cubicBezier.p1 = _mousePos;
-				}
+				auto& p = shift ? _cubicBezier.c1 : _cubicBezier.p1;
+				p = _mousePos;
 				onDraw();
-			}break;
+			} break;
 			case Button::Right: {
-				if (BitUtil::hasAny(ev.modifier, Modifier::Shift)) {
-					_cubicBezier.c2 = _mousePos;
-				} else {
-					_cubicBezier.p2 = _mousePos;
-				}
+				auto& p = shift ? _cubicBezier.c2 : _cubicBezier.p2;
+				p = _mousePos;
 				onDraw();
-			}break;
+			} break;
 		}
 	}
+}
+
+void PW5_Bezier::_toPOINTs() {
+	_points.resize(4);
+	_cubicBezier.toPOINTs(_points[0], _points[1], _points[2], _points[3]);
+}
+
+void PW5_Bezier::_drawLines(const HDC& hdc) const {
+	::Polyline(hdc, _points.data(), static_cast<int>(_points.size()));
+}
+
+void PW5_Bezier::_drawPoints(const HDC& hdc) const {
+	GDI::drawPoint(hdc, _cubicBezier.p1, GDI::kRed, kPointSize);
+	GDI::drawPoint(hdc, _cubicBezier.c1, GDI::kGreen, kPointSize);
+	GDI::drawPoint(hdc, _cubicBezier.c2, GDI::kBlue, kPointSize);
+	GDI::drawPoint(hdc, _cubicBezier.p2, GDI::kViolet, kPointSize);
 }
 
 void PW5_Bezier::_example1() {

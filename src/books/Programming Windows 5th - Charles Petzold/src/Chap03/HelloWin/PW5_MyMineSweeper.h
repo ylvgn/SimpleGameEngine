@@ -9,7 +9,7 @@ namespace sge {
 class Cell {
 public:
 	void init(int x_, int y_);
-	void onDraw(const MyHDC& hdc);
+	void onDraw();
 
 	static const int kSize = 22;
 
@@ -26,7 +26,7 @@ public:
 
 	Cell* getCell(int x, int y);
 
-	void onDraw(const MyHDC& hdc);
+	void onDraw();
 	void onClick(int x, int y);
 	void openCell(Cell* c);
 
@@ -43,13 +43,15 @@ class PW5_MyMineSweeper : public PW5_NativeUIWindow {
 	using This = PW5_MyMineSweeper;
 	using Base = PW5_NativeUIWindow;
 public:
-	static This* instance() { return s_instance; }
+	static This*	instance() { return s_instance; }
+	const HDC&		hdc() const { return _hdc; }
 protected:
 	virtual void onCreate(CreateDesc& desc) override;
 	virtual void onDraw() override;
 	virtual void onUIMouseEvent(UIMouseEvent& ev) override;
 private:
 	static This* s_instance;
+	HDC _hdc = nullptr;
 
 	Grid _grid;
 };
