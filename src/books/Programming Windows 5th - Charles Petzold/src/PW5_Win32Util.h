@@ -1,12 +1,10 @@
 #pragma once
-
 #if SGE_OS_WINDOWS
 
-#include "PW5_Common.h"
 #include "PW5_GDI.h"
 
 namespace sge {
-	
+
 struct PW5_Win32Util {
 	PW5_Win32Util() = delete;
 
@@ -18,7 +16,7 @@ struct PW5_Win32Util {
 	static UINT getPW5_DrawTextFormatFlag(PW5_DrawTextFormatFlag v);
 	static int getPW5_StockLogicalObject_Brush(PW5_StockLogicalObject_Brush v);
 	static int getPW5_StockLogicalObject_Pen(PW5_StockLogicalObject_Pen v);
-	static DWORD getPW5_PenStyle(PW5_PenStyle v);
+	static constexpr DWORD getPW5_PenStyle(PW5_PenStyle v);
 };
 
 inline
@@ -115,20 +113,22 @@ int PW5_Win32Util::getPW5_StockLogicalObject_Brush(PW5_StockLogicalObject_Brush 
 inline
 int PW5_Win32Util::getPW5_StockLogicalObject_Pen(PW5_StockLogicalObject_Pen v) {
 	using SRC = PW5_StockLogicalObject_Pen;
+	// The stock pens are 1 pixel wide default
 	switch (v) {
-		case SRC::None:		return NULL_PEN;
+		case SRC::None:		return NULL_PEN;  // NULL_PEN is a pen that doesn't draw
 		case SRC::White:	return WHITE_PEN;
-		case SRC::Black:	return BLACK_PEN;
+		case SRC::Black:	return BLACK_PEN; // default device context is called BLACK_PEN
 		default:			throw  SGE_ERROR("unsupported PW5_StockLogicalObject_Pen");
 	}
 }
 
-inline
+constexpr
 DWORD PW5_Win32Util::getPW5_PenStyle(PW5_PenStyle v) {
 	using SRC = PW5_PenStyle;
 	switch (v) {
 		case SRC::None:			return PS_NULL;
 		case SRC::Solid:		return PS_SOLID;
+		// If you specify a dotted or dashed pen style with a physical width greater than 1, Windows will use a solid pen instead
 		case SRC::Dash:			return PS_DASH;
 		case SRC::Dot:			return PS_DOT;
 		case SRC::DashDot:		return PS_DASHDOT;

@@ -19,7 +19,7 @@ namespace GDI {
 	}
 
 	void drawDashedLine(HDC hdc, int fromX, int fromY, int toX, int toY, const Color4f& c) {
-		ScopedExtCreatePen scoped(hdc, c, PW5_PenStyle::Dash);
+		ScopedExtCreatePen_Dash scoped(hdc, c);
 		drawLine(hdc, fromX, fromY, toX, toY);
 	}
 } // namespace GDI
@@ -79,27 +79,10 @@ void ScopedHDC::clearBg(PW5_StockLogicalObject_Brush flag /*= PW5_StockLogicalOb
 	GDI::fillRect(_hdc, rc, brush);
 }
 
-ScopedExtCreatePen::ScopedExtCreatePen(HDC hdc, const Color4f& color, PW5_PenStyle flag /*= PW5_PenStyle::Solid*/) {
-	_hdc = hdc;
-
-	::LOGBRUSH brush;
-	brush.lbColor = GDI::COLORREF_make(color);
-	brush.lbStyle = PS_SOLID;
-
-	DWORD dwStyle = PW5_Win32Util::getPW5_PenStyle(flag);
-	_pen = ::ExtCreatePen(dwStyle, 1, &brush, 0, nullptr);
-	SelectPen(_hdc, _pen);
-}
-
-ScopedExtCreatePen::~ScopedExtCreatePen() {
-	if (_pen) {
-		DeletePen(_pen);
-		_pen = nullptr;
-	}
-
-	auto pen = GetStockPen(BLACK_PEN);
-	SelectPen(_hdc, pen);
-}
+template class ScopedExtCreatePen_Dash_Dot<PW5_Win32Util::getPW5_PenStyle(PW5_PenStyle::Dot)>;
+template class ScopedExtCreatePen_Dash_Dot<PW5_Win32Util::getPW5_PenStyle(PW5_PenStyle::Dash)>;
+template class ScopedExtCreatePen_Dash_Dot<PW5_Win32Util::getPW5_PenStyle(PW5_PenStyle::DashDot)>;
+template class ScopedExtCreatePen_Dash_Dot<PW5_Win32Util::getPW5_PenStyle(PW5_PenStyle::DashDotDot)>;
 
 }
 

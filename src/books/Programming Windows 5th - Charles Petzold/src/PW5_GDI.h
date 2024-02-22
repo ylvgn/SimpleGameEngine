@@ -474,6 +474,7 @@ class ScopedCreateSolidBrush : public ScopedHDC_NoHWND {
 	using Base = ScopedHDC_NoHWND;
 public:
 	ScopedCreateSolidBrush(HDC hdc, const Color4f& c = GDI::kWhite) {
+		_hdc = hdc;
 		_brush = GDI::createSolidBrush(GDI::COLORREF_make(c));
 		if (!_brush) {
 			SGE_LOG_ERROR("ScopedCreateSolidBrush CreateSolidBrush");
@@ -483,6 +484,7 @@ public:
 	}
 	~ScopedCreateSolidBrush() {
 		if (_brush) {
+			SGE_ASSERT(_hdc != nullptr);
 			if (!DeleteBrush(_brush)) {
 				SGE_LOG_ERROR("~ScopedCreateSolidBrush DeleteBrush: handle is not valid or is currently selected into a DC");
 			}
@@ -496,17 +498,62 @@ private:
 	::HBRUSH _brush = nullptr;
 };
 
-class ScopedExtCreatePen : public ScopedHDC_NoHWND {
+class ScopedExtCreatePen_Base : public ScopedHDC_NoHWND {
 	using Base = ScopedHDC_NoHWND;
-public:
-	ScopedExtCreatePen(HDC hdc, const Color4f& color, PW5_PenStyle flag = PW5_PenStyle::Solid);
-	~ScopedExtCreatePen();
+protected:
+	void _internal_ctor(HDC hdc, DWORD style, const Color4f& c, DWORD width) {
+		// These are not unreasonable rules, but they can be a little tricky sometimes
+		_hdc = hdc;
 
-	operator const ::HPEN& () const { return _pen; }
+		// For the PS_SOLID, PS_NULL, and PS_INSIDEFRAME styles, the width argument is the width of the pen.
+			// An width value of 0 directs Windows to use one pixel for the pen width.
+			// If you specify a dotted or dashed pen style with a physical width greater than 1, Windows will use a solid pen instead
 
+		// When you select a pen into a newly created device context, save the handle to the pen that SelectObject returns
+			// What is _lastHPen? If this is the first SelectObject call you've made since obtaining the device context,
+			// _lastHPen is a handle to the BLACK_PEN(default) stock object
+			// After this call (SelectPen),
+			// any lines you draw will use this pen until you select another pen into the device context
+			// or release the device context handle
+
+		::LOGBRUSH logBrush = {}; // logical brush
+		logBrush.lbColor = GDI::COLORREF_make(c);
+		logBrush.lbStyle = PS_SOLID;
+		_lastHPen = SelectPen(_hdc, ::ExtCreatePen(style, width, &logBrush, 0, nullptr));
+	}
+
+	~ScopedExtCreatePen_Base() {
+		if (_lastHPen) {
+			SGE_ASSERT(_hdc != nullptr);
+			// You can now select that pen into the device context
+			// and delete the pen you create(the handle returned from this second SelectObject call) in one statement
+			DeletePen(SelectPen(_hdc, _lastHPen));
+			_lastHPen = nullptr;
+		}
+	}
 private:
-	::HPEN _pen = nullptr;
+	::HPEN _lastHPen = nullptr;
 };
+
+template<size_t PS_XXX>
+class ScopedExtCreatePen_Dash_Dot : public ScopedExtCreatePen_Base {
+public:
+	ScopedExtCreatePen_Dash_Dot(HDC hdc, const Color4f& c) {
+		_internal_ctor(hdc, PS_XXX, c, 1);
+	}
+};
+
+class ScopedExtCreatePen_Solid : public ScopedExtCreatePen_Base {
+public:
+	ScopedExtCreatePen_Solid(HDC hdc, const Color4f& c, DWORD width = 1) {
+		_internal_ctor(hdc, PS_SOLID, c, width);
+	}
+};
+
+using ScopedExtCreatePen_Dash		= ScopedExtCreatePen_Dash_Dot<PS_DASH>;
+using ScopedExtCreatePen_Dot		= ScopedExtCreatePen_Dash_Dot<PS_DOT>;
+using ScopedExtCreatePen_DashDot	= ScopedExtCreatePen_Dash_Dot<PS_DASHDOT>;
+using ScopedExtCreatePen_DashDotDot = ScopedExtCreatePen_Dash_Dot<PS_DASHDOTDOT>;
 
 } // namespace sge
 
