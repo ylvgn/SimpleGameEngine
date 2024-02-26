@@ -5,7 +5,6 @@ namespace sge {
 void NeheOGL_Lesson006::onCreate(CreateDesc& desc) {
 	Base::onCreate(desc);
 
-	// Create A Texture
 	glGenTextures(1, &_texture2d);
 	_loadTexture2D("NeHe.bmp", _texture2d);
 }
@@ -15,35 +14,7 @@ void NeheOGL_Lesson006::onDraw() {
 	_example1(uptime);
 }
 
-void NeheOGL_Lesson006::_hBitMapToImage(MyImage& o, HBITMAP BitmapHandle) {
-	auto& width = o.width;
-	auto& height = o.height;
-	auto& pixels = o.pixelData;
-
-	BITMAP Bmp = { 0 };
-	BITMAPINFO Info = { 0 };
-	HDC DC = CreateCompatibleDC(NULL);
-	HBITMAP OldBitmap = (HBITMAP)SelectObject(DC, BitmapHandle);
-	GetObject(BitmapHandle, sizeof(Bmp), &Bmp);
-
-	Info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-	Info.bmiHeader.biWidth = width = Bmp.bmWidth;
-	Info.bmiHeader.biHeight = height = Bmp.bmHeight;
-	Info.bmiHeader.biPlanes = 1;
-	Info.bmiHeader.biBitCount = Bmp.bmBitsPixel;
-	Info.bmiHeader.biCompression = BI_RGB;
-	Info.bmiHeader.biSizeImage = ((width * Bmp.bmBitsPixel + 31) / 32) * 4 * height;
-
-	pixels.resize(Info.bmiHeader.biSizeImage);
-	GetDIBits(DC, BitmapHandle, 0, height, pixels.data(), &Info, DIB_RGB_COLORS);
-	SelectObject(DC, OldBitmap);
-
-	height = std::abs(height);
-	DeleteDC(DC);
-}
-
-void NeheOGL_Lesson006::_loadImage(MyImage& o, StrView filename) {
-	o.clean();
+void NeheOGL_Lesson006::_loadByHBITMAP(MyImage& o, StrView filename) {
 	// Loads A Bitmap Image
 
 	// a few VERY important things you need to know about the images you plan to use as textures
@@ -51,41 +22,89 @@ void NeheOGL_Lesson006::_loadImage(MyImage& o, StrView filename) {
 		// The width and height must be at least 64 pixels,
 		// and for compatability reasons, shouldn't be more than 256 pixels
 	// If the image you want to use is not 64, 128 or 256 pixels on the width or height, resize it in an art program(like photoshop)
-	
 	if (filename.empty() || !File::exists(filename))
-		return;
+		throw SGE_ERROR("_loadByHBITMAP invalid filename = {}", filename);
 
-	// The AUX_RGBImageRec record will hold the bitmap width, height, and data
 	TempStringW s = UtfUtil::toStringW(filename);
-	_bmp = static_cast<HBITMAP>(LoadImage(GetModuleHandle(nullptr), s.c_str(), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE));
+	HBITMAP hBmp = static_cast<HBITMAP>(LoadImage(GetModuleHandle(nullptr), s.c_str(), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE));
 
-	if (!_bmp)
+	if (!hBmp)
 		throw SGE_ERROR("LoadImage");
 
-	_hBitMapToImage(o, _bmp);
+	auto& width  = o.width;
+	auto& height = o.height;
+	auto& pixels = o.pixelData;
+
+	HDC hdc = ::CreateCompatibleDC(NULL);
+		BITMAP bmpMap;
+		g_bzero(bmpMap);
+		HBITMAP oldBitmap = SelectBitmap(hdc, hBmp);
+		GetObject(hBmp, sizeof(bmpMap), &bmpMap);
+
+		BITMAPINFO info;
+		g_bzero(info);
+		info.bmiHeader.biSize		= sizeof(BITMAPINFOHEADER);
+		info.bmiHeader.biWidth		= width = bmpMap.bmWidth;
+		info.bmiHeader.biHeight		= height = bmpMap.bmHeight;
+		info.bmiHeader.biPlanes		= 1;
+		info.bmiHeader.biBitCount	= bmpMap.bmBitsPixel; // bpp
+		info.bmiHeader.biCompression= BI_RGB;
+		info.bmiHeader.biSizeImage	= ((width * bmpMap.bmBitsPixel + 31) / 32) * 4 * height;
+
+		pixels.resize(info.bmiHeader.biSizeImage);
+
+		// API GetDIBits retrieves the bits of the specified compatible bitmap
+		// and copies them into a buffer as a DIB using the specified format
+		if (!::GetDIBits(hdc, hBmp, 0, height, pixels.data(), &info, DIB_RGB_COLORS)) {
+			throw SGE_ERROR("GetDIBits");
+		}
+		::SelectObject(hdc, oldBitmap);
+		height = Math::abs(height);
+		if (hBmp) {
+			DeleteObject(hBmp);
+			hBmp = nullptr;
+		}
+
+		/* RGBQUADs came from the BMP format
+		typedef struct tagRGBQUAD {
+			BYTE    rgbBlue;
+			BYTE    rgbGreen;
+			BYTE    rgbRed;
+			BYTE    rgbReserved;
+		} RGBQUAD;
+		*/
+		// COLORREF c = RGB(1,0,1);
+
+		// bgra -> rgba
+		for (int i = 0; i < pixels.size(); i += 4) {
+			swap(pixels[i], pixels[i + 2]);
+		}
+	::DeleteDC(hdc);
 }
 
-
 void NeheOGL_Lesson006::_loadTexture2D(StrView filename, GLuint targetTexture) {
-	MyImage image;
-	_loadImage(image, filename);
-	if (!image.width || !image.height)
+#if 0
+	_loadByHBITMAP(_imageToUpload, filename);
+#else
+	_imageToUpload.loadFile(filename);
+#endif
+
+	if (!_imageToUpload.width || !_imageToUpload.height)
 		throw SGE_ERROR("_loadImage filename = {}", filename);
 
-	glBindTexture(GL_TEXTURE_2D, targetTexture);// Typical Texture Generation Using Data From The Bitmap
-	glTexImage2D(GL_TEXTURE_2D,					// tells OpenGL the texture will be a 2D texture
-				 0,								// lod (level of detail)
-				 GL_RGB,						// internalformat
-				 image.width,					// image width
-				 image.height,					// image height
-				 0,								// the border. It's usually left at zero
-				 GL_RGBA,						// color data format
-				 GL_UNSIGNED_BYTE,				// means the data that makes up the image is made up of unsigned bytes
-				 image.pixelData.data()		    // source data
-	);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glBindTexture(GL_TEXTURE_2D, targetTexture);	// Typical Texture Generation Using Data From The Bitmap
+		glTexImage2D(GL_TEXTURE_2D,					// tells OpenGL the texture will be a 2D texture
+					 0,								// lod (level of detail)
+					 GL_RGBA,						// internalformat
+					_imageToUpload.width,			// image width
+					_imageToUpload.height,			// image height
+					 0,								// the border. It's usually left at zero
+					 GL_RGBA,						// color data format
+					 GL_UNSIGNED_BYTE,				// means the data that makes up the image is made up of unsigned bytes
+					_imageToUpload.pixelData.data()	// source data
+		);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
@@ -103,8 +122,11 @@ void NeheOGL_Lesson006::_example1(float uptime) {
 	float aspect = width / height;
 
 	glViewport(0, 0, static_cast<int>(width), static_cast<int>(height));
-	glEnable(GL_TEXTURE_2D); // Enable Texture Mapping
+	glClearColor(0.f, 0.2f, 0.2f, 0.f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearDepth(1.0f);
+
+	glEnable(GL_TEXTURE_2D); // Enable Texture Mapping
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
 
@@ -115,15 +137,10 @@ void NeheOGL_Lesson006::_example1(float uptime) {
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
-	glClearColor(0.f, 0.2f, 0.2f, 0.f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 	glTranslatef(0.0f,0.0f,-5.0f);
-
 	glRotatef(angle, 1.0f,1.0f,1.0f);
 
 	glBindTexture(GL_TEXTURE_2D, _texture2d);
-
 	glBegin(GL_QUADS);
 		// Front Face
 		glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.0f, -1.0f,  1.0f);
