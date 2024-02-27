@@ -27,6 +27,8 @@ struct BITMAPINFOHEADER {
 };
 
 void ImageIO_bmp::Reader::load(Image& img, ByteSpan data, ColorType expectType) {
+	expectType = ColorType::RGBAb; // tmp
+
 	BinDeserializer de(data);
 
 	// read 2 bytes 'BM'
@@ -40,18 +42,42 @@ void ImageIO_bmp::Reader::load(Image& img, ByteSpan data, ColorType expectType) 
 	_readHeader(de, hdr);
 
 	auto colorType = ColorType::None;
-
-	if (hdr.biCompression == BI_RGB) {
-		colorType = ColorType::RGBAb; // is it wrong ???
-		SGE_DUMP_VAR(hdr.biBitCount);
+	auto bpp = hdr.biBitCount;
+	if (bpp == 24) {
+		colorType = ColorType::RGBb;
+	} else if(bpp == 32) {
+		colorType = ColorType::RGBAb;
 	}
 
-	if (colorType == ColorType::None) {
-		throw SGE_ERROR("bmp error unsupported output format");
-	}
+	ByteSpan src(de.cur(), de.cur() + de.remain() - 2); // maybe wrong??
+	ByteSpan dst;
 
-	img.create(colorType, hdr.biWidth, hdr.biHeight);
-	img.copyToPixelData(ByteSpan(de.cur(), de.remain()));
+	Vector<u8> pixelData;
+	if (colorType == ColorType::RGBb) {
+		pixelData.resize(src.size() / 3 * 4);
+		auto* p = pixelData.data();
+		auto* q = src.begin();
+		for (;q != src.end();) {
+			*p = *q; p++; q++; // b
+			*p = *q; p++; q++; // g
+			*p = *q; p++; q++; // r
+			*p = 255; p++;     // a
+
+			swap(*(p - 2), *(p - 4));
+		}
+	} else {
+		pixelData.assign(src.begin(), src.end());
+		for (int i = 0; i < pixelData.size(); i+=4) {
+			swap(pixelData[i], pixelData[i + 2]); // bgra -> rgba
+		}
+	}
+	dst = ByteSpan_make(pixelData.span());;
+
+	colorType = expectType;
+
+	int strideInBytes = hdr.biWidth * ColorUtil::pixelSizeInBytes(colorType);
+	img.create(colorType, hdr.biWidth, hdr.biHeight, strideInBytes);
+	img.copyToPixelData(dst);
 }
 
 void ImageIO_bmp::Reader::_readHeader(BinDeserializer& de, BITMAPINFOHEADER& hdr) {
