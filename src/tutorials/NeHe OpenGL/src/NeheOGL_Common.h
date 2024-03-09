@@ -69,6 +69,7 @@ private:
 	u64 _getTick() {
 		return ::GetTickCount64(); // 10~16 ms, resolution of GetTickCount64 limit by os
 	}
+
 	u64 _start;
 };
 
@@ -109,11 +110,6 @@ private:
 	u64 _start;
 };
 
-}
-
-
-namespace sge {
-
 struct OGLUtil {
 	OGLUtil() = delete;
 
@@ -152,7 +148,7 @@ void OGLUtil::reportError(GLenum errCode) {
 		auto* errStr = gluErrorStringWIN(errCode);
 		TempString str;
 		UtfUtil::convert(str, errStr);
-		SGE_LOG("errCode = (0x{:0X}) {}", static_cast<u32>(errCode), str);
+		SGE_LOG("errCode = (0x{:X}) {}", static_cast<u32>(errCode), str);
 	}
 }
 
@@ -175,26 +171,58 @@ GLenum OGLUtil::getOGLBeginMode(NeHe_BeginMode v) {
 	}
 }
 
+struct MyImage {
+	int width = 0;
+	int height = 0;
+
+	Vector<u8> pixelData;
+
+	void clean() {
+		width = 0;
+		height = 0;
+		pixelData.clear();
+	}
+
+	void loadFile(StrView filename) {
+		auto ext = FilePath::extension(filename);
+		if (0 == StringUtil::ignoreCaseCompare(ext, "bmp")) {
+			return loadBmpFile(filename);
+		}
+
+		throw SGE_ERROR("unsupported image file format {}", ext);
+	}
+
+	void loadBmpFile(StrView filename) {
+		MemMapFile mm;
+		mm.open(filename);
+		loadBmpMem(mm);
+	}
+
+	void loadBmpMem(ByteSpan data);
+};
+
 } // namespace sge
 
 namespace sge {
 namespace OGL {
 
-	static constexpr Color4f kWhite			{ 1.0f, 1.0f, 1.0f, 1.0f };
-	static constexpr Color4f kBlack			{ 0.0f, 0.0f, 0.0f, 1.0f };
-	static constexpr Color4f kRed			{ 1.0f, 0.0f, 0.0f, 1.0f };
-	static constexpr Color4f kGreen			{ 0.0f, 1.0f, 0.0f, 1.0f };
-	static constexpr Color4f kBlue			{ 0.0f, 0.0f, 1.0f, 1.0f };
-	static constexpr Color4f kYellow		{ 1.0f, 1.0f, 0.0f, 1.0f };
-	static constexpr Color4f kViolet		{ 1.0f, 0.0f, 1.0f, 1.0f };
-	static constexpr Color4f kCyan			{ 0.0f, 1.0f, 1.0f, 1.0f };
-	static constexpr Color4f kOrange		{ 1.0f, 0.5f, 0.0f, 1.0f };
+	static constexpr Color4f kWhite				{ 1.0f, 1.0f, 1.0f, 1.0f };
+	static constexpr Color4f kBlack				{ 0.0f, 0.0f, 0.0f, 1.0f };
+	static constexpr Color4f kRed				{ 1.0f, 0.0f, 0.0f, 1.0f };
+	static constexpr Color4f kGreen				{ 0.0f, 1.0f, 0.0f, 1.0f };
+	static constexpr Color4f kBlue				{ 0.0f, 0.0f, 1.0f, 1.0f };
+	static constexpr Color4f kYellow			{ 1.0f, 1.0f, 0.0f, 1.0f };
+	static constexpr Color4f kViolet			{ 1.0f, 0.0f, 1.0f, 1.0f };
+	static constexpr Color4f kCyan				{ 0.0f, 1.0f, 1.0f, 1.0f };
+	static constexpr Color4f kOrange			{ 1.0f, 0.5f, 0.0f, 1.0f };
 
-	inline void glColor(const Color4f& c)	{ glColor4f(c.r, c.g, c.b, c.a); }
+	inline void glColor(const Color4f& c)		{ ::glColor4f(c.r, c.g, c.b, c.a); }
+	inline void glTexCoord(const Tuple2f& uv)	{ ::glTexCoord2f(uv.x, uv.y); }
+	inline void glVertex(const Tuple3f& pos)	{ ::glVertex3f(pos.x, pos.y, pos.z); }
 
 	class ScopedGLBegin {
 	public:
-		ScopedGLBegin(NeHe_BeginMode mode)	{ glBegin(OGLUtil::getOGLBeginMode(mode)); }
+		ScopedGLBegin(NeHe_BeginMode mode) { glBegin(OGLUtil::getOGLBeginMode(mode)); }
 		~ScopedGLBegin() { glEnd(); }
 	};
 

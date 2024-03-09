@@ -3,53 +3,55 @@
 namespace sge {
 
 void NeheOGL_Lesson005::onDraw() {
-	//_example1();
-	_example2();
-}
+	auto uptime = static_cast<float>(_uptime.get());
 
-void NeheOGL_Lesson005::_example1() {
-	float width = _clientRect.w;
+	float width  = _clientRect.w;
 	float height = _clientRect.h;
 
 	if (height == 0) {
 		height = 1;
 	}
 
-	float angleInDegreeFov = 45.f;
 	float aspect = width / height;
-
 	glViewport(0, 0, static_cast<int>(width), static_cast<int>(height));
+
+	glClearColor(0.f, 0.2f, 0.2f, 0.f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glClearDepth(1.0f);			// Depth Buffer Setup
 	glEnable(GL_DEPTH_TEST);	// Enables Depth Testing
 	glDepthFunc(GL_LEQUAL);		// The Type Of Depth Testing To Do
 
 	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluPerspective(angleInDegreeFov, aspect, 0.1f, 100.0f);
+		glLoadIdentity();
+		gluPerspective(60.f, aspect, 0.01f, 1000.0f);
 
 	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
+		glLoadIdentity();
 
-	glClearColor(0.f, 0.2f, 0.2f, 0.f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	_example(uptime, false);
+	_example(uptime, true);
 
-	float d = 1.f;
+	swapBuffers();
+	drawNeeded();
+}
+
+void NeheOGL_Lesson005::_example(float uptime, bool bWireFrame) {
+	static constexpr float kRotateSpeed = 90.f;
+	float angle = uptime * kRotateSpeed;
+
+	if (bWireFrame) _wireFrame(angle);
+	else _shaded(angle);
+}
+
+void NeheOGL_Lesson005::_wireFrame(float angle) {
+	glLineWidth(2.f);
+
 	{
-//------------------------------------------
-//		   1-----2
-//		  /  0  /
-//		 3-----4
-		float v[5][3] = {
-			{ 0,  d,  0}, // 0 Top
-			{-d, -d, -d}, // 1
-			{ d, -d, -d}, // 2
-			{-d, -d,  d}, // 3
-			{ d, -d,  d}, // 4
-		};
+		auto& v = kCone;
 		glLoadIdentity();
 		glTranslatef(-1.5f, 0.f, -6.f);
-		glRotatef(_rtri, 0.0f, 1.0f, 0.0f);
+		glRotatef(angle, 0.0f, 1.0f, 0.0f);
 		OGL::glColor(OGL::kWhite);
 		glBegin(GL_LINES);
 			// bottom
@@ -67,27 +69,10 @@ void NeheOGL_Lesson005::_example1() {
 	}
 
 	{
-//------------------------------------------
-//		  0--------1
-//		 /|       /|
-//		3--------2 |
-//      | |      | |
-//		| 4------|-5
-//      |/       |/
-//      7--------6
-		float v[8][3] = {
-			{-d,  d, -d}, // 0
-			{ d,  d, -d}, // 1
-			{ d,  d,  d}, // 2
-			{-d,  d,  d}, // 3
-			{-d, -d, -d}, // 4
-			{ d, -d, -d}, // 5
-			{ d, -d,  d}, // 6
-			{-d, -d,  d}, // 7
-		};
+		auto& v = kCube;
 		glLoadIdentity();
 		glTranslatef(1.f, 0.f, -7.0f);
-		glRotatef(_rquad, 1.0f, 1.0f, 1.0f);
+		glRotatef(angle, 1.0f, 1.0f, 1.0f);
 		OGL::glColor(OGL::kWhite);
 		glBegin(GL_LINES);
 			// top
@@ -108,58 +93,15 @@ void NeheOGL_Lesson005::_example1() {
 			glVertex3fv(v[2]); glVertex3fv(v[6]);
 			glVertex3fv(v[3]); glVertex3fv(v[7]);
 		glEnd();
-
-		_rtri  +=  1.f;
-		_rquad -= -1.f;
 	}
-
-	swapBuffers();
-	drawNeeded();
 }
 
-void NeheOGL_Lesson005::_example2() {
-	float width = _clientRect.w;
-	float height = _clientRect.h;
-
-	if (height == 0) {
-		height = 1;
-	}
-
-	float angleInDegreeFov = 45.f;
-	float aspect = width / height;
-
-	glViewport(0, 0, static_cast<int>(width), static_cast<int>(height));
-
-	glClearDepth(1.0f);			// Depth Buffer Setup
-	glEnable(GL_DEPTH_TEST);	// Enables Depth Testing
-	glDepthFunc(GL_LEQUAL);		// The Type Of Depth Testing To Do
-
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluPerspective(angleInDegreeFov, aspect, 0.1f, 100.0f);
-
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-
-	glClearColor(0.f, 0.2f, 0.2f, 0.f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	float d = 1.f;
+void NeheOGL_Lesson005::_shaded(float angle) {
 	{
-//------------------------------------------
-//		   1-----2
-//		  /  0  /
-//		 3-----4
-		float v[5][3] = {
-			{ 0,  d,  0}, // 0 Top
-			{-d, -d, -d}, // 1
-			{ d, -d, -d}, // 2
-			{-d, -d,  d}, // 3
-			{ d, -d,  d}, // 4
-		};
+		auto& v = kCone;
 		glLoadIdentity();
 		glTranslatef(-1.5f, 0.f, -6.f);
-		glRotatef(_rtri, 0.0f, 1.0f, 0.0f);
+		glRotatef(angle, 0.0f, 1.0f, 0.0f);
 		glBegin(GL_TRIANGLES); // Note that all triangles are drawn in a counter clockwise order rotation
 			// front
 			OGL::glColor(OGL::kRed);	glVertex3fv(v[0]);
@@ -184,27 +126,10 @@ void NeheOGL_Lesson005::_example2() {
 	}
 
 	{
-//------------------------------------------
-//		  0--------1
-//		 /|       /|
-//		3--------2 |
-//      | |      | |
-//		| 4------|-5
-//      |/       |/
-//      7--------6
-		float v[8][3] = {
-			{-d,  d, -d}, // 0
-			{ d,  d, -d}, // 1
-			{ d,  d,  d}, // 2
-			{-d,  d,  d}, // 3
-			{-d, -d, -d}, // 4
-			{ d, -d, -d}, // 5
-			{ d, -d,  d}, // 6
-			{-d, -d,  d}, // 7
-		};
+		auto& v = kCube;
 		glLoadIdentity();
 		glTranslatef(1.f, 0.f, -7.0f);
-		glRotatef(_rquad, 1.0f, 1.0f, 1.0f);
+		glRotatef(angle, 1.0f, 1.0f, 1.0f);
 		glBegin(GL_QUADS);
 			// All of the quads are drawn in a counter clockwise order
 				// Meaning the first point is the top right,
@@ -222,13 +147,7 @@ void NeheOGL_Lesson005::_example2() {
 			OGL::glColor(OGL::kBlue);	glVertex3fv(v[0]); glVertex3fv(v[4]); glVertex3fv(v[7]); glVertex3fv(v[3]); // left
 			OGL::glColor(OGL::kViolet); glVertex3fv(v[5]); glVertex3fv(v[1]); glVertex3fv(v[2]); glVertex3fv(v[6]); // right
 		glEnd();
-
-		_rtri  +=  1.f;
-		_rquad -= -1.f;
 	}
-
-	swapBuffers();
-	drawNeeded();
 }
 
 }
