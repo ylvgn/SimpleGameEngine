@@ -12,11 +12,12 @@ struct PW5_Win32Util {
 	static bool isRegisterWndClass(HMODULE hInstance, const wchar_t* clsName);
 	static void registerWndClass(WNDCLASSEX& wc);
 
-	static UINT getPW5_TextAlignmentOption(PW5_TextAlignmentOption v);
-	static UINT getPW5_DrawTextFormatFlag(PW5_DrawTextFormatFlag v);
-	static int getPW5_StockLogicalObject_Brush(PW5_StockLogicalObject_Brush v);
-	static int getPW5_StockLogicalObject_Pen(PW5_StockLogicalObject_Pen v);
-	static constexpr DWORD getPW5_PenStyle(PW5_PenStyle v);
+	static UINT getTextAlignmentOption(PW5_TextAlignmentOption v);
+	static UINT getDrawTextFormatFlag(PW5_DrawTextFormatFlag v);
+	static int getStockLogicalObject_Brush(PW5_StockLogicalObject_Brush v);
+	static int getStockLogicalObject_Pen(PW5_StockLogicalObject_Pen v);
+	static constexpr DWORD getPenStyle(PW5_PenStyle v);
+	static int getHatchStyle(PW5_HatchStyle v);
 };
 
 inline
@@ -61,7 +62,7 @@ void PW5_Win32Util::registerWndClass(WNDCLASSEX& wc) {
 }
 
 inline
-UINT PW5_Win32Util::getPW5_TextAlignmentOption(PW5_TextAlignmentOption v) {
+UINT PW5_Win32Util::getTextAlignmentOption(PW5_TextAlignmentOption v) {
 	using SRC = PW5_TextAlignmentOption;
 	switch (v) {
 		case SRC::Left:		return TA_LEFT;
@@ -75,7 +76,7 @@ UINT PW5_Win32Util::getPW5_TextAlignmentOption(PW5_TextAlignmentOption v) {
 }
 
 inline
-UINT PW5_Win32Util::getPW5_DrawTextFormatFlag(PW5_DrawTextFormatFlag v) {
+UINT PW5_Win32Util::getDrawTextFormatFlag(PW5_DrawTextFormatFlag v) {
 	using SRC = PW5_DrawTextFormatFlag;
 	switch (v) {
 		case SRC::Top:				return DT_TOP;
@@ -97,7 +98,7 @@ UINT PW5_Win32Util::getPW5_DrawTextFormatFlag(PW5_DrawTextFormatFlag v) {
 }
 
 inline
-int PW5_Win32Util::getPW5_StockLogicalObject_Brush(PW5_StockLogicalObject_Brush v) {
+int PW5_Win32Util::getStockLogicalObject_Brush(PW5_StockLogicalObject_Brush v) {
 	using SRC = PW5_StockLogicalObject_Brush;
 	switch (v) {
 		case SRC::None:		return NULL_BRUSH;
@@ -111,7 +112,7 @@ int PW5_Win32Util::getPW5_StockLogicalObject_Brush(PW5_StockLogicalObject_Brush 
 }
 
 inline
-int PW5_Win32Util::getPW5_StockLogicalObject_Pen(PW5_StockLogicalObject_Pen v) {
+int PW5_Win32Util::getStockLogicalObject_Pen(PW5_StockLogicalObject_Pen v) {
 	using SRC = PW5_StockLogicalObject_Pen;
 	// The stock pens are 1 pixel wide default
 	switch (v) {
@@ -123,7 +124,7 @@ int PW5_Win32Util::getPW5_StockLogicalObject_Pen(PW5_StockLogicalObject_Pen v) {
 }
 
 constexpr
-DWORD PW5_Win32Util::getPW5_PenStyle(PW5_PenStyle v) {
+DWORD PW5_Win32Util::getPenStyle(PW5_PenStyle v) {
 	using SRC = PW5_PenStyle;
 	switch (v) {
 		case SRC::None:			return PS_NULL;
@@ -134,6 +135,21 @@ DWORD PW5_Win32Util::getPW5_PenStyle(PW5_PenStyle v) {
 		case SRC::DashDot:		return PS_DASHDOT;
 		case SRC::DashDotDot:	return PS_DASHDOTDOT;
 		default:				throw  SGE_ERROR("unsupported PW5_PenStyle");
+	}
+}
+
+inline
+int PW5_Win32Util::getHatchStyle(PW5_HatchStyle v) {
+	using SRC = PW5_HatchStyle;
+	switch (v) {
+		case SRC::None:
+		case SRC::Horizontal:	return HS_HORIZONTAL;
+		case SRC::Vertical:		return HS_VERTICAL;
+		case SRC::Fdiagonal:	return HS_FDIAGONAL;
+		case SRC::Bdiagonal:	return HS_BDIAGONAL;
+		case SRC::Cross:		return HS_CROSS;
+		case SRC::DiagCross:	return HS_DIAGCROSS;
+		default:				throw SGE_ERROR("unsupported PW5_HatchStyle");
 	}
 }
 

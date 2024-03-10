@@ -38,7 +38,7 @@ public:
 			, name(name_)
 			, mark(mark_) {}
 
-		int			   id;
+		int	id;
 		const char* name = "";
 		const char* mark = "";
 	};

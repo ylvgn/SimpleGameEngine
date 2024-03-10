@@ -62,6 +62,31 @@ SGE_ENUM_CLASS(PW5_StockLogicalObject_Pen, u8)
 //----
 SGE_ENUM_CLASS(PW5_PenStyle, u8)
 
+#define PW5_HatchStyle_ENUM_LIST(E) \
+	E(None,)		\
+	E(Horizontal,)	\
+	E(Vertical,)	\
+	E(Fdiagonal,)	\
+	E(Bdiagonal,)	\
+	E(Cross,)		\
+	E(DiagCross,)	\
+//----
+SGE_ENUM_CLASS(PW5_HatchStyle, u8)
+
+#define PW5_BrushStyle_ENUM_LIST(E) \
+	E(None,)			\
+	E(Solid,)			\
+	E(Hollow,)			\
+	E(Hatched,)			\
+	E(Pattern,)			\
+	E(DIBPattern,)		\
+	E(DIBPatternPt,)	\
+	E(Pattern8x8,)		\
+	E(DIBPattern8x8,)	\
+	E(MonoPattern,)		\
+//----
+SGE_ENUM_CLASS(PW5_BrushStyle, u8)
+
 } // namespace sge
 
 namespace sge {
@@ -77,7 +102,8 @@ namespace GDI {
 	static constexpr Color4f kYellow	{ 1,1,0,1 };
 	static constexpr Color4f kViolet	{ 1,0,1,1 };
 	static constexpr Color4f kCyan		{ 0,1,1,1 };
-
+	static constexpr Color4f kGray		{ 0.2f,0.2f,0.2f,1.f };
+	
 	inline void textOut(HDC hdc, int x, int y, StrView str) {
 		if (str.empty()) return;
 		auto s = UtfUtil::toStringW(str);
@@ -470,32 +496,43 @@ private:
 	int _id = 0;
 };
 
-class ScopedCreateSolidBrush : public ScopedHDC_NoHWND {
+class ScopedHDCBrush_Base : public ScopedHDC_NoHWND {
 	using Base = ScopedHDC_NoHWND;
+public:
+	~ScopedHDCBrush_Base() {
+		if (_brush) {
+			SGE_ASSERT(_hdc != nullptr);
+			if (!DeleteBrush(_brush)) {
+				SGE_LOG_ERROR("DeleteBrush: handle is not valid or is currently selected into a DC");
+			}
+			_brush = nullptr;
+		}
+	}
+
+	operator const ::HBRUSH& () const { return _brush; }
+
+protected:
+	::HBRUSH _brush = nullptr;
+};
+
+class ScopedCreateSolidBrush : public ScopedHDCBrush_Base {
+	using Base = ScopedHDCBrush_Base;
 public:
 	ScopedCreateSolidBrush(HDC hdc, const Color4f& c = GDI::kWhite) {
 		_hdc = hdc;
-		_brush = GDI::createSolidBrush(GDI::COLORREF_make(c));
+		_brush = ::CreateSolidBrush(GDI::COLORREF_make(c));
 		if (!_brush) {
 			SGE_LOG_ERROR("ScopedCreateSolidBrush CreateSolidBrush");
 		} else {
 			SelectBrush(hdc, _brush);
 		}
 	}
-	~ScopedCreateSolidBrush() {
-		if (_brush) {
-			SGE_ASSERT(_hdc != nullptr);
-			if (!DeleteBrush(_brush)) {
-				SGE_LOG_ERROR("~ScopedCreateSolidBrush DeleteBrush: handle is not valid or is currently selected into a DC");
-			}
-			_brush = nullptr;
-		}
-	}
+};
 
-	operator const ::HBRUSH&() const { return _brush; }
-
-private:
-	::HBRUSH _brush = nullptr;
+class ScopedCreateHatchBrush : public ScopedHDCBrush_Base {
+	using Base = ScopedHDCBrush_Base;
+public:
+	ScopedCreateHatchBrush(HDC hdc, PW5_HatchStyle v, const Color4f& c);
 };
 
 class ScopedExtCreatePen_Base : public ScopedHDC_NoHWND {
@@ -554,6 +591,45 @@ using ScopedExtCreatePen_Dash		= ScopedExtCreatePen_Dash_Dot<PS_DASH>;
 using ScopedExtCreatePen_Dot		= ScopedExtCreatePen_Dash_Dot<PS_DOT>;
 using ScopedExtCreatePen_DashDot	= ScopedExtCreatePen_Dash_Dot<PS_DASHDOT>;
 using ScopedExtCreatePen_DashDotDot = ScopedExtCreatePen_Dash_Dot<PS_DASHDOTDOT>;
+
+
+class ScopedCreatePen_Base : public ScopedHDC_NoHWND {
+	using Base = ScopedHDC_NoHWND;
+protected:
+	void _internal_ctor(HDC hdc, int iStyle, const Color4f& c, int width) {
+		_hdc = hdc;
+		_lastHPen = SelectPen(_hdc, ::CreatePen(iStyle, width, GDI::COLORREF_make(c)));
+	}
+	~ScopedCreatePen_Base() {
+		if (_lastHPen) {
+			SGE_ASSERT(_hdc != nullptr);
+			DeletePen(SelectPen(_hdc, _lastHPen));
+			_lastHPen = nullptr;
+		}
+	}
+private:
+	HPEN _lastHPen;
+};
+
+template<size_t PS_XXX>
+class ScopedCreatePen_Dash_Dot : public ScopedCreatePen_Base {
+public:
+	ScopedCreatePen_Dash_Dot(HDC hdc, const Color4f& c) {
+		_internal_ctor(hdc, PS_XXX, c, 0);
+	}
+};
+
+class ScopedCreatePen_Solid : public ScopedCreatePen_Base {
+public:
+	ScopedCreatePen_Solid(HDC hdc, const Color4f& c, DWORD width = 1) {
+		_internal_ctor(hdc, PS_SOLID, c, width);
+	}
+};
+
+using ScopedCreatePen_Dash			= ScopedExtCreatePen_Dash_Dot<PS_DASH>;
+using ScopedCreatePen_Dot			= ScopedExtCreatePen_Dash_Dot<PS_DOT>;
+using ScopedCreatePen_DashDot		= ScopedExtCreatePen_Dash_Dot<PS_DASHDOT>;
+using ScopedCreatePen_DashDotDot	= ScopedExtCreatePen_Dash_Dot<PS_DASHDOTDOT>;
 
 } // namespace sge
 

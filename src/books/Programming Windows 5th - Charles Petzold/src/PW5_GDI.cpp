@@ -7,7 +7,7 @@ namespace sge {
 namespace GDI {
 
 	void drawText(HDC hdc, int left, int top, int right, int bottom, StrView str, DTFlag flags) {
-		UINT fDT = g_flags2Bits(flags, PW5_Win32Util::getPW5_DrawTextFormatFlag);
+		UINT fDT = g_flags2Bits(flags, PW5_Win32Util::getDrawTextFormatFlag);
 		GDI::drawText(hdc, left, top, right, bottom, str, fDT);
 	}
 
@@ -68,21 +68,26 @@ void TextMetrics::_set(const ::TEXTMETRIC& tm) {
 #endif
 UINT ScopedHDC_NoHWND::setTextAlign(PW5_TextAlignmentOption flags) {
 	// https://github.com/MicrosoftDocs/win32/blob/docs/desktop-src/gdi/text-formatting-attributes.md
-	UINT align = g_flags2Bits(flags, PW5_Win32Util::getPW5_TextAlignmentOption);
+	UINT align = g_flags2Bits(flags, PW5_Win32Util::getTextAlignmentOption);
 	return ::SetTextAlign(_hdc, align); // if failed, return GDI_ERROR
 }
 
 void ScopedHDC::clearBg(PW5_StockLogicalObject_Brush flag /*= PW5_StockLogicalObject_Brush::White*/) {
 	::RECT rc;
 	::GetClientRect(_hwnd, &rc);
-	auto brush = GetStockBrush(PW5_Win32Util::getPW5_StockLogicalObject_Brush(flag));
+	auto brush = GetStockBrush(PW5_Win32Util::getStockLogicalObject_Brush(flag));
 	GDI::fillRect(_hdc, rc, brush);
 }
 
-template class ScopedExtCreatePen_Dash_Dot<PW5_Win32Util::getPW5_PenStyle(PW5_PenStyle::Dot)>;
-template class ScopedExtCreatePen_Dash_Dot<PW5_Win32Util::getPW5_PenStyle(PW5_PenStyle::Dash)>;
-template class ScopedExtCreatePen_Dash_Dot<PW5_Win32Util::getPW5_PenStyle(PW5_PenStyle::DashDot)>;
-template class ScopedExtCreatePen_Dash_Dot<PW5_Win32Util::getPW5_PenStyle(PW5_PenStyle::DashDotDot)>;
+template class ScopedExtCreatePen_Dash_Dot<PW5_Win32Util::getPenStyle(PW5_PenStyle::Dot)>;
+template class ScopedExtCreatePen_Dash_Dot<PW5_Win32Util::getPenStyle(PW5_PenStyle::Dash)>;
+template class ScopedExtCreatePen_Dash_Dot<PW5_Win32Util::getPenStyle(PW5_PenStyle::DashDot)>;
+template class ScopedExtCreatePen_Dash_Dot<PW5_Win32Util::getPenStyle(PW5_PenStyle::DashDotDot)>;
+
+ScopedCreateHatchBrush::ScopedCreateHatchBrush(HDC hdc, PW5_HatchStyle v, const Color4f& c) {
+	_hdc = hdc;
+	_brush = ::CreateHatchBrush(PW5_Win32Util::getHatchStyle(v), GDI::COLORREF_make(c));
+}
 
 }
 

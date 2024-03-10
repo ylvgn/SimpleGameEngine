@@ -20,12 +20,13 @@
 #include "Chap05/SineWave/PW5_SineWave.h"
 #include "Chap05/LineDemo/PW5_LineDemo.h"
 #include "Chap05/Bezier/PW5_Bezier.h"
+#include "Chap05/AltWind/PW5_AltWind.h"
 
 namespace sge {
 
 class ProgWin5App : public NativeUIApp {
 	using Base = NativeUIApp;
-	using ProgWin5MainWin = PW5_Bezier;
+	using ProgWin5MainWin = PW5_AltWind;
 protected:
 	virtual void onCreate(CreateDesc& desc) override {
 		{ // set working dir
@@ -43,7 +44,7 @@ protected:
 		{ // create window
 			NativeUIWindow::CreateDesc winDesc;
 			winDesc.isMainWindow = true;
-			winDesc.rect = { 10, 10, 1500, 900 };
+			winDesc.rect = { 10, 10, 1376, 768 };
 			_mainWin.create(winDesc);
 		}
 	}
