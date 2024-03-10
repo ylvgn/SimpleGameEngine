@@ -12,6 +12,11 @@ namespace sge {
 */
 
 struct Track_SampleRequest {
+	Track_SampleRequest()
+		: time(0)
+		, isLoop(false)
+	{}
+
 	float time;
 	bool  isLoop : 1;
 };

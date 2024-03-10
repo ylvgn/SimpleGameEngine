@@ -59,7 +59,7 @@ void Image::loadBmpFile(StrView filename) {
 
 void Image::loadBmpMem(ByteSpan data) {
 	ImageIO_bmp::Reader r;
-	r.load(*this, data);
+	r.load(*this, data, ColorType::RGBAb);
 }
 
 void Image::create(ColorType colorType, int width, int height) {

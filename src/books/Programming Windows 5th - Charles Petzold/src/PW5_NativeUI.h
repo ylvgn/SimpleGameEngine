@@ -1,6 +1,5 @@
 #pragma once
 
-#include "PW5_Common.h"
 #include "PW5_Win32Util.h"
 
 namespace sge {
