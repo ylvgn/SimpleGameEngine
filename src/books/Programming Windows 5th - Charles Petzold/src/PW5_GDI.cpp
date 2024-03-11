@@ -89,6 +89,14 @@ ScopedCreateHatchBrush::ScopedCreateHatchBrush(HDC hdc, PW5_HatchStyle v, const 
 	_brush = ::CreateHatchBrush(PW5_Win32Util::getHatchStyle(v), GDI::COLORREF_make(c));
 }
 
+ScopedCreateBrush_Hatched::ScopedCreateBrush_Hatched(HDC hdc, PW5_HatchStyle v, const Color4f& c) {
+	::LOGBRUSH logBrush = {};
+	logBrush.lbStyle = BS_HATCHED;
+	logBrush.lbColor = GDI::COLORREF_make(c);
+	logBrush.lbHatch = PW5_Win32Util::getHatchStyle(v);
+	_internal_ctor(hdc, logBrush);
+}
+
 }
 
 #endif

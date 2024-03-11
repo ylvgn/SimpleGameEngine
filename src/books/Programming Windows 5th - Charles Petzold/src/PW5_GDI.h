@@ -73,20 +73,6 @@ SGE_ENUM_CLASS(PW5_PenStyle, u8)
 //----
 SGE_ENUM_CLASS(PW5_HatchStyle, u8)
 
-#define PW5_BrushStyle_ENUM_LIST(E) \
-	E(None,)			\
-	E(Solid,)			\
-	E(Hollow,)			\
-	E(Hatched,)			\
-	E(Pattern,)			\
-	E(DIBPattern,)		\
-	E(DIBPatternPt,)	\
-	E(Pattern8x8,)		\
-	E(DIBPattern8x8,)	\
-	E(MonoPattern,)		\
-//----
-SGE_ENUM_CLASS(PW5_BrushStyle, u8)
-
 } // namespace sge
 
 namespace sge {
@@ -553,7 +539,7 @@ protected:
 			// any lines you draw will use this pen until you select another pen into the device context
 			// or release the device context handle
 
-		::LOGBRUSH logBrush = {}; // logical brush
+		::LOGBRUSH logBrush = {};
 		logBrush.lbColor = GDI::COLORREF_make(c);
 		logBrush.lbStyle = PS_SOLID;
 		_lastHPen = SelectPen(_hdc, ::ExtCreatePen(style, width, &logBrush, 0, nullptr));
@@ -608,7 +594,7 @@ protected:
 		}
 	}
 private:
-	HPEN _lastHPen;
+	::HPEN _lastHPen;
 };
 
 template<size_t PS_XXX>
@@ -630,6 +616,62 @@ using ScopedCreatePen_Dash			= ScopedExtCreatePen_Dash_Dot<PS_DASH>;
 using ScopedCreatePen_Dot			= ScopedExtCreatePen_Dash_Dot<PS_DOT>;
 using ScopedCreatePen_DashDot		= ScopedExtCreatePen_Dash_Dot<PS_DASHDOT>;
 using ScopedCreatePen_DashDotDot	= ScopedExtCreatePen_Dash_Dot<PS_DASHDOTDOT>;
+
+class ScopedCreateBrush_Base : public ScopedHDC_NoHWND {
+	using Base = ScopedHDC_NoHWND;
+protected:
+	void _internal_ctor(HDC hdc, ::LOGBRUSH& logBrush) {
+		_hdc = hdc;
+		_lastHBrush = SelectBrush(hdc, ::CreateBrushIndirect(&logBrush));
+	}
+	~ScopedCreateBrush_Base() {
+		if (_lastHBrush) {
+			SGE_ASSERT(_hdc != nullptr);
+			DeleteBrush(SelectBrush(_hdc, _lastHBrush));
+			_lastHBrush = nullptr;
+		}
+	}
+private:
+	::HBRUSH _lastHBrush;
+};
+
+class ScopedCreateBrush_Solid : public ScopedCreateBrush_Base {
+public:
+	ScopedCreateBrush_Solid(HDC hdc, const Color4f& c) {
+		::LOGBRUSH logBrush = {};
+		logBrush.lbStyle = BS_SOLID;
+		logBrush.lbColor = GDI::COLORREF_make(c);
+		logBrush.lbHatch = 0;
+		_internal_ctor(hdc, logBrush);
+	}
+};
+
+class ScopedCreateBrush_Hollow : public ScopedCreateBrush_Base {
+public:
+	ScopedCreateBrush_Hollow(HDC hdc) {
+		::LOGBRUSH logBrush = {};
+		logBrush.lbStyle = BS_HOLLOW;
+		logBrush.lbColor = 0;
+		logBrush.lbHatch = 0;
+		_internal_ctor(hdc, logBrush);
+	}
+};
+
+class ScopedCreateBrush_Hatched : public ScopedCreateBrush_Base {
+public:
+	ScopedCreateBrush_Hatched(HDC hdc, PW5_HatchStyle v, const Color4f& c);
+};
+
+class ScopedCreateBrush_Pattern : public ScopedCreateBrush_Base {
+public:
+	ScopedCreateBrush_Pattern(HDC hdc, ::HBITMAP& hBMP) {
+		::LOGBRUSH logBrush = {};
+		logBrush.lbStyle = BS_PATTERN;
+		logBrush.lbColor = 0;
+		logBrush.lbHatch = reinterpret_cast<ULONG_PTR>(hBMP);
+		_internal_ctor(hdc, logBrush);
+	}
+};
 
 } // namespace sge
 
