@@ -36,7 +36,6 @@ void PW5_AltWind::_example1() {
 	Vector<POINT, kPointCount> apt;
 	apt.resize(kPointCount);
 
-	// scaled to an arbitrary 100−unit−by−100−unit area
 	float halfW = _clientRect.w / 2.f;
 	for (int i = 0; i < kPointCount; i++) {
 		apt[i].x = static_cast<LONG>(halfW * aptFigure[i].x / 100.f);
@@ -46,7 +45,6 @@ void PW5_AltWind::_example1() {
 	::SetPolyFillMode(hdc, ALTERNATE);
 	::Polygon(hdc, apt.data(), kPointCount);
 
-	// ------------------------
 	for (int i = 0; i < kPointCount; i++) {
 		apt[i].x += static_cast<LONG>(halfW);
 	}

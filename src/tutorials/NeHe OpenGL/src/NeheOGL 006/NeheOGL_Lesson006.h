@@ -2,8 +2,6 @@
 
 #include "../NeheOGL_NativeUI.h"
 
-#define STBI_FAILURE_USERMSG
-
 namespace sge {
 /*
 	* Texture Mapping
@@ -21,7 +19,7 @@ public:
 		glDeleteTextures(1, &_texture2d);
 		glDeleteTextures(kTexture2dCount, _texture2ds);
 	}
-
+protected:
 	virtual void onCreate(CreateDesc& desc) override;
 	virtual void onDraw() override;
 	virtual void onUIMouseEvent(UIMouseEvent& ev) override;

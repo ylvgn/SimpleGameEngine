@@ -11,7 +11,7 @@ namespace sge {
 class NeheOGL_Lesson004 : public NeheOGL_NativeUIWindow {
 	using Base = NeheOGL_NativeUIWindow;
 	using This = NeheOGL_Lesson004;
-public:
+protected:
 	virtual void onDraw() override;
 private:
 	void _example1(float upTime);

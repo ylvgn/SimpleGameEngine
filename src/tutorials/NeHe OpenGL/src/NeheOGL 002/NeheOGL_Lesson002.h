@@ -11,7 +11,7 @@ namespace sge {
 class NeheOGL_Lesson002 : public NeheOGL_NativeUIWindow {
 	using Base = NeheOGL_NativeUIWindow;
 	using This = NeheOGL_Lesson002;
-public:
+protected:
 	virtual void onDraw() override;
 private:
 	void _example1();

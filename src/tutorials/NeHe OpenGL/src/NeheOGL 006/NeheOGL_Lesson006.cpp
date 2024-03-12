@@ -318,16 +318,16 @@ void NeheOGL_Lesson006::_example3(float uptime) {
 	glDepthFunc(GL_LEQUAL);
 
 	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluPerspective(45.f, _clientRect.w / _clientRect.h, 0.1f, 1000.0f);
+		glLoadIdentity();
+		gluPerspective(45.f, _clientRect.w / _clientRect.h, 0.1f, 1000.0f);
 
 	// setup camera
 	glTranslatef(_camerMovePos.x, _camerMovePos.y, _camerMovePos.z);
-	glRotatef(_camerOrbitAngle.x, 1, 0, 0);
-	glRotatef(_camerOrbitAngle.y, 0, 1, 0);
+	glRotatef(_camerOrbitAngle.x, 1,0,0);
+	glRotatef(_camerOrbitAngle.y, 0,1,0);
 
 	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
+		glLoadIdentity();
 
 	glTranslatef(0, 0, -5);
 	glRotatef(angle, 1,1,1);
