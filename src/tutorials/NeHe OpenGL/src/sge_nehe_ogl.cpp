@@ -4,12 +4,13 @@
 #include "NeheOGL 004/NeheOGL_Lesson004.h"
 #include "NeheOGL 005/NeheOGL_Lesson005.h"
 #include "NeheOGL 006/NeheOGL_Lesson006.h"
+#include "NeheOGL 007/NeheOGL_Lesson007.h"
 
 namespace sge {
 
 class NeheOGLApp : public NativeUIApp {
 	using Base = NativeUIApp;
-	using NeheOGLMainWin = NeheOGL_Lesson006;
+	using NeheOGLMainWin = NeheOGL_Lesson007;
 protected:
 	virtual void onCreate(CreateDesc& desc) override {
 		{ // set working dir
@@ -27,7 +28,7 @@ protected:
 		{ // create window
 			NativeUIWindow::CreateDesc winDesc;
 			winDesc.isMainWindow = true;
-			winDesc.rect = { 10, 10, 1500, 900 };
+			winDesc.rect = { 10, 10, 1376, 768 };
 			_mainWin.create(winDesc);
 		}
 	}
