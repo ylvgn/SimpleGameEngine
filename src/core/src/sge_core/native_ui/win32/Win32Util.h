@@ -4,7 +4,7 @@
 
 namespace sge {
 
-enum class UIKeyboardEventKeyCode : u64;
+enum class UIKeyboardEventKeyCode : u32;
 
 struct Win32Util {
 	using KeyCode = UIKeyboardEventKeyCode;

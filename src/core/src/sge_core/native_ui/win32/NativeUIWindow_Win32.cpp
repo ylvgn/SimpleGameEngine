@@ -114,6 +114,8 @@ void NativeUIWindow_Win32::onCreate(CreateDesc& desc) {
 		}
 	}
 
+	_pressedKeyCodes.resize(kKeyCodeCount);
+
 	::ShowWindow(_hwnd, SW_SHOW);
 }
 
@@ -313,177 +315,203 @@ bool NativeUIWindow_Win32::_handleNativeUIKeyboardEvent(HWND hwnd,
 
 	UIKeyboardEvent ev;
 
-	ev.modifier = _getWin32Modifier();
-
 	using KeyCode	= UIKeyboardEvent::KeyCode;
 	using Type		= UIKeyboardEvent::Type;
 
 #if 0
 	switch (msg) {
-		case WM_SYSKEYDOWN: SGE_LOG("WM_SYSKEYDOWN: 0x{:x}",	wParam); break;
-		case WM_SYSCHAR:	SGE_LOG("WM_SYSCHAR: {:c}",			wParam); break;
-		case WM_SYSKEYUP:	SGE_LOG("WM_SYSKEYUP: 0x{:x}",		wParam); break;
-		case WM_KEYDOWN:	SGE_LOG("WM_KEYDOWN: 0x{:x}",		wParam); break;
-		case WM_KEYUP:		SGE_LOG("WM_KEYUP: 0x{:x}",			wParam); break;
-		case WM_CHAR:		SGE_LOG("WM_CHAR: {:c}",			wParam); break;
+		case WM_SYSKEYDOWN: SGE_LOG("WM_SYSKEYDOWN: wParam=0x{:x}, lParam=0x{:x}, GetKeyState(0x{:x})={}", wParam, lParam, wParam, ::GetKeyState(static_cast<int>(wParam))); break;
+		case WM_SYSCHAR:	SGE_LOG("WM_SYSCHAR: wParam={:c}, lParam=0x{:x}, GetKeyState(0x{:x})={}", wParam, lParam, wParam, ::GetKeyState(static_cast<int>(wParam))); break;
+		case WM_SYSKEYUP:	SGE_LOG("WM_SYSKEYUP: wParam=0x{:x}, lParam=0x{:x}, GetKeyState(0x{:x})={}", wParam, lParam, wParam, ::GetKeyState(static_cast<int>(wParam))); break;
+		case WM_KEYDOWN:	SGE_LOG("WM_KEYDOWN: wParam=0x{:x}, lParam=0x{:x}, GetKeyState(0x{:x})={}", wParam, lParam, wParam, ::GetKeyState(static_cast<int>(wParam))); break;
+		case WM_KEYUP:		SGE_LOG("WM_KEYUP: wParam=0x{:x}, lParam=0x{:x}, GetKeyState(0x{:x})={}", wParam, lParam, wParam, ::GetKeyState(static_cast<int>(wParam))); break;
+		case WM_CHAR:		SGE_LOG("WM_CHAR: wParam={:c}, lParam=0x{:x}, GetKeyState(0x{:x})={}", wParam, lParam, wParam, ::GetKeyState(static_cast<int>(wParam))); break;
 	};
 #endif
 
 	switch (msg) {
 		case WM_SYSKEYDOWN:
-		case WM_KEYDOWN:{
-			ev.type = Type::Down;
-		} break;
+		case WM_KEYDOWN: { ev.type = Type::Down; } break;
+
 		case WM_SYSKEYUP:
-		case WM_KEYUP:{
-			ev.type = Type::Up;
-		} break;
-		case WM_SYSCHAR:
-		case WM_CHAR:{
-			ev.type = Type::Char;
-		} break;
+		case WM_KEYUP: { ev.type = Type::Up; } break;
+
+		case WM_CHAR: { ev.charCode = static_cast<u32>(wParam); } break;
 	};
 
+	// Ctrl, Shift
 	switch (msg) {
-		case WM_KEYDOWN:
-		case WM_KEYUP:
-		case WM_SYSKEYDOWN:
-		case WM_SYSKEYUP: {
-			
-//			SGE_LOG("GetKeyState({})= 0x{:x}", wParam, ::GetKeyState(static_cast<int>(wParam)));
-
-			#define CASE_1(K, SGE_T) case VK_##K: { \
-					auto lIsDown = ::GetKeyState(VK_L##K) & 0x8000; \
-					auto rIsDown = ::GetKeyState(VK_R##K) & 0x8000; \
-					if (ev.type == Type::Down) { \
-						if (lIsDown) { auto k = KeyCode::L##SGE_T; _keyCodesMap[k] = Type::Down; ev.keyCode = k; } \
-						if (rIsDown) { _keyCodesMap[KeyCode::R##SGE_T] = Type::Down; } \
-						if (ev.keyCode == KeyCode::None) ev.keyCode = KeyCode::R##SGE_T; \
-					} else { \
-						if (isKeyDown(KeyCode::L##SGE_T) && !lIsDown) { auto k = KeyCode::L##SGE_T; _keyCodesMap[k] = Type::Up; ev.keyCode = k; } \
-						if (isKeyDown(KeyCode::R##SGE_T) && !rIsDown) { _keyCodesMap[KeyCode::R##SGE_T] = Type::Up; } \
-						if (ev.keyCode == KeyCode::None) ev.keyCode = KeyCode::R##SGE_T; \
-					} \
-					_keyCodesMap[ev.keyCode] = ev.type; \
-				} break; \
-			// -----
-			#define CASE_2(K, SGE_T) case K: { /*SGE_LOG("{} = {}", #K, K);*/ ev.keyCode = KeyCode::SGE_T; } break;
+		case WM_KEYDOWN: {
 			switch (wParam) {
-				CASE_1(CONTROL, Ctrl)
-				CASE_1(SHIFT,	Shift)
-				CASE_1(MENU,	Alt)
+				case VK_CONTROL: {
+					if (isKeyDown(KeyCode::LCtrl)) {
+						_pressedKeyCodes[VK_LCONTROL] = Type::Down;
+					}
+					if (isKeyDown(KeyCode::RCtrl)) {
+						_pressedKeyCodes[VK_RCONTROL] = Type::Down;
+					}
+				} break;
 
-				CASE_2(VK_LWIN,	LCmd)
-				CASE_2(VK_RWIN,	RCmd)
-
-				CASE_2(VK_RETURN,		Enter)
-				CASE_2(VK_ESCAPE,		Escape)
-				CASE_2(VK_TAB,			Tab)
-				CASE_2(VK_CAPITAL,		CapsLock)
-				CASE_2(VK_SPACE,		Space)
-				CASE_2(VK_BACK,			Backspace)
-
-				CASE_2(VK_OEM_1,		Semicolon)		// ;:
-				CASE_2(VK_OEM_2,		Slash)			// /?
-				CASE_2(VK_OEM_3,		BackQuote)		// `~
-				CASE_2(VK_OEM_4,		LeftBracket)	// [{
-				CASE_2(VK_OEM_5,		Backslash)		// \|
-				CASE_2(VK_OEM_6,		RightBracket)	// ]}
-				CASE_2(VK_OEM_7,		Quote)			// '~
-				CASE_2(VK_OEM_PLUS,		Equals)			// =+
-				CASE_2(VK_OEM_MINUS,	Hyphen)			// -_
-				CASE_2(VK_OEM_COMMA,	Comma)			// ,<
-				CASE_2(VK_OEM_PERIOD,	Period)			// .>
-
-				CASE_2(VK_F1,	F1)
-				CASE_2(VK_F2,	F2)
-				CASE_2(VK_F3,	F3)
-				CASE_2(VK_F4,	F4)
-				CASE_2(VK_F5,	F5)
-				CASE_2(VK_F6,	F6)
-				CASE_2(VK_F7,	F7)
-				CASE_2(VK_F8,	F8)
-				CASE_2(VK_F9,	F9)
-				CASE_2(VK_F10,	F10)
-				CASE_2(VK_F11,	F11)
-				CASE_2(VK_F12,	F12)
-
-				CASE_2('0', Alpha0)	// 1!
-				CASE_2('1', Alpha1)	// 2@
-				CASE_2('2', Alpha2)	// 3#
-				CASE_2('3', Alpha3)	// 4$
-				CASE_2('4', Alpha4)	// 5%
-				CASE_2('5', Alpha5)	// 6^
-				CASE_2('6', Alpha6)	// 7&
-				CASE_2('7', Alpha7)	// 8*
-				CASE_2('8', Alpha8)	// 9(
-				CASE_2('9', Alpha9)	// 10)
-
-				CASE_2('A', A)
-				CASE_2('B', B)
-				CASE_2('C', C)
-				CASE_2('D', D)
-				CASE_2('E', E)
-				CASE_2('F', F)
-				CASE_2('G', G)
-				CASE_2('H', H)
-				CASE_2('I', I)
-				CASE_2('J', J)
-				CASE_2('K', K)
-				CASE_2('L', L)
-				CASE_2('M', M)
-				CASE_2('N', N)
-				CASE_2('O', O)
-				CASE_2('P', P)
-				CASE_2('Q', Q)
-				CASE_2('R', R)
-				CASE_2('S', S)
-				CASE_2('T', T)
-				CASE_2('U', U)
-				CASE_2('V', V)
-				CASE_2('W', W)
-				CASE_2('X', X)
-				CASE_2('Y', Y)
-				CASE_2('Z', Z)
-
-				CASE_2(VK_UP,		UpArrow)
-				CASE_2(VK_DOWN,		DownArrow)
-				CASE_2(VK_LEFT,		LeftArrow)
-				CASE_2(VK_RIGHT,	RightArrow)
-
-				CASE_2(VK_INSERT,	Insert)
-				CASE_2(VK_DELETE,	Delete)
-				CASE_2(VK_HOME,		Home)
-				CASE_2(VK_END,		End)
-				CASE_2(VK_PRIOR,	PageUp)
-				CASE_2(VK_NEXT,		PageDown)
-
-				CASE_2(VK_NUMPAD0,	Keypad0)
-				CASE_2(VK_NUMPAD1,	Keypad1)
-				CASE_2(VK_NUMPAD2,	Keypad2)
-				CASE_2(VK_NUMPAD3,	Keypad3)
-				CASE_2(VK_NUMPAD4,	Keypad4)
-				CASE_2(VK_NUMPAD5,	Keypad5)
-				CASE_2(VK_NUMPAD6,	Keypad6)
-				CASE_2(VK_NUMPAD7,	Keypad7)
-				CASE_2(VK_NUMPAD8,	Keypad8)
-				CASE_2(VK_NUMPAD9,	Keypad9)
-
-				CASE_2(VK_SNAPSHOT,	PrintScreen)
-				CASE_2(VK_SCROLL,	ScrollLock)
-				CASE_2(VK_PAUSE,	Pause)
-				CASE_2(VK_NUMLOCK,	NumLock)
-				CASE_2(VK_DIVIDE,	KeypadDivide)	// /
-				CASE_2(VK_MULTIPLY,	KeypadMultiply)	// *
-				CASE_2(VK_SUBTRACT,	KeypadMinus)	// -
-				CASE_2(VK_ADD,		KeypadPlus)		// +
-				CASE_2(VK_DECIMAL,	KeypadPeriod)	// .
+				case VK_SHIFT: {
+					if (isKeyDown(KeyCode::LShift)) {
+						_pressedKeyCodes[VK_LSHIFT] = Type::Down;
+					}
+					if (isKeyDown(KeyCode::RShift)) {
+						_pressedKeyCodes[VK_RSHIFT] = Type::Down;
+					}
+				} break;
 			}
-			#undef CASE_1
-			#undef CASE_2
-			break;
+		} break;
+		case WM_KEYUP: {
+			switch (wParam) {
+				case VK_CONTROL: {
+					_pressedKeyCodes[VK_LCONTROL] = isKeyDown(KeyCode::LCtrl) ? Type::Down : ev.type;
+					_pressedKeyCodes[VK_RCONTROL] = isKeyDown(KeyCode::RCtrl) ? Type::Down : ev.type;
+				} break;
+				case VK_SHIFT: {
+					_pressedKeyCodes[VK_LSHIFT] = isKeyDown(KeyCode::LShift) ? Type::Down : ev.type;
+					_pressedKeyCodes[VK_RSHIFT] = isKeyDown(KeyCode::RShift) ? Type::Down : ev.type;
+				} break;
+			}
+		} break;
+	}
+
+	// Alt
+	switch (msg) {
+		case WM_SYSKEYDOWN: {
+			switch (wParam) {
+				case VK_MENU: {
+					if (isKeyDown(KeyCode::LAlt)) {
+						_pressedKeyCodes[VK_LMENU] = Type::Down;
+					}
+					if (isKeyDown(KeyCode::RAlt)) {
+						_pressedKeyCodes[VK_RMENU] = Type::Down;
+					}
+				} break;
+			}
+		} break;
+		case WM_SYSKEYUP: {
+			switch (wParam) {
+				case VK_MENU: {
+					_pressedKeyCodes[VK_LMENU] = isKeyDown(KeyCode::LAlt) ? Type::Down : ev.type;
+					_pressedKeyCodes[VK_RMENU] = isKeyDown(KeyCode::RAlt) ? Type::Down : ev.type;
+				} break;
+			}
+		} break;
+	}
+
+	// Others
+	switch (msg) {
+		case WM_SYSKEYDOWN:
+		case WM_SYSKEYUP:
+		case WM_KEYDOWN:
+		case WM_KEYUP: {
+			_pressedKeyCodes[wParam] = ev.type;
+
+			#define CASE_E(K, SGE_T) case K: { /*SGE_LOG("{} = {}", #K, K);*/ ev.keyCode = KeyCode::SGE_T; } break;
+			switch (wParam) {
+				CASE_E(VK_CONTROL,		Ctrl)
+				CASE_E(VK_SHIFT,		Shift)
+				CASE_E(VK_MENU,			Alt)
+				CASE_E(VK_LWIN,			LCmd)
+				CASE_E(VK_RWIN,			RCmd)
+				CASE_E(VK_RETURN,		Enter)
+				CASE_E(VK_ESCAPE,		Escape)
+				CASE_E(VK_TAB,			Tab)
+				CASE_E(VK_CAPITAL,		CapsLock)
+				CASE_E(VK_SPACE,		Space)
+				CASE_E(VK_BACK,			Backspace)
+				CASE_E(VK_OEM_1,		Semicolon)		// ;:
+				CASE_E(VK_OEM_2,		Slash)			// /?
+				CASE_E(VK_OEM_3,		BackQuote)		// `~
+				CASE_E(VK_OEM_4,		LeftBracket)	// [{
+				CASE_E(VK_OEM_5,		Backslash)		// \|
+				CASE_E(VK_OEM_6,		RightBracket)	// ]}
+				CASE_E(VK_OEM_7,		Quote)			// '~
+				CASE_E(VK_OEM_PLUS,		Equals)			// =+
+				CASE_E(VK_OEM_MINUS,	Hyphen)			// -_
+				CASE_E(VK_OEM_COMMA,	Comma)			// ,<
+				CASE_E(VK_OEM_PERIOD,	Period)			// .>
+				CASE_E(VK_F1,			F1)
+				CASE_E(VK_F2,			F2)
+				CASE_E(VK_F3,			F3)
+				CASE_E(VK_F4,			F4)
+				CASE_E(VK_F5,			F5)
+				CASE_E(VK_F6,			F6)
+				CASE_E(VK_F7,			F7)
+				CASE_E(VK_F8,			F8)
+				CASE_E(VK_F9,			F9)
+				CASE_E(VK_F10,			F10)
+				CASE_E(VK_F11,			F11)
+				CASE_E(VK_F12,			F12)
+				CASE_E('0',				Alpha0)			// 1!
+				CASE_E('1',				Alpha1)			// 2@
+				CASE_E('2',				Alpha2)			// 3#
+				CASE_E('3',				Alpha3)			// 4$
+				CASE_E('4',				Alpha4)			// 5%
+				CASE_E('5',				Alpha5)			// 6^
+				CASE_E('6',				Alpha6)			// 7&
+				CASE_E('7',				Alpha7)			// 8*
+				CASE_E('8',				Alpha8)			// 9(
+				CASE_E('9',				Alpha9)			// 10)
+				CASE_E('A',				A)
+				CASE_E('B',				B)
+				CASE_E('C',				C)
+				CASE_E('D',				D)
+				CASE_E('E',				E)
+				CASE_E('F',				F)
+				CASE_E('G',				G)
+				CASE_E('H',				H)
+				CASE_E('I',				I)
+				CASE_E('J',				J)
+				CASE_E('K',				K)
+				CASE_E('L',				L)
+				CASE_E('M',				M)
+				CASE_E('N',				N)
+				CASE_E('O',				O)
+				CASE_E('P',				P)
+				CASE_E('Q',				Q)
+				CASE_E('R',				R)
+				CASE_E('S',				S)
+				CASE_E('T',				T)
+				CASE_E('U',				U)
+				CASE_E('V',				V)
+				CASE_E('W',				W)
+				CASE_E('X',				X)
+				CASE_E('Y',				Y)
+				CASE_E('Z',				Z)
+				CASE_E(VK_UP,			UpArrow)
+				CASE_E(VK_DOWN,			DownArrow)
+				CASE_E(VK_LEFT,			LeftArrow)
+				CASE_E(VK_RIGHT,		RightArrow)
+				CASE_E(VK_INSERT,		Insert)
+				CASE_E(VK_DELETE,		Delete)
+				CASE_E(VK_HOME,			Home)
+				CASE_E(VK_END,			End)
+				CASE_E(VK_PRIOR,		PageUp)
+				CASE_E(VK_NEXT,			PageDown)
+				CASE_E(VK_NUMPAD0,		Keypad0)
+				CASE_E(VK_NUMPAD1,		Keypad1)
+				CASE_E(VK_NUMPAD2,		Keypad2)
+				CASE_E(VK_NUMPAD3,		Keypad3)
+				CASE_E(VK_NUMPAD4,		Keypad4)
+				CASE_E(VK_NUMPAD5,		Keypad5)
+				CASE_E(VK_NUMPAD6,		Keypad6)
+				CASE_E(VK_NUMPAD7,		Keypad7)
+				CASE_E(VK_NUMPAD8,		Keypad8)
+				CASE_E(VK_NUMPAD9,		Keypad9)
+				CASE_E(VK_SNAPSHOT,		PrintScreen)
+				CASE_E(VK_SCROLL,		ScrollLock)
+				CASE_E(VK_PAUSE,		Pause)
+				CASE_E(VK_NUMLOCK,		NumLock)
+				CASE_E(VK_DIVIDE,		KeypadDivide)	// /
+				CASE_E(VK_MULTIPLY,		KeypadMultiply)	// *
+				CASE_E(VK_SUBTRACT,		KeypadMinus)	// -
+				CASE_E(VK_ADD,			KeypadPlus)		// +
+				CASE_E(VK_DECIMAL,		KeypadPeriod)	// .
+			} break;
+			#undef CASE_E
 		}
-		case WM_CHAR: { ev.charCode = static_cast<u32>(wParam); } break;
 		default:
 			return false;
 	}
@@ -493,29 +521,10 @@ bool NativeUIWindow_Win32::_handleNativeUIKeyboardEvent(HWND hwnd,
 		ev.charCodeStr = static_cast<char>(ev.charCode);
 	}
 
-	// reset all keycode
-	for (auto& kv : _keyCodesMap) {
-		auto k = kv.first;
-
-		if (k == KeyCode::LCtrl
-			|| k == KeyCode::RCtrl
-			//|| k == KeyCode::LShift
-			//|| k == KeyCode::RShift
-			|| k == KeyCode::LAlt
-			|| k == KeyCode::RAlt
-		) {
-			continue;
-		}
-
-		// https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getkeystate
-		auto state = ::GetKeyState(Win32Util::toVKKey(k));
-		if (state & 0x8000) {
-			_keyCodesMap[k] = Type::Down;
-		} else if (state == 1) {
-			_keyCodesMap[k] = Type::Up;
-		} else {
-			_keyCodesMap[k] = Type::None;
-		}
+	ev.pressedKeyCodes.resize(static_cast<size_t>(KeyCode::_End));
+	for (auto k = KeyCode::None + 1; k != KeyCode::_End; k += 1) {
+		auto vk = Win32Util::toVKKey(k);
+		ev.pressedKeyCodes[enumInt(k)] = _pressedKeyCodes[vk];
 	}
 
 	onUINativeKeyboardEvent(ev);
@@ -592,6 +601,10 @@ UIEventModifier NativeUIWindow_Win32::_getWin32Modifier() {
 		o |= UIEventModifier::Cmd;
 	}
 	return o;
+}
+
+bool NativeUIWindow_Win32::isKeyDown(KeyCode keyCode) {
+	return ::GetKeyState(Win32Util::toVKKey(keyCode)) & 0x8000;
 }
 
 }

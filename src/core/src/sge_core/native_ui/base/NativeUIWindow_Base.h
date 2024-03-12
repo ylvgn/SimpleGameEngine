@@ -13,6 +13,8 @@ public:
 	using KeyCodeState	= UIKeyCodeEventType;
 	using ScrollInfo	= NativeUIScrollInfo_Base;
 
+	static const int kKeyCodeCount = 256;
+
 	struct CreateDesc {
 		CreateDesc()
 			: titleBar(true)
@@ -76,9 +78,6 @@ public:
 	virtual void onUINativeScrollBarEvent(UIScrollBarEvent& ev);
 	virtual void onUIScrollBarEvent(UIScrollBarEvent& ev) {}
 
-	inline bool isKeyUp(const KeyCode& k)	const { return BitUtil::hasAny(_keyCodeState(k), KeyCodeState::Up); }
-	inline bool isKeyDown(const KeyCode& k)	const { return BitUtil::hasAny(_keyCodeState(k), KeyCodeState::Down); }
-
 	ScrollInfo* createScrollBar() { return onCreateScrollBar(); }
 
 protected:
@@ -92,25 +91,14 @@ protected:
 
 	virtual ScrollInfo* onCreateScrollBar() = 0;
 
-	KeyCodeState _keyCodeState(const KeyCode& k) const;
-
 	Rect2f	_clientRect {0,0,0,0};
 
 	UIMouseEventButton	_pressedMouseButtons = UIMouseEventButton::None;
 	Vec2f				_mousePos{0,0};
-
-	Map<KeyCode, KeyCodeState> 	_keyCodesMap;
-	KeyCode						_keyCode = KeyCode::None;
+	
+	Vector<UIKeyboardEvent::Type, kKeyCodeCount> _pressedKeyCodes;
 
 	Vec2i _scrollBarPos{0,0};
 };
-
-inline
-NativeUIWindow_Base::KeyCodeState NativeUIWindow_Base::_keyCodeState(const KeyCode& k) const {
-	using KeyCodeState = NativeUIWindow_Base::KeyCodeState;
-	auto it = _keyCodesMap.find(k);
-	if (it == _keyCodesMap.end()) return KeyCodeState::None;
-	return it->second;
-}
 
 }

@@ -23,30 +23,8 @@ void NativeUIWindow_Base::onUINativeMouseEvent(UIMouseEvent& ev) {
 void NativeUIWindow_Base::onUINativeKeyboardEvent(UIKeyboardEvent& ev) {
 	using KeyCode		= UIKeyboardEvent::KeyCode;
 	using Type			= UIKeyboardEvent::Type;
-	using Modifier		= UIKeyboardEvent::Modifier;
-
-	if (ev.keyCode != KeyCode::None) {
-		switch (ev.type) {
-			case Type::Down:	{ _keyCodesMap[ev.keyCode] = ev.type; } break;
-			case Type::Up:		{ _keyCodesMap[ev.keyCode] = ev.type; } break;
-		}
-	}
-
-	if (ev.type == Type::Char && _keyCode != KeyCode::None) {
-		_keyCodesMap[_keyCode] = ev.type;
-	}
-
-	ev.pressedKeyCodes = _keyCodesMap;
-	_keyCode = ev.keyCode;
 
 	onUIKeyboardEvent(ev);
-
-	// reset
-	for (auto& kv : _keyCodesMap) {
-		if (kv.second == Type::Up || ev.type == Type::Char) {
-			_keyCodesMap[kv.first] = Type::None;
-		}
-	}
 }
 
 void NativeUIWindow_Base::onUINativeScrollBarEvent(UIScrollBarEvent& ev) {

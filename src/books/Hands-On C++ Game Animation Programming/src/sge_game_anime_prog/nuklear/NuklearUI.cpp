@@ -48,7 +48,7 @@ void onUIKeyboardEvent(UIKeyboardEvent& ev) {
 	using Modifier	= UIEventModifier;
 	using KeyCode	= UIKeyboardEventKeyCode;
 
-	bool ctrl = BitUtil::hasAny(ev.modifier, Modifier::Ctrl);
+	bool ctrl = ev.isDown(KeyCode::Ctrl);
 	int  down = ev.isDown() ? 1 : 0;
 	switch (ev.keyCode) {
 		case KeyCode::LeftArrow: {
@@ -84,7 +84,7 @@ void onUIKeyboardEvent(UIKeyboardEvent& ev) {
 		} break;
 	}
 
-	if (ev.isChar()) {
+	if (ev.charCode > 0) {
 		nk_input_unicode(g_ctx, ev.charCode);
 	}
 

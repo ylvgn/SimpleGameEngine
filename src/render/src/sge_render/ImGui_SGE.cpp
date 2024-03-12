@@ -258,7 +258,7 @@ void ImGui_SGE::onUIKeyboardEvent(UIKeyboardEvent& ev) {
 
 	ImGuiIO& io		= ImGui::GetIO();
 
-	if (ev.isChar()) {
+	if (ev.charCode > 0) {
 		io.AddInputCharacter(ev.charCode);
 	}
 

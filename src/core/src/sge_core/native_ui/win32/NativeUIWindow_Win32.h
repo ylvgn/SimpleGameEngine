@@ -21,6 +21,8 @@ public:
 
 	const HWND&	hwnd() const { return _hwnd; }
 
+	bool isKeyDown(KeyCode keyCode);
+
 protected:
 	virtual Base::ScrollInfo* onCreateScrollBar() override;
 

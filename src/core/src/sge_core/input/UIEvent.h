@@ -110,15 +110,13 @@ struct UIMouseEvent {
 	_E(Keypad5,) _E(Keypad6,) _E(Keypad7,) _E(Keypad8,) _E(Keypad9,) \
 	_E(_End,) \
 //----
-SGE_ENUM_CLASS(UIKeyboardEventKeyCode, u64)
+SGE_ENUM_CLASS(UIKeyboardEventKeyCode, u32)
 SGE_ENUM_ALL_OPERATOR(UIKeyboardEventKeyCode)
 
 #define UIKeyCodeEventType_ENUM_LIST(E) \
 	E(None,		= 0) \
 	E(Up,		= 1 << 0) \
 	E(Down,		= 1 << 1) \
-	E(Char,		= 1 << 2) \
-	E(Toggled,	= 1 << 3) \
 // ----
 SGE_ENUM_CLASS(UIKeyCodeEventType, u8)
 SGE_ENUM_ALL_OPERATOR(UIKeyCodeEventType)
@@ -126,66 +124,21 @@ SGE_ENUM_ALL_OPERATOR(UIKeyCodeEventType)
 struct UIKeyboardEvent {
 	using KeyCode		= UIKeyboardEventKeyCode;
 	using Type			= UIKeyCodeEventType;
-	using Modifier		= UIEventModifier;
 
-	bool isUp()			const { return BitUtil::hasAny(type, Type::Up); }
-	bool isDown()		const { return BitUtil::hasAny(type, Type::Down); }
-	bool isChar()		const { return BitUtil::hasAny(type, Type::Char); }
-	bool isToogled()	const { return BitUtil::hasAny(type, Type::Toggled); } // todo ???
+	bool isUp()			const { return type == Type::Up; }
+	bool isDown()		const { return type == Type::Down; }
 
-	bool isUp(const KeyCode& k)		const { return BitUtil::hasAny(_keyCodeState(k), Type::Up); }
-	bool isDown(const KeyCode& k)	const { return BitUtil::hasAny(_keyCodeState(k), Type::Down); }
+	bool isUp(KeyCode k)	const { return pressedKeyCodes[enumInt(k)] == Type::Up; }
+	bool isDown(KeyCode k)	const { return pressedKeyCodes[enumInt(k)] == Type::Down; }
 
-	StrView data()	const { return charCodeStr; }
+	StrView data()		const { return charCodeStr; }
 
-	bool isModifierKey() const { return modifier != Modifier::None; }
-	bool isModifierKeyDown(const Modifier& k) const { return BitUtil::hasAny(modifier, k); }
-
-	static Modifier convert(const KeyCode& i) {
-		switch (i)
-		{
-			case KeyCode::LCtrl:
-			case KeyCode::RCtrl:
-			case KeyCode::Ctrl:
-				return Modifier::Ctrl;
-
-			case KeyCode::LAlt:
-			case KeyCode::RAlt:
-			case KeyCode::Alt:
-				return Modifier::Alt;
-
-			case KeyCode::LShift:
-			case KeyCode::RShift:
-			case KeyCode::Shift:
-				return Modifier::Shift;
-
-			case KeyCode::LCmd:
-			case KeyCode::RCmd:
-			case KeyCode::Cmd:
-				return Modifier::Cmd;
-		}
-		return Modifier::None;
-	}
-
-	Type				type	 = Type::None;
-	KeyCode				keyCode  = KeyCode::None;
-
-	Modifier			modifier = Modifier::None;
-	
-	u32					charCode = 0;
+	Type				type		= Type::None;
+	KeyCode				keyCode		= KeyCode::None;
+	u32					charCode	= 0;
 	String				charCodeStr;
-	
-	Map<KeyCode, Type>  pressedKeyCodes;
 
-private:
-	Type _keyCodeState(const KeyCode& k) const {
-		auto m = convert(k);
-		if (isModifierKeyDown(m)) return Type::Down;
-
-		auto it = pressedKeyCodes.find(k);
-		if (it == pressedKeyCodes.end()) return Type::None;
-		return it->second;
-	}
+	Vector<Type, static_cast<size_t>(KeyCode::_End)> pressedKeyCodes;
 };
 
 #define UIScrollBarEventMode_ENUM_LIST(E) \
