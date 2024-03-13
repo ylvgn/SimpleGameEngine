@@ -18,6 +18,7 @@ struct PW5_Win32Util {
 	static int getStockLogicalObject_Pen(PW5_StockLogicalObject_Pen v);
 	static constexpr DWORD getPenStyle(PW5_PenStyle v);
 	static int getHatchStyle(PW5_HatchStyle v);
+	static int getMappingMode(PW5_MappingMode v);
 };
 
 inline
@@ -150,6 +151,22 @@ int PW5_Win32Util::getHatchStyle(PW5_HatchStyle v) {
 		case SRC::Cross:		return HS_CROSS;
 		case SRC::DiagCross:	return HS_DIAGCROSS;
 		default:				throw SGE_ERROR("unsupported PW5_HatchStyle");
+	}
+}
+
+inline
+int PW5_Win32Util::getMappingMode(PW5_MappingMode v) {
+	using SRC = PW5_MappingMode;
+	switch (v) {
+		case SRC::None:			return MM_TEXT;
+		case SRC::LowMetric:	return MM_LOMETRIC;
+		case SRC::HighMetric:	return MM_HIMETRIC;
+		case SRC::LowEnglish:	return MM_LOENGLISH;
+		case SRC::HighEnglish:	return MM_HIENGLISH;
+		case SRC::Twips:		return MM_TWIPS;
+		case SRC::Isotropic:	return MM_ISOTROPIC;
+		case SRC::Anisotropic:	return MM_ANISOTROPIC;
+		default:				throw  SGE_ERROR("unsupported PW5_MappingMode");
 	}
 }
 

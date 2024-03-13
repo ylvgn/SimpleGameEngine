@@ -73,6 +73,18 @@ SGE_ENUM_CLASS(PW5_PenStyle, u8)
 //----
 SGE_ENUM_CLASS(PW5_HatchStyle, u8)
 
+#define PW5_MappingMode_ENUM_LIST(E) \
+	E(None,)		\
+	E(LowMetric,)	\
+	E(HighMetric,)	\
+	E(LowEnglish,)	\
+	E(HighEnglish,)	\
+	E(Twips,)		\
+	E(Isotropic,)	\
+	E(Anisotropic,)	\
+//----
+SGE_ENUM_CLASS(PW5_MappingMode, u8)
+
 } // namespace sge
 
 namespace sge {
@@ -190,11 +202,8 @@ namespace GDI {
 
 	inline bool lineTo(HDC hdc, int x, int y)		{ return ::LineTo(hdc, x, y); }
 	inline bool lineTo(HDC hdc, const ::POINT& pt)	{ return ::LineTo(hdc, pt.x, pt.y); }
-	inline bool lineTo(HDC hdc, const Vec2f& pt) {
-		::POINT _pt;
-		Win32Util::convert(_pt, pt);
-		return lineTo(hdc, _pt);
-	}
+	inline bool lineTo(HDC hdc, const Vec2f& pt)	{ return ::LineTo(hdc, static_cast<int>(pt.x), static_cast<int>(pt.y)); }
+	inline bool lineTo(HDC hdc, const Vec2i& pt)	{ return ::LineTo(hdc, pt.x, pt.y); }
 
 	inline void drawLine(HDC hdc, int fromX, int fromY, int toX, int toY) {
 		::POINT lastPt;
@@ -203,10 +212,11 @@ namespace GDI {
 		::MoveToEx(hdc, lastPt.x, lastPt.y, nullptr);
 	}
 	inline void drawLine(HDC hdc, const ::POINT& from, const ::POINT& to) { drawLine(hdc, from.x, from.y, to.x, to.y); }
+	inline void drawLine(HDC hdc, const Vec2i& from, const Vec2i& to) { drawLine(hdc, from.x, from.y, to.x, to.y); }
 	inline void drawLine(HDC hdc, const Vec2f& from, const Vec2f& to) {
 		auto iFrom = Vec2i::s_cast(from);
 		auto iTo   = Vec2i::s_cast(to);
-		drawLine(hdc, iFrom.x, iFrom.y, iTo.x, iTo.y);
+		drawLine(hdc, iFrom, iTo);
 	}
 
 	void drawPoint(HDC hdc, int x, int y, const Color4f& c = kBlack, int ptSize = 10);
@@ -240,7 +250,39 @@ namespace GDI {
 		auto iTo   = Vec2i::s_cast(to);
 		drawDashedLine(hdc, iFrom.x, iFrom.y, iTo.x, iTo.y, c);
 	}
-	
+
+	inline bool dPtoLP(HDC hdc, ::RECT& rect) { return ::DPtoLP(hdc, reinterpret_cast<::LPPOINT>(&rect), 2); }
+	inline bool dPtoLP(HDC hdc, ::POINT& pt)  { return ::DPtoLP(hdc, &pt, 1); }
+	inline bool dPtoLP(HDC hdc, Vec2f& pt) {
+		::POINT pt_;
+		Win32Util::convert(pt_, pt);
+		bool ok = ::DPtoLP(hdc, &pt_, 1);
+		Win32Util::convert(pt, pt_);
+		return ok;
+	}
+
+	inline bool lPtoDP(HDC hdc, ::RECT& rect) { return ::LPtoDP(hdc, reinterpret_cast<::LPPOINT>(&rect), 2); }
+	inline bool lPtoDP(HDC hdc, ::POINT& pt)  { return ::LPtoDP(hdc, &pt, 1); }
+	inline bool lPtoDP(HDC hdc, Vec2f& pt) {
+		::POINT pt_;
+		Win32Util::convert(pt_, pt);
+		bool ok = ::LPtoDP(hdc, &pt_, 1);
+		Win32Util::convert(pt, pt_);
+		return ok;
+	}
+
+	inline bool setViewportOrg(HDC hdc, const ::POINT& pt) { return ::SetViewportOrgEx(hdc, pt.x, pt.y, nullptr); }
+	inline bool setViewportOrg(HDC hdc, const Vec2f& pt) { return ::SetViewportOrgEx(hdc, static_cast<int>(pt.x), static_cast<int>(pt.y), nullptr); }
+	inline bool setViewportOrg(HDC hdc, int x, int y) { return ::SetViewportOrgEx(hdc, x, y, nullptr); }
+
+	inline bool getViewportOrg(HDC hdc, ::POINT& pt) { return ::GetViewportOrgEx(hdc, &pt); }
+	inline bool getViewportOrg(HDC hdc, Vec2f& pt) {
+		::POINT pt_;
+		bool ok = ::GetViewportOrgEx(hdc, &pt_);
+		Win32Util::convert(pt, pt_);
+		return ok;
+	}
+
 } // namespace GDI
 } // namespace sge
 
@@ -283,6 +325,17 @@ public:
 
 	UINT setTextAlign(PW5_TextAlignmentOption flags = PW5_TextAlignmentOption::Left | PW5_TextAlignmentOption::Top);
 
+	int setMappingMode(PW5_MappingMode flag = PW5_MappingMode::None);
+	PW5_MappingMode getMappingMode();
+
+	void setViewportOrg(int x, int y)		{ GDI::setViewportOrg(_hdc, x, y); }
+	void setViewportOrg(const Vec2f& pt)	{ GDI::setViewportOrg(_hdc, pt); }
+
+	void getViewportOrg(Vec2f& pt)			{ GDI::getViewportOrg(_hdc, pt); }
+
+	void dPtoLP(Vec2f& pt) { GDI::dPtoLP(_hdc, pt); }
+	void lPtoDP(Vec2f& pt) { GDI::lPtoDP(_hdc, pt); }
+
 	void textOut(int x, int y, StrView str) const { GDI::textOut(_hdc, x, y, str); }
 
 	void drawText(int l, int t, int r, int b, StrView str)					const { GDI::drawText(_hdc, l, t, r, b, str); }
@@ -293,6 +346,7 @@ public:
 	void drawLine(int fromX, int fromY, int toX, int toY)					const { GDI::drawLine(_hdc, fromX, fromY, toX, toY); }
 	void drawLine(const ::POINT& from, const ::POINT& to)					const { GDI::drawLine(_hdc, from, to); }
 	void drawLine(const Vec2f& from, const Vec2f& to)						const { GDI::drawLine(_hdc, from, to); }
+	void drawLine(const Vec2i& from, const Vec2i& to)						const { GDI::drawLine(_hdc, from, to); }
 
 	void rectangle(int left, int top, int right, int bottom)				const { GDI::rectangle(_hdc, left, top, right, bottom); }
 	void rectangle(const ::RECT& ltrb)										const { GDI::rectangle(_hdc, ltrb); }
@@ -330,16 +384,19 @@ public:
 	void Fmt_textOut(int x, int y, Args&&... args) const { GDI::Fmt_textOut(_hdc, x, y, SGE_FORWARD(args)...); }
 
 	template<class... Args>
+	void Fmt_textOut(const Vec2f& pt, Args&&... args) const { GDI::Fmt_textOut(_hdc, static_cast<int>(pt.x), static_cast<int>(pt.y), SGE_FORWARD(args)...); }
+
+	template<class... Args>
 	void Fmt_drawText(int x, int y, Args&&... args) const;
 
 protected:
 	HDC	_hdc = nullptr;
 };
 
-class ScopedHDC : public ScopedHDC_NoHWND {
+class ScopedHDC_ : public ScopedHDC_NoHWND {
 	using Base = ScopedHDC_NoHWND;
 public:
-	ScopedHDC(const HWND& hwnd)
+	ScopedHDC_(const HWND& hwnd)
 		: _hwnd(hwnd) {}
 
 	void clearBg(PW5_StockLogicalObject_Brush flag = PW5_StockLogicalObject_Brush::White);
@@ -348,8 +405,8 @@ protected:
 	const HWND& _hwnd;
 };
 
-class ScopedPaintStruct : public ScopedHDC {
-	using Base = ScopedHDC;
+class ScopedPaintStruct : public ScopedHDC_ {
+	using Base = ScopedHDC_;
 public:
 	ScopedPaintStruct(const HWND& hwnd) : Base(hwnd) {
 		_hdc = ::BeginPaint(hwnd, &_ps);
@@ -367,8 +424,8 @@ private:
 	::PAINTSTRUCT _ps;
 };
 
-class ScopedGetDC : public ScopedHDC {
-	using Base = ScopedHDC;
+class ScopedGetDC : public ScopedHDC_ {
+	using Base = ScopedHDC_;
 public:
 	ScopedGetDC(const HWND& hwnd) : Base(hwnd) {
 		_hdc = ::GetDC(hwnd);
@@ -384,8 +441,8 @@ public:
 	}
 };
 
-class ScopedGetWindowDC : public ScopedHDC {
-	using Base = ScopedHDC;
+class ScopedGetWindowDC : public ScopedHDC_ {
+	using Base = ScopedHDC_;
 public:
 	ScopedGetWindowDC(const HWND& hwnd) : Base(hwnd) {
 		_hdc = ::GetWindowDC(hwnd);

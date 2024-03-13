@@ -21,6 +21,11 @@ namespace sge {
 */
 
 void PW5_MyTextMetrics::onDraw() {
+	//_example1();
+	_example2();
+}
+
+void PW5_MyTextMetrics::_example1() {
 	ScopedGetDC hdc(_hwnd);
 
 	::TEXTMETRIC tm;
@@ -38,6 +43,56 @@ void PW5_MyTextMetrics::onDraw() {
 		cxCaps = static_cast<int>(1.5f * cxChar);
 	}
 	hdc.Fmt_textOut(300, 300, "cxChar={}, cyChar={}, cxCaps={}", cxChar, cyChar, cxCaps);
+}
+
+void PW5_MyTextMetrics::_example2() {
+	ScopedGetDC hdc(_hwnd);
+
+	{ // MM_TEXT
+		hdc.setMappingMode(PW5_MappingMode::None);
+		auto textMetrics = GDI::createTextMetrics(hdc);
+		int x = 300;
+		int y = 100;
+		int spacingY = textMetrics.height;
+
+		hdc.Fmt_textOut(x, y, "(MM_TEXT)height={}", textMetrics.height); y += spacingY;
+		hdc.Fmt_textOut(x, y, "(MM_TEXT)ascent={}", textMetrics.ascent); y += spacingY;
+		hdc.Fmt_textOut(x, y, "(MM_TEXT)descent={}", textMetrics.descent); y += spacingY;
+		hdc.Fmt_textOut(x, y, "(MM_TEXT)internalLeading={}", textMetrics.internalLeading); y += spacingY;
+		hdc.Fmt_textOut(x, y, "(MM_TEXT)maxCharWidth={}", textMetrics.maxCharWidth); y += spacingY;
+		hdc.Fmt_textOut(x, y, "(MM_TEXT)externalLeading={}", textMetrics.externalLeading); y += spacingY;
+		hdc.Fmt_textOut(x, y, "(MM_TEXT)aveCharWidth={}", textMetrics.aveCharWidth); y += spacingY;
+		hdc.Fmt_textOut(x, y, "(MM_TEXT)aveCharHeight={}", textMetrics.aveCharHeight); y += spacingY;
+		hdc.Fmt_textOut(x, y, "(MM_TEXT)aveCharWidthUpperCase={}", textMetrics.aveCharWidthUpperCase); y += spacingY;
+		hdc.Fmt_textOut(x, y, "(MM_TEXT)isFixedPitch={}", static_cast<int>(textMetrics.isFixedPitch)); y += spacingY;
+	}
+
+	{ // MM_LOENGLISH
+		// when you call GetTextMetrics for information about the heightand width of characters,
+		// the mapping mode should be set to the same mapping mode that
+		// you'll be using when you draw text based on these sizes
+
+		hdc.setMappingMode(PW5_MappingMode::LowEnglish);
+		Vec2f pt { 300,100 };
+		hdc.dPtoLP(pt);
+		pt.x += 200;
+
+		int x = static_cast<int>(pt.x);
+		int y = static_cast<int>(pt.y);
+
+		auto textMetrics = GDI::createTextMetrics(hdc);
+		int spacingY = -textMetrics.height;
+		hdc.Fmt_textOut(x, y, "(MM_LOENGLISH)height={}", textMetrics.height); y += spacingY;
+		hdc.Fmt_textOut(x, y, "(MM_LOENGLISH)ascent={}", textMetrics.ascent); y += spacingY;
+		hdc.Fmt_textOut(x, y, "(MM_LOENGLISH)descent={}", textMetrics.descent); y += spacingY;
+		hdc.Fmt_textOut(x, y, "(MM_LOENGLISH)internalLeading={}", textMetrics.internalLeading); y += spacingY;
+		hdc.Fmt_textOut(x, y, "(MM_LOENGLISH)maxCharWidth={}", textMetrics.maxCharWidth); y += spacingY;
+		hdc.Fmt_textOut(x, y, "(MM_LOENGLISH)externalLeading={}", textMetrics.externalLeading); y += spacingY;
+		hdc.Fmt_textOut(x, y, "(MM_LOENGLISH)aveCharWidth={}", textMetrics.aveCharWidth); y += spacingY;
+		hdc.Fmt_textOut(x, y, "(MM_LOENGLISH)aveCharHeight={}", textMetrics.aveCharHeight); y += spacingY;
+		hdc.Fmt_textOut(x, y, "(MM_LOENGLISH)aveCharWidthUpperCase={}", textMetrics.aveCharWidthUpperCase); y += spacingY;
+		hdc.Fmt_textOut(x, y, "(MM_LOENGLISH)isFixedPitch={}", static_cast<int>(textMetrics.isFixedPitch)); y += spacingY;
+	}
 }
 
 }

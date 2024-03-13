@@ -6,14 +6,18 @@
 
 namespace sge {
 
-class PW5_MyTextMetrics : public PW5_NativeUIWindow {
+class PW5_MyMappingMode : public PW5_NativeUIWindow {
+	using This = PW5_MyMappingMode;
 	using Base = PW5_NativeUIWindow;
-	using This = PW5_MyTextMetrics;
 protected:
+	virtual void onCreate(CreateDesc& desc) override;
 	virtual void onDraw() override;
 private:
 	void _example1();
 	void _example2();
+
+	void _example3();
+	void _drawClientRectCoordinate(PW5_MappingMode v);
 };
 
 }
