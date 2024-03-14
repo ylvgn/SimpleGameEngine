@@ -264,48 +264,17 @@ void ImGui_SGE::onUIKeyboardEvent(UIKeyboardEvent& ev) {
 
 	if (ev.isDown()) {
 		io.AddKeyEvent(_keyCode(ev.keyCode), true);
-	}
-	if (ev.isUp()) {
+	} else if (ev.isUp()) {
 		io.AddKeyEvent(_keyCode(ev.keyCode), false);
 	}
 
-	// special handle, cuz ev.isModifierKey must be a key-down keycode, any good practise ???
-	{ // ctrl
-		{
-			auto k = KeyCode::LCtrl;
-			if (ev.isDown(k)) io.AddKeyEvent(_keyCode(k), true);
-			else if (ev.isUp(k)) io.AddKeyEvent(_keyCode(k), false);
-		}
-		{
-			auto k = KeyCode::RCtrl;
-			if (ev.isDown(k)) io.AddKeyEvent(_keyCode(k), true);
-			else if (ev.isUp(k)) io.AddKeyEvent(_keyCode(k), false);
-		}
-	}
-	{ // alt
-		{
-			auto k = KeyCode::LAlt;
-			if (ev.isDown(k)) io.AddKeyEvent(_keyCode(k), true);
-			else if (ev.isUp(k)) io.AddKeyEvent(_keyCode(k), false);
-		}
-		{
-			auto k = KeyCode::RAlt;
-			if (ev.isDown(k)) io.AddKeyEvent(_keyCode(k), true);
-			else if (ev.isUp(k)) io.AddKeyEvent(_keyCode(k), false);
-		}
-	}
-	{ // shift
-		{
-			auto k = KeyCode::LShift;
-			if (ev.isDown(k)) io.AddKeyEvent(_keyCode(k), true);
-			else if (ev.isUp(k)) io.AddKeyEvent(_keyCode(k), false);
-		}
-		{
-			auto k = KeyCode::RShift;
-			if (ev.isDown(k)) io.AddKeyEvent(_keyCode(k), true);
-			else if (ev.isUp(k)) io.AddKeyEvent(_keyCode(k), false);
-		}
-	}
+	// reset modified key
+	_onAddKeyEventByUIKeyboardEvent(io, ev, KeyCode::LCtrl);
+	_onAddKeyEventByUIKeyboardEvent(io, ev, KeyCode::RCtrl);
+	_onAddKeyEventByUIKeyboardEvent(io, ev, KeyCode::LShift);
+	_onAddKeyEventByUIKeyboardEvent(io, ev, KeyCode::RShift);
+	_onAddKeyEventByUIKeyboardEvent(io, ev, KeyCode::LAlt);
+	_onAddKeyEventByUIKeyboardEvent(io, ev, KeyCode::RAlt);
 }
 
 ImGuiKey ImGui_SGE::_keyCode(UIKeyboardEventKeyCode v) {
@@ -421,6 +390,11 @@ ImGuiKey ImGui_SGE::_keyCode(UIKeyboardEventKeyCode v) {
 	case KeyCode::F12:				return ImGuiKey_F12;
 	}
 	return ImGuiKey_None;
+}
+
+void ImGui_SGE::_onAddKeyEventByUIKeyboardEvent(ImGuiIO& io, UIKeyboardEvent& ev, UIKeyboardEventKeyCode v) {
+	if (ev.isDown(v)) io.AddKeyEvent(_keyCode(v), true);
+	else if (ev.isUp(v)) io.AddKeyEvent(_keyCode(v), false);
 }
 
 #if 0 // how to set cursor in good practise ???

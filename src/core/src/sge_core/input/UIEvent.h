@@ -124,6 +124,7 @@ SGE_ENUM_ALL_OPERATOR(UIKeyCodeEventType)
 struct UIKeyboardEvent {
 	using KeyCode		= UIKeyboardEventKeyCode;
 	using Type			= UIKeyCodeEventType;
+	using Modifier		= UIEventModifier;
 
 	bool isUp()			const { return type == Type::Up; }
 	bool isDown()		const { return type == Type::Down; }
@@ -135,6 +136,7 @@ struct UIKeyboardEvent {
 
 	Type				type		= Type::None;
 	KeyCode				keyCode		= KeyCode::None;
+	Modifier			modifier	= Modifier::None;
 	u32					charCode	= 0;
 	String				charCodeStr;
 

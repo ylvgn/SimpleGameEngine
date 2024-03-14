@@ -37,6 +37,8 @@ private:
 	int _mouseButton(UIMouseEventButton v);
 	ImGuiKey _keyCode(UIKeyboardEventKeyCode v);
 
+	void _onAddKeyEventByUIKeyboardEvent(ImGuiIO& io, UIKeyboardEvent& ev, UIKeyboardEventKeyCode v);
+
 	ImGuiContext* _ctx;
 };
 

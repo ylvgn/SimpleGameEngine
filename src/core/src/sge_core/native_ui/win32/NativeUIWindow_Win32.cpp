@@ -315,7 +315,10 @@ bool NativeUIWindow_Win32::_handleNativeUIKeyboardEvent(HWND hwnd,
 
 	UIKeyboardEvent ev;
 
+	ev.modifier = _getWin32Modifier();
+
 	using KeyCode	= UIKeyboardEvent::KeyCode;
+	using Modifier	= UIEventModifier;
 	using Type		= UIKeyboardEvent::Type;
 
 #if 0
@@ -339,7 +342,7 @@ bool NativeUIWindow_Win32::_handleNativeUIKeyboardEvent(HWND hwnd,
 		case WM_CHAR: { ev.charCode = static_cast<u32>(wParam); } break;
 	};
 
-	// Ctrl, Shift
+	// Ctrl, Shift, Alt
 	switch (msg) {
 		case WM_KEYDOWN: {
 			switch (wParam) {
@@ -351,13 +354,20 @@ bool NativeUIWindow_Win32::_handleNativeUIKeyboardEvent(HWND hwnd,
 						_pressedKeyCodes[VK_RCONTROL] = Type::Down;
 					}
 				} break;
-
 				case VK_SHIFT: {
 					if (isKeyDown(KeyCode::LShift)) {
 						_pressedKeyCodes[VK_LSHIFT] = Type::Down;
 					}
 					if (isKeyDown(KeyCode::RShift)) {
 						_pressedKeyCodes[VK_RSHIFT] = Type::Down;
+					}
+				} break;
+				case VK_MENU: {
+					if (isKeyDown(KeyCode::LAlt)) {
+						_pressedKeyCodes[VK_LMENU] = Type::Down;
+					}
+					if (isKeyDown(KeyCode::RAlt)) {
+						_pressedKeyCodes[VK_RMENU] = Type::Down;
 					}
 				} break;
 			}
@@ -371,6 +381,10 @@ bool NativeUIWindow_Win32::_handleNativeUIKeyboardEvent(HWND hwnd,
 				case VK_SHIFT: {
 					_pressedKeyCodes[VK_LSHIFT] = isKeyDown(KeyCode::LShift) ? Type::Down : ev.type;
 					_pressedKeyCodes[VK_RSHIFT] = isKeyDown(KeyCode::RShift) ? Type::Down : ev.type;
+				} break;
+				case VK_MENU: {
+					_pressedKeyCodes[VK_LMENU] = isKeyDown(KeyCode::LAlt) ? Type::Down : ev.type;
+					_pressedKeyCodes[VK_RMENU] = isKeyDown(KeyCode::RAlt) ? Type::Down : ev.type;
 				} break;
 			}
 		} break;
@@ -521,6 +535,19 @@ bool NativeUIWindow_Win32::_handleNativeUIKeyboardEvent(HWND hwnd,
 		ev.charCodeStr = static_cast<char>(ev.charCode);
 	}
 
+	if (ev.keyCode != KeyCode::Ctrl && !BitUtil::hasAny(ev.modifier, Modifier::Ctrl)) {
+		_resetModifiedKeyCodeState(_pressedKeyCodes[VK_LCONTROL]);
+		_resetModifiedKeyCodeState(_pressedKeyCodes[VK_RCONTROL]);
+	}
+	if (ev.keyCode != KeyCode::Shift && !BitUtil::hasAny(ev.modifier, Modifier::Shift)) {
+		_resetModifiedKeyCodeState(_pressedKeyCodes[VK_LSHIFT]);
+		_resetModifiedKeyCodeState(_pressedKeyCodes[VK_RSHIFT]);
+	}
+	if (ev.keyCode != KeyCode::Alt && !BitUtil::hasAny(ev.modifier, Modifier::Alt)) {
+		_resetModifiedKeyCodeState(_pressedKeyCodes[VK_LMENU]);
+		_resetModifiedKeyCodeState(_pressedKeyCodes[VK_RMENU]);
+	}
+
 	ev.pressedKeyCodes.resize(static_cast<size_t>(KeyCode::_End));
 	for (auto k = KeyCode::None + 1; k != KeyCode::_End; k += 1) {
 		auto vk = Win32Util::toVKKey(k);
@@ -605,6 +632,12 @@ UIEventModifier NativeUIWindow_Win32::_getWin32Modifier() {
 
 bool NativeUIWindow_Win32::isKeyDown(KeyCode keyCode) {
 	return ::GetKeyState(Win32Util::toVKKey(keyCode)) & 0x8000;
+}
+
+void NativeUIWindow_Win32::_resetModifiedKeyCodeState(UIKeyCodeEventType& keyState) {
+	using Type = UIKeyCodeEventType;
+	if (keyState == Type::None) return;
+	keyState = static_cast<Type>(enumInt(keyState) >> 1);
 }
 
 }
