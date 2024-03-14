@@ -180,12 +180,10 @@ void NeheOGL_Lesson006::onUIMouseEvent(UIMouseEvent& ev) {
 					_addCameraOrbitAngle(ev.deltaPos.yx() * d);
 				}
 			} break;
-
 			case Button::Right: {
 				float d = 0.15f;
 				_addCameraOrbitAngle(ev.deltaPos.yx() * d);
 			} break;
-
 			case Button::Middle: {
 				float d = 0.01f;
 				_camerMovePos.x += ev.deltaPos.x * d;

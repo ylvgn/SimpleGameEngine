@@ -2,7 +2,6 @@
 
 namespace sge {
 
-
 void NeheOGL_Lesson007::onCreate(CreateDesc& desc) {
 	desc.ownDC = true;
 	Base::onCreate(desc);
@@ -11,7 +10,7 @@ void NeheOGL_Lesson007::onCreate(CreateDesc& desc) {
 
 	_imageToUpload.loadFile(filename);
 	if (!_imageToUpload.width || !_imageToUpload.height)
-		throw SGE_ERROR("_loadImage filename = {}", filename);
+		throw SGE_ERROR("load bmp filename = {}", filename);
 
 	glGenTextures(kTexture2dCount, &_texture2ds[0]);
 
@@ -69,18 +68,15 @@ void NeheOGL_Lesson007::onCreate(CreateDesc& desc) {
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 
-	_camerMovePosZ = -5.f;
-
 	// Setup Lighting
-	glLightfv(GL_LIGHT1, GL_AMBIENT, _lightAmbient.data);	// Setup The Ambient Light
-	glLightfv(GL_LIGHT1, GL_DIFFUSE, _lightDiffuse.data);	// Setup The Diffuse Light
+	glLightfv(GL_LIGHT1, GL_AMBIENT,  _lightAmbient.data);	// Setup The Ambient Light
+	glLightfv(GL_LIGHT1, GL_DIFFUSE,  _lightDiffuse.data);	// Setup The Diffuse Light
 	glLightfv(GL_LIGHT1, GL_POSITION, _lightPosition.data);	// Position The Light
 	glEnable(GL_LIGHT1);									// Enable GL_LIGHT1, when glEnable(GL_LIGHTING), the light will actually work!
 }
 
 void NeheOGL_Lesson007::onDraw() {
-	auto uptime = static_cast<float>(_uptime.get());
-	_example1(uptime);
+	_example1();
 }
 
 void NeheOGL_Lesson007::onUIMouseEvent(UIMouseEvent& ev) {
@@ -96,10 +92,15 @@ void NeheOGL_Lesson007::onUIMouseEvent(UIMouseEvent& ev) {
 					_camerOrbitAngle += ev.deltaPos.yx() * d;
 				}
 			} break;
-
 			case Button::Right: {
 				float d = 0.15f;
 				_camerOrbitAngle += ev.deltaPos.yx() * d;
+			} break;
+			case Button::Middle: {
+				float d = 0.15f;
+				auto delta = ev.deltaPos * d;
+				_lightPosition.x += delta.x;
+				_lightPosition.y -= delta.y;
 			} break;
 		}
 	}
@@ -114,32 +115,50 @@ void NeheOGL_Lesson007::onUIKeyboardEvent(UIKeyboardEvent& ev) {
 	using KeyCode = UIKeyboardEvent::KeyCode;
 
 	if (ev.isDown(KeyCode::LeftArrow)) {
-		_camerOrbitSpeed.y -= 0.01f;
+		_camerOrbitSpeed.y -= 0.01f; // Decrease _camerOrbitSpeed yspeed
 	}
 	if (ev.isDown(KeyCode::RightArrow)) {
-		_camerOrbitSpeed.y += 0.01f;
+		_camerOrbitSpeed.y += 0.01f; // Increase _camerOrbitSpeed yspeed
 	}
 
 	if (ev.isDown(KeyCode::UpArrow)) {
-		_camerOrbitSpeed.x -= 0.01f;
+		_camerOrbitSpeed.x -= 0.01f; // Decrease _camerOrbitSpeed xspeed
 	}
 	if (ev.isDown(KeyCode::DownArrow)) {
-		_camerOrbitSpeed.x += 0.01f;
+		_camerOrbitSpeed.x += 0.01f; // Increase _camerOrbitSpeed xspeed
 	}
 
-	if (ev.isDown(KeyCode::F)) {
+	if (ev.isDown(KeyCode::PageUp)) {
+		_camerMovePosZ -= 0.02f;	// Crate Move Into The Screen
+	}
+	if (ev.isDown(KeyCode::PageDown)) {
+		_camerMovePosZ += 0.02f;	// Crate Move Towards The Viewer
+	}
+
+	if (!_isPressedF && ev.isDown(KeyCode::F)) {
+		_isPressedF = true;
 		SGE_DUMP_VAR(_texSelectedIndex);
 		_texSelectedIndex = (_texSelectedIndex + 1) % kTexture2dCount;
 	}
+	if (ev.isUp(KeyCode::F)) {
+		_isPressedF = false;
+	}
 
-	if (ev.isDown(KeyCode::L)) {
+	// If _isPressedL was false, meaning the 'L' key hasn't been pressed yet, or it's been released, _isPressedL becomes true.
+	// This forces the person to let go of the 'L' key before this code will run again.
+	// If we didn't check to see if the key was being held down, the lighting would flicker off and on over and over,
+	// because the program would think you were pressing the 'L' key over and over again each time it came to this section of code
+	if (!_isPressedL && ev.isDown(KeyCode::L)) {
+		_isPressedL = true;
 		_isOnLight = !_isOnLight;
 		SGE_DUMP_VAR(static_cast<int>(_isOnLight));
 	}
+	if (ev.isUp(KeyCode::L)) {
+		_isPressedL = false;
+	}
 }
 
-
-void NeheOGL_Lesson007::_example1(float uptime) {
+void NeheOGL_Lesson007::_example1() {
 	float width  = _clientRect.w;
 	float height = _clientRect.h;
 
@@ -156,9 +175,6 @@ void NeheOGL_Lesson007::_example1(float uptime) {
 	glEnable(GL_TEXTURE_2D); // Enable Texture Mapping
 	glShadeModel(GL_SMOOTH); // Enable Smooth Shading
 
-	if (_isOnLight) glEnable(GL_LIGHTING);
-	else glDisable(GL_LIGHTING);
-
 	glClearDepth(1.0f);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
@@ -170,51 +186,84 @@ void NeheOGL_Lesson007::_example1(float uptime) {
 		gluPerspective(60.f, aspect, 0.01f, 1000.0f);
 
 	// setup camera
-	glTranslatef(0, 0, _camerMovePosZ);
+	glTranslatef(0, 0, _camerMovePosZ); // (away from and towards the viewer)
 	glRotatef(_camerOrbitAngle.x, 1,0,0);
 	glRotatef(_camerOrbitAngle.y, 0,1,0);
 
 	glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 
+	// draw grid
+	OGL::glColor(OGL::kWhite);
+	glLineWidth(2);
+	glDisable(GL_LIGHTING);
+	glBegin(GL_LINES);
+		for (float x = -10; x <= 10; ++x) {
+			glVertex3f(x, 0, -10);
+			glVertex3f(x, 0, 10);
+		}
+		for (float z = -10; z <= 10; ++z) {
+			glVertex3f(-10, 0, z);
+			glVertex3f(10, 0, z);
+		}
+	glEnd();
+
+	// setup lighting
+	glLightfv(GL_LIGHT1, GL_POSITION, _lightPosition.data);	// Position The Light
+
+	if (_isOnLight)
+		glEnable(GL_LIGHTING);  // Enable Lighting
+	else
+		glDisable(GL_LIGHTING); // Disable Lighting
+
+	glTranslatef(0, a, 0);
 	glBindTexture(GL_TEXTURE_2D, _texture2ds[_texSelectedIndex]); // Select A Texture Based On filter
 	glBegin(GL_QUADS);
+		// A normal is a line pointing straight out of the middle of a polygon at a 90 degree angle. When you use lighting, you need to specify a normal
+		// The normal tells OpenGL which direction the polygon is facing... which way is up
+		// The normal should point outwards from the polygon
+		// The light is close to the viewer, any time the normal is pointing towards the viewer it's also pointing towards the light.
+		// When it does, the face will light up.
+		// The more a normal points towards the light, the brighter that face is
+		// If you move into the center of the cube you'll notice it's dark.
+		// The normals are point out, not in, so there's no light inside the box, exactly as it should be
+
 		// Front Face
-		glNormal3f( 0.0f, 0.0f, 1.0f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.0f, -1.0f,  1.0f);
-		glTexCoord2f(1.0f, 0.0f); glVertex3f( 1.0f, -1.0f,  1.0f);
-		glTexCoord2f(1.0f, 1.0f); glVertex3f( 1.0f,  1.0f,  1.0f);
-		glTexCoord2f(0.0f, 1.0f); glVertex3f(-1.0f,  1.0f,  1.0f);
+		OGL::glNormal(Vec3f::s_forward());						// glNormal3f( 0.0f,  0.0f,  1.0f);
+		glTexCoord2f(0.0f, 0.0f); OGL::glVertex(kCubePos[7]);	// glVertex3f(-1.0f, -1.0f,  1.0f);
+		glTexCoord2f(1.0f, 0.0f); OGL::glVertex(kCubePos[6]);	// glVertex3f( 1.0f, -1.0f,  1.0f);
+		glTexCoord2f(1.0f, 1.0f); OGL::glVertex(kCubePos[2]);	// glVertex3f( 1.0f,  1.0f,  1.0f);
+		glTexCoord2f(0.0f, 1.0f); OGL::glVertex(kCubePos[3]);	// glVertex3f(-1.0f,  1.0f,  1.0f);
 		// Back Face
-		glNormal3f( 0.0f, 0.0f,-1.0f);
-		glTexCoord2f(1.0f, 0.0f); glVertex3f(-1.0f, -1.0f, -1.0f);
-		glTexCoord2f(1.0f, 1.0f); glVertex3f(-1.0f,  1.0f, -1.0f);
-		glTexCoord2f(0.0f, 1.0f); glVertex3f( 1.0f,  1.0f, -1.0f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f( 1.0f, -1.0f, -1.0f);
+		OGL::glNormal(Vec3f::s_back());							// glNormal3f( 0.0f,  0.0f, -1.0f);
+		glTexCoord2f(1.0f, 1.0f); OGL::glVertex(kCubePos[0]);	// glVertex3f(-1.0f,  1.0f, -1.0f);
+		glTexCoord2f(0.0f, 1.0f); OGL::glVertex(kCubePos[1]);	// glVertex3f( 1.0f,  1.0f, -1.0f);
+		glTexCoord2f(0.0f, 0.0f); OGL::glVertex(kCubePos[5]);	// glVertex3f( 1.0f, -1.0f, -1.0f);
+		glTexCoord2f(1.0f, 0.0f); OGL::glVertex(kCubePos[4]);	// glVertex3f(-1.0f, -1.0f, -1.0f);
 		// Top Face
-		glNormal3f( 0.0f, 1.0f, 0.0f);
-		glTexCoord2f(0.0f, 1.0f); glVertex3f(-1.0f,  1.0f, -1.0f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.0f,  1.0f,  1.0f);
-		glTexCoord2f(1.0f, 0.0f); glVertex3f( 1.0f,  1.0f,  1.0f);
-		glTexCoord2f(1.0f, 1.0f); glVertex3f( 1.0f,  1.0f, -1.0f);
+		OGL::glNormal(Vec3f::s_up());							// glNormal3f( 0.0f,  1.0f,  0.0f);
+		glTexCoord2f(0.0f, 0.0f); OGL::glVertex(kCubePos[3]);	// glVertex3f(-1.0f,  1.0f,  1.0f);
+		glTexCoord2f(1.0f, 0.0f); OGL::glVertex(kCubePos[2]);	// glVertex3f( 1.0f,  1.0f,  1.0f);
+		glTexCoord2f(1.0f, 1.0f); OGL::glVertex(kCubePos[1]);	// glVertex3f( 1.0f,  1.0f, -1.0f);
+		glTexCoord2f(0.0f, 1.0f); OGL::glVertex(kCubePos[0]);	// glVertex3f(-1.0f,  1.0f, -1.0f);
 		// Bottom Face
-		glNormal3f( 0.0f,-1.0f, 0.0f);
-		glTexCoord2f(1.0f, 1.0f); glVertex3f(-1.0f, -1.0f, -1.0f);
-		glTexCoord2f(0.0f, 1.0f); glVertex3f( 1.0f, -1.0f, -1.0f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f( 1.0f, -1.0f,  1.0f);
-		glTexCoord2f(1.0f, 0.0f); glVertex3f(-1.0f, -1.0f,  1.0f);
+		OGL::glNormal(Vec3f::s_down());							// glNormal3f( 0.0f, -1.0f,  0.0f);
+		glTexCoord2f(1.0f, 1.0f); OGL::glVertex(kCubePos[4]);	// glVertex3f(-1.0f, -1.0f, -1.0f);
+		glTexCoord2f(0.0f, 1.0f); OGL::glVertex(kCubePos[5]);	// glVertex3f( 1.0f, -1.0f, -1.0f);
+		glTexCoord2f(0.0f, 0.0f); OGL::glVertex(kCubePos[6]);	// glVertex3f( 1.0f, -1.0f,  1.0f);
+		glTexCoord2f(1.0f, 0.0f); OGL::glVertex(kCubePos[7]);	// glVertex3f(-1.0f, -1.0f,  1.0f);
 		// Right face
-		glNormal3f( 1.0f, 0.0f, 0.0f);
-		glTexCoord2f(1.0f, 0.0f); glVertex3f( 1.0f, -1.0f, -1.0f);
-		glTexCoord2f(1.0f, 1.0f); glVertex3f( 1.0f,  1.0f, -1.0f);
-		glTexCoord2f(0.0f, 1.0f); glVertex3f( 1.0f,  1.0f,  1.0f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f( 1.0f, -1.0f,  1.0f);
+		OGL::glNormal(Vec3f::s_right());						// glNormal3f( 1.0f,  0.0f,  0.0f);
+		glTexCoord2f(0.0f, 0.0f); OGL::glVertex(kCubePos[6]);	// glVertex3f( 1.0f, -1.0f,  1.0f);
+		glTexCoord2f(1.0f, 0.0f); OGL::glVertex(kCubePos[5]);	// glVertex3f( 1.0f, -1.0f, -1.0f);
+		glTexCoord2f(1.0f, 1.0f); OGL::glVertex(kCubePos[1]);	// glVertex3f( 1.0f,  1.0f, -1.0f);
+		glTexCoord2f(0.0f, 1.0f); OGL::glVertex(kCubePos[2]);	// glVertex3f( 1.0f,  1.0f,  1.0f);
 		// Left Face
-		glNormal3f(-1.0f, 0.0f, 0.0f);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.0f, -1.0f, -1.0f);
-		glTexCoord2f(1.0f, 0.0f); glVertex3f(-1.0f, -1.0f,  1.0f);
-		glTexCoord2f(1.0f, 1.0f); glVertex3f(-1.0f,  1.0f,  1.0f);
-		glTexCoord2f(0.0f, 1.0f); glVertex3f(-1.0f,  1.0f, -1.0f);
+		OGL::glNormal(Vec3f::s_left());							// glNormal3f(-1.0f,  0.0f,  0.0f);
+		glTexCoord2f(0.0f, 0.0f); OGL::glVertex(kCubePos[4]);	// glVertex3f(-1.0f, -1.0f, -1.0f);
+		glTexCoord2f(1.0f, 0.0f); OGL::glVertex(kCubePos[7]);	// glVertex3f(-1.0f, -1.0f,  1.0f);
+		glTexCoord2f(1.0f, 1.0f); OGL::glVertex(kCubePos[3]);	// glVertex3f(-1.0f,  1.0f,  1.0f);
+		glTexCoord2f(0.0f, 1.0f); OGL::glVertex(kCubePos[0]);	// glVertex3f(-1.0f,  1.0f, -1.0f);
 	glEnd();
 	glBindTexture(GL_TEXTURE_2D, 0);
 

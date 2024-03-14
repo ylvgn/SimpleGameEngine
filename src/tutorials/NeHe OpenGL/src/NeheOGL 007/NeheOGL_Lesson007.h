@@ -17,7 +17,13 @@ class NeheOGL_Lesson007 : public NeheOGL_NativeUIWindow {
 public:
 	NeheOGL_Lesson007() : Base()
 		, _isOnLight(true)
+		, _isPressedL(false)
+		, _isPressedF(false)
 	{}
+
+	~NeheOGL_Lesson007() {
+		glDeleteTextures(kTexture2dCount, _texture2ds);
+	}
 
 protected:
 	virtual void onCreate(CreateDesc& desc) override;
@@ -26,24 +32,47 @@ protected:
 	virtual void onUIKeyboardEvent(UIKeyboardEvent& ev) override;
 private:
 
-	void _example1(float uptime);
+	void _example1();
 
-	MyHiResTimer _uptime;
+	bool _isOnLight  : 1; // Lighting ON / OFF
+	bool _isPressedL : 1;
+	bool _isPressedF : 1;
 
-	bool _isOnLight  : 1;	// Lighting ON / OFF
-
-	Vec2f _camerOrbitSpeed{ 0,0 };		// the speed the crate is spinning at on the x/y axis
-	Vec2f _camerOrbitAngle{ 0,0 };		// camera rotate with x-axis y-axis
-	float _camerMovePosZ;
+	Vec2f _camerOrbitSpeed { 0,0 };			// the speed the crate is spinning at on the x/y axis
+	Vec2f _camerOrbitAngle { 30.f, -30.f };	// camera rotate with x-axis y-axis
+	float _camerMovePosZ = -5.f;
 
 	GLuint  _texture2ds[kTexture2dCount]; // Storage For 3 Textures
 	GLuint	_texSelectedIndex = 0;		  // Which Texture Filter To Use
 	MyImage _imageToUpload;
 
 	// Light is created the same way color is created
-	Tuple4f _lightAmbient  { 0.5f, 0.5f, 0.5f, 1.f };
-	Tuple4f _lightDiffuse  { 1.f,  1.f,  1.f,  1.f };
-	Tuple4f _lightPosition { 0.0f, 0.0f, 2.0f, 1.0f };
+	Tuple4f _lightAmbient  { 0.5f, 0.5f, 0.5f, 1.0f };
+	Tuple4f _lightDiffuse  { 1.0f, 1.0f, 1.0f, 1.0f };
+
+	Vec4f	_lightPosition { 0.0f, 0.0f, 2.0f, 1.0f };
+
+//------------------------------------------
+//		  0--------1
+//		 /|       /|
+//		3--------2 |
+//      | |      | |
+//		| 4------|-5
+//      |/       |/
+//      7--------6
+
+	static constexpr float a = 0.5f;
+	static const int kCubeVertexCount = 8;
+	Vector<Tuple3f, kCubeVertexCount> kCubePos = {
+		{-a, a,-a}, // 0
+		{ a, a,-a}, // 1
+		{ a, a, a}, // 2
+		{-a, a, a}, // 3
+		{-a,-a,-a}, // 4
+		{ a,-a,-a}, // 5
+		{ a,-a, a}, // 6
+		{-a,-a, a}, // 7
+	};
 };
 
 }

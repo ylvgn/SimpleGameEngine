@@ -219,6 +219,7 @@ namespace OGL {
 	inline void glColor(const Color4f& c)		{ ::glColor4f(c.r, c.g, c.b, c.a); }
 	inline void glTexCoord(const Tuple2f& uv)	{ ::glTexCoord2f(uv.x, uv.y); }
 	inline void glVertex(const Tuple3f& pos)	{ ::glVertex3f(pos.x, pos.y, pos.z); }
+	inline void glNormal(const Tuple3f& pos)	{ ::glNormal3f(pos.x, pos.y, pos.z); }
 
 	class ScopedGLBegin {
 	public:
