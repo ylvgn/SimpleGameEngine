@@ -2,15 +2,15 @@
 
 #if SGE_OS_WINDOWS
 
-#include "NeheOGL_Common.h"
+#include "NeHeOGL_Common.h"
 
 namespace sge {
 
-class NeheOGL_NativeUIWindow_Win32 : public NativeUIWindow {
+class NeHeOGL_NativeUIWindow_Win32 : public NativeUIWindow {
 	using Base = NativeUIWindow;
-	using This = NeheOGL_NativeUIWindow_Win32;
+	using This = NeHeOGL_NativeUIWindow_Win32;
 public:
-	~NeheOGL_NativeUIWindow_Win32() {
+	~NeHeOGL_NativeUIWindow_Win32() {
 		destroy();
 	}
 

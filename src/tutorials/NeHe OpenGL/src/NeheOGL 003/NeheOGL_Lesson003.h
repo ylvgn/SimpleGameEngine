@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../NeheOGL_NativeUI.h"
+#include "../NeHeOGL_NativeUI.h"
 
 namespace sge {
 /*
@@ -8,9 +8,9 @@ namespace sge {
 	* FYI: https://nehe.gamedev.net/tutorial/adding_colour/13003/
 */
 
-class NeheOGL_Lesson003 : public NeheOGL_NativeUIWindow {
-	using Base = NeheOGL_NativeUIWindow;
-	using This = NeheOGL_Lesson003;
+class NeHeOGL_Lesson003 : public NeHeOGL_NativeUIWindow {
+	using Base = NeHeOGL_NativeUIWindow;
+	using This = NeHeOGL_Lesson003;
 protected:
 	virtual void onDraw() override;
 private:

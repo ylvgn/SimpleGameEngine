@@ -1,8 +1,8 @@
-#include "NeheOGL_Lesson007.h"
+#include "NeHeOGL_Lesson007.h"
 
 namespace sge {
 
-void NeheOGL_Lesson007::onCreate(CreateDesc& desc) {
+void NeHeOGL_Lesson007::onCreate(CreateDesc& desc) {
 	desc.ownDC = true;
 	Base::onCreate(desc);
 
@@ -75,11 +75,11 @@ void NeheOGL_Lesson007::onCreate(CreateDesc& desc) {
 	glEnable(GL_LIGHT1);									// Enable GL_LIGHT1, when glEnable(GL_LIGHTING), the light will actually work!
 }
 
-void NeheOGL_Lesson007::onDraw() {
+void NeHeOGL_Lesson007::onDraw() {
 	_example1();
 }
 
-void NeheOGL_Lesson007::onUIMouseEvent(UIMouseEvent& ev) {
+void NeHeOGL_Lesson007::onUIMouseEvent(UIMouseEvent& ev) {
 	using Button	= UIMouseEvent::Button;
 	using Type		= UIMouseEvent::Type;
 	using Modifier	= UIEventModifier;
@@ -111,7 +111,7 @@ void NeheOGL_Lesson007::onUIMouseEvent(UIMouseEvent& ev) {
 	}
 }
 
-void NeheOGL_Lesson007::onUIKeyboardEvent(UIKeyboardEvent& ev) {
+void NeHeOGL_Lesson007::onUIKeyboardEvent(UIKeyboardEvent& ev) {
 	using KeyCode = UIKeyboardEvent::KeyCode;
 
 	if (ev.isDown(KeyCode::LeftArrow)) {
@@ -158,7 +158,7 @@ void NeheOGL_Lesson007::onUIKeyboardEvent(UIKeyboardEvent& ev) {
 	}
 }
 
-void NeheOGL_Lesson007::_example1() {
+void NeHeOGL_Lesson007::_example1() {
 	float width  = _clientRect.w;
 	float height = _clientRect.h;
 

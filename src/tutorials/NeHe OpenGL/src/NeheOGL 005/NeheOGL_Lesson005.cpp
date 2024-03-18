@@ -1,8 +1,8 @@
-#include "NeheOGL_Lesson005.h"
+#include "NeHeOGL_Lesson005.h"
 
 namespace sge {
 
-void NeheOGL_Lesson005::onUIMouseEvent(UIMouseEvent& ev) {
+void NeHeOGL_Lesson005::onUIMouseEvent(UIMouseEvent& ev) {
 	using Button = UIMouseEvent::Button;
 
 	switch (ev.pressedButtons) {
@@ -14,14 +14,14 @@ void NeheOGL_Lesson005::onUIMouseEvent(UIMouseEvent& ev) {
 	}
 }
 
-void NeheOGL_Lesson005::onDraw() {
+void NeHeOGL_Lesson005::onDraw() {
 	//_example1();
 	//_example2();
 	//_example3();	// stencil test
 	_example4();	// scissor test
 }
 
-void NeheOGL_Lesson005::_example1() {
+void NeHeOGL_Lesson005::_example1() {
 	auto uptime = static_cast<float>(_uptime.get());
 
 	static constexpr float kRotateSpeed = 90.f;
@@ -58,7 +58,7 @@ void NeheOGL_Lesson005::_example1() {
 	drawNeeded();
 }
 
-void NeheOGL_Lesson005::_wireFrame(float angleInDegrees) {
+void NeHeOGL_Lesson005::_wireFrame(float angleInDegrees) {
 	glLineWidth(2.f);
 
 	{
@@ -110,7 +110,7 @@ void NeheOGL_Lesson005::_wireFrame(float angleInDegrees) {
 	}
 }
 
-void NeheOGL_Lesson005::_shaded(float angleInDegrees) {
+void NeHeOGL_Lesson005::_shaded(float angleInDegrees) {
 	{
 		auto& v = kCone;
 		glLoadIdentity();
@@ -164,7 +164,7 @@ void NeheOGL_Lesson005::_shaded(float angleInDegrees) {
 	}
 }
 
-void NeheOGL_Lesson005::_example2() {
+void NeHeOGL_Lesson005::_example2() {
 	float width = _clientRect.w;
 	float height = _clientRect.h;
 
@@ -218,7 +218,7 @@ void NeheOGL_Lesson005::_example2() {
 	drawNeeded();
 }
 
-void NeheOGL_Lesson005::_cullFace() {
+void NeHeOGL_Lesson005::_cullFace() {
 	//GLint o;
 	//glDisable(GL_CULL_FACE);
 	//glGetIntegerv(GL_CULL_FACE, &o);
@@ -239,7 +239,7 @@ void NeheOGL_Lesson005::_cullFace() {
 	glEnd();
 }
 
-void NeheOGL_Lesson005::_frontFace() {
+void NeHeOGL_Lesson005::_frontFace() {
 	//GLint o;
 	//glFrontFace(GL_CCW);
 	//glGetIntegerv(GL_FRONT_FACE, &o);
@@ -261,7 +261,7 @@ void NeheOGL_Lesson005::_frontFace() {
 	glEnd();
 }
 
-void NeheOGL_Lesson005::_depthTest() {
+void NeHeOGL_Lesson005::_depthTest() {
 	glEnable(GL_DEPTH_TEST);	// comment this line to check depth test
 	glDepthFunc(GL_LESS);		// GL_LESS is default value
 	glDepthRange(0, 1);			// set depth range
@@ -293,7 +293,7 @@ void NeheOGL_Lesson005::_depthTest() {
 	glPopMatrix();
 }
 
-void NeheOGL_Lesson005::_bufferWriteMask() {
+void NeHeOGL_Lesson005::_bufferWriteMask() {
 	{ // depth buffer
 		// if we want enable depth test but we dont want to update depth buffer value
 		glEnable(GL_DEPTH_TEST);
@@ -331,7 +331,7 @@ void NeheOGL_Lesson005::_bufferWriteMask() {
 	glColorMask(1, 1, 1, 1);
 }
 
-void NeheOGL_Lesson005::_zFight() {
+void NeHeOGL_Lesson005::_zFight() {
 
 #define SGE_SOLUTION 2
 	// 0: the problem
@@ -382,7 +382,7 @@ void NeheOGL_Lesson005::_zFight() {
 #undef SGE_SOLUTION
 }
 
-void NeheOGL_Lesson005::_example3() {
+void NeHeOGL_Lesson005::_example3() {
 	// FYI: https://learnopengl.com/Advanced-OpenGL/Stencil-testing
 
 	float width  = _clientRect.w;
@@ -501,7 +501,7 @@ void NeheOGL_Lesson005::_example3() {
 	drawNeeded();
 }
 
-void NeheOGL_Lesson005::_example4() {
+void NeHeOGL_Lesson005::_example4() {
 	float width  = _clientRect.w;
 	float height = _clientRect.h;
 

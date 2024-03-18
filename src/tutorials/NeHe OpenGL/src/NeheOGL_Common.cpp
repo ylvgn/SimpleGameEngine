@@ -1,4 +1,4 @@
-#include "NeheOGL_Common.h"
+#include "NeHeOGL_Common.h"
 #include "externals/stb_image.h"
 
 namespace sge {

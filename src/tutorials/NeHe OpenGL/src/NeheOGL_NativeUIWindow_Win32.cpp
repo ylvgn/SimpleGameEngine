@@ -1,17 +1,17 @@
 #if SGE_OS_WINDOWS
 
-#include "NeheOGL_NativeUIWindow_Win32.h"
+#include "NeHeOGL_NativeUIWindow_Win32.h"
 
 namespace sge {
 
-void NeheOGL_NativeUIWindow_Win32::onCreate(CreateDesc& desc) {
+void NeHeOGL_NativeUIWindow_Win32::onCreate(CreateDesc& desc) {
 	desc.ownDC = true;
 	Base::onCreate(desc);
 
 	_initGL();
 }
 
-void NeheOGL_NativeUIWindow_Win32::_initGL() {
+void NeHeOGL_NativeUIWindow_Win32::_initGL() {
 	_dc = ::GetDC(_hwnd);
 	if (!_dc)
 		throw SGE_ERROR("GetDC");
@@ -67,7 +67,7 @@ void NeheOGL_NativeUIWindow_Win32::_initGL() {
 	makeCurrent();
 }
 
-void NeheOGL_NativeUIWindow_Win32::destroy() {
+void NeHeOGL_NativeUIWindow_Win32::destroy() {
 	if (_rc) {
 		::wglMakeCurrent(nullptr, nullptr);
 		::wglDeleteContext(_rc);
@@ -87,19 +87,19 @@ void NeheOGL_NativeUIWindow_Win32::destroy() {
 #endif
 }
 
-void NeheOGL_NativeUIWindow_Win32::makeCurrent() {
+void NeHeOGL_NativeUIWindow_Win32::makeCurrent() {
 	if (_rc) {
 		if (!::wglMakeCurrent(_dc, _rc))
 			throw SGE_ERROR("makeCurrent");
 	}
 }
 
-void NeheOGL_NativeUIWindow_Win32::swapBuffers() {
+void NeHeOGL_NativeUIWindow_Win32::swapBuffers() {
 	if (_dc)
 		::SwapBuffers(_dc);
 }
 
-void NeheOGL_NativeUIWindow_Win32::onCloseButton() {
+void NeHeOGL_NativeUIWindow_Win32::onCloseButton() {
 	//destroy(); maybe no need ???
 	NativeUIApp::current()->quit(0);
 }

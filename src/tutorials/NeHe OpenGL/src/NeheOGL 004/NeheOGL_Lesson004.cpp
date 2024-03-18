@@ -1,14 +1,14 @@
-#include "NeheOGL_Lesson004.h"
+#include "NeHeOGL_Lesson004.h"
 
 namespace sge {
 
-void NeheOGL_Lesson004::onDraw() {
+void NeHeOGL_Lesson004::onDraw() {
 	auto uptime = static_cast<float>(_uptime.get());
 	_example1(uptime);
 	//_example2(uptime);
 }
 
-void NeheOGL_Lesson004::_example1(float upTime) {
+void NeHeOGL_Lesson004::_example1(float upTime) {
 	glViewport(0, 0, static_cast<int>(_clientRect.w), static_cast<int>(_clientRect.h));
 	glClearColor(0.f, 0.2f, 0.2f, 0.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -28,7 +28,7 @@ void NeheOGL_Lesson004::_example1(float upTime) {
 	drawNeeded();
 }
 
-void NeheOGL_Lesson004::_example1_rotateTheory(float upTime) {
+void NeHeOGL_Lesson004::_example1_rotateTheory(float upTime) {
 	float angle = upTime * 90.0f;
 
 	float x = 0.3f;
@@ -49,7 +49,7 @@ void NeheOGL_Lesson004::_example1_rotateTheory(float upTime) {
 	glEnd();
 }
 
-void NeheOGL_Lesson004::_example1_rotateInOpenGL(float upTime) {
+void NeHeOGL_Lesson004::_example1_rotateInOpenGL(float upTime) {
 	float angleInDegrees = upTime * 90.0f;
 
 	float d = 0.1f;
@@ -84,7 +84,7 @@ void NeheOGL_Lesson004::_example1_rotateInOpenGL(float upTime) {
 	}
 }
 
-void NeheOGL_Lesson004::_example2(float upTime) {
+void NeHeOGL_Lesson004::_example2(float upTime) {
 	float angleInDegrees = upTime * 90.0f;
 
 	float width  = _clientRect.w;

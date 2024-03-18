@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../NeheOGL_NativeUI.h"
+#include "../NeHeOGL_NativeUI.h"
 
 namespace sge {
 /*
@@ -8,14 +8,14 @@ namespace sge {
 	* FYI: https://nehe.gamedev.net/tutorial/texture_mapping/12038/
 */
 
-class NeheOGL_Lesson006 : public NeheOGL_NativeUIWindow {
-	using Base = NeheOGL_NativeUIWindow;
-	using This = NeheOGL_Lesson006;
+class NeHeOGL_Lesson006 : public NeHeOGL_NativeUIWindow {
+	using Base = NeHeOGL_NativeUIWindow;
+	using This = NeHeOGL_Lesson006;
 
 	static const int kTexture2dCount = 2;
 
 public:
-	~NeheOGL_Lesson006() {
+	~NeHeOGL_Lesson006() {
 		glDeleteTextures(1, &_texture2d);
 		glDeleteTextures(kTexture2dCount, _texture2ds);
 	}

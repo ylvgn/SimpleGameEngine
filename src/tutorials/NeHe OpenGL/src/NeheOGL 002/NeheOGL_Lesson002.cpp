@@ -1,14 +1,14 @@
-#include "NeheOGL_Lesson002.h"
+#include "NeHeOGL_Lesson002.h"
 
 namespace sge {
 
-void NeheOGL_Lesson002::onDraw() {
+void NeHeOGL_Lesson002::onDraw() {
 	//_example1();
 	//_example2();
 	_example3();
 }
 
-void NeheOGL_Lesson002::_example1() {
+void NeHeOGL_Lesson002::_example1() {
 	glViewport(0, 0, static_cast<int>(_clientRect.w), static_cast<int>(_clientRect.h));
 
 	glClearColor(0.f, 0.2f, 0.2f, 0.f);
@@ -44,7 +44,7 @@ void NeheOGL_Lesson002::_example1() {
 	swapBuffers();
 }
 
-void NeheOGL_Lesson002::_example2() {
+void NeHeOGL_Lesson002::_example2() {
 	float width  = _clientRect.w;
 	float height = _clientRect.h;
 
@@ -97,7 +97,7 @@ void NeheOGL_Lesson002::_example2() {
 	swapBuffers();
 }
 
-void NeheOGL_Lesson002::_example3() {
+void NeHeOGL_Lesson002::_example3() {
 	glViewport(0, 0, static_cast<int>(_clientRect.w), static_cast<int>(_clientRect.h));
 
 	glClearColor(0.f, 0.2f, 0.2f, 0.f);

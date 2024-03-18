@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../NeheOGL_NativeUI.h"
+#include "../NeHeOGL_NativeUI.h"
 
 namespace sge {
 /*
@@ -8,20 +8,20 @@ namespace sge {
 	* FYI: https://nehe.gamedev.net/tutorial/texture_filters,_lighting_&_keyboard_control/15002/
 */
 
-class NeheOGL_Lesson007 : public NeheOGL_NativeUIWindow {
-	using Base = NeheOGL_NativeUIWindow;
-	using This = NeheOGL_Lesson007;
+class NeHeOGL_Lesson007 : public NeHeOGL_NativeUIWindow {
+	using Base = NeHeOGL_NativeUIWindow;
+	using This = NeHeOGL_Lesson007;
 
 	static const int kTexture2dCount = 3;
 
 public:
-	NeheOGL_Lesson007() : Base()
+	NeHeOGL_Lesson007() : Base()
 		, _isOnLight(true)
 		, _isPressedL(false)
 		, _isPressedF(false)
 	{}
 
-	~NeheOGL_Lesson007() {
+	~NeHeOGL_Lesson007() {
 		glDeleteTextures(kTexture2dCount, _texture2ds);
 	}
 

@@ -1,8 +1,8 @@
-#include "NeheOGL_Lesson001.h"
+#include "NeHeOGL_Lesson001.h"
 
 namespace sge {
 
-void NeheOGL_Lesson001::onDraw() {
+void NeHeOGL_Lesson001::onDraw() {
 	// SGE_LOG("onDraw\n");
 
 	// glViewport's coordinate is same as GDI: origin left-top(0,0), right-bottom(width,height)

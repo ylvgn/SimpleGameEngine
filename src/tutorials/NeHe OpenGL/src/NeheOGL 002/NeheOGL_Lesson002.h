@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../NeheOGL_NativeUI.h"
+#include "../NeHeOGL_NativeUI.h"
 
 namespace sge {
 /*
@@ -8,9 +8,9 @@ namespace sge {
 	* FYI: https://nehe.gamedev.net/tutorial/your_first_polygon/13002/
 */
 
-class NeheOGL_Lesson002 : public NeheOGL_NativeUIWindow {
-	using Base = NeheOGL_NativeUIWindow;
-	using This = NeheOGL_Lesson002;
+class NeHeOGL_Lesson002 : public NeHeOGL_NativeUIWindow {
+	using Base = NeHeOGL_NativeUIWindow;
+	using This = NeHeOGL_Lesson002;
 protected:
 	virtual void onDraw() override;
 private:

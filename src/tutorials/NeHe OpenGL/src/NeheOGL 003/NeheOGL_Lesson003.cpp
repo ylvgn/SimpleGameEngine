@@ -1,13 +1,13 @@
-#include "NeheOGL_Lesson003.h"
+#include "NeHeOGL_Lesson003.h"
 
 namespace sge {
 
-void NeheOGL_Lesson003::onDraw() {
+void NeHeOGL_Lesson003::onDraw() {
 	//_example1();
 	_example2();
 }
 
-void NeheOGL_Lesson003::_example1() {
+void NeHeOGL_Lesson003::_example1() {
 	float width = _clientRect.w;
 	float height = _clientRect.h;
 
@@ -51,7 +51,7 @@ void NeheOGL_Lesson003::_example1() {
 	swapBuffers();
 }
 
-void NeheOGL_Lesson003::_example2() {
+void NeHeOGL_Lesson003::_example2() {
 	glViewport(0, 0, static_cast<int>(_clientRect.w), static_cast<int>(_clientRect.h));
 
 	glMatrixMode(GL_PROJECTION);

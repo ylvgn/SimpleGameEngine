@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../NeheOGL_NativeUI.h"
+#include "../NeHeOGL_NativeUI.h"
 
 namespace sge {
 /*
@@ -8,9 +8,9 @@ namespace sge {
 	* FYI: https://nehe.gamedev.net/tutorial/3d_shapes/10035/
 */
 
-class NeheOGL_Lesson005 : public NeheOGL_NativeUIWindow {
-	using Base = NeheOGL_NativeUIWindow;
-	using This = NeheOGL_Lesson005;
+class NeHeOGL_Lesson005 : public NeHeOGL_NativeUIWindow {
+	using Base = NeHeOGL_NativeUIWindow;
+	using This = NeHeOGL_Lesson005;
 protected:
 	virtual void onUIMouseEvent(UIMouseEvent& ev) override;
 	virtual void onDraw() override;

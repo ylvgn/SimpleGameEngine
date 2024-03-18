@@ -1,16 +1,16 @@
-#include "NeheOGL 001/NeheOGL_Lesson001.h"
-#include "NeheOGL 002/NeheOGL_Lesson002.h"
-#include "NeheOGL 003/NeheOGL_Lesson003.h"
-#include "NeheOGL 004/NeheOGL_Lesson004.h"
-#include "NeheOGL 005/NeheOGL_Lesson005.h"
-#include "NeheOGL 006/NeheOGL_Lesson006.h"
-#include "NeheOGL 007/NeheOGL_Lesson007.h"
+#include "NeheOGL 001/NeHeOGL_Lesson001.h"
+#include "NeheOGL 002/NeHeOGL_Lesson002.h"
+#include "NeheOGL 003/NeHeOGL_Lesson003.h"
+#include "NeheOGL 004/NeHeOGL_Lesson004.h"
+#include "NeheOGL 005/NeHeOGL_Lesson005.h"
+#include "NeheOGL 006/NeHeOGL_Lesson006.h"
+#include "NeheOGL 007/NeHeOGL_Lesson007.h"
 
 namespace sge {
 
-class NeheOGLApp : public NativeUIApp {
+class NeHeOGLApp : public NativeUIApp {
 	using Base = NativeUIApp;
-	using NeheOGLMainWin = NeheOGL_Lesson007;
+	using NeHeOGLMainWin = NeHeOGL_Lesson007;
 protected:
 	virtual void onCreate(CreateDesc& desc) override {
 		{ // set working dir
@@ -34,14 +34,14 @@ protected:
 	}
 
 private:
-	NeheOGLMainWin _mainWin;
+	NeHeOGLMainWin _mainWin;
 };
 
 }
 
 int main(int argc, const TCHAR** argv) {
-	sge::NeheOGLApp app;
-	sge::NeheOGLApp::CreateDesc appDesc;
+	sge::NeHeOGLApp app;
+	sge::NeHeOGLApp::CreateDesc appDesc;
 	app.run(appDesc);
 
 	return 0;

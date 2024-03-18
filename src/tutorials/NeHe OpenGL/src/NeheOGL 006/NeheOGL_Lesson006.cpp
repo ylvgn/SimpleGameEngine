@@ -1,8 +1,8 @@
-#include "NeheOGL_Lesson006.h"
+#include "NeHeOGL_Lesson006.h"
 
 namespace sge {
 
-void NeheOGL_Lesson006::onCreate(CreateDesc& desc) {
+void NeHeOGL_Lesson006::onCreate(CreateDesc& desc) {
 	float d = 1.0f;
 //------------------------------------------
 //		  0--------1
@@ -63,7 +63,7 @@ void NeheOGL_Lesson006::onCreate(CreateDesc& desc) {
 	}
 }
 
-void NeheOGL_Lesson006::onDraw() {
+void NeHeOGL_Lesson006::onDraw() {
 	float uptime = static_cast<float>(_uptime.get() * 90.f);
 	//_example1(uptime);
 	//_example2(uptime);
@@ -71,7 +71,7 @@ void NeheOGL_Lesson006::onDraw() {
 }
 
 #if SGE_OS_WINDOWS
-void NeheOGL_Lesson006::_loadByHBITMAP(MyImage& o, StrView filename) {
+void NeHeOGL_Lesson006::_loadByHBITMAP(MyImage& o, StrView filename) {
 	// Loads A Bitmap Image
 
 	// a few VERY important things you need to know about the images you plan to use as textures
@@ -140,7 +140,7 @@ void NeheOGL_Lesson006::_loadByHBITMAP(MyImage& o, StrView filename) {
 }
 #endif
 
-void NeheOGL_Lesson006::_loadTexture2D(StrView filename, MyImage& img, GLuint targetTexture) {
+void NeHeOGL_Lesson006::_loadTexture2D(StrView filename, MyImage& img, GLuint targetTexture) {
 #if 0 && SGE_OS_WINDOWS
 	_loadByHBITMAP(img, filename);
 #else
@@ -167,7 +167,7 @@ void NeheOGL_Lesson006::_loadTexture2D(StrView filename, MyImage& img, GLuint ta
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void NeheOGL_Lesson006::onUIMouseEvent(UIMouseEvent& ev) {
+void NeHeOGL_Lesson006::onUIMouseEvent(UIMouseEvent& ev) {
 	using Button	= UIMouseEvent::Button;
 	using Type		= UIMouseEvent::Type;
 	using Modifier	= UIEventModifier;
@@ -198,11 +198,11 @@ void NeheOGL_Lesson006::onUIMouseEvent(UIMouseEvent& ev) {
 	}
 }
 
-void NeheOGL_Lesson006::_addCameraOrbitAngle(const Vec2f& deltaAngle) {
+void NeHeOGL_Lesson006::_addCameraOrbitAngle(const Vec2f& deltaAngle) {
 	_camerOrbitAngle += deltaAngle;
 }
 
-void NeheOGL_Lesson006::_example1(float uptime) {
+void NeHeOGL_Lesson006::_example1(float uptime) {
 	float angleInDegrees = uptime;
 
 	float width = _clientRect.w;
@@ -272,7 +272,7 @@ void NeheOGL_Lesson006::_example1(float uptime) {
 	drawNeeded();
 }
 
-void NeheOGL_Lesson006::_example2(float uptime) {
+void NeHeOGL_Lesson006::_example2(float uptime) {
 	float angleInDegrees = uptime;
 	auto tex = _texture2ds[1];
 
@@ -301,7 +301,7 @@ void NeheOGL_Lesson006::_example2(float uptime) {
 	drawNeeded();
 }
 
-void NeheOGL_Lesson006::_example3(float uptime) {
+void NeHeOGL_Lesson006::_example3(float uptime) {
 	float angleInDegrees = uptime;
 
 	auto tex0 = _texture2ds[0];
