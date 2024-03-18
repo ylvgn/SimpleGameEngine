@@ -43,8 +43,7 @@ void NeheOGL_NativeUIWindow_Win32::_initGL() {
 		// BYTE  cAccumBlueBits;
 		// BYTE  cAccumAlphaBits;
 	pfd.cDepthBits = 32; // 32 bits Z-Buffer (Depth Buffer)
-	// No Stencil Buffer
-		// BYTE  cStencilBits;
+	pfd.cStencilBits = 8; // 8 bits Stencil Buffer
 	// No Auxiliary Buffer
 		// BYTE  cAuxBuffers;
 	pfd.iLayerType = PFD_MAIN_PLANE; // Main Drawing Layer

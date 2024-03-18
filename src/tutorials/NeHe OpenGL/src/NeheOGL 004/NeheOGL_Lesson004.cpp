@@ -50,7 +50,7 @@ void NeheOGL_Lesson004::_example1_rotateTheory(float upTime) {
 }
 
 void NeheOGL_Lesson004::_example1_rotateInOpenGL(float upTime) {
-	float angle = upTime * 90.0f;
+	float angleInDegrees = upTime * 90.0f;
 
 	float d = 0.1f;
 	{
@@ -61,8 +61,8 @@ void NeheOGL_Lesson004::_example1_rotateInOpenGL(float upTime) {
 			{ d, -d }, // 3
 		};
 	
-		glRotatef(angle, 0, 0, 1);
-		glTranslated(0.5f, 0, 0);
+		glRotatef(angleInDegrees, 0, 0, 1);
+		glTranslatef(0.5f, 0, 0);
 		glBegin(GL_QUADS);
 			OGL::glColor(OGL::kRed); glVertex2fv(v[0]); glVertex2fv(v[1]); glVertex2fv(v[2]); glVertex2fv(v[3]);
 		glEnd();
@@ -76,8 +76,8 @@ void NeheOGL_Lesson004::_example1_rotateInOpenGL(float upTime) {
 			{-d, -d }, // 2
 			{ d, -d }, // 3
 		};
-		glRotatef(angle, 0, 0, 1);
-		glTranslated(-0.2f, 0, 0);
+		glRotatef(angleInDegrees, 0, 0, 1);
+		glTranslatef(-0.2f, 0, 0);
 		glBegin(GL_QUADS);
 			OGL::glColor(OGL::kBlue); glVertex2fv(v[0]); glVertex2fv(v[1]); glVertex2fv(v[2]); glVertex2fv(v[3]);
 		glEnd();
@@ -85,7 +85,7 @@ void NeheOGL_Lesson004::_example1_rotateInOpenGL(float upTime) {
 }
 
 void NeheOGL_Lesson004::_example2(float upTime) {
-	float angle = upTime * 90.0f;
+	float angleInDegrees = upTime * 90.0f;
 
 	float width  = _clientRect.w;
 	float height = _clientRect.h;
@@ -109,7 +109,7 @@ void NeheOGL_Lesson004::_example2(float upTime) {
 
 	glLoadIdentity();
 	glTranslatef(-1.5f, 0.f, -6.f);
-	glRotatef(angle, 0.0f, 1.0f, 0.0f);	// Rotate The Triangle On The Y axis
+	glRotatef(angleInDegrees, 0.0f, 1.0f, 0.0f);	// Rotate The Triangle On The Y axis
 	float d = 0.5f;
 	glBegin(GL_TRIANGLES);
 		OGL::glColor(OGL::kRed);	glVertex3f( 0,  d, 0);
@@ -119,7 +119,7 @@ void NeheOGL_Lesson004::_example2(float upTime) {
 
 	glLoadIdentity();
 	glTranslatef(1.f, 0.f, -6.0f);
-	glRotatef(angle, 1.0f, 0.0f, 0.0f); // Rotate The Quad On The X axis
+	glRotatef(angleInDegrees, 1.0f, 0.0f, 0.0f); // Rotate The Quad On The X axis
 	glColor3f(0.5f, 0.5f, 1.0f);
 	glBegin(GL_QUADS);
 		glVertex3f(-d,  d, 0);

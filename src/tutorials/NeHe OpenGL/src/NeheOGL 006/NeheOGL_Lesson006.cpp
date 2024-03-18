@@ -203,7 +203,7 @@ void NeheOGL_Lesson006::_addCameraOrbitAngle(const Vec2f& deltaAngle) {
 }
 
 void NeheOGL_Lesson006::_example1(float uptime) {
-	float angle = uptime;
+	float angleInDegrees = uptime;
 
 	float width = _clientRect.w;
 	float height = _clientRect.h;
@@ -230,7 +230,7 @@ void NeheOGL_Lesson006::_example1(float uptime) {
 		glLoadIdentity();
 
 	glTranslatef(0.0f,0.0f,-5.0f); // Move Into The Screen 5 Units
-	glRotatef(angle, 1.0f,1.0f,1.0f);
+	glRotatef(angleInDegrees, 1,1,1);
 
 	glBindTexture(GL_TEXTURE_2D, _texture2d); // Select Our Texture, call it before glBegin/glEnd scope
 
@@ -273,7 +273,7 @@ void NeheOGL_Lesson006::_example1(float uptime) {
 }
 
 void NeheOGL_Lesson006::_example2(float uptime) {
-	float angle = uptime;
+	float angleInDegrees = uptime;
 	auto tex = _texture2ds[1];
 
 	glViewport(0, 0, static_cast<int>(_clientRect.w), static_cast<int>(_clientRect.h));
@@ -292,7 +292,7 @@ void NeheOGL_Lesson006::_example2(float uptime) {
 		glLoadIdentity();
 
 	glTranslatef(0,0,-5);
-	glRotatef(angle, 1,1,1);
+	glRotatef(angleInDegrees, 1,1,1);
 
 	glBindTexture(GL_TEXTURE_2D, tex);
 	_mesh.bind();
@@ -302,7 +302,7 @@ void NeheOGL_Lesson006::_example2(float uptime) {
 }
 
 void NeheOGL_Lesson006::_example3(float uptime) {
-	float angle = uptime;
+	float angleInDegrees = uptime;
 
 	auto tex0 = _texture2ds[0];
 	auto tex1 = _texture2ds[1];
@@ -328,7 +328,7 @@ void NeheOGL_Lesson006::_example3(float uptime) {
 		glLoadIdentity();
 
 	glTranslatef(0, 0, -5);
-	glRotatef(angle, 1,1,1);
+	glRotatef(angleInDegrees, 1, 1, 1);
 
 	int i = 0;
 	float s = 1.f / 16.f;

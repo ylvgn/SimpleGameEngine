@@ -216,10 +216,13 @@ namespace OGL {
 	static constexpr Color4f kCyan				{ 0.0f, 1.0f, 1.0f, 1.0f };
 	static constexpr Color4f kOrange			{ 1.0f, 0.5f, 0.0f, 1.0f };
 
-	inline void glColor(const Color4f& c)		{ ::glColor4f(c.r, c.g, c.b, c.a); }
-	inline void glTexCoord(const Tuple2f& uv)	{ ::glTexCoord2f(uv.x, uv.y); }
-	inline void glVertex(const Tuple3f& pos)	{ ::glVertex3f(pos.x, pos.y, pos.z); }
-	inline void glNormal(const Tuple3f& pos)	{ ::glNormal3f(pos.x, pos.y, pos.z); }
+	inline void glColor(const Color4f& c)					{ ::glColor4f(c.r, c.g, c.b, c.a); }
+	inline void glTexCoord(const Tuple2f& uv)				{ ::glTexCoord2f(uv.x, uv.y); }
+	inline void glVertex(const Tuple3f& pos)				{ ::glVertex3f(pos.x, pos.y, pos.z); }
+	inline void glNormal(const Tuple3f& pos)				{ ::glNormal3f(pos.x, pos.y, pos.z); }
+	inline void glTranslate(const Tuple3f& pos)				{ ::glTranslatef(pos.x, pos.y, pos.z); }
+	inline void glRotate(float degrees, const Tuple3f& pos)	{ ::glRotatef(degrees, pos.x, pos.y, pos.z); }
+	inline void glScale(const Tuple3f& pos)					{ ::glScalef(pos.x, pos.y, pos.z); }
 
 	class ScopedGLBegin {
 	public:
