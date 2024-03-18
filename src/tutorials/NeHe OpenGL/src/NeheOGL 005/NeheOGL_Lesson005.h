@@ -12,11 +12,23 @@ class NeheOGL_Lesson005 : public NeheOGL_NativeUIWindow {
 	using Base = NeheOGL_NativeUIWindow;
 	using This = NeheOGL_Lesson005;
 protected:
+	virtual void onUIMouseEvent(UIMouseEvent& ev) override;
 	virtual void onDraw() override;
 private:
-	void _example(float uptime, bool bWireframe);
-	void _shaded(float angle);
-	void _wireFrame(float angle);
+
+	void _example1();
+	void _shaded(float angleInDegrees);
+	void _wireFrame(float angleInDegrees);
+
+	void _example2();
+	void _cullFace();
+	void _frontFace();
+	void _depthTest();
+	void _bufferWriteMask();
+	void _zFight();
+
+	void _example3();
+	void _example4();
 
 	static constexpr float d = 1;
 
@@ -41,17 +53,20 @@ private:
 //      |/       |/
 //      7--------6
 	static constexpr float kCube[8][3] = {
-		{-d,  d, -d}, // 0
-		{ d,  d, -d}, // 1
-		{ d,  d,  d}, // 2
-		{-d,  d,  d}, // 3
-		{-d, -d, -d}, // 4
-		{ d, -d, -d}, // 5
-		{ d, -d,  d}, // 6
-		{-d, -d,  d}, // 7
+		{-d, d,-d}, // 0
+		{ d, d,-d}, // 1
+		{ d, d, d}, // 2
+		{-d, d, d}, // 3
+		{-d,-d,-d}, // 4
+		{ d,-d,-d}, // 5
+		{ d,-d, d}, // 6
+		{-d,-d, d}, // 7
 	};
 
 	MyHiResTimer _uptime;
+
+	float _cameraX = 30;
+	float _cameraY = 30;
 };
 
 }
