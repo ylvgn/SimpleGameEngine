@@ -176,7 +176,7 @@ LRESULT WINAPI NativeUIWindow_Win32::s_wndProc(HWND hwnd, UINT msg, WPARAM wPara
 			auto cs = reinterpret_cast<CREATESTRUCT*>(lParam);
 			auto* thisObj = static_cast<This*>(cs->lpCreateParams);
 			thisObj->_hwnd = hwnd;
-			::SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)thisObj);
+			::SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(thisObj));
 		}break;
 
 		case WM_DESTROY: {

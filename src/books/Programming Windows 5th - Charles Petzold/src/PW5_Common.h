@@ -28,9 +28,9 @@ template<class T> inline void g_bzero(T& s) {
 }
 
 class PW5_NativeUIWindow;
+
 class DefineMark : public NonCopyable {
 public:
-	using NativeUIWindow = PW5_NativeUIWindow;
 
 	struct Item {
 		Item(int id_, const char* name_, const char* mark_)
@@ -43,33 +43,20 @@ public:
 		const char* mark = "";
 	};
 
-	using Getter = void (*)(void* v, const Item& item, const NativeUIWindow* obj);
+	using NativeUIWindow = PW5_NativeUIWindow;
+	using Getter = void (*)(int& v, const Item& item, const NativeUIWindow* obj);
 
-	void io(u8&  v, const Item& item, const NativeUIWindow* obj) { toValue(v, item, obj); }
-	void io(u16& v, const Item& item, const NativeUIWindow* obj) { toValue(v, item, obj); }
-	void io(u32& v, const Item& item, const NativeUIWindow* obj) { toValue(v, item, obj); }
-	void io(u64& v, const Item& item, const NativeUIWindow* obj) { toValue(v, item, obj); }
-
-	void io(i8&  v, const Item& item, const NativeUIWindow* obj) { toValue(v, item, obj); }
-	void io(i16& v, const Item& item, const NativeUIWindow* obj) { toValue(v, item, obj); }
-	void io(i32& v, const Item& item, const NativeUIWindow* obj) { toValue(v, item, obj); }
-	void io(i64& v, const Item& item, const NativeUIWindow* obj) { toValue(v, item, obj); }
+	void invoke(int& v, const Item& item, const NativeUIWindow* obj) const {
+		if (_getter) _getter(v, item, obj);
+	}
 
 	const Span<const Item> data() const { return _data; }
 
 protected:
-	template <size_t N, typename V>
-	void set(const Item(&data)[N],
-		void (*getter)(V& v, const Item& item, const NativeUIWindow* obj) = nullptr)
-	{
+	template <size_t N>
+	void set(const Item(&data)[N], Getter getter = nullptr) {
 		_data = data;
-		_getter = reinterpret_cast<Getter>(getter);
-	}
-
-	template <typename V>
-	void toValue(V& v, const Item& item, const NativeUIWindow* obj) const {
-		if (_getter)
-			_getter(&v, item, obj);
+		_getter = getter;
 	}
 
 private:

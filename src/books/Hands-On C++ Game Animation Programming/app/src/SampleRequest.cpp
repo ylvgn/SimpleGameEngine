@@ -20,7 +20,7 @@ void SampleRequest::reset(SampleType sampleType_ /*= SampleType::None*/) {
 	bShowToeAdjustRayCast	= false;
 	bIsCameraFollow			= false;
 
-	camera.setProjectionType(Math::CameraProjectionType::Perpective);
+	camera.setProjectionType(Math::CameraProjectionType::Perspective);
 	camera.setPos(0, 0,-5);
 	camera.setAim(0, 0, 0);
 	camera.setUp (0, 1, 0);

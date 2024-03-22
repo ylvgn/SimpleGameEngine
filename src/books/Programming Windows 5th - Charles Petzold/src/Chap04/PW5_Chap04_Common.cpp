@@ -137,16 +137,30 @@ void PW5_MyDefineMarkWindow::onClientRectChanged(const Rect2f& rc) {
 }
 
 void PW5_MyDefineMarkWindow::onUIScrollBarEvent(UIScrollBarEvent& ev) {
-	::UpdateWindow(_hwnd); // drawNeeded();
+	drawNeeded(); // ::UpdateWindow(_hwnd);
+}
+
+void PW5_MyDefineMarkWindow::onUIMouseEvent(UIMouseEvent& ev) {
+	if (ev.isScroll()) {
+		auto d = ev.scroll * 0.015f;
+		if (_clientRect.w < _hScrollInfo->rangeMax()) {
+			_hScrollInfo->setPos(_hScrollInfo->pos() + static_cast<int>(_cxChar * d.x));
+			drawNeeded();
+		}
+		if (_clientRect.h < _vScrollInfo->rangeMax()) {
+			_vScrollInfo->setPos(_vScrollInfo->pos() + static_cast<int>(_cyChar * -d.y));
+			drawNeeded();
+		}
+	}
 }
 
 void PW5_MyDefineMarkWindow::onDraw() {
 	SGE_ASSERT(_dm != nullptr);
 
 	ScopedGetDC hdc(_hwnd);
+	hdc.clearBg();
 
 	const auto& sysmetrics = _dm->data();
-	hdc.clearBg();
 
 	int offsetY;
 	_vScrollInfo->getPos(_hwnd, offsetY);
@@ -157,7 +171,7 @@ void PW5_MyDefineMarkWindow::onDraw() {
 	DefineMark* dm = constCast(_dm);
 
 	int i = 0;
-	int out;
+	int outValue;
 
 	for (auto& item : sysmetrics) {
 		int x = 0 - offsetX;
@@ -171,8 +185,8 @@ void PW5_MyDefineMarkWindow::onDraw() {
 		hdc.setTextAlign(PW5_TextAlignmentOption::Right | PW5_TextAlignmentOption::Top);
 		x += 40 * _cxChar;
 
-		dm->io(out, item, this);
-		hdc.Fmt_textOut(x, y, "{:5d}", out);
+		dm->invoke(outValue, item, this);
+		hdc.Fmt_textOut(x, y, "{:5d}", outValue);
 
 		hdc.setTextAlign(PW5_TextAlignmentOption::Left | PW5_TextAlignmentOption::Top); // reset text align
 		++i;

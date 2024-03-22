@@ -7,8 +7,8 @@
 namespace sge {
 namespace Math {
 
-enum class CameraProjectionType {
-	Perpective,
+enum class CameraProjectionType : u8 {
+	Perspective,
 	Orthogrphic,
 };
 SGE_ENUM_ALL_OPERATOR(CameraProjectionType)
@@ -68,6 +68,7 @@ struct Camera3 {
 	Frustum3 frustum() const { Frustum3 o; o.setByViewProjMatrix(viewProjMatrix()); return o; };
 
 private:
+	Type	_type		= Type::Perspective;
 	T		_size		= T(1.0);
 	T		_fov		= T(50.0);
 	T		_nearClip	= T(0.1);
@@ -76,7 +77,6 @@ private:
 	Vec3	_pos {150, 150, 200};
 	Vec3	_aim {0,0,0};
 	Vec3	_up  {0,1,0};
-	Type	_type = Type::Perpective;
 };
 
 using Camera3f = Camera3<float>;

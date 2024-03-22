@@ -14,7 +14,7 @@ void NeHeOGL_NativeUIWindow_Win32::onCreate(CreateDesc& desc) {
 void NeHeOGL_NativeUIWindow_Win32::_initGL() {
 	_dc = ::GetDC(_hwnd);
 	if (!_dc)
-		throw SGE_ERROR("GetDC");
+		throw SGE_ERROR("_initGL GetDC");
 
 	PIXELFORMATDESCRIPTOR pfd;		// pfd Tells Windows How We Want Things To Be
 	g_bzero(pfd);
@@ -42,8 +42,8 @@ void NeHeOGL_NativeUIWindow_Win32::_initGL() {
 		// BYTE  cAccumGreenBits;
 		// BYTE  cAccumBlueBits;
 		// BYTE  cAccumAlphaBits;
-	pfd.cDepthBits = 32; // 32 bits Z-Buffer (Depth Buffer)
-	pfd.cStencilBits = 8; // 8 bits Stencil Buffer
+	pfd.cDepthBits = 32;			// 32 bits Z-Buffer(Depth Buffer)
+	pfd.cStencilBits = 8;			// 8 bits Stencil Buffer
 	// No Auxiliary Buffer
 		// BYTE  cAuxBuffers;
 	pfd.iLayerType = PFD_MAIN_PLANE; // Main Drawing Layer
@@ -67,26 +67,6 @@ void NeHeOGL_NativeUIWindow_Win32::_initGL() {
 	makeCurrent();
 }
 
-void NeHeOGL_NativeUIWindow_Win32::destroy() {
-	if (_rc) {
-		::wglMakeCurrent(nullptr, nullptr);
-		::wglDeleteContext(_rc);
-		_rc = nullptr;
-	}
-
-	if (_dc) {
-		::ReleaseDC(_hwnd, _dc);
-		_dc = nullptr;
-	}
-
-#if 0 // maybe no need ???
-	if (_hwnd) {
-		::DestroyWindow(_hwnd);
-		_hwnd = nullptr;
-	}
-#endif
-}
-
 void NeHeOGL_NativeUIWindow_Win32::makeCurrent() {
 	if (_rc) {
 		if (!::wglMakeCurrent(_dc, _rc))
@@ -99,8 +79,34 @@ void NeHeOGL_NativeUIWindow_Win32::swapBuffers() {
 		::SwapBuffers(_dc);
 }
 
+void NeHeOGL_NativeUIWindow_Win32::clearGL() {
+	if (_rc) {
+		::wglMakeCurrent(nullptr, nullptr);
+		::wglDeleteContext(_rc);
+		_rc = nullptr;
+	}
+	if (_dc) {
+		SGE_ASSERT(_hwnd != nullptr);
+		::ReleaseDC(_hwnd, _dc);
+		_dc = nullptr;
+	}
+}
+
+void NeHeOGL_NativeUIWindow_Win32::closeWindow() {
+#if 0 // not good, but unknown why
+	clearGL();
+	if (_hwnd) {
+		::DestroyWindow(_hwnd);
+	}
+#endif
+}
+
+void NeHeOGL_NativeUIWindow_Win32::_destroy() {
+	clearGL();
+}
+
 void NeHeOGL_NativeUIWindow_Win32::onCloseButton() {
-	//destroy(); maybe no need ???
+	_destroy();
 	NativeUIApp::current()->quit(0);
 }
 

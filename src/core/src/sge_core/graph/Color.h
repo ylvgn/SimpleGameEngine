@@ -27,12 +27,19 @@ SGE_ENUM_CLASS(ColorModel, u8)
 //-------
 SGE_ENUM_CLASS(ColorElementType, u8)
 
-template<class T> constexpr ColorElementType ColorElementType_get();
-template<> constexpr ColorElementType ColorElementType_get<u8 >() { return ColorElementType::UNorm8; }
-template<> constexpr ColorElementType ColorElementType_get<u16>() { return ColorElementType::UNorm16; }
-//template<> constexpr ColorElementType ColorElementType_get<f16>() { return ColorElementType::Float16; }
-template<> constexpr ColorElementType ColorElementType_get<f32>() { return ColorElementType::Float32; }
-template<> constexpr ColorElementType ColorElementType_get<f64>() { return ColorElementType::Float64; }
+struct ColorElementTypeUtil {
+	ColorElementTypeUtil() = delete;
+
+	using Type = ColorElementType;
+
+	template<class T> static constexpr Type get();
+
+	template<> static constexpr Type get<u8 >() { return Type::UNorm8; }
+	template<> static constexpr Type get<u16>() { return Type::UNorm16; }
+//	template<> static constexpr Type get<f16>() { return Type::Float16; }
+	template<> static constexpr Type get<f32>() { return Type::Float32; }
+	template<> static constexpr Type get<f64>() { return Type::Float64; }
+};
 
 #define ColorCompressType_ENUM_LIST(E) \
 	E(None,) \
@@ -110,7 +117,7 @@ struct ColorR {
 	using ElementType = T;
 	static const size_t kElementCount = 1;
 	static constexpr int kAlphaBits	= 0;
-	static constexpr ColorType kColorType = ColorType_make(ColorModel::R, ColorElementType_get<T>());
+	static constexpr ColorType kColorType = ColorType_make(ColorModel::R, ColorElementTypeUtil::get<T>());
 
 	union {
 		struct { T r; };
@@ -127,7 +134,7 @@ struct ColorRG {
 	using ElementType = T;
 	static const size_t kElementCount = 2;
 	static constexpr int kAlphaBits	= 0;
-	static constexpr ColorType kColorType = ColorType_make(ColorModel::RG, ColorElementType_get<T>());
+	static constexpr ColorType kColorType = ColorType_make(ColorModel::RG, ColorElementTypeUtil::get<T>());
 
 	union {
 		struct { T r, g; };
@@ -145,7 +152,7 @@ struct ColorRGB {
 	using ElementType = T;
 	static const size_t kElementCount = 3;
 	static constexpr int kAlphaBits	= 0;
-	static constexpr ColorType kColorType = ColorType_make(ColorModel::RGB, ColorElementType_get<T>());
+	static constexpr ColorType kColorType = ColorType_make(ColorModel::RGB, ColorElementTypeUtil::get<T>());
 
 	union {
 		struct { T r, g, b; };
@@ -163,7 +170,7 @@ struct ColorRGBA {
 	using ElementType = T;
 	static const size_t kElementCount = 4;
 	static constexpr int kAlphaBits	= sizeof(T) * 8;
-	static constexpr ColorType kColorType = ColorType_make(ColorModel::RGBA, ColorElementType_get<T>());
+	static constexpr ColorType kColorType = ColorType_make(ColorModel::RGBA, ColorElementTypeUtil::get<T>());
 	static constexpr ColorModel kColorModel = ColorModel::RGBA;
 
 	union {
@@ -201,7 +208,7 @@ struct ColorL {
 	using ElementType = T;
 	static const size_t kElementCount = 1;
 	static constexpr int kAlphaBits	= 0;
-	static constexpr ColorType kColorType = ColorType_make(ColorModel::L, ColorElementType_get<T>());
+	static constexpr ColorType kColorType = ColorType_make(ColorModel::L, ColorElementTypeUtil::get<T>());
 
 	union {
 		struct { T l; };
@@ -218,7 +225,7 @@ struct ColorLA {
 	using ElementType = T;
 	static const size_t kElementCount = 2;
 	static constexpr int kAlphaBits	= sizeof(T) * 8;
-	static constexpr ColorType kColorType = ColorType_make(ColorModel::LA, ColorElementType_get<T>());
+	static constexpr ColorType kColorType = ColorType_make(ColorModel::LA, ColorElementTypeUtil::get<T>());
 
 	union {
 		struct { T l, a; };

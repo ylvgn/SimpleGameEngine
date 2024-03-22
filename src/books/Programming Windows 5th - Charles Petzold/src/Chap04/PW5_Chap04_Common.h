@@ -16,6 +16,7 @@ protected:
 	virtual void onCreate(CreateDesc& desc) override;
 	virtual void onClientRectChanged(const Rect2f& rc) override;
 	virtual void onUIScrollBarEvent(UIScrollBarEvent& ev) override;
+	virtual void onUIMouseEvent(UIMouseEvent& ev) override;
 	virtual void onDraw() override;
 
 	int _cxChar, _cyChar, _cxCaps;

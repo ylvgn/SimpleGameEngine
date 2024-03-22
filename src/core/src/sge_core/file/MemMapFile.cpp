@@ -12,7 +12,10 @@ void MemMapFile::open(StrView filename) {
 		throw SGE_ERROR("memmap file size too larget");
 
 	auto size = static_cast<size_t>(_fs.fileSize());
-	if (size <= 0) return;
+	if (size <= 0) {
+		close();
+		return;
+	}
 
 	_mapping = ::CreateFileMapping(_fs.nativeFd(), nullptr, PAGE_READONLY, 0, 0, nullptr);
 	if (!_mapping) {

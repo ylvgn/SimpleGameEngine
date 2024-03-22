@@ -24,7 +24,7 @@ const DefineMark* MyDevcapsDM::s_getMark() {
 				SGE_DEFINEMARK__ITEM(HORZSIZE,      "Width in millimeters"),		// logical width  = 25.4 * horizontal resolution / logical pixel x
 				SGE_DEFINEMARK__ITEM(VERTSIZE,      "Height in millimeters"),		// logical height = 25.4 * vertical resolution / logical pixel y
 				// pixel dimension
-				SGE_DEFINEMARK__ITEM(HORZRES,       "Width in pixels"),			// horizontal resolution in pixels, same as ::GetSystemMetrics(SM_CXSCREEN)
+				SGE_DEFINEMARK__ITEM(HORZRES,       "Width in pixels"),				// horizontal resolution in pixels, same as ::GetSystemMetrics(SM_CXSCREEN)
 				SGE_DEFINEMARK__ITEM(VERTRES,       "Height in raster lines"),		// vertical resolution in pixels, same as ::GetSystemMetrics(SM_CYSCREEN)
 				// Video memory can be organized either with consecutive color bits for each pixel or with each color bit in a separate color plane of memory
 				SGE_DEFINEMARK__ITEM(BITSPIXEL,     "Color bits per pixel"),		// 32 bit color nowadays (r8g8b8a8)

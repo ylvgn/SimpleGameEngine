@@ -250,7 +250,7 @@ void ImageIO_bmp::Reader::load(Image& img, ByteSpan data, ColorType expectType) 
 		SGE_ASSERT(src.size() >= totalSize);
 
 		if (expectType == ColorType::RGBAb)
-			pixelData.reserve(totalSize / 3 * 4);
+			pixelData.reserve(totalSize * 4 / 3);
 		else
 			pixelData.reserve(totalSize);
 		
@@ -303,7 +303,7 @@ void ImageIO_bmp::Reader::_readHeader(BinDeserializer& de, BITMAPCOREHEADER& hdr
 	de.io_fixed_le(hdr.bcWidth);
 	de.io_fixed_le(hdr.bcHeight);
 	de.io_fixed_le(hdr.bcPlanes);
-	throwIfInvalidNumPlanes(hdr.bcPlanes);
+	_throwIfInvalidNumPlanes(hdr.bcPlanes);
 	de.io_fixed_le(hdr.bcBitCount);
 }
 
@@ -312,9 +312,8 @@ void ImageIO_bmp::Reader::_readHeader(BinDeserializer& de, OS22XBITMAPHEADER& hd
 	de.io_fixed_le(hdr.Width);
 	de.io_fixed_le(hdr.Height);
 	de.io_fixed_le(hdr.NumPlanes);
-	throwIfInvalidNumPlanes(hdr.NumPlanes);
+	_throwIfInvalidNumPlanes(hdr.NumPlanes);
 	de.io_fixed_le(hdr.BitsPerPixel);
-	
 	de.io_fixed_le(hdr.Compression);
 	de.io_fixed_le(hdr.ImageDataSize);
 	de.io_fixed_le(hdr.XResolution);
@@ -325,9 +324,8 @@ void ImageIO_bmp::Reader::_readHeader(BinDeserializer& de, BITMAPINFOHEADER& hdr
 	de.io_fixed_le(hdr.biWidth);
 	de.io_fixed_le(hdr.biHeight);
 	de.io_fixed_le(hdr.biPlanes);
-	throwIfInvalidNumPlanes(hdr.biPlanes);
+	_throwIfInvalidNumPlanes(hdr.biPlanes);
 	de.io_fixed_le(hdr.biBitCount);
-
 	de.io_fixed_le(hdr.biCompression);
 	de.io_fixed_le(hdr.biSizeImage);
 	de.io_fixed_le(hdr.biXPelsPerMeter);
@@ -341,16 +339,14 @@ void ImageIO_bmp::Reader::_readHeader(BinDeserializer& de, BITMAPV3HEADER& hdr) 
 	de.io_fixed_le(hdr.biWidth);
 	de.io_fixed_le(hdr.biHeight);
 	de.io_fixed_le(hdr.biPlanes);
-	throwIfInvalidNumPlanes(hdr.biPlanes);
+	_throwIfInvalidNumPlanes(hdr.biPlanes);
 	de.io_fixed_le(hdr.biBitCount);
-	
 	de.io_fixed_le(hdr.biCompression);
 	de.io_fixed_le(hdr.biSizeImage);
 	de.io_fixed_le(hdr.biXPelsPerMeter);
 	de.io_fixed_le(hdr.biYPelsPerMeter);
 	de.io_fixed_le(hdr.biClrUsed);
 	de.io_fixed_le(hdr.biClrImportant);
-
 	de.io_fixed_le(hdr.biRedMask);
 	de.io_fixed_le(hdr.biGreenMask);
 	de.io_fixed_le(hdr.biBlueMask);
@@ -361,21 +357,18 @@ void ImageIO_bmp::Reader::_readHeader(BinDeserializer& de, BITMAPV4HEADER& hdr) 
 	de.io_fixed_le(hdr.bV4Width);
 	de.io_fixed_le(hdr.bV4Height);
 	de.io_fixed_le(hdr.bV4Planes);
-	throwIfInvalidNumPlanes(hdr.bV4Planes);
+	_throwIfInvalidNumPlanes(hdr.bV4Planes);
 	de.io_fixed_le(hdr.bV4BitCount);
-	
 	de.io_fixed_le(hdr.bV4V4Compression);
 	de.io_fixed_le(hdr.bV4SizeImage);
 	de.io_fixed_le(hdr.bV4XPelsPerMeter);
 	de.io_fixed_le(hdr.bV4YPelsPerMeter);
 	de.io_fixed_le(hdr.bV4ClrUsed);
 	de.io_fixed_le(hdr.bV4ClrImportant);
-	
 	de.io_fixed_le(hdr.bV4RedMask);
 	de.io_fixed_le(hdr.bV4GreenMask);
 	de.io_fixed_le(hdr.bV4BlueMask);
 	de.io_fixed_le(hdr.bV4AlphaMask);
-
 	de.io_fixed_le(hdr.bV4CSType);
 	de.io_fixed_le(hdr.bV4Endpoints.ciexyzRed.ciexyzX);
 	de.io_fixed_le(hdr.bV4Endpoints.ciexyzRed.ciexyzY);
@@ -390,26 +383,24 @@ void ImageIO_bmp::Reader::_readHeader(BinDeserializer& de, BITMAPV4HEADER& hdr) 
 	de.io_fixed_le(hdr.bV4GammaGreen);
 	de.io_fixed_le(hdr.bV4GammaBlue);
 }
+
 void ImageIO_bmp::Reader::_readHeader(BinDeserializer& de, BITMAPV5HEADER& hdr) {
 	hdr.bV5Size = sizeof(hdr);
 	de.io_fixed_le(hdr.bV5Width);
 	de.io_fixed_le(hdr.bV5Height);
 	de.io_fixed_le(hdr.bV5Planes);
-	throwIfInvalidNumPlanes(hdr.bV5Planes);
+	_throwIfInvalidNumPlanes(hdr.bV5Planes);
 	de.io_fixed_le(hdr.bV5BitCount);
-	
 	de.io_fixed_le(hdr.bV5Compression);
 	de.io_fixed_le(hdr.bV5SizeImage);
 	de.io_fixed_le(hdr.bV5XPelsPerMeter);
 	de.io_fixed_le(hdr.bV5YPelsPerMeter);
 	de.io_fixed_le(hdr.bV5ClrUsed);
 	de.io_fixed_le(hdr.bV5ClrImportant);
-
 	de.io_fixed_le(hdr.bV5RedMask);
 	de.io_fixed_le(hdr.bV5GreenMask);
 	de.io_fixed_le(hdr.bV5BlueMask);
 	de.io_fixed_le(hdr.bV5AlphaMask);
-
 	de.io_fixed_le(hdr.bV5CSType);
 	de.io_fixed_le(hdr.bV5Endpoints.ciexyzRed.ciexyzX);
 	de.io_fixed_le(hdr.bV5Endpoints.ciexyzRed.ciexyzY);
@@ -423,7 +414,6 @@ void ImageIO_bmp::Reader::_readHeader(BinDeserializer& de, BITMAPV5HEADER& hdr) 
 	de.io_fixed_le(hdr.bV5GammaRed);
 	de.io_fixed_le(hdr.bV5GammaGreen);
 	de.io_fixed_le(hdr.bV5GammaBlue);
-
 	de.io_fixed_le(hdr.bV5Intent);
 	de.io_fixed_le(hdr.bV5ProfileData);
 	de.io_fixed_le(hdr.bV5ProfileSize);

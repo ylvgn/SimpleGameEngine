@@ -1879,7 +1879,7 @@ void SampleContext::_defaultSetPoseDebugDraw() {
 }
 
 void SampleContext::_defaultSetCamera(Request& req, const vec3f& pos /*= vec3f(0,0,0)*/, const vec3f& aim /*= vec3f(0,3,7)*/) {
-	req.camera.setProjectionType(Math::CameraProjectionType::Perpective);
+	req.camera.setProjectionType(Math::CameraProjectionType::Perspective);
 	req.camera.setPos(pos.x, pos.y, pos.z);
 	req.camera.setAim(aim.x, aim.y, aim.z);
 	req.camera.setFov(60.f);

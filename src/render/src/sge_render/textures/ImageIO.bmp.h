@@ -35,7 +35,7 @@ struct ImageIO_bmp {
 		void _readHeader(BinDeserializer& de, BITMAPV4HEADER& hdr);
 		void _readHeader(BinDeserializer& de, BITMAPV5HEADER& hdr);
 
-		void throwIfInvalidNumPlanes(int numPlanes) {
+		void _throwIfInvalidNumPlanes(int numPlanes) {
 			if (numPlanes != 1)
 				throw SGE_ERROR("bmp error: The number of planes for the target device, it must be 1");
 		}
