@@ -108,6 +108,8 @@ namespace GDI {
 		::TextOut(hdc, x, y, s.c_str(), static_cast<int>(s.size()));
 	}
 
+	inline void textOut(HDC hdc, const Vec2f& pt, StrView str)	{ GDI::textOut(hdc, static_cast<int>(pt.x), static_cast<int>(pt.y), str); }
+
 	template<class... Args>
 	inline void Fmt_textOut(HDC hdc, int x, int y, Args&&... args) {
 		auto tmpStr = Fmt(SGE_FORWARD(args)...);
@@ -271,6 +273,7 @@ namespace GDI {
 		return ok;
 	}
 
+	// device coordinates origin set/get
 	inline bool setViewportOrg(HDC hdc, const ::POINT& pt) { return ::SetViewportOrgEx(hdc, pt.x, pt.y, nullptr); }
 	inline bool setViewportOrg(HDC hdc, const Vec2f& pt) { return ::SetViewportOrgEx(hdc, static_cast<int>(pt.x), static_cast<int>(pt.y), nullptr); }
 	inline bool setViewportOrg(HDC hdc, int x, int y) { return ::SetViewportOrgEx(hdc, x, y, nullptr); }
@@ -281,6 +284,65 @@ namespace GDI {
 		bool ok = ::GetViewportOrgEx(hdc, &pt_);
 		Win32Util::convert(pt, pt_);
 		return ok;
+	}
+
+	// logical coordinates origin set/get
+	inline bool setWindowOrg(HDC hdc, const ::POINT& pt) { return ::SetWindowOrgEx(hdc, pt.x, pt.y, nullptr); }
+	inline bool setWindowOrg(HDC hdc, const Vec2f& pt) { return ::SetWindowOrgEx(hdc, static_cast<int>(pt.x), static_cast<int>(pt.y), nullptr); }
+	inline bool setWindowOrg(HDC hdc, int x, int y) { return ::SetWindowOrgEx(hdc, x, y, nullptr); }
+
+	inline bool getWindowOrg(HDC hdc, ::POINT& pt) { return ::GetWindowOrgEx(hdc, &pt); }
+	inline bool getWindowOrg(HDC hdc, Vec2f& pt) {
+		::POINT pt_;
+		bool ok = ::GetWindowOrgEx(hdc, &pt_);
+		Win32Util::convert(pt, pt_);
+		return ok;
+	}
+
+	inline bool setViewportExt(HDC hdc, int x, int y) { return ::SetViewportExtEx(hdc, x, y, nullptr); }
+	inline bool setViewportExt(HDC hdc, const ::SIZE& sz) { return ::SetViewportExtEx(hdc, sz.cx, sz.cy, nullptr); }
+	inline bool setViewportExt(HDC hdc, const Vec2f& sz) { return ::SetViewportExtEx(hdc, static_cast<int>(sz.x), static_cast<int>(sz.y), nullptr); }
+
+	inline bool setWindowExt(HDC hdc, int x, int y) { return ::SetWindowExtEx(hdc, x, y, nullptr); }
+	inline bool setWindowExt(HDC hdc, const ::SIZE& sz) { return ::SetWindowExtEx(hdc, sz.cx, sz.cy, nullptr); }
+	inline bool setWindowExt(HDC hdc, const Vec2f& sz) { return ::SetWindowExtEx(hdc, static_cast<int>(sz.x), static_cast<int>(sz.y), nullptr); }
+
+	inline bool getViewportExt(HDC hdc, ::SIZE& sz) { return ::GetViewportExtEx(hdc, &sz); }
+	inline bool getViewportExt(HDC hdc, Vec2f& sz) {
+		::SIZE sz_;
+		bool ok = ::GetViewportExtEx(hdc, &sz_);
+		Win32Util::convert(sz, sz_);
+		return ok;
+	}
+
+	inline bool getWindowExt(HDC hdc, ::SIZE& sz) { return ::GetWindowExtEx(hdc, &sz); }
+	inline bool getWindowExt(HDC hdc, Vec2f& sz) {
+		::SIZE sz_;
+		bool ok = ::GetWindowExtEx(hdc, &sz_);
+		Win32Util::convert(sz, sz_);
+		return ok;
+	}
+
+	inline float getDisplayScaleRatio() {
+		::POINT ptZero = { 0, 0 };
+		HMONITOR hMonitor = ::MonitorFromPoint(ptZero, MONITOR_DEFAULTTONULL);
+
+		::MONITORINFOEX monitorInfo;
+		g_bzero(monitorInfo);
+		monitorInfo.cbSize = sizeof(monitorInfo);
+		::GetMonitorInfo(hMonitor, &monitorInfo);
+
+		auto displayResolutionScaledWidth = monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left;
+		if (displayResolutionScaledWidth == 0) return 1.f; // fallback
+
+		DEVMODE devmode;
+		g_bzero(devmode);
+		devmode.dmSize = sizeof(devmode);
+		::EnumDisplaySettings(monitorInfo.szDevice, ENUM_CURRENT_SETTINGS, &devmode);
+
+		auto displayResolutionWidth = devmode.dmPelsWidth;
+		if (displayResolutionWidth == 0) return 1.f; // fallback
+		return static_cast<float>(displayResolutionWidth) / displayResolutionScaledWidth;
 	}
 
 } // namespace GDI
@@ -330,13 +392,25 @@ public:
 
 	void setViewportOrg(int x, int y)		{ GDI::setViewportOrg(_hdc, x, y); }
 	void setViewportOrg(const Vec2f& pt)	{ GDI::setViewportOrg(_hdc, pt); }
-
 	void getViewportOrg(Vec2f& pt)			{ GDI::getViewportOrg(_hdc, pt); }
 
-	void dPtoLP(Vec2f& pt) { GDI::dPtoLP(_hdc, pt); }
-	void lPtoDP(Vec2f& pt) { GDI::lPtoDP(_hdc, pt); }
+	void setWindowOrg(int x, int y)			{ GDI::setWindowOrg(_hdc, x, y); }
+	void setWindowOrg(const Vec2f& pt)		{ GDI::setWindowOrg(_hdc, pt); }
+	void getWindowOrg(Vec2f& pt)			{ GDI::getWindowOrg(_hdc, pt); }
 
-	void textOut(int x, int y, StrView str) const { GDI::textOut(_hdc, x, y, str); }
+	void setViewportExt(int x, int y)		{ GDI::setViewportExt(_hdc, x, y); }
+	void setViewportExt(const Vec2f& pt)	{ GDI::setViewportExt(_hdc, pt); }
+	void getViewportExt(Vec2f& sz)			{ GDI::getViewportExt(_hdc, sz); }
+
+	void setWindowExt(int x, int y)			{ GDI::setWindowExt(_hdc, x, y); }
+	void setWindowExt(const Vec2f& pt)		{ GDI::setWindowExt(_hdc, pt); }
+	void getWindowExt(Vec2f& sz)			{ GDI::getWindowExt(_hdc, sz); }
+
+	void dPtoLP(Vec2f& pt)					{ GDI::dPtoLP(_hdc, pt); }
+	void lPtoDP(Vec2f& pt)					{ GDI::lPtoDP(_hdc, pt); }
+
+	void textOut(int x, int y, StrView str)		const { GDI::textOut(_hdc, x, y, str); }
+	void textOut(const Vec2f& pt, StrView str)	const { GDI::textOut(_hdc, pt, str); }
 
 	void drawText(int l, int t, int r, int b, StrView str)					const { GDI::drawText(_hdc, l, t, r, b, str); }
 	void drawText(int l, int t, int r, int b, StrView str, DTFlag flags)	const { GDI::drawText(_hdc, l, t, r, b, str, flags); }

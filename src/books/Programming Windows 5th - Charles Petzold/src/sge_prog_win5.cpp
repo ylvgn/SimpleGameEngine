@@ -5,7 +5,6 @@
 #include "Chap02/ScrnSize/PW5_ScrnSize.h"
 /* Chap03 CreateWindow and WndProc */
 #include "Chap03/HelloWin/PW5_HelloWin.h"
-#include "Chap03/HelloWin/PW5_MyHelloWinDestroy.h"
 #include "Chap03/HelloWin/PW5_MyHelloWin.h"
 #include "Chap03/HelloWin/PW5_MyMineSweeper.h"
 /* Chap04 Client Rect and Scroll Bar */
@@ -28,7 +27,7 @@ namespace sge {
 
 class ProgWin5App : public NativeUIApp {
 	using Base = NativeUIApp;
-	using ProgWin5MainWin = PW5_MyHelloWinDestroy;
+	using ProgWin5MainWin = PW5_MyMappingMode;
 protected:
 	virtual void onCreate(CreateDesc& desc) override {
 		{ // set working dir
@@ -46,7 +45,7 @@ protected:
 		{ // create window
 			NativeUIWindow::CreateDesc winDesc;
 			winDesc.isMainWindow = true;
-			winDesc.rect = { 10, 10, 1376, 768 };
+			winDesc.rect = { 10, 10, 720, 540 };
 			_mainWin.create(winDesc);
 		}
 	}

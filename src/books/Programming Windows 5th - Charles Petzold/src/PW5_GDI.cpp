@@ -93,23 +93,26 @@ PW5_MappingMode ScopedHDC_NoHWND::getMappingMode() {
 }
 
 void ScopedHDC_::clearBg(PW5_StockLogicalObject_Brush flag /*= PW5_StockLogicalObject_Brush::White*/) {
-	Vec2f oldOrg;
+	Vec2f oldViewportOrg;
+	Vec2f oldWindowOrg;
 
-	auto oldMappingMode = getMappingMode();
-	if (oldMappingMode != PW5_MappingMode::None) {
-		getViewportOrg(oldOrg);
+	getViewportOrg(oldViewportOrg);
+	getViewportOrg(oldWindowOrg);
+
+	bool isNotLeftTop = oldViewportOrg != oldWindowOrg;
+	if (isNotLeftTop) {
 		setViewportOrg(0, 0);
-		setMappingMode(PW5_MappingMode::None);
+		setWindowOrg(0, 0);
 	}
 
 	::RECT rc;
-	::GetClientRect(_hwnd, &rc);
+	::GetClientRect(_hwnd, &rc); //  GetClientRect (which is always in terms of device units)
 	auto brush = GetStockBrush(PW5_Win32Util::getStockLogicalObject_Brush(flag));
 	GDI::fillRect(_hdc, rc, brush);
 
-	if (oldMappingMode != PW5_MappingMode::None) {
-		setMappingMode(oldMappingMode);
-		setViewportOrg(oldOrg);
+	if (isNotLeftTop) {
+		setViewportOrg(oldViewportOrg);
+		setWindowOrg(oldWindowOrg);
 	}
 }
 

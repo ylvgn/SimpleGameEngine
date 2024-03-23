@@ -18,6 +18,11 @@ private:
 
 	void _example3();
 	void _drawClientRectCoordinate(PW5_MappingMode v);
+
+	void _example4();
+	void _example5();
+	void _example6();
+	void _calcMappingModeExtRatio(PW5_MappingMode v);
 };
 
 }

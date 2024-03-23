@@ -44,11 +44,11 @@ const DefineMark* MyDevcapsDM::s_getMark() {
 				SGE_DEFINEMARK__ITEM(ASPECTY,       "Relative height of pixel"),
 				SGE_DEFINEMARK__ITEM(ASPECTXY,      "Relative diagonal of pixel"),
 				// logical pixel, related to the font
-				// As with Windows 98, typical values of LOGPIXELSX and LOGPIXELSY are 96 and 120 dots per inch,
+				// As with Windows 98, typical values of LOGPIXELSX and LOGPIXELSY,
+				// are 96(small font) and 120(large font) dots per inch,
 				// depending on whether you select a small font or large font
 				SGE_DEFINEMARK__ITEM(LOGPIXELSX,    "Horizontal dots per inch"),	// logical pixel x
 				SGE_DEFINEMARK__ITEM(LOGPIXELSY,    "Vertical dots per inch"),		// logical pixel y
-
 				SGE_DEFINEMARK__ITEM(SIZEPALETTE,   "Number of palette entries"),
 				// 256−color video adapters use color palettes, 
 				// In that case, GetDeviceCaps with the NUMCOLORS index returns the number of colors reserved by Windows, which will be 20.
