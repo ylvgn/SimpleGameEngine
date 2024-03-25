@@ -194,7 +194,7 @@ void NeHeOGL_Lesson007::_example1() {
 		glLoadIdentity();
 
 	// draw grid
-	OGL::glColor(OGL::kWhite);
+	OGL::color4f(OGL::kWhite);
 	glLineWidth(2);
 	glDisable(GL_LIGHTING);
 	glBegin(GL_LINES);
@@ -229,41 +229,41 @@ void NeHeOGL_Lesson007::_example1() {
 		// The normals are point out, not in, so there's no light inside the box, exactly as it should be
 
 		// Front Face
-		OGL::glNormal(Vec3f::s_forward());						// glNormal3f( 0.0f,  0.0f,  1.0f);
-		glTexCoord2f(0.0f, 0.0f); OGL::glVertex(kCubePos[7]);	// glVertex3f(-1.0f, -1.0f,  1.0f);
-		glTexCoord2f(1.0f, 0.0f); OGL::glVertex(kCubePos[6]);	// glVertex3f( 1.0f, -1.0f,  1.0f);
-		glTexCoord2f(1.0f, 1.0f); OGL::glVertex(kCubePos[2]);	// glVertex3f( 1.0f,  1.0f,  1.0f);
-		glTexCoord2f(0.0f, 1.0f); OGL::glVertex(kCubePos[3]);	// glVertex3f(-1.0f,  1.0f,  1.0f);
+		OGL::normal3f(Vec3f::s_forward());						// glNormal3f( 0.0f,  0.0f,  1.0f);
+		glTexCoord2f(0.0f, 0.0f); OGL::vertex3f(kCubePos[7]);	// glVertex3f(-1.0f, -1.0f,  1.0f);
+		glTexCoord2f(1.0f, 0.0f); OGL::vertex3f(kCubePos[6]);	// glVertex3f( 1.0f, -1.0f,  1.0f);
+		glTexCoord2f(1.0f, 1.0f); OGL::vertex3f(kCubePos[2]);	// glVertex3f( 1.0f,  1.0f,  1.0f);
+		glTexCoord2f(0.0f, 1.0f); OGL::vertex3f(kCubePos[3]);	// glVertex3f(-1.0f,  1.0f,  1.0f);
 		// Back Face
-		OGL::glNormal(Vec3f::s_back());							// glNormal3f( 0.0f,  0.0f, -1.0f);
-		glTexCoord2f(1.0f, 1.0f); OGL::glVertex(kCubePos[0]);	// glVertex3f(-1.0f,  1.0f, -1.0f);
-		glTexCoord2f(0.0f, 1.0f); OGL::glVertex(kCubePos[1]);	// glVertex3f( 1.0f,  1.0f, -1.0f);
-		glTexCoord2f(0.0f, 0.0f); OGL::glVertex(kCubePos[5]);	// glVertex3f( 1.0f, -1.0f, -1.0f);
-		glTexCoord2f(1.0f, 0.0f); OGL::glVertex(kCubePos[4]);	// glVertex3f(-1.0f, -1.0f, -1.0f);
+		OGL::normal3f(Vec3f::s_back());							// glNormal3f( 0.0f,  0.0f, -1.0f);
+		glTexCoord2f(1.0f, 1.0f); OGL::vertex3f(kCubePos[0]);	// glVertex3f(-1.0f,  1.0f, -1.0f);
+		glTexCoord2f(0.0f, 1.0f); OGL::vertex3f(kCubePos[1]);	// glVertex3f( 1.0f,  1.0f, -1.0f);
+		glTexCoord2f(0.0f, 0.0f); OGL::vertex3f(kCubePos[5]);	// glVertex3f( 1.0f, -1.0f, -1.0f);
+		glTexCoord2f(1.0f, 0.0f); OGL::vertex3f(kCubePos[4]);	// glVertex3f(-1.0f, -1.0f, -1.0f);
 		// Top Face
-		OGL::glNormal(Vec3f::s_up());							// glNormal3f( 0.0f,  1.0f,  0.0f);
-		glTexCoord2f(0.0f, 0.0f); OGL::glVertex(kCubePos[3]);	// glVertex3f(-1.0f,  1.0f,  1.0f);
-		glTexCoord2f(1.0f, 0.0f); OGL::glVertex(kCubePos[2]);	// glVertex3f( 1.0f,  1.0f,  1.0f);
-		glTexCoord2f(1.0f, 1.0f); OGL::glVertex(kCubePos[1]);	// glVertex3f( 1.0f,  1.0f, -1.0f);
-		glTexCoord2f(0.0f, 1.0f); OGL::glVertex(kCubePos[0]);	// glVertex3f(-1.0f,  1.0f, -1.0f);
+		OGL::normal3f(Vec3f::s_up());							// glNormal3f( 0.0f,  1.0f,  0.0f);
+		glTexCoord2f(0.0f, 0.0f); OGL::vertex3f(kCubePos[3]);	// glVertex3f(-1.0f,  1.0f,  1.0f);
+		glTexCoord2f(1.0f, 0.0f); OGL::vertex3f(kCubePos[2]);	// glVertex3f( 1.0f,  1.0f,  1.0f);
+		glTexCoord2f(1.0f, 1.0f); OGL::vertex3f(kCubePos[1]);	// glVertex3f( 1.0f,  1.0f, -1.0f);
+		glTexCoord2f(0.0f, 1.0f); OGL::vertex3f(kCubePos[0]);	// glVertex3f(-1.0f,  1.0f, -1.0f);
 		// Bottom Face
-		OGL::glNormal(Vec3f::s_down());							// glNormal3f( 0.0f, -1.0f,  0.0f);
-		glTexCoord2f(1.0f, 1.0f); OGL::glVertex(kCubePos[4]);	// glVertex3f(-1.0f, -1.0f, -1.0f);
-		glTexCoord2f(0.0f, 1.0f); OGL::glVertex(kCubePos[5]);	// glVertex3f( 1.0f, -1.0f, -1.0f);
-		glTexCoord2f(0.0f, 0.0f); OGL::glVertex(kCubePos[6]);	// glVertex3f( 1.0f, -1.0f,  1.0f);
-		glTexCoord2f(1.0f, 0.0f); OGL::glVertex(kCubePos[7]);	// glVertex3f(-1.0f, -1.0f,  1.0f);
+		OGL::normal3f(Vec3f::s_down());							// glNormal3f( 0.0f, -1.0f,  0.0f);
+		glTexCoord2f(1.0f, 1.0f); OGL::vertex3f(kCubePos[4]);	// glVertex3f(-1.0f, -1.0f, -1.0f);
+		glTexCoord2f(0.0f, 1.0f); OGL::vertex3f(kCubePos[5]);	// glVertex3f( 1.0f, -1.0f, -1.0f);
+		glTexCoord2f(0.0f, 0.0f); OGL::vertex3f(kCubePos[6]);	// glVertex3f( 1.0f, -1.0f,  1.0f);
+		glTexCoord2f(1.0f, 0.0f); OGL::vertex3f(kCubePos[7]);	// glVertex3f(-1.0f, -1.0f,  1.0f);
 		// Right face
-		OGL::glNormal(Vec3f::s_right());						// glNormal3f( 1.0f,  0.0f,  0.0f);
-		glTexCoord2f(0.0f, 0.0f); OGL::glVertex(kCubePos[6]);	// glVertex3f( 1.0f, -1.0f,  1.0f);
-		glTexCoord2f(1.0f, 0.0f); OGL::glVertex(kCubePos[5]);	// glVertex3f( 1.0f, -1.0f, -1.0f);
-		glTexCoord2f(1.0f, 1.0f); OGL::glVertex(kCubePos[1]);	// glVertex3f( 1.0f,  1.0f, -1.0f);
-		glTexCoord2f(0.0f, 1.0f); OGL::glVertex(kCubePos[2]);	// glVertex3f( 1.0f,  1.0f,  1.0f);
+		OGL::normal3f(Vec3f::s_right());						// glNormal3f( 1.0f,  0.0f,  0.0f);
+		glTexCoord2f(0.0f, 0.0f); OGL::vertex3f(kCubePos[6]);	// glVertex3f( 1.0f, -1.0f,  1.0f);
+		glTexCoord2f(1.0f, 0.0f); OGL::vertex3f(kCubePos[5]);	// glVertex3f( 1.0f, -1.0f, -1.0f);
+		glTexCoord2f(1.0f, 1.0f); OGL::vertex3f(kCubePos[1]);	// glVertex3f( 1.0f,  1.0f, -1.0f);
+		glTexCoord2f(0.0f, 1.0f); OGL::vertex3f(kCubePos[2]);	// glVertex3f( 1.0f,  1.0f,  1.0f);
 		// Left Face
-		OGL::glNormal(Vec3f::s_left());							// glNormal3f(-1.0f,  0.0f,  0.0f);
-		glTexCoord2f(0.0f, 0.0f); OGL::glVertex(kCubePos[4]);	// glVertex3f(-1.0f, -1.0f, -1.0f);
-		glTexCoord2f(1.0f, 0.0f); OGL::glVertex(kCubePos[7]);	// glVertex3f(-1.0f, -1.0f,  1.0f);
-		glTexCoord2f(1.0f, 1.0f); OGL::glVertex(kCubePos[3]);	// glVertex3f(-1.0f,  1.0f,  1.0f);
-		glTexCoord2f(0.0f, 1.0f); OGL::glVertex(kCubePos[0]);	// glVertex3f(-1.0f,  1.0f, -1.0f);
+		OGL::normal3f(Vec3f::s_left());							// glNormal3f(-1.0f,  0.0f,  0.0f);
+		glTexCoord2f(0.0f, 0.0f); OGL::vertex3f(kCubePos[4]);	// glVertex3f(-1.0f, -1.0f, -1.0f);
+		glTexCoord2f(1.0f, 0.0f); OGL::vertex3f(kCubePos[7]);	// glVertex3f(-1.0f, -1.0f,  1.0f);
+		glTexCoord2f(1.0f, 1.0f); OGL::vertex3f(kCubePos[3]);	// glVertex3f(-1.0f,  1.0f,  1.0f);
+		glTexCoord2f(0.0f, 1.0f); OGL::vertex3f(kCubePos[0]);	// glVertex3f(-1.0f,  1.0f, -1.0f);
 	glEnd();
 	glBindTexture(GL_TEXTURE_2D, 0);
 

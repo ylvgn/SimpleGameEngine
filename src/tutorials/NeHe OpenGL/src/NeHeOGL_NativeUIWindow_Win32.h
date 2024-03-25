@@ -13,8 +13,8 @@ public:
 		_destroy();
 	}
 
+	void initGL();
 	void clearGL();
-	void closeWindow();
 
 	void makeCurrent();
 	void swapBuffers();
@@ -23,7 +23,6 @@ protected:
 	virtual void onCreate(CreateDesc& desc) override;
 	virtual void onCloseButton() override;
 private:
-	void _initGL();
 	void _destroy();
 
 	HDC		_dc = nullptr; // GDI Device Context: The DC connects the Window to the GDI

@@ -94,8 +94,8 @@ void PW5_MyMappingMode::_example2() {
 		// yLogical = yLogicalOrg + (yDevice-yDeviceOrg) * (yLogicalExt/yDeviceExt)
 
 	// when MM_TEXT, Window origin(0,0) and Viewport origin(0,0)
-		// xViewport = xWindow − xWinOrg + xViewOrg
-		// yViewport = yWindow − yWinOrg + yViewOrg
+		// xViewport = xWindow - xWinOrg + xViewOrg
+		// yViewport = yWindow - yWinOrg + yViewOrg
 
 	Vec2f tmp{ 300, 100 }; // when tmp is fixed,
 		// just change mapping mode, then use LPtoDP directly

@@ -30,7 +30,7 @@ private:
 	void _example3();
 	void _example4();
 
-	static constexpr float d = 1;
+	static constexpr float d = 1.f;
 
 //------------------------------------------
 //		   1-----2

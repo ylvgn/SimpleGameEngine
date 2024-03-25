@@ -24,17 +24,16 @@
 namespace sge {
 
 #define NeHe_BeginMode_ENUM_LIST(E) \
-	E(None,) \
-	E(Points,) \
-	E(Lines,) \
-	E(LineLoop,) \
-	E(LineStrip,) \
-	E(Triangles,) \
-	E(TriangleStrip,) \
-	E(TriangleFan,) \
-	E(Quads,) \
-	E(QuadStrip,) \
-	E(Polygon,) \
+	E(Points,			= GL_POINTS) \
+	E(Lines,			= GL_LINES) \
+	E(LineLoop,			= GL_LINE_LOOP) \
+	E(LineStrip,		= GL_LINE_STRIP) \
+	E(Triangles,		= GL_TRIANGLES) \
+	E(TriangleStrip,	= GL_TRIANGLE_STRIP) \
+	E(TriangleFan,		= GL_TRIANGLE_FAN) \
+	E(Quads,			= GL_QUADS) \
+	E(QuadStrip,		= GL_QUAD_STRIP) \
+	E(Polygon,			= GL_POLYGON) \
 //----
 SGE_ENUM_CLASS(NeHe_BeginMode, u8)
 
@@ -131,8 +130,6 @@ struct OGLUtil {
 		return true;
 	}
 
-	static GLenum getOGLBeginMode(NeHe_BeginMode v);
-
 private:
 	static GLenum _getErrorCode() { return glGetError(); }
 
@@ -149,25 +146,6 @@ void OGLUtil::reportError(GLenum errCode) {
 		TempString str;
 		UtfUtil::convert(str, errStr);
 		SGE_LOG("errCode = (0x{:X}) {}", static_cast<u32>(errCode), str);
-	}
-}
-
-inline
-GLenum OGLUtil::getOGLBeginMode(NeHe_BeginMode v) {
-	using SRC = NeHe_BeginMode;
-	switch (v)
-	{
-		case SRC::Points:			return GL_POINTS;
-		case SRC::Lines:			return GL_LINES;
-		case SRC::LineLoop:			return GL_LINE_LOOP;
-		case SRC::LineStrip:		return GL_LINE_STRIP;
-		case SRC::Triangles:		return GL_TRIANGLES;
-		case SRC::TriangleStrip:	return GL_TRIANGLE_STRIP;
-		case SRC::TriangleFan:		return GL_TRIANGLE_FAN;
-		case SRC::Quads:			return GL_QUADS;
-		case SRC::QuadStrip:		return GL_QUAD_STRIP;
-		case SRC::Polygon:			return GL_POLYGON;
-		default:					throw  SGE_ERROR("unsupported OGLBeginMode");
 	}
 }
 
@@ -206,28 +184,28 @@ struct MyImage {
 namespace sge {
 namespace OGL {
 
-	static constexpr Color4f kWhite				{ 1.0f, 1.0f, 1.0f, 1.0f };
-	static constexpr Color4f kBlack				{ 0.0f, 0.0f, 0.0f, 1.0f };
-	static constexpr Color4f kRed				{ 1.0f, 0.0f, 0.0f, 1.0f };
-	static constexpr Color4f kGreen				{ 0.0f, 1.0f, 0.0f, 1.0f };
-	static constexpr Color4f kBlue				{ 0.0f, 0.0f, 1.0f, 1.0f };
-	static constexpr Color4f kYellow			{ 1.0f, 1.0f, 0.0f, 1.0f };
-	static constexpr Color4f kViolet			{ 1.0f, 0.0f, 1.0f, 1.0f };
-	static constexpr Color4f kCyan				{ 0.0f, 1.0f, 1.0f, 1.0f };
-	static constexpr Color4f kOrange			{ 1.0f, 0.5f, 0.0f, 1.0f };
+	static constexpr Color4f kWhite		{ 1.0f, 1.0f, 1.0f, 1.0f };
+	static constexpr Color4f kBlack		{ 0.0f, 0.0f, 0.0f, 1.0f };
+	static constexpr Color4f kRed		{ 1.0f, 0.0f, 0.0f, 1.0f };
+	static constexpr Color4f kGreen		{ 0.0f, 1.0f, 0.0f, 1.0f };
+	static constexpr Color4f kBlue		{ 0.0f, 0.0f, 1.0f, 1.0f };
+	static constexpr Color4f kYellow	{ 1.0f, 1.0f, 0.0f, 1.0f };
+	static constexpr Color4f kViolet	{ 1.0f, 0.0f, 1.0f, 1.0f };
+	static constexpr Color4f kCyan		{ 0.0f, 1.0f, 1.0f, 1.0f };
+	static constexpr Color4f kOrange	{ 1.0f, 0.5f, 0.0f, 1.0f };
 
-	inline void glColor(const Color4f& c)					{ ::glColor4f(c.r, c.g, c.b, c.a); }
-	inline void glTexCoord(const Tuple2f& uv)				{ ::glTexCoord2f(uv.x, uv.y); }
-	inline void glVertex(const Tuple3f& pos)				{ ::glVertex3f(pos.x, pos.y, pos.z); }
-	inline void glNormal(const Tuple3f& pos)				{ ::glNormal3f(pos.x, pos.y, pos.z); }
-	inline void glTranslate(const Tuple3f& pos)				{ ::glTranslatef(pos.x, pos.y, pos.z); }
-	inline void glRotate(float degrees, const Tuple3f& pos)	{ ::glRotatef(degrees, pos.x, pos.y, pos.z); }
-	inline void glScale(const Tuple3f& pos)					{ ::glScalef(pos.x, pos.y, pos.z); }
+	inline void color4f(const Color4f& c)					{ ::glColor4f(c.r, c.g, c.b, c.a); }
+	inline void texCoord2f(const Tuple2f& uv)				{ ::glTexCoord2f(uv.x, uv.y); }
+	inline void vertex3f(const Tuple3f& v)					{ ::glVertex3f(v.x, v.y, v.z); }
+	inline void normal3f(const Tuple3f& nl)					{ ::glNormal3f(nl.x, nl.y, nl.z); }
+	inline void translatef(const Tuple3f& t)				{ ::glTranslatef(t.x, t.y, t.z); }
+	inline void rotatef(float degrees, const Tuple3f& axis)	{ ::glRotatef(degrees, axis.x, axis.y, axis.z); }
+	inline void scalef(const Tuple3f& s)					{ ::glScalef(s.x, s.y, s.z); }
 
-	class ScopedGLBegin {
+	class ScopedBegin {
 	public:
-		ScopedGLBegin(NeHe_BeginMode mode) { glBegin(OGLUtil::getOGLBeginMode(mode)); }
-		~ScopedGLBegin() { glEnd(); }
+		ScopedBegin(NeHe_BeginMode mode) { glBegin(static_cast<GLenum>(mode)); }
+		~ScopedBegin() { glEnd(); }
 	};
 
 } // namespace OGL

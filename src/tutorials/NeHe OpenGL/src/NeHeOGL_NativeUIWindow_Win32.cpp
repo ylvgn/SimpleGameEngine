@@ -7,14 +7,13 @@ namespace sge {
 void NeHeOGL_NativeUIWindow_Win32::onCreate(CreateDesc& desc) {
 	desc.ownDC = true;
 	Base::onCreate(desc);
-
-	_initGL();
+	initGL();
 }
 
-void NeHeOGL_NativeUIWindow_Win32::_initGL() {
+void NeHeOGL_NativeUIWindow_Win32::initGL() {
 	_dc = ::GetDC(_hwnd);
 	if (!_dc)
-		throw SGE_ERROR("_initGL GetDC");
+		throw SGE_ERROR("initGL GetDC");
 
 	PIXELFORMATDESCRIPTOR pfd;		// pfd Tells Windows How We Want Things To Be
 	g_bzero(pfd);
@@ -90,15 +89,6 @@ void NeHeOGL_NativeUIWindow_Win32::clearGL() {
 		::ReleaseDC(_hwnd, _dc);
 		_dc = nullptr;
 	}
-}
-
-void NeHeOGL_NativeUIWindow_Win32::closeWindow() {
-#if 0 // not good, but unknown why
-	clearGL();
-	if (_hwnd) {
-		::DestroyWindow(_hwnd);
-	}
-#endif
 }
 
 void NeHeOGL_NativeUIWindow_Win32::_destroy() {

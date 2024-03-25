@@ -41,8 +41,8 @@ private:
 			glBegin(GL_QUADS);
 				int i = 0;
 				for (auto& indice : indices) {
-					OGL::glTexCoord(uv[i]);
-					OGL::glVertex(pos[indice]);
+					OGL::texCoord2f(uv[i]);
+					OGL::vertex3f(pos[indice]);
 					++i;
 				}
 			glEnd();

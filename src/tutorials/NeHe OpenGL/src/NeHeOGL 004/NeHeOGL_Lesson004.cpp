@@ -14,7 +14,7 @@ void NeHeOGL_Lesson004::_example1(float upTime) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glLoadIdentity();
-	OGL::glColor(OGL::kWhite);
+	OGL::color4f(OGL::kWhite);
 	glLineWidth(2);
 	glBegin(GL_LINES);
 		glVertex3f(-1, 0, 0); glVertex3f(1,0,0); // x
@@ -41,7 +41,7 @@ void NeHeOGL_Lesson004::_example1_rotateTheory(float upTime) {
 	float nx = x * c + y * -s;
 	float ny = x * s + y *  c;
 
-	OGL::glColor(OGL::kRed);
+	OGL::color4f(OGL::kRed);
 	glPointSize(12);
 	glBegin(GL_POINTS);
 		glVertex3f(x, y, 0);
@@ -64,7 +64,7 @@ void NeHeOGL_Lesson004::_example1_rotateInOpenGL(float upTime) {
 		glRotatef(angleInDegrees, 0, 0, 1);
 		glTranslatef(0.5f, 0, 0);
 		glBegin(GL_QUADS);
-			OGL::glColor(OGL::kRed); glVertex2fv(v[0]); glVertex2fv(v[1]); glVertex2fv(v[2]); glVertex2fv(v[3]);
+			OGL::color4f(OGL::kRed); glVertex2fv(v[0]); glVertex2fv(v[1]); glVertex2fv(v[2]); glVertex2fv(v[3]);
 		glEnd();
 	}
 
@@ -79,7 +79,7 @@ void NeHeOGL_Lesson004::_example1_rotateInOpenGL(float upTime) {
 		glRotatef(angleInDegrees, 0, 0, 1);
 		glTranslatef(-0.2f, 0, 0);
 		glBegin(GL_QUADS);
-			OGL::glColor(OGL::kBlue); glVertex2fv(v[0]); glVertex2fv(v[1]); glVertex2fv(v[2]); glVertex2fv(v[3]);
+			OGL::color4f(OGL::kBlue); glVertex2fv(v[0]); glVertex2fv(v[1]); glVertex2fv(v[2]); glVertex2fv(v[3]);
 		glEnd();
 	}
 }
@@ -112,9 +112,9 @@ void NeHeOGL_Lesson004::_example2(float upTime) {
 	glRotatef(angleInDegrees, 0.0f, 1.0f, 0.0f);	// Rotate The Triangle On The Y axis
 	float d = 0.5f;
 	glBegin(GL_TRIANGLES);
-		OGL::glColor(OGL::kRed);	glVertex3f( 0,  d, 0);
-		OGL::glColor(OGL::kGreen);	glVertex3f(-d, -d, 0);
-		OGL::glColor(OGL::kBlue);	glVertex3f( d, -d, 0);
+		OGL::color4f(OGL::kRed);	glVertex3f( 0,  d, 0);
+		OGL::color4f(OGL::kGreen);	glVertex3f(-d, -d, 0);
+		OGL::color4f(OGL::kBlue);	glVertex3f( d, -d, 0);
 	glEnd();
 
 	glLoadIdentity();

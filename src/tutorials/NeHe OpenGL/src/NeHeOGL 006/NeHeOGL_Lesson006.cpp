@@ -340,52 +340,52 @@ void NeHeOGL_Lesson006::_example3(float uptime) {
 	};
 	glBindTexture(GL_TEXTURE_2D, tex0);
 	glBegin(GL_QUADS); // Front
-		OGL::glTexCoord(_mesh.uv[i]); OGL::glVertex(_mesh.pos[_mesh.indices[i++]]);
-		OGL::glTexCoord(_mesh.uv[i]); OGL::glVertex(_mesh.pos[_mesh.indices[i++]]);
-		OGL::glTexCoord(_mesh.uv[i]); OGL::glVertex(_mesh.pos[_mesh.indices[i++]]);
-		OGL::glTexCoord(_mesh.uv[i]); OGL::glVertex(_mesh.pos[_mesh.indices[i++]]);
+		OGL::texCoord2f(_mesh.uv[i]); OGL::vertex3f(_mesh.pos[_mesh.indices[i++]]);
+		OGL::texCoord2f(_mesh.uv[i]); OGL::vertex3f(_mesh.pos[_mesh.indices[i++]]);
+		OGL::texCoord2f(_mesh.uv[i]); OGL::vertex3f(_mesh.pos[_mesh.indices[i++]]);
+		OGL::texCoord2f(_mesh.uv[i]); OGL::vertex3f(_mesh.pos[_mesh.indices[i++]]);
 	glEnd();
 	//glBindTexture(GL_TEXTURE_2D, 0); // unselect texture, or just select other opengl texture handle
 
 	glBindTexture(GL_TEXTURE_2D, tex1);
 	glBegin(GL_QUADS); // Back
-		OGL::glTexCoord(_mesh.uv[i]); OGL::glVertex(_mesh.pos[_mesh.indices[i++]]);
-		OGL::glTexCoord(_mesh.uv[i]); OGL::glVertex(_mesh.pos[_mesh.indices[i++]]);
-		OGL::glTexCoord(_mesh.uv[i]); OGL::glVertex(_mesh.pos[_mesh.indices[i++]]);
-		OGL::glTexCoord(_mesh.uv[i]); OGL::glVertex(_mesh.pos[_mesh.indices[i++]]);
+		OGL::texCoord2f(_mesh.uv[i]); OGL::vertex3f(_mesh.pos[_mesh.indices[i++]]);
+		OGL::texCoord2f(_mesh.uv[i]); OGL::vertex3f(_mesh.pos[_mesh.indices[i++]]);
+		OGL::texCoord2f(_mesh.uv[i]); OGL::vertex3f(_mesh.pos[_mesh.indices[i++]]);
+		OGL::texCoord2f(_mesh.uv[i]); OGL::vertex3f(_mesh.pos[_mesh.indices[i++]]);
 	glEnd();
 
 	glBindTexture(GL_TEXTURE_2D, tex1);
 	static Vec2f sOffsetRightDown = { 1,1 };
 	glBegin(GL_QUADS); // Top
-		OGL::glTexCoord((uvs[0]+sOffsetRightDown)*s); OGL::glVertex(_mesh.pos[_mesh.indices[i++]]);
-		OGL::glTexCoord((uvs[1]+sOffsetRightDown)*s); OGL::glVertex(_mesh.pos[_mesh.indices[i++]]);
-		OGL::glTexCoord((uvs[2]+sOffsetRightDown)*s); OGL::glVertex(_mesh.pos[_mesh.indices[i++]]);
-		OGL::glTexCoord((uvs[3]+sOffsetRightDown)*s); OGL::glVertex(_mesh.pos[_mesh.indices[i++]]);
+		OGL::texCoord2f((uvs[0]+sOffsetRightDown)*s); OGL::vertex3f(_mesh.pos[_mesh.indices[i++]]);
+		OGL::texCoord2f((uvs[1]+sOffsetRightDown)*s); OGL::vertex3f(_mesh.pos[_mesh.indices[i++]]);
+		OGL::texCoord2f((uvs[2]+sOffsetRightDown)*s); OGL::vertex3f(_mesh.pos[_mesh.indices[i++]]);
+		OGL::texCoord2f((uvs[3]+sOffsetRightDown)*s); OGL::vertex3f(_mesh.pos[_mesh.indices[i++]]);
 	glEnd();
 
 	glBindTexture(GL_TEXTURE_2D, tex1);
 	glBegin(GL_QUADS); // Bottom
-		OGL::glTexCoord((uvs[0]+sOffsetRightDown*2)*s); OGL::glVertex(_mesh.pos[_mesh.indices[i++]]);
-		OGL::glTexCoord((uvs[1]+sOffsetRightDown*2)*s); OGL::glVertex(_mesh.pos[_mesh.indices[i++]]);
-		OGL::glTexCoord((uvs[2]+sOffsetRightDown*2)*s); OGL::glVertex(_mesh.pos[_mesh.indices[i++]]);
-		OGL::glTexCoord((uvs[3]+sOffsetRightDown*2)*s); OGL::glVertex(_mesh.pos[_mesh.indices[i++]]);
+		OGL::texCoord2f((uvs[0]+sOffsetRightDown*2)*s); OGL::vertex3f(_mesh.pos[_mesh.indices[i++]]);
+		OGL::texCoord2f((uvs[1]+sOffsetRightDown*2)*s); OGL::vertex3f(_mesh.pos[_mesh.indices[i++]]);
+		OGL::texCoord2f((uvs[2]+sOffsetRightDown*2)*s); OGL::vertex3f(_mesh.pos[_mesh.indices[i++]]);
+		OGL::texCoord2f((uvs[3]+sOffsetRightDown*2)*s); OGL::vertex3f(_mesh.pos[_mesh.indices[i++]]);
 	glEnd();
 
 	glBindTexture(GL_TEXTURE_2D, tex1);
 	glBegin(GL_QUADS); // Right
-		OGL::glTexCoord((uvs[0]+sOffsetRightDown*3)*s); OGL::glVertex(_mesh.pos[_mesh.indices[i++]]);
-		OGL::glTexCoord((uvs[1]+sOffsetRightDown*3)*s); OGL::glVertex(_mesh.pos[_mesh.indices[i++]]);
-		OGL::glTexCoord((uvs[2]+sOffsetRightDown*3)*s); OGL::glVertex(_mesh.pos[_mesh.indices[i++]]);
-		OGL::glTexCoord((uvs[3]+sOffsetRightDown*3)*s); OGL::glVertex(_mesh.pos[_mesh.indices[i++]]);
+		OGL::texCoord2f((uvs[0]+sOffsetRightDown*3)*s); OGL::vertex3f(_mesh.pos[_mesh.indices[i++]]);
+		OGL::texCoord2f((uvs[1]+sOffsetRightDown*3)*s); OGL::vertex3f(_mesh.pos[_mesh.indices[i++]]);
+		OGL::texCoord2f((uvs[2]+sOffsetRightDown*3)*s); OGL::vertex3f(_mesh.pos[_mesh.indices[i++]]);
+		OGL::texCoord2f((uvs[3]+sOffsetRightDown*3)*s); OGL::vertex3f(_mesh.pos[_mesh.indices[i++]]);
 	glEnd();
 
 	glBindTexture(GL_TEXTURE_2D, tex1);
 	glBegin(GL_QUADS); // Left
-		OGL::glTexCoord((uvs[0]+sOffsetRightDown*4)*s); OGL::glVertex(_mesh.pos[_mesh.indices[i++]]);
-		OGL::glTexCoord((uvs[1]+sOffsetRightDown*4)*s); OGL::glVertex(_mesh.pos[_mesh.indices[i++]]);
-		OGL::glTexCoord((uvs[2]+sOffsetRightDown*4)*s); OGL::glVertex(_mesh.pos[_mesh.indices[i++]]);
-		OGL::glTexCoord((uvs[3]+sOffsetRightDown*4)*s); OGL::glVertex(_mesh.pos[_mesh.indices[i++]]);
+		OGL::texCoord2f((uvs[0]+sOffsetRightDown*4)*s); OGL::vertex3f(_mesh.pos[_mesh.indices[i++]]);
+		OGL::texCoord2f((uvs[1]+sOffsetRightDown*4)*s); OGL::vertex3f(_mesh.pos[_mesh.indices[i++]]);
+		OGL::texCoord2f((uvs[2]+sOffsetRightDown*4)*s); OGL::vertex3f(_mesh.pos[_mesh.indices[i++]]);
+		OGL::texCoord2f((uvs[3]+sOffsetRightDown*4)*s); OGL::vertex3f(_mesh.pos[_mesh.indices[i++]]);
 	glEnd();
 
 	swapBuffers();
