@@ -18,7 +18,7 @@ struct Tuple2 {
 	SGE_INLINE	const	T& operator[](int i) const	{ return data[i]; }
 
 	SGE_INLINE Tuple2() = default;
-	SGE_INLINE Tuple2(const T& x_, const T& y_) { set(x_, y_); }
+	constexpr Tuple2(const T& x_, const T& y_) : x(x_), y(y_) {}
 
 	SGE_INLINE void set(const Tuple2<T>& v) { *this = v; }
 	SGE_INLINE void set(const T& x_, const T& y_) {

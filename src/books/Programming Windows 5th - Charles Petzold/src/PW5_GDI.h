@@ -6,82 +6,84 @@
 namespace sge {
 
 #define PW5_TextAlignmentOption_ENUM_LIST(E) \
-	E(Left,)		\
-	E(Right,)		\
-	E(Top,)			\
-	E(Bottom,)		\
-	E(Center,)		\
-	E(BaseLine,)	\
+	E(Left,		= TA_LEFT)		\
+	E(Right,	= TA_RIGHT)		\
+	E(Top,		= TA_TOP)		\
+	E(Bottom,	= TA_BOTTOM)	\
+	E(Center,	= TA_CENTER)	\
+	E(BaseLine, = TA_BASELINE)	\
 //----
-SGE_ENUM_CLASS(PW5_TextAlignmentOption, u8)
+SGE_ENUM_DECLARE(PW5_TextAlignmentOption, UINT)
 SGE_ENUM_ALL_OPERATOR(PW5_TextAlignmentOption)
 
-#define PW5_DrawTextFormatFlag_ENUM_LIST(E) \
-	E(Top,				= 0)		\
-	E(Left,				= 1 << 0)	\
-	E(Center,			= 1 << 1)	\
-	E(Right,			= 1 << 2)	\
-	E(VCenter,			= 1 << 3)	\
-	E(Bottom,			= 1 << 4)	\
-	E(WordBreak,		= 1 << 5)	\
-	E(SingleLine,		= 1 << 6)	\
-	E(ExpandTabs,		= 1 << 7)	\
-	E(TabStop,			= 1 << 8)	\
-	E(NoClip,			= 1 << 9)	\
-	E(ExternalLeading,	= 1 << 10)	\
-	E(CalcRect,			= 1 << 11)	\
-	E(NoPrefix,			= 1 << 12)	\
+#define PW5_DrawTextFormatFlag_ENUM_LIST(E)		\
+	E(Left,				= DT_LEFT)				\
+	E(Top,				= DT_TOP)				\
+	E(Right,			= DT_RIGHT)				\
+	E(Center,			= DT_CENTER)			\
+	E(VCenter,			= DT_VCENTER)			\
+	E(Bottom,			= DT_BOTTOM)			\
+	E(WordBreak,		= DT_WORDBREAK)			\
+	E(SingleLine,		= DT_SINGLELINE)		\
+	E(ExpandTabs,		= DT_EXPANDTABS)		\
+	E(TabStop,			= DT_TABSTOP)			\
+	E(NoClip,			= DT_NOCLIP)			\
+	E(ExternalLeading,	= DT_EXTERNALLEADING)	\
+	E(CalcRect,			= DT_CALCRECT)			\
+	E(NoPrefix,			= DT_NOPREFIX)			\
 //----
-SGE_ENUM_CLASS(PW5_DrawTextFormatFlag, u16)
+SGE_ENUM_DECLARE(PW5_DrawTextFormatFlag, u16)
 SGE_ENUM_ALL_OPERATOR(PW5_DrawTextFormatFlag)
 
 #define PW5_StockLogicalObject_Brush_ENUM_LIST(E) \
-	E(None,)	\
-	E(White,)	\
-	E(LtGray,)	\
-	E(Gray,)	\
-	E(DkGray,)	\
-	E(Black,)	\
+	E(None,		= NULL_BRUSH)	\
+	E(White,	= WHITE_BRUSH)	\
+	E(LtGray,	= LTGRAY_BRUSH)	\
+	E(Gray,		= GRAY_BRUSH)	\
+	E(DkGray,	= DKGRAY_BRUSH)	\
+	E(Black,	= BLACK_BRUSH)	\
 //----
 SGE_ENUM_CLASS(PW5_StockLogicalObject_Brush, u8)
 
+// The stock pens are 1 pixel wide default
 #define PW5_StockLogicalObject_Pen_ENUM_LIST(E) \
-	E(None,)	\
-	E(White,)	\
-	E(Black,)	\
+	E(None,		= NULL_PEN)	/* NULL_PEN is a pen that doesn't draw */	\
+	E(White,	= WHITE_PEN) \
+	E(Black,	= BLACK_PEN) /*default pen*/ \
 //----
 SGE_ENUM_CLASS(PW5_StockLogicalObject_Pen, u8)
 
 #define PW5_PenStyle_ENUM_LIST(E) \
-	E(None,)		\
-	E(Solid,)		\
-	E(Dash,)		\
-	E(Dot,)			\
-	E(DashDot,)		\
-	E(DashDotDot,)	\
+	E(None,			= PS_NULL)			\
+	E(Solid,		= PS_SOLID)			\
+	E(Dash,			= PS_DASH)			\
+	E(Dot,			= PS_DOT)			\
+	E(DashDot,		= PS_DASHDOT)		\
+	E(DashDotDot,	= PS_DASHDOTDOT)	\
 //----
 SGE_ENUM_CLASS(PW5_PenStyle, u8)
 
+
 #define PW5_HatchStyle_ENUM_LIST(E) \
-	E(None,)		\
-	E(Horizontal,)	\
-	E(Vertical,)	\
-	E(Fdiagonal,)	\
-	E(Bdiagonal,)	\
-	E(Cross,)		\
-	E(DiagCross,)	\
+	E(Horizontal,	= HS_HORIZONTAL)\
+	E(Vertical,		= HS_VERTICAL)	\
+	E(Fdiagonal,	= HS_FDIAGONAL)	\
+	E(Bdiagonal,	= HS_BDIAGONAL)	\
+	E(Cross,		= HS_CROSS)		\
+	E(DiagCross,	= HS_DIAGCROSS)	\
 //----
 SGE_ENUM_CLASS(PW5_HatchStyle, u8)
 
 #define PW5_MappingMode_ENUM_LIST(E) \
-	E(None,)		\
-	E(LowMetric,)	\
-	E(HighMetric,)	\
-	E(LowEnglish,)	\
-	E(HighEnglish,)	\
-	E(Twips,)		\
-	E(Isotropic,)	\
-	E(Anisotropic,)	\
+	E(None,			= 0)				\
+	E(Text,			= MM_TEXT)			\
+	E(LowMetric,	= MM_LOMETRIC)		\
+	E(HighMetric,	= MM_HIMETRIC)		\
+	E(LowEnglish,	= MM_LOENGLISH)		\
+	E(HighEnglish,	= MM_HIENGLISH)		\
+	E(Twips,		= MM_TWIPS)			\
+	E(Isotropic,	= MM_ISOTROPIC)		\
+	E(Anisotropic,	= MM_ANISOTROPIC)	\
 //----
 SGE_ENUM_CLASS(PW5_MappingMode, u8)
 
@@ -117,16 +119,16 @@ namespace GDI {
 		::TextOut(hdc, x, y, s.c_str(), static_cast<int>(s.size()));
 	}
 
-	void drawText(HDC hdc, int left, int top, int right, int bottom, StrView str, DTFlag flags);
-	inline void drawText(HDC hdc,
-						 int left, int top, int right, int bottom,
-						 StrView str,
-						 UINT fDT = DT_SINGLELINE | DT_CENTER | DT_VCENTER)
-	{
+	inline void drawText(HDC hdc, int left, int top, int right, int bottom, StrView str, UINT flags) {
 		if (str.empty()) return;
 		::RECT ltrb { left, top, right, bottom };
 		auto s = UtfUtil::toStringW(str);
-		::DrawText(hdc, s.c_str(), static_cast<int>(str.size()), &ltrb, fDT);
+		::DrawText(hdc, s.c_str(), static_cast<int>(str.size()), &ltrb, flags);
+	}
+	inline void drawText(HDC hdc, int left, int top, int right, int bottom, StrView str,
+						 DTFlag flags = DTFlag::SingleLine | DTFlag::Center | DTFlag::VCenter)
+	{
+		GDI::drawText(hdc, left, top, right, bottom, str, static_cast<UINT>(flags));
 	}
 	inline void drawText(HDC hdc, const ::RECT& ltrb, StrView str, DTFlag flags) {
 		drawText(hdc, ltrb.left, ltrb.top, ltrb.right, ltrb.bottom, str, flags);
@@ -649,13 +651,13 @@ public:
 class ScopedCreateHatchBrush : public ScopedHDCBrush_Base {
 	using Base = ScopedHDCBrush_Base;
 public:
-	ScopedCreateHatchBrush(HDC hdc, PW5_HatchStyle v, const Color4f& c);
+	ScopedCreateHatchBrush(HDC hdc, PW5_HatchStyle flag, const Color4f& c);
 };
 
 class ScopedExtCreatePen_Base : public ScopedHDC_NoHWND {
 	using Base = ScopedHDC_NoHWND;
 protected:
-	void _internal_ctor(HDC hdc, DWORD style, const Color4f& c, DWORD width) {
+	void _internal_ctor(HDC hdc, DWORD penStyle, const Color4f& c, DWORD width) {
 		// These are not unreasonable rules, but they can be a little tricky sometimes
 		_hdc = hdc;
 
@@ -673,7 +675,7 @@ protected:
 		::LOGBRUSH logBrush = {};
 		logBrush.lbColor = GDI::COLORREF_make(c);
 		logBrush.lbStyle = PS_SOLID;
-		_lastHPen = SelectPen(_hdc, ::ExtCreatePen(style, width, &logBrush, 0, nullptr));
+		_lastHPen = SelectPen(_hdc, ::ExtCreatePen(penStyle, width, &logBrush, 0, nullptr));
 	}
 
 	~ScopedExtCreatePen_Base() {
@@ -689,25 +691,27 @@ private:
 	::HPEN _lastHPen = nullptr;
 };
 
-template<size_t PS_XXX>
+template<size_t STYLE>
 class ScopedExtCreatePen_Dash_Dot : public ScopedExtCreatePen_Base {
 public:
 	ScopedExtCreatePen_Dash_Dot(HDC hdc, const Color4f& c) {
-		_internal_ctor(hdc, PS_XXX, c, 1);
+		// If you specify a dotted or dashed pen style with a physical width greater than 1,
+		// Windows will use a solid pen instead
+		_internal_ctor(hdc, STYLE, c, 1);
 	}
 };
 
 class ScopedExtCreatePen_Solid : public ScopedExtCreatePen_Base {
 public:
 	ScopedExtCreatePen_Solid(HDC hdc, const Color4f& c, DWORD width = 1) {
-		_internal_ctor(hdc, PS_SOLID, c, width);
+		_internal_ctor(hdc, static_cast<DWORD>(PW5_PenStyle::Solid), c, width);
 	}
 };
 
-using ScopedExtCreatePen_Dash		= ScopedExtCreatePen_Dash_Dot<PS_DASH>;
-using ScopedExtCreatePen_Dot		= ScopedExtCreatePen_Dash_Dot<PS_DOT>;
-using ScopedExtCreatePen_DashDot	= ScopedExtCreatePen_Dash_Dot<PS_DASHDOT>;
-using ScopedExtCreatePen_DashDotDot = ScopedExtCreatePen_Dash_Dot<PS_DASHDOTDOT>;
+using ScopedExtCreatePen_Dash		= ScopedExtCreatePen_Dash_Dot<static_cast<DWORD>(PW5_PenStyle::Dash)>;
+using ScopedExtCreatePen_Dot		= ScopedExtCreatePen_Dash_Dot<static_cast<DWORD>(PW5_PenStyle::Dot)>;
+using ScopedExtCreatePen_DashDot	= ScopedExtCreatePen_Dash_Dot<static_cast<DWORD>(PW5_PenStyle::DashDot)>;
+using ScopedExtCreatePen_DashDotDot = ScopedExtCreatePen_Dash_Dot<static_cast<DWORD>(PW5_PenStyle::DashDotDot)>;
 
 
 class ScopedCreatePen_Base : public ScopedHDC_NoHWND {
@@ -790,16 +794,16 @@ public:
 
 class ScopedCreateBrush_Hatched : public ScopedCreateBrush_Base {
 public:
-	ScopedCreateBrush_Hatched(HDC hdc, PW5_HatchStyle v, const Color4f& c);
+	ScopedCreateBrush_Hatched(HDC hdc, PW5_HatchStyle flag, const Color4f& c);
 };
 
 class ScopedCreateBrush_Pattern : public ScopedCreateBrush_Base {
 public:
-	ScopedCreateBrush_Pattern(HDC hdc, ::HBITMAP& hBMP) {
+	ScopedCreateBrush_Pattern(HDC hdc, ::HBITMAP& hBitMap) {
 		::LOGBRUSH logBrush = {};
 		logBrush.lbStyle = BS_PATTERN;
 		logBrush.lbColor = 0;
-		logBrush.lbHatch = reinterpret_cast<ULONG_PTR>(hBMP);
+		logBrush.lbHatch = reinterpret_cast<ULONG_PTR>(hBitMap);
 		_internal_ctor(hdc, logBrush);
 	}
 };

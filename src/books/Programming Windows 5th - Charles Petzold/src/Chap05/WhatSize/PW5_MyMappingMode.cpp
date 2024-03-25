@@ -241,13 +241,13 @@ void PW5_MyMappingMode::_example4() {
 
 	{
 		Vec2f from { o.x - _clientRect.w * 0.5f, 0 };
-		Vec2f to { o.x + _clientRect.w * 0.5f, 0 };
+		Vec2f to   { o.x + _clientRect.w * 0.5f, 0 };
 		hdc.drawLine(from, to);
 	}
 
 	{
-		Vec2f from{ 0, o.y - _clientRect.h * 0.5f };
-		Vec2f to{ 0, o.y + _clientRect.h * 0.5f };
+		Vec2f from { 0, o.y - _clientRect.h * 0.5f };
+		Vec2f to   { 0, o.y + _clientRect.h * 0.5f };
 		hdc.drawLine(from, to);
 	}
 
@@ -273,8 +273,8 @@ void PW5_MyMappingMode::_example5() {
 	ScopedGetDC hdc(_hwnd);
 	hdc.clearBg();
 
-	hdc.setViewportOrg({ _clientRect.w * 0.5f, _clientRect.h * 0.5f });
-	hdc.setWindowOrg(  { -_clientRect.w * 0.5f, -_clientRect.h * 0.5f });
+	hdc.setViewportOrg({ _clientRect.w * 0.5f,  _clientRect.h * 0.5f });
+	hdc.setWindowOrg({  -_clientRect.w * 0.5f, -_clientRect.h * 0.5f });
 
 	// logical point (−_clientRect.w/2, −_clientRect.h/2) is mapped to the device point (_clientRect.x/2, _clientRect.h/2)
 	/*
@@ -300,7 +300,7 @@ void PW5_MyMappingMode::_example5() {
 	SGE_DUMP_VAR(logicalPtOrg);
 
 	{
-		// there is nothing change when you call multiply times this api
+		// there is nothing change when you call setViewportOrg multiply times
 		hdc.setViewportOrg({ _clientRect.w * 0.5f, _clientRect.h * 0.5f });
 		hdc.setViewportOrg({ _clientRect.w * 0.5f, _clientRect.h * 0.5f });
 		hdc.setViewportOrg({ _clientRect.w * 0.5f, _clientRect.h * 0.5f });
@@ -314,9 +314,9 @@ void PW5_MyMappingMode::_example5() {
 
 		hdc.textOut(0, 0, "(0,0) reset the org");
 
-		SGE_DUMP_VAR("device:", viewportOrg);
+		SGE_DUMP_VAR("device1:", viewportOrg);
 		hdc.dPtoLP(viewportOrg);
-		SGE_DUMP_VAR("logical:", viewportOrg);
+		SGE_DUMP_VAR("logical1:", viewportOrg);
 
 		// now there is the side effect on logical coordinate, and GDI function is effect by logical coordinate
 		// so there is nothing feel when we use TextOut, DrawText, etc..
@@ -335,6 +335,52 @@ void PW5_MyMappingMode::_example5() {
 		SGE_DUMP_VAR("device2:", viewportOrg);
 		hdc.dPtoLP(viewportOrg);
 		SGE_DUMP_VAR("logical2:", viewportOrg);
+	}
+
+	{
+		// and now we want Cartesian coordinate system
+		// Solution1 is using setViewportOrg
+		hdc.setViewportOrg({_clientRect.w * 0.5f, _clientRect.h * 0.5f});
+		/*
+			-----------------------
+						+y
+						^
+				  -----------+x
+
+			-----------------------
+		*/
+		hdc.textOut(0, 0, "Cartesian coordinate");
+
+		Vec2f viewportOrg;
+		Vec2f windowtOrg;
+
+		hdc.getViewportOrg(viewportOrg);
+		SGE_DUMP_VAR("device3-1:", viewportOrg);
+
+		hdc.getWindowOrg(windowtOrg);
+		SGE_DUMP_VAR("local3-1:", windowtOrg);
+
+		// And Solution2 is using setWindowOrg
+		// before that, we reset viewportOrg to left-top(0,0)
+		hdc.setViewportOrg(0, 0);
+		hdc.setWindowOrg(0, 0);
+
+		// now change origin with setWindowOrg
+
+		// You can also use the SetWindowOrgEx function to change the logical(0, 0) point,
+		// but the task is a little more difficult because the arguments to SetWindowOrgEx have to be in logical coordinates.
+		// You would first need to convert(cxClient, cyClient) to a logical coordinate using the DPtoLP function.
+		// Assuming that the variable pt is a structure of type POINT,
+		// this code changes the logical(0, 0) point to the center of the client area
+		Vec2f p = _clientRect.size * 0.5f;
+		hdc.dPtoLP(p);
+		hdc.setWindowOrg(p);
+
+		hdc.getViewportOrg(viewportOrg);
+		SGE_DUMP_VAR("device3-2:", viewportOrg);
+
+		hdc.getWindowOrg(windowtOrg);
+		SGE_DUMP_VAR("local3-2:", windowtOrg);
 	}
 }
 

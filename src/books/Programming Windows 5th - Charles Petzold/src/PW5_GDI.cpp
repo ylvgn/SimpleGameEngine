@@ -6,11 +6,6 @@
 namespace sge {
 namespace GDI {
 
-	void drawText(HDC hdc, int left, int top, int right, int bottom, StrView str, DTFlag flags) {
-		UINT fDT = g_flags2Bits(flags, PW5_Win32Util::getDrawTextFormatFlag);
-		GDI::drawText(hdc, left, top, right, bottom, str, fDT);
-	}
-
 	void drawPoint(HDC hdc, int x, int y, const Color4f& c, int ptSize) {
 		ScopedCreateSolidBrush brush(hdc, c);
 		int halfSize = ptSize / 2;
@@ -68,12 +63,11 @@ void TextMetrics::_set(const ::TEXTMETRIC& tm) {
 #endif
 UINT ScopedHDC_NoHWND::setTextAlign(PW5_TextAlignmentOption flags /*= PW5_TextAlignmentOption::Left | PW5_TextAlignmentOption::Top*/) {
 	// https://github.com/MicrosoftDocs/win32/blob/docs/desktop-src/gdi/text-formatting-attributes.md
-	UINT align = g_flags2Bits(flags, PW5_Win32Util::getTextAlignmentOption);
-	return ::SetTextAlign(_hdc, align); // if failed, return GDI_ERROR
+	return ::SetTextAlign(_hdc, enumInt(flags)); // if failed, return GDI_ERROR
 }
 
 int ScopedHDC_NoHWND::setMappingMode(PW5_MappingMode flag /*= PW5_MappingMode::None*/) {
-	return ::SetMapMode(_hdc, PW5_Win32Util::getMappingMode(flag));
+	return ::SetMapMode(_hdc, enumInt(flag));
 }
 
 PW5_MappingMode ScopedHDC_NoHWND::getMappingMode() {
@@ -107,7 +101,7 @@ void ScopedHDC_::clearBg(PW5_StockLogicalObject_Brush flag /*= PW5_StockLogicalO
 
 	::RECT rc;
 	::GetClientRect(_hwnd, &rc); //  GetClientRect (which is always in terms of device units)
-	auto brush = GetStockBrush(PW5_Win32Util::getStockLogicalObject_Brush(flag));
+	auto brush = GetStockBrush(enumInt(flag));
 	GDI::fillRect(_hdc, rc, brush);
 
 	if (isNotLeftTop) {
@@ -116,21 +110,21 @@ void ScopedHDC_::clearBg(PW5_StockLogicalObject_Brush flag /*= PW5_StockLogicalO
 	}
 }
 
-template class ScopedExtCreatePen_Dash_Dot<PW5_Win32Util::getPenStyle(PW5_PenStyle::Dot)>;
-template class ScopedExtCreatePen_Dash_Dot<PW5_Win32Util::getPenStyle(PW5_PenStyle::Dash)>;
-template class ScopedExtCreatePen_Dash_Dot<PW5_Win32Util::getPenStyle(PW5_PenStyle::DashDot)>;
-template class ScopedExtCreatePen_Dash_Dot<PW5_Win32Util::getPenStyle(PW5_PenStyle::DashDotDot)>;
+template class ScopedExtCreatePen_Dash_Dot<static_cast<size_t>(PW5_PenStyle::Dot)>;
+template class ScopedExtCreatePen_Dash_Dot<static_cast<size_t>(PW5_PenStyle::Dash)>;
+template class ScopedExtCreatePen_Dash_Dot<static_cast<size_t>(PW5_PenStyle::DashDot)>;
+template class ScopedExtCreatePen_Dash_Dot<static_cast<size_t>(PW5_PenStyle::DashDotDot)>;
 
-ScopedCreateHatchBrush::ScopedCreateHatchBrush(HDC hdc, PW5_HatchStyle v, const Color4f& c) {
+ScopedCreateHatchBrush::ScopedCreateHatchBrush(HDC hdc, PW5_HatchStyle flag, const Color4f& c) {
 	_hdc = hdc;
-	_brush = ::CreateHatchBrush(PW5_Win32Util::getHatchStyle(v), GDI::COLORREF_make(c));
+	_brush = ::CreateHatchBrush(enumInt(flag), GDI::COLORREF_make(c));
 }
 
-ScopedCreateBrush_Hatched::ScopedCreateBrush_Hatched(HDC hdc, PW5_HatchStyle v, const Color4f& c) {
+ScopedCreateBrush_Hatched::ScopedCreateBrush_Hatched(HDC hdc, PW5_HatchStyle flag, const Color4f& c) {
 	::LOGBRUSH logBrush = {};
 	logBrush.lbStyle = BS_HATCHED;
 	logBrush.lbColor = GDI::COLORREF_make(c);
-	logBrush.lbHatch = PW5_Win32Util::getHatchStyle(v);
+	logBrush.lbHatch = static_cast<ULONG_PTR>(flag);
 	_internal_ctor(hdc, logBrush);
 }
 
