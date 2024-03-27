@@ -16,7 +16,7 @@ namespace sge {
 SGE_ENUM_DECLARE(PW5_TextAlignmentOption, UINT)
 SGE_ENUM_ALL_OPERATOR(PW5_TextAlignmentOption)
 
-#define PW5_DrawTextFormatFlag_ENUM_LIST(E)		\
+#define PW5_DrawTextFormatFlag_ENUM_LIST(E)	\
 	E(Left,				= DT_LEFT)				\
 	E(Top,				= DT_TOP)				\
 	E(Right,			= DT_RIGHT)				\
@@ -63,7 +63,6 @@ SGE_ENUM_CLASS(PW5_StockLogicalObject_Pen, u8)
 //----
 SGE_ENUM_CLASS(PW5_PenStyle, u8)
 
-
 #define PW5_HatchStyle_ENUM_LIST(E) \
 	E(Horizontal,	= HS_HORIZONTAL)\
 	E(Vertical,		= HS_VERTICAL)	\
@@ -104,73 +103,87 @@ namespace GDI {
 	static constexpr Color4f kCyan		{ 0,1,1,1 };
 	static constexpr Color4f kGray		{ 0.2f,0.2f,0.2f,1.f };
 	
-	inline void textOut(HDC hdc, int x, int y, StrView str) {
-		if (str.empty()) return;
+	inline bool textOut(const ::HDC& hdc, int x, int y, StrView str) {
+		if (str.empty()) return false;
 		auto s = UtfUtil::toStringW(str);
-		::TextOut(hdc, x, y, s.c_str(), static_cast<int>(s.size()));
+		return ::TextOut(hdc, x, y, s.c_str(), static_cast<int>(s.size()));
 	}
 
-	inline void textOut(HDC hdc, const Vec2f& pt, StrView str)	{ GDI::textOut(hdc, static_cast<int>(pt.x), static_cast<int>(pt.y), str); }
+	inline bool textOut(const ::HDC& hdc, const Vec2f& pt, StrView str)	{
+		return GDI::textOut(hdc, static_cast<int>(pt.x), static_cast<int>(pt.y), str);
+	}
 
 	template<class... Args>
-	inline void Fmt_textOut(HDC hdc, int x, int y, Args&&... args) {
+	inline bool Fmt_textOut(const ::HDC& hdc, int x, int y, Args&&... args) {
 		auto tmpStr = Fmt(SGE_FORWARD(args)...);
 		auto s = UtfUtil::toStringW(tmpStr);
-		::TextOut(hdc, x, y, s.c_str(), static_cast<int>(s.size()));
+		return ::TextOut(hdc, x, y, s.c_str(), static_cast<int>(s.size()));
 	}
 
-	inline void drawText(HDC hdc, int left, int top, int right, int bottom, StrView str, UINT flags) {
-		if (str.empty()) return;
+	inline int drawText(const ::HDC& hdc, int left, int top, int right, int bottom, StrView str, UINT flags) {
+		if (str.empty()) return 0;
 		::RECT ltrb { left, top, right, bottom };
 		auto s = UtfUtil::toStringW(str);
-		::DrawText(hdc, s.c_str(), static_cast<int>(str.size()), &ltrb, flags);
+		return ::DrawText(hdc, s.c_str(), static_cast<int>(str.size()), &ltrb, flags);
 	}
-	inline void drawText(HDC hdc, int left, int top, int right, int bottom, StrView str,
+	inline int drawText(const ::HDC& hdc, int left, int top, int right, int bottom, StrView str,
 						 DTFlag flags = DTFlag::SingleLine | DTFlag::Center | DTFlag::VCenter)
 	{
-		GDI::drawText(hdc, left, top, right, bottom, str, static_cast<UINT>(flags));
+		return GDI::drawText(hdc, left, top, right, bottom, str, static_cast<UINT>(flags));
 	}
-	inline void drawText(HDC hdc, const ::RECT& ltrb, StrView str, DTFlag flags) {
-		drawText(hdc, ltrb.left, ltrb.top, ltrb.right, ltrb.bottom, str, flags);
+	inline int drawText(const ::HDC& hdc, const ::RECT& ltrb, StrView str, DTFlag flags) {
+		return drawText(hdc, ltrb.left, ltrb.top, ltrb.right, ltrb.bottom, str, flags);
 	}
-	inline void drawText(HDC hdc, const Rect2f& xywh, StrView str, DTFlag flags) {
+	inline int drawText(const ::HDC& hdc, const Rect2f& xywh, StrView str, DTFlag flags) {
 		::RECT ltrb;
 		Win32Util::convert(ltrb, xywh);
 		return drawText(hdc, ltrb, str, flags);
 	}
 
-	inline bool rectangle(HDC hdc, int left, int top, int right, int bottom) { return ::Rectangle(hdc, left, top, right, bottom); }
-	inline bool rectangle(HDC hdc, const ::RECT& ltrb) { return ::Rectangle(hdc, ltrb.left, ltrb.top, ltrb.right, ltrb.bottom); }
-	inline bool rectangle(HDC hdc, const Rect2f& xywh) {
+	inline bool rectangle(const ::HDC& hdc, int left, int top, int right, int bottom) { return ::Rectangle(hdc, left, top, right, bottom); }
+	inline bool rectangle(const ::HDC& hdc, const ::RECT& ltrb) { return ::Rectangle(hdc, ltrb.left, ltrb.top, ltrb.right, ltrb.bottom); }
+	inline bool rectangle(const ::HDC& hdc, const Rect2f& xywh) {
 		::RECT ltrb;
 		Win32Util::convert(ltrb, xywh);
 		return rectangle(hdc, ltrb);
 	}
 
-	inline bool ellipse(HDC hdc, int left, int top, int right, int bottom) { return ::Ellipse(hdc, left, top, right, bottom); }
-	inline bool ellipse(HDC hdc, const ::RECT& ltrb) { return ::Ellipse(hdc, ltrb.left, ltrb.top, ltrb.right, ltrb.bottom); }
-	inline bool ellipse(HDC hdc, const Rect2f& xywh) {
+	inline bool ellipse(const ::HDC& hdc, int left, int top, int right, int bottom) {
+		return ::Ellipse(hdc, left, top, right, bottom);
+	}
+	inline bool ellipse(const ::HDC& hdc, const ::RECT& ltrb) {
+		return ::Ellipse(hdc, ltrb.left, ltrb.top, ltrb.right, ltrb.bottom);
+	}
+	inline bool ellipse(const ::HDC& hdc, const Rect2f& xywh) {
 		::RECT ltrb;
 		Win32Util::convert(ltrb, xywh);
 		return ellipse(hdc, ltrb);
 	}
 
-	inline bool roundRect(	HDC hdc, int left, int top, int right, int bottom,
-							int xEllipse = 0, int yEllipse = 0) { return ::RoundRect(hdc, left, top, right, bottom, xEllipse, yEllipse); }
-	inline bool roundRect(	HDC hdc, const ::RECT& ltrb,
-							int xEllipse = 0, int yEllipse = 0) { return ::RoundRect(hdc, ltrb.left, ltrb.top, ltrb.right, ltrb.bottom, xEllipse, yEllipse); }
-	inline bool roundRect(HDC hdc, const Rect2f& xywh, const Vec2f& cornerEllipseSize = {0,0}) {
+	inline bool roundRect(const ::HDC& hdc, int left, int top, int right, int bottom,
+						  int xEllipse = 0, int yEllipse = 0) {
+		return ::RoundRect(hdc, left, top, right, bottom, xEllipse, yEllipse);
+	}
+	inline bool roundRect(const ::HDC& hdc, const ::RECT& ltrb,
+						  int xEllipse = 0, int yEllipse = 0) {
+		return ::RoundRect(hdc, ltrb.left, ltrb.top, ltrb.right, ltrb.bottom, xEllipse, yEllipse);
+	}
+	inline bool roundRect(const ::HDC& hdc, const Rect2f& xywh, const Vec2f& cornerEllipseSize = Vec2f::s_zero()) {
 		::RECT ltrb;
 		Win32Util::convert(ltrb, xywh);
 		return roundRect(hdc, ltrb, static_cast<int>(cornerEllipseSize.x), static_cast<int>(cornerEllipseSize.y));
 	}
 
-	inline bool arc(HDC hdc,
+	inline bool arc(const ::HDC& hdc,
 					int left, int top, int right, int bottom,
-					int fromX, int fromY, int toX, int toY) { return ::Arc(hdc, left, top, right, bottom, fromX, fromY, toX, toY); }
-	inline bool arc(HDC hdc, const ::RECT& ltrb,
-					int fromX, int fromY, int toX, int toY) { return ::Arc(hdc, ltrb.left, ltrb.top, ltrb.right, ltrb.bottom, fromX, fromY, toX, toY); }
-	inline bool arc(HDC hdc, const Rect2f& xywh, const Vec2f& from, const Vec2f& to) {
+					int fromX, int fromY, int toX, int toY) {
+		return ::Arc(hdc, left, top, right, bottom, fromX, fromY, toX, toY);
+	}
+	inline bool arc(const ::HDC& hdc, const ::RECT& ltrb,
+					int fromX, int fromY, int toX, int toY) {
+		return ::Arc(hdc, ltrb.left, ltrb.top, ltrb.right, ltrb.bottom, fromX, fromY, toX, toY);
+	}
+	inline bool arc(const ::HDC& hdc, const Rect2f& xywh, const Vec2f& from, const Vec2f& to) {
 		::RECT ltrb;
 		Win32Util::convert(ltrb, xywh);
 		auto iFrom = Vec2i::s_cast(from);
@@ -178,12 +191,16 @@ namespace GDI {
 		return arc(hdc, ltrb, iFrom.x, iFrom.y, iTo.x, iTo.y);
 	}
 
-	inline bool chord(	HDC hdc,
-						int left, int top, int right, int bottom,
-						int fromX, int fromY, int toX, int toY) { return ::Chord(hdc, left, top, right, bottom, fromX, fromY, toX, toY); }
-	inline bool chord(	HDC hdc, const ::RECT& ltrb,
-						int fromX, int fromY, int toX, int toY) { return ::Chord(hdc, ltrb.left, ltrb.top, ltrb.right, ltrb.bottom, fromX, fromY, toX, toY); }
-	inline bool chord(HDC hdc, const Rect2f& xywh, const Vec2f& from, const Vec2f& to) {
+	inline bool chord(const ::HDC& hdc,
+					  int left, int top, int right, int bottom,
+					  int fromX, int fromY, int toX, int toY) {
+		return ::Chord(hdc, left, top, right, bottom, fromX, fromY, toX, toY);
+	}
+	inline bool chord(const ::HDC& hdc, const ::RECT& ltrb,
+					  int fromX, int fromY, int toX, int toY) {
+		return ::Chord(hdc, ltrb.left, ltrb.top, ltrb.right, ltrb.bottom, fromX, fromY, toX, toY);
+	}
+	inline bool chord(const ::HDC& hdc, const Rect2f& xywh, const Vec2f& from, const Vec2f& to) {
 		::RECT ltrb;
 		Win32Util::convert(ltrb, xywh);
 		auto iFrom = Vec2i::s_cast(from);
@@ -191,12 +208,16 @@ namespace GDI {
 		return chord(hdc, ltrb, iFrom.x, iFrom.y, iTo.x, iTo.y);
 	}
 
-	inline bool pie(HDC hdc,
+	inline bool pie(const ::HDC& hdc,
 					int left, int top, int right, int bottom,
-					int fromX, int fromY, int toX, int toY) { return ::Pie(hdc, left, top, right, bottom, fromX, fromY, toX, toY); }
-	inline bool pie(HDC hdc, const ::RECT& ltrb,
-					int fromX, int fromY, int toX, int toY) { return ::Pie(hdc, ltrb.left, ltrb.top, ltrb.right, ltrb.bottom, fromX, fromY, toX, toY); }
-	inline bool pie(HDC hdc, const Rect2f& xywh, const Vec2f& from, const Vec2f& to) {
+					int fromX, int fromY, int toX, int toY) {
+		return ::Pie(hdc, left, top, right, bottom, fromX, fromY, toX, toY);
+	}
+	inline bool pie(const ::HDC& hdc, const ::RECT& ltrb,
+					int fromX, int fromY, int toX, int toY) {
+		return ::Pie(hdc, ltrb.left, ltrb.top, ltrb.right, ltrb.bottom, fromX, fromY, toX, toY);
+	}
+	inline bool pie(const ::HDC& hdc, const Rect2f& xywh, const Vec2f& from, const Vec2f& to) {
 		::RECT ltrb;
 		Win32Util::convert(ltrb, xywh);
 		auto iFrom = Vec2i::s_cast(from);
@@ -204,30 +225,36 @@ namespace GDI {
 		return pie(hdc, ltrb, iFrom.x, iFrom.y, iTo.x, iTo.y);
 	}
 
-	inline bool lineTo(HDC hdc, int x, int y)		{ return ::LineTo(hdc, x, y); }
-	inline bool lineTo(HDC hdc, const ::POINT& pt)	{ return ::LineTo(hdc, pt.x, pt.y); }
-	inline bool lineTo(HDC hdc, const Vec2f& pt)	{ return ::LineTo(hdc, static_cast<int>(pt.x), static_cast<int>(pt.y)); }
-	inline bool lineTo(HDC hdc, const Vec2i& pt)	{ return ::LineTo(hdc, pt.x, pt.y); }
+	inline bool lineTo(const ::HDC& hdc, int x, int y) { return ::LineTo(hdc, x, y); }
+	inline bool lineTo(const ::HDC& hdc, const ::POINT& pt)	{ return ::LineTo(hdc, pt.x, pt.y); }
+	inline bool lineTo(const ::HDC& hdc, const Vec2f& pt) {
+		return ::LineTo(hdc, static_cast<int>(pt.x), static_cast<int>(pt.y));
+	}
+	inline bool lineTo(const ::HDC& hdc, const Vec2i& pt) { return ::LineTo(hdc, pt.x, pt.y); }
 
-	inline void drawLine(HDC hdc, int fromX, int fromY, int toX, int toY) {
+	inline void drawLine(const ::HDC& hdc, int fromX, int fromY, int toX, int toY) {
 		::POINT lastPt;
 		::MoveToEx(hdc, fromX, fromY, &lastPt);
 		::LineTo(hdc, toX, toY);
 		::MoveToEx(hdc, lastPt.x, lastPt.y, nullptr);
 	}
-	inline void drawLine(HDC hdc, const ::POINT& from, const ::POINT& to) { drawLine(hdc, from.x, from.y, to.x, to.y); }
-	inline void drawLine(HDC hdc, const Vec2i& from, const Vec2i& to) { drawLine(hdc, from.x, from.y, to.x, to.y); }
-	inline void drawLine(HDC hdc, const Vec2f& from, const Vec2f& to) {
+	inline void drawLine(const ::HDC& hdc, const ::POINT& from, const ::POINT& to) {
+		drawLine(hdc, from.x, from.y, to.x, to.y);
+	}
+	inline void drawLine(const ::HDC& hdc, const Vec2i& from, const Vec2i& to) {
+		drawLine(hdc, from.x, from.y, to.x, to.y);
+	}
+	inline void drawLine(const ::HDC& hdc, const Vec2f& from, const Vec2f& to) {
 		auto iFrom = Vec2i::s_cast(from);
-		auto iTo   = Vec2i::s_cast(to);
+		auto iTo = Vec2i::s_cast(to);
 		drawLine(hdc, iFrom, iTo);
 	}
 
-	void drawPoint(HDC hdc, int x, int y, const Color4f& c = kBlack, int ptSize = 10);
-	inline void drawPoint(HDC hdc, const ::POINT& pt, const Color4f& c, int ptSize) {
+	void drawPoint(const ::HDC& hdc, int x, int y, const Color4f& c = kBlack, int ptSize = 10);
+	inline void drawPoint(const ::HDC& hdc, const ::POINT& pt, const Color4f& c, int ptSize) {
 		drawPoint(hdc, pt.x, pt.y, c, ptSize);
 	}
-	inline void drawPoint(HDC hdc, const Vec2f& pt, const Color4f& c, int ptSize) {
+	inline void drawPoint(const ::HDC& hdc, const Vec2f& pt, const Color4f& c, int ptSize) {
 		::POINT pt_;
 		Win32Util::convert(pt_, pt);
 		drawPoint(hdc, pt_, c, ptSize);
@@ -238,26 +265,29 @@ namespace GDI {
 	inline ::COLORREF COLORREF_make(const Color4f& c)		{ return RGB(c.r*255, c.g*255, c.b*255); }
 
 	inline ::HBRUSH createSolidBrush(int r, int g, int b)	{ return ::CreateSolidBrush(COLORREF_make(r, g, b)); }
-	inline ::HBRUSH createSolidBrush(const ::COLORREF& c)	{ return ::CreateSolidBrush(c); }
 	inline ::HBRUSH createSolidBrush(const Color4b& c)		{ return ::CreateSolidBrush(COLORREF_make(c)); }
 	inline ::HBRUSH createSolidBrush(const Color4f& c)		{ return ::CreateSolidBrush(COLORREF_make(c)); }
 
-	inline void fillRect(HDC hdc, const ::RECT& rc, const ::HBRUSH& brush) {
+	inline void fillRect(const ::HDC& hdc, const ::RECT& rc, const ::HBRUSH& brush) {
 		::SelectObject(hdc, brush);
 		::FillRect(hdc, &rc, brush);
 		::SelectObject(hdc, nullptr);
 	}
 
-	void drawDashedLine(HDC hdc, int fromX, int fromY, int toX, int toY, const Color4f& c = kBlack);
-	inline void drawDashedLine(HDC hdc, const Vec2f& from, const Vec2f& to, const Color4f& c = kBlack) {
+	void drawDashedLine(const ::HDC& hdc, int fromX, int fromY, int toX, int toY, const Color4f& c = kBlack);
+	inline void drawDashedLine(const ::HDC& hdc, const Vec2f& from, const Vec2f& to, const Color4f& c = kBlack) {
 		auto iFrom = Vec2i::s_cast(from);
 		auto iTo   = Vec2i::s_cast(to);
 		drawDashedLine(hdc, iFrom.x, iFrom.y, iTo.x, iTo.y, c);
 	}
 
-	inline bool dPtoLP(HDC hdc, ::RECT& rect) { return ::DPtoLP(hdc, reinterpret_cast<::LPPOINT>(&rect), 2); }
-	inline bool dPtoLP(HDC hdc, ::POINT& pt)  { return ::DPtoLP(hdc, &pt, 1); }
-	inline bool dPtoLP(HDC hdc, Vec2f& pt) {
+	inline bool dPtoLP(const ::HDC& hdc, ::RECT& rect) {
+		return ::DPtoLP(hdc, reinterpret_cast<::LPPOINT>(&rect), 2);
+	}
+	inline bool dPtoLP(const ::HDC& hdc, ::POINT& pt) {
+		return ::DPtoLP(hdc, &pt, 1);
+	}
+	inline bool dPtoLP(const ::HDC& hdc, Vec2f& pt) {
 		::POINT pt_;
 		Win32Util::convert(pt_, pt);
 		bool ok = ::DPtoLP(hdc, &pt_, 1);
@@ -265,9 +295,13 @@ namespace GDI {
 		return ok;
 	}
 
-	inline bool lPtoDP(HDC hdc, ::RECT& rect) { return ::LPtoDP(hdc, reinterpret_cast<::LPPOINT>(&rect), 2); }
-	inline bool lPtoDP(HDC hdc, ::POINT& pt)  { return ::LPtoDP(hdc, &pt, 1); }
-	inline bool lPtoDP(HDC hdc, Vec2f& pt) {
+	inline bool lPtoDP(const ::HDC& hdc, ::RECT& rect) {
+		return ::LPtoDP(hdc, reinterpret_cast<::LPPOINT>(&rect), 2);
+	}
+	inline bool lPtoDP(const ::HDC& hdc, ::POINT& pt) {
+		return ::LPtoDP(hdc, &pt, 1);
+	}
+	inline bool lPtoDP(const ::HDC& hdc, Vec2f& pt) {
 		::POINT pt_;
 		Win32Util::convert(pt_, pt);
 		bool ok = ::LPtoDP(hdc, &pt_, 1);
@@ -276,12 +310,20 @@ namespace GDI {
 	}
 
 	// device coordinates origin set/get
-	inline bool setViewportOrg(HDC hdc, const ::POINT& pt) { return ::SetViewportOrgEx(hdc, pt.x, pt.y, nullptr); }
-	inline bool setViewportOrg(HDC hdc, const Vec2f& pt) { return ::SetViewportOrgEx(hdc, static_cast<int>(pt.x), static_cast<int>(pt.y), nullptr); }
-	inline bool setViewportOrg(HDC hdc, int x, int y) { return ::SetViewportOrgEx(hdc, x, y, nullptr); }
+	inline bool setViewportOrg(const ::HDC& hdc, const ::POINT& pt) {
+		return ::SetViewportOrgEx(hdc, pt.x, pt.y, nullptr);
+	}
+	inline bool setViewportOrg(const ::HDC& hdc, const Vec2f& pt) {
+		return ::SetViewportOrgEx(hdc, static_cast<int>(pt.x), static_cast<int>(pt.y), nullptr);
+	}
+	inline bool setViewportOrg(const ::HDC& hdc, int x, int y) {
+		return ::SetViewportOrgEx(hdc, x, y, nullptr);
+	}
 
-	inline bool getViewportOrg(HDC hdc, ::POINT& pt) { return ::GetViewportOrgEx(hdc, &pt); }
-	inline bool getViewportOrg(HDC hdc, Vec2f& pt) {
+	inline bool getViewportOrg(const ::HDC& hdc, ::POINT& pt) {
+		return ::GetViewportOrgEx(hdc, &pt);
+	}
+	inline bool getViewportOrg(const ::HDC& hdc, Vec2f& pt) {
 		::POINT pt_;
 		bool ok = ::GetViewportOrgEx(hdc, &pt_);
 		Win32Util::convert(pt, pt_);
@@ -289,36 +331,56 @@ namespace GDI {
 	}
 
 	// logical coordinates origin set/get
-	inline bool setWindowOrg(HDC hdc, const ::POINT& pt) { return ::SetWindowOrgEx(hdc, pt.x, pt.y, nullptr); }
-	inline bool setWindowOrg(HDC hdc, const Vec2f& pt) { return ::SetWindowOrgEx(hdc, static_cast<int>(pt.x), static_cast<int>(pt.y), nullptr); }
-	inline bool setWindowOrg(HDC hdc, int x, int y) { return ::SetWindowOrgEx(hdc, x, y, nullptr); }
+	inline bool setWindowOrg(const ::HDC& hdc, const ::POINT& pt) {
+		return ::SetWindowOrgEx(hdc, pt.x, pt.y, nullptr);
+	}
+	inline bool setWindowOrg(const ::HDC& hdc, const Vec2f& pt) {
+		return ::SetWindowOrgEx(hdc, static_cast<int>(pt.x), static_cast<int>(pt.y), nullptr);
+	}
+	inline bool setWindowOrg(const ::HDC& hdc, int x, int y) {
+		return ::SetWindowOrgEx(hdc, x, y, nullptr);
+	}
 
-	inline bool getWindowOrg(HDC hdc, ::POINT& pt) { return ::GetWindowOrgEx(hdc, &pt); }
-	inline bool getWindowOrg(HDC hdc, Vec2f& pt) {
+	inline bool getWindowOrg(const ::HDC& hdc, ::POINT& pt) {
+		return ::GetWindowOrgEx(hdc, &pt);
+	}
+	inline bool getWindowOrg(const ::HDC& hdc, Vec2f& pt) {
 		::POINT pt_;
 		bool ok = ::GetWindowOrgEx(hdc, &pt_);
 		Win32Util::convert(pt, pt_);
 		return ok;
 	}
 
-	inline bool setViewportExt(HDC hdc, int x, int y) { return ::SetViewportExtEx(hdc, x, y, nullptr); }
-	inline bool setViewportExt(HDC hdc, const ::SIZE& sz) { return ::SetViewportExtEx(hdc, sz.cx, sz.cy, nullptr); }
-	inline bool setViewportExt(HDC hdc, const Vec2f& sz) { return ::SetViewportExtEx(hdc, static_cast<int>(sz.x), static_cast<int>(sz.y), nullptr); }
+	inline bool setViewportExt(const ::HDC& hdc, int x, int y) {
+		return ::SetViewportExtEx(hdc, x, y, nullptr);
+	}
+	inline bool setViewportExt(const ::HDC& hdc, const ::SIZE& sz) {
+		return ::SetViewportExtEx(hdc, sz.cx, sz.cy, nullptr);
+	}
+	inline bool setViewportExt(const ::HDC& hdc, const Vec2f& sz) {
+		return ::SetViewportExtEx(hdc, static_cast<int>(sz.x), static_cast<int>(sz.y), nullptr);
+	}
 
-	inline bool setWindowExt(HDC hdc, int x, int y) { return ::SetWindowExtEx(hdc, x, y, nullptr); }
-	inline bool setWindowExt(HDC hdc, const ::SIZE& sz) { return ::SetWindowExtEx(hdc, sz.cx, sz.cy, nullptr); }
-	inline bool setWindowExt(HDC hdc, const Vec2f& sz) { return ::SetWindowExtEx(hdc, static_cast<int>(sz.x), static_cast<int>(sz.y), nullptr); }
+	inline bool setWindowExt(const ::HDC& hdc, int x, int y) {
+		return ::SetWindowExtEx(hdc, x, y, nullptr);
+	}
+	inline bool setWindowExt(const ::HDC& hdc, const ::SIZE& sz) {
+		return ::SetWindowExtEx(hdc, sz.cx, sz.cy, nullptr);
+	}
+	inline bool setWindowExt(const ::HDC& hdc, const Vec2f& sz) {
+		return ::SetWindowExtEx(hdc, static_cast<int>(sz.x), static_cast<int>(sz.y), nullptr);
+	}
 
-	inline bool getViewportExt(HDC hdc, ::SIZE& sz) { return ::GetViewportExtEx(hdc, &sz); }
-	inline bool getViewportExt(HDC hdc, Vec2f& sz) {
+	inline bool getViewportExt(const ::HDC& hdc, ::SIZE& sz) { return ::GetViewportExtEx(hdc, &sz); }
+	inline bool getViewportExt(const ::HDC& hdc, Vec2f& sz) {
 		::SIZE sz_;
 		bool ok = ::GetViewportExtEx(hdc, &sz_);
 		Win32Util::convert(sz, sz_);
 		return ok;
 	}
 
-	inline bool getWindowExt(HDC hdc, ::SIZE& sz) { return ::GetWindowExtEx(hdc, &sz); }
-	inline bool getWindowExt(HDC hdc, Vec2f& sz) {
+	inline bool getWindowExt(const ::HDC& hdc, ::SIZE& sz) { return ::GetWindowExtEx(hdc, &sz); }
+	inline bool getWindowExt(const ::HDC& hdc, Vec2f& sz) {
 		::SIZE sz_;
 		bool ok = ::GetWindowExtEx(hdc, &sz_);
 		Win32Util::convert(sz, sz_);
@@ -327,7 +389,7 @@ namespace GDI {
 
 	inline float getDisplayScaleRatio() {
 		::POINT ptZero = { 0, 0 };
-		HMONITOR hMonitor = ::MonitorFromPoint(ptZero, MONITOR_DEFAULTTONULL);
+		::HMONITOR hMonitor = ::MonitorFromPoint(ptZero, MONITOR_DEFAULTTONULL);
 
 		::MONITORINFOEX monitorInfo;
 		g_bzero(monitorInfo);
@@ -337,7 +399,7 @@ namespace GDI {
 		auto displayResolutionScaledWidth = monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left;
 		if (displayResolutionScaledWidth == 0) return 1.f; // fallback
 
-		DEVMODE devmode;
+		::DEVMODE devmode;
 		g_bzero(devmode);
 		devmode.dmSize = sizeof(devmode);
 		::EnumDisplaySettings(monitorInfo.szDevice, ENUM_CURRENT_SETTINGS, &devmode);
@@ -356,8 +418,8 @@ namespace sge {
 #pragma mark ========= TextMetrics ============
 #endif
 struct TextMetrics {
-	TextMetrics(HWND hwnd);
-	TextMetrics(HDC hdc);
+	TextMetrics(::HWND hwnd);
+	TextMetrics(::HDC hdc);
 	TextMetrics(const ::TEXTMETRIC& tm);
 
 	int		height;
@@ -372,7 +434,7 @@ struct TextMetrics {
 	bool	isFixedPitch : 1;
 
 private:
-	void	_internal_init(HDC hdc);
+	void	_internal_init(::HDC hdc);
 	void	_set(const ::TEXTMETRIC& tm);
 };
 
@@ -385,97 +447,158 @@ public:
 
 	virtual ~ScopedHDC_NoHWND() = default;
 
-	operator const HDC& () const { return _hdc; }
+	operator const ::HDC& () const { return _hdc; }
 
-	UINT setTextAlign(PW5_TextAlignmentOption flags = PW5_TextAlignmentOption::Left | PW5_TextAlignmentOption::Top);
+	auto setTextAlign(PW5_TextAlignmentOption flags) {
+		// https://github.com/MicrosoftDocs/win32/blob/docs/desktop-src/gdi/text-formatting-attributes.md
+		return ::SetTextAlign(_hdc, enumInt(flags));
+	}
 
-	int setMappingMode(PW5_MappingMode flag = PW5_MappingMode::None);
-	PW5_MappingMode getMappingMode();
+	auto setMappingMode(PW5_MappingMode flag) { return ::SetMapMode(_hdc, enumInt(flag)); }
+	PW5_MappingMode getMappingMode() const { return static_cast<PW5_MappingMode>(::GetMapMode(_hdc)); }
 
-	void setViewportOrg(int x, int y)		{ GDI::setViewportOrg(_hdc, x, y); }
-	void setViewportOrg(const Vec2f& pt)	{ GDI::setViewportOrg(_hdc, pt); }
-	void getViewportOrg(Vec2f& pt)			{ GDI::getViewportOrg(_hdc, pt); }
+	auto setViewportOrg(int x, int y)		{ return GDI::setViewportOrg(_hdc, x, y); }
+	auto setViewportOrg(const Vec2f& pt)	{ return GDI::setViewportOrg(_hdc, pt); }
+	auto getViewportOrg(Vec2f& pt)			{ return GDI::getViewportOrg(_hdc, pt); }
 
-	void setWindowOrg(int x, int y)			{ GDI::setWindowOrg(_hdc, x, y); }
-	void setWindowOrg(const Vec2f& pt)		{ GDI::setWindowOrg(_hdc, pt); }
-	void getWindowOrg(Vec2f& pt)			{ GDI::getWindowOrg(_hdc, pt); }
+	auto setWindowOrg(int x, int y)			{ return GDI::setWindowOrg(_hdc, x, y); }
+	auto setWindowOrg(const Vec2f& pt)		{ return GDI::setWindowOrg(_hdc, pt); }
+	auto getWindowOrg(Vec2f& pt)			{ return GDI::getWindowOrg(_hdc, pt); }
 
-	void setViewportExt(int x, int y)		{ GDI::setViewportExt(_hdc, x, y); }
-	void setViewportExt(const Vec2f& pt)	{ GDI::setViewportExt(_hdc, pt); }
-	void getViewportExt(Vec2f& sz)			{ GDI::getViewportExt(_hdc, sz); }
+	auto setViewportExt(int x, int y)		{ return GDI::setViewportExt(_hdc, x, y); }
+	auto setViewportExt(const Vec2f& pt)	{ return GDI::setViewportExt(_hdc, pt); }
+	auto getViewportExt(Vec2f& sz)			{ return GDI::getViewportExt(_hdc, sz); }
 
-	void setWindowExt(int x, int y)			{ GDI::setWindowExt(_hdc, x, y); }
-	void setWindowExt(const Vec2f& pt)		{ GDI::setWindowExt(_hdc, pt); }
-	void getWindowExt(Vec2f& sz)			{ GDI::getWindowExt(_hdc, sz); }
+	auto setWindowExt(int x, int y)			{ return GDI::setWindowExt(_hdc, x, y); }
+	auto setWindowExt(const Vec2f& pt)		{ return GDI::setWindowExt(_hdc, pt); }
+	auto getWindowExt(Vec2f& sz)			{ return GDI::getWindowExt(_hdc, sz); }
 
-	void dPtoLP(Vec2f& pt)					{ GDI::dPtoLP(_hdc, pt); }
-	void lPtoDP(Vec2f& pt)					{ GDI::lPtoDP(_hdc, pt); }
+	auto dPtoLP(Vec2f& pt)					{ return GDI::dPtoLP(_hdc, pt); }
+	auto lPtoDP(Vec2f& pt)					{ return GDI::lPtoDP(_hdc, pt); }
 
-	void textOut(int x, int y, StrView str)		const { GDI::textOut(_hdc, x, y, str); }
-	void textOut(const Vec2f& pt, StrView str)	const { GDI::textOut(_hdc, pt, str); }
+	auto textOut(int x, int y, StrView str)		const { return GDI::textOut(_hdc, x, y, str); }
+	auto textOut(const Vec2f& pt, StrView str)	const { return GDI::textOut(_hdc, pt, str); }
 
-	void drawText(int l, int t, int r, int b, StrView str)					const { GDI::drawText(_hdc, l, t, r, b, str); }
-	void drawText(int l, int t, int r, int b, StrView str, DTFlag flags)	const { GDI::drawText(_hdc, l, t, r, b, str, flags); }
-	void drawText(const ::RECT& ltrb, StrView str, DTFlag flags)			const { GDI::drawText(_hdc, ltrb, str, flags); }
-	void drawText(const Rect2f& xywh, StrView str, DTFlag flags)			const { GDI::drawText(_hdc, xywh, str, flags); }
+	auto drawText(int l, int t, int r, int b, StrView str) const {
+		return GDI::drawText(_hdc, l, t, r, b, str);
+	}
+	auto drawText(int l, int t, int r, int b, StrView str, DTFlag flags) const {
+		return GDI::drawText(_hdc, l, t, r, b, str, flags);
+	}
+	auto drawText(const ::RECT& ltrb, StrView str, DTFlag flags) const {
+		return GDI::drawText(_hdc, ltrb, str, flags);
+	}																			 
+	auto drawText(const Rect2f& xywh, StrView str, DTFlag flags) const {
+		return GDI::drawText(_hdc, xywh, str, flags);
+	}
 
-	void drawLine(int fromX, int fromY, int toX, int toY)					const { GDI::drawLine(_hdc, fromX, fromY, toX, toY); }
-	void drawLine(const ::POINT& from, const ::POINT& to)					const { GDI::drawLine(_hdc, from, to); }
-	void drawLine(const Vec2f& from, const Vec2f& to)						const { GDI::drawLine(_hdc, from, to); }
-	void drawLine(const Vec2i& from, const Vec2i& to)						const { GDI::drawLine(_hdc, from, to); }
+	void drawLine(int fromX, int fromY, int toX, int toY)	const { GDI::drawLine(_hdc, fromX, fromY, toX, toY); }
+	void drawLine(const ::POINT& from, const ::POINT& to)	const { GDI::drawLine(_hdc, from, to); }
+	void drawLine(const Vec2f& from, const Vec2f& to)		const { GDI::drawLine(_hdc, from, to); }
+	void drawLine(const Vec2i& from, const Vec2i& to)		const { GDI::drawLine(_hdc, from, to); }
 
-	void rectangle(int left, int top, int right, int bottom)				const { GDI::rectangle(_hdc, left, top, right, bottom); }
-	void rectangle(const ::RECT& ltrb)										const { GDI::rectangle(_hdc, ltrb); }
-	void rectangle(const Rect2f& xywh)										const { GDI::rectangle(_hdc, xywh); }
+	auto rectangle(int left, int top, int right, int bottom) const { return GDI::rectangle(_hdc, left, top, right, bottom); }
+	auto rectangle(const ::RECT& ltrb) const { return GDI::rectangle(_hdc, ltrb); }
+	auto rectangle(const Rect2f& xywh) const { return GDI::rectangle(_hdc, xywh); }
 
-	void ellipse(int left, int top, int right, int bottom)					const { GDI::ellipse(_hdc, left, top, right, bottom); }
-	void ellipse(const ::RECT& ltrb)										const { GDI::ellipse(_hdc, ltrb); }
-	void ellipse(const Rect2f& xywh)										const { GDI::ellipse(_hdc, xywh); }
+	auto ellipse(int left, int top, int right, int bottom)	const { return GDI::ellipse(_hdc, left, top, right, bottom); }
+	auto ellipse(const ::RECT& ltrb)						const { return GDI::ellipse(_hdc, ltrb); }
+	auto ellipse(const Rect2f& xywh)						const { return GDI::ellipse(_hdc, xywh); }
 
-	void roundRect(	int left, int top, int right, int bottom,
-					int xEllipse = 0, int yEllipse = 0)						const { GDI::roundRect(_hdc, left, top, right, bottom, xEllipse, yEllipse); }
-	void roundRect(const ::RECT& ltrb, int xEllipse = 0, int yEllipse = 0)	const { GDI::roundRect(_hdc, ltrb, xEllipse, yEllipse); }
-	void roundRect(const Rect2f& xywh, const Vec2f& ellipseSize)			const { GDI::roundRect(_hdc, xywh, ellipseSize); }
+	auto roundRect(	int left, int top, int right, int bottom,
+					int xEllipse = 0, int yEllipse = 0)	const {
+		return GDI::roundRect(_hdc, left, top, right, bottom, xEllipse, yEllipse);
+	}
+	auto roundRect(const ::RECT& ltrb, int xEllipse = 0, int yEllipse = 0) const {
+		GDI::roundRect(_hdc, ltrb, xEllipse, yEllipse);
+	}
+	auto roundRect(const Rect2f& xywh, const Vec2f& ellipseSize) const {
+		return GDI::roundRect(_hdc, xywh, ellipseSize);
+	}
 
-	void arc(	int left, int top, int right, int bottom,
-				int fromX, int fromY, int toX, int toY)						const { GDI::arc(_hdc, left, top, right, bottom, fromX, fromY, toX, toY); }
-	void arc(const ::RECT& ltrb, int fromX, int fromY, int toX, int toY)	const { GDI::arc(_hdc, ltrb, fromX, fromY, toX, toY); }
-	void arc(const Rect2f& xywh, const Vec2f& from, const Vec2f& to)		const { GDI::arc(_hdc, xywh, from, to); }
+	auto arc(int left, int top, int right, int bottom,
+			 int fromX, int fromY, int toX, int toY) const {
+		GDI::arc(_hdc, left, top, right, bottom, fromX, fromY, toX, toY);
+	}
+	auto arc(const ::RECT& ltrb, int fromX, int fromY, int toX, int toY) const {
+		return GDI::arc(_hdc, ltrb, fromX, fromY, toX, toY);
+	}
+	auto arc(const Rect2f& xywh, const Vec2f& from, const Vec2f& to) const {
+		return GDI::arc(_hdc, xywh, from, to);
+	}
 
-	void chord(	int left, int top, int right, int bottom,
-				int fromX, int fromY, int toX, int toY)						const { GDI::chord(_hdc, left, top, right, bottom, fromX, fromY, toX, toY); }
-	void chord(const ::RECT& ltrb, int fromX, int fromY, int toX, int toY)	const { GDI::chord(_hdc, ltrb, fromX, fromY, toX, toY); }
-	void chord(const Rect2f& xywh, const Vec2f& from, const Vec2f& to)		const { GDI::chord(_hdc, xywh, from, to); }
+	auto chord( int left, int top, int right, int bottom,
+				int fromX, int fromY, int toX, int toY)	const {
+		return GDI::chord(_hdc, left, top, right, bottom, fromX, fromY, toX, toY);
+	}
+	auto chord(const ::RECT& ltrb, int fromX, int fromY, int toX, int toY) const {
+		return GDI::chord(_hdc, ltrb, fromX, fromY, toX, toY);
+	}
+	auto chord(const Rect2f& xywh, const Vec2f& from, const Vec2f& to) const {
+		return GDI::chord(_hdc, xywh, from, to);
+	}
 	
-	void pie(	int left, int top, int right, int bottom,
-				int fromX, int fromY, int toX, int toY)						const { GDI::pie(_hdc, left, top, right, bottom, fromX, fromY, toX, toY); }
-	void pie(const ::RECT& ltrb, int fromX, int fromY, int toX, int toY)	const { GDI::pie(_hdc, ltrb, fromX, fromY, toX, toY); }
-	void pie(const Rect2f& xywh, const Vec2f& from, const Vec2f& to)		const { GDI::pie(_hdc, xywh, from, to); }
+	auto pie(int left, int top, int right, int bottom,
+			 int fromX, int fromY, int toX, int toY) const {
+		return GDI::pie(_hdc, left, top, right, bottom, fromX, fromY, toX, toY);
+	}
+	auto pie(const ::RECT& ltrb, int fromX, int fromY, int toX, int toY) const {
+		return GDI::pie(_hdc, ltrb, fromX, fromY, toX, toY);
+	}
+	auto pie(const Rect2f& xywh, const Vec2f& from, const Vec2f& to) const {
+		return GDI::pie(_hdc, xywh, from, to);
+	}
 
-	void drawPoint(int x, int y, const Color4f& c, int ptSize)				const { GDI::drawPoint(_hdc, x, y, c, ptSize); }
-	void drawPoint(const ::POINT& pt, const Color4f& c, int ptSize)			const { GDI::drawPoint(_hdc, pt, c, ptSize); }
-	void drawPoint(const Vec2f& pt, const Color4f& c, int ptSize)			const { GDI::drawPoint(_hdc, pt, c, ptSize); }
+	void drawPoint(int x, int y, const Color4f& c, int ptSize)		const { GDI::drawPoint(_hdc, x, y, c, ptSize); }
+	void drawPoint(const ::POINT& pt, const Color4f& c, int ptSize)	const { GDI::drawPoint(_hdc, pt, c, ptSize); }
+	void drawPoint(const Vec2f& pt, const Color4f& c, int ptSize)	const { GDI::drawPoint(_hdc, pt, c, ptSize); }
 
 	template<class... Args>
-	void Fmt_textOut(int x, int y, Args&&... args) const { GDI::Fmt_textOut(_hdc, x, y, SGE_FORWARD(args)...); }
+	auto Fmt_textOut(int x, int y, Args&&... args) const {
+		return GDI::Fmt_textOut(_hdc, x, y, SGE_FORWARD(args)...);
+	}
 
 	template<class... Args>
-	void Fmt_textOut(const Vec2f& pt, Args&&... args) const { GDI::Fmt_textOut(_hdc, static_cast<int>(pt.x), static_cast<int>(pt.y), SGE_FORWARD(args)...); }
+	auto Fmt_textOut(const Vec2f& pt, Args&&... args) const {
+		return GDI::Fmt_textOut(_hdc, static_cast<int>(pt.x), static_cast<int>(pt.y), SGE_FORWARD(args)...);
+	}
 
 	template<class... Args>
-	void Fmt_drawText(int x, int y, Args&&... args) const;
+	auto Fmt_drawText(int x, int y, Args&&... args) const;
 
 protected:
-	HDC	_hdc = nullptr;
+	::HDC	_hdc = nullptr;
 };
 
 class ScopedHDC_ : public ScopedHDC_NoHWND {
 	using Base = ScopedHDC_NoHWND;
 public:
-	ScopedHDC_(const HWND& hwnd)
+	ScopedHDC_(const ::HWND& hwnd)
 		: _hwnd(hwnd) {}
 
-	void clearBg(PW5_StockLogicalObject_Brush flag = PW5_StockLogicalObject_Brush::White);
+	void clearBg(PW5_StockLogicalObject_Brush flag = PW5_StockLogicalObject_Brush::White) {
+		Vec2f oldViewportOrg;
+		Vec2f oldWindowOrg;
+
+		getViewportOrg(oldViewportOrg);
+		getViewportOrg(oldWindowOrg);
+
+		bool isNotLeftTop = oldViewportOrg != oldWindowOrg;
+		if (isNotLeftTop) {
+			setViewportOrg(0, 0);
+			setWindowOrg(0, 0);
+		}
+
+		::RECT rc;
+		::GetClientRect(_hwnd, &rc); //  GetClientRect (which is always in terms of device units)
+		auto brush = GetStockBrush(enumInt(flag));
+		GDI::fillRect(_hdc, rc, brush);
+
+		if (isNotLeftTop) {
+			setViewportOrg(oldViewportOrg);
+			setWindowOrg(oldWindowOrg);
+		}
+	}
 
 protected:
 	const HWND& _hwnd;
@@ -484,7 +607,7 @@ protected:
 class ScopedPaintStruct : public ScopedHDC_ {
 	using Base = ScopedHDC_;
 public:
-	ScopedPaintStruct(const HWND& hwnd) : Base(hwnd) {
+	ScopedPaintStruct(const ::HWND& hwnd) : Base(hwnd) {
 		_hdc = ::BeginPaint(hwnd, &_ps);
 		if (!_hdc) {
 			SGE_LOG_ERROR("ScopedPaintStruct BeginPaint");
@@ -492,7 +615,7 @@ public:
 	}
 	~ScopedPaintStruct() { ::EndPaint(_hwnd, &_ps); }
 
-			HDC		hdc()		const { return _ps.hdc;		}
+			::HDC	hdc()		const { return _ps.hdc;		}
 			bool	fErase()	const { return _ps.fErase;	}
 	const	::RECT&	rcPaint()	const { return _ps.rcPaint; }
 
@@ -503,7 +626,7 @@ private:
 class ScopedGetDC : public ScopedHDC_ {
 	using Base = ScopedHDC_;
 public:
-	ScopedGetDC(const HWND& hwnd) : Base(hwnd) {
+	ScopedGetDC(const ::HWND& hwnd) : Base(hwnd) {
 		_hdc = ::GetDC(hwnd);
 		if (!_hdc) {
 			SGE_LOG_ERROR("ScopedGetDC GetDC");
@@ -520,7 +643,7 @@ public:
 class ScopedGetWindowDC : public ScopedHDC_ {
 	using Base = ScopedHDC_;
 public:
-	ScopedGetWindowDC(const HWND& hwnd) : Base(hwnd) {
+	ScopedGetWindowDC(const ::HWND& hwnd) : Base(hwnd) {
 		_hdc = ::GetWindowDC(hwnd);
 		if (!_hdc) {
 			SGE_LOG_ERROR("ScopedGetWindowDC GetWindowDC");
@@ -581,7 +704,7 @@ public:
 class ScopedCreateCompatibleDC : public ScopedHDC_NoHWND {
 	using Base = ScopedHDC_NoHWND;
 public:
-	ScopedCreateCompatibleDC(HDC srcHdc) {
+	ScopedCreateCompatibleDC(::HDC srcHdc) {
 		_hdc = ::CreateCompatibleDC(srcHdc);
 	}
 	~ScopedCreateCompatibleDC() {
@@ -595,7 +718,7 @@ public:
 class ScopedSaveDC : public ScopedHDC_NoHWND {
 	using Base = ScopedHDC_NoHWND;
 public:
-	ScopedSaveDC(HDC hdc) : _id(0) {
+	ScopedSaveDC(::HDC hdc) : _id(0) {
 		_hdc = hdc;
 		_id = ::SaveDC(hdc);
 		if (!_id) {
@@ -637,7 +760,7 @@ protected:
 class ScopedCreateSolidBrush : public ScopedHDCBrush_Base {
 	using Base = ScopedHDCBrush_Base;
 public:
-	ScopedCreateSolidBrush(HDC hdc, const Color4f& c = GDI::kWhite) {
+	ScopedCreateSolidBrush(::HDC hdc, const Color4f& c = GDI::kBlack) {
 		_hdc = hdc;
 		_brush = ::CreateSolidBrush(GDI::COLORREF_make(c));
 		if (!_brush) {
@@ -651,13 +774,19 @@ public:
 class ScopedCreateHatchBrush : public ScopedHDCBrush_Base {
 	using Base = ScopedHDCBrush_Base;
 public:
-	ScopedCreateHatchBrush(HDC hdc, PW5_HatchStyle flag, const Color4f& c);
+	ScopedCreateHatchBrush(::HDC hdc,
+		const Color4f& c = GDI::kBlack,
+		PW5_HatchStyle flag = PW5_HatchStyle::Horizontal)
+	{
+		_hdc = hdc;
+		_brush = ::CreateHatchBrush(enumInt(flag), GDI::COLORREF_make(c));
+	}
 };
 
 class ScopedExtCreatePen_Base : public ScopedHDC_NoHWND {
 	using Base = ScopedHDC_NoHWND;
 protected:
-	void _internal_ctor(HDC hdc, DWORD penStyle, const Color4f& c, DWORD width) {
+	void _internal_ctor(::HDC hdc, DWORD penStyle, const Color4f& c, DWORD width) {
 		// These are not unreasonable rules, but they can be a little tricky sometimes
 		_hdc = hdc;
 
@@ -691,10 +820,10 @@ private:
 	::HPEN _lastHPen = nullptr;
 };
 
-template<size_t STYLE>
+template<DWORD STYLE>
 class ScopedExtCreatePen_Dash_Dot : public ScopedExtCreatePen_Base {
 public:
-	ScopedExtCreatePen_Dash_Dot(HDC hdc, const Color4f& c) {
+	ScopedExtCreatePen_Dash_Dot(::HDC hdc, const Color4f& c) {
 		// If you specify a dotted or dashed pen style with a physical width greater than 1,
 		// Windows will use a solid pen instead
 		_internal_ctor(hdc, STYLE, c, 1);
@@ -703,7 +832,7 @@ public:
 
 class ScopedExtCreatePen_Solid : public ScopedExtCreatePen_Base {
 public:
-	ScopedExtCreatePen_Solid(HDC hdc, const Color4f& c, DWORD width = 1) {
+	ScopedExtCreatePen_Solid(::HDC hdc, const Color4f& c, DWORD width = 1) {
 		_internal_ctor(hdc, static_cast<DWORD>(PW5_PenStyle::Solid), c, width);
 	}
 };
@@ -717,7 +846,7 @@ using ScopedExtCreatePen_DashDotDot = ScopedExtCreatePen_Dash_Dot<static_cast<DW
 class ScopedCreatePen_Base : public ScopedHDC_NoHWND {
 	using Base = ScopedHDC_NoHWND;
 protected:
-	void _internal_ctor(HDC hdc, int iStyle, const Color4f& c, int width) {
+	void _internal_ctor(::HDC hdc, int iStyle, const Color4f& c, int width) {
 		_hdc = hdc;
 		_lastHPen = SelectPen(_hdc, ::CreatePen(iStyle, width, GDI::COLORREF_make(c)));
 	}
@@ -735,14 +864,14 @@ private:
 template<size_t PS_XXX>
 class ScopedCreatePen_Dash_Dot : public ScopedCreatePen_Base {
 public:
-	ScopedCreatePen_Dash_Dot(HDC hdc, const Color4f& c) {
+	ScopedCreatePen_Dash_Dot(::HDC hdc, const Color4f& c) {
 		_internal_ctor(hdc, PS_XXX, c, 0);
 	}
 };
 
 class ScopedCreatePen_Solid : public ScopedCreatePen_Base {
 public:
-	ScopedCreatePen_Solid(HDC hdc, const Color4f& c, DWORD width = 1) {
+	ScopedCreatePen_Solid(::HDC hdc, const Color4f& c, DWORD width = 1) {
 		_internal_ctor(hdc, PS_SOLID, c, width);
 	}
 };
@@ -755,7 +884,7 @@ using ScopedCreatePen_DashDotDot	= ScopedExtCreatePen_Dash_Dot<PS_DASHDOTDOT>;
 class ScopedCreateBrush_Base : public ScopedHDC_NoHWND {
 	using Base = ScopedHDC_NoHWND;
 protected:
-	void _internal_ctor(HDC hdc, ::LOGBRUSH& logBrush) {
+	void _internal_ctor(::HDC hdc, ::LOGBRUSH& logBrush) {
 		_hdc = hdc;
 		_lastHBrush = SelectBrush(hdc, ::CreateBrushIndirect(&logBrush));
 	}
@@ -772,7 +901,7 @@ private:
 
 class ScopedCreateBrush_Solid : public ScopedCreateBrush_Base {
 public:
-	ScopedCreateBrush_Solid(HDC hdc, const Color4f& c) {
+	ScopedCreateBrush_Solid(::HDC hdc, const Color4f& c) {
 		::LOGBRUSH logBrush = {};
 		logBrush.lbStyle = BS_SOLID;
 		logBrush.lbColor = GDI::COLORREF_make(c);
@@ -783,7 +912,7 @@ public:
 
 class ScopedCreateBrush_Hollow : public ScopedCreateBrush_Base {
 public:
-	ScopedCreateBrush_Hollow(HDC hdc) {
+	ScopedCreateBrush_Hollow(::HDC hdc) {
 		::LOGBRUSH logBrush = {};
 		logBrush.lbStyle = BS_HOLLOW;
 		logBrush.lbColor = 0;
@@ -794,12 +923,18 @@ public:
 
 class ScopedCreateBrush_Hatched : public ScopedCreateBrush_Base {
 public:
-	ScopedCreateBrush_Hatched(HDC hdc, PW5_HatchStyle flag, const Color4f& c);
+	ScopedCreateBrush_Hatched(::HDC hdc, const Color4f& c = GDI::kBlack, PW5_HatchStyle flag = PW5_HatchStyle::Horizontal) {
+		::LOGBRUSH logBrush = {};
+		logBrush.lbStyle = BS_HATCHED;
+		logBrush.lbColor = GDI::COLORREF_make(c);
+		logBrush.lbHatch = static_cast<ULONG_PTR>(flag);
+		_internal_ctor(hdc, logBrush);
+	}
 };
 
 class ScopedCreateBrush_Pattern : public ScopedCreateBrush_Base {
 public:
-	ScopedCreateBrush_Pattern(HDC hdc, ::HBITMAP& hBitMap) {
+	ScopedCreateBrush_Pattern(::HDC hdc, ::HBITMAP& hBitMap) {
 		::LOGBRUSH logBrush = {};
 		logBrush.lbStyle = BS_PATTERN;
 		logBrush.lbColor = 0;
@@ -813,7 +948,7 @@ public:
 namespace sge {
 namespace GDI {
 
-	inline TextMetrics createTextMetrics(HDC hdc) { return TextMetrics(hdc); }
+	inline TextMetrics createTextMetrics(::HDC hdc) { return TextMetrics(hdc); }
 
 	template<class... Args>
 	inline void Fmt_drawText(HDC hdc, int x, int y, Args&&... args) {
@@ -825,11 +960,12 @@ namespace GDI {
 } // namespace GDI
 } // namespace sge
 
+
 namespace sge {
 
 template<class... Args> inline
-void ScopedHDC_NoHWND::Fmt_drawText(int x, int y, Args&&... args) const {
-	GDI::Fmt_drawText(_hdc, x, y, SGE_FORWARD(args)...);
+auto ScopedHDC_NoHWND::Fmt_drawText(int x, int y, Args&&... args) const {
+	return GDI::Fmt_drawText(_hdc, x, y, SGE_FORWARD(args)...);
 }
 
 } // namespace sge

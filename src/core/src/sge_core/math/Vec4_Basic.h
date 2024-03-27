@@ -23,6 +23,11 @@ public:
 	using Vec2 = Vec2<T>;
 	using Vec3 = Vec3<T>;
 
+	SGE_INLINE static Vec4 s_zero()		{ return Vec4(0,0,0,0); }
+	SGE_INLINE static Vec4 s_one()		{ return Vec4(1,1,1,1); }
+
+	SGE_INLINE static Vec4 s_inf()		{ auto f = Math::inf<T>(); return Vec4(f,f,f,f); }
+
 	SGE_INLINE Vec4() = default;
 	SGE_INLINE Vec4(const Tuple4<T> & v) { set(v); }
 	SGE_INLINE Vec4(const T& x_, const T& y_, const T& z_, const T& w_) { set(x_, y_, z_, w_); }

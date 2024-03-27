@@ -17,6 +17,17 @@ struct Vec2_Basic : public DATA {
 
 	using DATA::x;
 	using DATA::y;
+	using DATA::data;
+
+	SGE_INLINE static Vec2 s_zero()		{ return Vec2(0,0); }
+	SGE_INLINE static Vec2 s_one()		{ return Vec2(1,1); }
+
+	SGE_INLINE static Vec2 s_up()		{ return Vec2( 0, 1); }
+	SGE_INLINE static Vec2 s_down()		{ return Vec2( 0,-1); }
+	SGE_INLINE static Vec2 s_right()	{ return Vec2( 1 ,0); }
+	SGE_INLINE static Vec2 s_left()		{ return Vec2(-1 ,0); }
+
+	SGE_INLINE static Vec2 s_inf()		{ auto f = Math::inf<T>(); return Vec2(f,f); }
 
 	SGE_INLINE Vec2() = default;
 	SGE_INLINE Vec2(const Tuple2<T> & v) { set(v); }

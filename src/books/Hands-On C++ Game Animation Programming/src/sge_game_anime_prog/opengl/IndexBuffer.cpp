@@ -19,7 +19,11 @@ void IndexBuffer::uploadToGpu(ByteSpan data) {
 }
 
 void IndexBuffer::_internal_uploadToGpu(const IndexType* data, size_t len) {
-	_dataSize = sizeof(IndexType) * len;
+	if (len <= 0) return;
+
+	SGE_ASSERT(data != nullptr);
+
+	_dataSize = sizeof(data[0]) * len;
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _handle);
 	{
