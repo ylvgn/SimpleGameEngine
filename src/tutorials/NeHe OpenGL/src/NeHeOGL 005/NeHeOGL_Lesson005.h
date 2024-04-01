@@ -11,7 +11,13 @@ namespace sge {
 class NeHeOGL_Lesson005 : public NeHeOGL_NativeUIWindow {
 	using Base = NeHeOGL_NativeUIWindow;
 	using This = NeHeOGL_Lesson005;
+
+	using VertexIndex = u16;
+
+public:
+	~NeHeOGL_Lesson005();
 protected:
+	virtual void onCreate(CreateDesc& desc) override;
 	virtual void onUIMouseEvent(UIMouseEvent& ev) override;
 	virtual void onDraw() override;
 private:
@@ -30,7 +36,23 @@ private:
 	void _example3();
 	void _example4();
 
+	void _example5();
+	void _drawMySphere(float radius, int subAxis, int subHeight);
+	void _drawMygluSphere(double radius, int slices, int stacks);
+
+	void _example6();
+	void _drawMyCube1();
+	void _drawMyCube2();
+	void _drawMyCube3();
+	void _drawMyCube4();
+
+	void _drawMyGrid();
+	void _drawMyCoordinate();
+
 	static constexpr float d = 1.f;
+
+	static constexpr float PI  = Math::PI<float>();
+	static constexpr float PI2 = 2.f * PI;
 
 //------------------------------------------
 //		   1-----2
@@ -63,10 +85,32 @@ private:
 		{-d,-d, d}, // 7
 	};
 
+	static constexpr GLenum kIndexType = OGLUtil::getGlFormat((NeHe_RenderDataTypeUtil::get<VertexIndex>()));
+	static constexpr VertexIndex kCubeIndices[36][3] = {
+		{0, 2, 1}, // top
+		{0, 3, 2},
+		{3, 6, 2}, // front
+		{3, 7, 6},
+		{2, 5, 1}, // rigt
+		{2, 6, 5},
+		{7, 5, 6}, // bottom
+		{7, 4, 5},
+		{4, 1, 5}, // back
+		{4, 0, 1},
+		{4, 3, 0}, // left
+		{4, 7, 3},
+	};
+
+	static constexpr size_t kCubeIndicesCount = sizeof(kCubeIndices) / sizeof(kCubeIndices[0]);
+
 	MyHiResTimer _uptime;
 
-	float _cameraX = 30;
-	float _cameraY = 30;
+	float _cameraX = 30.f;
+	float _cameraY = 30.f;
+
+	GLUquadric* _gluQuad = nullptr;
+
+	MyVertex_PosColor _cubeVertexs[8];
 };
 
 }

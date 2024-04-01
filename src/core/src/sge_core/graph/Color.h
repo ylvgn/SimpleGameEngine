@@ -194,6 +194,8 @@ struct ColorRGBA {
 		a = a_;
 	}
 
+	void set(const ColorRGBA<T>& v) { *this = v; }
+
 	template<class SE>
 	void onJson(SE& se) {
 		SGE_NAMED_IO(se, r);
