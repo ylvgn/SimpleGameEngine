@@ -31,7 +31,7 @@ void PW5_AltWind::_example1() {
 		10,30,
 	};
 
-	ScopedCreateSolidBrush brush(hdc, GDI::kGray);
+	ScopedCreateSolidBrush brush(hdc, GDI::kbGray);
 
 	Vector<POINT, kPointCount> apt;
 	apt.resize(kPointCount);

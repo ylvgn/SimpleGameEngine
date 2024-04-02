@@ -19,8 +19,9 @@ const DefineMark* MyDevcapsDM::s_getMark() {
 
 		DM() {
 			static Item dm[] = {
-				// 1 inch = 25.4 millimeters, 25.4 is constant for convert from inches to millimeters
-				// HORZSIZE/VERTSIZE are fixed to indicate a standard monitor size, These values are the same regardless of what pixel dimension you choose
+				// 1 inch ~= 25.4 millimeters, 25.4 is constant for convert from inches to millimeters
+				// HORZSIZE/VERTSIZE are fixed to indicate a standard monitor size,
+				// These values are the same regardless of what pixel dimension you choose
 				SGE_DEFINEMARK__ITEM(HORZSIZE,      "Width in millimeters"),		// logical width  = 25.4 * horizontal resolution / logical pixel x
 				SGE_DEFINEMARK__ITEM(VERTSIZE,      "Height in millimeters"),		// logical height = 25.4 * vertical resolution / logical pixel y
 				// pixel dimension
@@ -47,8 +48,8 @@ const DefineMark* MyDevcapsDM::s_getMark() {
 				// As with Windows 98, typical values of LOGPIXELSX and LOGPIXELSY,
 				// are 96(small font) and 120(large font) dots per inch,
 				// depending on whether you select a small font or large font
-				SGE_DEFINEMARK__ITEM(LOGPIXELSX,    "Horizontal dots per inch"),	// logical pixel x
-				SGE_DEFINEMARK__ITEM(LOGPIXELSY,    "Vertical dots per inch"),		// logical pixel y
+				SGE_DEFINEMARK__ITEM(LOGPIXELSX,    "Horizontal dots per inch(DPI)"), // DPIX
+				SGE_DEFINEMARK__ITEM(LOGPIXELSY,    "Vertical dots per inch(DPI)"),   // DPIY
 				SGE_DEFINEMARK__ITEM(SIZEPALETTE,   "Number of palette entries"),
 				// 256−color video adapters use color palettes, 
 				// In that case, GetDeviceCaps with the NUMCOLORS index returns the number of colors reserved by Windows, which will be 20.

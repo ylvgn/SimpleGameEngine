@@ -44,7 +44,7 @@ LRESULT CALLBACK PW5_MyDrawText::s_wndProc(HWND hwnd, UINT message, WPARAM wPara
 			int width  = rc.right - rc.left;
 			int height = rc.bottom - rc.top;
 
-			ScopedCreateSolidBrush scoped(ps, { 0, 0.2f, 0.2f, 1 } );
+			ScopedCreateSolidBrush scoped(ps, { 0, 51, 51, 255 } );
 			ps.rectangle(rc.left, rc.top, rc.right, rc.bottom);
 
 			ps.drawText(rc, "DT\r\nLEFT",				DTFlag::Left	| DTFlag::WordBreak);

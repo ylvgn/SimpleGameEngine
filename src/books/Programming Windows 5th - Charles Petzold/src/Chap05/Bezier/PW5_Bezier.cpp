@@ -50,10 +50,10 @@ void PW5_Bezier::_drawLines(const HDC& hdc) const {
 }
 
 void PW5_Bezier::_drawPoints(const HDC& hdc) const {
-	GDI::drawPoint(hdc, _cubicBezier.p1, GDI::kRed, kPointSize);
-	GDI::drawPoint(hdc, _cubicBezier.c1, GDI::kGreen, kPointSize);
-	GDI::drawPoint(hdc, _cubicBezier.c2, GDI::kBlue, kPointSize);
-	GDI::drawPoint(hdc, _cubicBezier.p2, GDI::kViolet, kPointSize);
+	GDI::drawPoint(hdc, _cubicBezier.p1, GDI::kbRed, kPointSize);
+	GDI::drawPoint(hdc, _cubicBezier.c1, GDI::kbGreen, kPointSize);
+	GDI::drawPoint(hdc, _cubicBezier.c2, GDI::kbBlue, kPointSize);
+	GDI::drawPoint(hdc, _cubicBezier.p2, GDI::kbViolet, kPointSize);
 }
 
 void PW5_Bezier::_example1() {

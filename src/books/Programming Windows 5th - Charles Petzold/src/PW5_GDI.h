@@ -42,8 +42,10 @@ SGE_ENUM_ALL_OPERATOR(PW5_DrawTextFormatFlag)
 	E(Gray,		= GRAY_BRUSH)	\
 	E(DkGray,	= DKGRAY_BRUSH)	\
 	E(Black,	= BLACK_BRUSH)	\
+	E(Hollow,	= HOLLOW_BRUSH)	\
 //----
-SGE_ENUM_CLASS(PW5_StockLogicalObject_Brush, u8)
+SGE_ENUM_DECLARE(PW5_StockLogicalObject_Brush, u8)
+SGE_ENUM_ALL_OPERATOR(PW5_StockLogicalObject_Brush)
 
 // The stock pens are 1 pixel wide default
 #define PW5_StockLogicalObject_Pen_ENUM_LIST(E) \
@@ -52,6 +54,48 @@ SGE_ENUM_CLASS(PW5_StockLogicalObject_Brush, u8)
 	E(Black,	= BLACK_PEN) /*default pen*/ \
 //----
 SGE_ENUM_CLASS(PW5_StockLogicalObject_Pen, u8)
+
+#define PW5_StockLogicalObject_Font_ENUM_LIST(E) \
+	E(OemFixed,		= OEM_FIXED_FONT) \
+	E(AnsiFixed,	= ANSI_FIXED_FONT) \
+	E(AnsiVar,		= ANSI_VAR_FONT) \
+	E(System,		= SYSTEM_FONT) \
+	E(DeviceDefault,= DEVICE_DEFAULT_FONT) \
+	E(SystemFixed,	= SYSTEM_FIXED_FONT) \
+//----
+SGE_ENUM_CLASS(PW5_StockLogicalObject_Font, u8)
+
+enum class PW5_StockLogicalObject : u8;
+constexpr PW5_StockLogicalObject PW5_StockLogicalObject_make(PW5_StockLogicalObject_Brush v) {
+	return static_cast<PW5_StockLogicalObject>(enumInt(v));
+}
+constexpr PW5_StockLogicalObject PW5_StockLogicalObject_make(PW5_StockLogicalObject_Pen v) {
+	return static_cast<PW5_StockLogicalObject>(enumInt(v));
+}
+constexpr PW5_StockLogicalObject PW5_StockLogicalObject_make(PW5_StockLogicalObject_Font v) {
+	return static_cast<PW5_StockLogicalObject>(enumInt(v));
+}
+#define PW5_StockLogicalObject_ENUM_LIST(E) \
+	E(WhiteBrush,		= PW5_StockLogicalObject_make(PW5_StockLogicalObject_Brush::White)) \
+	E(LtGrayBrush,		= PW5_StockLogicalObject_make(PW5_StockLogicalObject_Brush::LtGray)) \
+	E(GrayBrush,		= PW5_StockLogicalObject_make(PW5_StockLogicalObject_Brush::Gray)) \
+	E(DkGrayBrush,		= PW5_StockLogicalObject_make(PW5_StockLogicalObject_Brush::DkGray)) \
+	E(BlackBrush,		= PW5_StockLogicalObject_make(PW5_StockLogicalObject_Brush::Black)) \
+	E(HollowBrush,		= PW5_StockLogicalObject_make(PW5_StockLogicalObject_Brush::Hollow)) \
+	\
+	E(NonePen,			= PW5_StockLogicalObject_make(PW5_StockLogicalObject_Pen::None)) \
+	E(WhitePen,			= PW5_StockLogicalObject_make(PW5_StockLogicalObject_Pen::White)) \
+	E(BlackPen,			= PW5_StockLogicalObject_make(PW5_StockLogicalObject_Pen::Black)) \
+	\
+	E(OemFixedFont,		= PW5_StockLogicalObject_make(PW5_StockLogicalObject_Font::OemFixed)) \
+	E(AnsiFixedFont,	= PW5_StockLogicalObject_make(PW5_StockLogicalObject_Font::AnsiFixed)) \
+	E(AnsiVarFont,		= PW5_StockLogicalObject_make(PW5_StockLogicalObject_Font::AnsiVar)) \
+	E(SystemFont,		= PW5_StockLogicalObject_make(PW5_StockLogicalObject_Font::System)) \
+	E(DeviceDefaultFont,= PW5_StockLogicalObject_make(PW5_StockLogicalObject_Font::DeviceDefault)) \
+	E(SystemFixedFont,	= PW5_StockLogicalObject_make(PW5_StockLogicalObject_Font::SystemFixed)) \
+//----
+SGE_ENUM_DECLARE(PW5_StockLogicalObject, u8)
+SGE_ENUM_ALL_OPERATOR(PW5_StockLogicalObject)
 
 #define PW5_PenStyle_ENUM_LIST(E) \
 	E(None,			= PS_NULL)			\
@@ -75,13 +119,16 @@ SGE_ENUM_CLASS(PW5_HatchStyle, u8)
 
 #define PW5_MappingMode_ENUM_LIST(E) \
 	E(None,			= 0)				\
+	/* fully constrained */ \
 	E(Text,			= MM_TEXT)			\
 	E(LowMetric,	= MM_LOMETRIC)		\
 	E(HighMetric,	= MM_HIMETRIC)		\
 	E(LowEnglish,	= MM_LOENGLISH)		\
 	E(HighEnglish,	= MM_HIENGLISH)		\
 	E(Twips,		= MM_TWIPS)			\
+	/* partly constrained */ \
 	E(Isotropic,	= MM_ISOTROPIC)		\
+	/* unconstrained */ \
 	E(Anisotropic,	= MM_ANISOTROPIC)	\
 //----
 SGE_ENUM_CLASS(PW5_MappingMode, u8)
@@ -102,7 +149,94 @@ namespace GDI {
 	static constexpr Color4f kViolet	{ 1,0,1,1 };
 	static constexpr Color4f kCyan		{ 0,1,1,1 };
 	static constexpr Color4f kGray		{ 0.2f,0.2f,0.2f,1.f };
-	
+
+	static constexpr Color4b kbWhite	{ 255, 255, 255, 255 };
+	static constexpr Color4b kbBlack	{ 0,   0,   0,   255 };
+	static constexpr Color4b kbRed		{ 255, 0,   0,   255 };
+	static constexpr Color4b kbGreen	{ 0,   255, 0,   255 };
+	static constexpr Color4b kbBlue		{ 0,   0,   255, 255 };
+	static constexpr Color4b kbYellow	{ 255, 255, 0,   255 };
+	static constexpr Color4b kbViolet	{ 255, 0,   255, 255 };
+	static constexpr Color4b kbCyan		{ 0,   255, 255, 255 };
+	static constexpr Color4b kbGray		{ 51,  51,  51,  255 };
+
+	// 25.4 mm ~= 1 inch
+	static constexpr float kInchToMMUnitFactor = 25.4f;
+	static constexpr float kMMToInchUnitFactor = 1.f / kInchToMMUnitFactor;
+
+	// 1 point ~= 1/72 inch
+	static constexpr float kInchToPointUnitFactor = 72.f;
+	static constexpr float kPointToInchUnitFactor = 1.f / kInchToPointUnitFactor;
+
+	// 1/20 point ~= 1/1440 inch
+	static constexpr float kInchToTwipsUnitFactor = kInchToPointUnitFactor * 20.f;
+	static constexpr float kTwipsToInchUnitFactor = 1.f / kInchToTwipsUnitFactor;
+
+	// dpi dots == 1 inch
+	inline Vec2f dotsPerInch(::HDC hdc) {
+		return Vec2f {
+			static_cast<float>(::GetDeviceCaps(hdc, LOGPIXELSX)),
+			static_cast<float>(::GetDeviceCaps(hdc, LOGPIXELSY))
+		};
+	}
+
+	inline float mmToInch(float mm)			{ return mm * kMMToInchUnitFactor; }
+	inline Vec2f mmToInch(const Vec2f& mm)	{ return { mmToInch(mm.x), mmToInch(mm.y) }; }
+	inline Vec2f mmToInch(const Vec2i& mm)  {
+		auto f = Vec2f::s_cast(mm);
+		return mmToInch(f);
+	}
+	inline void mmToInch(Vec2i& o, const Vec2i& mm) {
+		auto f = mmToInch(mm);
+		o.x = static_cast<int>(Math::round(f.x));
+		o.y = static_cast<int>(Math::round(f.y));
+	}
+
+	inline float mmToPixel(float mm, float dpi) { return dpi * mm / kInchToMMUnitFactor; }
+	inline Vec2f mmToPixel(const Vec2f& mm, const Vec2f& dpi) {
+		return { mmToPixel(mm.x, dpi.x), mmToPixel(mm.y, dpi.y) };
+	}
+	inline Vec2f mmToPixel(const Vec2i& mm_, const Vec2i& dpi_) {
+		auto mm = Vec2f::s_cast(mm_);
+		auto dpi = Vec2f::s_cast(dpi_);
+		return mmToPixel(mm, dpi);
+	}
+	inline Vec2f mmToPixel(::HDC hdc, const Vec2f& mm) {
+		Vec2f dpi = dotsPerInch(hdc);
+		return mmToPixel(mm, dpi);
+	}
+	inline void mmToPixel(Vec2i& o, ::HDC hdc, const Vec2f& mm) {
+		auto f = mmToPixel(hdc, mm);
+		o.x = static_cast<int>(Math::round(f.x));
+		o.y = static_cast<int>(Math::round(f.y));
+	}
+
+	inline float inchToTwips(float inch) { return inch * kInchToTwipsUnitFactor; }
+	inline Vec2f inchToTwips(const Vec2f& inch) { return { inchToTwips(inch.x), inchToTwips(inch.y) }; }
+	inline Vec2f inchToTwips(const Vec2i& inch) {
+		auto f = Vec2f::s_cast(inch);
+		return inchToTwips(f);
+	}
+
+	inline float inchToMM(float inch) { return inch * kInchToMMUnitFactor; }
+	inline Vec2f inchToMM(const Vec2f& inch) { return { inchToMM(inch.x), inchToMM(inch.y) }; }
+	inline Vec2f inchToMM(const Vec2i& inch) {
+		auto f = Vec2f::s_cast(inch);
+		return inchToMM(f);
+	}
+	inline void inchToMM(Vec2i& o, const Vec2i& inch) {
+		auto f = inchToMM(inch);
+		o.x = static_cast<int>(Math::round(f.x));
+		o.y = static_cast<int>(Math::round(f.y));
+	}
+
+	inline float mmToTwips(float mm)		{ return inchToTwips(mmToInch(mm)); }
+	inline Vec2f mmToTwips(const Vec2f& mm) { return { mmToTwips(mm.x), mmToTwips(mm.y) }; }
+	inline Vec2f mmToTwips(const Vec2i& mm) {
+		auto f = Vec2f::s_cast(mm);
+		return mmToTwips(f);
+	}
+
 	inline bool textOut(const ::HDC& hdc, int x, int y, StrView str) {
 		if (str.empty()) return false;
 		auto s = UtfUtil::toStringW(str);
@@ -250,21 +384,19 @@ namespace GDI {
 		drawLine(hdc, iFrom, iTo);
 	}
 
-	void drawPoint(const ::HDC& hdc, int x, int y, const Color4f& c = kBlack, int ptSize = 10);
-	inline void drawPoint(const ::HDC& hdc, const ::POINT& pt, const Color4f& c, int ptSize) {
+	void drawPoint(const ::HDC& hdc, int x, int y, const Color4b& c = kbBlack, int ptSize = 10);
+	inline void drawPoint(const ::HDC& hdc, const ::POINT& pt, const Color4b& c, int ptSize) {
 		drawPoint(hdc, pt.x, pt.y, c, ptSize);
 	}
-	inline void drawPoint(const ::HDC& hdc, const Vec2f& pt, const Color4f& c, int ptSize) {
+	inline void drawPoint(const ::HDC& hdc, const Vec2f& pt, const Color4b& c, int ptSize) {
 		::POINT pt_;
 		Win32Util::convert(pt_, pt);
 		drawPoint(hdc, pt_, c, ptSize);
 	}
 
-	inline ::COLORREF COLORREF_make(int r, int g, int b)	{ return RGB(r, g, b); }
 	inline ::COLORREF COLORREF_make(const Color4b& c)		{ return RGB(c.r, c.g, c.b); }
 	inline ::COLORREF COLORREF_make(const Color4f& c)		{ return RGB(c.r*255, c.g*255, c.b*255); }
 
-	inline ::HBRUSH createSolidBrush(int r, int g, int b)	{ return ::CreateSolidBrush(COLORREF_make(r, g, b)); }
 	inline ::HBRUSH createSolidBrush(const Color4b& c)		{ return ::CreateSolidBrush(COLORREF_make(c)); }
 	inline ::HBRUSH createSolidBrush(const Color4f& c)		{ return ::CreateSolidBrush(COLORREF_make(c)); }
 
@@ -323,6 +455,12 @@ namespace GDI {
 	inline bool getViewportOrg(const ::HDC& hdc, ::POINT& pt) {
 		return ::GetViewportOrgEx(hdc, &pt);
 	}
+	inline bool getViewportOrg(const ::HDC& hdc, Vec2i& pt) {
+		::POINT pt_;
+		bool ok = ::GetViewportOrgEx(hdc, &pt_);
+		Win32Util::convert(pt, pt_);
+		return ok;
+	}
 	inline bool getViewportOrg(const ::HDC& hdc, Vec2f& pt) {
 		::POINT pt_;
 		bool ok = ::GetViewportOrgEx(hdc, &pt_);
@@ -343,6 +481,12 @@ namespace GDI {
 
 	inline bool getWindowOrg(const ::HDC& hdc, ::POINT& pt) {
 		return ::GetWindowOrgEx(hdc, &pt);
+	}
+	inline bool getWindowOrg(const ::HDC& hdc, Vec2i& pt) {
+		::POINT pt_;
+		bool ok = ::GetWindowOrgEx(hdc, &pt_);
+		Win32Util::convert(pt, pt_);
+		return ok;
 	}
 	inline bool getWindowOrg(const ::HDC& hdc, Vec2f& pt) {
 		::POINT pt_;
@@ -372,6 +516,12 @@ namespace GDI {
 	}
 
 	inline bool getViewportExt(const ::HDC& hdc, ::SIZE& sz) { return ::GetViewportExtEx(hdc, &sz); }
+	inline bool getViewportExt(const ::HDC& hdc, Vec2i& sz) {
+		::SIZE sz_;
+		bool ok = ::GetViewportExtEx(hdc, &sz_);
+		Win32Util::convert(sz, sz_);
+		return ok;
+	}
 	inline bool getViewportExt(const ::HDC& hdc, Vec2f& sz) {
 		::SIZE sz_;
 		bool ok = ::GetViewportExtEx(hdc, &sz_);
@@ -380,6 +530,12 @@ namespace GDI {
 	}
 
 	inline bool getWindowExt(const ::HDC& hdc, ::SIZE& sz) { return ::GetWindowExtEx(hdc, &sz); }
+	inline bool getWindowExt(const ::HDC& hdc, Vec2i& sz) {
+		::SIZE sz_;
+		bool ok = ::GetWindowExtEx(hdc, &sz_);
+		Win32Util::convert(sz, sz_);
+		return ok;
+	}
 	inline bool getWindowExt(const ::HDC& hdc, Vec2f& sz) {
 		::SIZE sz_;
 		bool ok = ::GetWindowExtEx(hdc, &sz_);
@@ -460,18 +616,22 @@ public:
 	auto setViewportOrg(int x, int y)		{ return GDI::setViewportOrg(_hdc, x, y); }
 	auto setViewportOrg(const Vec2f& pt)	{ return GDI::setViewportOrg(_hdc, pt); }
 	auto getViewportOrg(Vec2f& pt)			{ return GDI::getViewportOrg(_hdc, pt); }
+	auto getViewportOrg(Vec2i& pt)			{ return GDI::getViewportOrg(_hdc, pt); }
 
 	auto setWindowOrg(int x, int y)			{ return GDI::setWindowOrg(_hdc, x, y); }
 	auto setWindowOrg(const Vec2f& pt)		{ return GDI::setWindowOrg(_hdc, pt); }
 	auto getWindowOrg(Vec2f& pt)			{ return GDI::getWindowOrg(_hdc, pt); }
+	auto getWindowOrg(Vec2i& sz)			{ return GDI::getWindowExt(_hdc, sz); }
 
 	auto setViewportExt(int x, int y)		{ return GDI::setViewportExt(_hdc, x, y); }
 	auto setViewportExt(const Vec2f& pt)	{ return GDI::setViewportExt(_hdc, pt); }
 	auto getViewportExt(Vec2f& sz)			{ return GDI::getViewportExt(_hdc, sz); }
+	auto getViewportExt(Vec2i& sz)			{ return GDI::getViewportExt(_hdc, sz); }
 
 	auto setWindowExt(int x, int y)			{ return GDI::setWindowExt(_hdc, x, y); }
 	auto setWindowExt(const Vec2f& pt)		{ return GDI::setWindowExt(_hdc, pt); }
 	auto getWindowExt(Vec2f& sz)			{ return GDI::getWindowExt(_hdc, sz); }
+	auto getWindowExt(Vec2i& sz)			{ return GDI::getWindowExt(_hdc, sz); }
 
 	auto dPtoLP(Vec2f& pt)					{ return GDI::dPtoLP(_hdc, pt); }
 	auto lPtoDP(Vec2f& pt)					{ return GDI::lPtoDP(_hdc, pt); }
@@ -549,9 +709,9 @@ public:
 		return GDI::pie(_hdc, xywh, from, to);
 	}
 
-	void drawPoint(int x, int y, const Color4f& c, int ptSize)		const { GDI::drawPoint(_hdc, x, y, c, ptSize); }
-	void drawPoint(const ::POINT& pt, const Color4f& c, int ptSize)	const { GDI::drawPoint(_hdc, pt, c, ptSize); }
-	void drawPoint(const Vec2f& pt, const Color4f& c, int ptSize)	const { GDI::drawPoint(_hdc, pt, c, ptSize); }
+	void drawPoint(int x, int y, const Color4b& c, int ptSize)		const { GDI::drawPoint(_hdc, x, y, c, ptSize); }
+	void drawPoint(const ::POINT& pt, const Color4b& c, int ptSize)	const { GDI::drawPoint(_hdc, pt, c, ptSize); }
+	void drawPoint(const Vec2f& pt, const Color4b& c, int ptSize)	const { GDI::drawPoint(_hdc, pt, c, ptSize); }
 
 	template<class... Args>
 	auto Fmt_textOut(int x, int y, Args&&... args) const {
@@ -566,6 +726,19 @@ public:
 	template<class... Args>
 	auto Fmt_drawText(int x, int y, Args&&... args) const;
 
+	void getStockObject(::HGDIOBJ& o, PW5_StockLogicalObject flag) {
+		o = ::GetStockObject(enumInt(flag));
+	}
+	void getStockObject(::HBRUSH& o, PW5_StockLogicalObject_Brush flag) {
+		o = GetStockBrush(enumInt(flag));
+	}
+	void getStockObject(::HPEN& o, PW5_StockLogicalObject_Pen flag) {
+		o = GetStockPen(enumInt(flag));
+	}
+	void getStockObject(::HFONT& o, PW5_StockLogicalObject_Font flag) {
+		o = GetStockFont(enumInt(flag));
+	}
+
 protected:
 	::HDC	_hdc = nullptr;
 };
@@ -576,29 +749,26 @@ public:
 	ScopedHDC_(const ::HWND& hwnd)
 		: _hwnd(hwnd) {}
 
-	void clearBg(PW5_StockLogicalObject_Brush flag = PW5_StockLogicalObject_Brush::White) {
-		Vec2f oldViewportOrg;
-		Vec2f oldWindowOrg;
-
-		getViewportOrg(oldViewportOrg);
-		getViewportOrg(oldWindowOrg);
-
-		bool isNotLeftTop = oldViewportOrg != oldWindowOrg;
-		if (isNotLeftTop) {
-			setViewportOrg(0, 0);
-			setWindowOrg(0, 0);
-		}
-
-		::RECT rc;
-		::GetClientRect(_hwnd, &rc); //  GetClientRect (which is always in terms of device units)
-		auto brush = GetStockBrush(enumInt(flag));
-		GDI::fillRect(_hdc, rc, brush);
-
-		if (isNotLeftTop) {
-			setViewportOrg(oldViewportOrg);
-			setWindowOrg(oldWindowOrg);
-		}
+	void getClientRectInLogical(::RECT& o) {
+		::GetClientRect(_hwnd, &o); // GetClientRect (which is always in terms of device units)
+		GDI::dPtoLP(_hdc, o);
 	}
+
+	void getClientRectInLogical(Rect2f& o) {
+		::RECT rc;
+		getClientRectInLogical(rc);
+		Win32Util::convert(o, rc);
+	}
+
+	void clearBg(PW5_StockLogicalObject_Brush flag = PW5_StockLogicalObject_Brush::White) {
+		::RECT rc;
+		::HBRUSH brush;
+		getClientRectInLogical(rc);
+		getStockObject(brush, flag);
+		GDI::fillRect(_hdc, rc, brush); // FillRect is used in logical coordinates
+	}
+
+	void clearBg(const Color4b& color);
 
 protected:
 	const HWND& _hwnd;
@@ -760,7 +930,7 @@ protected:
 class ScopedCreateSolidBrush : public ScopedHDCBrush_Base {
 	using Base = ScopedHDCBrush_Base;
 public:
-	ScopedCreateSolidBrush(::HDC hdc, const Color4f& c = GDI::kBlack) {
+	ScopedCreateSolidBrush(::HDC hdc, const Color4b& c = GDI::kbBlack) {
 		_hdc = hdc;
 		_brush = ::CreateSolidBrush(GDI::COLORREF_make(c));
 		if (!_brush) {
@@ -881,65 +1051,78 @@ using ScopedCreatePen_Dot			= ScopedExtCreatePen_Dash_Dot<PS_DOT>;
 using ScopedCreatePen_DashDot		= ScopedExtCreatePen_Dash_Dot<PS_DASHDOT>;
 using ScopedCreatePen_DashDotDot	= ScopedExtCreatePen_Dash_Dot<PS_DASHDOTDOT>;
 
-class ScopedCreateBrush_Base : public ScopedHDC_NoHWND {
+class MyIndirectBrush_Base : public ScopedHDC_NoHWND {
 	using Base = ScopedHDC_NoHWND;
-protected:
-	void _internal_ctor(::HDC hdc, ::LOGBRUSH& logBrush) {
-		_hdc = hdc;
-		_lastHBrush = SelectBrush(hdc, ::CreateBrushIndirect(&logBrush));
+public:
+	struct CreateDesc {
+		::HDC hdc					= nullptr;
+		Color4b color				= GDI::kbBlack;
+		PW5_HatchStyle hatchFlag	= PW5_HatchStyle::Horizontal;
+		::HBITMAP* hBitMap			= nullptr;
+
+		::LOGBRUSH& _internal_used;
+	};
+
+	void create(CreateDesc& desc) {
+		::LOGBRUSH logBrush;
+		g_bzero(logBrush);
+		desc._internal_used = logBrush;
+
+		_hdc = desc.hdc;
+
+		onCreate(desc);
+
+		_lastHBrush = SelectBrush(_hdc, ::CreateBrushIndirect(&logBrush));
 	}
-	~ScopedCreateBrush_Base() {
-		if (_lastHBrush) {
-			SGE_ASSERT(_hdc != nullptr);
+
+protected:
+	virtual void onCreate(CreateDesc& desc) = 0;
+
+	~MyIndirectBrush_Base() {
+		if (_hdc) {
 			DeleteBrush(SelectBrush(_hdc, _lastHBrush));
 			_lastHBrush = nullptr;
+			_hdc = nullptr;
 		}
 	}
+
 private:
-	::HBRUSH _lastHBrush;
+	::HBRUSH	_lastHBrush = nullptr;
 };
 
-class ScopedCreateBrush_Solid : public ScopedCreateBrush_Base {
-public:
-	ScopedCreateBrush_Solid(::HDC hdc, const Color4f& c) {
-		::LOGBRUSH logBrush = {};
-		logBrush.lbStyle = BS_SOLID;
-		logBrush.lbColor = GDI::COLORREF_make(c);
-		logBrush.lbHatch = 0;
-		_internal_ctor(hdc, logBrush);
+class MyIndirectBrush_Solid : public MyIndirectBrush_Base {
+protected:
+	virtual void onCreate(CreateDesc& desc) override {
+		desc._internal_used.lbStyle = BS_SOLID;
+		desc._internal_used.lbColor = GDI::COLORREF_make(desc.color);
+		desc._internal_used.lbHatch = 0;
 	}
 };
 
-class ScopedCreateBrush_Hollow : public ScopedCreateBrush_Base {
-public:
-	ScopedCreateBrush_Hollow(::HDC hdc) {
-		::LOGBRUSH logBrush = {};
-		logBrush.lbStyle = BS_HOLLOW;
-		logBrush.lbColor = 0;
-		logBrush.lbHatch = 0;
-		_internal_ctor(hdc, logBrush);
+class MyIndirectBrush_Hollow : public MyIndirectBrush_Base {
+protected:
+	virtual void onCreate(CreateDesc& desc) override {
+		desc._internal_used.lbStyle = BS_HOLLOW;
+		desc._internal_used.lbColor = 0;
+		desc._internal_used.lbHatch = 0;
 	}
 };
 
-class ScopedCreateBrush_Hatched : public ScopedCreateBrush_Base {
-public:
-	ScopedCreateBrush_Hatched(::HDC hdc, const Color4f& c = GDI::kBlack, PW5_HatchStyle flag = PW5_HatchStyle::Horizontal) {
-		::LOGBRUSH logBrush = {};
-		logBrush.lbStyle = BS_HATCHED;
-		logBrush.lbColor = GDI::COLORREF_make(c);
-		logBrush.lbHatch = static_cast<ULONG_PTR>(flag);
-		_internal_ctor(hdc, logBrush);
+class MyIndirectBrush_Hatched : public MyIndirectBrush_Base {
+protected:
+	virtual void onCreate(CreateDesc& desc) override {
+		desc._internal_used.lbStyle = BS_HATCHED;
+		desc._internal_used.lbColor = GDI::COLORREF_make(desc.color);
+		desc._internal_used.lbHatch = static_cast<ULONG_PTR>(desc.hatchFlag);
 	}
 };
 
-class ScopedCreateBrush_Pattern : public ScopedCreateBrush_Base {
-public:
-	ScopedCreateBrush_Pattern(::HDC hdc, ::HBITMAP& hBitMap) {
-		::LOGBRUSH logBrush = {};
-		logBrush.lbStyle = BS_PATTERN;
-		logBrush.lbColor = 0;
-		logBrush.lbHatch = reinterpret_cast<ULONG_PTR>(hBitMap);
-		_internal_ctor(hdc, logBrush);
+class MyIndirectBrush_Pattern : public MyIndirectBrush_Base {
+protected:
+	virtual void onCreate(CreateDesc& desc) override {
+		desc._internal_used.lbStyle = BS_PATTERN;
+		desc._internal_used.lbColor = 0;
+		desc._internal_used.lbHatch = reinterpret_cast<ULONG_PTR>(desc.hBitMap);
 	}
 };
 
@@ -967,6 +1150,15 @@ template<class... Args> inline
 auto ScopedHDC_NoHWND::Fmt_drawText(int x, int y, Args&&... args) const {
 	return GDI::Fmt_drawText(_hdc, x, y, SGE_FORWARD(args)...);
 }
+
+inline
+void ScopedHDC_::clearBg(const Color4b& color) {
+	::RECT rc;
+	ScopedCreateSolidBrush brush(_hdc, color);
+	getClientRectInLogical(rc);
+	GDI::fillRect(_hdc, rc, brush);
+}
+
 
 } // namespace sge
 

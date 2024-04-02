@@ -14,20 +14,19 @@ namespace sge {
 
 // most of the time you will only need lines, points, or triangles,
 // but some additional types may be useful
-enum class DrawMode {
-	Points,
-	LineStrip,
-	LineLoop,
-	Lines,
-	Triangles,
-	TriangleStrip,
-	TriangleFan
-};
+#define DrawMode_ENUM_LIST(E) \
+	E(Points,			= GL_POINTS) \
+	E(Lines,			= GL_LINES) \
+	E(LineLoop,			= GL_LINE_LOOP) \
+	E(LineStrip,		= GL_LINE_STRIP) \
+	E(Triangles,		= GL_TRIANGLES) \
+	E(TriangleStrip,	= GL_TRIANGLE_STRIP) \
+	E(TriangleFan,		= GL_TRIANGLE_FAN) \
+//----
+SGE_ENUM_CLASS(DrawMode, u8)
 
 struct DrawUtil {
 	DrawUtil() = delete;
-
-	static GLenum getGLDrawMode(DrawMode v);
 
 	static void draw(size_t vertexCount, DrawMode mode = DrawMode::Triangles);
 	static void drawInstanced(size_t vertexCount, size_t instanceCount, DrawMode mode = DrawMode::Triangles);

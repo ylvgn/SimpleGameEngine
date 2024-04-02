@@ -17,7 +17,7 @@ const DefineMark* MySysmetricsDM::s_getMark() {
 		DM() {
 			static Item dm[] = {
 				SGE_DEFINEMARK__ITEM(SM_CXSCREEN,			"Screen width in pixels"),
-				SGE_DEFINEMARK__ITEM(SM_CYSCREEN,			"ight in pixels"),
+				SGE_DEFINEMARK__ITEM(SM_CYSCREEN,			"Screen hight in pixels"),
 				SGE_DEFINEMARK__ITEM(SM_CXVSCROLL,			"scroll width"),
 				SGE_DEFINEMARK__ITEM(SM_CYHSCROLL,          "Horizontal scroll height"),
 				SGE_DEFINEMARK__ITEM(SM_CYCAPTION,          "Caption bar height"),

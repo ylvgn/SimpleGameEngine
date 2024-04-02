@@ -6,7 +6,7 @@
 namespace sge {
 namespace GDI {
 
-	void drawPoint(const ::HDC& hdc, int x, int y, const Color4f& c, int ptSize) {
+	void drawPoint(const ::HDC& hdc, int x, int y, const Color4b& c, int ptSize) {
 		ScopedCreateSolidBrush brush(hdc, c);
 		int halfSize = ptSize / 2;
 		::RECT ltrb {

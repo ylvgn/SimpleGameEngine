@@ -73,8 +73,10 @@ void PW5_MyMappingMode::_example1() {
 	
 	hdc.setMappingMode(PW5_MappingMode::Twips); //::SetMapMode(hdc, MM_TWIPS);
 	// A "twip" is twentieth of a point, 1/20 point.
-	// 1 point size = 1/72 inch
-	// so 1/20 point = 1/72 / 20 = 1 / 1440 inch
+	// A "twip" is 1/20 point and hence 1/1440 inch
+		// I mentioned earlier that a point is a unit of measurement in typography that is approximately 1 / 72 inch
+		// but that is often assumed in graphics programming to be exactly 1/72 inch
+	// so in program, 1/20 point size = 1/72 / 20 = 1 / 1440 inch
 	hdc.textOut(300, -50*10, "MM_TWIPS (1/1440 in)");
 }
 
@@ -396,85 +398,92 @@ void PW5_MyMappingMode::_example6() {
 	_calcMappingModeExtRatio(SRC::LowEnglish);  // lowest precision inches (0.01 in.)
 	_calcMappingModeExtRatio(SRC::HighEnglish); // highest precision inches (0.001 in.)
 	_calcMappingModeExtRatio(SRC::Twips);		// 1/20 point size (1/1440 in.)
+	_calcMappingModeExtRatio(SRC::Text);		// pixel unit
 }
 
 void PW5_MyMappingMode::_calcMappingModeExtRatio(PW5_MappingMode v) {
-	ScopedGetDC hdc(_hwnd);
+	using SRC = PW5_MappingMode;
 
+	ScopedGetDC hdc(_hwnd);
 	hdc.setMappingMode(v);
 
-	auto ratioX = ::GetDeviceCaps(hdc, LOGPIXELSX);
-	auto ratioY = ::GetDeviceCaps(hdc, LOGPIXELSY);
-	SGE_DUMP_VAR("LOGPIXELSX", ratioX, "LOGPIXELSY", ratioY);
+	// Windows uses the HORZRES,HORZSIZE,VERTRES,and VERTSIZE values
+	// when calculating windowand offset extents for the various mapping modes
 
 	// The viewport extents are based on the pixel dimensions of the screen.
 	// This is information obtained from GetDeviceCaps using the HORZRES and VERTRES indexes
-	auto viewportXExtents = ::GetDeviceCaps(hdc, HORZRES);
-	auto viewportYExtents = ::GetDeviceCaps(hdc, VERTRES);
-	SGE_DUMP_VAR("HORZRES", viewportXExtents, "VERTRES", viewportYExtents);
+	Vec2i viewportExtInPixel {
+		::GetDeviceCaps(hdc, HORZRES),
+		::GetDeviceCaps(hdc, VERTRES)
+	};
+	SGE_DUMP_VAR(v, viewportExtInPixel);
 
-	int cxScreen = ::GetSystemMetrics(SM_CXSCREEN);
-	int cyScreen = ::GetSystemMetrics(SM_CYSCREEN);
-
-	SGE_ASSERT(viewportXExtents == cxScreen);
-	SGE_ASSERT(viewportYExtents == cyScreen);
+	Vec2i screenResolution {
+		::GetSystemMetrics(SM_CXSCREEN),
+		::GetSystemMetrics(SM_CYSCREEN)
+	};
+	SGE_ASSERT(viewportExtInPixel == screenResolution);
 
 	// The window extents are based on the assumed size of the display, which
 	// GetDeviceCaps returns when you use the HORZSIZE and VERTSIZE indexes
-	auto windowXExtents = ::GetDeviceCaps(hdc, HORZSIZE);
-	auto windowYExtents = ::GetDeviceCaps(hdc, VERTSIZE);
-	SGE_DUMP_VAR("HORZSIZE", windowXExtents, "VERTSIZE", windowYExtents);
+	Vec2i windowExtInMillimeters {
+		::GetDeviceCaps(hdc, HORZSIZE),
+		::GetDeviceCaps(hdc, VERTSIZE)
+	};
+	SGE_DUMP_VAR(v, windowExtInMillimeters);
 
-	using SRC = PW5_MappingMode;
+	Vec2i viewportExtInUnit;
+	hdc.getViewportExt(viewportExtInUnit);
+	SGE_DUMP_VAR(v, viewportExtInUnit);
 
-	Vec2f ext;
-	hdc.getWindowExt(ext);
-	SGE_DUMP_VAR(v, "getWindowExt", ext);
 	switch (v)
 	{
-		case SRC::None:
-			break;
-		case SRC::LowMetric: // 0.1 mm.
-			SGE_ASSERT(ext.x == windowXExtents * 10);
-			SGE_ASSERT(ext.y == windowYExtents * 10);
-			break;
-		case SRC::HighMetric: // 0.01 mm.
-			SGE_ASSERT(ext.x == windowXExtents * 100);
-			SGE_ASSERT(ext.y == windowYExtents * 100);
-			break;
-		case SRC::LowEnglish:
-			break;
-		case SRC::HighEnglish:
-			break;
-		case SRC::Twips:
-			break;
+		case SRC::Text: { // pixel unit
+			Vec2i windowExtInText;
+			hdc.getWindowExt(windowExtInText);
+			SGE_ASSERT(windowExtInText.x == viewportExtInUnit.x == 1);
+			SGE_ASSERT(windowExtInText.y == viewportExtInUnit.y == 1);
+		} break;
+		case SRC::LowMetric: { // 0.1 mm.
+			Vec2i windowExtInLowMetric;
+			hdc.getWindowExt(windowExtInLowMetric);
+			SGE_ASSERT(windowExtInLowMetric == windowExtInMillimeters * 10);
+		} break;
+		case SRC::HighMetric: { // 0.01 mm.
+			Vec2i windowExtInHighMetric;
+			hdc.getWindowExt(windowExtInHighMetric);
+			SGE_ASSERT(windowExtInHighMetric == windowExtInMillimeters * 100);
+		} break;
+		case SRC::LowEnglish: { // 0.01 in.
+			Vec2i windowExtInLowEnglish;
+			hdc.getWindowExt(windowExtInLowEnglish);
+			Vec2f windowExtInInch = GDI::mmToInch(windowExtInMillimeters);
+			SGE_ASSERT(windowExtInLowEnglish.x == Math::round(windowExtInInch.x * 100));
+			SGE_ASSERT(windowExtInLowEnglish.y == Math::round(windowExtInInch.y * 100));
+		} break;
+		case SRC::HighEnglish: { // 0.001 in.
+			Vec2i windowExtInHighEnglish;
+			hdc.getWindowExt(windowExtInHighEnglish);
+			auto windowExtInInch = GDI::mmToInch(windowExtInMillimeters);
+			SGE_ASSERT(windowExtInHighEnglish.x == Math::round(windowExtInInch.x * 1000));
+			SGE_ASSERT(windowExtInHighEnglish.y == Math::round(windowExtInInch.y * 1000));
+		} break;
+		case SRC::Twips: { // 1/20 point size (1/1440 in.)
+			Vec2i windowExtInTwips;
+			hdc.getWindowExt(windowExtInTwips);
+			SGE_DUMP_VAR(v, windowExtInTwips);
+			auto windowExtInTwips2 = GDI::mmToTwips(windowExtInMillimeters);
+			SGE_ASSERT(windowExtInTwips.x == Math::round(windowExtInTwips2.x));
+			SGE_ASSERT(windowExtInTwips.y == Math::round(windowExtInTwips2.y));
+		} break;
 	}
 
-	hdc.getViewportExt(ext);
-	SGE_DUMP_VAR(v, "getViewportExt", ext);
-
-	// let say pixel dimensions of display (display resolution) is 1024x768
-	// in LOENGLISH, is mm. unit, let say is 320x240 mm.
-		// viewportExt = (1024, -768) --> display resolution but y orientation is negative sign.
-		// windowExt = (3200, 2400), cuz LOENGLISH is 0.1mm, so 3200 means actually 3200 * 0.1mm = 320 mm.
-	// when it turns to HIENGLISH,
-		// viewportExt = (1024, -768) still, cuz viewport is always use pixel unit
-		// windowExt = (32000, 24000), cuz HIENGLISH is 0.01mm, so 32000 means actually 32000 * 0.01mm = 320 mm.
-
-	// let say LOENGLISH, 0.01 in.
-		// xViewExt/xWinExt = number of horizontal pixels in 0.01 in.
-		// −yViewExt/yWinExt = negative number of vertical pixels in 0.01 in.
-
-	// for MM_LOENGLISH, the ratio 96 divided by 100 is the number of pixels in 0.01 inches.For
-	// MM_LOMETRIC, the ratio 96 divided by 254 is the number of pixels in 0.1 millimeters
-		// 25.4 = 1 mm. so
-	auto displayScaleRatio = GDI::getDisplayScaleRatio();
-	if (v == SRC::None) {
-		SGE_ASSERT(viewportXExtents * displayScaleRatio == ext.x);
-		SGE_ASSERT(viewportYExtents * displayScaleRatio == ext.y);
-	} else {
-		SGE_ASSERT(viewportXExtents * displayScaleRatio == ext.x);
-		SGE_ASSERT(viewportYExtents * displayScaleRatio == -ext.y);
+	if (v != SRC::Text) {
+		float displayScaleRatio = GDI::getDisplayScaleRatio();
+		int x = static_cast<int>(viewportExtInPixel.x * displayScaleRatio);
+		int y = static_cast<int>(viewportExtInPixel.y * displayScaleRatio);
+		SGE_ASSERT(x == viewportExtInUnit.x);
+		SGE_ASSERT(y == -viewportExtInUnit.y);
 	}
 }
 

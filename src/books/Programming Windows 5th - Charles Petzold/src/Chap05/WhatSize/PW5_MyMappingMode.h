@@ -9,6 +9,9 @@ namespace sge {
 class PW5_MyMappingMode : public PW5_NativeUIWindow {
 	using This = PW5_MyMappingMode;
 	using Base = PW5_NativeUIWindow;
+
+	const float kMM2InchFactor = 25.4f;
+
 protected:
 	virtual void onCreate(CreateDesc& desc) override;
 	virtual void onDraw() override;

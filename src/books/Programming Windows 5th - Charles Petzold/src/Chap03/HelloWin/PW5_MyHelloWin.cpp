@@ -116,7 +116,7 @@ LRESULT CALLBACK PW5_MyHelloWin::s_wndProc(HWND hwnd, UINT message, WPARAM wPara
 				sRed += 10;
 				sRed = sRed % 256;
 				
-				ScopedCreateSolidBrush scoped(hdc, GDI::kRed);
+				ScopedCreateSolidBrush scoped(hdc, GDI::kbRed);
 				int right = rc.left + 20;
 				int bottom = rc.top + 20;
 				ps.rectangle(rc.left, rc.top, right, bottom);

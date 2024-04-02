@@ -2,26 +2,12 @@
 
 namespace sge {
 
-GLenum DrawUtil::getGLDrawMode(DrawMode v) {
-	switch (v)
-	{
-		case DrawMode::Points:			return GL_POINTS;
-		case DrawMode::LineStrip:		return GL_LINE_STRIP;
-		case DrawMode::LineLoop:		return GL_LINE_LOOP;
-		case DrawMode::Lines:			return GL_LINES;
-		case DrawMode::Triangles:		return GL_TRIANGLES;
-		case DrawMode::TriangleStrip:	return GL_TRIANGLE_STRIP;
-		case DrawMode::TriangleFan:		return GL_TRIANGLE_FAN;
-		default:						throw  SGE_ERROR("unsupported DrawMode");
-	}
-}
-
 void DrawUtil::draw(size_t vertexCount, DrawMode mode/*= DrawMode::Triangles*/) {
-	glDrawArrays(DrawUtil::getGLDrawMode(mode), 0, static_cast<GLsizei>(vertexCount));
+	glDrawArrays(static_cast<GLenum>(mode), 0, static_cast<GLsizei>(vertexCount));
 }
 
 void DrawUtil::drawInstanced(size_t vertexCount, size_t instanceCount, DrawMode mode/*=DrawMode::Triangles*/) {
-	glDrawArraysInstanced(DrawUtil::getGLDrawMode(mode),
+	glDrawArraysInstanced(static_cast<GLenum>(mode),
 						  0,
 						  static_cast<GLsizei>(vertexCount),
 						  static_cast<GLsizei>(instanceCount)
@@ -31,7 +17,7 @@ void DrawUtil::drawInstanced(size_t vertexCount, size_t instanceCount, DrawMode 
 void DrawUtil::draw(const IndexBuffer& indexBuf, DrawMode mode/*=DrawMode::Triangles*/) {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuf.handle());
 	{
-		glDrawElements(	DrawUtil::getGLDrawMode(mode),
+		glDrawElements(	static_cast<GLenum>(mode),
 						static_cast<GLuint>(indexBuf.count()),
 						OpenGLUtil::getGLFormat<IndexBuffer::IndexType>(),
 						0
@@ -68,7 +54,7 @@ void DrawUtil::drawInstanced(const IndexBuffer& indexBuf, size_t instanceCount, 
 	// This instanceCount variable controls how many instances of the geometry will be rendered
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuf.handle());
 	{
-		glDrawElementsInstanced(DrawUtil::getGLDrawMode(mode),
+		glDrawElementsInstanced(static_cast<GLenum>(mode),
 								static_cast<GLsizei>(indexBuf.count()),
 								OpenGLUtil::getGLFormat<IndexBuffer::IndexType>(),
 								0,
