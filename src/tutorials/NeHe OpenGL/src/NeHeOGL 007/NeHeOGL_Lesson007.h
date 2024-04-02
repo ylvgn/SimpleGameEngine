@@ -44,7 +44,7 @@ private:
 
 	GLuint  _texture2ds[kTexture2dCount]; // Storage For 3 Textures
 	GLuint	_texSelectedIndex = 0;		  // Which Texture Filter To Use
-	MyImage _imageToUpload;
+	NeHeOGL_Image _imageToUpload;
 
 	// Light is created the same way color is created
 	Tuple4f _lightAmbient  { 0.5f, 0.5f, 0.5f, 1.0f };

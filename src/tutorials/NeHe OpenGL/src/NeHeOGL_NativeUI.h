@@ -1,6 +1,6 @@
 #pragma once
 
-#include "NeHeOGL_Common.h"
+#include "NeHeOGL_GL_Common.h"
 
 #if SGE_OS_WINDOWS
 	#include "NeHeOGL_NativeUIWindow_Win32.h"

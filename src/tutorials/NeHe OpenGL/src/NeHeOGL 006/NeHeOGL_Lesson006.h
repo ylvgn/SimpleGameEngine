@@ -13,6 +13,7 @@ class NeHeOGL_Lesson006 : public NeHeOGL_NativeUIWindow {
 	using This = NeHeOGL_Lesson006;
 
 	static const int kTexture2dCount = 2;
+	using MyImage = NeHeOGL_Image;
 
 public:
 	~NeHeOGL_Lesson006() {

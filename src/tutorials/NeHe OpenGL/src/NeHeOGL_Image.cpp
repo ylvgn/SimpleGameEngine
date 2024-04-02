@@ -1,9 +1,10 @@
-#include "NeHeOGL_Common.h"
+#include "NeHeOGL_Image.h"
+
 #include "externals/stb_image.h"
 
 namespace sge {
 
-struct ImageIO_bmp {
+struct NeHeOGL_ImageIO_bmp {
 	struct Reader {
 		~Reader() {
 			if (_uc) {
@@ -39,7 +40,7 @@ struct ImageIO_bmp {
 			return thisObj->onEOF();
 		}
 
-		void load(MyImage& img, ByteSpan data, ColorType expectType = ColorType::None) {
+		void load(NeHeOGL_Image& img, ByteSpan data, ColorType expectType = ColorType::None) {
 			_data = data;
 			_readPtr = data.data();
 			int dataSize = static_cast<int>(_data.size());
@@ -103,9 +104,9 @@ struct ImageIO_bmp {
 	};
 };
 
-void MyImage::loadBmpMem(ByteSpan data) {
-	ImageIO_bmp::Reader r;
+void NeHeOGL_Image::loadBmpMem(ByteSpan data) {
+	NeHeOGL_ImageIO_bmp::Reader r;
 	r.load(*this, data, ColorType::RGBAb);
 }
-	
+
 }

@@ -45,6 +45,7 @@ private:
 	void _drawMyCube2();
 	void _drawMyCube3();
 	void _drawMyCube4();
+	void _drawMyCube5();
 
 	void _drawMyGrid();
 	void _drawMyCoordinate();
@@ -86,7 +87,7 @@ private:
 	};
 
 	static constexpr GLenum kIndexType = OGLUtil::getGlFormat((NeHe_RenderDataTypeUtil::get<VertexIndex>()));
-	static constexpr VertexIndex kCubeIndices[36][3] = {
+	static constexpr VertexIndex kCubeIndices[12][3] = {
 		{0, 2, 1}, // top
 		{0, 3, 2},
 		{3, 6, 2}, // front
@@ -101,7 +102,7 @@ private:
 		{4, 7, 3},
 	};
 
-	static constexpr size_t kCubeIndicesCount = sizeof(kCubeIndices) / sizeof(kCubeIndices[0]);
+	static constexpr size_t kCubeIndicesCount = sizeof(kCubeIndices) / sizeof(VertexIndex);
 
 	MyHiResTimer _uptime;
 
@@ -110,7 +111,9 @@ private:
 
 	GLUquadric* _gluQuad = nullptr;
 
-	MyVertex_PosColor _cubeVertexs[8];
+	NeHeOGL_Vertex_PosColor _cubeVertexs[8];
+
+	NeHeOGL_Mesh _mesh;
 };
 
 }

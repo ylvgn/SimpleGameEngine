@@ -23,6 +23,9 @@ void NeHeOGL_Lesson005::onCreate(CreateDesc& desc) {
 	_cubeVertexs[5].pos.set( d,-d,-d); _cubeVertexs[5].color.set(OGL::kbBlue);
 	_cubeVertexs[6].pos.set( d,-d, d); _cubeVertexs[6].color.set(OGL::kbBlue);
 	_cubeVertexs[7].pos.set(-d,-d, d); _cubeVertexs[7].color.set(OGL::kbBlue);
+
+	_mesh.createCube(3, 2, 1);
+	//_mesh.renderState.wireframe = true;
 }
 
 void NeHeOGL_Lesson005::onUIMouseEvent(UIMouseEvent& ev) {
@@ -696,30 +699,29 @@ void NeHeOGL_Lesson005::_example6() {
 	_drawMyCoordinate();
 
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+	//glEnable(GL_DEPTH_TEST);
+	//glDepthFunc(GL_LESS);
+	//glDepthMask(GL_TRUE);
+
 	float s = 0.5f;
-	glPushMatrix();
-		glTranslatef(-3, 0, 0);
-		glScalef(s,s,s);
-		_drawMyCube1();
-	glPopMatrix();
+	float x = -3.f;
+	float deltaX = 2.f;
 
-	glPushMatrix();
-		glTranslatef(-1, 0, 0);
-		glScalef(s, s, s);
-		_drawMyCube2();
-	glPopMatrix();
-
-	glPushMatrix();
-		glTranslatef(1, 0, 0);
-		glScalef(s, s, s);
-		_drawMyCube3();
-	glPopMatrix();
-
-	glPushMatrix();
-		glTranslatef(3, 0, 0);
-		glScalef(s, s, s);
-		_drawMyCube4();
-	glPopMatrix();
+#define E(FUNC_NAME) \
+	glPushMatrix(); \
+		glTranslatef(x, 0, 0); \
+		glScalef(s, s, s); \
+		FUNC_NAME(); \
+		x += deltaX; \
+	glPopMatrix(); \
+// -----
+	E(_drawMyCube1)
+	E(_drawMyCube2)
+	E(_drawMyCube3)
+	E(_drawMyCube4)
+	E(_drawMyCube5)
+#undef E
 
 	swapBuffers();
 	drawNeeded();
@@ -767,8 +769,8 @@ void NeHeOGL_Lesson005::_drawMyCube2() {
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glVertexPointer(3, GL_FLOAT, 0, kCube_Quad);
 
-		GLsizei count = static_cast<GLsizei>(sizeof(kCube_Quad) / sizeof(kCube_Quad[0]));
-		glDrawArrays(GL_QUADS, 0, count);
+		GLsizei vertexCount = static_cast<GLsizei>(sizeof(kCube_Quad) / sizeof(kCube_Quad[0]));
+		glDrawArrays(GL_QUADS, 0, vertexCount);
 		glDisableClientState(GL_VERTEX_ARRAY);
 	}
 }
@@ -791,12 +793,8 @@ void NeHeOGL_Lesson005::_drawMyCube3() {
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glVertexPointer(3, GL_FLOAT, 0, kCubePos);
 
-		glEnableClientState(GL_INDEX_ARRAY);
-		glIndexPointer(GL_SHORT, 0, kCubeIndices);
-
 		glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(kCubeIndicesCount), kIndexType, kCubeIndices);
 
-		glDisableClientState(GL_INDEX_ARRAY);
 		glDisableClientState(GL_VERTEX_ARRAY);
 	}
 }
@@ -804,22 +802,24 @@ void NeHeOGL_Lesson005::_drawMyCube3() {
 void NeHeOGL_Lesson005::_drawMyCube4() {
 	//glEnable(GL_CULL_FACE);
 
-	{ // glDrawArrays without glBegin
+	{ // glColorPointer, glDrawElements without glBegin
+		int stride = sizeof(_cubeVertexs[0]);
+
 		glEnableClientState(GL_VERTEX_ARRAY);
-		glVertexPointer(3, GL_FLOAT, sizeof(_cubeVertexs[0]), _cubeVertexs[0].pos.data);
+		glVertexPointer(3, GL_FLOAT, stride, _cubeVertexs[0].pos.data);
 
 		glEnableClientState(GL_COLOR_ARRAY);
-		glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(_cubeVertexs[0]), _cubeVertexs[0].color.data);
-
-		glEnableClientState(GL_INDEX_ARRAY);
-		glIndexPointer(GL_SHORT, 0, kCubeIndices);
+		glColorPointer(4, GL_UNSIGNED_BYTE, stride, _cubeVertexs[0].color.data);
 
 		glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(kCubeIndicesCount), kIndexType, kCubeIndices);
 
-		glDisableClientState(GL_INDEX_ARRAY);
 		glDisableClientState(GL_COLOR_ARRAY);
 		glDisableClientState(GL_VERTEX_ARRAY);
 	}
+}
+
+void NeHeOGL_Lesson005::_drawMyCube5() {
+	_mesh.draw();
 }
 
 void NeHeOGL_Lesson005::_drawMyGrid() {
