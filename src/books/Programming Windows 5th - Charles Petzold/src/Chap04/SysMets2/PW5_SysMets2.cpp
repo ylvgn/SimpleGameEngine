@@ -32,7 +32,7 @@ void PW5_SysMets2::onCreate(CreateDesc& desc) {
 LRESULT CALLBACK PW5_SysMets2::s_wndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	static int s_cxChar, s_cxCaps, s_cyChar, s_cyClient, s_iVscrollPos, s_textLineCount;
 
-	auto* dm				= MySysmetricsDM::s_getMark();
+	auto* dm				= MySysmetricsDM::s_getRemarks();
 	const auto& sysmetrics	= dm->data();
 	auto NUMLINES			= static_cast<int>(sysmetrics.size());
 
@@ -43,7 +43,8 @@ LRESULT CALLBACK PW5_SysMets2::s_wndProc (HWND hwnd, UINT message, WPARAM wParam
 			break;
 
 		case WM_CREATE: {
-			TextMetrics tm(hwnd);
+			ScopedGetDC hdc(hwnd);
+			MyTextMetrics tm(hdc);
 			s_cxChar = tm.aveCharWidth;
 			s_cxCaps = tm.aveCharWidthUpperCase;
 			s_cyChar = tm.aveCharHeight;
@@ -134,7 +135,7 @@ LRESULT CALLBACK PW5_SysMets2::s_wndProc (HWND hwnd, UINT message, WPARAM wParam
 				ps.textOut(x, y, sysmetrics[i].name);
 
 				x += s_szLabelMaxWidth;
-				ps.textOut(x, y, sysmetrics[i].mark);
+				ps.textOut(x, y, sysmetrics[i].remarks);
 
 				ps.setTextAlign(PW5_TextAlignmentOption::Right | PW5_TextAlignmentOption::Top);
 				x += s_szDescMaxWidth;

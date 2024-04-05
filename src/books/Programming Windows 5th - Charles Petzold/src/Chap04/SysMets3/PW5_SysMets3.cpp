@@ -49,7 +49,7 @@ LRESULT CALLBACK PW5_SysMets3::s_wndProc (HWND hwnd, UINT message, WPARAM wParam
 
 	static int cxChar, cxCaps, cyChar, cxClient, cyClient, iMaxWidth;
 
-	auto* dm				= MySysmetricsDM::s_getMark();
+	auto* dm				= MySysmetricsDM::s_getRemarks();
 	const auto& sysmetrics	= dm->data();
 	auto NUMLINES			= static_cast<int>(sysmetrics.size());
 
@@ -60,7 +60,8 @@ LRESULT CALLBACK PW5_SysMets3::s_wndProc (HWND hwnd, UINT message, WPARAM wParam
 			break;
 
 		case WM_CREATE: {
-			TextMetrics tm(hwnd);
+			ScopedGetDC hdc(hwnd);
+			MyTextMetrics tm(hdc);
 			cxChar = tm.aveCharWidth;
 			cxCaps = tm.aveCharWidthUpperCase;
 			cyChar = tm.aveCharHeight;
@@ -191,7 +192,7 @@ LRESULT CALLBACK PW5_SysMets3::s_wndProc (HWND hwnd, UINT message, WPARAM wParam
 				ps.textOut(x, y, sysmetrics[i].name);
 
 				x += 22 * cxCaps;
-				ps.textOut(x, y, sysmetrics[i].mark);
+				ps.textOut(x, y, sysmetrics[i].remarks);
 
 				ps.setTextAlign(PW5_TextAlignmentOption::Right | PW5_TextAlignmentOption::Top);
 				x += 40 * cxChar;

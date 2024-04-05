@@ -5,7 +5,7 @@
 namespace sge {
 
 void PW5_MySysMets3::onCreate(CreateDesc& desc) {
-	_dm = MySysmetricsDM::s_getMark();
+	_dm = MySysmetricsDM::s_getRemarks();
 	Base::onCreate(desc);
 }
 

@@ -7,7 +7,7 @@ namespace sge {
 WNDPROC PW5_MySysMets2::s_defaultWndProc;
 
 void PW5_MySysMets2::onCreate(CreateDesc& desc) {
-	_dm = MySysmetricsDM::s_getMark();
+	_dm = MySysmetricsDM::s_getRemarks();
 	_scrollPosV = 0;
 
 	desc.ownDC = true;
@@ -20,7 +20,7 @@ void PW5_MySysMets2::onCreate(CreateDesc& desc) {
 
 	{
 		ScopedGetDC hdc(_hwnd);
-		auto tm = GDI::createTextMetrics(hdc);
+		auto tm = GDI::createMyTextMetrics(hdc);
 		_cxChar = tm.aveCharWidth;
 		_cxCaps = tm.aveCharWidthUpperCase;
 		_cyChar = tm.aveCharHeight;
@@ -49,7 +49,7 @@ void PW5_MySysMets2::onDraw() {
 		hdc.Fmt_textOut(x, y, "{:03d} {}", i, sysmetrics[i].name);
 
 		x += 24 * _cxCaps;
-		hdc.textOut(x, y, sysmetrics[i].mark);
+		hdc.textOut(x, y, sysmetrics[i].remarks);
 		hdc.setTextAlign(PW5_TextAlignmentOption::Right | PW5_TextAlignmentOption::Top);
 
 		x += 40 * _cxChar;

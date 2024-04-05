@@ -9,6 +9,7 @@ namespace sge {
 class PW5_MySysMets2 : public PW5_NativeUIWindow {
 	using Base = PW5_NativeUIWindow;
 	using This = PW5_MySysMets2;
+	using DefinationRemarks = PW5_MyDefinationRemarks;
 protected:
 	virtual void onCreate(CreateDesc& desc) override;
 	virtual void onDraw() override;
@@ -28,7 +29,7 @@ private:
 	int  _viewportH;
 	int  _scrollPosV;
 	
-	const DefineMark* _dm = nullptr;
+	const DefinationRemarks* _dm = nullptr;
 };
 
 }

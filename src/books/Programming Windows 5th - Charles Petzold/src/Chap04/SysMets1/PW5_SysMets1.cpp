@@ -38,14 +38,15 @@ LRESULT CALLBACK PW5_SysMets1::s_wndProc(HWND hwnd, UINT message, WPARAM wParam,
 			break;
 
 		case WM_CREATE: {
-			TextMetrics tm(hwnd);
+			ScopedGetDC hdc(hwnd);
+			MyTextMetrics tm(hdc);
 			cxChar = tm.aveCharWidth;
 			cxCaps = tm.aveCharWidthUpperCase;
 			cyChar = tm.aveCharHeight;
 		} break;
 
 		case WM_PAINT: {
-			auto* dm				= MySysmetricsDM::s_getMark();
+			auto* dm				= MySysmetricsDM::s_getRemarks();
 			const auto& sysmetrics	= dm->data();
 			auto NUMLINES			= static_cast<int>(sysmetrics.size());
 
@@ -75,7 +76,7 @@ LRESULT CALLBACK PW5_SysMets1::s_wndProc(HWND hwnd, UINT message, WPARAM wParam,
 				// so the second column must begin at least 20*cxCaps to the right of the beginning of the first column of text.
 				// use 22 to add a little extra space between the columns
 				x += 22 * cxCaps;
-				ps.textOut(x, y, sysmetrics[i].mark);
+				ps.textOut(x, y, sysmetrics[i].remarks);
 				ps.setTextAlign(PW5_TextAlignmentOption::Right | PW5_TextAlignmentOption::Top); // ::SetTextAlign(ps, TA_RIGHT | TA_TOP);
 
 				x += 40 * cxChar;

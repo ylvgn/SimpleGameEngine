@@ -50,7 +50,7 @@ void PW5_MyTextMetrics::_example2() {
 
 	{ // MM_TEXT
 		hdc.setMappingMode(PW5_MappingMode::None);
-		auto textMetrics = GDI::createTextMetrics(hdc);
+		auto textMetrics = GDI::createMyTextMetrics(hdc);
 		int x = 300;
 		int y = 100;
 		int spacingY = textMetrics.height;
@@ -80,7 +80,7 @@ void PW5_MyTextMetrics::_example2() {
 		int x = static_cast<int>(pt.x);
 		int y = static_cast<int>(pt.y);
 
-		auto textMetrics = GDI::createTextMetrics(hdc);
+		auto textMetrics = GDI::createMyTextMetrics(hdc);
 		int spacingY = -textMetrics.height;
 		hdc.Fmt_textOut(x, y, "(MM_LOENGLISH)height={}", textMetrics.height); y += spacingY;
 		hdc.Fmt_textOut(x, y, "(MM_LOENGLISH)ascent={}", textMetrics.ascent); y += spacingY;
