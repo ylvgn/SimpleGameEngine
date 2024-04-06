@@ -1,16 +1,18 @@
 #pragma once
 
+#if SGE_OS_WINDOWS
+
 #include "PW5_GDI__StockLogicalObject.h"
 #include "PW5_GDI__Coordinate.h"
 #include "PW5_GDI__Draw.h"
-
-#if SGE_OS_WINDOWS
 
 namespace sge {
 
 class ScopedHDC_NoHWND : public NonCopyable {
 public:
 	using DTFlag = PW5_DrawTextFormatFlag;
+	using MapMode = PW5_MapMode;
+	using CoordinateDir = PW5_CoordinateDir;
 
 	virtual ~ScopedHDC_NoHWND() = default;
 
@@ -39,18 +41,14 @@ public:
 	auto dPtoLP(Vec2f& pt)					{ return GDI::dPtoLP(_hdc, pt); }
 	auto lPtoDP(Vec2f& pt)					{ return GDI::lPtoDP(_hdc, pt); }
 
-	auto setMappingMode(PW5_MappingMode flag) {
-		return ::SetMapMode(_hdc, enumInt(flag));
-	}
-	PW5_MappingMode getMappingMode() const {
-		return static_cast<PW5_MappingMode>(::GetMapMode(_hdc));
-	}
+	auto setMapMode(MapMode flag)			{ return GDI::setMapMode(_hdc, flag); }
+	MapMode getMapMode() const				{ return GDI::getMapMode(_hdc); }
 
-	auto setTextAlign(PW5_TextAlignmentOption flags) {
-		// https://github.com/MicrosoftDocs/win32/blob/docs/desktop-src/gdi/text-formatting-attributes.md
-		return ::SetTextAlign(_hdc, enumInt(flags));
-	}
- 
+	CoordinateDir getCoordViewportDir() const { return GDI::getCoordinateDir(_hdc, true); }
+	CoordinateDir getCoordWindowDir()	const { return GDI::getCoordinateDir(_hdc, false); }
+
+	auto setTextAlign(PW5_TextAlignmentOption flags) { return GDI::setTextAlign(_hdc, flags); }
+
 	auto textOut(int x, int y, StrView str)		const { return GDI::textOut(_hdc, x, y, str); }
 	auto textOut(const Vec2f& pt, StrView str)	const { return GDI::textOut(_hdc, pt, str); }
 	auto textOut(const Vec2i& pt, StrView str)	const { return GDI::textOut(_hdc, pt, str); }
@@ -143,19 +141,6 @@ public:
 	void drawPoint(const Vec2f& pt, const Color4b& c, int ptSize)	const;
 	void drawPoint(const Vec2i& pt, const Color4b& c, int ptSize)	const;
 
-	void getStockObject(::HGDIOBJ& o, PW5_StockLogicalObject flag) {
-		o = ::GetStockObject(enumInt(flag));
-	}
-	void getStockObject(::HBRUSH& o, PW5_StockLogicalObject_Brush flag) {
-		o = GetStockBrush(enumInt(flag));
-	}
-	void getStockObject(::HPEN& o, PW5_StockLogicalObject_Pen flag) {
-		o = GetStockPen(enumInt(flag));
-	}
-	void getStockObject(::HFONT& o, PW5_StockLogicalObject_Font flag) {
-		o = GetStockFont(enumInt(flag));
-	}
-
 protected:
 	::HDC _hdc = nullptr;
 };
@@ -165,6 +150,12 @@ class ScopedHDC_ : public ScopedHDC_NoHWND {
 public:
 	ScopedHDC_(const ::HWND& hwnd)
 		: _hwnd(hwnd) {}
+
+	void getClientRectInDevice(Rect2f& o) {
+		::RECT rc;
+		::GetClientRect(_hwnd, &rc);
+		Win32Util::convert(o, rc);
+	}
 
 	void getClientRectInLogical(::RECT& o) {
 		::GetClientRect(_hwnd, &o); // GetClientRect (which is always in terms of device units)
@@ -179,9 +170,11 @@ public:
 
 	void clearBg(PW5_StockLogicalObject_Brush flag = PW5_StockLogicalObject_Brush::White) {
 		::RECT rc;
-		::HBRUSH brush;
 		getClientRectInLogical(rc);
-		getStockObject(brush, flag);
+
+		::HBRUSH brush;
+		GDI::getStockObject(brush, flag);
+
 		GDI::fillRect(_hdc, rc, brush); // FillRect is used in logical coordinates
 	}
 

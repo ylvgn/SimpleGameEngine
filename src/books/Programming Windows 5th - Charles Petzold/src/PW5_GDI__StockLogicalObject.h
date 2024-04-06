@@ -1,5 +1,4 @@
 #pragma once
-#include "PW5_Common.h"
 
 #if SGE_OS_WINDOWS
 
@@ -67,6 +66,25 @@ constexpr PW5_StockLogicalObject PW5_StockLogicalObject_make(PW5_StockLogicalObj
 SGE_ENUM_DECLARE(PW5_StockLogicalObject, u8)
 SGE_ENUM_ALL_OPERATOR(PW5_StockLogicalObject)
 
+} // namespace sge
+
+namespace sge {
+namespace GDI {
+
+	inline void getStockObject(::HGDIOBJ& o, PW5_StockLogicalObject flag) {
+		o = ::GetStockObject(enumInt(flag));
+	}
+	inline void getStockObject(::HBRUSH& o, PW5_StockLogicalObject_Brush flag) {
+		o = GetStockBrush(enumInt(flag));
+	}
+	inline void getStockObject(::HPEN& o, PW5_StockLogicalObject_Pen flag) {
+		o = GetStockPen(enumInt(flag));
+	}
+	inline void getStockObject(::HFONT& o, PW5_StockLogicalObject_Font flag) {
+		o = GetStockFont(enumInt(flag));
+	}
+
+} // namespace GDI
 } // namespace sge
 
 #endif

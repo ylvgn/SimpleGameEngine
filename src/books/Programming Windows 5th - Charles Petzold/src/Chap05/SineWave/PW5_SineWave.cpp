@@ -83,4 +83,4 @@ void PW5_SineWave::_example3() {
 
 }
 
-#endif
+#endif // SGE_OS_WINDOWS

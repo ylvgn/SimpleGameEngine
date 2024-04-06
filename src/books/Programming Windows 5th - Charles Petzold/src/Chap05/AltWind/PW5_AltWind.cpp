@@ -54,4 +54,4 @@ void PW5_AltWind::_example1() {
 
 }
 
-#endif
+#endif // SGE_OS_WINDOWS

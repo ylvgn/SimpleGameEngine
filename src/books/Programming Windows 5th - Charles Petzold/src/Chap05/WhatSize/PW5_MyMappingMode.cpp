@@ -5,6 +5,7 @@
 namespace sge {
 
 void PW5_MyMappingMode::onCreate(CreateDesc& desc) {
+	_isFirstFrame = true;
 	desc.ownDC = true;
 	Base::onCreate(desc);
 }
@@ -15,7 +16,8 @@ void PW5_MyMappingMode::onDraw() {
 	//_example3();
 	//_example4();
 	//_example5();
-	_example6();
+	//_example6();
+	_example7();
 }
 
 void PW5_MyMappingMode::_example1() {
@@ -48,30 +50,30 @@ void PW5_MyMappingMode::_example1() {
 	// If you need to display an image in inch or millimeter dimensions,
 	// you can obtain the information you need from GetDeviceCaps and do your own scaling.
 	// The other mapping modes are simply a convenient way to avoid doing your own scaling.
-	hdc.setMappingMode(PW5_MappingMode::None); //::SetMapMode(hdc, MM_TEXT);
+	hdc.setMapMode(PW5_MapMode::None);
 	hdc.textOut(0, 0, "MM_TEXT(units of pixels)");
 
-	hdc.setMappingMode(PW5_MappingMode::LowEnglish); //::SetMapMode(hdc, MM_LOENGLISH);
+	hdc.setMapMode(PW5_MapMode::LowEnglish);
 	hdc.textOut(300, -50, "MM_LOENGLISH(.01 inch)");
 	// x: 300 means 300 / 100 = 3 inch,
 	// y: 50 / 100 = 0.5 inch, cuz y−coordinate down orientation is negative sign
 	
-	hdc.setMappingMode(PW5_MappingMode::HighEnglish); //::SetMapMode(hdc, MM_HIENGLISH);
+	hdc.setMapMode(PW5_MapMode::HighEnglish);
 	hdc.textOut(300*10, -50, "MM_HIENGLISH(.001 inch)");
 	// x: 3000 means 3000 / 1000 = 3 inch,
 	// y: 50 / 1000 = 0.05 inch
 
-	hdc.setMappingMode(PW5_MappingMode::LowMetric); //::SetMapMode(hdc, MM_LOMETRIC);
+	hdc.setMapMode(PW5_MapMode::LowMetric);
 	hdc.textOut(300, -50, "MM_LOMETRIC(.1 mm)");
 
 	// 25.4 millimeters per inch, 25.4 mm. (25.396825) ~= 1 in.
 	// so 320x240 mm. / 25.4 = 12.6x9.45 in.
 	// when using MM_LOENGLISH to represent it, 12.6 in. will be described as 1260 (0.01 in.)
 
-	hdc.setMappingMode(PW5_MappingMode::HighMetric); //::SetMapMode(hdc, MM_HIMETRIC);
+	hdc.setMapMode(PW5_MapMode::HighMetric);
 	hdc.textOut(300*10, -50, "MM_HIMETRIC(.01 mm)");
 	
-	hdc.setMappingMode(PW5_MappingMode::Twips); //::SetMapMode(hdc, MM_TWIPS);
+	hdc.setMapMode(PW5_MapMode::Twips); //::SetMapMode(hdc, MM_TWIPS);
 	// A "twip" is twentieth of a point, 1/20 point.
 	// A "twip" is 1/20 point and hence 1/1440 inch
 		// I mentioned earlier that a point is a unit of measurement in typography that is approximately 1 / 72 inch
@@ -103,7 +105,7 @@ void PW5_MyMappingMode::_example2() {
 		// just change mapping mode, then use LPtoDP directly
 		// is the same result with reset tmp(300,100) then use LPtoDP
 	{
-		hdc.setMappingMode(PW5_MappingMode::None);
+		hdc.setMapMode(PW5_MapMode::None);
 		Vec2f p { 100, 100 };
 		hdc.dPtoLP(p);
 		hdc.Fmt_textOut(p, "Hello1");
@@ -117,7 +119,7 @@ void PW5_MyMappingMode::_example2() {
 
 	// comment this scope to check whether is overlap
 	{
-		hdc.setMappingMode(PW5_MappingMode::LowEnglish);
+		hdc.setMapMode(PW5_MapMode::LowEnglish);
 		Vec2f p { 100, 100 };
 		hdc.dPtoLP(p);
 		hdc.Fmt_textOut(p, "Hello2");
@@ -131,7 +133,7 @@ void PW5_MyMappingMode::_example2() {
 	}
 	// comment this scope to check whether is overlap
 	{
-		hdc.setMappingMode(PW5_MappingMode::HighEnglish);
+		hdc.setMapMode(PW5_MapMode::HighEnglish);
 		Vec2f p { 100, 100 };
 		hdc.dPtoLP(p);
 		hdc.Fmt_textOut(p, "Hello3");
@@ -145,12 +147,12 @@ void PW5_MyMappingMode::_example2() {
 	}
 }
 
-void PW5_MyMappingMode::_drawClientRectCoordinate(PW5_MappingMode v) {
+void PW5_MyMappingMode::_drawClientRectCoordinate(PW5_MapMode v) {
 
 	ScopedGetDC hdc(_hwnd);
-	hdc.setMappingMode(v);
+	hdc.setMapMode(v);
 
-	if (v == PW5_MappingMode::None) {
+	if (v == PW5_MapMode::None) {
 		hdc.setViewportOrg(0, 0);
 	} else {
 		hdc.setViewportOrg(0, static_cast<int>(_clientRect.h));
@@ -164,7 +166,7 @@ void PW5_MyMappingMode::_drawClientRectCoordinate(PW5_MappingMode v) {
 	::GetClientRect(_hwnd, &rect);
 	GDI::dPtoLP(hdc, rect);
 
-	using SRC = PW5_MappingMode;
+	using SRC = PW5_MapMode;
 
 	if (v == SRC::None) {
 		Win32Util::convert(rc, rect);
@@ -186,7 +188,7 @@ void PW5_MyMappingMode::_drawClientRectCoordinate(PW5_MappingMode v) {
 		case SRC::Anisotropic:	offset = { rc.w * 0.6f, rc.h * 0.3f }; break;
 	}
 
-	if (v == PW5_MappingMode::None) {
+	if (v == PW5_MapMode::None) {
 		Vec2f from	{ rc.x,			rc.y + rc.h * 0.01f };
 		Vec2f to	{ rc.w * 0.1f,	from.y };
 		hdc.drawLine(from, to);
@@ -216,7 +218,7 @@ void PW5_MyMappingMode::_drawClientRectCoordinate(PW5_MappingMode v) {
 }
 
 void PW5_MyMappingMode::_example3() {
-	using SRC = PW5_MappingMode;
+	using SRC = PW5_MapMode;
 
 	ScopedGetDC hdc(_hwnd);
 	hdc.clearBg();
@@ -390,7 +392,7 @@ void PW5_MyMappingMode::_example6() {
 	ScopedGetDC hdc(_hwnd);
 	hdc.clearBg();
 
-	using SRC = PW5_MappingMode;
+	using SRC = PW5_MapMode;
 
 	// five mapping modes that express logical coordinates in physical measurements (physical units)
 	_calcMappingModeExtRatio(SRC::LowMetric);	// lowest precision millimeters (0.1 mm.)
@@ -401,11 +403,11 @@ void PW5_MyMappingMode::_example6() {
 	_calcMappingModeExtRatio(SRC::Text);		// pixel unit
 }
 
-void PW5_MyMappingMode::_calcMappingModeExtRatio(PW5_MappingMode v) {
-	using SRC = PW5_MappingMode;
+void PW5_MyMappingMode::_calcMappingModeExtRatio(PW5_MapMode v) {
+	using SRC = PW5_MapMode;
 
 	ScopedGetDC hdc(_hwnd);
-	hdc.setMappingMode(v);
+	hdc.setMapMode(v);
 
 	// Windows uses the HORZRES,HORZSIZE,VERTRES,and VERTSIZE values
 	// when calculating windowand offset extents for the various mapping modes
@@ -487,6 +489,115 @@ void PW5_MyMappingMode::_calcMappingModeExtRatio(PW5_MappingMode v) {
 	}
 }
 
+void PW5_MyMappingMode::_example7() {
+	// These are the only two mapping modes for which Windows lets you change the viewportand window extents,
+	// which means that you can change the scaling factor
+	// that Windows uses to translate logicaland device coordinates
+
+	ScopedGetDC hdc(_hwnd);
+	hdc.clearBg();
+
+	// Generally, you'll use arguments to SetWindowExtEx with the desired logical size of the logical windows,
+	// and arguments to SetViewportExtEx with the actual height and width of the client area
+	// You should call SetWindowExtEx before you call SetViewportExtEx
+	// to make the most efficient use of space in the client area
+
+	if (_isFirstFrame) {
+		_isFirstFrame = false;
+		/*
+			For example, suppose you want a traditional one−quadrant virtual coordinate system where(0, 0) is at
+			the lower left corner of the client area and the logical width and height ranges from 0 to 32767.
+			You want the x and y units to have the same physical dimensions.
+		*/
+		int cxClient = static_cast<int>(_clientRect.w);
+		int cyClient = static_cast<int>(_clientRect.h);
+
+		//hdc.setMapMode(PW5_MapMode::Isotropic);
+		//hdc.setWindowExt(32767, 32767);
+		//hdc.setViewportExt(cxClient, -cyClient);
+		//hdc.setViewportOrg(0, cyClient);
+
+		hdc.setMapMode(PW5_MapMode::Isotropic);
+		hdc.setWindowExt(32767, 32767);
+		hdc.setViewportExt(cxClient, -cyClient);
+		hdc.setWindowOrg(0, 32767);
+	}
+
+	_drawDeviceCoordinate();
+	_drawLogicalCoordinate();
 }
 
-#endif
+void PW5_MyMappingMode::_drawDeviceCoordinate() {
+	using CoordinateDir = PW5_CoordinateDir;
+
+	ScopedGetDC hdc(_hwnd);
+
+	Vec2f ext;
+	hdc.getViewportExt(ext);
+
+	Vec2f o;
+	hdc.getViewportOrg(o);
+	Vec2f offsetOrg{ -o.x, -o.y };
+	o += offsetOrg;
+
+	static Vec2f kOffset { Math::abs(ext.x) * 0.05f, Math::abs(ext.y) * 0.05f };
+	o += kOffset;
+
+	Vec2f xAxisPt(o);
+	Vec2f yAxisPt(o);
+	xAxisPt.x += kOffset.x * 2.0f;
+	yAxisPt.y += kOffset.y * 2.0f;
+	hdc.dPtoLP(o);
+
+	Vec2f ptSize(kOffset);
+	hdc.dPtoLP(ptSize); hdc.drawPoint(o, GDI::kbBlack, static_cast<int>(ptSize.x * 0.5f));
+	hdc.dPtoLP(xAxisPt); hdc.drawLine(o, xAxisPt);
+	hdc.dPtoLP(yAxisPt); hdc.drawLine(o, yAxisPt);
+
+	TempString s;
+	FmtTo(s, "{}X {}", xAxisPt.x >= o.x ? '+' : '-', _clientRect.w);
+	hdc.textOut(xAxisPt, s);
+	s.clear();
+	FmtTo(s, "{}Y {}", yAxisPt.y >= o.y ? '+' : '-', _clientRect.h);
+	hdc.textOut(yAxisPt, s);
+}
+
+void PW5_MyMappingMode::_drawLogicalCoordinate() {
+	using CoordinateDir = PW5_CoordinateDir;
+
+	ScopedGetDC hdc(_hwnd);
+
+	Rect2f rcInLogical;
+	hdc.getClientRectInLogical(rcInLogical);
+
+	Vec2f ext;
+	hdc.getWindowExt(ext);
+
+	Vec2f o;
+	hdc.getWindowOrg(o);
+	Vec2f offsetOrg { -o.x, -o.y };
+	o += offsetOrg;
+
+	static Vec2f kOffset { Math::abs(ext.x) * 0.05f, Math::abs(ext.x) * 0.05f };
+	o += kOffset;
+
+	Vec2f xAxisPt(o);
+	Vec2f yAxisPt(o);
+	xAxisPt.x += kOffset.x * 2.0f;
+	yAxisPt.y += kOffset.y * 2.0f;
+
+	hdc.drawPoint(o, GDI::kbBlack, static_cast<int>(kOffset.x * 0.5f));
+	hdc.drawLine(o, xAxisPt);
+	hdc.drawLine(o, yAxisPt);
+
+	TempString s;
+	FmtTo(s, "{}X {}", xAxisPt.x >= o.x ? '+' : '-', rcInLogical.w);
+	hdc.textOut(xAxisPt, s);
+	s.clear();
+	FmtTo(s, "{}Y {}", yAxisPt.y >= o.y ? '+' : '-', rcInLogical.h);
+	hdc.textOut(yAxisPt, s);
+}
+
+}
+
+#endif // SGE_OS_WINDOWS

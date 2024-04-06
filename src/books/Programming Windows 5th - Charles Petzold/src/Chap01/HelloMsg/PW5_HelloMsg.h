@@ -18,4 +18,4 @@ protected:
 
 }
 
-#endif
+#endif // SGE_OS_WINDOWS

@@ -1,6 +1,7 @@
 #if SGE_OS_WINDOWS
 
 #include "PW5_MyHelloWin.h"
+#include <tchar.h>
 
 namespace sge {
 
@@ -142,4 +143,4 @@ LRESULT CALLBACK PW5_MyHelloWin::s_wndProc(HWND hwnd, UINT message, WPARAM wPara
 
 }
 
-#endif
+#endif // SGE_OS_WINDOWS

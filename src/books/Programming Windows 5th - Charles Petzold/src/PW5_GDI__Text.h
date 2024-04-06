@@ -1,5 +1,4 @@
 #pragma once
-#include "PW5_Common.h"
 
 #if SGE_OS_WINDOWS
 
@@ -76,6 +75,11 @@ private:
 
 namespace sge {
 namespace GDI {
+
+	inline auto setTextAlign(::HDC hdc, PW5_TextAlignmentOption flags) {
+		// https://github.com/MicrosoftDocs/win32/blob/docs/desktop-src/gdi/text-formatting-attributes.md
+		return ::SetTextAlign(hdc, enumInt(flags));
+	}
 
 	inline bool textOut(const ::HDC& hdc, int x, int y, StrView str) {
 		if (str.empty()) return false;

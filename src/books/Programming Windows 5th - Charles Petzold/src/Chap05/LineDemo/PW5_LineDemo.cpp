@@ -80,4 +80,4 @@ void PW5_LineDemo::_example2() {
 
 }
 
-#endif
+#endif // SGE_OS_WINDOWS

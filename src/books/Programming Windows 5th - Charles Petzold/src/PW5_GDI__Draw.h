@@ -1,9 +1,9 @@
 #pragma once
 
+#if SGE_OS_WINDOWS
+
 #include "PW5_GDI__Color.h"
 #include "PW5_GDI__Text.h"
-
-#if SGE_OS_WINDOWS
 
 namespace sge {
 namespace GDI {

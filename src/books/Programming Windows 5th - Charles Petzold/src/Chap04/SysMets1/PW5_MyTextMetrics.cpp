@@ -49,7 +49,7 @@ void PW5_MyTextMetrics::_example2() {
 	ScopedGetDC hdc(_hwnd);
 
 	{ // MM_TEXT
-		hdc.setMappingMode(PW5_MappingMode::None);
+		hdc.setMapMode(PW5_MapMode::None);
 		auto textMetrics = GDI::createMyTextMetrics(hdc);
 		int x = 300;
 		int y = 100;
@@ -72,7 +72,7 @@ void PW5_MyTextMetrics::_example2() {
 		// the mapping mode should be set to the same mapping mode that
 		// you'll be using when you draw text based on these sizes
 
-		hdc.setMappingMode(PW5_MappingMode::LowEnglish);
+		hdc.setMapMode(PW5_MapMode::LowEnglish);
 		Vec2f pt { 300,100 };
 		hdc.dPtoLP(pt);
 		pt.x += 200;

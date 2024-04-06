@@ -73,4 +73,4 @@ void PW5_DevCaps1::onCreate(CreateDesc& desc) {
 
 }
 
-#endif
+#endif // SGE_OS_WINDOWS

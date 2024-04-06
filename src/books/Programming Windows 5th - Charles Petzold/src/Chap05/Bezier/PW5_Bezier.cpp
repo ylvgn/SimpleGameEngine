@@ -87,4 +87,4 @@ void PW5_Bezier::_example2() {
 
 }
 
-#endif
+#endif // SGE_OS_WINDOWS

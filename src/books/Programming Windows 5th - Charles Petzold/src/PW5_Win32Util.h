@@ -1,7 +1,6 @@
 #pragma once
-#if SGE_OS_WINDOWS
 
-#include "PW5_GDI.h"
+#if SGE_OS_WINDOWS
 
 namespace sge {
 
@@ -16,9 +15,7 @@ struct PW5_Win32Util {
 
 inline
 WNDCLASSEXA PW5_Win32Util::createWndClass(::HMODULE hInstance, StrViewA clsName, ::WNDPROC lpfnWndProc, UINT csStyle /*= 0*/) {
-	WNDCLASSEXA wc;
-	g_bzero(wc);
-
+	WNDCLASSEXA wc		= {};
 	wc.cbSize			= sizeof(wc);
     wc.hInstance		= hInstance;
     wc.lpfnWndProc		= lpfnWndProc;
@@ -37,9 +34,7 @@ WNDCLASSEXA PW5_Win32Util::createWndClass(::HMODULE hInstance, StrViewA clsName,
 
 inline
 WNDCLASSEXW PW5_Win32Util::createWndClass(::HMODULE hInstance, StrViewW clsName, ::WNDPROC lpfnWndProc, UINT csStyle /*= 0*/) {
-	WNDCLASSEXW wc;
-	g_bzero(wc);
-
+	WNDCLASSEXW wc		= {};
 	wc.cbSize			= sizeof(wc);
     wc.hInstance		= hInstance;
     wc.lpfnWndProc		= lpfnWndProc;

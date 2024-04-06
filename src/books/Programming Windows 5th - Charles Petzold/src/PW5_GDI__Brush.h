@@ -1,8 +1,8 @@
 #pragma once
 
-#include "PW5_GDI__HDC.h"
-
 #if SGE_OS_WINDOWS
+
+#include "PW5_GDI__HDC.h"
 
 namespace sge {
 
@@ -20,31 +20,33 @@ class MyIndirectBrush_Base : public ScopedHDC_NoHWND {
 	using Base = ScopedHDC_NoHWND;
 public:
 	struct CreateDesc {
-		::HDC hdc					= nullptr;
-		Color4b color				= GDI::kbBlack;
-		PW5_HatchStyle hatchFlag	= PW5_HatchStyle::Horizontal;
-		::HBITMAP* hBitMap			= nullptr;
-
-		::LOGBRUSH& _internal_used;
+		::HDC			hdc				= nullptr;
+		Color4b			color			= GDI::kbBlack;
+		PW5_HatchStyle	hatchFlag		= PW5_HatchStyle::Horizontal;
+		::HBITMAP*		hBitMap			= nullptr;
+		::LOGBRUSH&		_internal_used;
 	};
 
 	void create(CreateDesc& desc) {
-		::LOGBRUSH logBrush;
-		g_bzero(logBrush);
-		desc._internal_used = logBrush;
-
 		_hdc = desc.hdc;
 
+		::LOGBRUSH logBrush;
+		desc._internal_used = logBrush;
 		onCreate(desc);
 
-		_lastHBrush = SelectBrush(_hdc, ::CreateBrushIndirect(&logBrush));
+		::HBRUSH brush = ::CreateBrushIndirect(&logBrush);
+		if (!brush)
+			SGE_LOG_ERROR("MyIndirectBrush_Base: CreateBrushIndirect error");
+		else
+			_lastHBrush = SelectBrush(_hdc, brush);
 	}
 
 protected:
 	virtual void onCreate(CreateDesc& desc) = 0;
 
 	~MyIndirectBrush_Base() {
-		if (_hdc) {
+		if (_lastHBrush) {
+			SGE_ASSERT(_hdc != nullptr);
 			DeleteBrush(SelectBrush(_hdc, _lastHBrush));
 			_lastHBrush = nullptr;
 			_hdc = nullptr;
@@ -52,7 +54,7 @@ protected:
 	}
 
 private:
-	::HBRUSH	_lastHBrush = nullptr;
+	::HBRUSH _lastHBrush = nullptr;
 };
 
 class MyIndirectBrush_Solid : public MyIndirectBrush_Base {
@@ -143,13 +145,18 @@ public:
 namespace sge {
 namespace GDI {
 
+	inline auto getObject(const ::HBRUSH& brush, ::LOGBRUSH& o) {
+		// If you need to obtain information about a brush, you can call GetObject
+		return GetObject(brush, sizeof(o), &o);
+	}
+
 	inline ::HBRUSH createSolidBrush(const Color4b& c)	{ return ::CreateSolidBrush(COLORREF_make(c)); }
 	inline ::HBRUSH createSolidBrush(const Color4f& c)	{ return ::CreateSolidBrush(COLORREF_make(c)); }
 
 	inline void drawPoint(const ::HDC& hdc, int x, int y, const Color4b& c = GDI::kbBlack, int ptSize = 10) {
 		ScopedCreateSolidBrush brush(hdc, c);
 		int halfSize = ptSize / 2;
-		::RECT ltrb{
+		::RECT ltrb {
 			x - halfSize,
 			y - halfSize,
 			x + halfSize,

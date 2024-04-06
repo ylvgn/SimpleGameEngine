@@ -1,28 +1,59 @@
 #pragma once
 
-#include "PW5_Common.h"
-
 #if SGE_OS_WINDOWS
 
 namespace sge {
 
-#define PW5_MappingMode_ENUM_LIST(E) \
+#define PW5_MapMode_ENUM_LIST(E)	\
 	E(None,			= 0)				\
-	/* fully constrained */ \
+	/* fully constrained */				\
 	E(Text,			= MM_TEXT)			\
 	E(LowMetric,	= MM_LOMETRIC)		\
 	E(HighMetric,	= MM_HIMETRIC)		\
 	E(LowEnglish,	= MM_LOENGLISH)		\
 	E(HighEnglish,	= MM_HIENGLISH)		\
 	E(Twips,		= MM_TWIPS)			\
-	/* partly constrained */ \
+	/* partly constrained */			\
 	E(Isotropic,	= MM_ISOTROPIC)		\
-	/* unconstrained */ \
+	/* unconstrained */					\
 	E(Anisotropic,	= MM_ANISOTROPIC)	\
 //----
-SGE_ENUM_CLASS(PW5_MappingMode, u8)
+SGE_ENUM_CLASS(PW5_MapMode, u8)
+
+#define PW5_CoordinateDir_ENUM_LIST(E)	\
+	E(RD,) \
+	E(RU,) \
+	E(LD,) \
+	E(LU,) \
+//----
+SGE_ENUM_CLASS(PW5_CoordinateDir, u8)
+
+#define PW5_Dir_ENUM_LIST(E) \
+	E(None,  = 0) \
+	E(Left,  = 1 << 0) \
+	E(Down,  = 1 << 1) \
+	E(Right, = 1 << 2) \
+	E(Up,	 = 1 << 3) \
+//----
+SGE_ENUM_CLASS(PW5_Dir, u8)
+SGE_ENUM_ALL_OPERATOR(PW5_Dir)
+
+inline PW5_CoordinateDir PW5_CoordinateDir_make(PW5_Dir dir) {
+	using CoordinateDir = PW5_CoordinateDir;
+	using Dir = PW5_Dir;
+
+	if (BitUtil::hasAny(dir, Dir::Right))
+		return BitUtil::hasAny(dir, Dir::Down)
+			? CoordinateDir::RD
+			: CoordinateDir::RU;
+	else
+		return BitUtil::hasAny(dir, Dir::Down)
+			? CoordinateDir::LD
+			: CoordinateDir::LU;
+}
 
 } // namespace sge
+
 
 namespace sge {
 namespace GDI {
@@ -104,7 +135,14 @@ namespace GDI {
 		return mmToTwips(f);
 	}
 
-		inline bool dPtoLP(const ::HDC& hdc, ::RECT& rect) {
+	inline auto setMapMode(::HDC hdc, PW5_MapMode flag) {
+		return ::SetMapMode(hdc, enumInt(flag));
+	}
+	PW5_MapMode getMapMode(::HDC hdc) {
+		return static_cast<PW5_MapMode>(::GetMapMode(hdc));
+	}
+
+	inline bool dPtoLP(const ::HDC& hdc, ::RECT& rect) {
 		return ::DPtoLP(hdc, reinterpret_cast<::LPPOINT>(&rect), 2);
 	}
 	inline bool dPtoLP(const ::HDC& hdc, ::POINT& pt) {
@@ -132,9 +170,8 @@ namespace GDI {
 		return ok;
 	}
 
-	// device coordinates origin set/get
 	inline bool setViewportOrg(const ::HDC& hdc, const ::POINT& pt) {
-		return ::SetViewportOrgEx(hdc, pt.x, pt.y, nullptr);
+		return ::SetViewportOrgEx(hdc, pt.x, pt.y, nullptr); // suppose left-top is 0,0
 	}
 	inline bool setViewportOrg(const ::HDC& hdc, const Vec2f& pt) {
 		return ::SetViewportOrgEx(hdc, static_cast<int>(pt.x), static_cast<int>(pt.y), nullptr);
@@ -239,7 +276,6 @@ namespace GDI {
 		::HMONITOR hMonitor = ::MonitorFromPoint(ptZero, MONITOR_DEFAULTTONULL);
 
 		::MONITORINFOEX monitorInfo;
-		g_bzero(monitorInfo);
 		monitorInfo.cbSize = sizeof(monitorInfo);
 		::GetMonitorInfo(hMonitor, &monitorInfo);
 
@@ -247,7 +283,6 @@ namespace GDI {
 		if (displayResolutionScaledWidth == 0) return 1.f; // fallback
 
 		::DEVMODE devmode;
-		g_bzero(devmode);
 		devmode.dmSize = sizeof(devmode);
 		::EnumDisplaySettings(monitorInfo.szDevice, ENUM_CURRENT_SETTINGS, &devmode);
 
@@ -256,6 +291,64 @@ namespace GDI {
 		return static_cast<float>(displayResolutionWidth) / displayResolutionScaledWidth;
 	}
 
+	inline PW5_CoordinateDir getCoordViewportDir(::HDC hdc) {
+		using CoordinateDir = PW5_CoordinateDir;
+		using Dir = PW5_Dir;
+
+		::POINT pt { 0, 0 };
+		GDI::dPtoLP(hdc, pt);
+
+		::POINT o;
+		GDI::getWindowOrg(hdc, o);
+
+		Dir dir = Dir::None;
+
+		if (o.x - pt.x >= 0) dir |= Dir::Right;
+		else dir |= Dir::Left;
+
+		if (o.y - pt.y >= 0) dir |= Dir::Down;
+		else dir |= Dir::Up;
+
+		return PW5_CoordinateDir_make(dir);
+	}
+
+	inline PW5_CoordinateDir getCoordWindowDir(::HDC hdc) {
+		using CoordinateDir = PW5_CoordinateDir;
+		using Dir = PW5_Dir;
+
+		::POINT pt { 0, 0 };
+		GDI::lPtoDP(hdc, pt);
+
+		::POINT o;
+		GDI::getViewportOrg(hdc, o);
+
+		Dir dir = Dir::None;
+
+		if (o.x - pt.x >= 0) dir |= Dir::Right;
+		else dir |= Dir::Left;
+
+		if (o.y - pt.y >= 0) dir |= Dir::Down;
+		else dir |= Dir::Up;
+
+		return PW5_CoordinateDir_make(dir);
+	}
+
+	inline PW5_CoordinateDir getCoordinateDir(::HDC hdc, bool isViewportSpace) {
+		if (isViewportSpace) return getCoordViewportDir(hdc);
+		else return getCoordWindowDir(hdc);
+	}
+
+	inline void translateLTOffset(::HDC hdc, Vec2f& o, const Vec2f& offset, bool isViewportSpace) {
+		using SRC = PW5_CoordinateDir;
+		auto d = getCoordinateDir(hdc, isViewportSpace);
+		switch (d)
+		{
+			case SRC::RD: o += offset; break;
+			case SRC::RU: o.x += offset.x; o.y -= offset.y; break;
+			case SRC::LD: o.x -= offset.x; o.y += offset.y; break;
+			case SRC::LU: o -= offset; break;
+		}
+	}
 } // namespace GDI
 } // namespace sge
 

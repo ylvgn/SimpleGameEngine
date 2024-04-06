@@ -195,4 +195,4 @@ void PW5_MyDefineMarkWindow::onDraw() {
 
 }
 
-#endif
+#endif // SGE_OS_WINDOWS

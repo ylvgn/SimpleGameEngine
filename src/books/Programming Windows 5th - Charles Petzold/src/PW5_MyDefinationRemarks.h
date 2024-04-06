@@ -1,6 +1,6 @@
 #pragma once
 
-#include "PW5_Common.h"
+#if SGE_OS_WINDOWS
 
 namespace sge {
 
@@ -59,3 +59,5 @@ template<class T> inline const PW5_MyDefinationRemarks* DefineMarkOf()			{ retur
 template<class T> inline const PW5_MyDefinationRemarks* DefineMarkOf(const T&)	{ return DefineMarkOf<T>(); }
 
 }
+
+#endif

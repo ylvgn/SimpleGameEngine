@@ -1,6 +1,6 @@
-#include "PW5_SysMets2.h"
-
 #if SGE_OS_WINDOWS
+
+#include "PW5_SysMets2.h"
 
 namespace sge {
 

@@ -10,8 +10,6 @@ class PW5_MyMappingMode : public PW5_NativeUIWindow {
 	using This = PW5_MyMappingMode;
 	using Base = PW5_NativeUIWindow;
 
-	const float kMM2InchFactor = 25.4f;
-
 protected:
 	virtual void onCreate(CreateDesc& desc) override;
 	virtual void onDraw() override;
@@ -20,12 +18,18 @@ private:
 	void _example2();
 
 	void _example3();
-	void _drawClientRectCoordinate(PW5_MappingMode v);
+	void _drawClientRectCoordinate(PW5_MapMode v);
 
 	void _example4();
 	void _example5();
 	void _example6();
-	void _calcMappingModeExtRatio(PW5_MappingMode v);
+	void _calcMappingModeExtRatio(PW5_MapMode v);
+
+	void _example7();
+	void _drawDeviceCoordinate();
+	void _drawLogicalCoordinate();
+
+	bool _isFirstFrame : 1;
 };
 
 }

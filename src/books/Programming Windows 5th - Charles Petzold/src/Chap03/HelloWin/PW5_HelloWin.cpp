@@ -37,9 +37,7 @@ void PW5_HelloWin::onCreate(CreateDesc& desc) {
 	// static const TCHAR*	 clsName = TEXT("PW5_HelloWin");
 	static const TCHAR		 clsName[] = TEXT ("PW5_HelloWin");
 
-    WNDCLASS wndclass;
-	g_bzero(wndclass);
-
+	WNDCLASS wndclass		= {};
 	auto hInstance			= GetModuleHandle(nullptr); // an instance of the program itself
     wndclass.style			= CS_HREDRAW | CS_VREDRAW;	// 'CS' -> class style
     wndclass.cbClsExtra		= 0; // 'cb' -> count of byte, and 'c' -> count

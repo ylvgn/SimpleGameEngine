@@ -1,7 +1,5 @@
 #pragma once
 
-#include "PW5_Win32Util.h"
-
 namespace sge {
 
 class PW5_NativeUIWindow : public NativeUIWindow {

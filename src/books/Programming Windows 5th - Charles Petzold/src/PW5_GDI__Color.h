@@ -1,5 +1,7 @@
 #pragma once
 
+#if SGE_OS_WINDOWS
+
 namespace sge {
 namespace GDI {
 
@@ -28,3 +30,5 @@ namespace GDI {
 
 } // namespace GDI
 } // namespace sge
+
+#endif
