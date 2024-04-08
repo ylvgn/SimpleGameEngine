@@ -6,9 +6,10 @@
 namespace sge {
 
 class NeHeOGL_Mesh {
+public:
 	using VertexDataType = NeHeOGL_Vertex_PosColor;
 	using VertexIndiceDataType = u16;
-public:
+
 	void clear();
 	void draw();
 
@@ -20,8 +21,10 @@ public:
 	NeHeOGL_RenderState renderState;
 
 private:
-
 	struct MyRenderState {
+		using RenderState	= NeHeOGL_RenderState;
+		using Cull			= RenderState::Cull;
+
 		MyRenderState()
 			: wireframe(false)
 			, cullFace(false)
@@ -30,6 +33,11 @@ private:
 			, cullFaceMode(0)
 			, depthTestFunc(0)
 		{}
+
+		void create();
+		void create(RenderState& rs);
+		
+		void bind();
 
 		bool wireframe		: 1;
 		bool cullFace		: 1;
@@ -44,7 +52,6 @@ private:
 	void _endDraw();
 
 	void _bindVertexs();
-	void _bindRenderState(MyRenderState& rs);
 
 	MyRenderState _curRenderState;
 	MyRenderState _lastRenderState;

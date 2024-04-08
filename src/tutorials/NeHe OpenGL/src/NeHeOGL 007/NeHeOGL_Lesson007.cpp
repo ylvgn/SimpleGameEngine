@@ -9,7 +9,7 @@ void NeHeOGL_Lesson007::onCreate(CreateDesc& desc) {
 	const char* filename = "Crate.bmp";
 
 	_imageToUpload.loadFile(filename);
-	if (!_imageToUpload.width || !_imageToUpload.height)
+	if (!_imageToUpload.width() || !_imageToUpload.height())
 		throw SGE_ERROR("load bmp filename = {}", filename);
 
 	glGenTextures(kTexture2dCount, &_texture2ds[0]);
@@ -21,12 +21,12 @@ void NeHeOGL_Lesson007::onCreate(CreateDesc& desc) {
 		glTexImage2D(GL_TEXTURE_2D,
 					 0,
 					 GL_RGBA,
-					 _imageToUpload.width,
-					 _imageToUpload.height,
+					 _imageToUpload.width(),
+					 _imageToUpload.height(),
 					 0,
 					 GL_RGBA,
 					 GL_UNSIGNED_BYTE,
-					 _imageToUpload.pixelData.data()
+					 _imageToUpload.dataPtr()
 		);
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
@@ -38,12 +38,12 @@ void NeHeOGL_Lesson007::onCreate(CreateDesc& desc) {
 		glTexImage2D(GL_TEXTURE_2D,
 					 0,
 					 GL_RGBA,
-					 _imageToUpload.width,
-					 _imageToUpload.height,
+					 _imageToUpload.width(),
+					 _imageToUpload.height(),
 					 0,
 					 GL_RGBA,
 					 GL_UNSIGNED_BYTE,
-					 _imageToUpload.pixelData.data()
+					 _imageToUpload.dataPtr()
 		);
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
@@ -59,11 +59,11 @@ void NeHeOGL_Lesson007::onCreate(CreateDesc& desc) {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
 		gluBuild2DMipmaps(GL_TEXTURE_2D,
 						  3,
-						  _imageToUpload.width,
-						  _imageToUpload.height,
+						  _imageToUpload.width(),
+						  _imageToUpload.height(),
 						  GL_RGBA,
 						  GL_UNSIGNED_BYTE,
-						  _imageToUpload.pixelData.data()
+						  _imageToUpload.dataPtr()
 		);
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}

@@ -2,6 +2,17 @@
 
 namespace sge {
 
+void NeHeOGL_Lesson006::_destroy() {
+	if (_texture2d) {
+		glDeleteTextures(1, &_texture2d);
+		_texture2d = 0;
+	}
+	if (_texture2ds && *_texture2ds) {
+		glDeleteTextures(kTexture2dCount, _texture2ds);
+		memset(_texture2ds, 0, kTexture2dCount);
+	}
+}
+
 void NeHeOGL_Lesson006::onCreate(CreateDesc& desc) {
 	float d = 1.0f;
 //------------------------------------------
@@ -71,7 +82,7 @@ void NeHeOGL_Lesson006::onDraw() {
 }
 
 #if SGE_OS_WINDOWS
-void NeHeOGL_Lesson006::_loadByHBITMAP(MyImage& o, StrView filename) {
+void NeHeOGL_Lesson006::_loadByHBITMAP(NeHeOGL_Image& o, StrView filename) {
 	// Loads A Bitmap Image
 
 	// a few VERY important things you need to know about the images you plan to use as textures
@@ -88,9 +99,9 @@ void NeHeOGL_Lesson006::_loadByHBITMAP(MyImage& o, StrView filename) {
 	if (!hBmp)
 		throw SGE_ERROR("LoadImage");
 
-	auto& width  = o.width;
-	auto& height = o.height;
-	auto& pixels = o.pixelData;
+	int width;
+	int height;
+	Vector<u8> pixels;
 
 	HDC hdc = ::CreateCompatibleDC(NULL);
 		BITMAP bmpMap;
@@ -104,9 +115,9 @@ void NeHeOGL_Lesson006::_loadByHBITMAP(MyImage& o, StrView filename) {
 		info.bmiHeader.biWidth		= width = bmpMap.bmWidth;
 		info.bmiHeader.biHeight		= height = bmpMap.bmHeight;
 		info.bmiHeader.biPlanes		= 1;
-		info.bmiHeader.biBitCount	= bmpMap.bmBitsPixel; // bpp
+		info.bmiHeader.biBitCount	= bmpMap.bmBitsPixel;
 		info.bmiHeader.biCompression= BI_RGB;
-		info.bmiHeader.biSizeImage	= ((width * bmpMap.bmBitsPixel + 31) / 32) * 4 * height;
+		info.bmiHeader.biSizeImage	= ((width * bmpMap.bmBitsPixel + 31) / 32) * 4 * height; // RGB -> RGBA
 
 		pixels.resize(info.bmiHeader.biSizeImage);
 
@@ -136,18 +147,21 @@ void NeHeOGL_Lesson006::_loadByHBITMAP(MyImage& o, StrView filename) {
 		for (int i = 0; i < pixels.size(); i += 4) {
 			swap(pixels[i], pixels[i+2]);
 		}
+
+		o.create(ColorType::RGBAb, width, height);
+		o.copyToPixelData(pixels);
 	::DeleteDC(hdc);
 }
 #endif
 
-void NeHeOGL_Lesson006::_loadTexture2D(StrView filename, MyImage& img, GLuint targetTexture) {
+void NeHeOGL_Lesson006::_loadTexture2D(StrView filename, NeHeOGL_Image& img, GLuint targetTexture) {
 #if 0 && SGE_OS_WINDOWS
 	_loadByHBITMAP(img, filename);
 #else
 	img.loadFile(filename);
 #endif
 
-	if (!img.width || !img.height)
+	if (!img.width() || !img.height())
 		throw SGE_ERROR("_loadImage filename = {}", filename);
 
 	glBindTexture(GL_TEXTURE_2D, targetTexture);	// Typical Texture Generation Using Data From The Bitmap
@@ -155,12 +169,12 @@ void NeHeOGL_Lesson006::_loadTexture2D(StrView filename, MyImage& img, GLuint ta
 		glTexImage2D(GL_TEXTURE_2D,			// tells OpenGL the texture will be a 2D texture
 					 0,						// lod (level of detail)
 					 GL_RGBA,				// internalformat
-					 img.width,				// image width
-					 img.height,			// image height
+					 img.width(),			// image width
+					 img.height(),			// image height
 					 0,						// the border. It's usually left at zero
 					 GL_RGBA,				// color data format
 					 GL_UNSIGNED_BYTE,		// means the data that makes up the image is made up of unsigned bytes
-					 img.pixelData.data()	// source data
+					 img.dataPtr()			// source data
 		);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // Linear Filtering, when it's smaller (GL_TEXTURE_MIN_FILTER) on the screen than the actual texture
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // Linear Filtering, use when the image is larger (GL_TEXTURE_MAG_FILTER) or stretched on the screen than the original texture

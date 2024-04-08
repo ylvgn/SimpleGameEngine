@@ -13,19 +13,17 @@ class NeHeOGL_Lesson006 : public NeHeOGL_NativeUIWindow {
 	using This = NeHeOGL_Lesson006;
 
 	static const int kTexture2dCount = 2;
-	using MyImage = NeHeOGL_Image;
 
 public:
-	~NeHeOGL_Lesson006() {
-		glDeleteTextures(1, &_texture2d);
-		glDeleteTextures(kTexture2dCount, _texture2ds);
-	}
+	~NeHeOGL_Lesson006() { _destroy(); }
 protected:
 	virtual void onCreate(CreateDesc& desc) override;
 	virtual void onDraw() override;
 	virtual void onUIMouseEvent(UIMouseEvent& ev) override;
 
 private:
+
+	void _destroy();
 
 	struct MyMesh : public NonCopyable {
 		Vector<Tuple3f> pos;
@@ -50,9 +48,9 @@ private:
 		}
 	};
 #if SGE_OS_WINDOWS
-	void _loadByHBITMAP(MyImage& o, StrView filename);
+	void _loadByHBITMAP(NeHeOGL_Image& o, StrView filename);
 #endif
-	void _loadTexture2D(StrView filename, MyImage& img, GLuint targetTexture);
+	void _loadTexture2D(StrView filename, NeHeOGL_Image& img, GLuint targetTexture);
 	void _addCameraOrbitAngle(const Vec2f& deltaAngle);
 	void _example1(float uptime);
 	void _example2(float uptime);
@@ -65,11 +63,11 @@ private:
 
 	// Storage For One 2D Texture (OpenGL texture handle)
 	GLuint  _texture2d;
-	MyImage _imageToUpload;
+	NeHeOGL_Image _imageToUpload;
 
 	// Storage For More Than One 2D Texture (OpenGL texture handles)
 	GLuint  _texture2ds[kTexture2dCount];
-	MyImage _imagesToUpload[kTexture2dCount];
+	NeHeOGL_Image _imagesToUpload[kTexture2dCount];
 
 	MyMesh	_mesh;
 };

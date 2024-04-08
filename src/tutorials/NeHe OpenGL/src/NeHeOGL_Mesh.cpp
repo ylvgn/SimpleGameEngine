@@ -3,6 +3,67 @@
 
 namespace sge {
 
+void NeHeOGL_Mesh::MyRenderState::create() {
+	int oldValue;
+	int oldValue2[2];
+	GLboolean oldBool;
+
+	glGetIntegerv(GL_POLYGON_MODE, oldValue2);
+//	GLenum polygonFace = oldValue2[0];
+	int polygonMode = oldValue2[1];
+	wireframe = polygonMode != GL_FILL;
+
+	glGetBooleanv(GL_CULL_FACE, &oldBool);
+	if (!oldBool) {
+		cullFace = false;
+		cullFaceMode = GL_FRONT_AND_BACK;
+	} else {
+		cullFace = true;
+
+		glGetIntegerv(GL_CULL_FACE_MODE, &oldValue);
+		cullFaceMode = oldValue;
+	}
+
+	glGetBooleanv(GL_DEPTH_TEST, &oldBool);
+	if (!oldBool) {
+		depthTest		= false;
+		depthTestFunc	= GL_LESS;
+		depthWriteMask	= true;
+	} else {
+		depthTest = true;
+
+		glGetIntegerv(GL_DEPTH_FUNC, &oldValue);
+		depthTestFunc = oldValue;
+
+		glGetBooleanv(GL_DEPTH_WRITEMASK, &oldBool);
+		depthWriteMask = static_cast<bool>(oldBool);
+	}
+}
+
+void NeHeOGL_Mesh::MyRenderState::create(RenderState& rs) {
+	wireframe		= rs.wireframe;
+	cullFace		= rs.cull != Cull::None;
+	cullFaceMode	= OGLUtil::getGlCullMode(rs.cull);
+	depthTest		= rs.depthTest.isEnable();
+	depthTestFunc	= OGLUtil::getGlDepthTestOp(rs.depthTest.op);
+	depthWriteMask	= rs.depthTest.writeMask;
+}
+
+void NeHeOGL_Mesh::MyRenderState::bind() {
+	if (wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	else glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+	if (cullFace) glEnable(GL_CULL_FACE);
+	else glDisable(GL_CULL_FACE);
+	glCullFace(cullFaceMode);
+
+	if (depthTest) glEnable(GL_DEPTH_TEST);
+	else glDisable(GL_DEPTH_TEST);
+
+	glDepthFunc(depthTestFunc);
+	glDepthMask(depthWriteMask ? GL_TRUE : GL_FALSE);
+}
+
 void NeHeOGL_Mesh::clear() {
 	vertices.clear();
 	indices.clear();
@@ -26,7 +87,6 @@ void NeHeOGL_Mesh::createCube(float w, float h, float d) {
 	vertices[6].pos.set( x, y, z); vertices[6].color.set(OGL::kbWhite);
 	vertices[7].pos.set(-x, y, z); vertices[7].color.set(OGL::kbWhite);
 
-	indices.resize(6 * 6);
 	indices.assign({
 		0, 2, 1, // top
 		0, 3, 2,
@@ -44,56 +104,14 @@ void NeHeOGL_Mesh::createCube(float w, float h, float d) {
 }
 
 void NeHeOGL_Mesh::_beginDraw() {
-	using Cull = NeHeOGL_RenderState::Cull;
-	using DepthTestOp = NeHeOGL_RenderState::DepthTestOp;
-
-	{
-		int oldValue;
-		GLboolean oldBool;
-
-		int oldValue2[2];
-
-		glGetIntegerv(GL_POLYGON_MODE, oldValue2);
-		//GLenum polygonFace = oldValue2[0];
-		int polygonMode = oldValue2[1];
-		_lastRenderState.wireframe = polygonMode != GL_FILL;
-
-		glGetBooleanv(GL_CULL_FACE, &oldBool);
-		if (!oldBool) {
-			_lastRenderState.cullFace = false;
-			_lastRenderState.cullFaceMode = GL_FRONT_AND_BACK;
-		} else {
-			_lastRenderState.cullFace = true;
-
-			glGetIntegerv(GL_CULL_FACE_MODE, &oldValue);
-			_lastRenderState.cullFaceMode = oldValue;
-		}
-
-		glGetBooleanv(GL_DEPTH_TEST, &oldBool);
-		if (!oldBool) {
-			_lastRenderState.depthTest = false;
-			_lastRenderState.depthTestFunc = GL_LESS;
-			_lastRenderState.depthWriteMask = true;
-		} else {
-			_lastRenderState.depthTest = true;
-
-			glGetIntegerv(GL_DEPTH_FUNC, &oldValue);
-			_lastRenderState.depthTestFunc = oldValue;
-
-			glGetBooleanv(GL_DEPTH_WRITEMASK, &oldBool);
-			_lastRenderState.depthWriteMask = static_cast<bool>(oldBool);
-		}
-	}
-
-	_curRenderState.wireframe = renderState.wireframe;
-	_curRenderState.cullFace = renderState.cull != Cull::None;
-	_curRenderState.cullFaceMode = OGLUtil::getGlCullMode(renderState.cull);
-	_curRenderState.depthTest = renderState.depthTest.isEnable();
-	_curRenderState.depthTestFunc = OGLUtil::getGlDepthTestOp(renderState.depthTest.op);
-	_curRenderState.depthWriteMask = renderState.depthTest.writeMask;
+	_lastRenderState.create();
+	_curRenderState.create(renderState);
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_COLOR_ARRAY);
+	_bindVertexs();
+
+	_curRenderState.bind();
 }
 
 void NeHeOGL_Mesh::draw() {
@@ -102,19 +120,20 @@ void NeHeOGL_Mesh::draw() {
 
 	_beginDraw();
 
-	_bindVertexs();
-	_bindRenderState(_curRenderState);
-
 	static constexpr GLenum kIndiceDataType = OGLUtil::getGlFormat(
 		NeHe_RenderDataTypeUtil::get<VertexIndiceDataType>()
 	);
-	glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(indices.size()), kIndiceDataType, indices.data());
+
+	glDrawElements(	GL_TRIANGLES,
+					static_cast<GLsizei>(indices.size()),
+					kIndiceDataType,
+					indices.data());
 
 	_endDraw();
 }
 
 void NeHeOGL_Mesh::_endDraw() {
-	_bindRenderState(_lastRenderState);
+	_lastRenderState.bind();
 
 	glDisableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);
@@ -125,27 +144,6 @@ void NeHeOGL_Mesh::_bindVertexs() {
 
 	OGL::vertexPointer(&vertices[0].pos, stride);
 	OGL::colorPointer(&vertices[0].color, stride);
-
-	//glVertexPointer(3, GL_FLOAT, stride, vertices[0].pos.data);
-	//glColorPointer(4, GL_UNSIGNED_BYTE, stride, vertices[0].color.data);
-}
-
-void NeHeOGL_Mesh::_bindRenderState(MyRenderState& rs) {
-	if (rs.wireframe) {
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	} else {
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	}
-
-	if (rs.cullFace) glEnable(GL_CULL_FACE);
-	else glDisable(GL_CULL_FACE);
-	glCullFace(rs.cullFaceMode);
-
-	if (rs.depthTest) glEnable(GL_DEPTH_TEST);
-	else glDisable(GL_DEPTH_TEST);
-
-	glDepthFunc(rs.depthTestFunc);
-	glDepthMask(rs.depthWriteMask ? GL_TRUE : GL_FALSE);
 }
 
 }

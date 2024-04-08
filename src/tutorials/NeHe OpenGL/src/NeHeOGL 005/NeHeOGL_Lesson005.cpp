@@ -25,7 +25,7 @@ void NeHeOGL_Lesson005::onCreate(CreateDesc& desc) {
 	_cubeVertexs[7].pos.set(-d,-d, d); _cubeVertexs[7].color.set(OGL::kbBlue);
 
 	_mesh.createCube(3, 2, 1);
-	//_mesh.renderState.wireframe = true;
+//	_mesh.renderState.wireframe = true;
 }
 
 void NeHeOGL_Lesson005::onUIMouseEvent(UIMouseEvent& ev) {
@@ -41,11 +41,11 @@ void NeHeOGL_Lesson005::onUIMouseEvent(UIMouseEvent& ev) {
 }
 
 void NeHeOGL_Lesson005::onDraw() {
-	//_example1();  // draw cone, cube
-	//_example2();  // depth test
-	//_example3();	// stencil test
-	//_example4();	// scissor test
-	//_example5();	// draw sphere
+//	_example1();	// draw cone, cube
+//	_example2();	// depth test
+//	_example3();	// stencil test
+//	_example4();	// scissor test
+//	_example5();	// draw sphere
 	_example6();	// vertex array
 }
 
@@ -216,11 +216,11 @@ void NeHeOGL_Lesson005::_example2() {
 	_drawMyGrid();
 	_drawMyCoordinate();
 
-	//_cullFace();
-	//_frontFace();
-	//_depthTest();
-	//_bufferWriteMask();
-	//_depthTest();
+//	_cullFace();
+//	_frontFace();
+//	_depthTest();
+//	_bufferWriteMask();
+//	_depthTest();
 	_zFight();
 
 	swapBuffers();
@@ -228,16 +228,16 @@ void NeHeOGL_Lesson005::_example2() {
 }
 
 void NeHeOGL_Lesson005::_cullFace() {
-	//GLint o;
-	//glDisable(GL_CULL_FACE);
-	//glGetIntegerv(GL_CULL_FACE, &o);
-	//SGE_DUMP_VAR(o);
+//	GLint o;
+//	glDisable(GL_CULL_FACE);
+//	glGetIntegerv(GL_CULL_FACE, &o);
+//	SGE_DUMP_VAR(o);
 
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 
-	//glGetIntegerv(GL_CULL_FACE, &o);
-	//SGE_DUMP_VAR(o);
+//	glGetIntegerv(GL_CULL_FACE, &o);
+//	SGE_DUMP_VAR(o);
 
 	OGL::color4f(OGL::kRed);
 	glTranslatef(0, 1.5f, 0);
@@ -249,17 +249,17 @@ void NeHeOGL_Lesson005::_cullFace() {
 }
 
 void NeHeOGL_Lesson005::_frontFace() {
-	//GLint o;
-	//glFrontFace(GL_CCW);
-	//glGetIntegerv(GL_FRONT_FACE, &o);
-	//SGE_DUMP_VAR(o == GL_CCW);
+//	GLint o;
+//	glFrontFace(GL_CCW);
+//	glGetIntegerv(GL_FRONT_FACE, &o);
+//	SGE_DUMP_VAR(o == GL_CCW);
 
 	glEnable(GL_CULL_FACE);
 	glFrontFace(GL_CW); // The default value is GL_CCW 
 	glCullFace(GL_BACK);
 
-	//glGetIntegerv(GL_FRONT_FACE, &o);
-	//SGE_DUMP_VAR(o == GL_CW);
+//	glGetIntegerv(GL_FRONT_FACE, &o);
+//	SGE_DUMP_VAR(o == GL_CW);
 
 	OGL::color4f(OGL::kRed);
 	glTranslatef(0, 1.5f, 0);
@@ -523,7 +523,7 @@ void NeHeOGL_Lesson005::_example4() {
 }
 
 void NeHeOGL_Lesson005::_example5() {
-	float width = _clientRect.w;
+	float width  = _clientRect.w;
 	float height = _clientRect.h;
 
 	float aspect = width / height;
@@ -605,14 +605,14 @@ void NeHeOGL_Lesson005::_drawMySphere(float radius, int subAxis, int subHeight) 
 		for (int y = 1; y < subHeight - 1; y++) {
 
 			float ty0 = PI * y / subHeight;
-			float ty1 = PI * (y + 1) / subHeight;
+			float ty1 = PI * (y+1) / subHeight;
 
 			float r0 = Math::sin(ty0);
 			float r1 = Math::sin(ty1);
 
 			for (int a = 0; a < subAxis; ++a) {
 				float th0 = PI2 * a / subAxis;
-				float th1 = PI2 * (a + 1) / subAxis;
+				float th1 = PI2 * (a+1) / subAxis;
 
 				Vec3f p0, p1;
 				p0.y = p1.y = 0;
@@ -649,7 +649,7 @@ void NeHeOGL_Lesson005::_drawMySphere(float radius, int subAxis, int subHeight) 
 
 		for (int a = 0; a < subAxis; ++a) {
 			float th0 = PI2 * a / subAxis;
-			float th1 = PI2 * (a + 1) / subAxis;
+			float th1 = PI2 * (a+1) / subAxis;
 
 			Vec3f p0, p1;
 			p0.y = p1.y = 0;
@@ -698,11 +698,12 @@ void NeHeOGL_Lesson005::_example6() {
 	_drawMyGrid();
 	_drawMyCoordinate();
 
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+//	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glEnable(GL_CULL_FACE);
 
-	//glEnable(GL_DEPTH_TEST);
-	//glDepthFunc(GL_LESS);
-	//glDepthMask(GL_TRUE);
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
+	glDepthMask(GL_TRUE);
 
 	float s = 0.5f;
 	float x = -3.f;
@@ -728,8 +729,6 @@ void NeHeOGL_Lesson005::_example6() {
 }
 
 void NeHeOGL_Lesson005::_drawMyCube1() {
-	//glEnable(GL_CULL_FACE);
-
 	{ // glArrayElement with glBegin
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glVertexPointer(3, GL_FLOAT, 0, kCube);
@@ -753,8 +752,6 @@ void NeHeOGL_Lesson005::_drawMyCube1() {
 }
 
 void NeHeOGL_Lesson005::_drawMyCube2() {
-	//glEnable(GL_CULL_FACE);
-
 	static constexpr float a = 1.0f;
 	static constexpr float kCube_Quad[24][3] = {
 		{ -a,-a, a }, {  a,-a, a }, {  a, a, a }, { -a, a, a },	// front
@@ -776,8 +773,6 @@ void NeHeOGL_Lesson005::_drawMyCube2() {
 }
 
 void NeHeOGL_Lesson005::_drawMyCube3() {
-	glEnable(GL_CULL_FACE);
-
 	static constexpr Tuple3f kCubePos[8] = {
 		{ -d, d,-d },
 		{  d, d,-d },
@@ -800,8 +795,6 @@ void NeHeOGL_Lesson005::_drawMyCube3() {
 }
 
 void NeHeOGL_Lesson005::_drawMyCube4() {
-	//glEnable(GL_CULL_FACE);
-
 	{ // glColorPointer, glDrawElements without glBegin
 		int stride = sizeof(_cubeVertexs[0]);
 

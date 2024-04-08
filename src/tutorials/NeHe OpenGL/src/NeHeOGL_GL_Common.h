@@ -36,12 +36,17 @@ SGE_ENUM_CLASS(NeHe_BeginMode, u8)
 struct OGLUtil {
 	OGLUtil() = delete;
 
-	static void reportError(GLenum errCode = _getErrorCode());
+	static void reportError(GLenum errCode = _getErrorCode()) {
+		auto* errStr = gluErrorStringWIN(errCode);
+		TempString str;
+		UtfUtil::convert(str, errStr);
+		SGE_LOG("glGetError = (0x{:X}) {}", static_cast<u32>(errCode), str);
+	}
 
 	static void throwIfError(GLenum errCode = _getErrorCode()) {
 		if (_checkError(errCode)) {
 			reportError(errCode);
-			throw SGE_ERROR("errCode = (0x{:0X})", errCode);
+			throw SGE_ERROR("glGetError = (0x{:0X})", errCode);
 		}
 	}
 
@@ -66,16 +71,6 @@ private:
 	}
 };
 
-inline
-void OGLUtil::reportError(GLenum errCode) {
-	if (_checkError(errCode)) {
-		auto* errStr = gluErrorStringWIN(errCode);
-		TempString str;
-		UtfUtil::convert(str, errStr);
-		SGE_LOG("errCode = (0x{:X}) {}", static_cast<u32>(errCode), str);
-	}
-}
-
 constexpr
 GLenum OGLUtil::getGlFormat(NeHe_RenderDataType v) {
 	using SRC = NeHe_RenderDataType;
@@ -95,10 +90,10 @@ inline
 GLenum OGLUtil::getGlCullMode(NeHeOGL_RenderState::Cull v) {
 	using SRC = NeHeOGL_RenderState::Cull;
 	switch (v) {
-		case SRC::None:	 return GL_FRONT_AND_BACK;
-		case SRC::Back:	 return GL_BACK;
-		case SRC::Front: return GL_FRONT;
-		default:		 throw  SGE_ERROR("unsupported NeHeOGL_RenderState::Cull");
+		case SRC::None:			return GL_FRONT_AND_BACK;
+		case SRC::Back:			return GL_BACK;
+		case SRC::Front:		return GL_FRONT;
+		default:				throw  SGE_ERROR("unsupported NeHeOGL_RenderState::Cull");
 	}
 }
 
