@@ -108,14 +108,10 @@ void PW5_MyDefineMarkWindow::onCreate(CreateDesc& desc) {
 	Base::onCreate(desc);
 	_hdc = ::GetDC(_hwnd);
 
-	ScopedGetDC hdc(_hwnd);
-	auto tm = GDI::createMyTextMetrics(hdc);
-	_cxChar = tm.aveCharWidth;
-	_cxCaps = tm.aveCharWidthUpperCase;
-	_cyChar = tm.aveCharHeight;
+	_tm.create(_hdc);
 
-	_hScrollInfo->setStep(_cxChar);
-	_vScrollInfo->setStep(_cyChar);
+	_hScrollInfo->setStep(_tm.aveCharWidth);
+	_vScrollInfo->setStep(_tm.aveCharHeight);
 }
 
 void PW5_MyDefineMarkWindow::onClientRectChanged(const Rect2f& rc) {
@@ -126,8 +122,12 @@ void PW5_MyDefineMarkWindow::onClientRectChanged(const Rect2f& rc) {
 
 	auto NUMLINES = static_cast<int>(_dm->data().size());
 
-	int contentMaxHeight = _cyChar * NUMLINES;
-	int contentMaxWidth  = 24 * _cxCaps + 40 * _cxChar;
+	int& cxChar = _tm.aveCharWidth;
+	int& cxCaps = _tm.aveCharWidthUpperCase;
+	int& cyChar = _tm.aveCharHeight;
+
+	int contentMaxHeight = cyChar * NUMLINES;
+	int contentMaxWidth  = 20* cxCaps + 50 * cxChar;
 
 	_vScrollInfo->setRange(0, contentMaxHeight);
 	_vScrollInfo->setPage(static_cast<UINT>(_clientRect.h));
@@ -144,11 +144,11 @@ void PW5_MyDefineMarkWindow::onUIMouseEvent(UIMouseEvent& ev) {
 	if (ev.isScroll()) {
 		auto d = ev.scroll * 0.015f;
 		if (_clientRect.w < _hScrollInfo->rangeMax()) {
-			_hScrollInfo->setPos(_hScrollInfo->pos() + static_cast<int>(_cxChar * d.x));
+			_hScrollInfo->setPos(_hScrollInfo->pos() + static_cast<int>(_tm.aveCharWidth * d.x));
 			drawNeeded();
 		}
 		if (_clientRect.h < _vScrollInfo->rangeMax()) {
-			_vScrollInfo->setPos(_vScrollInfo->pos() + static_cast<int>(_cyChar * -d.y));
+			_vScrollInfo->setPos(_vScrollInfo->pos() + static_cast<int>(_tm.aveCharHeight * -d.y));
 			drawNeeded();
 		}
 	}
@@ -175,15 +175,15 @@ void PW5_MyDefineMarkWindow::onDraw() {
 
 	for (auto& item : sysmetrics) {
 		int x = 0 - offsetX;
-		int y = _cyChar * i - offsetY;
+		int y = _tm.aveCharHeight * i - offsetY;
 
 		hdc.Fmt_textOut(x, y, "{:03d} {}", i, item.name);
 
-		x += 20 * _cxCaps;
+		x += 20 * _tm.aveCharWidthUpperCase;
 		hdc.textOut(x, y, item.remarks);
 
 		hdc.setTextAlign(PW5_TextAlignmentOption::Right | PW5_TextAlignmentOption::Top);
-		x += 50 * _cxChar;
+		x += 50 * _tm.aveCharWidth;
 
 		dm->invoke(outValue, item, this);
 		hdc.Fmt_textOut(x, y, "{:5d}", outValue);

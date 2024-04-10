@@ -23,13 +23,12 @@ private:
 
 	void _onScrollV(int y);
 
-	int  _cxChar;
-	int  _cyChar;
-	int  _cxCaps;
 	int  _viewportH;
 	int  _scrollPosV;
 	
 	const DefinationRemarks* _dm = nullptr;
+
+	MyTextMetrics _tm;
 };
 
 }

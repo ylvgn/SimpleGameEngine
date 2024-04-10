@@ -47,24 +47,24 @@ void PW5_MyTextMetrics::_example1() {
 
 void PW5_MyTextMetrics::_example2() {
 	ScopedGetDC hdc(_hwnd);
+	_tm.create(hdc);
 
 	{ // MM_TEXT
 		hdc.setMapMode(PW5_MapMode::None);
-		auto textMetrics = GDI::createMyTextMetrics(hdc);
+		int spacingY = _tm.height;
 		int x = 300;
 		int y = 100;
-		int spacingY = textMetrics.height;
 
-		hdc.Fmt_textOut(x, y, "(MM_TEXT)height={}", textMetrics.height); y += spacingY;
-		hdc.Fmt_textOut(x, y, "(MM_TEXT)ascent={}", textMetrics.ascent); y += spacingY;
-		hdc.Fmt_textOut(x, y, "(MM_TEXT)descent={}", textMetrics.descent); y += spacingY;
-		hdc.Fmt_textOut(x, y, "(MM_TEXT)internalLeading={}", textMetrics.internalLeading); y += spacingY;
-		hdc.Fmt_textOut(x, y, "(MM_TEXT)maxCharWidth={}", textMetrics.maxCharWidth); y += spacingY;
-		hdc.Fmt_textOut(x, y, "(MM_TEXT)externalLeading={}", textMetrics.externalLeading); y += spacingY;
-		hdc.Fmt_textOut(x, y, "(MM_TEXT)aveCharWidth={}", textMetrics.aveCharWidth); y += spacingY;
-		hdc.Fmt_textOut(x, y, "(MM_TEXT)aveCharHeight={}", textMetrics.aveCharHeight); y += spacingY;
-		hdc.Fmt_textOut(x, y, "(MM_TEXT)aveCharWidthUpperCase={}", textMetrics.aveCharWidthUpperCase); y += spacingY;
-		hdc.Fmt_textOut(x, y, "(MM_TEXT)isFixedPitch={}", static_cast<int>(textMetrics.isFixedPitch)); y += spacingY;
+		hdc.Fmt_textOut(x, y, "(MM_TEXT)height={}", _tm.height); y += spacingY;
+		hdc.Fmt_textOut(x, y, "(MM_TEXT)ascent={}", _tm.ascent); y += spacingY;
+		hdc.Fmt_textOut(x, y, "(MM_TEXT)descent={}", _tm.descent); y += spacingY;
+		hdc.Fmt_textOut(x, y, "(MM_TEXT)internalLeading={}", _tm.internalLeading); y += spacingY;
+		hdc.Fmt_textOut(x, y, "(MM_TEXT)maxCharWidth={}", _tm.maxCharWidth); y += spacingY;
+		hdc.Fmt_textOut(x, y, "(MM_TEXT)externalLeading={}", _tm.externalLeading); y += spacingY;
+		hdc.Fmt_textOut(x, y, "(MM_TEXT)aveCharWidth={}", _tm.aveCharWidth); y += spacingY;
+		hdc.Fmt_textOut(x, y, "(MM_TEXT)aveCharHeight={}", _tm.aveCharHeight); y += spacingY;
+		hdc.Fmt_textOut(x, y, "(MM_TEXT)aveCharWidthUpperCase={}", _tm.aveCharWidthUpperCase); y += spacingY;
+		hdc.Fmt_textOut(x, y, "(MM_TEXT)isFixedPitch={}", static_cast<int>(_tm.isFixedPitch)); y += spacingY;
 	}
 
 	{ // MM_LOENGLISH
@@ -80,18 +80,17 @@ void PW5_MyTextMetrics::_example2() {
 		int x = static_cast<int>(pt.x);
 		int y = static_cast<int>(pt.y);
 
-		auto textMetrics = GDI::createMyTextMetrics(hdc);
-		int spacingY = -textMetrics.height;
-		hdc.Fmt_textOut(x, y, "(MM_LOENGLISH)height={}", textMetrics.height); y += spacingY;
-		hdc.Fmt_textOut(x, y, "(MM_LOENGLISH)ascent={}", textMetrics.ascent); y += spacingY;
-		hdc.Fmt_textOut(x, y, "(MM_LOENGLISH)descent={}", textMetrics.descent); y += spacingY;
-		hdc.Fmt_textOut(x, y, "(MM_LOENGLISH)internalLeading={}", textMetrics.internalLeading); y += spacingY;
-		hdc.Fmt_textOut(x, y, "(MM_LOENGLISH)maxCharWidth={}", textMetrics.maxCharWidth); y += spacingY;
-		hdc.Fmt_textOut(x, y, "(MM_LOENGLISH)externalLeading={}", textMetrics.externalLeading); y += spacingY;
-		hdc.Fmt_textOut(x, y, "(MM_LOENGLISH)aveCharWidth={}", textMetrics.aveCharWidth); y += spacingY;
-		hdc.Fmt_textOut(x, y, "(MM_LOENGLISH)aveCharHeight={}", textMetrics.aveCharHeight); y += spacingY;
-		hdc.Fmt_textOut(x, y, "(MM_LOENGLISH)aveCharWidthUpperCase={}", textMetrics.aveCharWidthUpperCase); y += spacingY;
-		hdc.Fmt_textOut(x, y, "(MM_LOENGLISH)isFixedPitch={}", static_cast<int>(textMetrics.isFixedPitch)); y += spacingY;
+		int spacingY = -_tm.height;
+		hdc.Fmt_textOut(x, y, "(MM_LOENGLISH)height={}", _tm.height); y += spacingY;
+		hdc.Fmt_textOut(x, y, "(MM_LOENGLISH)ascent={}", _tm.ascent); y += spacingY;
+		hdc.Fmt_textOut(x, y, "(MM_LOENGLISH)descent={}", _tm.descent); y += spacingY;
+		hdc.Fmt_textOut(x, y, "(MM_LOENGLISH)internalLeading={}", _tm.internalLeading); y += spacingY;
+		hdc.Fmt_textOut(x, y, "(MM_LOENGLISH)maxCharWidth={}", _tm.maxCharWidth); y += spacingY;
+		hdc.Fmt_textOut(x, y, "(MM_LOENGLISH)externalLeading={}", _tm.externalLeading); y += spacingY;
+		hdc.Fmt_textOut(x, y, "(MM_LOENGLISH)aveCharWidth={}", _tm.aveCharWidth); y += spacingY;
+		hdc.Fmt_textOut(x, y, "(MM_LOENGLISH)aveCharHeight={}", _tm.aveCharHeight); y += spacingY;
+		hdc.Fmt_textOut(x, y, "(MM_LOENGLISH)aveCharWidthUpperCase={}", _tm.aveCharWidthUpperCase); y += spacingY;
+		hdc.Fmt_textOut(x, y, "(MM_LOENGLISH)isFixedPitch={}", static_cast<int>(_tm.isFixedPitch)); y += spacingY;
 	}
 }
 

@@ -31,6 +31,8 @@ private:
 
 	void _example8();
 
+	MyTextMetrics _tm;
+
 	bool _isFirstFrame : 1;
 };
 

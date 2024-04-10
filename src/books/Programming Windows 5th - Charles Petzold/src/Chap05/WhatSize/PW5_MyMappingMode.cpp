@@ -8,6 +8,8 @@ void PW5_MyMappingMode::onCreate(CreateDesc& desc) {
 	_isFirstFrame	= true;
 	desc.ownDC		= true;
 	Base::onCreate(desc);
+
+	_tm.create(_hwnd);
 }
 
 void PW5_MyMappingMode::onDraw() {
@@ -633,19 +635,14 @@ void PW5_MyMappingMode::_example8() {
 */
 	ScopedGetDC hdc(_hwnd);
 	hdc.setMapMode(PW5_MapMode::Text);
-
 	hdc.clearBg();
 
-	auto textMetrics = GDI::createMyTextMetrics(hdc);
-	int cxChar = textMetrics.aveCharWidth;
-	int cyChar = textMetrics.aveCharHeight;
-	
 	{ // base on MM_TEXT
 		// it base on previous mode(MM_TEXT), and it unlock the setWindowExt
 		// keep the left-top org and keep the direction: right(x+), bottom(y+)
 		hdc.setMapMode(PW5_MapMode::Anisotropic);
 		hdc.setWindowExt(1, 1); // a fixed−point font unit
-		hdc.setViewportExt(cxChar, cyChar);
+		hdc.setViewportExt(_tm.aveCharWidth, _tm.aveCharHeight);
 		Vec2f pt{ 3, 2 };
 		hdc.Fmt_textOut(pt, "{}(MM_TEXT)", pt);
 		// xDevice = xDeviceOrg + (xLogical-xLogicalOrg) * (xDeviceExt/xLogicalExt)

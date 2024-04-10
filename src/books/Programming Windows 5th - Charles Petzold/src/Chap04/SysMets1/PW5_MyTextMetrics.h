@@ -14,6 +14,8 @@ protected:
 private:
 	void _example1();
 	void _example2();
+
+	MyTextMetrics _tm;
 };
 
 }

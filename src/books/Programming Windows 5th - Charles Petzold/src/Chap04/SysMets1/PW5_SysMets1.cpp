@@ -30,7 +30,7 @@ void PW5_SysMets1::onCreate(CreateDesc& desc) {
 }
 
 LRESULT CALLBACK PW5_SysMets1::s_wndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
-	static int cxChar, cxCaps, cyChar;
+	static MyTextMetrics s_tm;
 
 	switch (message) {
 		case WM_DESTROY:
@@ -39,10 +39,7 @@ LRESULT CALLBACK PW5_SysMets1::s_wndProc(HWND hwnd, UINT message, WPARAM wParam,
 
 		case WM_CREATE: {
 			ScopedGetDC hdc(hwnd);
-			MyTextMetrics tm(hdc);
-			cxChar = tm.aveCharWidth;
-			cxCaps = tm.aveCharWidthUpperCase;
-			cyChar = tm.aveCharHeight;
+			s_tm.create(hdc);
 		} break;
 
 		case WM_PAINT: {
@@ -67,19 +64,19 @@ LRESULT CALLBACK PW5_SysMets1::s_wndProc(HWND hwnd, UINT message, WPARAM wParam,
 			ScopedPaintStruct ps(hwnd);
 			for (int i = 0; i < NUMLINES; i++) {
 				int x = 0;
-				int y = cyChar * i;
+				int y = s_tm.aveCharHeight * i;
 
 				// The second argument to TextOut is 0 to begin the text at the left edge of the client area
 				ps.textOut(x, y, sysmetrics[i].name);
 
 				// The longest uppercase identifier displayed in the first column is 20 characters,
-				// so the second column must begin at least 20*cxCaps to the right of the beginning of the first column of text.
+				// so the second column must begin at least 20*s_tm.aveCharWidthUpperCase to the right of the beginning of the first column of text.
 				// use 22 to add a little extra space between the columns
-				x += 22 * cxCaps;
+				x += 22 * s_tm.aveCharWidthUpperCase;
 				ps.textOut(x, y, sysmetrics[i].remarks);
 				ps.setTextAlign(PW5_TextAlignmentOption::Right | PW5_TextAlignmentOption::Top); // ::SetTextAlign(ps, TA_RIGHT | TA_TOP);
 
-				x += 40 * cxChar;
+				x += 40 * s_tm.aveCharWidth;
 				ps.Fmt_textOut(x, y, "{:5d}", ::GetSystemMetrics(sysmetrics[i].id));	// g_textOutf(ps.hdc(), x, y, L"%5d", GetSystemMetrics(sysmetrics[i].iIndex));
 				ps.setTextAlign(PW5_TextAlignmentOption::Left | PW5_TextAlignmentOption::Top);	// reset text align to left-top(default)
 			}

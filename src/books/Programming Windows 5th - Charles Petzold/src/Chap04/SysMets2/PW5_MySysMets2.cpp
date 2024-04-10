@@ -18,16 +18,11 @@ void PW5_MySysMets2::onCreate(CreateDesc& desc) {
 	const auto& sysmetrics = _dm->data();
 	auto NUMLINES = static_cast<int>(sysmetrics.size());
 
-	{
-		ScopedGetDC hdc(_hwnd);
-		auto tm = GDI::createMyTextMetrics(hdc);
-		_cxChar = tm.aveCharWidth;
-		_cxCaps = tm.aveCharWidthUpperCase;
-		_cyChar = tm.aveCharHeight;
-	}
+	ScopedGetDC hdc(_hwnd);
+	_tm.create(hdc);
 
 	int clientRectH = static_cast<int>(_clientRect.h);
-	int contentMaxH = static_cast<int>(_cyChar * NUMLINES);
+	int contentMaxH = static_cast<int>(_tm.aveCharHeight * NUMLINES);
 	_viewportH = Math::max(0, contentMaxH - clientRectH);
 
 	::SetScrollRange(_hwnd, SB_VERT, 0, _viewportH, false);
@@ -44,15 +39,15 @@ void PW5_MySysMets2::onDraw() {
 
 	for (int i = 0; i < NUMLINES; i++) {
 		int x = 0;
-		int y = _cyChar * i - _scrollPosV;
+		int y = _tm.aveCharHeight * i - _scrollPosV;
 
 		hdc.Fmt_textOut(x, y, "{:03d} {}", i, sysmetrics[i].name);
 
-		x += 24 * _cxCaps;
+		x += 24 * _tm.aveCharWidthUpperCase;
 		hdc.textOut(x, y, sysmetrics[i].remarks);
 		hdc.setTextAlign(PW5_TextAlignmentOption::Right | PW5_TextAlignmentOption::Top);
 
-		x += 40 * _cxChar;
+		x += 40 * _tm.aveCharWidth;
 		hdc.Fmt_textOut(x, y, "{:5d}", ::GetSystemMetrics(sysmetrics[i].id));
 		hdc.setTextAlign(PW5_TextAlignmentOption::Left | PW5_TextAlignmentOption::Top);
 	}
@@ -86,8 +81,8 @@ LRESULT CALLBACK PW5_MySysMets2::s_wndProc(HWND hwnd, UINT message, WPARAM wPara
 			if (auto* thisObj = s_getThis(hwnd)) {
 				int request = LOWORD(wParam);
 				switch (request) {
-					case SB_LINEUP:		thisObj->_onScrollV(thisObj->_scrollPosV - thisObj->_cyChar);	 break;
-					case SB_LINEDOWN:	thisObj->_onScrollV(thisObj->_scrollPosV + thisObj->_cyChar);	 break;
+					case SB_LINEUP:		thisObj->_onScrollV(thisObj->_scrollPosV - thisObj->_tm.aveCharHeight);	 break;
+					case SB_LINEDOWN:	thisObj->_onScrollV(thisObj->_scrollPosV + thisObj->_tm.aveCharHeight);	 break;
 					case SB_PAGEUP:		thisObj->_onScrollV(thisObj->_scrollPosV - thisObj->_viewportH); break;
 					case SB_PAGEDOWN:	thisObj->_onScrollV(thisObj->_scrollPosV + thisObj->_viewportH); break;
 					case SB_THUMBPOSITION:

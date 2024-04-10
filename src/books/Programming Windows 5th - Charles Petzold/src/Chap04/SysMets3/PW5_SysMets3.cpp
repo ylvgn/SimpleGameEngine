@@ -61,7 +61,7 @@ LRESULT CALLBACK PW5_SysMets3::s_wndProc (HWND hwnd, UINT message, WPARAM wParam
 
 		case WM_CREATE: {
 			ScopedGetDC hdc(hwnd);
-			MyTextMetrics tm(hdc);
+			MyTextMetrics tm; tm.create(hdc);
 			cxChar = tm.aveCharWidth;
 			cxCaps = tm.aveCharWidthUpperCase;
 			cyChar = tm.aveCharHeight;

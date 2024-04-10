@@ -73,10 +73,6 @@ public:
 	auto drawText(const Rect2f& xywh, StrView str, DTFlag flags) const {
 		return GDI::drawText(_hdc, xywh, str, flags);
 	}
-	template<class... Args>
-	auto Fmt_drawText(int x, int y, Args&&... args) const {
-		return GDI::Fmt_drawText(_hdc, x, y, SGE_FORWARD(args)...);
-	}
 
 	void drawLine(int fromX, int fromY, int toX, int toY)	const { GDI::drawLine(_hdc, fromX, fromY, toX, toY); }
 	void drawLine(const ::POINT& from, const ::POINT& to)	const { GDI::drawLine(_hdc, from, to); }

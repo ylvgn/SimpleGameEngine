@@ -21,9 +21,8 @@ protected:
 	virtual void onUIMouseEvent(UIMouseEvent& ev) override;
 	virtual void onDraw() override;
 
-	int _cxChar, _cyChar, _cxCaps;
-
 	const DefinationRemarks* _dm = nullptr;
+	MyTextMetrics _tm;
 };
 
 PW5_MYDEFINATIONREMARKS(MySysmetricsDM)

@@ -36,13 +36,37 @@ SGE_ENUM_ALL_OPERATOR(PW5_DrawTextFormatFlag)
 
 struct MyTextMetrics {
 
-	MyTextMetrics(::HDC hdc) {
-		::TEXTMETRIC tm;
-		::GetTextMetrics(hdc, &tm);
-		_set(tm);
+	MyTextMetrics()
+		: height(0)
+		, ascent(0)
+		, descent(0)
+		, internalLeading(0)
+		, maxCharWidth(0)
+		, externalLeading(0)
+		, aveCharWidth(0)
+		, aveCharHeight(0)
+		, aveCharWidthUpperCase(0)
+		, isFixedPitch(false) {}
+
+	MyTextMetrics(const ::TEXTMETRIC& r) { create(r); }
+
+	void create(const ::TEXTMETRIC& tm) {
+		height					= tm.tmHeight;
+		ascent					= tm.tmAscent;
+		descent					= tm.tmDescent;
+		internalLeading			= tm.tmInternalLeading;
+		maxCharWidth			= tm.tmMaxCharWidth;
+		externalLeading			= tm.tmExternalLeading;
+		aveCharWidth			= tm.tmAveCharWidth;
+		isFixedPitch			= (tm.tmPitchAndFamily & 1) == 0;
+		aveCharHeight			= height + externalLeading;
+		aveCharWidthUpperCase	= isFixedPitch 
+								? aveCharWidth 
+								: static_cast<int>(1.5f * aveCharWidth);
 	}
 
-	MyTextMetrics(const ::TEXTMETRIC& tm) { _set(tm); }
+	void create(const ::HWND& hwnd);
+	void create(const ::HDC& hdc);
 
 	int		height;
 	int		ascent;
@@ -54,21 +78,6 @@ struct MyTextMetrics {
 	int		aveCharHeight;
 	int		aveCharWidthUpperCase;
 	bool	isFixedPitch : 1;
-
-private:
-	void _set(const ::TEXTMETRIC& tm) {
-		height					= tm.tmHeight;
-		ascent					= tm.tmAscent;
-		descent					= tm.tmDescent;
-		internalLeading			= tm.tmInternalLeading;
-		maxCharWidth			= tm.tmMaxCharWidth;
-		externalLeading			= tm.tmExternalLeading;
-		aveCharWidth			= tm.tmAveCharWidth;
-
-		isFixedPitch			= (tm.tmPitchAndFamily & 1) == 0;
-		aveCharHeight			= height + externalLeading;
-		aveCharWidthUpperCase   = isFixedPitch ? aveCharWidth : static_cast<int>(1.5f * aveCharWidth);
-	}
 };
 
 } // namespace sge
@@ -98,15 +107,6 @@ namespace GDI {
 		auto tmpStr = Fmt(SGE_FORWARD(args)...);
 		auto s = UtfUtil::toStringW(tmpStr);
 		return ::TextOut(hdc, x, y, s.c_str(), static_cast<int>(s.size()));
-	}
-
-	inline MyTextMetrics createMyTextMetrics(::HDC hdc) { return MyTextMetrics(hdc); }
-
-	template<class... Args>
-	inline void Fmt_drawText(HDC hdc, int x, int y, Args&&... args) {
-		auto s = Fmt(SGE_FORWARD(args)...);
-		auto tm = GDI::createMyTextMetrics(hdc);
-		GDI::drawText(hdc, x, y, x + static_cast<int>(s.size() * tm.maxCharWidth), y + tm.aveCharHeight, s.view(), 0);
 	}
 
 } // namespace GDI

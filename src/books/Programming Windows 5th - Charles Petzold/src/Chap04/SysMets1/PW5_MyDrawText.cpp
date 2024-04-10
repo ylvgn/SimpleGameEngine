@@ -2,7 +2,17 @@
 
 #include "PW5_MyDrawText.h"
 
+
 namespace sge {
+
+static MyTextMetrics s_textMetrics;
+
+template<class... Args>
+inline void Fmt_drawText(::HDC hdc, int x, int y, Args&&... args) {
+	auto s = Fmt(SGE_FORWARD(args)...);
+	const auto& tm = s_textMetrics;
+	GDI::drawText(hdc, x, y, x + static_cast<int>(s.size() * tm.maxCharWidth), y + tm.aveCharHeight, s.view(), 0);
+}
 
 void PW5_MyDrawText::onCreate(CreateDesc& desc) {
 	auto hInstance = ::GetModuleHandle(nullptr);
@@ -35,7 +45,10 @@ LRESULT CALLBACK PW5_MyDrawText::s_wndProc(HWND hwnd, UINT message, WPARAM wPara
 		case WM_DESTROY:
 			::PostQuitMessage(0);
 			return 0;
-
+		case WM_CREATE: {
+			ScopedGetDC hdc(hwnd);
+			s_textMetrics.create(hdc);
+		}
 		case WM_PAINT: {
 			using DTFlag = ScopedPaintStruct::DTFlag;
 
@@ -60,43 +73,43 @@ LRESULT CALLBACK PW5_MyDrawText::s_wndProc(HWND hwnd, UINT message, WPARAM wPara
 			{
 				int x = rc.left + width / 4;
 				int y = rc.top + height / 4;
-				ps.Fmt_drawText(x, y, "NorthWest");
+				Fmt_drawText(ps.hdc(), x, y, "NorthWest");
 			}
 			{
 				int x = rc.left + width * 3 / 4;
 				int y = rc.top + height / 4;
-				ps.Fmt_drawText(x, y, "NorthEast");
+				Fmt_drawText(ps.hdc(), x, y, "NorthEast");
 			}
 			{
 				int x = rc.left + width / 4;
 				int y = rc.top + height * 3/ 4;
-				ps.Fmt_drawText(x, y, "SouthWest");
+				Fmt_drawText(ps.hdc(), x, y, "SouthWest");
 			}
 			{
 				int x = rc.left + width * 3 / 4;
 				int y = rc.top + height * 3 / 4;
-				ps.Fmt_drawText(x, y, "SouthEast");
+				Fmt_drawText(ps.hdc(), x, y, "SouthEast");
 			}
 
 			{
 				int x = rc.left + width / 2;
 				int y = rc.top + height / 4;
-				ps.Fmt_drawText(x, y, "North");
+				Fmt_drawText(ps.hdc(), x, y, "North");
 			}
 			{
 				int x = rc.left + width * 3/ 4;
 				int y = rc.top + height / 2;
-				ps.Fmt_drawText(x, y, "East");
+				Fmt_drawText(ps.hdc(), x, y, "East");
 			}
 			{
 				int x = rc.left + width / 4;
 				int y = rc.top + height / 2;
-				ps.Fmt_drawText(x, y, "West");
+				Fmt_drawText(ps.hdc(), x, y, "West");
 			}
 			{
 				int x = rc.left + width / 2;
 				int y = rc.top + height * 3 / 4;
-				ps.Fmt_drawText(x, y, "South");
+				Fmt_drawText(ps.hdc(), x, y, "South");
 			}
 		} break;
 	} // switch
