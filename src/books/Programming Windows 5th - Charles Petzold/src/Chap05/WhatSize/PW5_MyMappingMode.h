@@ -29,6 +29,8 @@ private:
 	void _drawDeviceCoordinate();
 	void _drawLogicalCoordinate();
 
+	void _example8();
+
 	bool _isFirstFrame : 1;
 };
 

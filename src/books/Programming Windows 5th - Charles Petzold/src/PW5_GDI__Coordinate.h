@@ -62,6 +62,10 @@ namespace GDI {
 	static constexpr float kInchToMMUnitFactor = 25.4f;
 	static constexpr float kMMToInchUnitFactor = 1.f / kInchToMMUnitFactor;
 
+	// a 72-point font is rendered as 96 pixels when 96 dots per inch (DPI)
+	static constexpr float kPointToPixelUnitFactor = 96.f / 72.f;
+	static constexpr float kPixelToPointUnitFactor = 1.f / kPointToPixelUnitFactor;
+
 	// 1 point ~= 1/72 inch
 	static constexpr float kInchToPointUnitFactor = 72.f;
 	static constexpr float kPointToInchUnitFactor = 1.f / kInchToPointUnitFactor;
@@ -70,17 +74,36 @@ namespace GDI {
 	static constexpr float kInchToTwipsUnitFactor = kInchToPointUnitFactor * 20.f;
 	static constexpr float kTwipsToInchUnitFactor = 1.f / kInchToTwipsUnitFactor;
 
-	// dpi dots == 1 inch
-	inline Vec2f dotsPerInch(::HDC hdc) {
+	//100% (96 DPI), 125% (120 DPI), and 150% (144 DPI)
+	static constexpr float kDIPToDPIUnitFactor = USER_DEFAULT_SCREEN_DPI;
+	static constexpr float kDPIToDIPUnitFactor = 1 / kDIPToDPIUnitFactor;
+
+	inline Vec2f dpi(::HDC hdc) {
 		return Vec2f {
 			static_cast<float>(::GetDeviceCaps(hdc, LOGPIXELSX)),
 			static_cast<float>(::GetDeviceCaps(hdc, LOGPIXELSY))
 		};
 	}
 
-	inline float mmToInch(float mm)			{ return mm * kMMToInchUnitFactor; }
-	inline Vec2f mmToInch(const Vec2f& mm)	{ return { mmToInch(mm.x), mmToInch(mm.y) }; }
-	inline Vec2f mmToInch(const Vec2i& mm)  {
+	// A DIP is defined as 1/96th of a logical inch
+	inline Vec2f dpiScale(::HDC hdc) {
+		return dpi(hdc) * kDPIToDIPUnitFactor;
+	}
+	inline Vec2f pointToPixelFactor(::HDC hdc) {
+		return dpiScale(hdc) * kPointToPixelUnitFactor;
+	}
+	inline Vec2f pixelToDIP(::HDC hdc, const Vec2f& pixels) {
+		return pixels / dpiScale(hdc);
+	}
+
+	inline float mmToInch(float mm)	{ return mm * kMMToInchUnitFactor; }
+	inline Vec2f mmToInch(const Vec2f& mm) {
+		return {
+			mmToInch(mm.x),
+			mmToInch(mm.y)
+		};
+	}
+	inline Vec2f mmToInch(const Vec2i& mm) {
 		auto f = Vec2f::s_cast(mm);
 		return mmToInch(f);
 	}
@@ -90,34 +113,51 @@ namespace GDI {
 		o.y = static_cast<int>(Math::round(f.y));
 	}
 
-	inline float mmToPixel(float mm, float dpi) { return dpi * mm / kInchToMMUnitFactor; }
-	inline Vec2f mmToPixel(const Vec2f& mm, const Vec2f& dpi) {
-		return { mmToPixel(mm.x, dpi.x), mmToPixel(mm.y, dpi.y) };
+	inline Vec2f inchToPoint(const Vec2f& inch) {
+		return inch * kInchToPointUnitFactor;
 	}
-	inline Vec2f mmToPixel(const Vec2i& mm_, const Vec2i& dpi_) {
-		auto mm = Vec2f::s_cast(mm_);
-		auto dpi = Vec2f::s_cast(dpi_);
-		return mmToPixel(mm, dpi);
+	inline Vec2f pointToInch(const Vec2f& point) {
+		return point * kPointToInchUnitFactor;
+	}
+
+	inline Vec2f pointToPixel(::HDC hdc, const Vec2f& point) {
+		return point * pointToPixelFactor(hdc);
 	}
 	inline Vec2f mmToPixel(::HDC hdc, const Vec2f& mm) {
-		Vec2f dpi = dotsPerInch(hdc);
-		return mmToPixel(mm, dpi);
+		return pointToPixel(hdc, inchToPoint(mmToInch(mm)));
 	}
 	inline void mmToPixel(Vec2i& o, ::HDC hdc, const Vec2f& mm) {
 		auto f = mmToPixel(hdc, mm);
 		o.x = static_cast<int>(Math::round(f.x));
 		o.y = static_cast<int>(Math::round(f.y));
 	}
-
+	inline Vec2f mmToPixel(const Vec2f& mm, const Vec2f& dpi) {
+		return inchToPoint(mmToInch(mm)) * dpi * kPointToPixelUnitFactor * kDPIToDIPUnitFactor;
+	}
+	inline void mmToPixel(Vec2i& o, const Vec2f& dpi, const Vec2f& mm) {
+		auto f = mmToPixel(dpi, mm);
+		o.x = static_cast<int>(Math::round(f.x));
+		o.y = static_cast<int>(Math::round(f.y));
+	}
 	inline float inchToTwips(float inch) { return inch * kInchToTwipsUnitFactor; }
-	inline Vec2f inchToTwips(const Vec2f& inch) { return { inchToTwips(inch.x), inchToTwips(inch.y) }; }
+	inline Vec2f inchToTwips(const Vec2f& inch) {
+		return {
+			inchToTwips(inch.x),
+			inchToTwips(inch.y)
+		};
+	}
 	inline Vec2f inchToTwips(const Vec2i& inch) {
 		auto f = Vec2f::s_cast(inch);
 		return inchToTwips(f);
 	}
 
 	inline float inchToMM(float inch) { return inch * kInchToMMUnitFactor; }
-	inline Vec2f inchToMM(const Vec2f& inch) { return { inchToMM(inch.x), inchToMM(inch.y) }; }
+	inline Vec2f inchToMM(const Vec2f& inch) {
+		return {
+			inchToMM(inch.x),
+			inchToMM(inch.y)
+		};
+	}
 	inline Vec2f inchToMM(const Vec2i& inch) {
 		auto f = Vec2f::s_cast(inch);
 		return inchToMM(f);
@@ -128,8 +168,13 @@ namespace GDI {
 		o.y = static_cast<int>(Math::round(f.y));
 	}
 
-	inline float mmToTwips(float mm)		{ return inchToTwips(mmToInch(mm)); }
-	inline Vec2f mmToTwips(const Vec2f& mm) { return { mmToTwips(mm.x), mmToTwips(mm.y) }; }
+	inline float mmToTwips(float mm) { return inchToTwips(mmToInch(mm)); }
+	inline Vec2f mmToTwips(const Vec2f& mm) {
+		return {
+			mmToTwips(mm.x),
+			mmToTwips(mm.y)
+		};
+	}
 	inline Vec2f mmToTwips(const Vec2i& mm) {
 		auto f = Vec2f::s_cast(mm);
 		return mmToTwips(f);
@@ -231,6 +276,9 @@ namespace GDI {
 	}
 	inline bool setViewportExt(const ::HDC& hdc, const Vec2f& sz) {
 		return ::SetViewportExtEx(hdc, static_cast<int>(sz.x), static_cast<int>(sz.y), nullptr);
+	}
+	inline bool setViewportExt(const ::HDC& hdc, const Vec2i& sz) {
+		return ::SetViewportExtEx(hdc, sz.x, sz.y, nullptr);
 	}
 
 	inline bool setWindowExt(const ::HDC& hdc, int x, int y) {
@@ -349,6 +397,7 @@ namespace GDI {
 			case SRC::LU: o -= offset; break;
 		}
 	}
+
 } // namespace GDI
 } // namespace sge
 

@@ -19,14 +19,14 @@ const PW5_MyDefinationRemarks* MyDevcapsDM::s_getRemarks() {
 	public:
 		DM() {
 			static Item dm[] = {
-				// 1 inch ~= 25.4 millimeters, 25.4 is constant for convert from inches to millimeters
-				// HORZSIZE/VERTSIZE are fixed to indicate a standard monitor size,
-				// These values are the same regardless of what pixel dimension you choose
-				PW5_MYDEFINATIONREMARKS__ITEM(HORZSIZE,      "Width in millimeters"),	// logical width  = 25.4 * horizontal resolution / logical pixel x
-				PW5_MYDEFINATIONREMARKS__ITEM(VERTSIZE,      "Height in millimeters"),	// logical height = 25.4 * vertical resolution / logical pixel y
-				// pixel dimension
-				PW5_MYDEFINATIONREMARKS__ITEM(HORZRES,       "Width in pixels"),				// horizontal resolution in pixels, same as ::GetSystemMetrics(SM_CXSCREEN)
-				PW5_MYDEFINATIONREMARKS__ITEM(VERTRES,       "Height in raster lines"),		// vertical resolution in pixels, same as ::GetSystemMetrics(SM_CYSCREEN)
+				// These values(physical screen in mm) are the same regardless of what pixel dimension you choose
+				PW5_MYDEFINATIONREMARKS__ITEM(HORZSIZE,      "Width in millimeters of the physical screen"),
+				PW5_MYDEFINATIONREMARKS__ITEM(VERTSIZE,      "Height in millimeters of the physical screen"),
+				// pixel dimension (display resolution with desktop scaling)
+					// horizontal resolution in pixels, kind of ::GetSystemMetrics(SM_CXSCREEN) without desktop scaling
+					// vertical resolution in pixels, kind of ::GetSystemMetrics(SM_CYSCREEN) without desktop scaling
+				PW5_MYDEFINATIONREMARKS__ITEM(HORZRES,       "Width in pixels of the display screen"), 
+				PW5_MYDEFINATIONREMARKS__ITEM(VERTRES,       "Height iin pixels of the display screen"), 
 				// Video memory can be organized either with consecutive color bits for each pixel or with each color bit in a separate color plane of memory
 				PW5_MYDEFINATIONREMARKS__ITEM(BITSPIXEL,     "Color bits per pixel"),		// 32 bit color nowadays (r8g8b8a8)
 				PW5_MYDEFINATIONREMARKS__ITEM(PLANES,        "Number of color planes"),
@@ -44,12 +44,13 @@ const PW5_MyDefinationRemarks* MyDevcapsDM::s_getRemarks() {
 				PW5_MYDEFINATIONREMARKS__ITEM(ASPECTX,       "Relative width of pixel"),
 				PW5_MYDEFINATIONREMARKS__ITEM(ASPECTY,       "Relative height of pixel"),
 				PW5_MYDEFINATIONREMARKS__ITEM(ASPECTXY,      "Relative diagonal of pixel"),
-				// logical pixel, related to the font
-				// As with Windows 98, typical values of LOGPIXELSX and LOGPIXELSY,
-				// are 96(small font) and 120(large font) dots per inch,
-				// depending on whether you select a small font or large font
-				PW5_MYDEFINATIONREMARKS__ITEM(LOGPIXELSX,    "Horizontal dots per inch(DPI)"), // DPIX
-				PW5_MYDEFINATIONREMARKS__ITEM(LOGPIXELSY,    "Vertical dots per inch(DPI)"),   // DPIY
+				// https://learn.microsoft.com/en-us/windows/win32/learnwin32/dpi-and-device-independent-pixels
+					// dots per inch(DPI): The term dots derives from printing, where physical dots of ink are put onto paper
+					// pixels per inch(PPI): For computer displays
+						// 96 DPI: 72 points(dots) == 96 dots per inch(DPI).
+						// 144 DPI: 72 points(dots) == 144 dots per inch(DPI) == 150% of 96 DPI
+				PW5_MYDEFINATIONREMARKS__ITEM(LOGPIXELSX,    "(pixels)dots/points per logical inch X"),
+				PW5_MYDEFINATIONREMARKS__ITEM(LOGPIXELSY,    "(pixels)dots/points per logical inch Y"),
 				PW5_MYDEFINATIONREMARKS__ITEM(SIZEPALETTE,   "Number of palette entries"),
 				// 256−color video adapters use color palettes, 
 				// In that case, GetDeviceCaps with the NUMCOLORS index returns the number of colors reserved by Windows, which will be 20.

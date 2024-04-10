@@ -5,19 +5,20 @@
 namespace sge {
 
 void PW5_MyMappingMode::onCreate(CreateDesc& desc) {
-	_isFirstFrame = true;
-	desc.ownDC = true;
+	_isFirstFrame	= true;
+	desc.ownDC		= true;
 	Base::onCreate(desc);
 }
 
 void PW5_MyMappingMode::onDraw() {
-	//_example1();
-	//_example2();
-	//_example3();
-	//_example4();
-	//_example5();
-	//_example6();
-	_example7();
+//	_example1();	// test setMapMode
+//	_example2();	// test LPtoDP, DPtoLP
+//	_example3();	// test show all client rect in defined mapping mode
+//	_example4();	// test custom coordinate
+//	_example5();	// test viewportOrg, windowOrg
+//	_example6();	// test MM_TEXT, MM_LOMETRIC, MM_HIMETRIC, MM_LOENGLISH, MM_HIENGLISH, MM_TWIPS
+//	_example7();	// test MM_ISOTROPIC
+	_example8();	// test MM_ANISOTROPIC
 }
 
 void PW5_MyMappingMode::_example1() {
@@ -89,11 +90,11 @@ void PW5_MyMappingMode::_example2() {
 	// LogicalOrg == Window origin
 	// DeviceOrg  == Viewport origin
 
-	// DPtoLP
+	// LPtoDP
 		// xDevice = xDeviceOrg + (xLogical-xLogicalOrg) * (xDeviceExt/xLogicalExt)
 		// yDevice = yDeviceOrg + (yLogical-yLogicalOrg) * (yDeviceExt/yLogicalExt)
 
-	// LPtoDP
+	// DPtoLP
 		// xLogical = xLogicalOrg + (xDevice-xDeviceOrg) * (xLogicalExt/xDeviceExt)
 		// yLogical = yLogicalOrg + (yDevice-yDeviceOrg) * (yLogicalExt/yDeviceExt)
 
@@ -101,7 +102,7 @@ void PW5_MyMappingMode::_example2() {
 		// xViewport = xWindow - xWinOrg + xViewOrg
 		// yViewport = yWindow - yWinOrg + yViewOrg
 
-	Vec2f tmp{ 300, 100 }; // when tmp is fixed,
+	Vec2f tmp { 300, 100 }; // when tmp is fixed,
 		// just change mapping mode, then use LPtoDP directly
 		// is the same result with reset tmp(300,100) then use LPtoDP
 	{
@@ -144,6 +145,31 @@ void PW5_MyMappingMode::_example2() {
 		auto logicalCoor = p;
 		hdc.lPtoDP(p);
 		hdc.Fmt_textOut(tmp, "Hello3: window(logical)={}, viewport(device)={}", logicalCoor, p);
+	}
+
+	{
+		/*
+			With the MM_ISOTROPIC mapping mode, you can make logical units larger than pixels.
+			For instance, suppose you want a mapping mode with the point (0, 0) at the upper left corner of the display
+			and values of y increasing as you move down (like MM_TEXT)
+			but with logical coordinates in sixteenths of an inch
+		*/
+		hdc.setMapMode(PW5_MapMode::Isotropic);
+
+		Vec2f winExt{ 16,16 };
+		hdc.setWindowExt(winExt);
+
+		Vec2f viewExt = GDI::dpi(hdc);
+		hdc.setViewportExt(viewExt);
+
+		Vec2f winPt{ 3, 2 };
+		Vec2f viewPt(winPt); hdc.lPtoDP(viewPt);
+
+		hdc.textOut(winPt, "Hello2");
+		SGE_ASSERT(viewPt == winPt * viewExt / winExt);
+		// viewPt = viewOrg + (winPt-winOrg) * (viewExt/winExt)
+			// when org is (0,0)
+			// viewPt = winPt * (viewExt/winExt )
 	}
 }
 
@@ -596,6 +622,46 @@ void PW5_MyMappingMode::_drawLogicalCoordinate() {
 	s.clear();
 	FmtTo(s, "{}Y {}", yAxisPt.y >= o.y ? '+' : '-', rcInLogical.h);
 	hdc.textOut(yAxisPt, s);
+}
+
+void PW5_MyMappingMode::_example8() {
+/*
+	When you first set the MM_ANISOTROPIC mapping mode, it always inherits the extents of the
+	previously set mapping mode So,
+	MM_ANISTROPIC is that it "unlocks" the extents; that is, it allows you to change the extents of an
+	otherwise fully−constrained mapping mode(like MM_TEXT), keep the coordinate +direction
+*/
+	ScopedGetDC hdc(_hwnd);
+	hdc.setMapMode(PW5_MapMode::Text);
+
+	hdc.clearBg();
+
+	auto textMetrics = GDI::createMyTextMetrics(hdc);
+	int cxChar = textMetrics.aveCharWidth;
+	int cyChar = textMetrics.aveCharHeight;
+	
+	{ // base on MM_TEXT
+		// it base on previous mode(MM_TEXT), and it unlock the setWindowExt
+		// keep the left-top org and keep the direction: right(x+), bottom(y+)
+		hdc.setMapMode(PW5_MapMode::Anisotropic);
+		hdc.setWindowExt(1, 1); // a fixed−point font unit
+		hdc.setViewportExt(cxChar, cyChar);
+		Vec2f pt{ 3, 2 };
+		hdc.Fmt_textOut(pt, "{}(MM_TEXT)", pt);
+		// xDevice = xDeviceOrg + (xLogical-xLogicalOrg) * (xDeviceExt/xLogicalExt)
+		// outDeviceX = xDeviceOrg + 3 * xDeviceExt
+	}
+
+	{ // base on MM_LOENGLISH, and you want to keep bottom(+y) direction
+		Vec2i tmp;
+		hdc.setMapMode(PW5_MapMode::LowEnglish);
+		hdc.setMapMode(PW5_MapMode::Anisotropic);
+		hdc.getViewportExt(tmp);
+		SGE_DUMP_VAR(tmp);
+		hdc.setViewportExt(tmp.x, -tmp.y); // set this viewExt again and reverse Y
+		Vec2f pt { 3, 50 };
+		hdc.Fmt_textOut(pt, "{}(MM_LOMETRIC)", pt);
+	}
 }
 
 }

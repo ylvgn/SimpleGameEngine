@@ -16,8 +16,6 @@ public:
 
 	virtual ~ScopedHDC_NoHWND() = default;
 
-	operator const ::HDC& () const { return _hdc; }
-
 	auto setViewportOrg(int x, int y)		{ return GDI::setViewportOrg(_hdc, x, y); }
 	auto setViewportOrg(const Vec2f& pt)	{ return GDI::setViewportOrg(_hdc, pt); }
 	auto getViewportOrg(Vec2f& pt)			{ return GDI::getViewportOrg(_hdc, pt); }
@@ -30,6 +28,7 @@ public:
 
 	auto setViewportExt(int x, int y)		{ return GDI::setViewportExt(_hdc, x, y); }
 	auto setViewportExt(const Vec2f& pt)	{ return GDI::setViewportExt(_hdc, pt); }
+	auto setViewportExt(const Vec2i& pt)	{ return GDI::setViewportExt(_hdc, pt); }
 	auto getViewportExt(Vec2f& sz)			{ return GDI::getViewportExt(_hdc, sz); }
 	auto getViewportExt(Vec2i& sz)			{ return GDI::getViewportExt(_hdc, sz); }
 
@@ -70,7 +69,7 @@ public:
 	}
 	auto drawText(const ::RECT& ltrb, StrView str, DTFlag flags) const {
 		return GDI::drawText(_hdc, ltrb, str, flags);
-	}																			 
+	}
 	auto drawText(const Rect2f& xywh, StrView str, DTFlag flags) const {
 		return GDI::drawText(_hdc, xywh, str, flags);
 	}
@@ -136,10 +135,12 @@ public:
 		return GDI::pie(_hdc, xywh, from, to);
 	}
 
-	void drawPoint(int x, int y, const Color4b& c, int ptSize)		const;
+	void drawPoint(int x, int y, const Color4b& c, int ptSize) const;
 	void drawPoint(const ::POINT& pt, const Color4b& c, int ptSize)	const;
-	void drawPoint(const Vec2f& pt, const Color4b& c, int ptSize)	const;
-	void drawPoint(const Vec2i& pt, const Color4b& c, int ptSize)	const;
+	void drawPoint(const Vec2f& pt, const Color4b& c, int ptSize) const;
+	void drawPoint(const Vec2i& pt, const Color4b& c, int ptSize) const;
+
+	operator const ::HDC& () const { return _hdc; }
 
 protected:
 	::HDC _hdc = nullptr;
@@ -148,8 +149,7 @@ protected:
 class ScopedHDC_ : public ScopedHDC_NoHWND {
 	using Base = ScopedHDC_NoHWND;
 public:
-	ScopedHDC_(const ::HWND& hwnd)
-		: _hwnd(hwnd) {}
+	ScopedHDC_(const ::HWND& hwnd) : _hwnd(hwnd) {}
 
 	void getClientRectInDevice(Rect2f& o) {
 		::RECT rc;
@@ -208,9 +208,8 @@ class ScopedGetDC : public ScopedHDC_ {
 public:
 	ScopedGetDC(const ::HWND& hwnd) : Base(hwnd) {
 		_hdc = ::GetDC(hwnd);
-		if (!_hdc) {
+		if (!_hdc)
 			SGE_LOG_ERROR("ScopedGetDC GetDC");
-		}
 	}
 	~ScopedGetDC() {
 		if (_hdc) {
@@ -225,9 +224,8 @@ class ScopedGetWindowDC : public ScopedHDC_ {
 public:
 	ScopedGetWindowDC(const ::HWND& hwnd) : Base(hwnd) {
 		_hdc = ::GetWindowDC(hwnd);
-		if (!_hdc) {
+		if (!_hdc)
 			SGE_LOG_ERROR("ScopedGetWindowDC GetWindowDC");
-		}
 	}
 	~ScopedGetWindowDC() {
 		if (_hdc) {
@@ -268,14 +266,14 @@ public:
 					const ::DEVMODEW* pData = nullptr)
 	{
 		_hdc = ::CreateIC(pszDriver, pszDevice, pszOutput, pData);
-		if (!_hdc) {
+		if (!_hdc)
 			SGE_LOG_ERROR("ScopedCreateIC CreateIC");
-		}
 	}
 
 	~ScopedCreateIC() {
 		if (_hdc) {
-			if (!::DeleteDC(_hdc)) SGE_LOG_ERROR("~ScopedCreateIC DeleteDC");
+			if (!::DeleteDC(_hdc))
+				SGE_LOG_ERROR("~ScopedCreateIC DeleteDC");
 			_hdc = nullptr;
 		}
 	}
@@ -289,7 +287,8 @@ public:
 	}
 	~ScopedCreateCompatibleDC() {
 		if (_hdc) {
-			if (!::DeleteDC(_hdc)) SGE_LOG_ERROR("~ScopedCreateCompatibleDC DeleteDC");
+			if (!::DeleteDC(_hdc))
+				SGE_LOG_ERROR("~ScopedCreateCompatibleDC DeleteDC");
 			_hdc = nullptr;
 		}
 	}
@@ -306,12 +305,12 @@ public:
 		}
 	}
 	~ScopedSaveDC() {
-		if (_id && _hdc) {
-			if (!::RestoreDC(_hdc, _id)) {
-				SGE_LOG_ERROR("~ScopedSaveDC RestoreDC");
-				_hdc = nullptr;
-				_id  = 0;
-			}
+		if (!_id || !_hdc) {
+			return;
+		}
+		if (!::RestoreDC(_hdc, _id)) {
+			SGE_LOG_ERROR("~ScopedSaveDC RestoreDC");
+			_hdc = nullptr;
 		}
 	} 
 private:

@@ -179,11 +179,11 @@ void PW5_MyDefineMarkWindow::onDraw() {
 
 		hdc.Fmt_textOut(x, y, "{:03d} {}", i, item.name);
 
-		x += 24 * _cxCaps;
+		x += 20 * _cxCaps;
 		hdc.textOut(x, y, item.remarks);
 
 		hdc.setTextAlign(PW5_TextAlignmentOption::Right | PW5_TextAlignmentOption::Top);
-		x += 40 * _cxChar;
+		x += 50 * _cxChar;
 
 		dm->invoke(outValue, item, this);
 		hdc.Fmt_textOut(x, y, "{:5d}", outValue);
