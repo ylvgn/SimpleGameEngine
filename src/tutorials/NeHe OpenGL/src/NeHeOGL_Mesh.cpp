@@ -3,20 +3,22 @@
 
 namespace sge {
 
-void NeHeOGL_Mesh::MyRenderState::create() {
+NeHeOGL_Mesh::MyRenderState::MyRenderState() {
 	int oldValue;
 	int oldValue2[2];
 	GLboolean oldBool;
 
+// polygon mode
 	glGetIntegerv(GL_POLYGON_MODE, oldValue2);
 //	GLenum polygonFace = oldValue2[0];
 	int polygonMode = oldValue2[1];
 	wireframe = polygonMode != GL_FILL;
 
+// cull face
 	glGetBooleanv(GL_CULL_FACE, &oldBool);
 	if (!oldBool) {
 		cullFace = false;
-		cullFaceMode = GL_FRONT_AND_BACK;
+		cullFaceMode = GL_BACK;
 	} else {
 		cullFace = true;
 
@@ -24,6 +26,7 @@ void NeHeOGL_Mesh::MyRenderState::create() {
 		cullFaceMode = oldValue;
 	}
 
+// depth test
 	glGetBooleanv(GL_DEPTH_TEST, &oldBool);
 	if (!oldBool) {
 		depthTest		= false;
@@ -38,35 +41,68 @@ void NeHeOGL_Mesh::MyRenderState::create() {
 		glGetBooleanv(GL_DEPTH_WRITEMASK, &oldBool);
 		depthWriteMask = static_cast<bool>(oldBool);
 	}
+
+// texture mapping
+	glGetBooleanv(GL_TEXTURE_2D, &oldBool);
+	textureMapping2d = static_cast<bool>(oldBool);
 }
 
 void NeHeOGL_Mesh::MyRenderState::create(RenderState& rs) {
-	wireframe		= rs.wireframe;
-	cullFace		= rs.cull != Cull::None;
-	cullFaceMode	= OGLUtil::getGlCullMode(rs.cull);
-	depthTest		= rs.depthTest.isEnable();
-	depthTestFunc	= OGLUtil::getGlDepthTestOp(rs.depthTest.op);
-	depthWriteMask	= rs.depthTest.writeMask;
+	wireframe			= rs.wireframe;
+	cullFace			= rs.cull != Cull::None;
+	cullFaceMode		= OGLUtil::getGlCullMode(rs.cull);
+	depthTest			= rs.depthTest.isEnable();
+	depthTestFunc		= OGLUtil::getGlDepthTestOp(rs.depthTest.op);
+	depthWriteMask		= rs.depthTest.writeMask;
+	textureMapping2d	= true;
 }
 
 void NeHeOGL_Mesh::MyRenderState::bind() {
+// polygon mode
 	if (wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	else glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
+// cull face
 	if (cullFace) glEnable(GL_CULL_FACE);
 	else glDisable(GL_CULL_FACE);
 	glCullFace(cullFaceMode);
 
+// depth test
 	if (depthTest) glEnable(GL_DEPTH_TEST);
 	else glDisable(GL_DEPTH_TEST);
-
 	glDepthFunc(depthTestFunc);
 	glDepthMask(depthWriteMask ? GL_TRUE : GL_FALSE);
+
+// texture mapping
+	if (textureMapping2d) glEnable(GL_TEXTURE_2D);
+	else glDisable(GL_TEXTURE_2D);
 }
 
 void NeHeOGL_Mesh::clear() {
 	vertices.clear();
 	indices.clear();
+}
+
+void NeHeOGL_Mesh::createRect(float w, float h) {
+	clear();
+
+	float x = w / 2;
+	float y = h / 2;
+
+	{
+		vertices.resize(4);
+		auto* p = vertices.data();
+
+		p->pos.set(-x, y, 0); p->color.set(OGL::kbWhite); p->uv.set(0, 1); p ++;
+		p->pos.set(-x,-y, 0); p->color.set(OGL::kbWhite); p->uv.set(0, 0); p ++;
+		p->pos.set( x,-y, 0); p->color.set(OGL::kbWhite); p->uv.set(1, 0); p ++;
+		p->pos.set( x, y, 0); p->color.set(OGL::kbWhite); p->uv.set(1, 1); p ++;
+	}
+
+	indices.assign({
+		0, 1, 2,
+		0, 2, 3,
+	});
 }
 
 void NeHeOGL_Mesh::createCube(float w, float h, float d) {
@@ -76,39 +112,44 @@ void NeHeOGL_Mesh::createCube(float w, float h, float d) {
 	float y = h / 2;
 	float z = d / 2;
 
-	vertices.resize(8);
-	vertices[0].pos.set(-x,-y,-z); vertices[0].color.set(OGL::kbWhite);
-	vertices[1].pos.set( x,-y,-z); vertices[1].color.set(OGL::kbWhite);
-	vertices[2].pos.set( x,-y, z); vertices[2].color.set(OGL::kbWhite);
-	vertices[3].pos.set(-x,-y, z); vertices[3].color.set(OGL::kbWhite);
+	{
+		vertices.resize(8);
+		auto* p = vertices.data();
 
-	vertices[4].pos.set(-x, y,-z); vertices[4].color.set(OGL::kbWhite);
-	vertices[5].pos.set( x, y,-z); vertices[5].color.set(OGL::kbWhite);
-	vertices[6].pos.set( x, y, z); vertices[6].color.set(OGL::kbWhite);
-	vertices[7].pos.set(-x, y, z); vertices[7].color.set(OGL::kbWhite);
+		p->pos.set(-x,-y,-z); p->color.set(OGL::kbWhite); p->uv.set(1, 1); p ++;
+		p->pos.set( x,-y,-z); p->color.set(OGL::kbWhite); p->uv.set(1, 0); p ++;
+		p->pos.set( x,-y, z); p->color.set(OGL::kbWhite); p->uv.set(0, 0); p ++;
+		p->pos.set(-x,-y, z); p->color.set(OGL::kbWhite); p->uv.set(0, 1); p ++;
+														  				
+		p->pos.set(-x, y,-z); p->color.set(OGL::kbWhite); p->uv.set(1, 1); p ++;
+		p->pos.set( x, y,-z); p->color.set(OGL::kbWhite); p->uv.set(1, 0); p ++;
+		p->pos.set( x, y, z); p->color.set(OGL::kbWhite); p->uv.set(0, 0); p ++;
+		p->pos.set(-x, y, z); p->color.set(OGL::kbWhite); p->uv.set(0, 1); p ++;
+	}
 
 	indices.assign({
-		0, 2, 1, // top
-		0, 3, 2,
-		3, 6, 2, // front
-		3, 7, 6,
-		2, 5, 1, // rigt
-		2, 6, 5,
-		7, 5, 6, // bottom
-		7, 4, 5,
-		4, 1, 5, // back
-		4, 0, 1,
-		4, 3, 0, // left
-		4, 7, 3,
+		0, 1, 2, // top
+		0, 2, 3,
+		3, 2, 6, // front
+		3, 6, 7,
+		2, 1, 5, // rigt
+		2, 5, 6,
+		7, 6, 5, // bottom
+		7, 5, 4,
+		4, 5, 1, // back
+		4, 1, 0,
+		4, 0, 3, // left
+		4, 3, 7,
 	});
 }
 
 void NeHeOGL_Mesh::_beginDraw() {
-	_lastRenderState.create();
+	_lastRenderState = MyRenderState();
 	_curRenderState.create(renderState);
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_COLOR_ARRAY);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	_bindVertexs();
 
 	_curRenderState.bind();
@@ -135,15 +176,17 @@ void NeHeOGL_Mesh::draw() {
 void NeHeOGL_Mesh::_endDraw() {
 	_lastRenderState.bind();
 
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);
 }
 
 void NeHeOGL_Mesh::_bindVertexs() {
-	int stride = sizeof(vertices[0]);
+	size_t stride = sizeof(vertices[0]);
 
 	OGL::vertexPointer(&vertices[0].pos, stride);
 	OGL::colorPointer(&vertices[0].color, stride);
+	OGL::texCoordPointer(&vertices[0].uv, stride);
 }
 
 }

@@ -10,4 +10,11 @@ public:
 	Color4b color;
 };
 
+class NeHeOGL_Vertex_PosColorUv {
+public:
+	Vec3f	pos;
+	Color4b color;
+	Vec2f	uv;
+};
+
 }

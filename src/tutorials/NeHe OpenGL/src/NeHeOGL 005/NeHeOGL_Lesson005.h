@@ -22,6 +22,9 @@ protected:
 	virtual void onDraw() override;
 private:
 
+	void _drawMyGrid();
+	void _drawMyCoordinate();
+
 	void _example1();
 	void _shaded(float angleInDegrees);
 	void _wireFrame(float angleInDegrees);
@@ -47,8 +50,7 @@ private:
 	void _drawMyCube4();
 	void _drawMyCube5();
 
-	void _drawMyGrid();
-	void _drawMyCoordinate();
+	void _example7();
 
 	static constexpr float d = 1.f;
 
@@ -113,7 +115,9 @@ private:
 
 	NeHeOGL_Vertex_PosColor _cubeVertexs[8];
 
-	NeHeOGL_Mesh _mesh;
+	NeHeOGL_Mesh	_cubeMesh;
+	NeHeOGL_Mesh	_rectMesh;
+	GLuint			_texture2d;
 };
 
 }

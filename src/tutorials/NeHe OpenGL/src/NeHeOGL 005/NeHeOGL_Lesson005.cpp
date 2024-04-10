@@ -24,8 +24,32 @@ void NeHeOGL_Lesson005::onCreate(CreateDesc& desc) {
 	_cubeVertexs[6].pos.set( d,-d, d); _cubeVertexs[6].color.set(OGL::kbBlue);
 	_cubeVertexs[7].pos.set(-d,-d, d); _cubeVertexs[7].color.set(OGL::kbBlue);
 
-	_mesh.createCube(3, 2, 1);
-//	_mesh.renderState.wireframe = true;
+	_cubeMesh.createCube(1, 1, 1);
+//	_cubeMesh.renderState.wireframe = true;
+
+	{
+		glGenTextures(1, &_texture2d);
+		OGL::ScopedBindTexture2D scoped(_texture2d);
+
+		Vector<Color4b> pixels;
+		pixels.resize(256 * 256);
+		auto* p = pixels.data();
+		u8 a = static_cast<u8>(256);
+		for (int y = 0; y < 256; y++) {
+			for (int x = 0; x < 256; x++) {
+				p->set(static_cast<u8>(x), static_cast<u8>(y), a, a);
+				p++;
+			}
+		}
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 256, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	}
+
+	_rectMesh.createRect(1, 1);
+//	_rectMesh.renderState.wireframe = true;
 }
 
 void NeHeOGL_Lesson005::onUIMouseEvent(UIMouseEvent& ev) {
@@ -46,7 +70,44 @@ void NeHeOGL_Lesson005::onDraw() {
 //	_example3();	// stencil test
 //	_example4();	// scissor test
 //	_example5();	// draw sphere
-	_example6();	// vertex array
+//	_example6();	// vertex array
+	_example7();	// texture mapping
+}
+
+void NeHeOGL_Lesson005::_drawMyGrid() {
+	float oldColor[4];
+	glGetFloatv(GL_CURRENT_COLOR, oldColor);
+		float oldValue;
+		glGetFloatv(GL_LINE_WIDTH, &oldValue);
+		glLineWidth(1);
+			OGL::color4f(OGL::kWhite);
+			glBegin(GL_LINES);
+				for (float x = -10; x <= 10; x++) {
+					glVertex3f(x, 0, -10);
+					glVertex3f(x, 0, 10);
+				}
+				for (float z = -10; z <= 10; z++) {
+					glVertex3f(-10, 0, z);
+					glVertex3f(10, 0, z);
+				}
+			glEnd();
+		glLineWidth(oldValue);
+	glColor4fv(oldColor);
+}
+
+void NeHeOGL_Lesson005::_drawMyCoordinate() {
+	float oldColor[4];
+	glGetFloatv(GL_CURRENT_COLOR, oldColor);
+		float oldValue;
+		glGetFloatv(GL_LINE_WIDTH, &oldValue);
+		glLineWidth(2);
+			glBegin(GL_LINES);
+				OGL::color4f(OGL::kRed);	OGL::vertex3f(Vec3f::s_zero());	OGL::vertex3f(Vec3f::s_right());
+				OGL::color4f(OGL::kGreen);	OGL::vertex3f(Vec3f::s_zero());	OGL::vertex3f(Vec3f::s_up());
+				OGL::color4f(OGL::kBlue);	OGL::vertex3f(Vec3f::s_zero());	OGL::vertex3f(Vec3f::s_forward());
+			glEnd();
+		glLineWidth(oldValue);
+	glColor4fv(oldColor);
 }
 
 void NeHeOGL_Lesson005::_example1() {
@@ -812,43 +873,52 @@ void NeHeOGL_Lesson005::_drawMyCube4() {
 }
 
 void NeHeOGL_Lesson005::_drawMyCube5() {
-	_mesh.draw();
+	_cubeMesh.draw();
 }
 
-void NeHeOGL_Lesson005::_drawMyGrid() {
-	float oldColor[4];
-	glGetFloatv(GL_CURRENT_COLOR, oldColor);
-		float oldValue;
-		glGetFloatv(GL_LINE_WIDTH, &oldValue);
-		glLineWidth(1);
-			OGL::color4f(OGL::kWhite);
-			glBegin(GL_LINES);
-				for (float x = -10; x <= 10; x++) {
-					glVertex3f(x, 0, -10);
-					glVertex3f(x, 0, 10);
-				}
-				for (float z = -10; z <= 10; z++) {
-					glVertex3f(-10, 0, z);
-					glVertex3f(10, 0, z);
-				}
-			glEnd();
-		glLineWidth(oldValue);
-	glColor4fv(oldColor);
-}
+void NeHeOGL_Lesson005::_example7() {
+	float width  = _clientRect.w;
+	float height = _clientRect.h;
 
-void NeHeOGL_Lesson005::_drawMyCoordinate() {
-	float oldColor[4];
-	glGetFloatv(GL_CURRENT_COLOR, oldColor);
-		float oldValue;
-		glGetFloatv(GL_LINE_WIDTH, &oldValue);
-		glLineWidth(2);
-			glBegin(GL_LINES);
-				OGL::color4f(OGL::kRed);	OGL::vertex3f(Vec3f::s_zero());	OGL::vertex3f(Vec3f::s_right());
-				OGL::color4f(OGL::kGreen);	OGL::vertex3f(Vec3f::s_zero());	OGL::vertex3f(Vec3f::s_up());
-				OGL::color4f(OGL::kBlue);	OGL::vertex3f(Vec3f::s_zero());	OGL::vertex3f(Vec3f::s_forward());
-			glEnd();
-		glLineWidth(oldValue);
-	glColor4fv(oldColor);
+	float aspect = width / height;
+	glViewport(0, 0, static_cast<int>(width), static_cast<int>(height));
+
+	glClearColor(0.f, 0.2f, 0.2f, 0.f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		gluPerspective(90.f, aspect, 0.01f, 1000.0f);
+
+	glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+
+	glTranslatef(0, 0, -3.0f);
+	glRotatef(_cameraX, 1,0,0);
+	glRotatef(_cameraY, 0,1,0);
+
+	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_CULL_FACE);
+	glEnable(GL_DEPTH_TEST);
+
+	_drawMyGrid();
+	_drawMyCoordinate();
+
+	{
+		OGL::ScopedBindTexture2D scopedTex(_texture2d);
+		glPushMatrix();
+			OGL::translatef({ -2, 1, 0 });
+			_rectMesh.draw();
+		glPopMatrix();
+
+		glPushMatrix();
+			OGL::translatef({ 2, 1, 0 });
+			_cubeMesh.draw();
+		glPopMatrix();
+	}
+
+	swapBuffers();
+	drawNeeded();
 }
 
 }

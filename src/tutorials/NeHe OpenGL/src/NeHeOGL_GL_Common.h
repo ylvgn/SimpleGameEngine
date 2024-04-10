@@ -152,32 +152,32 @@ namespace OGL {
 	inline void vertex3fv(const Tuple3f* v)		{ ::glVertex3fv(v->data); }
 	inline void normal3fv(const Tuple3f* nl)	{ ::glNormal3fv(nl->data); }
 
-	inline void colorPointer(const Color4b* p, size_t stride) {
-		using SRC		= Color4b;
-		using DataType	= SRC::ElementType;
-		static constexpr auto type = OGLUtil::getGlFormat(NeHe_RenderDataTypeUtil::get<DataType>());
+#define SGE_DECLEAR_GLXXXPOINTER(GL_FUNC_NAME, FUNC_NAME, IN_SRC) \
+	inline void FUNC_NAME(const IN_SRC* p, size_t stride) { \
+		using SRC = IN_SRC; \
+		using DataType = SRC::ElementType; \
+		static constexpr auto type = OGLUtil::getGlFormat(NeHe_RenderDataTypeUtil::get<DataType>()); \
+		GL_FUNC_NAME(SRC::kElementCount, type, static_cast<GLsizei>(stride), p); \
+	} \
+//-----
+	SGE_DECLEAR_GLXXXPOINTER(glVertexPointer,	vertexPointer,		Tuple3f)
+	SGE_DECLEAR_GLXXXPOINTER(glVertexPointer,	vertexPointer,		Vec3f)
+	SGE_DECLEAR_GLXXXPOINTER(glColorPointer,	colorPointer,		Color4b)
+	SGE_DECLEAR_GLXXXPOINTER(glTexCoordPointer, texCoordPointer,	Tuple2f)
+	SGE_DECLEAR_GLXXXPOINTER(glTexCoordPointer, texCoordPointer,	Vec2f)
+#undef SGE_DECLEAR_GLXXXPOINTER
 
-		glColorPointer(SRC::kElementCount, type, static_cast<GLsizei>(stride), p);
-	}
-	inline void vertexPointer(const Tuple3f* p, size_t stride) {
-		using SRC		= Tuple3f;
-		using DataType	= SRC::ElementType;
-		static constexpr auto type = OGLUtil::getGlFormat(NeHe_RenderDataTypeUtil::get<DataType>());
-
-		glVertexPointer(SRC::kElementCount, type, static_cast<GLsizei>(stride), p);
-	}
-	inline void vertexPointer(const Vec3f* p, size_t stride) {
-		using SRC		= Vec3f;
-		using DataType	= SRC::ElementType;
-		static constexpr auto type = OGLUtil::getGlFormat(NeHe_RenderDataTypeUtil::get<DataType>());
-
-		glVertexPointer(SRC::kElementCount, type, static_cast<GLsizei>(stride), p);
-	}
 
 	class ScopedBegin : public NonCopyable {
 	public:
 		ScopedBegin(NeHe_BeginMode mode) { glBegin(static_cast<GLenum>(mode)); }
 		~ScopedBegin() { glEnd(); }
+	};
+
+	class ScopedBindTexture2D : public NonCopyable {
+	public:
+		ScopedBindTexture2D(GLuint target) { glBindTexture(GL_TEXTURE_2D, target); }
+		~ScopedBindTexture2D() { glBindTexture(GL_TEXTURE_2D, 0); }
 	};
 
 } // namespace OGL
