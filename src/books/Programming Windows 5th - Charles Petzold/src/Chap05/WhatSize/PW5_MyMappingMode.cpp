@@ -269,7 +269,8 @@ void PW5_MyMappingMode::_example4() {
 
 	Vec2f o { 0, 0 };
 	hdc.textOut(o, "(0,0)");
-	hdc.Fmt_textOut({o.x, o.y + 20.f}, "size = {}", _clientRect.size);
+	Vec2f tmp { o.x, o.y + 20.f };
+	hdc.Fmt_textOut(tmp, "size = {}", _clientRect.size);
 
 	{
 		Vec2f from { o.x - _clientRect.w * 0.5f, 0 };
@@ -454,8 +455,8 @@ void PW5_MyMappingMode::_calcMappingModeExtRatio(PW5_MapMode v) {
 	};
 	SGE_ASSERT(viewportExtInPixel == screenResolution);
 
-	// The window extents are based on the assumed size of the display, which
-	// GetDeviceCaps returns when you use the HORZSIZE and VERTSIZE indexes
+	// The window extents are based on the assumed size of the display,
+	// which GetDeviceCaps returns when you use the HORZSIZE and VERTSIZE indexes
 	Vec2i windowExtInMillimeters {
 		::GetDeviceCaps(hdc, HORZSIZE),
 		::GetDeviceCaps(hdc, VERTSIZE)

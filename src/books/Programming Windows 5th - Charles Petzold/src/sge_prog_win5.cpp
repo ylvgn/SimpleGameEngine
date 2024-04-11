@@ -22,12 +22,13 @@
 #include "Chap05/Bezier/PW5_Bezier.h"
 #include "Chap05/AltWind/PW5_AltWind.h"
 #include "Chap05/WhatSize/PW5_MyMappingMode.h"
+#include "Chap05/WhatSize/PW5_WhatSize.h"
 
 namespace sge {
 
 class ProgWin5App : public NativeUIApp {
 	using Base = NativeUIApp;
-	using ProgWin5MainWin = PW5_MyMappingMode;
+	using ProgWin5MainWin = PW5_WhatSize;
 protected:
 	virtual void onCreate(CreateDesc& desc) override {
 		{ // set working dir

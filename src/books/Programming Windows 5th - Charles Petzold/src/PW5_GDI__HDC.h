@@ -10,8 +10,8 @@ namespace sge {
 
 class ScopedHDC_NoHWND : public NonCopyable {
 public:
-	using DTFlag = PW5_DrawTextFormatFlag;
-	using MapMode = PW5_MapMode;
+	using DTFlag		= PW5_DrawTextFormatFlag;
+	using MapMode		= PW5_MapMode;
 	using CoordinateDir = PW5_CoordinateDir;
 
 	virtual ~ScopedHDC_NoHWND() = default;
@@ -60,7 +60,16 @@ public:
 	auto Fmt_textOut(const Vec2f& pt, Args&&... args) const {
 		return GDI::Fmt_textOut(_hdc, static_cast<int>(pt.x), static_cast<int>(pt.y), SGE_FORWARD(args)...);
 	}
-
+#if 1
+	// ambiguous call to overloaded function, why???
+	// example:
+		// Vec2i pos { 0,0 };
+		// hdc.Fmt_textOut( {pos.x, pos.y + 20.f}, "{}", 123);
+	template<class... Args>
+	auto Fmt_textOut(const Vec2i& pt, Args&&... args) const {
+		return GDI::Fmt_textOut(_hdc, pt.x, pt.y, SGE_FORWARD(args)...);
+	}
+#endif
 	auto drawText(int l, int t, int r, int b, StrView str) const {
 		return GDI::drawText(_hdc, l, t, r, b, str);
 	}
@@ -167,11 +176,7 @@ public:
 	void clearBg(PW5_StockLogicalObject_Brush flag = PW5_StockLogicalObject_Brush::White) {
 		::RECT rc;
 		getClientRectInLogical(rc);
-
-		::HBRUSH brush;
-		GDI::getStockObject(brush, flag);
-
-		GDI::fillRect(_hdc, rc, brush); // FillRect is used in logical coordinates
+		GDI::fillRect(_hdc, rc, GDI::getStockObject(flag)); // FillRect is used in logical coordinates
 	}
 
 	void clearBg(const Color4b& color);
@@ -301,9 +306,8 @@ public:
 		}
 	}
 	~ScopedSaveDC() {
-		if (!_id || !_hdc) {
-			return;
-		}
+		if (!_id || !_hdc) return;
+			
 		if (!::RestoreDC(_hdc, _id)) {
 			SGE_LOG_ERROR("~ScopedSaveDC RestoreDC");
 			_hdc = nullptr;

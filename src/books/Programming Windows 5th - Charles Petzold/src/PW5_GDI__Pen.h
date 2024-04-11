@@ -1,12 +1,12 @@
 #pragma once
 
-#include "PW5_GDI__HDC.h"
-
 #if SGE_OS_WINDOWS
+
+#include "PW5_GDI__Object.h"
 
 namespace sge {
 
-	#define PW5_PenStyle_ENUM_LIST(E) \
+#define PW5_PenStyle_ENUM_LIST(E)		\
 	E(None,			= PS_NULL)			\
 	E(Solid,		= PS_SOLID)			\
 	E(Dash,			= PS_DASH)			\
@@ -15,6 +15,13 @@ namespace sge {
 	E(DashDotDot,	= PS_DASHDOTDOT)	\
 //----
 SGE_ENUM_CLASS(PW5_PenStyle, u8)
+
+class ScopedSelectStockPen : public ScopedSelectStockObject {
+	using Base = ScopedSelectStockObject;
+public:
+	ScopedSelectStockPen(::HDC hdc, PW5_StockLogicalObject_Pen flag)
+		: Base(hdc, PW5_StockLogicalObject_make(flag)) {}
+};
 
 class ScopedExtCreatePen_Base : public ScopedHDC_NoHWND {
 	using Base = ScopedHDC_NoHWND;

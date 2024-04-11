@@ -2,19 +2,26 @@
 
 #if SGE_OS_WINDOWS
 
-#include "PW5_GDI__HDC.h"
+#include "PW5_GDI__Object.h"
 
 namespace sge {
 
-#define PW5_HatchStyle_ENUM_LIST(E) \
-	E(Horizontal,	= HS_HORIZONTAL)\
-	E(Vertical,		= HS_VERTICAL)	\
-	E(Fdiagonal,	= HS_FDIAGONAL)	\
-	E(Bdiagonal,	= HS_BDIAGONAL)	\
-	E(Cross,		= HS_CROSS)		\
-	E(DiagCross,	= HS_DIAGCROSS)	\
+#define PW5_HatchStyle_ENUM_LIST(E)		\
+	E(Horizontal,	= HS_HORIZONTAL)	\
+	E(Vertical,		= HS_VERTICAL)		\
+	E(Fdiagonal,	= HS_FDIAGONAL)		\
+	E(Bdiagonal,	= HS_BDIAGONAL)		\
+	E(Cross,		= HS_CROSS)			\
+	E(DiagCross,	= HS_DIAGCROSS)		\
 //----
 SGE_ENUM_CLASS(PW5_HatchStyle, u8)
+
+class ScopedSelectStockBrush : public ScopedSelectStockObject {
+	using Base = ScopedSelectStockObject;
+public:
+	ScopedSelectStockBrush(::HDC hdc, PW5_StockLogicalObject_Brush flag)
+		: Base(hdc, PW5_StockLogicalObject_make(flag)) {}
+};
 
 class MyIndirectBrush_Base : public ScopedHDC_NoHWND {
 	using Base = ScopedHDC_NoHWND;
@@ -24,6 +31,7 @@ public:
 		Color4b			color			= GDI::kbBlack;
 		PW5_HatchStyle	hatchFlag		= PW5_HatchStyle::Horizontal;
 		::HBITMAP*		hBitMap			= nullptr;
+
 		::LOGBRUSH&		_internal_used;
 	};
 
@@ -145,7 +153,7 @@ public:
 namespace sge {
 namespace GDI {
 
-	inline auto getObject(const ::HBRUSH& brush, ::LOGBRUSH& o) {
+	inline auto getObject(::LOGBRUSH& o, const ::HBRUSH& brush) {
 		// If you need to obtain information about a brush, you can call GetObject
 		return GetObject(brush, sizeof(o), &o);
 	}
