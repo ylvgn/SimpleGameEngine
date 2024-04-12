@@ -55,9 +55,15 @@ private:
 	void _example1(float uptime);
 	void _example2(float uptime);
 	void _example3(float uptime);
+	void _example4(float uptime);
 
-	Vec2f _camerOrbitAngle	{0,0};		// camera rotate with x-axis y-axis
-	Vec3f _camerMovePos		{0,0,0};	// camera move, zoom in/out
+	void _drawMyCoordinate();
+	void _drawMyGrid();
+
+	bool _isFirstFrame : 1;
+
+	Vec2f _camerOrbitAngle	{30,30};		// camera rotate with x-axis y-axis
+	Vec3f _camerMovePos		{0,0,-10};	// camera move, zoom in/out
 
 	MyHiResTimer _uptime;
 
@@ -70,6 +76,9 @@ private:
 	NeHeOGL_Image _imagesToUpload[kTexture2dCount];
 
 	MyMesh	_mesh;
+
+	NeHeOGL_Texture2D	_tex;
+	NeHeOGL_Mesh		_rectMesh;
 };
 
 }

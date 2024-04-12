@@ -14,7 +14,7 @@
 
 #include "NeHeOGL_RenderState.h"
 #include "NeHeOGL_Vertex.h"
-#include "NeHeOGL_Image.h"
+#include "NeHeOGL_Texture2D.h"
 #include "NeHeOGL_Mesh.h"
 
 namespace sge {
@@ -178,6 +178,12 @@ namespace OGL {
 	public:
 		ScopedBindTexture2D(GLuint target) { glBindTexture(GL_TEXTURE_2D, target); }
 		~ScopedBindTexture2D() { glBindTexture(GL_TEXTURE_2D, 0); }
+	};
+
+	class ScopedglPushMatrix : public NonCopyable {
+	public:
+		ScopedglPushMatrix()  { glPushMatrix(); }
+		~ScopedglPushMatrix() { glPopMatrix(); }
 	};
 
 } // namespace OGL

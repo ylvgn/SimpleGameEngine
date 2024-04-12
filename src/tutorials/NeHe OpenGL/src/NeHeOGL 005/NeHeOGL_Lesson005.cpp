@@ -34,10 +34,9 @@ void NeHeOGL_Lesson005::onCreate(CreateDesc& desc) {
 		Vector<Color4b> pixels;
 		pixels.resize(256 * 256);
 		auto* p = pixels.data();
-		u8 a = static_cast<u8>(256);
 		for (int y = 0; y < 256; y++) {
 			for (int x = 0; x < 256; x++) {
-				p->set(static_cast<u8>(x), static_cast<u8>(y), a, a);
+				p->set(static_cast<u8>(x), static_cast<u8>(y), 255, 255);
 				p++;
 			}
 		}

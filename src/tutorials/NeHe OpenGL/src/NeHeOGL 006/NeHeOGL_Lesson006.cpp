@@ -14,6 +14,8 @@ void NeHeOGL_Lesson006::_destroy() {
 }
 
 void NeHeOGL_Lesson006::onCreate(CreateDesc& desc) {
+	_isFirstFrame = true;
+
 	float d = 1.0f;
 //------------------------------------------
 //		  0--------1
@@ -60,25 +62,40 @@ void NeHeOGL_Lesson006::onCreate(CreateDesc& desc) {
 		{0,0}, {1,0}, {1,1}, {0,1}, // Left
 	};
 
+	_rectMesh.createRect(2, 2);
+//	_rectMesh.renderState.wireframe = true;
+
 	Base::onCreate(desc);
-
-	{ // create a texture
-		glGenTextures(1, &_texture2d);
-		_loadTexture2D("NeHe.bmp", _imageToUpload, _texture2d);
-	}
-
-	{ // create more than one texture
-		glGenTextures(2, _texture2ds);
-		_loadTexture2D("NeHe.bmp", _imagesToUpload[0], _texture2ds[0]);
-		_loadTexture2D("uvChecker_BMP.bmp", _imagesToUpload[1], _texture2ds[1]);
-	}
 }
 
 void NeHeOGL_Lesson006::onDraw() {
 	float uptime = static_cast<float>(_uptime.get() * 90.f);
-	//_example1(uptime);
-	//_example2(uptime);
-	_example3(uptime);
+
+	if (_isFirstFrame) {
+		// call gl function after OpenGL inited!!!
+
+		{ // create a texture
+			glGenTextures(1, &_texture2d);
+			_loadTexture2D("NeHe.bmp", _imageToUpload, _texture2d);
+		}
+
+		{ // create more than one texture
+			glGenTextures(2, _texture2ds);
+			_loadTexture2D("NeHe.bmp", _imagesToUpload[0], _texture2ds[0]);
+			_loadTexture2D("uvChecker_BMP.bmp", _imagesToUpload[1], _texture2ds[1]);
+		}
+#if 1
+		_tex.createTest();
+#else
+		_tex.createByLoadFile("uvChecker_PNG.png");
+#endif
+		_isFirstFrame = false;
+	}
+
+//	_example1(uptime);
+//	_example2(uptime);
+//	_example3(uptime);
+	_example4(uptime);
 }
 
 #if SGE_OS_WINDOWS
@@ -404,6 +421,86 @@ void NeHeOGL_Lesson006::_example3(float uptime) {
 
 	swapBuffers();
 	drawNeeded();
+}
+
+void NeHeOGL_Lesson006::_example4(float uptime) {
+
+	glViewport(0, 0, static_cast<int>(_clientRect.w), static_cast<int>(_clientRect.h));
+	glClearColor(0.f, 0.2f, 0.2f, 0.f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		gluPerspective(45.f, _clientRect.w / _clientRect.h, 0.1f, 1000.0f);
+
+	// setup camera
+	glTranslatef(_camerMovePos.x, _camerMovePos.y, _camerMovePos.z);
+	glRotatef(_camerOrbitAngle.x, 1,0,0);
+	glRotatef(_camerOrbitAngle.y, 0,1,0);
+
+	glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+
+	_drawMyGrid();
+	_drawMyCoordinate();
+
+//	_rectMesh.renderState.cull = NeHeOGL_RenderState::Cull::None;
+
+	{
+		OGL::ScopedBindTexture2D scopedTex(_texture2d);
+		OGL::ScopedglPushMatrix scopedMatrix;
+		OGL::translatef({ -2, 1, 0 });
+//		glRotatef(uptime, 0, 1, 0);
+		_rectMesh.draw();
+	}
+
+	{
+		_tex.bind();
+			OGL::ScopedglPushMatrix scopedMatrix;
+			OGL::translatef({ 2, 1, 0 });
+//			glRotatef(uptime, 0, 1, 0);
+			_rectMesh.draw();
+		_tex.unbind();
+	}
+
+	swapBuffers();
+	drawNeeded();
+}
+
+void NeHeOGL_Lesson006::_drawMyCoordinate() {
+	float oldColor[4];
+	glGetFloatv(GL_CURRENT_COLOR, oldColor);
+	float oldValue;
+	glGetFloatv(GL_LINE_WIDTH, &oldValue);
+	glLineWidth(2);
+	glBegin(GL_LINES);
+		OGL::color4f(OGL::kRed);	OGL::vertex3f(Vec3f::s_zero());	OGL::vertex3f(Vec3f::s_right());
+		OGL::color4f(OGL::kGreen);	OGL::vertex3f(Vec3f::s_zero());	OGL::vertex3f(Vec3f::s_up());
+		OGL::color4f(OGL::kBlue);	OGL::vertex3f(Vec3f::s_zero());	OGL::vertex3f(Vec3f::s_forward());
+	glEnd();
+	glLineWidth(oldValue);
+	glColor4fv(oldColor);
+}
+
+void NeHeOGL_Lesson006::_drawMyGrid() {
+	float oldColor[4];
+	glGetFloatv(GL_CURRENT_COLOR, oldColor);
+		float oldValue;
+		glGetFloatv(GL_LINE_WIDTH, &oldValue);
+		glLineWidth(1);
+			OGL::color4f(OGL::kWhite);
+			glBegin(GL_LINES);
+				for (float x = -10; x <= 10; x++) {
+					glVertex3f(x, 0, -10);
+					glVertex3f(x, 0, 10);
+				}
+				for (float z = -10; z <= 10; z++) {
+					glVertex3f(-10, 0, z);
+					glVertex3f(10, 0, z);
+				}
+			glEnd();
+		glLineWidth(oldValue);
+	glColor4fv(oldColor);
 }
 
 }

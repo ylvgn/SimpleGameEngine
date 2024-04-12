@@ -23,11 +23,11 @@ SGE_ENUM_CLASS(NeHe_RenderState_DepthTestFunc, u8)
 
 class NeHeOGL_RenderState {
 public:
-	using Cull = NeHe_RenderState_Cull;
-	using DepthTestOp = NeHe_RenderState_DepthTestFunc;
+	using Cull			= NeHe_RenderState_Cull;
+	using DepthTestOp	= NeHe_RenderState_DepthTestFunc;
 
-	bool wireframe = false;
-	Cull cull = Cull::Back;
+	bool wireframe	= false;
+	Cull cull		= Cull::Back;
 
 	struct DepthTest {
 		
@@ -42,7 +42,6 @@ public:
 		bool writeMask : 1;
 	};
 	DepthTest depthTest;
-
 };
 
 }

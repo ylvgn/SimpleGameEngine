@@ -3,7 +3,7 @@
 
 namespace sge {
 
-NeHeOGL_Mesh::MyRenderState::MyRenderState() {
+NeHeOGL_Mesh__RenderState::NeHeOGL_Mesh__RenderState() {
 	int oldValue;
 	int oldValue2[2];
 	GLboolean oldBool;
@@ -47,7 +47,8 @@ NeHeOGL_Mesh::MyRenderState::MyRenderState() {
 	textureMapping2d = static_cast<bool>(oldBool);
 }
 
-void NeHeOGL_Mesh::MyRenderState::create(RenderState& rs) {
+
+void NeHeOGL_Mesh__RenderState::create(RenderState& rs) {
 	wireframe			= rs.wireframe;
 	cullFace			= rs.cull != Cull::None;
 	cullFaceMode		= OGLUtil::getGlCullMode(rs.cull);
@@ -57,7 +58,7 @@ void NeHeOGL_Mesh::MyRenderState::create(RenderState& rs) {
 	textureMapping2d	= true;
 }
 
-void NeHeOGL_Mesh::MyRenderState::bind() {
+void NeHeOGL_Mesh__RenderState::bind() {
 // polygon mode
 	if (wireframe) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	else glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -93,10 +94,10 @@ void NeHeOGL_Mesh::createRect(float w, float h) {
 		vertices.resize(4);
 		auto* p = vertices.data();
 
-		p->pos.set(-x, y, 0); p->color.set(OGL::kbWhite); p->uv.set(0, 1); p ++;
-		p->pos.set(-x,-y, 0); p->color.set(OGL::kbWhite); p->uv.set(0, 0); p ++;
-		p->pos.set( x,-y, 0); p->color.set(OGL::kbWhite); p->uv.set(1, 0); p ++;
-		p->pos.set( x, y, 0); p->color.set(OGL::kbWhite); p->uv.set(1, 1); p ++;
+		p->pos.set(-x, y, 0); p->color.set(OGL::kbWhite); p->uv.set(0, 0); p ++;
+		p->pos.set(-x,-y, 0); p->color.set(OGL::kbWhite); p->uv.set(0, 1); p ++;
+		p->pos.set( x,-y, 0); p->color.set(OGL::kbWhite); p->uv.set(1, 1); p ++;
+		p->pos.set( x, y, 0); p->color.set(OGL::kbWhite); p->uv.set(1, 0); p ++;
 	}
 
 	indices.assign({
