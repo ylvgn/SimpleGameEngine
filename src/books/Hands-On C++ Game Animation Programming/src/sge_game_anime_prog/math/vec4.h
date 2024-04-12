@@ -19,8 +19,8 @@ struct TVec4 {
 
 	SGE_INLINE TVec4() = default;
 	SGE_INLINE TVec4(const T& x_, const T& y_, const T& z_, const T& w_) : x(x_), y(y_), z(z_), w(w_) {}
-	SGE_INLINE TVec4(const vec2& fv, const T& z_, const T& w_) : x(fv.x), y(fv.y), z(z_), w(w_) {}
-	SGE_INLINE TVec4(const vec3& fv, const T& w_) : x(fv.x), y(fv.y), z(fv.z), w(w_) {}
+	SGE_INLINE TVec4(const vec2& v2, const T& z_, const T& w_) : x(v2.x), y(v2.y), z(z_), w(w_) {}
+	SGE_INLINE TVec4(const vec3& v3, const T& w_) : x(v3.x), y(v3.y), z(v3.z), w(w_) {}
 
 	SGE_INLINE void set(const T& x_, const T& y_, const T& z_, const T& w_) { x = x_; y = y_; z = z_; w = w_; }
 
@@ -64,9 +64,6 @@ struct TVec4 {
 	SGE_INLINE vec3 xyz()		const { return vec3(x, y, z); }
 
 	SGE_INLINE T dot(const TVec4& r) const { return (x * r.x) + (y * r.y) + (z * r.z) + (w * r.w); }
-
-	SGE_INLINE			T* ptr()		{ return data; }
-	SGE_INLINE const	T* ptr() const	{ return data; }
 
 	SGE_INLINE void onFormat(fmt::format_context& ctx) const {
 		fmt::format_to(ctx.out(), "({}, {}, {}, {})", x, y, z, w);

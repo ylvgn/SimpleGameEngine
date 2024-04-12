@@ -12,9 +12,11 @@ void RearrangeBones::s_rearrange(SPtr<Skeleton>& outSkeleton,
 template<typename T>
 void RearrangeBones::_rearrangeClip(ClipT<T>& out) {
 	for (int i = 0; i < out.getTrackCount(); ++i) {
-		int oldJointId = out.getJointIdAtIndex(i);
+		auto* p = out.getTrack_noCheck(i);
+		SGE_ASSERT(p != nullptr);
+		int oldJointId = p->jointId;
 		int newJointId = _rearrangeIdx(oldJointId);
-		out.setJointIdAtIndex(i, newJointId);
+		p->jointId = newJointId;
 	}
 }
 

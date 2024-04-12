@@ -27,8 +27,8 @@ public:
 	// Each element in the array represents the attribute for one vertex.
 	void uploadToGpu(ByteSpan data);
 
-	u32		handle() const { return _handle; }
-	size_t	count()  const { return _count;  }
+	u32		handle	() const { return _handle; }
+	size_t	count	() const { return _count;  }
 
 private:
 

@@ -14,7 +14,6 @@ class RearrangeBones : public NonCopyable {
 public:
 	static void s_rearrange(SPtr<Skeleton>& outSkeleton, Span<Mesh> outMeshes, Span<FastClip> outClips);
 	static void s_rearrange(SPtr<Skeleton>& outSkeleton, Span<Mesh> outMeshes, Span<Clip> outClips);
-
 private:
 	void _create(const Pose& bindPose);
 	void _clear();

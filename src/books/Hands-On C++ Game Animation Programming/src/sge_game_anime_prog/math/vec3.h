@@ -89,9 +89,6 @@ struct TVec3 {
 	SGE_INLINE TVec3 slerp(const TVec3& to_, const T& t) const; // spherical linear interpolatation: constant in velocity
 	SGE_INLINE TVec3 nlerp(const TVec3& to, const T& t) const { return lerp(to, t).normalize(); } // normalize lerp: non-constant in velocity
 
-	SGE_INLINE			T* ptr()		{ return data; }
-	SGE_INLINE const	T* ptr() const	{ return data; }
-
 	SGE_INLINE void onFormat(fmt::format_context& ctx) const {
 		fmt::format_to(ctx.out(), "({}, {}, {})", x, y, z);
 	}
@@ -213,7 +210,7 @@ TVec3<T> TVec3<T>::reject(const TVec3& r) const {
 
 template<typename T> SGE_INLINE
 TVec3<T> TVec3<T>::reflect(const TVec3& r) const {
-	// bounce-like reflect
+//	bounce-like reflect
 	TVec3 proj = project(r);
 	if (proj.equals0()) {
 		return s_zero();

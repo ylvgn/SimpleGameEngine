@@ -29,15 +29,14 @@ public:
 	const Pose& restPose() const { return _restPose; }
 	const Pose& bindPose() const { return _bindPose; }
 
-	      Span<      mat4f> invBindPose()		{ return _invBindPose; }
-	const Span<const mat4f> invBindPose() const	{ return _invBindPose; }
+	      Span<      mat4f> invBindPose()			{ return _invBindPose; }
+	const Span<const mat4f> invBindPose()	const	{ return _invBindPose; }
 
-	      Span<      String> jointNames()		{ return _jointNames.span(); }
-	const Span<const String> jointNames() const	{ return _jointNames.span(); }
+	      Span<      String> jointNames()			{ return _jointNames.span(); }
+	const Span<const String> jointNames()	const	{ return _jointNames.span(); }
 
-	StrView getJointName(int i) const { return _jointNames[i]; }
-
-	size_t getJointCount() const { return _restPose.getJointCount(); }
+	StrView getJointName(int i)				const	{ return _jointNames[i]; }
+	size_t	getJointCount()					const	{ return _restPose.getJointCount(); }
 
 	void getInvBindPose(Vector<mat4f>& out) const;
 	void getInvBindPose(Vector<dual_quat4f>& out) const;

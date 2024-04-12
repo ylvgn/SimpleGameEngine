@@ -18,20 +18,19 @@ class Pose {
 public:
 	Pose() = default;
 	Pose(size_t jointCount) { resize(jointCount); }
-
 	Pose(const Pose& r);
-	Pose& operator=(const Pose& r); // overload operator=, use memcpy for quick copy
 
-	bool operator== (const Pose& r) const;
-	bool operator!= (const Pose& r) const;
+	Pose&	operator=  (const Pose& r); // overload operator=, use memcpy for quick copy
+	bool	operator== (const Pose& r) const;
+	bool	operator!= (const Pose& r) const;
 
-	void clear();
-	void resize(size_t newJointCount);
+	void		clear();
+	void		resize(size_t newJointCount);
 
-	size_t getJointCount() const	{ return _jointTrans.size(); }
+	size_t		getJointCount() const	{ return _jointTrans.size(); }
 
-	int	getParent(int i) const		{ return _parentIds[i]; }
-	void setParent(int i, int p)	{ _parentIds[i] = p; }
+	int			getParent(int i) const	{ return _parentIds[i]; }
+	void		setParent(int i, int p)	{ _parentIds[i] = p; }
 
 	Transform	getLocalTransform(int i) const					{ return _jointTrans[i]; }
 	void		setLocalTransform(int i, const Transform& t)	{ _jointTrans[i] = t; }

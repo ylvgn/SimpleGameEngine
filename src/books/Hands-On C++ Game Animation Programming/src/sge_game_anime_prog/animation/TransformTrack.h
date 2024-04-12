@@ -33,15 +33,10 @@ public:
 
 	Transform sample(const Transform& t, const SampleRequest& sr) const;
 
-	void setId(u32 id)	{ _id = id; }
-	u32	 id() const		{ return _id; }
-
+	u32		jointId = 0;
 	VTRACK	position;
 	QTRACK	rotation;
 	VTRACK	scale;
-
-private:
-	u32		_id = 0; // jointId
 };
 
 using TransformTrack	 = TransformTrackT<VectorTrack, QuaternionTrack>;

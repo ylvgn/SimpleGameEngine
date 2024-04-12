@@ -17,45 +17,55 @@ namespace sge {
 	There is no need to re-set the pose that is sampled into so that it is the bind pose every frame.
 */
 
-template<typename TRACK>
+template<typename TRANSFORMTRACK>
 struct ClipT {
 public:
+	using TRACK			= TRANSFORMTRACK;
 	using SampleRequest = Track_SampleRequest;
 
 	ClipT()
 		: _name("")
 		, _startTime(0.f)
 		, _endTime(0.f)
-		, _isLoop(true) {}
+		, _isLoop(true)
+	{}
 
-	// a public helper function to figure out the start and end times of the animation clip.
-	// This function is intended to be called by the code that loads the animation clip from a file format.
-	void recalculateDuration();
+	static UPtr<TRACK> s_createTrack(u32 jointId) {
+		UPtr<TRACK> res = eastl::make_unique<TRACK>(); // do not use auto type, use explicit UPtr<TRACK>
+		res->jointId = jointId;
+		return res;
+	}
 
-	// The sample function takes a Pose reference and a time and returns a float value that is also a time.
 	float sample(Pose& out, float time) const;
 
-	// []operator is meant to retrieve the TransformTrack object for a specific joint in the clip.
-	TRACK& operator[](u32 jointId);
+	SGE_INLINE float	getStartTime()  const	{ return _startTime; }
+	SGE_INLINE float	getEndTime()	const	{ return _endTime; }
+	SGE_INLINE float	getDuration()	const	{ return _endTime - _startTime; }
 
-	float	getStartTime()  const  { return _startTime; }
-	float	getEndTime()	const  { return _endTime; }
-	float	getDuration()	const  { return _endTime - _startTime; }
+	SGE_INLINE bool		isLoop()		const	{ return _isLoop; }
+	SGE_INLINE void		setIsLoop(bool isLoop)	{ _isLoop = isLoop; }
 
-	bool	isLoop()		const  { return _isLoop; }
-	void	setIsLoop(bool isLoop) { _isLoop = isLoop; }
+	SGE_INLINE StrView	name()			const	{ return _name; }
+	SGE_INLINE void		setName(StrView name)	{ _name = name; }
 
-	StrView	name()			const  { return _name; }
-	void	setName(StrView name)  { _name = name; }
+	SGE_INLINE size_t	getTrackCount() const	{ return _tracks.size(); }
 
-	void setJointIdAtIndex(int i, u32 jointId)	{ _tracks[i]->setId(jointId); }
-	u32  getJointIdAtIndex(int i) const			{ return _tracks[i]->id(); }
+	TRACK* findTrackByJointId(u32 jointId);
 
-	size_t getTrackCount() const		{ return _tracks.size(); }
-	void reserve(size_t newtrackCount)	{ _tracks.reserve(newtrackCount); }
+	TRACK* getTrack_noCheck(size_t index) const { return _tracks[index].get(); }
+	TRACK* getTrack(size_t index) const {
+		if (index >= _tracks.size()) {
+			SGE_ASSERT(false);
+			return nullptr;
+		}
+		return getTrack_noCheck(index);
+	}
 
-	const Span<const UPtr<TRACK>> tracks() const	{ return _tracks; }
-	void appendTrack(UPtr<TRACK>&& t)				{ _tracks.emplace_back(std::move(t)); }
+	void reserve(size_t newTrackCount)			{ _tracks.reserve(newTrackCount); }
+	void appendTrack(UPtr<TRACK> && t)			{ _tracks.emplace_back(std::move(t)); }
+
+	void	recalculateDuration();
+	TRACK&	getOrCreateTrackByJointId(u32 jointId);
 
 private:
 	float _adjustTimeToFitRange(float time) const;

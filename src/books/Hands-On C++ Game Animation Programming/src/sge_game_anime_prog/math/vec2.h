@@ -51,9 +51,6 @@ struct TVec2 {
 	SGE_INLINE bool operator== (const TVec2& r) const { return x == r.x && y == r.y; }
 	SGE_INLINE bool operator!= (const TVec2& r) const { return !(this->operator==(r)); }
 
-	SGE_INLINE			T* ptr()		{ return data; }
-	SGE_INLINE const	T* ptr() const	{ return data; }
-
 	SGE_INLINE void onFormat(fmt::format_context& ctx) const {
 		fmt::format_to(ctx.out(), "({}, {})", x, y);
 	}

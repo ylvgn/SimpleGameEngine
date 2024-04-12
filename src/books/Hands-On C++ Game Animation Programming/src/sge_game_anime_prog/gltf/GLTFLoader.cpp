@@ -45,7 +45,7 @@ int getNodeIndex(const cgltf_node* target, const cgltf_node* allNodes, cgltf_siz
 	}
 	for (int i = 0; i < nodeCount; ++i) {
 		if (target == &allNodes[i]) {
-			return i; // it will be a unit index in allNodes, so it is jointId
+			return i; // it will be a unit index in allNodes, so it could be jointId
 		}
 	}
 	return -1; // invalid index
@@ -388,18 +388,21 @@ void GLTFLoader::_loadAnimationClips() {
 			int nodeIndex = GLTFHelpers::getNodeIndex(target, _data->nodes, nodeCount);
 			SGE_ASSERT(nodeIndex != -1);
 
+			u32 newJointId = nodeIndex;
+			auto& newTrack = o[i].getOrCreateTrackByJointId(newJointId);
+
 			// The[] operator of the Clip class either retrieves the current track or creates a new one.
 			// This means the TransformTrack function for the node that you are parsing is always valid
 			if (channel.target_path == cgltf_animation_path_type_translation) {
-				VectorTrack& track = o[i][nodeIndex].position;
+				VectorTrack& track = newTrack.position;
 				GLTFHelpers::getTrackFromChannel<vec3f, 3>(track, channel);
 			}
 			else if (channel.target_path == cgltf_animation_path_type_rotation) {
-				QuaternionTrack& track = o[i][nodeIndex].rotation;
+				QuaternionTrack& track = newTrack.rotation;
 				GLTFHelpers::getTrackFromChannel<quat4f, 4>(track, channel);
 			}
 			else if (channel.target_path == cgltf_animation_path_type_scale) {
-				VectorTrack& track = o[i][nodeIndex].scale;
+				VectorTrack& track = newTrack.scale;
 				GLTFHelpers::getTrackFromChannel<vec3f, 3>(track, channel);
 			}
 		}

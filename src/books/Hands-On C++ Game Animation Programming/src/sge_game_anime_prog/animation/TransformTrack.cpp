@@ -1,5 +1,4 @@
 #include "TransformTrack.h"
-#include "Track.h"
 
 namespace sge {
 
@@ -92,11 +91,10 @@ template TransformTrackT<FastVectorTrack, FastQuaternionTrack>;
 UPtr<FastTransformTrack> TransformTrackUtil::optimizeTransformTrack(const TransformTrack& src) {
 	UPtr<FastTransformTrack> res(new FastTransformTrack());
 
-	res->setId(src.id());
-
-	res->position = TrackUtil::optimizeTrack(src.position);
-	res->rotation = TrackUtil::optimizeTrack(src.rotation);
-	res->scale    = TrackUtil::optimizeTrack(src.scale);
+	res->jointId	= src.jointId;
+	res->position	= TrackUtil::optimizeTrack(src.position);
+	res->rotation	= TrackUtil::optimizeTrack(src.rotation);
+	res->scale		= TrackUtil::optimizeTrack(src.scale);
 
 	return res;
 }

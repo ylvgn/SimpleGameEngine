@@ -21,6 +21,9 @@ struct Track_SampleRequest {
 	bool  isLoop : 1;
 };
 
+#if 0
+#pragma mark ================= Track ====================
+#endif
 template<typename T, size_t N>
 struct Track {
 public:
@@ -29,8 +32,8 @@ public:
 
 	constexpr static int kInvalidFrameIndex = -1;
 
-	void clear()					{ _frames.clear(); }
-	void resize(size_t frameCount)	{ _frames.resize(frameCount); }
+	void clear()						{ _frames.clear(); }
+	void resize(size_t newFrameCount)	{ _frames.resize(newFrameCount); }
 
 	size_t getFrameCount()	 const { return _frames.size(); }
 
@@ -42,8 +45,7 @@ public:
 	float saveGetEndTime()   const { return isValid() ? _frames[_frames.size() - 1].time : 0; }
 	float saveGetDuration()  const { return isValid() ? saveGetStartTime() - saveGetEndTime() : 0; }
 
-	// For a track to be valid, it needs to have two or more frames
-	bool isValid()  const { return _frames.size() > 1; }
+	bool isValid()  const { return _frames.size() > 1; } // For a track to be valid, it needs to have two or more frames
 	bool isValid2() const { return isValid() && getDuration() > 0; }
 
 	T sample(const SampleRequest& sr) const;
@@ -71,8 +73,8 @@ protected:
 };
 
 using ScalarTrack		= Track<float, 1>;
-using VectorTrack		= Track<vec3f, 3>;
-using QuaternionTrack	= Track<quat4f,4>;
+using VectorTrack		= Track<vec3f,  vec3f::kElementCount>;
+using QuaternionTrack	= Track<quat4f, quat4f::kElementCount>;
 
 #if 0
 #pragma mark ------------------- FastTrack -------------------
@@ -100,8 +102,8 @@ private:
 };
 
 using FastScalarTrack		= FastTrack<float, 1>;
-using FastVectorTrack		= FastTrack<vec3f, 3>;
-using FastQuaternionTrack	= FastTrack<quat4f,4>;
+using FastVectorTrack		= FastTrack<vec3f,  vec3f::kElementCount>;
+using FastQuaternionTrack	= FastTrack<quat4f, quat4f::kElementCount>;
 
 #if 0
 #pragma mark ------------------- TrackUtil -------------------

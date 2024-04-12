@@ -1,5 +1,4 @@
 #include "Clip.h"
-#include "TransformTrack.h"
 
 namespace sge {
 
@@ -26,7 +25,47 @@ float ClipT<TRACK>::_adjustTimeToFitRange(float time) const {
 }
 
 template<typename TRACK>
+float ClipT<TRACK>::sample(Pose& out, float time) const {
+// The sample function takes a Pose reference and a time and returns a float value that is also a time.
+	if (getDuration() == 0.f) {
+		return 0;
+	}
+
+	// make sure the clip is valid and that the time is in the range of the clip.
+	time = _adjustTimeToFitRange(time);
+
+	SampleRequest sr;
+	sr.isLoop = _isLoop;
+	
+	for (auto& track : _tracks) {
+		Transform local = out.getLocalTransform(track->jointId);
+
+		// If a component of a transform isn't animated,
+		// the reference components are used to provide default values.
+
+		sr.time = time;
+		Transform animated = track->sample(local, sr);
+
+		out.setLocalTransform(track->jointId, animated);
+	}
+
+	return time;
+}
+
+template<typename TRACK>
+TRACK* ClipT<TRACK>::findTrackByJointId(u32 jointId) {
+	for (auto& tracks : _tracks) {
+		if (tracks->jointId == jointId) {
+			return tracks.get();
+		}
+	}
+	return nullptr;
+}
+
+template<typename TRACK>
 void ClipT<TRACK>::recalculateDuration() {
+// a public helper function to figure out the start and end times of the animation clip.
+// This function is intended to be called by the code that loads the animation clip from a file format.
 	_startTime = 0.f;
 	_endTime   = 0.f;
 
@@ -46,50 +85,18 @@ void ClipT<TRACK>::recalculateDuration() {
 */
 }
 
-template<typename TRACK>
-float ClipT<TRACK>::sample(Pose& out, float time) const {
-	if (getDuration() == 0.f) {
-		return 0;
-	}
-
-	// make sure the clip is valid and that the time is in the range of the clip.
-	time = _adjustTimeToFitRange(time);
-
-	SampleRequest sr;
-	sr.isLoop = _isLoop;
-	
-	for (auto& track : _tracks) {
-		u32 jointId		= track->id();
-		Transform local = out.getLocalTransform(jointId);
-
-		// If a component of a transform isn't animated,
-		// the reference components are used to provide default values.
-
-		sr.time = time;
-		Transform animated = track->sample(local, sr);
-
-		out.setLocalTransform(jointId, animated);
-	}
-
-	return time;
-}
-
 // returns a transform track for the specified track(joint).
 // If no track exists for the specified track(joint), one is created and returned.
 template<typename TRACK>
-TRACK& ClipT<TRACK>::operator[] (u32 jointId) {
+TRACK& ClipT<TRACK>::getOrCreateTrackByJointId(u32 jointId) {
 	// This function is mainly used by whatever code loads the animation clip from a file.
+	TRACK* p = findTrackByJointId(jointId);
+	if (p) return *p;
 
-	for (int i = 0; i < _tracks.size(); ++i) {
-		if (_tracks[i]->id() == jointId) {
-			return *_tracks[i].get();
-		}
-	}
+	UPtr<TRACK> newTransformTrack = s_createTrack(jointId);
 	_tracks.reserve(_tracks.size() + 1);
-	UPtr<TRACK> newTransformTrack = eastl::make_unique<TRACK>(); // do not use auto type, use explicit UPtr<T>
-	_tracks.push_back(std::move(newTransformTrack));
+	_tracks.emplace_back(std::move(newTransformTrack));
 	auto& res = _tracks.back();
-	res->setId(jointId);
 	return *res.get();
 }
 
@@ -102,10 +109,13 @@ template ClipT<FastTransformTrack>;
 FastClip ClipUtil::optimizeClip(const Clip& src) {
 	FastClip res;
 	res.reserve(src.getTrackCount());
-	for (auto& t : src.tracks()) {
-		UPtr<FastTransformTrack> fast = TransformTrackUtil::optimizeTransformTrack(*t.get());
-		res.appendTrack(std::move(fast));
+
+	for (int i = 0; i < src.getTrackCount(); i++) {
+		auto* p = src.getTrack_noCheck(i);
+		UPtr<FastTransformTrack> newTransformTrack = TransformTrackUtil::optimizeTransformTrack(*p);
+		res.appendTrack(std::move(newTransformTrack));
 	}
+
 	res.setName(src.name());
 	res.setIsLoop(src.isLoop());
 	res.recalculateDuration();

@@ -17,21 +17,22 @@ public:
 	Transform(const vec3f& t, const quat4f& r, const vec3f& s)
 		: position(t)
 		, rotation(r)
-		, scale(s) {}
+		, scale(s)
+	{}
 
 	bool operator==(const Transform& r) const { return position == r.position && rotation == r.rotation && scale == r.scale; }
 	bool operator!=(const Transform& r) const { return !this->operator==(r); }
 
 	// Instead of interpolation, this operation is typically called blend or mix.
 	// Being able to mix transformations together is important for creating smooth transitions between animations.
-	Transform mix(const Transform& r, float t) const;
+	Transform mix (const Transform& r, float t) const;
 	Transform lerp(const Transform& r, float t) const { return mix(r, t); }
 
 	Transform inverse() const;
 
-	vec3f forward()	const { return rotation * vec3f::s_forward(); }
-	vec3f right()	const { return rotation * vec3f::s_right(); }
-	vec3f up()		const { return rotation * vec3f::s_up(); }
+	vec3f forward	()	const { return rotation * vec3f::s_forward(); }
+	vec3f right		()	const { return rotation * vec3f::s_right(); }
+	vec3f up		()	const { return rotation * vec3f::s_up(); }
 
 	// same as multiplying a matrix and a point, but just step by step (SRT) in function transformPoint.
 	vec3f transformPoint(const vec3f& point) const {
