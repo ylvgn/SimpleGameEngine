@@ -158,8 +158,8 @@ namespace GDI {
 		return GetObject(brush, sizeof(o), &o);
 	}
 
-	inline ::HBRUSH createSolidBrush(const Color4b& c)	{ return ::CreateSolidBrush(COLORREF_make(c)); }
-	inline ::HBRUSH createSolidBrush(const Color4f& c)	{ return ::CreateSolidBrush(COLORREF_make(c)); }
+	inline ::HBRUSH createSolidBrush(const Color4b& c) { return ::CreateSolidBrush(COLORREF_make(c)); }
+	inline ::HBRUSH createSolidBrush(const Color4f& c) { return ::CreateSolidBrush(COLORREF_make(c)); }
 
 	inline void drawPoint(const ::HDC& hdc, int x, int y, const Color4b& c = GDI::kbBlack, int ptSize = 10) {
 		ScopedCreateSolidBrush brush(hdc, c);

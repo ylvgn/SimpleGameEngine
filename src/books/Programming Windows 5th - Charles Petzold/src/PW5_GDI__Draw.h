@@ -8,8 +8,6 @@
 namespace sge {
 namespace GDI {
 
-	using DTFlag = PW5_DrawTextFormatFlag;
-
 	inline int drawText(const ::HDC& hdc, int left, int top, int right, int bottom, StrView str, UINT flags) {
 		if (str.empty()) return 0;
 		::RECT ltrb { left, top, right, bottom };
@@ -85,8 +83,8 @@ namespace GDI {
 	}
 
 	inline bool chord(const ::HDC& hdc,
-					  int left, int top, int right, int bottom,
-					  int fromX, int fromY, int toX, int toY) {
+					  int left,  int top,   int right, int bottom,
+					  int fromX, int fromY, int toX,   int toY) {
 		return ::Chord(hdc, left, top, right, bottom, fromX, fromY, toX, toY);
 	}
 	inline bool chord(const ::HDC& hdc, const ::RECT& ltrb,
@@ -102,8 +100,8 @@ namespace GDI {
 	}
 
 	inline bool pie(const ::HDC& hdc,
-					int left, int top, int right, int bottom,
-					int fromX, int fromY, int toX, int toY) {
+					int left,  int top,   int right, int bottom,
+					int fromX, int fromY, int toX,   int toY) {
 		return ::Pie(hdc, left, top, right, bottom, fromX, fromY, toX, toY);
 	}
 	inline bool pie(const ::HDC& hdc, const ::RECT& ltrb,
@@ -144,6 +142,7 @@ namespace GDI {
 	}
 
 	inline void fillRect(const ::HDC& hdc, const ::RECT& rc, const ::HBRUSH& brush) {
+		// FillRect is used in logical coordinates
 		::SelectObject(hdc, brush);
 		::FillRect(hdc, &rc, brush);
 		::SelectObject(hdc, 0);

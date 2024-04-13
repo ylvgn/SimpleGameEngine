@@ -82,10 +82,14 @@ struct MyTextMetrics {
 
 } // namespace sge
 
+
 namespace sge {
 namespace GDI {
 
-	inline auto setTextAlign(::HDC hdc, PW5_TextAlignmentOption flags) {
+	using DTFlag = PW5_DrawTextFormatFlag;
+	using TAFlag = PW5_TextAlignmentOption;
+
+	inline auto setTextAlign(::HDC hdc, TAFlag flags) {
 		// https://github.com/MicrosoftDocs/win32/blob/docs/desktop-src/gdi/text-formatting-attributes.md
 		return ::SetTextAlign(hdc, enumInt(flags));
 	}

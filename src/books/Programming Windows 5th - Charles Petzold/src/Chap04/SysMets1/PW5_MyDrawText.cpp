@@ -63,12 +63,12 @@ LRESULT CALLBACK PW5_MyDrawText::s_wndProc(HWND hwnd, UINT message, WPARAM wPara
 			ps.drawText(rc, "DT\r\nLEFT",				DTFlag::Left	| DTFlag::WordBreak);
 			ps.drawText(rc, "DT\r\nCENTER",				DTFlag::Center	| DTFlag::WordBreak);
 			ps.drawText(rc, "DT\r\nRIGHT",				DTFlag::Right	| DTFlag::WordBreak);
-			ps.drawText(rc, "DT_LEFT | DT_VCENTER",		DTFlag::Left	| DTFlag::VCenter | DTFlag::SingleLine);
-			ps.drawText(rc, "DT_CENTER | DT_VCENTER",	DTFlag::Center	| DTFlag::VCenter | DTFlag::SingleLine);
-			ps.drawText(rc, "DT_RIGHT | DT_VCENTER",	DTFlag::Right	| DTFlag::VCenter | DTFlag::SingleLine);
-			ps.drawText(rc, "DT_LEFT | DT_BOTTOM",		DTFlag::Left	| DTFlag::Bottom  | DTFlag::SingleLine);
-			ps.drawText(rc, "DT_CENTER | DT_BOTTOM ",	DTFlag::Center	| DTFlag::Bottom  | DTFlag::SingleLine);
-			ps.drawText(rc, "DT_RIGHT | DT_BOTTOM",		DTFlag::Right	| DTFlag::Bottom  | DTFlag::SingleLine);
+			ps.drawText(rc, "DT_LEFT | DT_VCENTER",		DTFlag::Left	| DTFlag::VCenter	| DTFlag::SingleLine);
+			ps.drawText(rc, "DT_CENTER | DT_VCENTER",	DTFlag::Center	| DTFlag::VCenter	| DTFlag::SingleLine);
+			ps.drawText(rc, "DT_RIGHT | DT_VCENTER",	DTFlag::Right	| DTFlag::VCenter	| DTFlag::SingleLine);
+			ps.drawText(rc, "DT_LEFT | DT_BOTTOM",		DTFlag::Left	| DTFlag::Bottom	| DTFlag::SingleLine);
+			ps.drawText(rc, "DT_CENTER | DT_BOTTOM ",	DTFlag::Center	| DTFlag::Bottom	| DTFlag::SingleLine);
+			ps.drawText(rc, "DT_RIGHT | DT_BOTTOM",		DTFlag::Right	| DTFlag::Bottom	| DTFlag::SingleLine);
 
 			{
 				int x = rc.left + width / 4;
@@ -90,7 +90,6 @@ LRESULT CALLBACK PW5_MyDrawText::s_wndProc(HWND hwnd, UINT message, WPARAM wPara
 				int y = rc.top + height * 3 / 4;
 				Fmt_drawText(ps.hdc(), x, y, "SouthEast");
 			}
-
 			{
 				int x = rc.left + width / 2;
 				int y = rc.top + height / 4;

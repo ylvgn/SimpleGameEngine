@@ -10,11 +10,22 @@ namespace sge {
 
 class ScopedHDC_NoHWND : public NonCopyable {
 public:
-	using DTFlag		= PW5_DrawTextFormatFlag;
-	using MapMode		= PW5_MapMode;
-	using CoordinateDir = PW5_CoordinateDir;
+	using DTFlag			= GDI::DTFlag;
+	using TAFlag			= GDI::TAFlag;
+	using MapMode			= GDI::MapMode;
+	using CoordinateDir		= GDI::CoordinateDir;
+	using StockObj			= GDI::StockObj;
+	using StockObj_Brush	= GDI::StockObj_Brush;
+	using StockObj_Pen		= GDI::StockObj_Pen;
+	using StockObj_Font		= GDI::StockObj_Font;
 
 	virtual ~ScopedHDC_NoHWND() = default;
+
+	auto setMapMode(MapMode flag)			{ return GDI::setMapMode(_hdc, flag); }
+	MapMode getMapMode() const				{ return GDI::getMapMode(_hdc); }
+
+	auto dPtoLP(Vec2f& pt)					{ return GDI::dPtoLP(_hdc, pt); }
+	auto lPtoDP(Vec2f& pt)					{ return GDI::lPtoDP(_hdc, pt); }
 
 	auto setViewportOrg(int x, int y)		{ return GDI::setViewportOrg(_hdc, x, y); }
 	auto setViewportOrg(const Vec2f& pt)	{ return GDI::setViewportOrg(_hdc, pt); }
@@ -37,16 +48,10 @@ public:
 	auto getWindowExt(Vec2f& sz)			{ return GDI::getWindowExt(_hdc, sz); }
 	auto getWindowExt(Vec2i& sz)			{ return GDI::getWindowExt(_hdc, sz); }
 
-	auto dPtoLP(Vec2f& pt)					{ return GDI::dPtoLP(_hdc, pt); }
-	auto lPtoDP(Vec2f& pt)					{ return GDI::lPtoDP(_hdc, pt); }
-
-	auto setMapMode(MapMode flag)			{ return GDI::setMapMode(_hdc, flag); }
-	MapMode getMapMode() const				{ return GDI::getMapMode(_hdc); }
-
 	CoordinateDir getCoordViewportDir() const { return GDI::getCoordinateDir(_hdc, true); }
 	CoordinateDir getCoordWindowDir()	const { return GDI::getCoordinateDir(_hdc, false); }
 
-	auto setTextAlign(PW5_TextAlignmentOption flags) { return GDI::setTextAlign(_hdc, flags); }
+	auto setTextAlign(TAFlag flags) { return GDI::setTextAlign(_hdc, flags); }
 
 	auto textOut(int x, int y, StrView str)		const { return GDI::textOut(_hdc, x, y, str); }
 	auto textOut(const Vec2f& pt, StrView str)	const { return GDI::textOut(_hdc, pt, str); }
@@ -154,7 +159,8 @@ protected:
 class ScopedHDC_ : public ScopedHDC_NoHWND {
 	using Base = ScopedHDC_NoHWND;
 public:
-	ScopedHDC_(const ::HWND& hwnd) : _hwnd(hwnd) {}
+	ScopedHDC_(const ::HWND& hwnd)
+		: _hwnd(hwnd) {}
 
 	void getClientRectInDevice(Rect2f& o) {
 		::RECT rc;
@@ -173,13 +179,15 @@ public:
 		Win32Util::convert(o, rc);
 	}
 
-	void clearBg(PW5_StockLogicalObject_Brush flag = PW5_StockLogicalObject_Brush::White) {
+	void clearBg(const Color4b& solidColor);
+	void clearBg(StockObj_Brush flag = StockObj_Brush::White) {
 		::RECT rc;
 		getClientRectInLogical(rc);
-		GDI::fillRect(_hdc, rc, GDI::getStockObject(flag)); // FillRect is used in logical coordinates
-	}
 
-	void clearBg(const Color4b& color);
+		// fill up to but not including the right and bottom coordinates
+		// and This function doesn't require that you first select the brush into the device context(hdc)
+		GDI::fillRect(_hdc, rc, GDI::getStockObject(flag));
+	}
 
 protected:
 	const HWND& _hwnd;
@@ -209,14 +217,15 @@ class ScopedGetDC : public ScopedHDC_ {
 public:
 	ScopedGetDC(const ::HWND& hwnd) : Base(hwnd) {
 		_hdc = ::GetDC(hwnd);
-		if (!_hdc)
+		if (!_hdc) {
 			SGE_LOG_ERROR("ScopedGetDC GetDC");
+		}
 	}
 	~ScopedGetDC() {
-		if (_hdc) {
-			::ReleaseDC(_hwnd, _hdc);
-			_hdc = nullptr;
+		if (!::ReleaseDC(_hwnd, _hdc)) {
+			SGE_LOG_ERROR("~ScopedGetWindowDC ReleaseDC");
 		}
+		_hdc = nullptr;
 	}
 };
 
@@ -225,14 +234,15 @@ class ScopedGetWindowDC : public ScopedHDC_ {
 public:
 	ScopedGetWindowDC(const ::HWND& hwnd) : Base(hwnd) {
 		_hdc = ::GetWindowDC(hwnd);
-		if (!_hdc)
+		if (!_hdc) {
 			SGE_LOG_ERROR("ScopedGetWindowDC GetWindowDC");
+		}
 	}
 	~ScopedGetWindowDC() {
-		if (_hdc) {
-			::ReleaseDC(_hwnd, _hdc);
-			_hdc = nullptr;
+		if (!::ReleaseDC(_hwnd, _hdc)) {
+			SGE_LOG_ERROR("~ScopedGetWindowDC ReleaseDC");
 		}
+		_hdc = nullptr;
 	}
 };
 
@@ -242,8 +252,7 @@ public:
 	ScopedCreateDC( const wchar_t* pszDriver,
 					const wchar_t* pszDevice = nullptr,
 					const wchar_t* pszOutput = nullptr,
-					const ::DEVMODEW* pData  = nullptr)
-	{
+					const ::DEVMODEW* pData  = nullptr) {
 		_hdc = ::CreateDC(pszDriver, pszDevice, pszOutput, pData);
 		if (!_hdc) {
 			SGE_LOG_ERROR("ScopedCreateDC CreateDC");
@@ -251,10 +260,10 @@ public:
 	}
 
 	~ScopedCreateDC() {
-		if (_hdc) {
-			if (!::DeleteDC(_hdc)) SGE_LOG_ERROR("~ScopedCreateDC DeleteDC");
-			_hdc = nullptr;
+		if (!::DeleteDC(_hdc)) {
+			SGE_LOG_ERROR("~ScopedCreateDC DeleteDC");
 		}
+		_hdc = nullptr;
 	}
 };
 
@@ -264,19 +273,18 @@ public:
 	ScopedCreateIC( const wchar_t* pszDriver,
 					const wchar_t* pszDevice = nullptr,
 					const wchar_t* pszOutput = nullptr,
-					const ::DEVMODEW* pData = nullptr)
-	{
+					const ::DEVMODEW* pData  = nullptr) {
 		_hdc = ::CreateIC(pszDriver, pszDevice, pszOutput, pData);
-		if (!_hdc)
+		if (!_hdc) {
 			SGE_LOG_ERROR("ScopedCreateIC CreateIC");
+		}
 	}
 
 	~ScopedCreateIC() {
-		if (_hdc) {
-			if (!::DeleteDC(_hdc))
-				SGE_LOG_ERROR("~ScopedCreateIC DeleteDC");
-			_hdc = nullptr;
+		if (!::DeleteDC(_hdc)) {
+			SGE_LOG_ERROR("~ScopedCreateIC DeleteDC");
 		}
+		_hdc = nullptr;
 	}
 };
 
@@ -285,13 +293,15 @@ class ScopedCreateCompatibleDC : public ScopedHDC_NoHWND {
 public:
 	ScopedCreateCompatibleDC(::HDC srcHdc) {
 		_hdc = ::CreateCompatibleDC(srcHdc);
+		if (!_hdc) {
+			SGE_LOG_ERROR("ScopedCreateCompatibleDC CreateCompatibleDC");
+		}
 	}
 	~ScopedCreateCompatibleDC() {
-		if (_hdc) {
-			if (!::DeleteDC(_hdc))
-				SGE_LOG_ERROR("~ScopedCreateCompatibleDC DeleteDC");
-			_hdc = nullptr;
+		if (!::DeleteDC(_hdc)) {
+			SGE_LOG_ERROR("~ScopedCreateCompatibleDC DeleteDC");
 		}
+		_hdc = nullptr;
 	}
 };
 
@@ -307,7 +317,6 @@ public:
 	}
 	~ScopedSaveDC() {
 		if (!_id || !_hdc) return;
-			
 		if (!::RestoreDC(_hdc, _id)) {
 			SGE_LOG_ERROR("~ScopedSaveDC RestoreDC");
 			_hdc = nullptr;

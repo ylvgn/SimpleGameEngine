@@ -58,6 +58,9 @@ inline PW5_CoordinateDir PW5_CoordinateDir_make(PW5_Dir dir) {
 namespace sge {
 namespace GDI {
 
+	using MapMode		= PW5_MapMode;
+	using CoordinateDir = PW5_CoordinateDir;
+
 	// 25.4 mm ~= 1 inch
 	static constexpr float kInchToMMUnitFactor = 25.4f;
 	static constexpr float kMMToInchUnitFactor = 1.f / kInchToMMUnitFactor;
@@ -180,11 +183,11 @@ namespace GDI {
 		return mmToTwips(f);
 	}
 
-	inline auto setMapMode(::HDC hdc, PW5_MapMode flag) {
+	inline auto setMapMode(::HDC hdc, MapMode flag) {
 		return ::SetMapMode(hdc, enumInt(flag));
 	}
-	PW5_MapMode getMapMode(::HDC hdc) {
-		return static_cast<PW5_MapMode>(::GetMapMode(hdc));
+	MapMode getMapMode(::HDC hdc) {
+		return static_cast<MapMode>(::GetMapMode(hdc));
 	}
 
 	inline bool dPtoLP(const ::HDC& hdc, ::RECT& rect) {

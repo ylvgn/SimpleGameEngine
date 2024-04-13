@@ -127,6 +127,15 @@ struct ColorR {
 	constexpr ColorR() = default;
 	constexpr ColorR(const T& r_)
 		: r(r_) {}
+
+	SGE_INLINE void set(const T& r_) {
+		r = r_;
+	}
+
+	SGE_INLINE void set(const ColorR<T>& v) { *this = v; }
+
+	SGE_INLINE bool operator==(const ColorR<T>& v) const { return r == v.r }
+	SGE_INLINE bool operator!=(const ColorR<T>& v) const { return r != v.r }
 };
 
 template<class T>
@@ -145,6 +154,15 @@ struct ColorRG {
 	constexpr ColorRG(const T& r_, const T& g_)
 		: r(r_), g(g_) {}
 
+	SGE_INLINE void set(const T& r_, const T& g_) {
+		r = r_;
+		g = g_;
+	}
+
+	SGE_INLINE void set(const ColorRG<T>& v) { *this = v; }
+
+	SGE_INLINE bool operator==(const ColorRG<T>& v) const { return r == v.r && g == v.g; }
+	SGE_INLINE bool operator!=(const ColorRG<T>& v) const { return r != v.r || g != v.g; }
 };
 
 template<class T>
@@ -163,6 +181,16 @@ struct ColorRGB {
 	constexpr ColorRGB(const T& r_, const T& g_, const T& b_)
 		: r(r_), g(g_), b(b_) {}
 
+	SGE_INLINE void set(const T& r_, const T& g_, const T& b_) {
+		r = r_;
+		g = g_;
+		b = b_;
+	}
+
+	SGE_INLINE void set(const ColorRGB<T>& v) { *this = v; }
+
+	SGE_INLINE bool operator==(const ColorRGB<T>& v) const { return r == v.r && g == v.g && b == v.b; }
+	SGE_INLINE bool operator!=(const ColorRGB<T>& v) const { return r != v.r || g != v.g || b != v.b; }
 };
 
 template<class T>
@@ -187,14 +215,17 @@ struct ColorRGBA {
 	Tuple4<T>	toTuple() const { return Tuple4<T>(r,g,b,a); }
 	operator Tuple4<T>() const { return toTuple(); }
 
-	void set(const T& r_, const T& g_, const T& b_, const T& a_) {
+	SGE_INLINE void set(const T& r_, const T& g_, const T& b_, const T& a_) {
 		r = r_;
 		g = g_;
 		b = b_;
 		a = a_;
 	}
 
-	void set(const ColorRGBA<T>& v) { *this = v; }
+	SGE_INLINE void set(const ColorRGBA<T>& v) { *this = v; }
+
+	SGE_INLINE bool operator==(const ColorRGBA<T>& v) const { return r == v.r && g == v.g && b == v.b && a == v.a; }
+	SGE_INLINE bool operator!=(const ColorRGBA<T>& v) const { return r != v.r || g != v.g || b != v.b || a != v.a; }
 
 	template<class SE>
 	void onJson(SE& se) {
@@ -220,6 +251,15 @@ struct ColorL {
 	constexpr ColorL() = default;
 	constexpr ColorL(const T& l_)
 		: l(l_) {}
+
+	SGE_INLINE void set(const T& l_) {
+		l = l_;
+	}
+
+	SGE_INLINE void set(const ColorL<T>& v) { *this = v; }
+
+	SGE_INLINE bool operator==(const ColorL<T>& v) const { return l == v.l; }
+	SGE_INLINE bool operator!=(const ColorL<T>& v) const { return l != v.l; }
 };
 
 template<class T>
@@ -237,6 +277,16 @@ struct ColorLA {
 	constexpr ColorLA() = default;
 	constexpr ColorLA(const T& l_, const T& a_)
 		: l(l_), a(a_) {}
+
+	SGE_INLINE void set(const T& l_, const T& a_) {
+		l = l_;
+		a = a_;
+	}
+
+	SGE_INLINE void set(const ColorLA<T>& v) { *this = v; }
+
+	SGE_INLINE bool operator==(const ColorLA<T>& v) const { return l == v.l; && a == v.a; }
+	SGE_INLINE bool operator!=(const ColorLA<T>& v) const { return l != v.l; || a != v.a; }
 };
 
 using ColorRGBAf = ColorRGBA<float>;

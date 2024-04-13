@@ -71,16 +71,21 @@ SGE_ENUM_ALL_OPERATOR(PW5_StockLogicalObject)
 namespace sge {
 namespace GDI {
 
-	inline ::HGDIOBJ getStockObject(PW5_StockLogicalObject flag) {
+	using StockObj			= PW5_StockLogicalObject;
+	using StockObj_Brush	= PW5_StockLogicalObject_Brush;
+	using StockObj_Pen		= PW5_StockLogicalObject_Pen;
+	using StockObj_Font		= PW5_StockLogicalObject_Font;
+
+	inline ::HGDIOBJ getStockObject(StockObj flag) {
 		return ::GetStockObject(enumInt(flag));
 	}
-	inline ::HBRUSH getStockObject(PW5_StockLogicalObject_Brush flag) {
+	inline ::HBRUSH getStockObject(StockObj_Brush flag) {
 		return GetStockBrush(enumInt(flag));
 	}
-	inline ::HPEN getStockObject(PW5_StockLogicalObject_Pen flag) {
+	inline ::HPEN getStockObject(StockObj_Pen flag) {
 		return GetStockPen(enumInt(flag));
 	}
-	inline ::HFONT getStockObject(PW5_StockLogicalObject_Font flag) {
+	inline ::HFONT getStockObject(StockObj_Font flag) {
 		return GetStockFont(enumInt(flag));
 	}
 

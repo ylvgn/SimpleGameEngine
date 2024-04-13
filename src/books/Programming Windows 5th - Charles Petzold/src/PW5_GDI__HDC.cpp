@@ -16,12 +16,16 @@ void ScopedHDC_NoHWND::drawPoint(const Vec2i& pt, const Color4b& c, int ptSize)	
 	GDI::drawPoint(_hdc, pt, c, ptSize);
 }
 
-void ScopedHDC_::clearBg(const Color4b& color = GDI::kbWhite) {
+void ScopedHDC_::clearBg(const Color4b& solidColor) {
+	if (solidColor == GDI::kbWhite || solidColor == GDI::kbBlack) {
+		clearBg(solidColor == GDI::kbWhite ? StockObj_Brush::White : StockObj_Brush::Black);
+		return;
+	}
+
 	::RECT rc;
 	getClientRectInLogical(rc);
-
-	ScopedCreateSolidBrush brush(_hdc, color);
-	GDI::fillRect(_hdc, rc, brush); // FillRect is used in logical coordinates
+	ScopedCreateSolidBrush scopedBrush(_hdc, solidColor);
+	GDI::fillRect(_hdc, rc, scopedBrush);
 }
 
 }
