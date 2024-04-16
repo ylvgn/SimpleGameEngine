@@ -21,11 +21,8 @@ void ScopedHDC_::clearBg(const Color4b& solidColor) {
 		clearBg(solidColor == GDI::kbWhite ? StockObj_Brush::White : StockObj_Brush::Black);
 		return;
 	}
-
-	::RECT rc;
-	getClientRectInLogical(rc);
-	ScopedCreateSolidBrush scopedBrush(_hdc, solidColor);
-	GDI::fillRect(_hdc, rc, scopedBrush);
+	ScopedCreateSolidBrush brush(_hdc, solidColor);
+	clearBg(brush);
 }
 
 }

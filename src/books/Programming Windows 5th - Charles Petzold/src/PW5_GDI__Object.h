@@ -9,7 +9,7 @@ namespace sge {
 class ScopedSelectObject : public ScopedHDC_NoHWND {
 	using Base = ScopedHDC_NoHWND;
 public:
-	ScopedSelectObject(::HDC hdc, ::HGDIOBJ obj) {
+	ScopedSelectObject(::HDC hdc, const ::HGDIOBJ& obj) {
 		_hdc = hdc;
 		_last = ::SelectObject(hdc, obj);
 	}

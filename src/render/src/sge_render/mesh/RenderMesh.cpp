@@ -21,8 +21,8 @@ static bool hasAttr(size_t arraySize, size_t vertexCount) {
 /*
 	|--offset--|
 	| position , uv , color || position , uv , color | ...
-	|---------stride--------|
-	[        vertex1        ][        vertex2        ]
+	|---------stride--------||---------stride--------| ...
+	[        vertex1        ][        vertex2        ] ...
 */
 template<class DST, class T> inline
 static void copyVertexData(DST* dst
@@ -114,9 +114,9 @@ void RenderSubMesh::create(const EditMesh& src) {
 	auto vc = _vertexCount;
 
 	for (auto& e : vertexLayout->elements) {
-		using S = VertexSemantic;
-		using ST = VertexSemanticType;
-		using U = VertexSemanticUtil;
+		using S		= VertexSemantic;
+		using ST	= VertexSemanticType;
+		using U		= VertexSemanticUtil;
 
 		auto semanticType = U::getType(e.semantic);
 		auto semanticIndex = U::getIndex(e.semantic);
@@ -155,8 +155,9 @@ void RenderSubMesh::create(const EditMesh& src) {
 	auto* renderer = Renderer::instance();
 	{
 		RenderGpuBuffer::CreateDesc desc;
-		desc.type = RenderGpuBufferType::Vertex;
+		desc.type		= RenderGpuBufferType::Vertex;
 		desc.bufferSize = _vertexCount * vertexLayout->stride;
+
 		_vertexBuffer = renderer->createGpuBuffer(desc);
 		_vertexBuffer->uploadToGpu(vertexData);
 	}
@@ -180,18 +181,19 @@ void RenderSubMesh::create(const EditMesh& src) {
 		}
 
 		RenderGpuBuffer::CreateDesc desc;
-		desc.type = RenderGpuBufferType::Index;
+		desc.type		= RenderGpuBufferType::Index;
 		desc.bufferSize = indexData.size();
+
 		_indexBuffer = renderer->createGpuBuffer(desc);
 		_indexBuffer->uploadToGpu(indexData);
 	}
 }
 
 void RenderSubMesh::clear() {
-	_vertexBuffer = nullptr;
-	_indexBuffer = nullptr;
-	_vertexCount = 0;
-	_indexCount = 0;
+	_vertexBuffer	= nullptr;
+	_indexBuffer	= nullptr;
+	_vertexCount	= 0;
+	_indexCount		= 0;
 }
 
 SGE_INLINE RenderPrimitiveType RenderSubMesh::primitive() const {

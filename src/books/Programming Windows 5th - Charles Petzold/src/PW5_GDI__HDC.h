@@ -172,21 +172,23 @@ public:
 		::GetClientRect(_hwnd, &o); // GetClientRect (which is always in terms of device units)
 		GDI::dPtoLP(_hdc, o);
 	}
-
 	void getClientRectInLogical(Rect2f& o) {
 		::RECT rc;
 		getClientRectInLogical(rc);
 		Win32Util::convert(o, rc);
 	}
 
-	void clearBg(const Color4b& solidColor);
-	void clearBg(StockObj_Brush flag = StockObj_Brush::White) {
+	void clearBg(const ::HBRUSH& brush) {
 		::RECT rc;
 		getClientRectInLogical(rc);
 
 		// fill up to but not including the right and bottom coordinates
-		// and This function doesn't require that you first select the brush into the device context(hdc)
-		GDI::fillRect(_hdc, rc, GDI::getStockObject(flag));
+		// and This function doesn't require that you first select the brush into the device context: SelectObject(hdc, brush);
+		::FillRect(_hdc, &rc, brush); // FillRect is used in logical coordinates
+	}
+	void clearBg(const Color4b& solidColor);
+	void clearBg(StockObj_Brush flag = StockObj_Brush::White) {
+		clearBg(GDI::getStockObject(flag));
 	}
 
 protected:
@@ -202,6 +204,7 @@ public:
 			SGE_LOG_ERROR("ScopedPaintStruct BeginPaint");
 		}
 	}
+
 	~ScopedPaintStruct() { ::EndPaint(_hwnd, &_ps); }
 
 			::HDC	hdc()		const { return _ps.hdc;		}
@@ -221,6 +224,7 @@ public:
 			SGE_LOG_ERROR("ScopedGetDC GetDC");
 		}
 	}
+
 	~ScopedGetDC() {
 		if (!::ReleaseDC(_hwnd, _hdc)) {
 			SGE_LOG_ERROR("~ScopedGetWindowDC ReleaseDC");
@@ -238,6 +242,7 @@ public:
 			SGE_LOG_ERROR("ScopedGetWindowDC GetWindowDC");
 		}
 	}
+
 	~ScopedGetWindowDC() {
 		if (!::ReleaseDC(_hwnd, _hdc)) {
 			SGE_LOG_ERROR("~ScopedGetWindowDC ReleaseDC");
@@ -249,6 +254,7 @@ public:
 class ScopedCreateDC : public ScopedHDC_NoHWND {
 	using Base = ScopedHDC_NoHWND;
 public:
+
 	ScopedCreateDC( const wchar_t* pszDriver,
 					const wchar_t* pszDevice = nullptr,
 					const wchar_t* pszOutput = nullptr,

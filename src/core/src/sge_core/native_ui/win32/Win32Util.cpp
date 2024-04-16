@@ -1,11 +1,12 @@
 #include "Win32Util.h"
+
 #include <sge_core/input/UIEvent.h>
 
 namespace sge {
 
 int Win32Util::toVKKey(const KeyCode& i) {
 
-	#define CASE_E(SGE_T, WIN32_VK_T) case KeyCode::SGE_T: return WIN32_VK_T;
+#define CASE_E(SGE_T, WIN32_VK_T) case KeyCode::SGE_T: return WIN32_VK_T;
 	switch (i) {
 		CASE_E(Ctrl,			VK_CONTROL)
 		CASE_E(LCtrl,			VK_LCONTROL)
@@ -47,16 +48,16 @@ int Win32Util::toVKKey(const KeyCode& i) {
 		CASE_E(F10,				VK_F10)
 		CASE_E(F11,				VK_F11)
 		CASE_E(F12,				VK_F12)
-		CASE_E(Alpha0,			'0') // 1!
-		CASE_E(Alpha1,			'1') // 2@
-		CASE_E(Alpha2,			'2') // 3#
-		CASE_E(Alpha3,			'3') // 4$
-		CASE_E(Alpha4,			'4') // 5%
-		CASE_E(Alpha5,			'5') // 6^
-		CASE_E(Alpha6,			'6') // 7&
-		CASE_E(Alpha7,			'7') // 8*
-		CASE_E(Alpha8,			'8') // 9(
-		CASE_E(Alpha9,			'9') // 10)
+		CASE_E(Alpha1,			'1') // 1!
+		CASE_E(Alpha2,			'2') // 2@
+		CASE_E(Alpha3,			'3') // 3#
+		CASE_E(Alpha4,			'4') // 4$
+		CASE_E(Alpha5,			'5') // 5%
+		CASE_E(Alpha6,			'6') // 6^
+		CASE_E(Alpha7,			'7') // 7&
+		CASE_E(Alpha8,			'8') // 8*
+		CASE_E(Alpha9,			'9') // 9(
+		CASE_E(Alpha0,			'0') // 0)
 		CASE_E(A,				'A')
 		CASE_E(B,				'B')
 		CASE_E(C,				'C')
@@ -113,7 +114,7 @@ int Win32Util::toVKKey(const KeyCode& i) {
 		CASE_E(KeypadPlus,		VK_ADD)		 // +
 		CASE_E(KeypadPeriod,	VK_DECIMAL)	 // .
 	}
-	#undef CASE_E
+#undef CASE_E
 	return 0;
 }
 

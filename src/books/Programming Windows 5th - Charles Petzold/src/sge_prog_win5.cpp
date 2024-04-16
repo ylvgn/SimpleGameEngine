@@ -23,12 +23,13 @@
 #include "Chap05/AltWind/PW5_AltWind.h"
 #include "Chap05/WhatSize/PW5_MyMappingMode.h"
 #include "Chap05/WhatSize/PW5_WhatSize.h"
+#include "Chap05/RandRect/PW5_MyRectangle.h"
 
 namespace sge {
 
 class ProgWin5App : public NativeUIApp {
 	using Base = NativeUIApp;
-	using ProgWin5MainWin = PW5_WhatSize;
+	using ProgWin5MainWin = PW5_MyRectangle;
 protected:
 	virtual void onCreate(CreateDesc& desc) override {
 		{ // set working dir

@@ -72,7 +72,6 @@ struct UIMouseEvent {
 
 #define UIKeyboardEventKeyCode_ENUM_LIST(_E) \
 	_E(None,) \
-	_E(Space,) \
 	_E(Escape,) \
 	_E(BackQuote,) \
 	_E(Tab,) \
@@ -80,9 +79,8 @@ struct UIMouseEvent {
 	\
 	_E(Shift,)	_E(LShift,)	_E(RShift,)	\
 	_E(Ctrl,)	_E(LCtrl,)	_E(RCtrl,) \
-	_E(Alt,)	_E(LAlt,)	_E(RAlt,) \
 	_E(Cmd,)	_E(LCmd,)	_E(RCmd,) \
-	_E(Menu,) \
+	_E(Alt,)	_E(LAlt,)	_E(RAlt,) \
 	\
 	_E(F1,) _E(F2,) _E(F3,) _E(F4,)  _E(F5,)  _E(F6,) \
 	_E(F7,) _E(F8,) _E(F9,) _E(F10,) _E(F11,) _E(F12,) \
@@ -97,6 +95,7 @@ struct UIMouseEvent {
 	_E(LeftBracket,)	_E(RightBracket,)	_E(Backslash,) \
 	_E(Semicolon,)		_E(Quote,)			_E(Enter,) \
 	_E(Comma,)			_E(Period,)			_E(Slash,) \
+	_E(Space,) \
 	\
 	_E(Insert,)	 _E(Delete,) \
 	_E(Home,)	 _E(End,) \

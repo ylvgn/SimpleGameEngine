@@ -141,13 +141,6 @@ namespace GDI {
 		drawLine(hdc, iFrom, iTo);
 	}
 
-	inline void fillRect(const ::HDC& hdc, const ::RECT& rc, const ::HBRUSH& brush) {
-		// FillRect is used in logical coordinates
-		::SelectObject(hdc, brush);
-		::FillRect(hdc, &rc, brush);
-		::SelectObject(hdc, 0);
-	}
-
 } // namespace GDI
 } // namespace sge
 

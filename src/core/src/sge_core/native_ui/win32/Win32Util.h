@@ -88,4 +88,29 @@ struct Win32Util {
 
 } // namespace
 
+
+template<>
+struct fmt::formatter<::RECT> {
+	auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+	auto format(const ::RECT& v, fmt::format_context& ctx) {
+		return fmt::format_to(ctx.out(), "({}, {}, {}, {})", v.left, v.top, v.right, v.bottom);
+	}
+};
+
+template<>
+struct fmt::formatter<::POINT> {
+	auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+	auto format(const ::POINT& v, fmt::format_context& ctx) {
+		return fmt::format_to(ctx.out(), "({}, {})", v.x, v.y);
+	}
+};
+
+template<>
+struct fmt::formatter<::SIZE> {
+	auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
+	auto format(const ::SIZE& v, fmt::format_context& ctx) {
+		return fmt::format_to(ctx.out(), "({}, {})", v.cx, v.cy);
+	}
+};
+
 #endif // SGE_OS_WINDOWS
