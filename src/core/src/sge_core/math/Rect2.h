@@ -51,7 +51,7 @@ public:
 		return Vec2(xMin() + xMax(), yMin() + yMax()) * T(0.5);
 	}
 
-	SGE_INLINE bool isInside(const Vec2& pt) const {
+	SGE_INLINE bool ptInRect(const Vec2& pt) const {
 		return pt.x >= xMin() && pt.x <= xMax()
 			&& pt.y >= yMin() && pt.y <= yMax();
 	}
@@ -62,10 +62,18 @@ public:
 		T right		= Math::min(xMax(), r.xMax());
 		T bottom	= Math::min(yMax(), r.yMax());
 		auto o = Rect2(left, top, right - left, bottom - top);
-		if (!isInside(o.center())) {
+		if (!ptInRect(o.center())) {
 			o.x = o.y = o.w = o.h = 0;
 		}
 		return o;
+	}
+
+	Rect2<T> unionRect(const Rect2& r) const {
+		T left		= Math::min(xMin(), r.xMin());
+		T top		= Math::min(yMin(), r.yMin());
+		T right		= Math::max(xMax(), r.xMax());
+		T bottom	= Math::max(yMax(), r.yMax());
+		return Rect2(left, top, right - left, bottom - top);
 	}
 };
 

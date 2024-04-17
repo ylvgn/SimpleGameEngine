@@ -6,7 +6,8 @@ namespace sge {
 class NativeUIApp_Base : public AppBase {
 public:
 	struct CreateDesc {
-		int fps = 60;
+		u8 fps = 60;
+		u8 toleranceFrameCount = 20;
 	};
 
 			int  run(CreateDesc& desc);
@@ -22,6 +23,7 @@ protected:
 
 	u64   _tickCount = 0;
 	float _frameRate = 1.f / 60.f;
+	float _toleranceDt = _frameRate;
 	float _deltaTime = 0;
 	int   _exitCode  = 0;
 };

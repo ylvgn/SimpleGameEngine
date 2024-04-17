@@ -14,13 +14,12 @@ void NativeUIApp_Win32::onRun() {
 	Base::onRun();
 	_tickCount = GetTickCount64();
 
-	// https://learn.microsoft.com/en-us/windows/win32/winmsg/using-messages-and-message-queues
+	_win32_msg.message = static_cast<UINT>(~WM_QUIT);
 	while (_win32_msg.message != WM_QUIT) {
 		if (PeekMessage(&_win32_msg, NULL, 0, 0, PM_REMOVE)) {
 			TranslateMessage(&_win32_msg);
 			DispatchMessage(&_win32_msg);
-		}
-		else {
+		} else {
 			u64 thisTickCount = GetTickCount64();
 			float deltaTime = static_cast<float>(thisTickCount - _tickCount) * 0.001f;
 			_tickCount = thisTickCount;
