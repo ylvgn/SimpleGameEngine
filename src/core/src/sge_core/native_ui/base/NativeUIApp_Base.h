@@ -6,8 +6,6 @@ namespace sge {
 class NativeUIApp_Base : public AppBase {
 public:
 	struct CreateDesc {
-		u8 fps = 60;
-		u8 toleranceFrameCount = 20;
 	};
 
 			int  run(CreateDesc& desc);
@@ -15,17 +13,27 @@ public:
 			void quit(int returnCode);
 	virtual void willQuit() {}
 
+	void	setFps(int fps);
+	int		fps() const	{ return _fps; }
+
 protected:
 	virtual void onCreate(CreateDesc& desc) {}
 	virtual void onRun() {}
 	virtual void onUpdate(float dt) {};
 	virtual	void onQuit() {}
 
-	u64   _tickCount = 0;
-	float _frameRate = 1.f / 60.f;
-	float _toleranceDt = _frameRate;
-	float _deltaTime = 0;
-	int   _exitCode  = 0;
+	constexpr static int	kFastForwardFps			= 60;
+	constexpr static float	kFastForwardFrequency	= 1.f / kFastForwardFps;
+
+	u64		_tickCount			= 0;
+	float	_deltaTime			= 0;
+
+	int		_fps				= 60;
+	float	_targetFrequency	= 1.f / _fps;
+	float	_fastForwardMinSec	= _targetFrequency * 20 + kFastForwardFrequency;
+	float	_acceptableMaxSec	= _targetFrequency * 0.2f;
+
+	int		_exitCode			= 0;
 };
 
 }

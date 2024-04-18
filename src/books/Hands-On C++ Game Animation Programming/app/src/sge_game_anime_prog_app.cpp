@@ -68,12 +68,6 @@ public:
 		_drawUI();
 
 		_endRender();
-
-#if SGE_OS_WINDOWS
-		_timingInfo.cpu->endFrame();
-		_timingInfo.profilingHouseKeeping();
-		_timingInfo.cpu->beginFrame();
-#endif
 	}
 
 protected:
@@ -157,7 +151,6 @@ protected:
 
 #if SGE_OS_WINDOWS
 		_timingInfo.create(_hwnd);
-		_timingInfo.cpu->beginFrame();
 #endif
 
 		// set-up camera
@@ -301,7 +294,6 @@ private:
 
 #if SGE_OS_WINDOWS
 		_timingInfo.cpu->endSwapBuffer();
-		_timingInfo.cpu->endFrame();
 #endif
 	}
 
@@ -560,8 +552,9 @@ private:
 	UPtr<SampleContext>	_sampleContext;
 
 #if SGE_OS_WINDOWS
-	TimingInfo			_timingInfo;
 	TempString			_showText;
+public:
+	TimingInfo			_timingInfo;
 #endif
 };
 
@@ -591,9 +584,19 @@ protected:
 	}
 
 	virtual void onUpdate(float dt) override {
+#if SGE_OS_WINDOWS
+		auto& ti = _mainWin._timingInfo;
+		ti.cpu->beginFrame();
+#endif
+
 		_mainWin.update(dt);
 		_mainWin.render();
 		NuklearUI::UIInput input; // tricky
+
+#if SGE_OS_WINDOWS
+		ti.cpu->endFrame();
+		ti.profilingHouseKeeping();
+#endif
 	}
 
 private:

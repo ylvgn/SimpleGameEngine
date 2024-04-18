@@ -1,11 +1,9 @@
 #include "NativeUIApp_Base.h"
+#include <sge_core/math/Math.h>
 
 namespace sge {
 
 int NativeUIApp_Base::run(CreateDesc& desc) {
-	_frameRate		= 1.f / desc.fps;
-	_toleranceDt	= desc.toleranceFrameCount * _frameRate;
-
 	onCreate(desc);
 	onRun();
 
@@ -15,22 +13,24 @@ int NativeUIApp_Base::run(CreateDesc& desc) {
 void NativeUIApp_Base::update(float dt) {
 	_deltaTime += dt;
 
-	if (_deltaTime < _frameRate) {
+	// avoid overfrequency calls
+	constexpr static float kToleranceEpison = 0.015f;
+	if (_targetFrequency - _deltaTime > kToleranceEpison) {
 		return;
 	}
 
-	constexpr static int	kSupplyFps			= 60;
-	constexpr static float	kSupplyFrameRate	= 1.f / kSupplyFps;
-
-	if (_deltaTime > _toleranceDt + kSupplyFrameRate) {
-		int n = static_cast<int>(_deltaTime / kSupplyFrameRate);
-		_deltaTime = _deltaTime - n * kSupplyFrameRate;
-		float supplyDt = 2 * kSupplyFrameRate;
+	if (_deltaTime > _fastForwardMinSec) {
+		int n = static_cast<int>(Math::floor(_deltaTime / kFastForwardFrequency));
+		_deltaTime = _deltaTime - n * kFastForwardFrequency;
+		float doubleFrequency = 2 * kFastForwardFrequency;
 		while (n > 0) {
-			onUpdate(n == 1 ? kSupplyFrameRate : supplyDt);
+			onUpdate(n == 1 ? kFastForwardFrequency : doubleFrequency);
 			n -= 2;
 		}
-		if (_deltaTime < _frameRate) return;
+		// avoid overfrequency calls
+		if (_targetFrequency - _deltaTime > kToleranceEpison) {
+			return;
+		}
 	}
 	
 	onUpdate(_deltaTime);
@@ -40,6 +40,13 @@ void NativeUIApp_Base::update(float dt) {
 void NativeUIApp_Base::quit(int exitCode) {
 	_exitCode = exitCode;
 	onQuit();
+}
+
+void NativeUIApp_Base::setFps(int fps) {
+	_fps				= fps;
+	_targetFrequency	= 1.f / _fps;
+	_fastForwardMinSec	= _targetFrequency * 20 + kFastForwardFrequency;
+	_acceptableMaxSec	= _targetFrequency * 0.2f;
 }
 
 }

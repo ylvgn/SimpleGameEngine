@@ -16,6 +16,9 @@ protected:
 	virtual void onCreate(CreateDesc& desc) override;
 	virtual void onRun	() override;
 	virtual	void onQuit	() override;
+
+private:
+	DWORD _getMonitorDisplayFrequency();
 };
 
 }

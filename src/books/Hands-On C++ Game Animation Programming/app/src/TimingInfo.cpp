@@ -132,14 +132,17 @@ void TimingInfo_CPUStage::endSwapBuffer() {
 }
 
 void TimingInfo_CPUStage::snapShot() {
-	_info->_display.win32Events = _info->_accumulator.win32Events / 60.0;
-	_info->_display.frameUpdate = _info->_accumulator.frameUpdate / 60.0;
-	_info->_display.frameRender = _info->_accumulator.frameRender / 60.0;
-	_info->_display.imguiLogic  = _info->_accumulator.imguiLogic  / 60.0;
-	_info->_display.imguiRender = _info->_accumulator.imguiRender / 60.0;
-	_info->_display.swapBuffer  = _info->_accumulator.swapBuffer  / 60.0;
-	_info->_display.frameTime   = _info->_accumulator.frameTime   / 60.0;
-	_info->_display.deltaTime   = _info->_accumulator.deltaTime   / 60.f;
+	auto	fps = NativeUIApp::current()->fps();
+	float	f	= 1.f / fps;
+
+	_info->_display.win32Events = _info->_accumulator.win32Events * f;
+	_info->_display.frameUpdate = _info->_accumulator.frameUpdate * f;
+	_info->_display.frameRender = _info->_accumulator.frameRender * f;
+	_info->_display.imguiLogic  = _info->_accumulator.imguiLogic  * f;
+	_info->_display.imguiRender = _info->_accumulator.imguiRender * f;
+	_info->_display.swapBuffer  = _info->_accumulator.swapBuffer  * f;
+	_info->_display.frameTime   = _info->_accumulator.frameTime   * f;
+	_info->_display.deltaTime   = _info->_accumulator.deltaTime   * f;
 }
 
 void TimingInfo_CPUStage::_addTimeDiff(double& out) {
@@ -173,17 +176,15 @@ void TimingInfo::create(HWND hwnd) {
 }
 
 void TimingInfo::profilingHouseKeeping() {
-	++_frameCounter;
 	_isFirstSample = false;
 
-	if (_frameCounter >= 60) {
+	if (++_frameCounter >= NativeUIApp::current()->fps()) {
+		_frameCounter = 0;
 
 		cpu->snapShot();
 		gpu->snapShot();
 
-		_isSlowFrame = _display.frameTime >= _frameCounter;
-
-		_frameCounter = 0;
+		_isSlowFrame = _display.frameTime >= _frameBudget;
 		memset(&_accumulator, 0, sizeof(FrameTimer));
 	}
 }
