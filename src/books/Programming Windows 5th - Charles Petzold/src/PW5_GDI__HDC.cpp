@@ -16,12 +16,12 @@ void ScopedHDC_NoHWND::drawPoint(const Vec2i& pt, const Color4b& c, int ptSize)	
 	GDI::drawPoint(_hdc, pt, c, ptSize);
 }
 
-void ScopedHDC_::clearBg(const Color4b& solidColor) {
-	if (solidColor == GDI::kbWhite || solidColor == GDI::kbBlack) {
-		clearBg(solidColor == GDI::kbWhite ? StockObj_Brush::White : StockObj_Brush::Black);
+void ScopedHDC_::clearBg(const Color4b& c) {
+	if (c == GDI::kbWhite || c == GDI::kbBlack) {
+		clearBg(c == GDI::kbWhite ? StockObj_Brush::White : StockObj_Brush::Black);
 		return;
 	}
-	ScopedCreateSolidBrush brush(_hdc, solidColor);
+	ScopedCreateSolidBrush brush(_hdc, c);
 	clearBg(brush);
 }
 

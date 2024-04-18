@@ -186,10 +186,8 @@ public:
 		// and This function doesn't require that you first select the brush into the device context: SelectObject(hdc, brush);
 		::FillRect(_hdc, &rc, brush); // FillRect is used in logical coordinates
 	}
-	void clearBg(const Color4b& solidColor);
-	void clearBg(StockObj_Brush flag = StockObj_Brush::White) {
-		clearBg(GDI::getStockObject(flag));
-	}
+	void clearBg(const Color4b& c);
+	void clearBg(StockObj_Brush flag = StockObj_Brush::White) { clearBg(GDI::getStockObject(flag)); }
 
 protected:
 	const HWND& _hwnd;

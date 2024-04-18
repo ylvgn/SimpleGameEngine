@@ -24,12 +24,13 @@
 #include "Chap05/WhatSize/PW5_MyMappingMode.h"
 #include "Chap05/WhatSize/PW5_WhatSize.h"
 #include "Chap05/RandRect/PW5_MyRectangle.h"
+#include "Chap05/RandRect/PW5_RandRect.h"
 
 namespace sge {
 
 class ProgWin5App : public NativeUIApp {
 	using Base = NativeUIApp;
-	using ProgWin5MainWin = PW5_MyRectangle;
+	using ProgWin5MainWin = PW5_RandRect;
 protected:
 	virtual void onCreate(CreateDesc& desc) override {
 		{ // set working dir
@@ -50,6 +51,10 @@ protected:
 			winDesc.rect = { 10, 10, 720, 540 };
 			_mainWin.create(winDesc);
 		}
+	}
+
+	virtual void onUpdate(float dt) override {
+		_mainWin.update(dt);
 	}
 
 private:

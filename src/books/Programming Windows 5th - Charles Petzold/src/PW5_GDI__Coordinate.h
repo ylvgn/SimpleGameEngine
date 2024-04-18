@@ -4,7 +4,7 @@
 
 namespace sge {
 
-#define PW5_MapMode_ENUM_LIST(E)	\
+#define PW5_MapMode_ENUM_LIST(E)		\
 	E(None,			= 0)				\
 	/* fully constrained */				\
 	E(Text,			= MM_TEXT)			\
@@ -183,10 +183,10 @@ namespace GDI {
 		return mmToTwips(f);
 	}
 
-	inline auto setMapMode(::HDC hdc, MapMode flag) {
+	inline int setMapMode(::HDC hdc, MapMode flag) {
 		return ::SetMapMode(hdc, enumInt(flag));
 	}
-	MapMode getMapMode(::HDC hdc) {
+	inline MapMode getMapMode(::HDC hdc) {
 		return static_cast<MapMode>(::GetMapMode(hdc));
 	}
 

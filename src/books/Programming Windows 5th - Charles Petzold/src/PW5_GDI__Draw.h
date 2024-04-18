@@ -141,6 +141,9 @@ namespace GDI {
 		drawLine(hdc, iFrom, iTo);
 	}
 
+	int fillRect(const ::HDC& hdc, const Rect2f& xywh, const Color4b& c);
+	int fillRect(const ::HDC& hdc, const Rect2f& xywh, StockObj_Brush flag);
+
 } // namespace GDI
 } // namespace sge
 

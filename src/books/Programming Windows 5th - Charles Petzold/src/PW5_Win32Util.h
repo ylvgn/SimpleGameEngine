@@ -10,7 +10,8 @@ struct PW5_Win32Util {
 	static ::WNDCLASSEXA createWndClass(::HMODULE hInstance, StrViewA clsName, ::WNDPROC lpfnWndProc, UINT style = 0);
 	static ::WNDCLASSEXW createWndClass(::HMODULE hInstance, StrViewW clsName, ::WNDPROC lpfnWndProc, UINT style = 0);
 
-	static void registerWndClass(::WNDCLASSEX& wc);
+	static void		registerWndClass(::WNDCLASSEX& wc);
+	static DWORD	displayFrequency(::HWND hwnd);
 };
 
 inline
@@ -65,6 +66,22 @@ void PW5_Win32Util::registerWndClass(::WNDCLASSEX& wc) {
 	}
 }
 
+inline
+DWORD PW5_Win32Util::displayFrequency(::HWND hwnd) {
+	::HMONITOR hMonitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTOPRIMARY);
+
+	::MONITORINFOEX monitorInfo;
+	monitorInfo.cbSize = sizeof(monitorInfo);
+	::GetMonitorInfo(hMonitor, &monitorInfo);
+
+	::DEVMODE devMode;
+	devMode.dmSize = sizeof(devMode);
+	devMode.dmDriverExtra = 0;
+	::EnumDisplaySettings(monitorInfo.szDevice, ENUM_CURRENT_SETTINGS, &devMode);
+
+	return devMode.dmDisplayFrequency;
 }
 
-#endif
+}
+
+#endif // SGE_OS_WINDOWS
