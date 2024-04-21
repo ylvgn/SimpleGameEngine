@@ -18,19 +18,19 @@ SGE_ENUM_ALL_OPERATOR(PW5_StockLogicalObject_Brush)
 
 // The stock pens are 1 pixel wide default
 #define PW5_StockLogicalObject_Pen_ENUM_LIST(E) \
-	E(None,		= NULL_PEN)	/* NULL_PEN is a pen that doesn't draw */	\
+	E(None,		= NULL_PEN	/* NULL_PEN is a pen that doesn't draw */ ) \
 	E(White,	= WHITE_PEN) \
-	E(Black,	= BLACK_PEN) /*default pen*/ \
+	E(Black,	= BLACK_PEN) \
 //----
 SGE_ENUM_CLASS(PW5_StockLogicalObject_Pen, u8)
 
 #define PW5_StockLogicalObject_Font_ENUM_LIST(E) \
-	E(OemFixed,		= OEM_FIXED_FONT) \
-	E(AnsiFixed,	= ANSI_FIXED_FONT) \
-	E(AnsiVar,		= ANSI_VAR_FONT) \
-	E(System,		= SYSTEM_FONT) \
-	E(DeviceDefault,= DEVICE_DEFAULT_FONT) \
-	E(SystemFixed,	= SYSTEM_FIXED_FONT) \
+	E(OemFixed,		= OEM_FIXED_FONT		) \
+	E(AnsiFixed,	= ANSI_FIXED_FONT		) \
+	E(AnsiVar,		= ANSI_VAR_FONT			) \
+	E(System,		= SYSTEM_FONT			) \
+	E(DeviceDefault,= DEVICE_DEFAULT_FONT	) \
+	E(SystemFixed,	= SYSTEM_FIXED_FONT		) \
 //----
 SGE_ENUM_CLASS(PW5_StockLogicalObject_Font, u8)
 
@@ -45,17 +45,18 @@ constexpr PW5_StockLogicalObject PW5_StockLogicalObject_make(PW5_StockLogicalObj
 	return static_cast<PW5_StockLogicalObject>(enumInt(v));
 }
 #define PW5_StockLogicalObject_ENUM_LIST(E) \
+	/* Brush */ \
 	E(WhiteBrush,		= PW5_StockLogicalObject_make(PW5_StockLogicalObject_Brush::White)) \
 	E(LtGrayBrush,		= PW5_StockLogicalObject_make(PW5_StockLogicalObject_Brush::LtGray)) \
 	E(GrayBrush,		= PW5_StockLogicalObject_make(PW5_StockLogicalObject_Brush::Gray)) \
 	E(DkGrayBrush,		= PW5_StockLogicalObject_make(PW5_StockLogicalObject_Brush::DkGray)) \
 	E(BlackBrush,		= PW5_StockLogicalObject_make(PW5_StockLogicalObject_Brush::Black)) \
 	E(HollowBrush,		= PW5_StockLogicalObject_make(PW5_StockLogicalObject_Brush::Hollow)) \
-	\
+	/* Pen */ \
 	E(NonePen,			= PW5_StockLogicalObject_make(PW5_StockLogicalObject_Pen::None)) \
 	E(WhitePen,			= PW5_StockLogicalObject_make(PW5_StockLogicalObject_Pen::White)) \
 	E(BlackPen,			= PW5_StockLogicalObject_make(PW5_StockLogicalObject_Pen::Black)) \
-	\
+	/* Font */ \
 	E(OemFixedFont,		= PW5_StockLogicalObject_make(PW5_StockLogicalObject_Font::OemFixed)) \
 	E(AnsiFixedFont,	= PW5_StockLogicalObject_make(PW5_StockLogicalObject_Font::AnsiFixed)) \
 	E(AnsiVarFont,		= PW5_StockLogicalObject_make(PW5_StockLogicalObject_Font::AnsiVar)) \

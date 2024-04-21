@@ -6,8 +6,7 @@
 
 namespace sge {
 
-class ScopedSelectObject : public ScopedHDC_NoHWND {
-	using Base = ScopedHDC_NoHWND;
+class ScopedSelectObject : public MyHDC_Base {
 public:
 	ScopedSelectObject(::HDC hdc, const ::HGDIOBJ& obj) {
 		_hdc = hdc;
@@ -25,7 +24,7 @@ private:
 class ScopedSelectStockObject : public ScopedSelectObject {
 	using Base = ScopedSelectObject;
 public:
-	ScopedSelectStockObject(::HDC hdc, PW5_StockLogicalObject flag)
+	ScopedSelectStockObject(::HDC hdc, StockObj flag)
 		: Base(hdc, GDI::getStockObject(flag)) {}
 };
 

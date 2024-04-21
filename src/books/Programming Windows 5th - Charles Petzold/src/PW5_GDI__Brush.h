@@ -6,31 +6,20 @@
 
 namespace sge {
 
-#define PW5_HatchStyle_ENUM_LIST(E)		\
-	E(Horizontal,	= HS_HORIZONTAL)	\
-	E(Vertical,		= HS_VERTICAL)		\
-	E(Fdiagonal,	= HS_FDIAGONAL)		\
-	E(Bdiagonal,	= HS_BDIAGONAL)		\
-	E(Cross,		= HS_CROSS)			\
-	E(DiagCross,	= HS_DIAGCROSS)		\
-//----
-SGE_ENUM_CLASS(PW5_HatchStyle, u8)
-
 class ScopedSelectStockBrush : public ScopedSelectStockObject {
 	using Base = ScopedSelectStockObject;
 public:
-	ScopedSelectStockBrush(::HDC hdc, PW5_StockLogicalObject_Brush flag)
+	ScopedSelectStockBrush(::HDC hdc, StockObj_Brush flag)
 		: Base(hdc, PW5_StockLogicalObject_make(flag)) {}
 };
 
-class MyIndirectBrush_Base : public ScopedHDC_NoHWND {
-	using Base = ScopedHDC_NoHWND;
+class MyIndirectBrush_Base : public MyHDC_Base {
 public:
 	struct CreateDesc {
-		::HDC			hdc				= nullptr;
-		Color4b			color			= GDI::kbBlack;
-		PW5_HatchStyle	hatchFlag		= PW5_HatchStyle::Horizontal;
-		::HBITMAP*		hBitMap			= nullptr;
+		::HDC		hdc			= nullptr;
+		Color4b		color		= GDI::kbBlack;
+		HSFlag		hatchFlag	= HSFlag::Horizontal;
+		::HBITMAP*	hBitMap		= nullptr;
 
 		::LOGBRUSH&		_internal_used;
 	};
@@ -102,8 +91,7 @@ protected:
 };
 
 
-class ScopedHDCBrush_Base : public ScopedHDC_NoHWND {
-	using Base = ScopedHDC_NoHWND;
+class ScopedHDCBrush_Base : public MyHDC_Base {
 public:
 	~ScopedHDCBrush_Base() {
 		if (_brush) {
@@ -138,10 +126,7 @@ public:
 class ScopedCreateHatchBrush : public ScopedHDCBrush_Base {
 	using Base = ScopedHDCBrush_Base;
 public:
-	ScopedCreateHatchBrush(::HDC hdc,
-		const Color4f& c = GDI::kBlack,
-		PW5_HatchStyle flag = PW5_HatchStyle::Horizontal)
-	{
+	ScopedCreateHatchBrush(::HDC hdc, const Color4b& c = GDI::kbBlack, HSFlag flag = HSFlag::Horizontal) {
 		_hdc = hdc;
 		_brush = ::CreateHatchBrush(enumInt(flag), GDI::COLORREF_make(c));
 	}

@@ -6,25 +6,14 @@
 
 namespace sge {
 
-#define PW5_PenStyle_ENUM_LIST(E)		\
-	E(None,			= PS_NULL)			\
-	E(Solid,		= PS_SOLID)			\
-	E(Dash,			= PS_DASH)			\
-	E(Dot,			= PS_DOT)			\
-	E(DashDot,		= PS_DASHDOT)		\
-	E(DashDotDot,	= PS_DASHDOTDOT)	\
-//----
-SGE_ENUM_CLASS(PW5_PenStyle, u8)
-
 class ScopedSelectStockPen : public ScopedSelectStockObject {
 	using Base = ScopedSelectStockObject;
 public:
-	ScopedSelectStockPen(::HDC hdc, PW5_StockLogicalObject_Pen flag)
+	ScopedSelectStockPen(::HDC hdc, StockObj_Pen flag)
 		: Base(hdc, PW5_StockLogicalObject_make(flag)) {}
 };
 
-class ScopedExtCreatePen_Base : public ScopedHDC_NoHWND {
-	using Base = ScopedHDC_NoHWND;
+class ScopedExtCreatePen_Base : public MyHDC_Base {
 protected:
 	void _internal_ctor(::HDC hdc, ::DWORD penStyle, const Color4b& c, ::DWORD width) {
 		// These are not unreasonable rules, but they can be a little tricky sometimes
@@ -73,18 +62,17 @@ public:
 class ScopedExtCreatePen_Solid : public ScopedExtCreatePen_Base {
 public:
 	ScopedExtCreatePen_Solid(::HDC hdc, const Color4b& c, DWORD width = 1) {
-		_internal_ctor(hdc, static_cast<DWORD>(PW5_PenStyle::Solid), c, width);
+		_internal_ctor(hdc, static_cast<DWORD>(PenStyle::Solid), c, width);
 	}
 };
 
-using ScopedExtCreatePen_Dash		= ScopedExtCreatePen_Dash_Dot<static_cast<DWORD>(PW5_PenStyle::Dash)>;
-using ScopedExtCreatePen_Dot		= ScopedExtCreatePen_Dash_Dot<static_cast<DWORD>(PW5_PenStyle::Dot)>;
-using ScopedExtCreatePen_DashDot	= ScopedExtCreatePen_Dash_Dot<static_cast<DWORD>(PW5_PenStyle::DashDot)>;
-using ScopedExtCreatePen_DashDotDot = ScopedExtCreatePen_Dash_Dot<static_cast<DWORD>(PW5_PenStyle::DashDotDot)>;
+using ScopedExtCreatePen_Dash		= ScopedExtCreatePen_Dash_Dot<static_cast<DWORD>(GDI::PenStyle::Dash)>;
+using ScopedExtCreatePen_Dot		= ScopedExtCreatePen_Dash_Dot<static_cast<DWORD>(GDI::PenStyle::Dot)>;
+using ScopedExtCreatePen_DashDot	= ScopedExtCreatePen_Dash_Dot<static_cast<DWORD>(GDI::PenStyle::DashDot)>;
+using ScopedExtCreatePen_DashDotDot = ScopedExtCreatePen_Dash_Dot<static_cast<DWORD>(GDI::PenStyle::DashDotDot)>;
 
 
-class ScopedCreatePen_Base : public ScopedHDC_NoHWND {
-	using Base = ScopedHDC_NoHWND;
+class ScopedCreatePen_Base : public MyHDC_Base {
 protected:
 	void _internal_ctor(::HDC hdc, int iStyle, const Color4f& c, int width) {
 		_hdc = hdc;

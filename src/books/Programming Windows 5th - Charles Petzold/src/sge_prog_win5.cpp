@@ -15,7 +15,7 @@
 #include "Chap04/SysMets2/PW5_MySysMets2.h"
 #include "Chap04/SysMets3/PW5_SysMets3.h"
 #include "Chap04/SysMets3/PW5_MySysMets3.h"
-/* Chap04 Device Context and Basic Drawing */
+/* Chap05 Device Context and Basic Drawing */
 #include "Chap05/DevCaps1/PW5_DevCaps1.h"
 #include "Chap05/SineWave/PW5_SineWave.h"
 #include "Chap05/LineDemo/PW5_LineDemo.h"
@@ -25,12 +25,14 @@
 #include "Chap05/WhatSize/PW5_WhatSize.h"
 #include "Chap05/RandRect/PW5_MyRectangle.h"
 #include "Chap05/RandRect/PW5_RandRect.h"
+#include "Chap05/Clover/PW5_MyRgn.h"
+#include "Chap05/Clover/PW5_Clover.h"
 
 namespace sge {
 
 class ProgWin5App : public NativeUIApp {
 	using Base = NativeUIApp;
-	using ProgWin5MainWin = PW5_RandRect;
+	using ProgWin5MainWin = PW5_Clover;
 protected:
 	virtual void onCreate(CreateDesc& desc) override {
 		{ // set working dir

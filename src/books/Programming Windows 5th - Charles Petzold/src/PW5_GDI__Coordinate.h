@@ -4,23 +4,23 @@
 
 namespace sge {
 
-#define PW5_MapMode_ENUM_LIST(E)		\
-	E(None,			= 0)				\
-	/* fully constrained */				\
-	E(Text,			= MM_TEXT)			\
-	E(LowMetric,	= MM_LOMETRIC)		\
-	E(HighMetric,	= MM_HIMETRIC)		\
-	E(LowEnglish,	= MM_LOENGLISH)		\
-	E(HighEnglish,	= MM_HIENGLISH)		\
-	E(Twips,		= MM_TWIPS)			\
-	/* partly constrained */			\
-	E(Isotropic,	= MM_ISOTROPIC)		\
-	/* unconstrained */					\
-	E(Anisotropic,	= MM_ANISOTROPIC)	\
+#define PW5_MapMode_ENUM_LIST(E) \
+	E(None,			= 0				) \
+	/* fully constrained */	\
+	E(Text,			= MM_TEXT		) \
+	E(LowMetric,	= MM_LOMETRIC	) \
+	E(HighMetric,	= MM_HIMETRIC	) \
+	E(LowEnglish,	= MM_LOENGLISH	) \
+	E(HighEnglish,	= MM_HIENGLISH	) \
+	E(Twips,		= MM_TWIPS		) \
+	/* partly constrained */ \
+	E(Isotropic,	= MM_ISOTROPIC	) \
+	/* unconstrained */	\
+	E(Anisotropic,	= MM_ANISOTROPIC) \
 //----
 SGE_ENUM_CLASS(PW5_MapMode, u8)
 
-#define PW5_CoordinateDir_ENUM_LIST(E)	\
+#define PW5_CoordinateDir_ENUM_LIST(E) \
 	E(RD,) \
 	E(RU,) \
 	E(LD,) \
@@ -29,7 +29,7 @@ SGE_ENUM_CLASS(PW5_MapMode, u8)
 SGE_ENUM_CLASS(PW5_CoordinateDir, u8)
 
 #define PW5_Dir_ENUM_LIST(E) \
-	E(None,  = 0) \
+	E(None,  = 0	 ) \
 	E(Left,  = 1 << 0) \
 	E(Down,  = 1 << 1) \
 	E(Right, = 1 << 2) \

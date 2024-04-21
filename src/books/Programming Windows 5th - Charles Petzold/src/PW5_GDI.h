@@ -7,5 +7,6 @@
 #include "PW5_GDI__Brush.h"
 #include "PW5_GDI__Pen.h"
 #include "PW5_GDI__Font.h"
+#include "PW5_GDI__Region.h"
 
 #endif

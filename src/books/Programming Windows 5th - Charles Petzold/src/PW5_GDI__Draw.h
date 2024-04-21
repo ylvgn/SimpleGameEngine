@@ -6,7 +6,31 @@
 #include "PW5_GDI__Text.h"
 
 namespace sge {
+
+#define PW5_HatchStyle_ENUM_LIST(E)	\
+	E(Horizontal,	= HS_HORIZONTAL	) \
+	E(Vertical,		= HS_VERTICAL	) \
+	E(Fdiagonal,	= HS_FDIAGONAL	) \
+	E(Bdiagonal,	= HS_BDIAGONAL	) \
+	E(Cross,		= HS_CROSS		) \
+	E(DiagCross,	= HS_DIAGCROSS	) \
+//----
+SGE_ENUM_CLASS(PW5_HatchStyle, u8)
+
+#define PW5_PenStyle_ENUM_LIST(E) \
+	E(None,			= PS_NULL		) \
+	E(Solid,		= PS_SOLID		) \
+	E(Dash,			= PS_DASH		) \
+	E(Dot,			= PS_DOT		) \
+	E(DashDot,		= PS_DASHDOT	) \
+	E(DashDotDot,	= PS_DASHDOTDOT	) \
+//----
+SGE_ENUM_CLASS(PW5_PenStyle, u8)
+
 namespace GDI {
+
+	using HSFlag	= PW5_HatchStyle;
+	using PenStyle	= PW5_PenStyle;
 
 	inline int drawText(const ::HDC& hdc, int left, int top, int right, int bottom, StrView str, UINT flags) {
 		if (str.empty()) return 0;

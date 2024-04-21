@@ -8,7 +8,7 @@
 
 namespace sge {
 
-class ScopedHDC_NoHWND : public NonCopyable {
+class MyHDC_Base : public NonCopyable {
 public:
 	using DTFlag			= GDI::DTFlag;
 	using TAFlag			= GDI::TAFlag;
@@ -18,8 +18,10 @@ public:
 	using StockObj_Brush	= GDI::StockObj_Brush;
 	using StockObj_Pen		= GDI::StockObj_Pen;
 	using StockObj_Font		= GDI::StockObj_Font;
+	using HSFlag			= GDI::HSFlag;
+	using PenStyle			= GDI::PenStyle;
 
-	virtual ~ScopedHDC_NoHWND() = default;
+	virtual ~MyHDC_Base() = default;
 
 	auto setMapMode(MapMode flag)			{ return GDI::setMapMode(_hdc, flag); }
 	MapMode getMapMode() const				{ return GDI::getMapMode(_hdc); }
@@ -156,10 +158,9 @@ protected:
 	::HDC _hdc = nullptr;
 };
 
-class ScopedHDC_ : public ScopedHDC_NoHWND {
-	using Base = ScopedHDC_NoHWND;
+class ScopedHDC_Base : public MyHDC_Base {
 public:
-	ScopedHDC_(const ::HWND& hwnd)
+	ScopedHDC_Base(const ::HWND& hwnd)
 		: _hwnd(hwnd) {}
 
 	void getClientRectInDevice(Rect2f& o) {
@@ -193,8 +194,8 @@ protected:
 	const HWND& _hwnd;
 };
 
-class ScopedPaintStruct : public ScopedHDC_ {
-	using Base = ScopedHDC_;
+class ScopedPaintStruct : public ScopedHDC_Base {
+	using Base = ScopedHDC_Base;
 public:
 	ScopedPaintStruct(const ::HWND& hwnd) : Base(hwnd) {
 		_hdc = ::BeginPaint(hwnd, &_ps);
@@ -213,8 +214,8 @@ private:
 	::PAINTSTRUCT _ps;
 };
 
-class ScopedGetDC : public ScopedHDC_ {
-	using Base = ScopedHDC_;
+class ScopedGetDC : public ScopedHDC_Base {
+	using Base = ScopedHDC_Base;
 public:
 	ScopedGetDC(const ::HWND& hwnd) : Base(hwnd) {
 		_hdc = ::GetDC(hwnd);
@@ -231,8 +232,8 @@ public:
 	}
 };
 
-class ScopedGetWindowDC : public ScopedHDC_ {
-	using Base = ScopedHDC_;
+class ScopedGetWindowDC : public ScopedHDC_Base {
+	using Base = ScopedHDC_Base;
 public:
 	ScopedGetWindowDC(const ::HWND& hwnd) : Base(hwnd) {
 		_hdc = ::GetWindowDC(hwnd);
@@ -249,8 +250,8 @@ public:
 	}
 };
 
-class ScopedCreateDC : public ScopedHDC_NoHWND {
-	using Base = ScopedHDC_NoHWND;
+class ScopedCreateDC : public MyHDC_Base {
+	using Base = MyHDC_Base;
 public:
 
 	ScopedCreateDC( const wchar_t* pszDriver,
@@ -271,8 +272,8 @@ public:
 	}
 };
 
-class ScopedCreateIC : public ScopedHDC_NoHWND {
-	using Base = ScopedHDC_NoHWND;
+class ScopedCreateIC : public MyHDC_Base {
+	using Base = MyHDC_Base;
 public:
 	ScopedCreateIC( const wchar_t* pszDriver,
 					const wchar_t* pszDevice = nullptr,
@@ -292,8 +293,8 @@ public:
 	}
 };
 
-class ScopedCreateCompatibleDC : public ScopedHDC_NoHWND {
-	using Base = ScopedHDC_NoHWND;
+class ScopedCreateCompatibleDC : public MyHDC_Base {
+	using Base = MyHDC_Base;
 public:
 	ScopedCreateCompatibleDC(::HDC srcHdc) {
 		_hdc = ::CreateCompatibleDC(srcHdc);
@@ -309,8 +310,8 @@ public:
 	}
 };
 
-class ScopedSaveDC : public ScopedHDC_NoHWND {
-	using Base = ScopedHDC_NoHWND;
+class ScopedSaveDC : public MyHDC_Base {
+	using Base = MyHDC_Base;
 public:
 	ScopedSaveDC(::HDC hdc) : _id(0) {
 		_hdc = hdc;
