@@ -29,6 +29,8 @@ public:
 	bool wireframe	= false;
 	Cull cull		= Cull::Back;
 
+	float lineWidth	= 1.f;
+
 	struct DepthTest {
 		
 		DepthTest()
@@ -41,7 +43,7 @@ public:
 		DepthTestOp op;
 		bool writeMask : 1;
 	};
-	DepthTest depthTest;
+	DepthTest	depthTest;
 };
 
 }

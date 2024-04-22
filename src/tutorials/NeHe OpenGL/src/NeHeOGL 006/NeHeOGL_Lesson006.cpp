@@ -65,6 +65,9 @@ void NeHeOGL_Lesson006::onCreate(CreateDesc& desc) {
 	_rectMesh.createRect(2, 2);
 //	_rectMesh.renderState.wireframe = true;
 
+	_gridMesh.createGrid(10);
+	_coordinateMesh.createCoordinate();
+
 	Base::onCreate(desc);
 }
 
@@ -441,8 +444,8 @@ void NeHeOGL_Lesson006::_example4(float uptime) {
 	glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 
-	_drawMyGrid();
-	_drawMyCoordinate();
+	_gridMesh.draw();
+	_coordinateMesh.drawVertexes();
 
 //	_rectMesh.renderState.cull = NeHeOGL_RenderState::Cull::None;
 
@@ -465,42 +468,6 @@ void NeHeOGL_Lesson006::_example4(float uptime) {
 
 	swapBuffers();
 	drawNeeded();
-}
-
-void NeHeOGL_Lesson006::_drawMyCoordinate() {
-	float oldColor[4];
-	glGetFloatv(GL_CURRENT_COLOR, oldColor);
-	float oldValue;
-	glGetFloatv(GL_LINE_WIDTH, &oldValue);
-	glLineWidth(2);
-	glBegin(GL_LINES);
-		OGL::color4f(OGL::kRed);	OGL::vertex3f(Vec3f::s_zero());	OGL::vertex3f(Vec3f::s_right());
-		OGL::color4f(OGL::kGreen);	OGL::vertex3f(Vec3f::s_zero());	OGL::vertex3f(Vec3f::s_up());
-		OGL::color4f(OGL::kBlue);	OGL::vertex3f(Vec3f::s_zero());	OGL::vertex3f(Vec3f::s_forward());
-	glEnd();
-	glLineWidth(oldValue);
-	glColor4fv(oldColor);
-}
-
-void NeHeOGL_Lesson006::_drawMyGrid() {
-	float oldColor[4];
-	glGetFloatv(GL_CURRENT_COLOR, oldColor);
-		float oldValue;
-		glGetFloatv(GL_LINE_WIDTH, &oldValue);
-		glLineWidth(1);
-			OGL::color4f(OGL::kWhite);
-			glBegin(GL_LINES);
-				for (float x = -10; x <= 10; x++) {
-					glVertex3f(x, 0, -10);
-					glVertex3f(x, 0, 10);
-				}
-				for (float z = -10; z <= 10; z++) {
-					glVertex3f(-10, 0, z);
-					glVertex3f(10, 0, z);
-				}
-			glEnd();
-		glLineWidth(oldValue);
-	glColor4fv(oldColor);
 }
 
 }

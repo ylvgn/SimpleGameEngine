@@ -9,8 +9,7 @@ struct NeHeOGL_Mesh__RenderState {
 	using RenderState	= NeHeOGL_RenderState;
 	using Cull			= RenderState::Cull;
 
-	NeHeOGL_Mesh__RenderState();
-
+	void createByInherit();
 	void create(RenderState& rs);
 	void bind();
 
@@ -22,35 +21,45 @@ struct NeHeOGL_Mesh__RenderState {
 
 	int		cullFaceMode;
 	int		depthTestFunc;
+
+	float	lineWidth;
 };
 
 class NeHeOGL_Mesh {
 public:
-	using MyRenderState		= NeHeOGL_Mesh__RenderState;
-	using VertexDataType	= NeHeOGL_Vertex_PosColorUv;
-	using VertexIndiceDataType = u16;
+	using MyRenderState	 = NeHeOGL_Mesh__RenderState;
+	using VertexDataType = NeHeOGL_Vertex_PosColorUv;
+	using RenderDataType = NeHe_RenderDataType;
 
 	void clear();
 
 	void createRect(float w, float h);
 	void createCube(float w, float h, float d);
+	void createPlane(float w, float h);
+	void createGrid(int grideSize);
+	void createCoordinate();
 
 	void draw();
+	void drawVertexes();
+
+	RenderPrimitiveType				primitive = RenderPrimitiveType::Triangles;
 
 	Vector<VertexDataType>			vertices;
-	Vector<VertexIndiceDataType>	indices;
+	Vector<u32>						indices;
 
 	NeHeOGL_RenderState				renderState;
-
 private:
-
-	MyRenderState _curRenderState;
-	MyRenderState _lastRenderState;
+	void _addToIndiceOfGrid(int size, const Vec2i& step, bool flipXY);
 
 	void _beginDraw();
 	void _endDraw();
 
 	void _bindVertexs();
+
+	RenderDataType	_indexType = RenderDataType::UInt32;
+
+	MyRenderState	_curRenderState;
+	MyRenderState	_lastRenderState;
 };
 
 }

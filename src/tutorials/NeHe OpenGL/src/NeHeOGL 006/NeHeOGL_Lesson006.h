@@ -57,9 +57,6 @@ private:
 	void _example3(float uptime);
 	void _example4(float uptime);
 
-	void _drawMyCoordinate();
-	void _drawMyGrid();
-
 	bool _isFirstFrame : 1;
 
 	Vec2f _camerOrbitAngle	{30,30};		// camera rotate with x-axis y-axis
@@ -79,6 +76,8 @@ private:
 
 	NeHeOGL_Texture2D	_tex;
 	NeHeOGL_Mesh		_rectMesh;
+	NeHeOGL_Mesh		_gridMesh;
+	NeHeOGL_Mesh		_coordinateMesh;
 };
 
 }

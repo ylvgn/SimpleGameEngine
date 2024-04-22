@@ -31,7 +31,7 @@ namespace sge {
 	E(QuadStrip,		= GL_QUAD_STRIP) \
 	E(Polygon,			= GL_POLYGON) \
 //----
-SGE_ENUM_CLASS(NeHe_BeginMode, u8)
+SGE_ENUM_CLASS(NeHe_BeginMode, GLenum)
 
 struct OGLUtil {
 	OGLUtil() = delete;
@@ -59,6 +59,7 @@ struct OGLUtil {
 		return true;
 	}
 
+	static GLenum getGlPrimitiveTopology(RenderPrimitiveType v);
 	static constexpr GLenum getGlFormat(NeHe_RenderDataType v);
 	static GLenum getGlCullMode(NeHeOGL_RenderState::Cull v);
 	static GLenum getGlDepthTestOp(NeHeOGL_RenderState::DepthTestOp v);
@@ -70,6 +71,17 @@ private:
 		return errCode != GL_NO_ERROR; // if got error, return true
 	}
 };
+
+inline
+GLenum OGLUtil::getGlPrimitiveTopology(RenderPrimitiveType v) {
+	using SRC = RenderPrimitiveType;
+	switch (v) {
+		case SRC::Points:		return GL_POINTS;
+		case SRC::Lines:		return GL_LINES;
+		case SRC::Triangles:	return GL_TRIANGLES;
+		default: throw SGE_ERROR("unknown RenderPrimitiveType");
+	}
+}
 
 constexpr
 GLenum OGLUtil::getGlFormat(NeHe_RenderDataType v) {
