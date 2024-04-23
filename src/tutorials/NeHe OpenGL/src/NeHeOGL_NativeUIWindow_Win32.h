@@ -22,6 +22,9 @@ public:
 protected:
 	virtual void onCreate(CreateDesc& desc) override;
 	virtual void onCloseButton() override;
+
+	virtual void onInitedGL() {};
+
 private:
 	void _destroy();
 

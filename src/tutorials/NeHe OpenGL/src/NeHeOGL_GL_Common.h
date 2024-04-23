@@ -18,49 +18,32 @@
 #include "NeHeOGL_Mesh.h"
 
 namespace sge {
-	
+
 #define NeHe_BeginMode_ENUM_LIST(E) \
-	E(Points,			= GL_POINTS) \
-	E(Lines,			= GL_LINES) \
-	E(LineLoop,			= GL_LINE_LOOP) \
-	E(LineStrip,		= GL_LINE_STRIP) \
-	E(Triangles,		= GL_TRIANGLES) \
-	E(TriangleStrip,	= GL_TRIANGLE_STRIP) \
-	E(TriangleFan,		= GL_TRIANGLE_FAN) \
-	E(Quads,			= GL_QUADS) \
-	E(QuadStrip,		= GL_QUAD_STRIP) \
-	E(Polygon,			= GL_POLYGON) \
+	E(Points,			= GL_POINTS			) \
+	E(Lines,			= GL_LINES			) \
+	E(LineLoop,			= GL_LINE_LOOP		) \
+	E(LineStrip,		= GL_LINE_STRIP		) \
+	E(Triangles,		= GL_TRIANGLES		) \
+	E(TriangleStrip,	= GL_TRIANGLE_STRIP	) \
+	E(TriangleFan,		= GL_TRIANGLE_FAN	) \
+	E(Quads,			= GL_QUADS			) \
+	E(QuadStrip,		= GL_QUAD_STRIP		) \
+	E(Polygon,			= GL_POLYGON		) \
 //----
 SGE_ENUM_CLASS(NeHe_BeginMode, GLenum)
 
 struct OGLUtil {
 	OGLUtil() = delete;
 
-	static void reportError(GLenum errCode = _getErrorCode()) {
-		auto* errStr = gluErrorStringWIN(errCode);
-		TempString str;
-		UtfUtil::convert(str, errStr);
-		SGE_LOG("glGetError = (0x{:X}) {}", static_cast<u32>(errCode), str);
-	}
-
-	static void throwIfError(GLenum errCode = _getErrorCode()) {
-		if (_checkError(errCode)) {
-			reportError(errCode);
-			throw SGE_ERROR("glGetError = (0x{:0X})", errCode);
-		}
-	}
-
-	static bool assertIfError(GLenum errCode = _getErrorCode()) {
-		if (_checkError(errCode)) {
-			reportError(errCode);
-			SGE_ASSERT(false);
-			return false;
-		}
-		return true;
-	}
+	static void reportError(GLenum errCode = _getErrorCode());
+	static void throwIfError(GLenum errCode = _getErrorCode());
+	static bool assertIfError(GLenum errCode = _getErrorCode());
 
 	static GLenum getGlPrimitiveTopology(RenderPrimitiveType v);
 	static constexpr GLenum getGlFormat(NeHe_RenderDataType v);
+	static GLenum getGlColorType(ColorType v);
+
 	static GLenum getGlCullMode(NeHeOGL_RenderState::Cull v);
 	static GLenum getGlDepthTestOp(NeHeOGL_RenderState::DepthTestOp v);
 
@@ -71,6 +54,40 @@ private:
 		return errCode != GL_NO_ERROR; // if got error, return true
 	}
 };
+
+inline
+void OGLUtil::reportError(GLenum errCode /*= _getErrorCode()*/) {
+	// https://learn.microsoft.com/en-us/windows/win32/opengl/gluerrorstring
+	
+#if 0 && SGE_OS_WINDOWS
+	const CHAR* errStr = gluErrorStringWIN(errCode); // why not work???
+	TempString str;
+	UtfUtil::convert(str, errStr);
+#else
+	const GLubyte* errStr = gluErrorString(errCode); // in ANSI only
+	TempString str(reinterpret_cast<const char*>(errStr));
+#endif
+
+	SGE_LOG("glGetError = (0x{:X}) {}", static_cast<u32>(errCode), str);
+}
+
+inline
+void OGLUtil::throwIfError(GLenum errCode /*= _getErrorCode()*/) {
+	if (_checkError(errCode)) {
+		reportError(errCode);
+		throw SGE_ERROR("glGetError = (0x{:0X})", errCode);
+	}
+}
+
+inline
+bool OGLUtil::assertIfError(GLenum errCode /*= _getErrorCode()*/) {
+	if (_checkError(errCode)) {
+		reportError(errCode);
+		SGE_ASSERT(false);
+		return false;
+	}
+	return true;
+}
 
 inline
 GLenum OGLUtil::getGlPrimitiveTopology(RenderPrimitiveType v) {
@@ -95,6 +112,35 @@ GLenum OGLUtil::getGlFormat(NeHe_RenderDataType v) {
 		case SRC::UInt32:		return GL_UNSIGNED_INT;
 		case SRC::Float32:		return GL_FLOAT;
 		default:				throw  SGE_ERROR("unsupported NeHe_RenderDataType");
+	}
+}
+
+inline
+GLenum OGLUtil::getGlColorType(ColorType v) {
+	using SRC = ColorType;
+
+	switch (v) {
+		case SRC::Lb:		return GL_RED;	// GL_R8;
+		case SRC::Ls:		return GL_RED;	// GL_R16F;
+		case SRC::Lf:		return GL_RED;	// GL_R32F;
+
+		case SRC::Rb:		return GL_RED;	// GL_R8;
+		case SRC::Rs:		return GL_RED;	// GL_R16F;
+		case SRC::Rf:		return GL_RED;	// GL_R32F;
+
+//		case SRC::RGb:		return GL_RG;	// GL_RG;
+//		case SRC::RGs:		return GL_RG;	// GL_RG16F;
+//		case SRC::RGf:		return GL_RG;	// GL_RG32F;
+
+		case SRC::RGBb:		return GL_RGB;	// GL_RGB;
+		case SRC::RGBs:		return GL_RGB;	// GL_RGB16F;
+		case SRC::RGBf:		return GL_RGB;	// GL_RGB32F;
+
+		case SRC::RGBAb:	return GL_RGBA; // GL_RGBA8;
+		case SRC::RGBAs:	return GL_RGBA; // GL_RGBA16F;
+		case SRC::RGBAf:	return GL_RGBA; // GL_RGBA32F;
+
+		default: throw SGE_ERROR("unsupported ColorType");
 	}
 }
 

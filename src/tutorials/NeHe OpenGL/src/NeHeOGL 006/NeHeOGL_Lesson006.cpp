@@ -13,9 +13,7 @@ void NeHeOGL_Lesson006::_destroy() {
 	}
 }
 
-void NeHeOGL_Lesson006::onCreate(CreateDesc& desc) {
-	_isFirstFrame = true;
-
+void NeHeOGL_Lesson006::onInitedGL() {
 	float d = 1.0f;
 //------------------------------------------
 //		  0--------1
@@ -68,32 +66,24 @@ void NeHeOGL_Lesson006::onCreate(CreateDesc& desc) {
 	_gridMesh.createGrid(10);
 	_coordinateMesh.createCoordinate();
 
-	Base::onCreate(desc);
+	{ // create a texture
+		glGenTextures(1, &_texture2d);
+		_loadTexture2D("NeHe.bmp", _imageToUpload, _texture2d);
+	}
+
+	{ // create more than one texture
+		glGenTextures(2, _texture2ds);
+		_loadTexture2D("NeHe.bmp", _imagesToUpload[0], _texture2ds[0]);
+		_loadTexture2D("uvChecker_PNG.png", _imagesToUpload[1], _texture2ds[1]);
+	}
+
+	_tex.createTest();
+
+	OGLUtil::throwIfError();
 }
 
 void NeHeOGL_Lesson006::onDraw() {
 	float uptime = static_cast<float>(_uptime.get() * 90.f);
-
-	if (_isFirstFrame) {
-		// call gl function after OpenGL inited!!!
-
-		{ // create a texture
-			glGenTextures(1, &_texture2d);
-			_loadTexture2D("NeHe.bmp", _imageToUpload, _texture2d);
-		}
-
-		{ // create more than one texture
-			glGenTextures(2, _texture2ds);
-			_loadTexture2D("NeHe.bmp", _imagesToUpload[0], _texture2ds[0]);
-			_loadTexture2D("uvChecker_BMP.bmp", _imagesToUpload[1], _texture2ds[1]);
-		}
-#if 1
-		_tex.createTest();
-#else
-		_tex.createByLoadFile("uvChecker_PNG.png");
-#endif
-		_isFirstFrame = false;
-	}
 
 //	_example1(uptime);
 //	_example2(uptime);

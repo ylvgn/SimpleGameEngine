@@ -17,10 +17,9 @@ class NeHeOGL_Lesson006 : public NeHeOGL_NativeUIWindow {
 public:
 	~NeHeOGL_Lesson006() { _destroy(); }
 protected:
-	virtual void onCreate(CreateDesc& desc) override;
+	virtual void onInitedGL() override;
 	virtual void onDraw() override;
 	virtual void onUIMouseEvent(UIMouseEvent& ev) override;
-
 private:
 
 	void _destroy();
@@ -57,22 +56,20 @@ private:
 	void _example3(float uptime);
 	void _example4(float uptime);
 
-	bool _isFirstFrame : 1;
-
-	Vec2f _camerOrbitAngle	{30,30};		// camera rotate with x-axis y-axis
+	Vec2f _camerOrbitAngle	{30,30};	// camera rotate with x-axis y-axis
 	Vec3f _camerMovePos		{0,0,-10};	// camera move, zoom in/out
 
 	MyHiResTimer _uptime;
 
 	// Storage For One 2D Texture (OpenGL texture handle)
-	GLuint  _texture2d;
-	NeHeOGL_Image _imageToUpload;
+	GLuint			_texture2d;
+	NeHeOGL_Image	_imageToUpload;
 
 	// Storage For More Than One 2D Texture (OpenGL texture handles)
-	GLuint  _texture2ds[kTexture2dCount];
-	NeHeOGL_Image _imagesToUpload[kTexture2dCount];
+	GLuint			_texture2ds[kTexture2dCount];
+	NeHeOGL_Image	_imagesToUpload[kTexture2dCount];
 
-	MyMesh	_mesh;
+	MyMesh				_mesh;
 
 	NeHeOGL_Texture2D	_tex;
 	NeHeOGL_Mesh		_rectMesh;

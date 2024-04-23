@@ -2,83 +2,6 @@
 
 namespace sge {
 
-void NeHeOGL_Lesson007::onCreate(CreateDesc& desc) {
-	desc.ownDC = true;
-	Base::onCreate(desc);
-
-	const char* filename = "Crate.bmp";
-
-	_imageToUpload.loadFile(filename);
-	if (!_imageToUpload.width() || !_imageToUpload.height())
-		throw SGE_ERROR("load bmp filename = {}", filename);
-
-	glGenTextures(kTexture2dCount, &_texture2ds[0]);
-
-	{ // Create Nearest Filtered Texture (no smoothing)
-		glBindTexture(GL_TEXTURE_2D, _texture2ds[0]);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); // The MAG_FILTER is the filter used when an image is drawn bigger than the original texture size
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); // The MIN_FILTER is the filter used when an image is drawn smaller than the original texture size
-		glTexImage2D(GL_TEXTURE_2D,
-					 0,
-					 GL_RGBA,
-					 _imageToUpload.width(),
-					 _imageToUpload.height(),
-					 0,
-					 GL_RGBA,
-					 GL_UNSIGNED_BYTE,
-					 _imageToUpload.dataPtr()
-		);
-		glBindTexture(GL_TEXTURE_2D, 0);
-	}
-
-	{ // Create Linear Filtered Texture
-		glBindTexture(GL_TEXTURE_2D, _texture2ds[1]);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexImage2D(GL_TEXTURE_2D,
-					 0,
-					 GL_RGBA,
-					 _imageToUpload.width(),
-					 _imageToUpload.height(),
-					 0,
-					 GL_RGBA,
-					 GL_UNSIGNED_BYTE,
-					 _imageToUpload.dataPtr()
-		);
-		glBindTexture(GL_TEXTURE_2D, 0);
-	}
-
-	{ // Create MipMapped Texture
-		// Mipmapping!You may have noticed that when you make an image very tiny on the screen, alot of the fine details disappear.
-		// Patterns that used to look nice start looking real bad.
-		// When you tell OpenGL to build a mipmapped texture OpenGL tries to build different sized high quality textures.
-		// When you draw a mipmapped texture to the screen OpenGL will select the BEST looking texture from the ones it built(texture with the most detail)
-		// and draw it to the screen instead of resizing the original image (which causes detail loss).
-		glBindTexture(GL_TEXTURE_2D, _texture2ds[2]);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-		gluBuild2DMipmaps(GL_TEXTURE_2D,
-						  3,
-						  _imageToUpload.width(),
-						  _imageToUpload.height(),
-						  GL_RGBA,
-						  GL_UNSIGNED_BYTE,
-						  _imageToUpload.dataPtr()
-		);
-		glBindTexture(GL_TEXTURE_2D, 0);
-	}
-
-	// Setup Lighting
-	glLightfv(GL_LIGHT1, GL_AMBIENT,  _lightAmbient.data);	// Setup The Ambient Light
-	glLightfv(GL_LIGHT1, GL_DIFFUSE,  _lightDiffuse.data);	// Setup The Diffuse Light
-	glLightfv(GL_LIGHT1, GL_POSITION, _lightPosition.data);	// Position The Light
-	glEnable(GL_LIGHT1);									// Enable GL_LIGHT1, when glEnable(GL_LIGHTING), the light will actually work!
-}
-
-void NeHeOGL_Lesson007::onDraw() {
-	_example1();
-}
-
 void NeHeOGL_Lesson007::onUIMouseEvent(UIMouseEvent& ev) {
 	using Button	= UIMouseEvent::Button;
 	using Type		= UIMouseEvent::Type;
@@ -137,8 +60,8 @@ void NeHeOGL_Lesson007::onUIKeyboardEvent(UIKeyboardEvent& ev) {
 
 	if (!_isPressedF && ev.isDown(KeyCode::F)) {
 		_isPressedF = true;
-		SGE_DUMP_VAR(_texSelectedIndex);
 		_texSelectedIndex = (_texSelectedIndex + 1) % kTexture2dCount;
+		SGE_LOG("current _texSelectedIndex = {}", _texSelectedIndex);
 	}
 	if (ev.isUp(KeyCode::F)) {
 		_isPressedF = false;
@@ -156,6 +79,49 @@ void NeHeOGL_Lesson007::onUIKeyboardEvent(UIKeyboardEvent& ev) {
 	if (ev.isUp(KeyCode::L)) {
 		_isPressedL = false;
 	}
+}
+
+void NeHeOGL_Lesson007::onInitedGL() {
+	_gridMesh.createGrid(10);
+
+	Texture2D::CreateDesc desc;
+	desc.imageToUpload.loadFile("Crate.bmp");
+
+// Create Nearest Filtered Texture (no smoothing)
+	desc.samplerState.minFilter = Filter::Nearest;
+	desc.samplerState.magFilter = Filter::Nearest;
+	desc.samplerState.maxLOD = 0;
+	desc.samplerState.minLOD = 0;
+	_texture2dArray[0].create(desc);
+
+// Create Linear Filtered Texture
+	desc.samplerState.minFilter = Filter::Linear;
+	desc.samplerState.magFilter = Filter::Linear;
+	desc.samplerState.minLOD = 0;
+	desc.samplerState.maxLOD = 0;
+	_texture2dArray[1].create(desc);
+
+// Create MipMapped Texture
+	desc.samplerState.magFilter = Filter::Linear;
+	desc.samplerState.minFilter = Filter::LinearNearestMipNearest;
+	desc.samplerState.minLOD = 0;
+	desc.samplerState.maxLOD = 3;
+	// Mipmapping!You may have noticed that when you make an image very tiny on the screen, alot of the fine details disappear.
+		// Patterns that used to look nice start looking real bad.
+		// When you tell OpenGL to build a mipmapped texture OpenGL tries to build different sized high quality textures.
+		// When you draw a mipmapped texture to the screen OpenGL will select the BEST looking texture from the ones it built(texture with the most detail)
+		// and draw it to the screen instead of resizing the original image (which causes detail loss).
+	_texture2dArray[2].create(desc);
+
+	// Setup Lighting
+	glLightfv(GL_LIGHT1, GL_AMBIENT,  _lightAmbient.data);	// Setup The Ambient Light
+	glLightfv(GL_LIGHT1, GL_DIFFUSE,  _lightDiffuse.data);	// Setup The Diffuse Light
+	glLightfv(GL_LIGHT1, GL_POSITION, _lightPosition.data);	// Position The Light
+	glEnable(GL_LIGHT1);									// Enable GL_LIGHT1, when glEnable(GL_LIGHTING), the light will actually work!
+}
+
+void NeHeOGL_Lesson007::onDraw() {
+	_example1();
 }
 
 void NeHeOGL_Lesson007::_example1() {
@@ -193,20 +159,8 @@ void NeHeOGL_Lesson007::_example1() {
 	glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 
-	// draw grid
-	OGL::color4f(OGL::kWhite);
-	glLineWidth(2);
 	glDisable(GL_LIGHTING);
-	glBegin(GL_LINES);
-		for (float x = -10; x <= 10; ++x) {
-			glVertex3f(x, 0, -10);
-			glVertex3f(x, 0, 10);
-		}
-		for (float z = -10; z <= 10; ++z) {
-			glVertex3f(-10, 0, z);
-			glVertex3f(10, 0, z);
-		}
-	glEnd();
+	_gridMesh.draw();
 
 	// setup lighting
 	glLightfv(GL_LIGHT1, GL_POSITION, _lightPosition.data);	// Position The Light
@@ -216,8 +170,9 @@ void NeHeOGL_Lesson007::_example1() {
 	else
 		glDisable(GL_LIGHTING); // Disable Lighting
 
-	glTranslatef(0, a, 0);
-	glBindTexture(GL_TEXTURE_2D, _texture2ds[_texSelectedIndex]); // Select A Texture Based On filter
+	glTranslatef(0, 0.5f, 0);
+
+	_texture2dArray[_texSelectedIndex].bind(); // Select A Texture Based On filter
 	glBegin(GL_QUADS);
 		// A normal is a line pointing straight out of the middle of a polygon at a 90 degree angle. When you use lighting, you need to specify a normal
 		// The normal tells OpenGL which direction the polygon is facing... which way is up
@@ -265,13 +220,12 @@ void NeHeOGL_Lesson007::_example1() {
 		glTexCoord2f(1.0f, 1.0f); OGL::vertex3f(kCubePos[3]);	// glVertex3f(-1.0f,  1.0f,  1.0f);
 		glTexCoord2f(0.0f, 1.0f); OGL::vertex3f(kCubePos[0]);	// glVertex3f(-1.0f,  1.0f, -1.0f);
 	glEnd();
-	glBindTexture(GL_TEXTURE_2D, 0);
+	_texture2dArray[_texSelectedIndex].unbind();
 
 	_camerOrbitAngle += _camerOrbitSpeed;
 
 	swapBuffers();
 	drawNeeded();
 }
-
 
 }

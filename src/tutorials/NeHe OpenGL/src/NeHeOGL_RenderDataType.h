@@ -17,7 +17,8 @@ namespace sge {
 	\
 	E(Float32,)	\
 	E(Float64,)	\
-
+	\
+	E(Texture2D,) \
 //----
 SGE_ENUM_CLASS(NeHe_RenderDataType, u8)
 

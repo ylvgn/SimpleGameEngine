@@ -64,6 +64,7 @@ void NeHeOGL_NativeUIWindow_Win32::initGL() {
 		throw SGE_ERROR("wglCreateContext");
 
 	makeCurrent();
+	onInitedGL();
 }
 
 void NeHeOGL_NativeUIWindow_Win32::makeCurrent() {

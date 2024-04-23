@@ -22,7 +22,7 @@ struct NeHeOGL_Mesh__RenderState {
 	int		cullFaceMode;
 	int		depthTestFunc;
 
-	float	lineWidth;
+	float	lineWidth = 1.f;
 };
 
 class NeHeOGL_Mesh {
@@ -48,6 +48,7 @@ public:
 	Vector<u32>						indices;
 
 	NeHeOGL_RenderState				renderState;
+
 private:
 	void _addToIndiceOfGrid(int size, const Vec2i& step, bool flipXY);
 

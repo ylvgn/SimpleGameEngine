@@ -216,53 +216,71 @@ void NeHeOGL_Mesh::_addToIndiceOfGrid(int verticesPerRow, const Vec2i& direction
 	int totalRow = verticesPerRow / 2;
 	Vec2i center { verticesPerRow / 2, verticesPerRow / 2 };
 
-	int		triangleRowCount = 1;
-	Vec2i	p0, p1, p2;
-	u32		v1, v2, v3;
+	Span<u32> dstSpan;
+	{
+		size_t oldSize = indices.size();
+		// tot: n*a1+n*(n-1)*d/2
+			// 1: 1 triangle
+			// 2: 3(1+2)
+			// 3: 5(3+2)
+			// 4: 7(5+2)
+			// 5: 9(7+2)
+		int tot = totalRow*1 + totalRow*(totalRow - 1);
+		size_t newSize = oldSize + tot*3;
+		indices.resize(newSize);
+		dstSpan = indices.subspan(oldSize);
+	}
 
-	for (int row = 1; row <= totalRow; row++) {
-		Vec2i st(center);
-		for (int i = 0; i < triangleRowCount; ++i) {
-			p0.set(st);
-			int odd = i % 2;
+	{
+		auto* dst = dstSpan.begin();
+		
+		int	triangleRowCount = 1;
+		Vec2i p0, p1, p2;
 
-			if (odd) {
-				p1.set(st.x - direction.x,	st.y);
-				p2.set(st.x,				st.y + direction.y);
+		for (int row = 1; row <= totalRow; row++) {
+			Vec2i st(center);
+			for (int i = 0; i < triangleRowCount; ++i) {
+				p0.set(st);
+				int odd = i % 2;
 
-			} else {
-				p1.set(st.x,				st.y + direction.y);
-				p2.set(st.x + direction.x,	st.y + direction.y);
+				if (odd) {
+					p1.set(st.x - direction.x,	st.y);
+					p2.set(st.x,				st.y + direction.y);
 
-				st.x += direction.x;
+				} else {
+					p1.set(st.x,				st.y + direction.y);
+					p2.set(st.x + direction.x,	st.y + direction.y);
+
+					st.x += direction.x;
+				}
+
+				if (flipXY) {
+					p0 = p0.yx();
+					p1 = p1.yx();
+					p2 = p2.yx();
+				}
+
+				*dst = p0.y * verticesPerRow + p0.x; dst++;
+				*dst = p2.y * verticesPerRow + p2.x; dst++;
+				*dst = p1.y * verticesPerRow + p1.x; dst++;
 			}
 
-			if (flipXY) {
-				p0 = p0.yx();
-				p1 = p1.yx();
-				p2 = p2.yx();
-			}
-
-			v1 = p0.y * verticesPerRow + p0.x;
-			v2 = p2.y * verticesPerRow + p2.x;
-			v3 = p1.y * verticesPerRow + p1.x;
-
-			int rx = direction.x < 0 ? 1 : 0;
-			int ry = direction.y < 0 ? 1 : 0;
-			int rf = flipXY ? 0 : 1;
-			if (rx ^ ry ^ rf) {
-				indices.push_back(v1);
-				indices.push_back(v3);
-				indices.push_back(v2);
-			} else {
-				indices.push_back(v1);
-				indices.push_back(v2);
-				indices.push_back(v3);
-			}
+			center.y += direction.y;
+			triangleRowCount += 2;
 		}
 
-		center.y += direction.y;
-		triangleRowCount += 2;
+		SGE_ASSERT(dst == dstSpan.end());
+	}
+
+	int rx = direction.x < 0 ? 1 : 0;
+	int ry = direction.y < 0 ? 1 : 0;
+	int rf = flipXY ? 0 : 1;
+	if (rx ^ ry ^ rf) {
+		auto* dst = dstSpan.begin();
+		auto* end = dstSpan.end();
+		for (; dst < end; dst+=3) {
+			swap(dst[0], dst[1]);
+		}
 	}
 }
 
