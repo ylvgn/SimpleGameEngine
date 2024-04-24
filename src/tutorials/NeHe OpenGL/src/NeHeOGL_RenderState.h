@@ -2,14 +2,14 @@
 
 namespace sge {
 
-#define NeHe_RenderState_Cull_ENUM_LIST(E) \
+#define NeHeOGL_RenderState_Cull_ENUM_LIST(E) \
 	E(None,)	\
 	E(Back,)	\
 	E(Front,)	\
 //----
-SGE_ENUM_CLASS(NeHe_RenderState_Cull, u8)
+SGE_ENUM_CLASS(NeHeOGL_RenderState_Cull, u8)
 
-#define NeHe_RenderState_DepthTestFunc_ENUM_LIST(E) \
+#define NeHeOGL_RenderState_DepthTestFunc_ENUM_LIST(E) \
 	E(Less,)		\
 	E(LessEqual,)	\
 	E(Equal,)		\
@@ -19,12 +19,12 @@ SGE_ENUM_CLASS(NeHe_RenderState_Cull, u8)
 	E(Always,)		\
 	E(Never,)		\
 //----
-SGE_ENUM_CLASS(NeHe_RenderState_DepthTestFunc, u8)
+SGE_ENUM_CLASS(NeHeOGL_RenderState_DepthTestFunc, u8)
 
 class NeHeOGL_RenderState {
 public:
-	using Cull			= NeHe_RenderState_Cull;
-	using DepthTestOp	= NeHe_RenderState_DepthTestFunc;
+	using Cull			= NeHeOGL_RenderState_Cull;
+	using DepthTestOp	= NeHeOGL_RenderState_DepthTestFunc;
 
 	bool wireframe	= false;
 	Cull cull		= Cull::Back;

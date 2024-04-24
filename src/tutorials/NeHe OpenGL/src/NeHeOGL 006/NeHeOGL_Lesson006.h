@@ -47,9 +47,9 @@ private:
 		}
 	};
 #if SGE_OS_WINDOWS
-	void _loadByHBITMAP(NeHeOGL_Image& o, StrView filename);
+	void _loadByHBITMAP(Image& o, StrView filename);
 #endif
-	void _loadTexture2D(StrView filename, NeHeOGL_Image& img, GLuint targetTexture);
+	void _loadTexture2D(StrView filename, Image& img, GLuint targetTexture);
 	void _addCameraOrbitAngle(const Vec2f& deltaAngle);
 	void _example1(float uptime);
 	void _example2(float uptime);
@@ -62,19 +62,20 @@ private:
 	MyHiResTimer _uptime;
 
 	// Storage For One 2D Texture (OpenGL texture handle)
-	GLuint			_texture2d;
-	NeHeOGL_Image	_imageToUpload;
+	GLuint	_texture2d;
+	Image	_imageToUpload;
 
 	// Storage For More Than One 2D Texture (OpenGL texture handles)
-	GLuint			_texture2ds[kTexture2dCount];
-	NeHeOGL_Image	_imagesToUpload[kTexture2dCount];
+	GLuint	_texture2ds[kTexture2dCount];
+	Image	_imagesToUpload[kTexture2dCount];
 
-	MyMesh				_mesh;
+	MyMesh		_mesh;
 
-	NeHeOGL_Texture2D	_tex;
-	NeHeOGL_Mesh		_rectMesh;
-	NeHeOGL_Mesh		_gridMesh;
-	NeHeOGL_Mesh		_coordinateMesh;
+	Texture2D	_tex;
+	Texture2D	_solidColorTex;
+	Mesh		_rectMesh;
+	Mesh		_gridMesh;
+	Mesh		_coordinateMesh;
 };
 
 }

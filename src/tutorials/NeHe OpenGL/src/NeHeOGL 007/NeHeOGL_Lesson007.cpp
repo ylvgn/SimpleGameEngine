@@ -67,6 +67,16 @@ void NeHeOGL_Lesson007::onUIKeyboardEvent(UIKeyboardEvent& ev) {
 		_isPressedF = false;
 	}
 
+	if (!_isPressedM && ev.isDown(KeyCode::M)) {
+		_isPressedM = true;
+		_isFloorOnMipMap = !_isFloorOnMipMap;
+		SGE_DUMP_VAR(static_cast<int>(_isFloorOnMipMap));
+	}
+	if (ev.isUp(KeyCode::M)) {
+		_isPressedM = false;
+	}
+
+
 	// If _isPressedL was false, meaning the 'L' key hasn't been pressed yet, or it's been released, _isPressedL becomes true.
 	// This forces the person to let go of the 'L' key before this code will run again.
 	// If we didn't check to see if the key was being held down, the lighting would flicker off and on over and over,
@@ -83,35 +93,51 @@ void NeHeOGL_Lesson007::onUIKeyboardEvent(UIKeyboardEvent& ev) {
 
 void NeHeOGL_Lesson007::onInitedGL() {
 	_gridMesh.createGrid(10);
+	_gridMesh.renderState.wireframe = true;
 
-	Texture2D::CreateDesc desc;
-	desc.imageToUpload.loadFile("Crate.bmp");
+	{
+		Texture2D::CreateDesc desc;
+		desc.imageToUpload.loadFile("Crate.bmp");
+	
+	// Create Nearest Filtered Texture (no smoothing)
+		desc.samplerState.filter = TextureFilter::Nearest;
+		desc.samplerState.maxLOD = 0;
+		desc.samplerState.minLOD = 0;
+		_texture2dArray[0].create(desc);
 
-// Create Nearest Filtered Texture (no smoothing)
-	desc.samplerState.minFilter = Filter::Nearest;
-	desc.samplerState.magFilter = Filter::Nearest;
-	desc.samplerState.maxLOD = 0;
-	desc.samplerState.minLOD = 0;
-	_texture2dArray[0].create(desc);
+	// Create Linear Filtered Texture
+		desc.samplerState.filter = TextureFilter::Linear;
+		desc.samplerState.minLOD = 0;
+		desc.samplerState.maxLOD = 0;
+		_texture2dArray[1].create(desc);
 
-// Create Linear Filtered Texture
-	desc.samplerState.minFilter = Filter::Linear;
-	desc.samplerState.magFilter = Filter::Linear;
-	desc.samplerState.minLOD = 0;
-	desc.samplerState.maxLOD = 0;
-	_texture2dArray[1].create(desc);
+	// Create MipMapped Texture
+		desc.samplerState.filter = TextureFilter::Linear;
+		desc.samplerState.minLOD = 0;
+		desc.samplerState.maxLOD = 3;
+		// Mipmapping!You may have noticed that when you make an image very tiny on the screen, alot of the fine details disappear.
+			// Patterns that used to look nice start looking real bad.
+			// When you tell OpenGL to build a mipmapped texture OpenGL tries to build different sized high quality textures.
+			// When you draw a mipmapped texture to the screen OpenGL will select the BEST looking texture from the ones it built(texture with the most detail)
+			// and draw it to the screen instead of resizing the original image (which causes detail loss).
+		_texture2dArray[2].create(desc);
+	}
 
-// Create MipMapped Texture
-	desc.samplerState.magFilter = Filter::Linear;
-	desc.samplerState.minFilter = Filter::LinearNearestMipNearest;
-	desc.samplerState.minLOD = 0;
-	desc.samplerState.maxLOD = 3;
-	// Mipmapping!You may have noticed that when you make an image very tiny on the screen, alot of the fine details disappear.
-		// Patterns that used to look nice start looking real bad.
-		// When you tell OpenGL to build a mipmapped texture OpenGL tries to build different sized high quality textures.
-		// When you draw a mipmapped texture to the screen OpenGL will select the BEST looking texture from the ones it built(texture with the most detail)
-		// and draw it to the screen instead of resizing the original image (which causes detail loss).
-	_texture2dArray[2].create(desc);
+	{
+		_floorMesh.createGrid(1000);
+
+		Texture2D::CreateDesc desc;
+		desc.samplerState.filter = TextureFilter::Linear;
+		desc.imageToUpload.loadFile("grid.png");
+
+		desc.samplerState.minLOD = 0;
+		desc.samplerState.maxLOD = 4; // why can not set 5 ???
+		_floorMainTex.create(desc);
+
+		desc.samplerState.minLOD = 0;
+		desc.samplerState.maxLOD = 0;
+		_floorMainTexNoMipMap.create(desc);
+	}
 
 	// Setup Lighting
 	glLightfv(GL_LIGHT1, GL_AMBIENT,  _lightAmbient.data);	// Setup The Ambient Light
@@ -121,7 +147,8 @@ void NeHeOGL_Lesson007::onInitedGL() {
 }
 
 void NeHeOGL_Lesson007::onDraw() {
-	_example1();
+//	_example1();
+	_example2(); // mipmap
 }
 
 void NeHeOGL_Lesson007::_example1() {
@@ -221,6 +248,59 @@ void NeHeOGL_Lesson007::_example1() {
 		glTexCoord2f(0.0f, 1.0f); OGL::vertex3f(kCubePos[0]);	// glVertex3f(-1.0f,  1.0f, -1.0f);
 	glEnd();
 	_texture2dArray[_texSelectedIndex].unbind();
+
+	_camerOrbitAngle += _camerOrbitSpeed;
+
+	swapBuffers();
+	drawNeeded();
+}
+
+void NeHeOGL_Lesson007::_example2() {
+	float width  = _clientRect.w;
+	float height = _clientRect.h;
+
+	if (height == 0) {
+		height = 1;
+	}
+
+	float aspect = width / height;
+	glViewport(0, 0, static_cast<int>(width), static_cast<int>(height));
+
+	glClearColor(0.f, 0.2f, 0.2f, 0.f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glEnable(GL_TEXTURE_2D); // Enable Texture Mapping
+	glShadeModel(GL_SMOOTH); // Enable Smooth Shading
+
+	glClearDepth(1.0f);
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
+
+	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); // Really Nice Perspective Calculations
+
+	glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		gluPerspective(60.f, aspect, 0.01f, 1000.0f);
+
+	// setup camera
+	glTranslatef(0, 0, _camerMovePosZ); // (away from and towards the viewer)
+	glRotatef(_camerOrbitAngle.x, 1,0,0);
+	glRotatef(_camerOrbitAngle.y, 0,1,0);
+
+	glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+
+	{
+		OGL::Scoped_glPushMatrix scoped;
+
+		if (_isFloorOnMipMap) _floorMainTex.bind();
+		else _floorMainTexNoMipMap.bind();
+
+		_floorMesh.draw();
+
+		if (_isFloorOnMipMap) _floorMainTex.unbind();
+		else _floorMainTexNoMipMap.unbind();
+	}
 
 	_camerOrbitAngle += _camerOrbitSpeed;
 

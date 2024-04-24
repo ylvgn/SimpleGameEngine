@@ -64,6 +64,8 @@ void NeHeOGL_Lesson006::onInitedGL() {
 //	_rectMesh.renderState.wireframe = true;
 
 	_gridMesh.createGrid(10);
+	_gridMesh.renderState.wireframe = true;
+
 	_coordinateMesh.createCoordinate();
 
 	{ // create a texture
@@ -77,7 +79,42 @@ void NeHeOGL_Lesson006::onInitedGL() {
 		_loadTexture2D("uvChecker_PNG.png", _imagesToUpload[1], _texture2ds[1]);
 	}
 
-	_tex.createTest();
+	{
+		using COLOR_T = Color4b;
+		using T = COLOR_T::ElementType;
+
+		int width, height;
+		width = height = 256;
+
+		NeHeOGL_Texture2D::CreateDesc desc;
+		desc.samplerState.filter = TextureFilter::Linear;
+		desc.imageToUpload.create(COLOR_T::kColorType, width, height);
+
+		{
+			Vector<COLOR_T, 2048> pixels;
+			pixels.resize(width * height);
+			auto* p = pixels.begin();
+			for (int y = 0; y < height; y++) {
+				for (int x = 0; x < width; x++) {
+					p->set(static_cast<T>(x), static_cast<T>(y), 0, 255);
+					p++;
+				}
+			}
+			SGE_ASSERT(p == pixels.end());
+
+			auto src = ByteSpan_make(pixels.span());
+			desc.imageToUpload.copyToPixelData(src);
+		}
+
+		_tex.create(desc);
+	}
+
+	{
+		NeHeOGL_Texture2D::CreateDesc desc;
+		desc.imageToUpload.create(ColorType::RGBAb, 256, 256);
+		desc.imageToUpload.fill(OGL::kbRed); // how if i use desc.imageToUpload.fill(OGL::kRed); ???
+		_solidColorTex.create(desc);
+	}
 
 	OGLUtil::throwIfError();
 }
@@ -92,7 +129,7 @@ void NeHeOGL_Lesson006::onDraw() {
 }
 
 #if SGE_OS_WINDOWS
-void NeHeOGL_Lesson006::_loadByHBITMAP(NeHeOGL_Image& o, StrView filename) {
+void NeHeOGL_Lesson006::_loadByHBITMAP(Image& o, StrView filename) {
 	// Loads A Bitmap Image
 
 	// a few VERY important things you need to know about the images you plan to use as textures
@@ -164,7 +201,7 @@ void NeHeOGL_Lesson006::_loadByHBITMAP(NeHeOGL_Image& o, StrView filename) {
 }
 #endif
 
-void NeHeOGL_Lesson006::_loadTexture2D(StrView filename, NeHeOGL_Image& img, GLuint targetTexture) {
+void NeHeOGL_Lesson006::_loadTexture2D(StrView filename, Image& img, GLuint targetTexture) {
 #if 0 && SGE_OS_WINDOWS
 	_loadByHBITMAP(img, filename);
 #else
@@ -437,21 +474,27 @@ void NeHeOGL_Lesson006::_example4(float uptime) {
 	_gridMesh.draw();
 	_coordinateMesh.drawVertexes();
 
-//	_rectMesh.renderState.cull = NeHeOGL_RenderState::Cull::None;
+//	_rectMesh.renderState.cull = RenderState::Cull::None;
 
 	{
 		OGL::ScopedBindTexture2D scopedTex(_texture2d);
-		OGL::ScopedglPushMatrix scopedMatrix;
-		OGL::translatef({ -2, 1, 0 });
-//		glRotatef(uptime, 0, 1, 0);
+		OGL::Scoped_glPushMatrix scopedMatrix;
+		OGL::translatef({ -4, 1, 0 });
 		_rectMesh.draw();
 	}
 
 	{
+		_solidColorTex.bind();
+			OGL::Scoped_glPushMatrix scopedMatrix;
+			OGL::translatef({ 0, 1, 0 });
+			_rectMesh.draw();
+		_solidColorTex.unbind();
+	}
+
+	{
 		_tex.bind();
-			OGL::ScopedglPushMatrix scopedMatrix;
-			OGL::translatef({ 2, 1, 0 });
-//			glRotatef(uptime, 0, 1, 0);
+			OGL::Scoped_glPushMatrix scopedMatrix;
+			OGL::translatef({ 4, 1, 0 });
 			_rectMesh.draw();
 		_tex.unbind();
 	}

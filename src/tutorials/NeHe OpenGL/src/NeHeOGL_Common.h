@@ -13,13 +13,6 @@
 
 namespace sge {
 
-enum class RenderPrimitiveType {
-	None,
-	Points,
-	Lines,
-	Triangles,
-};
-
 template<class T> inline void g_bzero(T& s) {
 	memset(&s, 0, sizeof(s));
 }

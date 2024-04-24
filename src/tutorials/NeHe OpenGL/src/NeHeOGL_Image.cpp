@@ -65,8 +65,14 @@ void NeHeOGL_Image::_create(ColorType colorType, int width, int height, size_t s
 	_info.size.set(width, height);
 	_info.strideInBytes = strideInBytes;
 
-	_pixelData.clear();
-	_pixelData.resize(dataSizeInBytes);
+	try {
+		_pixelData.clear();
+		_pixelData.resize(dataSizeInBytes);
+	}
+	catch (...) {
+		clear();
+		throw;
+	}
 }
 
 }

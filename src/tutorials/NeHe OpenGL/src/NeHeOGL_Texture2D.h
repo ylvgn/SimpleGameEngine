@@ -5,61 +5,29 @@
 
 namespace sge {
 
-#define NeHe_TextureMagFilter_ENUM_LIST(E) \
-	E(None,					) \
+#define NeHeOGL_TextureFilter_ENUM_LIST(E) \
 	E(Nearest,	= GL_NEAREST) \
 	E(Linear,	= GL_LINEAR	) \
 //----
-SGE_ENUM_CLASS(NeHe_TextureMagFilter, GLint)
+SGE_ENUM_DECLARE(NeHeOGL_TextureFilter, GLint)
+SGE_ENUM_ALL_OPERATOR(NeHeOGL_TextureFilter)
 
-#define NeHe_TextureMinFilter_ENUM_LIST(E) \
-	E(None,					) \
-	E(Nearest,	= GL_NEAREST) \
-	E(Linear,	= GL_LINEAR	) \
-	\
-	E(NearestMipNearest, = GL_NEAREST_MIPMAP_NEAREST) \
-	E(LinearNearestMipNearest, = GL_LINEAR_MIPMAP_NEAREST) \
-	E(NearestMipLinear, = GL_NEAREST_MIPMAP_LINEAR) \
-	E(LinearNearestMipLinear, = GL_LINEAR_MIPMAP_LINEAR) \
-//----
-SGE_ENUM_CLASS(NeHe_TextureMinFilter, GLint)
-
-enum class NeHe_TextureFilter : GLint;
-constexpr NeHe_TextureFilter NeHe_TextureFilter_make(NeHe_TextureMagFilter v) {
-	return static_cast<NeHe_TextureFilter>(enumInt(v));
-}
-constexpr NeHe_TextureFilter NeHe_TextureFilter_make(NeHe_TextureMinFilter v) {
-	return static_cast<NeHe_TextureFilter>(enumInt(v));
-}
-#define NeHe_TextureFilter_ENUM_LIST(E) \
-	/* TextureMagFilter */ \
-	E(Nearest, = NeHe_TextureFilter_make(NeHe_TextureMagFilter::Nearest)) \
-	E(Linear, = NeHe_TextureFilter_make(NeHe_TextureMagFilter::Linear)) \
-	/* TextureMinFilter */ \
-	E(NearestMipNearest, = NeHe_TextureFilter_make(NeHe_TextureMinFilter::NearestMipNearest)) \
-	E(LinearNearestMipNearest, = NeHe_TextureFilter_make(NeHe_TextureMinFilter::LinearNearestMipNearest)) \
-	E(NearestMipLinear, = NeHe_TextureFilter_make(NeHe_TextureMinFilter::NearestMipLinear)) \
-	E(LinearNearestMipLinear, = NeHe_TextureFilter_make(NeHe_TextureMinFilter::LinearNearestMipLinear)) \
-//----
-SGE_ENUM_DECLARE(NeHe_TextureFilter, GLint)
-SGE_ENUM_ALL_OPERATOR(NeHe_TextureFilter)
-
-#define NeHe_TextureWrap_ENUM_LIST(E) \
+#define NeHeOGL_TextureWrap_ENUM_LIST(E) \
 	E(None,					) \
 	E(Repeat,	= GL_REPEAT	) \
 	E(Clamp,	= GL_CLAMP	) \
 //----
-SGE_ENUM_CLASS(NeHe_TextureWrap, GLint)
+SGE_ENUM_CLASS(NeHeOGL_TextureWrap, GLint)
 
 struct NeHeOGL_SamplerState {
-	using Filter	= NeHe_TextureFilter;
-	using Wrap		= NeHe_TextureWrap;
+	using Filter	= NeHeOGL_TextureFilter;
+	using Wrap		= NeHeOGL_TextureWrap;
 
-	Filter	minFilter = Filter::Linear;
-	Filter	magFilter = Filter::Linear;
+	Filter	filter = Filter::Linear;
 
 	Wrap	wrapU	= Wrap::Repeat; // aka wrapS
 	Wrap	wrapV	= Wrap::Repeat; // aka wrapT
+	Wrap	wrapW	= Wrap::Repeat;
 
 	float	minLOD = 0;
 	float	maxLOD = 0;
@@ -71,8 +39,8 @@ struct NeHeOGL_Texture_CreateDesc {
 class NeHeOGL_Texture : public NonCopyable {
 public:
 	using SamplerState		= NeHeOGL_SamplerState;
-	using TextureFilter		= SamplerState::Filter;
-	using RenderDataType	= NeHe_RenderDataType;
+	using TextureFilter		= NeHeOGL_TextureFilter;
+	using RenderDataType	= NeHeOGL_RenderDataType;
 
 	RenderDataType type() const { return _type; }
 
@@ -92,15 +60,12 @@ public:
 class NeHeOGL_Texture2D : public NeHeOGL_Texture {
 public:
 	using CreateDesc	= NeHeOGL_Texture2D_CreateDesc;
-	using Image			= CreateDesc::Image;
+	using Image			= NeHeOGL_Image;
 
 	~NeHeOGL_Texture2D() { destroy(); }
 
 	void create(CreateDesc& desc);
 	void destroy();
-
-	void createTest();
-	void createByLoadFile(StrView filename);
 
 	void bind();
 	void unbind();

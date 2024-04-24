@@ -88,7 +88,7 @@ private:
 		{-d,-d, d}, // 7
 	};
 
-	static constexpr GLenum kIndexType = OGLUtil::getGlFormat((NeHe_RenderDataTypeUtil::get<VertexIndex>()));
+	static constexpr GLenum kIndexType = OGLUtil::getGlFormat((RenderDataTypeUtil::get<VertexIndex>()));
 	static constexpr VertexIndex kCubeIndices[12][3] = {
 		{0, 2, 1}, // top
 		{0, 3, 2},
@@ -115,9 +115,9 @@ private:
 
 	NeHeOGL_Vertex_PosColor _cubeVertexs[8];
 
-	NeHeOGL_Mesh	_cubeMesh;
-	NeHeOGL_Mesh	_rectMesh;
-	GLuint			_texture2d;
+	Mesh	_cubeMesh;
+	Mesh	_rectMesh;
+	GLuint	_texture2d;
 };
 
 }

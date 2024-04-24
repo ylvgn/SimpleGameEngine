@@ -180,7 +180,6 @@ void NeHeOGL_Mesh::createPlane(float w, float h) {
 
 void NeHeOGL_Mesh::createGrid(int gridSize) {
 	clear();
-	renderState.wireframe = true;
 
 	if (gridSize <= 1) {
 		createPlane(1, 1);
@@ -197,9 +196,11 @@ void NeHeOGL_Mesh::createGrid(int gridSize) {
 			p->color.set(OGL::kbWhite);
 			p->pos.set(x, 0, y);
 			p->pos += offset;
+			p->uv.set(x / (verticesPerRow-1), y / (verticesPerRow-1));
 			p++;
 		}
 	}
+
 	SGE_ASSERT(p == vertices.end());
 
 	_addToIndiceOfGrid(verticesPerRow, {  1, 1 }, false);

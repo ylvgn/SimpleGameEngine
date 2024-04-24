@@ -136,6 +136,20 @@ struct ColorR {
 
 	SGE_INLINE bool operator==(const ColorR<T>& v) const { return r == v.r }
 	SGE_INLINE bool operator!=(const ColorR<T>& v) const { return r != v.r }
+
+	template<class COLOR>
+	static ColorR s_cast(const COLOR& r) {
+		ColorR o;
+		for (int i = 0; i < COLOR::kElementCount && i < kElementCount; ++i) {
+			o.data[i] = static_cast<T>(r.data[i]);
+		}
+		return o;
+	}
+
+	template<class SE>
+	void onJson(SE& se) {
+		SGE_NAMED_IO(se, r);
+	}
 };
 
 template<class T>
@@ -163,6 +177,21 @@ struct ColorRG {
 
 	SGE_INLINE bool operator==(const ColorRG<T>& v) const { return r == v.r && g == v.g; }
 	SGE_INLINE bool operator!=(const ColorRG<T>& v) const { return r != v.r || g != v.g; }
+
+	template<class COLOR>
+	static ColorRG s_cast(const COLOR& r) {
+		ColorRG o;
+		for (int i = 0; i < COLOR::kElementCount && i < kElementCount; ++i) {
+			o.data[i] = static_cast<T>(r.data[i]);
+		}
+		return o;
+	}
+
+	template<class SE>
+	void onJson(SE& se) {
+		SGE_NAMED_IO(se, r);
+		SGE_NAMED_IO(se, g);
+	}
 };
 
 template<class T>
@@ -191,6 +220,22 @@ struct ColorRGB {
 
 	SGE_INLINE bool operator==(const ColorRGB<T>& v) const { return r == v.r && g == v.g && b == v.b; }
 	SGE_INLINE bool operator!=(const ColorRGB<T>& v) const { return r != v.r || g != v.g || b != v.b; }
+
+	template<class COLOR>
+	static ColorRGB s_cast(const COLOR& r) {
+		ColorRGB o;
+		for (int i = 0; i < COLOR::kElementCount && i < kElementCount; ++i) {
+			o.data[i] = static_cast<T>(r.data[i]);
+		}
+		return o;
+	}
+
+	template<class SE>
+	void onJson(SE& se) {
+		SGE_NAMED_IO(se, r);
+		SGE_NAMED_IO(se, g);
+		SGE_NAMED_IO(se, b);
+	}
 };
 
 template<class T>
@@ -227,6 +272,15 @@ struct ColorRGBA {
 	SGE_INLINE bool operator==(const ColorRGBA<T>& v) const { return r == v.r && g == v.g && b == v.b && a == v.a; }
 	SGE_INLINE bool operator!=(const ColorRGBA<T>& v) const { return r != v.r || g != v.g || b != v.b || a != v.a; }
 
+	template<class COLOR>
+	static ColorRGBA s_cast(const COLOR& r) {
+		ColorRGBA o;
+		for (int i = 0; i < COLOR::kElementCount && i < kElementCount; ++i) {
+			o.data[i] = static_cast<T>(r.data[i]);
+		}
+		return o;
+	}
+
 	template<class SE>
 	void onJson(SE& se) {
 		SGE_NAMED_IO(se, r);
@@ -260,6 +314,20 @@ struct ColorL {
 
 	SGE_INLINE bool operator==(const ColorL<T>& v) const { return l == v.l; }
 	SGE_INLINE bool operator!=(const ColorL<T>& v) const { return l != v.l; }
+
+	template<class COLOR>
+	static ColorL s_cast(const COLOR& r) {
+		ColorL o;
+		for (int i = 0; i < COLOR::kElementCount && i < kElementCount; ++i) {
+			o.data[i] = static_cast<T>(r.data[i]);
+		}
+		return o;
+	}
+
+	template<class SE>
+	void onJson(SE& se) {
+		SGE_NAMED_IO(se, l);
+	}
 };
 
 template<class T>
@@ -287,6 +355,21 @@ struct ColorLA {
 
 	SGE_INLINE bool operator==(const ColorLA<T>& v) const { return l == v.l; && a == v.a; }
 	SGE_INLINE bool operator!=(const ColorLA<T>& v) const { return l != v.l; || a != v.a; }
+
+	template<class COLOR>
+	static ColorLA s_cast(const COLOR& r) {
+		ColorLA o;
+		for (int i = 0; i < COLOR::kElementCount && i < kElementCount; ++i) {
+			o.data[i] = static_cast<T>(r.data[i]);
+		}
+		return o;
+	}
+
+	template<class SE>
+	void onJson(SE& se) {
+		SGE_NAMED_IO(se, l);
+		SGE_NAMED_IO(se, a);
+	}
 };
 
 using ColorRGBAf = ColorRGBA<float>;

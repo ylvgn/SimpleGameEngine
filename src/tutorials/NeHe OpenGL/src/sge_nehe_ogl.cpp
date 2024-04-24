@@ -10,7 +10,7 @@ namespace sge {
 
 class NeHeOGLApp : public NativeUIApp {
 	using Base = NativeUIApp;
-	using NeHeOGLMainWin = NeHeOGL_Lesson007;
+	using NeHeOGLMainWin = NeHeOGL_Lesson006;
 protected:
 	virtual void onCreate(CreateDesc& desc) override {
 		{ // set working dir

@@ -2,7 +2,7 @@
 
 namespace sge {
 
-#define NeHe_RenderDataType_ENUM_LIST(E) \
+#define NeHeOGL_RenderDataType_ENUM_LIST(E) \
 	E(None,) \
 	\
 	E(Int8,)	\
@@ -20,12 +20,12 @@ namespace sge {
 	\
 	E(Texture2D,) \
 //----
-SGE_ENUM_CLASS(NeHe_RenderDataType, u8)
+SGE_ENUM_CLASS(NeHeOGL_RenderDataType, u8)
 
-struct NeHe_RenderDataTypeUtil {
-	NeHe_RenderDataTypeUtil() = delete;
+struct NeHeOGL_RenderDataTypeUtil {
+	NeHeOGL_RenderDataTypeUtil() = delete;
 	
-	using Type = NeHe_RenderDataType;
+	using Type = NeHeOGL_RenderDataType;
 
 	template<class T> static constexpr Type get();
 

@@ -108,7 +108,7 @@ void NeHeOGL_Lesson002::_example3() {
 	glLoadIdentity();
 	glTranslatef(-0.5f, 0, 0);
 	{
-		OGL::ScopedBegin begin(NeHe_BeginMode::Triangles);
+		OGL::Scoped_glBegin begin(OGL::Scoped_glBegin::Mode::Triangles);
 		glVertex3f( 0,  d, 0);
 		glVertex3f(-d, -d, 0);
 		glVertex3f( d, -d, 0);
@@ -116,7 +116,7 @@ void NeHeOGL_Lesson002::_example3() {
 
 	glTranslatef(1, 0, 0);
 	{
-		OGL::ScopedBegin begin(NeHe_BeginMode::Quads);
+		OGL::Scoped_glBegin begin(OGL::Scoped_glBegin::Mode::Quads);
 		glVertex3f(-d,  d, 0);
 		glVertex3f( d,  d, 0);
 		glVertex3f( d, -d, 0);

@@ -19,7 +19,7 @@
 
 namespace sge {
 
-#define NeHe_BeginMode_ENUM_LIST(E) \
+#define NeHeOGL_BeginMode_ENUM_LIST(E) \
 	E(Points,			= GL_POINTS			) \
 	E(Lines,			= GL_LINES			) \
 	E(LineLoop,			= GL_LINE_LOOP		) \
@@ -31,7 +31,21 @@ namespace sge {
 	E(QuadStrip,		= GL_QUAD_STRIP		) \
 	E(Polygon,			= GL_POLYGON		) \
 //----
-SGE_ENUM_CLASS(NeHe_BeginMode, GLenum)
+SGE_ENUM_CLASS(NeHeOGL_BeginMode, GLenum)
+
+using Mesh						= NeHeOGL_Mesh;
+using RenderDataType			= NeHeOGL_RenderDataType;
+using RenderDataTypeUtil		= NeHeOGL_RenderDataTypeUtil;
+using RenderState				= NeHeOGL_RenderState;
+using RenderState_Cull			= NeHeOGL_RenderState_Cull;
+using RenderState_DepthTestFunc = NeHeOGL_RenderState_DepthTestFunc;
+using Texture					= NeHeOGL_Texture;
+using Texture2D					= NeHeOGL_Texture2D;
+using Image						= NeHeOGL_Image;
+using SamplerState				= NeHeOGL_SamplerState;
+using TextureFilter				= NeHeOGL_TextureFilter;
+using TextureWrap				= NeHeOGL_TextureWrap;
+using RenderPrimitiveType		= NeHeOGL_RenderPrimitiveType;
 
 struct OGLUtil {
 	OGLUtil() = delete;
@@ -41,11 +55,11 @@ struct OGLUtil {
 	static bool assertIfError(GLenum errCode = _getErrorCode());
 
 	static GLenum getGlPrimitiveTopology(RenderPrimitiveType v);
-	static constexpr GLenum getGlFormat(NeHe_RenderDataType v);
+	static constexpr GLenum getGlFormat(RenderDataType v);
 	static GLenum getGlColorType(ColorType v);
 
-	static GLenum getGlCullMode(NeHeOGL_RenderState::Cull v);
-	static GLenum getGlDepthTestOp(NeHeOGL_RenderState::DepthTestOp v);
+	static GLenum getGlCullMode(RenderState::Cull v);
+	static GLenum getGlDepthTestOp(RenderState::DepthTestOp v);
 
 private:
 	static GLenum _getErrorCode() { return glGetError(); }
@@ -101,8 +115,8 @@ GLenum OGLUtil::getGlPrimitiveTopology(RenderPrimitiveType v) {
 }
 
 constexpr
-GLenum OGLUtil::getGlFormat(NeHe_RenderDataType v) {
-	using SRC = NeHe_RenderDataType;
+GLenum OGLUtil::getGlFormat(RenderDataType v) {
+	using SRC = RenderDataType;
 	switch (v) {
 		case SRC::Int8:			return GL_BYTE;
 		case SRC::UInt8:		return GL_UNSIGNED_BYTE;
@@ -145,19 +159,19 @@ GLenum OGLUtil::getGlColorType(ColorType v) {
 }
 
 inline
-GLenum OGLUtil::getGlCullMode(NeHeOGL_RenderState::Cull v) {
-	using SRC = NeHeOGL_RenderState::Cull;
+GLenum OGLUtil::getGlCullMode(RenderState::Cull v) {
+	using SRC = RenderState::Cull;
 	switch (v) {
 		case SRC::None:			return GL_FRONT_AND_BACK;
 		case SRC::Back:			return GL_BACK;
 		case SRC::Front:		return GL_FRONT;
-		default:				throw  SGE_ERROR("unsupported NeHeOGL_RenderState::Cull");
+		default:				throw  SGE_ERROR("unsupported RenderState::Cull");
 	}
 }
 
 inline
-GLenum OGLUtil::getGlDepthTestOp(NeHeOGL_RenderState::DepthTestOp v) {
-	using SRC = NeHeOGL_RenderState::DepthTestOp;
+GLenum OGLUtil::getGlDepthTestOp(RenderState::DepthTestOp v) {
+	using SRC = RenderState::DepthTestOp;
 	switch (v) {
 		case SRC::Less:			return GL_LESS;
 		case SRC::LessEqual:	return GL_LEQUAL;
@@ -167,7 +181,7 @@ GLenum OGLUtil::getGlDepthTestOp(NeHeOGL_RenderState::DepthTestOp v) {
 		case SRC::NotEqual:		return GL_NOTEQUAL;
 		case SRC::Always:		return GL_ALWAYS;
 		case SRC::Never:		return GL_NEVER;
-		default:				throw  SGE_ERROR("unsupported NeHeOGL_RenderState::DepthTestOp");
+		default:				throw  SGE_ERROR("unsupported RenderState::DepthTestOp");
 	}
 }
 
@@ -214,7 +228,7 @@ namespace OGL {
 	inline void FUNC_NAME(const IN_SRC* p, size_t stride) { \
 		using SRC = IN_SRC; \
 		using DataType = SRC::ElementType; \
-		static constexpr auto type = OGLUtil::getGlFormat(NeHe_RenderDataTypeUtil::get<DataType>()); \
+		static constexpr auto type = OGLUtil::getGlFormat(RenderDataTypeUtil::get<DataType>()); \
 		GL_FUNC_NAME(SRC::kElementCount, type, static_cast<GLsizei>(stride), p); \
 	} \
 //-----
@@ -226,10 +240,12 @@ namespace OGL {
 #undef SGE_DECLEAR_GLXXXPOINTER
 
 
-	class ScopedBegin : public NonCopyable {
+	class Scoped_glBegin : public NonCopyable {
 	public:
-		ScopedBegin(NeHe_BeginMode mode) { glBegin(static_cast<GLenum>(mode)); }
-		~ScopedBegin() { glEnd(); }
+		using Mode = NeHeOGL_BeginMode;
+
+		Scoped_glBegin(NeHeOGL_BeginMode mode) { glBegin(static_cast<GLenum>(mode)); }
+		~Scoped_glBegin() { glEnd(); }
 	};
 
 	class ScopedBindTexture2D : public NonCopyable {
@@ -238,10 +254,10 @@ namespace OGL {
 		~ScopedBindTexture2D() { glBindTexture(GL_TEXTURE_2D, 0); }
 	};
 
-	class ScopedglPushMatrix : public NonCopyable {
+	class Scoped_glPushMatrix : public NonCopyable {
 	public:
-		ScopedglPushMatrix()  { glPushMatrix(); }
-		~ScopedglPushMatrix() { glPopMatrix(); }
+		Scoped_glPushMatrix()  { glPushMatrix(); }
+		~Scoped_glPushMatrix() { glPopMatrix(); }
 	};
 
 } // namespace OGL

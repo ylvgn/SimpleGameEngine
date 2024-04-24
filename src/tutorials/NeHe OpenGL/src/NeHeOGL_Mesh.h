@@ -5,6 +5,13 @@
 
 namespace sge {
 
+enum class NeHeOGL_RenderPrimitiveType {
+	None,
+	Points,
+	Lines,
+	Triangles,
+};
+
 struct NeHeOGL_Mesh__RenderState {
 	using RenderState	= NeHeOGL_RenderState;
 	using Cull			= RenderState::Cull;
@@ -27,9 +34,10 @@ struct NeHeOGL_Mesh__RenderState {
 
 class NeHeOGL_Mesh {
 public:
-	using MyRenderState	 = NeHeOGL_Mesh__RenderState;
-	using VertexDataType = NeHeOGL_Vertex_PosColorUv;
-	using RenderDataType = NeHe_RenderDataType;
+	using MyRenderState			= NeHeOGL_Mesh__RenderState;
+	using VertexDataType		= NeHeOGL_Vertex_PosColorUv;
+	using RenderDataType		= NeHeOGL_RenderDataType;
+	using RenderPrimitiveType	= NeHeOGL_RenderPrimitiveType;
 
 	void clear();
 

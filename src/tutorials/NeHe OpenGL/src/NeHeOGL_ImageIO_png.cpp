@@ -234,7 +234,7 @@ void NeHeOGL_ImageIO_png::Reader::s_onError(png_structp png_ptr, png_const_charp
 }
 
 void NeHeOGL_ImageIO_png::Reader::onError(png_const_charp error_msg) {
-	throw SGE_ERROR(error_msg);
+	throw SGE_ERROR("libpng error: {}", error_msg);
 }
 
 void NeHeOGL_ImageIO_png::Reader::s_onWarning(png_structp png_ptr, png_const_charp warning_msg) {
@@ -246,7 +246,7 @@ void NeHeOGL_ImageIO_png::Reader::s_onWarning(png_structp png_ptr, png_const_cha
 }
 
 void NeHeOGL_ImageIO_png::Reader::onWarning(png_const_charp warning_msg) {
-	SGE_LOG_WARN(warning_msg);
+	SGE_LOG_WARN("libpng warning: {}", warning_msg);
 }
 
 void NeHeOGL_ImageIO_png::Reader::s_onRead(png_structp png_ptr, png_bytep dest, png_size_t length) {

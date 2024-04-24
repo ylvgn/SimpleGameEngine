@@ -635,7 +635,7 @@ void NeHeOGL_Lesson005::_drawMySphere(float radius, int subAxis, int subHeight) 
 	OGL::color4f(OGL::kWhite);
 
 	{ // top
-		OGL::ScopedBegin s(NeHe_BeginMode::Triangles);
+		OGL::Scoped_glBegin s(OGL::Scoped_glBegin::Mode::Triangles);
 		int y = 1;
 		float ty0 = PI * y / subHeight;
 		float r0, h0;
@@ -661,7 +661,7 @@ void NeHeOGL_Lesson005::_drawMySphere(float radius, int subAxis, int subHeight) 
 	}
 
 	{ // middle
-		OGL::ScopedBegin s(NeHe_BeginMode::Triangles);
+		OGL::Scoped_glBegin s(OGL::Scoped_glBegin::Mode::Triangles);
 		for (int y = 1; y < subHeight - 1; y++) {
 
 			float ty0 = PI * y / subHeight;
@@ -700,7 +700,7 @@ void NeHeOGL_Lesson005::_drawMySphere(float radius, int subAxis, int subHeight) 
 	}
 
 	{ // bottom
-		OGL::ScopedBegin s(NeHe_BeginMode::Triangles);
+		OGL::Scoped_glBegin s(OGL::Scoped_glBegin::Mode::Triangles);
 
 		int y = subHeight - 2;
 		float ty1 = PI * (y+1) / subHeight;
@@ -793,7 +793,7 @@ void NeHeOGL_Lesson005::_drawMyCube1() {
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glVertexPointer(3, GL_FLOAT, 0, kCube);
 
-		OGL::ScopedBegin s(NeHe_BeginMode::Triangles);
+		OGL::Scoped_glBegin s(OGL::Scoped_glBegin::Mode::Triangles);
 		glArrayElement(0); glArrayElement(2); glArrayElement(1); // top
 		glArrayElement(0); glArrayElement(3); glArrayElement(2);
 		glArrayElement(3); glArrayElement(6); glArrayElement(2); // front
