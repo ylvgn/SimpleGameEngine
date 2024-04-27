@@ -62,6 +62,19 @@ function(sge_add_library target_name src_path)
 	sge_set_target_unity_build_mode(${target_name})
 endfunction()
 
+function(sge_add_dynamic_library target_name src_path)
+	file(GLOB_RECURSE src_files
+		"${src_path}/src/*.*"
+	)	
+	sge_source_group(${src_path} "${src_files}")
+	
+	add_library(${target_name} SHARED ${src_files})	
+	target_precompile_headers(${target_name} PUBLIC src/${target_name}-pch.h)
+	target_include_directories(${target_name} PUBLIC src)
+	sge_set_target_warning_level(${target_name})
+	sge_set_target_unity_build_mode(${target_name})
+endfunction()
+
 function(sge_add_executable target_name src_path)
 	file(GLOB_RECURSE src_files
 		"${src_path}/src/*.*"
@@ -78,27 +91,31 @@ endfunction()
 add_subdirectory(src/core)
 add_subdirectory(src/core/test)
 
-#-- render --
+#-- render ---
 add_subdirectory(src/render)
 add_subdirectory(src/render/shader_compiler)
 
-#-- engine
+#-- engine ---
 add_subdirectory(src/engine)
 
-#-- editor
+#-- editor ---
 add_subdirectory(src/editor)
 add_subdirectory(src/editor/app)
 
 set_property (DIRECTORY PROPERTY VS_STARTUP_PROJECT sge_editor_app)
 
-
-#-- Hands-On C++ Game Animation Programming
+#--- inessential ---
+#-- Hands-On C++ Game Animation Programming ---
 add_subdirectory(src/books/Hands-On\ C++\ Game\ Animation\ Programming)
 add_subdirectory(src/books/Hands-On\ C++\ Game\ Animation\ Programming/app)
 add_subdirectory(src/books/Hands-On\ C++\ Game\ Animation\ Programming/test)
 
-#-- Programming Windows 5th - Charles Petzold
+#-- Programming Windows 5th - Charles Petzold ---
 add_subdirectory(src/books/Programming\ Windows\ 5th\ -\ Charles\ Petzold)
 
-#-- NeHe OpenGL
+#-- NeHe OpenGL ---
 add_subdirectory(src/tutorials/NeHe\ OpenGL)
+
+#-- SiTa DataBase ---
+add_subdirectory(src/tutorials/SiTa\ DataBase)
+add_subdirectory(src/tutorials/SiTa\ DataBase/examples/sge_sita_db_example_001)
