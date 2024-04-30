@@ -16,10 +16,11 @@ public:
 	virtual ~Conn() = default;
 
 	virtual void directExec(StrView sql) = 0;
+	virtual void destroy() = 0;
 };
 
 
-MyDB_API Conn* connectMySQL(StrView host, StrView db, StrView user, StrView password);
-MyDB_API Conn* connectSQLite3(StrView host, StrView db, StrView user, StrView password);
+MyDB_API UPtr<Conn> connectMySQL(StrView host, StrView db, StrView user, StrView password);
+MyDB_API UPtr<Conn> connectSQLite3(StrView filename);
 
 }

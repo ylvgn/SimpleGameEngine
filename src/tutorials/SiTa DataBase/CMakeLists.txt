@@ -2,10 +2,10 @@ set(PROJECT_NAME sge_sita_db)
 message("==== ${PROJECT_NAME} ====")
 project(${PROJECT_NAME})
 
-link_directories("${CMAKE_CURRENT_SOURCE_DIR}/src/externals/MySQL Connector C 6.1/${CMAKE_VS_PLATFORM_NAME}")
+link_directories("${CMAKE_CURRENT_SOURCE_DIR}/externals/MySQL Connector C 6.1/${CMAKE_VS_PLATFORM_NAME}")
 
 include_directories(
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/externals/MySQL Connector C 6.1/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/externals/MySQL Connector C 6.1/include"
 )
 
 sge_add_dynamic_library(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR})
