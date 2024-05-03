@@ -119,3 +119,4 @@ add_subdirectory(src/tutorials/NeHe\ OpenGL)
 #-- SiTa DataBase ---
 add_subdirectory(src/tutorials/SiTa\ DataBase)
 add_subdirectory(src/tutorials/SiTa\ DataBase/examples/sge_sita_db_example_001)
+add_subdirectory(src/tutorials/SiTa\ DataBase/examples/sge_sita_db_example_002)
