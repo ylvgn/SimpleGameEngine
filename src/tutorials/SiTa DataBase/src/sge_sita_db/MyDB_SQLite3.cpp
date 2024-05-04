@@ -16,29 +16,257 @@ public:
 
 protected:
 	virtual UPtr<Stmt> onCreateStmt(StrView sql) override;
-	virtual UPtr<Stmt> onCreateStmt(StrViewW sql) override;
 };
 
-SPtr<Conn> connectSQLite3(StrView filename) {
-	return new MySQLite3_Conn(filename);
-}
+SPtr<Conn> connectSQLite3(StrView filename) { return new MySQLite3_Conn(filename); }
 
 class MySQLite3_Stmt : public Stmt {
 public:
-	MySQLite3_Stmt(MySQLite3_Conn* conn, StrView sql);
-	MySQLite3_Stmt(MySQLite3_Conn* conn, StrViewW sql);
+	void destroy() {
+		if (_stmt) {
+			//		sqlite3_reset(_stmt);
+			sqlite3_finalize(_stmt);
+			_stmt = nullptr;
+		}
+	}
 	~MySQLite3_Stmt() { destroy(); }
 
-	void destroy();
+	MySQLite3_Stmt::MySQLite3_Stmt(MySQLite3_Conn* conn, StrView sql)
+		: _conn(conn)
+	{
+		if (!_conn)
+			throw SGE_ERROR("_conn is null");
 
-protected:
-	virtual void onExec(ExecParam* params, size_t n) override;
+		TempString sql_(sql);
+		const char* unusedSql = nullptr;
+		if (SQLITE_OK != sqlite3_prepare_v3(_conn->_conn, sql_.c_str(), static_cast<int>(sql_.size()), SQLITE_PREPARE_PERSISTENT, &_stmt, &unusedSql)) {
+			throw SGE_ERROR("sqlite3_prepare_v3");
+		}
 
-	void _step();
+		if (unusedSql) {
+			const char* c = unusedSql;
+			for (; *c ; c ++) {
+				if (*c == '\t') continue;
+				if (*c == '\r') continue;
+				if (*c == '\n') continue;
+				if (*c == ' ') continue;
 
-private:
+				throw SGE_ERROR("SQLite3 doesn't support multiple SQL statement");
+			}
+		}
+	}
+
+	virtual void onReset() override {
+		if (!_stmt)
+			throw SGE_ERROR("_stmt is null");
+
+		_endOfRows = false;
+		sqlite3_reset(_stmt);
+	}
+
+	virtual void onExec(ExecParam* params, size_t n) override {
+		if (!_stmt)
+			throw SGE_ERROR("_stmt is null");
+
+		if (n != sqlite3_bind_parameter_count(_stmt))
+			throw SGE_ERROR("incorrect parameter count");
+
+		using Type = ExecParam::Type;
+		for (int i = 0; i < n; ++i) {
+			const auto& p = params[i];
+			int idx = i + 1;
+			switch (p.type) {
+
+				case Type::Null : sqlite3_bind_null(_stmt, idx); break;
+
+				case Type::Int8 : sqlite3_bind_int	(_stmt, idx, *reinterpret_cast<const i8 *>(p.value)); break;
+				case Type::Int16: sqlite3_bind_int	(_stmt, idx, *reinterpret_cast<const i16*>(p.value)); break;
+				case Type::Int32: sqlite3_bind_int	(_stmt, idx, *reinterpret_cast<const i32*>(p.value)); break;
+				case Type::Int64: sqlite3_bind_int64(_stmt, idx, *reinterpret_cast<const i64*>(p.value)); break;
+
+				case Type::UInt8 : sqlite3_bind_int	 (_stmt, idx, *reinterpret_cast<const u8 *>(p.value)); break;
+				case Type::UInt16: sqlite3_bind_int	 (_stmt, idx, *reinterpret_cast<const u16*>(p.value)); break;
+				case Type::UInt32: sqlite3_bind_int64(_stmt, idx, *reinterpret_cast<const u32*>(p.value)); break; // int64 can handle uint32
+
+//				case Type::UInt64: sqlite3_bind_int64(_stmt, idx, *reinterpret_cast<const u64*>(p.value)); break; // int64 might not able to handle uint64
+
+				case Type::Float:  sqlite3_bind_double(_stmt, idx, *reinterpret_cast<const float *>(p.value)); break;
+				case Type::Double: sqlite3_bind_double(_stmt, idx, *reinterpret_cast<const double*>(p.value)); break;
+
+				case Type::c_str: {
+					auto* c_str = reinterpret_cast<const char*>(p.value);
+					sqlite3_bind_text(_stmt, idx, c_str, static_cast<int>(strlen(c_str)), nullptr);
+				} break;
+
+				case Type::string: {
+					auto* s = reinterpret_cast<const std::string*>(p.value);
+					sqlite3_bind_text(_stmt, idx, s->c_str(), static_cast<int>(s->size()), nullptr);
+				} break;
+
+				case Type::sge_String: {
+					auto* s = reinterpret_cast<const String*>(p.value);
+					sqlite3_bind_text(_stmt, idx, s->c_str(), static_cast<int>(s->size()), nullptr);
+				} break;
+
+				default: throw SGE_ERROR("unsupported params type");
+			}
+		}
+		_step();
+	}
+
+	void _throwIfOutOfRange(int i) {
+		if (i < 0 || i >= sqlite3_column_count(_stmt))
+			throw SGE_ERROR("out of range");
+	}
+
+	virtual bool MySQLite3_Stmt::onFetch(ResultField* fields, size_t n) override {
+		if (_endOfRows)
+			return false;
+
+		if (!_stmt)
+			throw SGE_ERROR("_stmt is null");
+
+		if (n != sqlite3_column_count(_stmt))
+			throw SGE_ERROR("incorrect parameter count n={}, t={}", n, sqlite3_column_count(_stmt));
+
+		_step();
+
+		if (_endOfRows)
+			return false;
+
+		using Type = ResultField::Type;
+		for (int i = 0; i < n; ++i) {
+			auto& f = fields[i];
+
+			switch (f.type) {
+				case Type::Int8:	_column_int<i8 >(f, i); break;
+				case Type::Int16:	_column_int<i16>(f, i); break;
+				case Type::Int32:	_column_int<i32>(f, i); break;
+				case Type::Int64:	_column_int<i64>(f, i); break;
+
+				case Type::UInt8:	_column_int<u8 >(f, i); break;
+				case Type::UInt16:	_column_int<u16>(f, i); break;
+				case Type::UInt32:	_column_int<u32>(f, i); break;
+				case Type::UInt64:	_column_int<u64>(f, i); break; // sqlite3 never saved u64 data, so allow to fetch int data cast it as u64 value.
+
+				case Type::Float:	_column_double<float >(f, i); break;
+				case Type::Double:	_column_double<double>(f, i); break;
+
+				case Type::string: {
+					auto* s = reinterpret_cast<std::string*>(f.value);
+					int t = sqlite3_column_type(_stmt, i);
+					if (SQLITE_NULL == t) {
+						s->clear();
+					}
+					if (SQLITE3_TEXT != t) {
+						throw SGE_ERROR("invalid field type");
+					}
+					const auto* src = sqlite3_column_text(_stmt, i); // return value are always zero-terminated.
+					s->assign(reinterpret_cast<const char*>(src));
+				} break;
+
+				case Type::sge_String: {
+					auto* s = reinterpret_cast<String*>(f.value);
+					int t = sqlite3_column_type(_stmt, i);
+					if (SQLITE_NULL == t) {
+						s->clear();
+					}
+					if (SQLITE3_TEXT != t) {
+						throw SGE_ERROR("invalid field type");
+					}
+					const auto* src = sqlite3_column_text(_stmt, i); // return value are always zero-terminated.
+					s->assign(reinterpret_cast<const char*>(src));
+				} break;
+
+				default: throw SGE_ERROR("unsupported field type");
+			}
+		}
+		return true;
+	}
+
+	void _step() {
+		_endOfRows = true;
+
+		int ret = sqlite3_step(_stmt);
+		if (SQLITE_DONE == ret) {
+			return;
+		}
+		if (SQLITE_ROW == ret) {
+			_endOfRows = false;
+			return;
+		}
+	}
+
+	template<class T> inline
+	void _column_int(ResultField& f, int col) {
+		auto& dst = *reinterpret_cast<T*>(f.value);
+
+		int t = sqlite3_column_type(_stmt, col);
+		if (SQLITE_NULL == t) {
+			dst = 0;
+			return;
+		}
+
+		if (SQLITE_INTEGER != t)
+			throw SGE_ERROR("invalid field type");
+
+		sqlite_int64 src = sqlite3_column_int64(_stmt, col);
+		dst = static_cast<T>(src);
+		if (static_cast<sqlite_int64>(dst) != src)
+			throw SGE_ERROR("field overflow");
+
+//		SGE_DUMP_VAR(col, resultFieldName(col), dst);
+	}
+
+	template<class T> inline
+	void _column_double(ResultField& f, int col) {
+		auto& dst = *reinterpret_cast<T*>(f.value);
+
+		int t = sqlite3_column_type(_stmt, col);
+		if (SQLITE_NULL == t) {
+			dst = 0;
+			return;
+		}
+
+		if (SQLITE_FLOAT != t)
+			throw SGE_ERROR("invalid field type");
+
+		double src = sqlite3_column_double(_stmt, col);
+		dst = static_cast<T>(src);
+		if (static_cast<double>(dst) != src)
+			throw SGE_ERROR("field overflow");
+
+//		SGE_DUMP_VAR(col, resultFieldName(col), dst);
+	}
+
+	virtual int MySQLite3_Stmt::resultFieldCount() override {
+		if (!_stmt)
+			throw SGE_ERROR("_stmt is null");
+		return sqlite3_column_count(_stmt);
+	}
+
+	virtual const char* MySQLite3_Stmt::resultFieldName(int i) override {
+		if (!_stmt)
+			throw SGE_ERROR("_stmt is null");
+
+		_throwIfOutOfRange(i);
+
+		return sqlite3_column_name(_stmt, i);
+	}
+
+	virtual bool MySQLite3_Stmt::isFieldNull(int i) override {
+		if (!_stmt)
+			throw SGE_ERROR("_stmt is null");
+
+		_throwIfOutOfRange(i);
+
+		int t = sqlite3_column_type(_stmt, i);
+		return t == SQLITE_NULL;
+	}
+
 	SPtr<MySQLite3_Conn> _conn;
 	sqlite3_stmt* _stmt = nullptr;
+	bool _endOfRows = false;
 };
 
 MySQLite3_Conn::MySQLite3_Conn(StrView filename) {
@@ -57,9 +285,6 @@ void MySQLite3_Conn::destroy() {
 	}
 }
 
-UPtr<Stmt> MySQLite3_Conn::onCreateStmt(StrView sql) { return UPtr<MySQLite3_Stmt>(new MySQLite3_Stmt(this, sql)); }
-UPtr<Stmt> MySQLite3_Conn::onCreateStmt(StrViewW sql) { return UPtr<MySQLite3_Stmt>(new MySQLite3_Stmt(this, sql)); }
-
 void MySQLite3_Conn::directExec(StrView sql) {
 	TempString sql_(sql);
 	char* zErrMsg = nullptr;
@@ -70,86 +295,8 @@ void MySQLite3_Conn::directExec(StrView sql) {
 	}
 }
 
-MySQLite3_Stmt::MySQLite3_Stmt(MySQLite3_Conn* conn, StrView sql)
-	: _conn(conn)
-{
-	if (!_conn)
-		throw SGE_ERROR("_conn is null");
-
-	TempString sql_(sql);
-	const char* unusedSql = nullptr;
-	if (SQLITE_OK != sqlite3_prepare_v3(_conn->_conn, sql_.c_str(), static_cast<int>(sql_.size()), SQLITE_PREPARE_PERSISTENT, &_stmt, &unusedSql)) {
-		throw SGE_ERROR("sqlite3_prepare_v3: out of memory");
-	}
-}
-
-MySQLite3_Stmt::MySQLite3_Stmt(MySQLite3_Conn* conn, StrViewW sql)
-	: _conn(conn)
-{
-	if (!_conn)
-		throw SGE_ERROR("_conn is null");
-
-	TempStringW sql_(sql);
-	const void* unusedSql = nullptr;
-	if (SQLITE_OK != sqlite3_prepare16_v3(_conn->_conn, sql_.c_str(), static_cast<int>(sql_.size()), SQLITE_PREPARE_PERSISTENT, &_stmt, &unusedSql)) {
-		throw SGE_ERROR("sqlite3_prepare16_v3");
-	}
-}
-
-void MySQLite3_Stmt::destroy() {
-	if (_stmt) {
-//		sqlite3_reset(_stmt);
-		sqlite3_finalize(_stmt);
-		_stmt = nullptr;
-	}
-}
-
-void MySQLite3_Stmt::onExec(ExecParam* params, size_t n) {
-	if (!_stmt)
-		throw SGE_ERROR("_stmt is null");
-
-	if (n != sqlite3_bind_parameter_count(_stmt))
-		throw SGE_ERROR("incorrect parameter count");
-
-	using Type = ExecParam::Type;
-	for (int i = 0; i < n; ++i) {
-		const auto& p = params[i];
-		int idx = i + 1;
-		switch (p.type) {
-
-			case Type::Null : sqlite3_bind_null(_stmt, idx); break;
-
-			case Type::Int8 : sqlite3_bind_int	(_stmt, idx, *reinterpret_cast<const i8 *>(p.value)); break;
-			case Type::Int16: sqlite3_bind_int	(_stmt, idx, *reinterpret_cast<const i16*>(p.value)); break;
-			case Type::Int32: sqlite3_bind_int	(_stmt, idx, *reinterpret_cast<const i32*>(p.value)); break;
-			case Type::Int64: sqlite3_bind_int64(_stmt, idx, *reinterpret_cast<const i64*>(p.value)); break;
-
-			case Type::UInt8 : sqlite3_bind_int	 (_stmt, idx, *reinterpret_cast<const u8 *>(p.value)); break;
-			case Type::UInt16: sqlite3_bind_int	 (_stmt, idx, *reinterpret_cast<const u16*>(p.value)); break;
-			case Type::UInt32: sqlite3_bind_int64(_stmt, idx, *reinterpret_cast<const u32*>(p.value)); break; // int64 can handle uint32
-
-//			case Type::UInt64: sqlite3_bind_int64(_stmt, idx, *reinterpret_cast<const u64*>(p.value)); break; // int64 might not able to handle uint64
-
-			case Type::Float:  sqlite3_bind_double(_stmt, idx, *reinterpret_cast<const float*>(p.value)); break;
-			case Type::Double: sqlite3_bind_double(_stmt, idx, *reinterpret_cast<const double*>(p.value)); break;
-
-			case Type::c_str: {
-				auto* c_str = reinterpret_cast<const char*>(p.value);
-				sqlite3_bind_text(_stmt, idx, c_str, static_cast<int>(strlen(c_str)), nullptr);
-			} break;
-
-			default: throw SGE_ERROR("unsupported params type");
-		}
-	}
-
-	_step();
-}
-
-void MySQLite3_Stmt::_step() {
-	int ret = sqlite3_step(_stmt);
-	if (SQLITE_DONE == ret) {
-		return;
-	}
+UPtr<Stmt> MySQLite3_Conn::onCreateStmt(StrView sql) {
+	return UPtr<MySQLite3_Stmt>(new MySQLite3_Stmt(this, sql));
 }
 
 }
