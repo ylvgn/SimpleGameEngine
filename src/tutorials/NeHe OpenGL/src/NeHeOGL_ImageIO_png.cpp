@@ -34,6 +34,11 @@ void NeHeOGL_ImageIO_png::Reader::load(NeHeOGL_Image& img, ByteSpan data, ColorT
 		throw SGE_ERROR("png_destroy_read_struct");
 	}
 
+	if (img.isPreMulAlpha())
+		png_set_alpha_mode(_png, PNG_ALPHA_PREMULTIPLIED, PNG_DEFAULT_sRGB);
+	else
+		png_set_alpha_mode(_png, PNG_ALPHA_PNG, PNG_DEFAULT_sRGB); // default
+
 	png_set_read_fn(_png, this, s_onRead);
 
 //	If you had previously opened the file and read any of the signature from the beginning in order to see if this was a PNG file,

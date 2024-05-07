@@ -40,7 +40,7 @@ private:
 
 	Vec2f _camerOrbitSpeed { 0,0 };			// the speed the crate is spinning at on the x/y axis
 	Vec2f _camerOrbitAngle { 30.f, -30.f };	// camera rotate with x-axis y-axis (degrees)
-	float _camerMovePosZ = -5.f;
+	float _camerMovePosZ = 5.f;
 
 	Texture2D	_texture2dArray[kTexture2dCount]; // Storage For 3 Textures
 	GLuint		_texture2ds[kTexture2dCount];

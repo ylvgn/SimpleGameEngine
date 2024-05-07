@@ -3,10 +3,20 @@
 namespace sge {
 	
 struct NeHeOGL_ImageInfo {
+	NeHeOGL_ImageInfo()
+		: size({0,0})
+		, strideInBytes(0)
+		, mipmapCount(1)
+		, colorType(ColorType::None)
+		, isPreMulAlpha(false)
+	{}
+
 	Vec2i		size			{ 0,0 };
 	size_t		strideInBytes	= 0;
 	int			mipmapCount		= 1;
 	ColorType	colorType		= ColorType::None;
+
+	bool		isPreMulAlpha : 1;
 };
 
 class NeHeOGL_Image : public NonCopyable {
@@ -34,8 +44,12 @@ public:
 	SGE_INLINE	const Vec2i&	size			() const { return _info.size; }
 	SGE_INLINE	int				width			() const { return _info.size.x; }
 	SGE_INLINE	int				height			() const { return _info.size.y; }
+	SGE_INLINE	int				pixelCount		() const { return _info.size.x * _info.size.y; }
 	SGE_INLINE	ColorType		colorType		() const { return _info.colorType; }
 	SGE_INLINE	size_t			strideInBytes	() const { return _info.strideInBytes; }
+	SGE_INLINE	bool			isPreMulAlpha	() const { return _info.isPreMulAlpha; }
+
+	void setPreMultipliedAlpha(bool enabled)	{ _info.isPreMulAlpha = enabled; };
 
 	template<class COLOR> void fill(const COLOR& color);
 
@@ -60,13 +74,13 @@ void NeHeOGL_Image::fill(const COLOR& color) {
 	size_t stride = ColorUtil::pixelSizeInBytes(_info.colorType);
 	SGE_ASSERT(stride == sizeof(color));
 
-	int pixelCount = _info.size.x * _info.size.y;
-	u8* p = _pixelData.begin();
-	for (size_t i = 0; i < pixelCount; ++i) {
-		*reinterpret_cast<COLOR*>(p) = color;
-		p += stride;
+	u8* dst = _pixelData.begin();
+	int n = pixelCount();
+	for (size_t i = 0; i < n; ++i) {
+		*reinterpret_cast<COLOR*>(dst) = color;
+		dst += stride;
 	}
-	SGE_ASSERT(p == _pixelData.end());
+	SGE_ASSERT(dst == _pixelData.end());
 }
 
 }

@@ -255,7 +255,7 @@ void NeHeOGL_Lesson006::onUIMouseEvent(UIMouseEvent& ev) {
 
 	if (ev.isScroll()) {
 		auto d = ev.scroll * 0.015f;
-		_camerMovePos.z += d.y;
+		_camerMovePos.z -= d.y;
 	}
 }
 
@@ -381,7 +381,7 @@ void NeHeOGL_Lesson006::_example3(float uptime) {
 		gluPerspective(45.f, _clientRect.w / _clientRect.h, 0.1f, 1000.0f);
 
 	// setup camera
-	glTranslatef(_camerMovePos.x, _camerMovePos.y, _camerMovePos.z);
+	glTranslatef(_camerMovePos.x, _camerMovePos.y, -_camerMovePos.z);
 	glRotatef(_camerOrbitAngle.x, 1,0,0);
 	glRotatef(_camerOrbitAngle.y, 0,1,0);
 
@@ -464,15 +464,14 @@ void NeHeOGL_Lesson006::_example4(float uptime) {
 		gluPerspective(45.f, _clientRect.w / _clientRect.h, 0.1f, 1000.0f);
 
 	// setup camera
-	glTranslatef(_camerMovePos.x, _camerMovePos.y, _camerMovePos.z);
+	glTranslatef(_camerMovePos.x, _camerMovePos.y, -_camerMovePos.z);
 	glRotatef(_camerOrbitAngle.x, 1,0,0);
 	glRotatef(_camerOrbitAngle.y, 0,1,0);
 
 	glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 
-	_gridMesh.draw();
-	_coordinateMesh.drawVertexes();
+	OGL::drawGridAndCoordinate(_gridMesh, _coordinateMesh);
 
 //	_rectMesh.renderState.cull = RenderState::Cull::None;
 

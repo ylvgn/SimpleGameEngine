@@ -24,7 +24,7 @@ private:
 
 	void _destroy();
 
-	struct MyMesh : public NonCopyable {
+	struct NeHeOGL_Lesson006_MyMesh : public NonCopyable {
 		Vector<Tuple3f> pos;
 		Vector<Tuple2f> uv;
 		Vector<u32>	indices;
@@ -57,7 +57,7 @@ private:
 	void _example4(float uptime);
 
 	Vec2f _camerOrbitAngle	{30,30};	// camera rotate with x-axis y-axis
-	Vec3f _camerMovePos		{0,0,-10};	// camera move, zoom in/out
+	Vec3f _camerMovePos		{0,0,10};	// camera move, zoom in/out
 
 	MyHiResTimer _uptime;
 
@@ -69,7 +69,7 @@ private:
 	GLuint	_texture2ds[kTexture2dCount];
 	Image	_imagesToUpload[kTexture2dCount];
 
-	MyMesh		_mesh;
+	NeHeOGL_Lesson006_MyMesh _mesh;
 
 	Texture2D	_tex;
 	Texture2D	_solidColorTex;

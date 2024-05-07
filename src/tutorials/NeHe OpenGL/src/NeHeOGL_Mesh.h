@@ -41,14 +41,26 @@ public:
 
 	void clear();
 
-	void createRect(float w, float h);
-	void createCube(float w, float h, float d);
+	void createRect (float w, float h);
+	void createCube (float w, float h, float d);
 	void createPlane(float w, float h);
-	void createGrid(int grideSize);
+	void createGrid(int gridSize);
 	void createCoordinate();
 
 	void draw();
-	void drawVertexes();
+	void drawInherit();
+
+	void drawVertexArrays();
+	void drawInheritVertexArrays();
+
+	void drawByVertexArrays();
+	void drawByVertexElements();
+
+	void bindVertexes();
+	void unbindVertexes();
+
+	void bindRenderState();
+	void unbindRenderState();
 
 	RenderPrimitiveType				primitive = RenderPrimitiveType::Triangles;
 
@@ -62,8 +74,6 @@ private:
 
 	void _beginDraw();
 	void _endDraw();
-
-	void _bindVertexs();
 
 	RenderDataType	_indexType = RenderDataType::UInt32;
 

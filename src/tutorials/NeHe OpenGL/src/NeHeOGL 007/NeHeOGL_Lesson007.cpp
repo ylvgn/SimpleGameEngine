@@ -30,7 +30,7 @@ void NeHeOGL_Lesson007::onUIMouseEvent(UIMouseEvent& ev) {
 
 	if (ev.isScroll()) {
 		auto d = ev.scroll * 0.015f;
-		_camerMovePosZ += d.y;
+		_camerMovePosZ -= d.y;
 	}
 }
 
@@ -52,10 +52,10 @@ void NeHeOGL_Lesson007::onUIKeyboardEvent(UIKeyboardEvent& ev) {
 	}
 
 	if (ev.isDown(KeyCode::PageUp)) {
-		_camerMovePosZ -= 0.02f;	// Crate Move Into The Screen
+		_camerMovePosZ += 0.02f;	// Crate Move Into The Screen
 	}
 	if (ev.isDown(KeyCode::PageDown)) {
-		_camerMovePosZ += 0.02f;	// Crate Move Towards The Viewer
+		_camerMovePosZ -= 0.02f;	// Crate Move Towards The Viewer
 	}
 
 	if (!_isPressedF && ev.isDown(KeyCode::F)) {
@@ -75,7 +75,6 @@ void NeHeOGL_Lesson007::onUIKeyboardEvent(UIKeyboardEvent& ev) {
 	if (ev.isUp(KeyCode::M)) {
 		_isPressedM = false;
 	}
-
 
 	// If _isPressedL was false, meaning the 'L' key hasn't been pressed yet, or it's been released, _isPressedL becomes true.
 	// This forces the person to let go of the 'L' key before this code will run again.
@@ -147,8 +146,8 @@ void NeHeOGL_Lesson007::onInitedGL() {
 }
 
 void NeHeOGL_Lesson007::onDraw() {
-//	_example1();
-	_example2(); // mipmap
+	_example1();
+//	_example2(); // mipmap
 }
 
 void NeHeOGL_Lesson007::_example1() {
@@ -161,6 +160,8 @@ void NeHeOGL_Lesson007::_example1() {
 
 	float aspect = width / height;
 	glViewport(0, 0, static_cast<int>(width), static_cast<int>(height));
+
+	glDisable(GL_LIGHTING);
 
 	glClearColor(0.f, 0.2f, 0.2f, 0.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -178,15 +179,14 @@ void NeHeOGL_Lesson007::_example1() {
 		glLoadIdentity();
 		gluPerspective(60.f, aspect, 0.01f, 1000.0f);
 
-	// setup camera
-	glTranslatef(0, 0, _camerMovePosZ); // (away from and towards the viewer)
-	glRotatef(_camerOrbitAngle.x, 1,0,0);
-	glRotatef(_camerOrbitAngle.y, 0,1,0);
-
 	glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 
-	glDisable(GL_LIGHTING);
+	// setup camera
+	glTranslatef(0, 0, -_camerMovePosZ); // (away from and towards the viewer)
+	glRotatef(_camerOrbitAngle.x, 1, 0, 0);
+	glRotatef(_camerOrbitAngle.y, 0, 1, 0);
+
 	_gridMesh.draw();
 
 	// setup lighting
@@ -283,7 +283,7 @@ void NeHeOGL_Lesson007::_example2() {
 		gluPerspective(60.f, aspect, 0.01f, 1000.0f);
 
 	// setup camera
-	glTranslatef(0, 0, _camerMovePosZ); // (away from and towards the viewer)
+	glTranslatef(0, 0, -_camerMovePosZ); // (away from and towards the viewer)
 	glRotatef(_camerOrbitAngle.x, 1,0,0);
 	glRotatef(_camerOrbitAngle.y, 0,1,0);
 

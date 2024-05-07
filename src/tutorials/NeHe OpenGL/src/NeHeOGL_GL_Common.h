@@ -110,7 +110,7 @@ GLenum OGLUtil::getGlPrimitiveTopology(RenderPrimitiveType v) {
 		case SRC::Points:		return GL_POINTS;
 		case SRC::Lines:		return GL_LINES;
 		case SRC::Triangles:	return GL_TRIANGLES;
-		default: throw SGE_ERROR("unknown RenderPrimitiveType");
+		default: throw SGE_ERROR("unsupported RenderPrimitiveType");
 	}
 }
 
@@ -125,7 +125,7 @@ GLenum OGLUtil::getGlFormat(RenderDataType v) {
 		case SRC::Int32:		return GL_INT;
 		case SRC::UInt32:		return GL_UNSIGNED_INT;
 		case SRC::Float32:		return GL_FLOAT;
-		default:				throw  SGE_ERROR("unsupported NeHe_RenderDataType");
+		default:				throw  SGE_ERROR("unsupported RenderDataType");
 	}
 }
 
@@ -211,6 +211,14 @@ namespace OGL {
 	static constexpr Color4b kbCyan		{ 0,  255,255,255 };
 	static constexpr Color4b kbOrange	{ 255,128,0,  255 };
 
+	inline void color4b(const Color4b& c) {
+		::glColor4b(
+			static_cast<GLbyte>(c.r - 128),
+			static_cast<GLbyte>(c.g - 128),
+			static_cast<GLbyte>(c.b - 128),
+			static_cast<GLbyte>(c.a - 128)
+		);
+	}
 	inline void color4f(const Color4f& c)					{ ::glColor4f(c.r, c.g, c.b, c.a); }
 	inline void texCoord2f(const Tuple2f& uv)				{ ::glTexCoord2f(uv.x, uv.y); }
 	inline void vertex3f(const Tuple3f& v)					{ ::glVertex3f(v.x, v.y, v.z); }
@@ -259,6 +267,12 @@ namespace OGL {
 		Scoped_glPushMatrix()  { glPushMatrix(); }
 		~Scoped_glPushMatrix() { glPopMatrix(); }
 	};
+
+
+	inline void drawGridAndCoordinate(Mesh& grid, Mesh& coordinate) {
+		grid.draw();
+		coordinate.drawVertexArrays();
+	}
 
 } // namespace OGL
 } // namespace sge
