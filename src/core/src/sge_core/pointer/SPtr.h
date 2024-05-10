@@ -31,7 +31,13 @@ public:
 		if (p == _p) return;
 		if (_p) {
 			auto c = --_p->_refCount;
-			if (c <= 0) sge_delete(_p);
+			if (c <= 0) {
+				++_p->_weakCount; // incase SPtr data member has its own WeakPtr
+					_p->~T();
+				--_p->_weakCount;
+
+				if (_p->_weakCount <= 0) free(_p);
+			}
 		}
 		_p = p;
 		if (_p) {

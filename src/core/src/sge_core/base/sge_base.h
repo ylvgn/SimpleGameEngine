@@ -278,6 +278,7 @@ private:
 class RefCountBase : public NonCopyable {
 public:
 	std::atomic_int	_refCount = 0;
+	std::atomic_int	_weakCount = 0;
 };
 
 template<class T> inline void sge_delete(T* p) noexcept { delete p; }
