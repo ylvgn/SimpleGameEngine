@@ -39,8 +39,8 @@ public:
 		void loadPngFile(StrView filename);
 
 	void create(ColorType colorType, int width, int height);
-	void create(ColorType colorType, int width, int height, size_t strideInBytes);
-	void create(ColorType colorType, int width, int height, size_t strideInBytes, int mipmapCount, size_t dataSizeInBytes);
+	void create(ColorType colorType, int width, int height, int strideInBytes);
+	void create(ColorType colorType, int width, int height, int strideInBytes, int mipmapCount, int dataSizeInBytes);
 
 	SGE_INLINE	const Info&		info			() const { return _info; }
 	SGE_INLINE	const Vec2i&	size			() const { return _info.size; }
@@ -53,6 +53,15 @@ public:
 
 	void setPreMultipliedAlpha(bool enabled)	{ _info.isPreMulAlpha = enabled; };
 
+	template<class COLOR> SGE_INLINE	Span<      COLOR>	row(int y)			{ _checkType(COLOR::kColorType); return row_noCheck<COLOR>(y); }
+	template<class COLOR> SGE_INLINE	Span<const COLOR>	row(int y) const	{ _checkType(COLOR::kColorType); return row_noCheck<COLOR>(y); }
+
+	template<class COLOR> SGE_INLINE	const COLOR&		pixel(int x, int y) const	{ return row<COLOR>(y)[x]; }
+	template<class COLOR> SGE_INLINE		  COLOR&		pixel(int x, int y)			{ return row<COLOR>(y)[x]; }
+
+	template<class COLOR> SGE_INLINE Span<      COLOR>		row_noCheck(int y)			{ return Span<      COLOR>(reinterpret_cast<      COLOR*>(rowBytes(y).data()), _info.size.x); }
+	template<class COLOR> SGE_INLINE Span<const COLOR>		row_noCheck(int y) const	{ return Span<const COLOR>(reinterpret_cast<const COLOR*>(rowBytes(y).data()), _info.size.x); }
+
 	template<class COLOR> void fill(const COLOR& color);
 
 	SGE_INLINE	Span<u8>		rowBytes(int y)			{ return Span<		u8>(&_pixelData[y * _info.strideInBytes], _info.size.x * _info.pixelSizeInBytes()); }
@@ -63,7 +72,11 @@ public:
 	void copyToPixelData(ByteSpan src) { _pixelData.assign(src.begin(), src.end()); }
 
 private:
-	void _create(ColorType colorType, int width, int height, size_t strideInBytes, int mipmapCount, size_t dataSizeInBytes);
+	void _create(ColorType colorType, int width, int height, int strideInBytes, int mipmapCount, size_t dataSizeInBytes);
+	void _checkType(ColorType colorType) const {
+		if (colorType != _info.colorType)
+			throw SGE_ERROR("Invalid ColorType");
+	}
 
 	Info		_info;
 	Vector<u8>	_pixelData;

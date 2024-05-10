@@ -80,30 +80,21 @@ void NeHeOGL_Lesson006::onInitedGL() {
 	}
 
 	{
-		using COLOR_T = Color4b;
-		using T = COLOR_T::ElementType;
-
-		int width, height;
-		width = height = 256;
+		int width  = 256;
+		int height = 256;
 
 		NeHeOGL_Texture2D::CreateDesc desc;
+		auto& image = desc.imageToUpload;
+		desc.size.set(width, height);
+		desc.colorType = ColorType::RGBAb;
 		desc.samplerState.filter = TextureFilter::Linear;
-		desc.imageToUpload.create(COLOR_T::kColorType, width, height);
+		image.create(Color4b::kColorType, width, height);
 
-		{
-			Vector<COLOR_T, 2048> pixels;
-			pixels.resize(width * height);
-			auto* p = pixels.begin();
-			for (int y = 0; y < height; y++) {
-				for (int x = 0; x < width; x++) {
-					p->set(static_cast<T>(x), static_cast<T>(y), 0, 255);
-					p++;
-				}
+		for (int y = 0; y < width; y++) {
+			auto row = image.row<Color4b>(y);
+			for (int x = 0; x < height; x++) {
+				row[x].set(static_cast<Color4b::ElementType>(x), static_cast<Color4b::ElementType>(y), 0, 255);
 			}
-			SGE_ASSERT(p == pixels.end());
-
-			auto src = ByteSpan_make(pixels.span());
-			desc.imageToUpload.copyToPixelData(src);
 		}
 
 		_tex.create(desc);

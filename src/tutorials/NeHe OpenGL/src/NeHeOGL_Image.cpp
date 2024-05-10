@@ -54,15 +54,15 @@ void NeHeOGL_Image::create(ColorType colorType, int width, int height) {
 	create(colorType, width, height, width * ColorUtil::pixelSizeInBytes(colorType));
 }
 
-void NeHeOGL_Image::create(ColorType colorType, int width, int height, size_t strideInBytes) {
+void NeHeOGL_Image::create(ColorType colorType, int width, int height, int strideInBytes) {
 	_create(colorType, width, height, strideInBytes, 1, strideInBytes * height);
 }
 
-void NeHeOGL_Image::create(ColorType colorType, int width, int height, size_t strideInBytes, int mipmapCount, size_t dataSizeInBytes) {
-	_create(colorType, width, height, strideInBytes, mipmapCount, dataSizeInBytes);
+void NeHeOGL_Image::create(ColorType colorType, int width, int height, int strideInBytes, int mipmapCount, int dataSizeInBytes) {
+	_create(colorType, width, height, strideInBytes, mipmapCount, static_cast<size_t>(dataSizeInBytes));
 }
 
-void NeHeOGL_Image::_create(ColorType colorType, int width, int height, size_t strideInBytes, int mipmapCount, size_t dataSizeInBytes) {
+void NeHeOGL_Image::_create(ColorType colorType, int width, int height, int strideInBytes, int mipmapCount, size_t dataSizeInBytes) {
 	_info.colorType = colorType;
 	_info.size.set(width, height);
 	_info.strideInBytes = strideInBytes;

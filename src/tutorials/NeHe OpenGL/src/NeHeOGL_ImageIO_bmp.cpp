@@ -1,4 +1,5 @@
 #include "NeHeOGL_ImageIO_bmp.h"
+
 #include "externals/stb_image.h"
 
 namespace sge {
@@ -11,7 +12,6 @@ NeHeOGL_ImageIO_bmp::Reader::~Reader() {
 }
 
 int NeHeOGL_ImageIO_bmp::Reader::s_onRead(void* user, char* data, int size) {
-	//SGE_LOG("s_onRead size={}", size);
 	auto* thisObj = static_cast<Reader*>(user);
 	if (!thisObj) {
 		throw SGE_ERROR("bmp error s_onRead");
@@ -19,17 +19,15 @@ int NeHeOGL_ImageIO_bmp::Reader::s_onRead(void* user, char* data, int size) {
 	return thisObj->onRead(data, size);
 }
 
-void NeHeOGL_ImageIO_bmp::Reader::s_onSkip(void* user, int byteCount) {
-	//SGE_LOG("s_onSkip byteCount={}", byteCount);
+void NeHeOGL_ImageIO_bmp::Reader::s_onSkip(void* user, int size) {
 	auto* thisObj = static_cast<Reader*>(user);
 	if (!thisObj) {
 		throw SGE_ERROR("bmp error s_onSkip");
 	}
-	thisObj->onSkip(byteCount);
+	thisObj->onSkip(size);
 }
 
 int NeHeOGL_ImageIO_bmp::Reader::s_onEOF(void* user) {
-	//SGE_LOG("s_onEOF");
 	auto* thisObj = static_cast<Reader*>(user);
 	if (!thisObj) {
 		throw SGE_ERROR("bmp error s_onEOF");
@@ -40,23 +38,24 @@ int NeHeOGL_ImageIO_bmp::Reader::s_onEOF(void* user) {
 int NeHeOGL_ImageIO_bmp::Reader::onRead(char* dst, int size) {
 	int n = size;
 	if (_readPtr + n > _data.end()) {
-		n = static_cast<int>(_data.end() - _readPtr);
-		if (!n)
-			throw SGE_ERROR("bmp error onRead size = {}", size);
+		throw SGE_ERROR("bmp error read data out of range");
 	}
 	memcpy(dst, _readPtr, n);
 	_readPtr += n;
 	return n;
 }
 
-void NeHeOGL_ImageIO_bmp::Reader::onSkip(int byteCount) {
-	// unknown
+void NeHeOGL_ImageIO_bmp::Reader::onSkip(int size) {
+	int n = size;
+	if (_readPtr + n > _data.end()) {
+		throw SGE_ERROR("bmp error skip data out of range");
+	}
+	_readPtr += n;
 }
 
 int NeHeOGL_ImageIO_bmp::Reader::onEOF() {
 	return _readPtr == _data.end();
 }
-
 
 void NeHeOGL_ImageIO_bmp::Reader::load(NeHeOGL_Image& img, ByteSpan data, ColorType expectType) {
 	_data = data;
@@ -70,7 +69,7 @@ void NeHeOGL_ImageIO_bmp::Reader::load(NeHeOGL_Image& img, ByteSpan data, ColorT
 
 	int ok = stbi_info_from_memory(_data.data(), dataSize, &width, &height, &comp);
 	if (!ok)
-		throw SGE_ERROR("bmp error stbi_info_from_memory");
+		throw SGE_ERROR(stbi_failure_reason());
 
 	switch (expectType) {
 		case ColorType::None:	req_comp = STBI_default; break;
@@ -90,10 +89,10 @@ void NeHeOGL_ImageIO_bmp::Reader::load(NeHeOGL_Image& img, ByteSpan data, ColorT
 #endif
 
 	if (!_uc)
-		throw SGE_ERROR("bmp error stbi_load_from_memory");
+		throw SGE_ERROR(stbi_failure_reason());
 
-	size_t strideInBytes = width * ColorUtil::pixelSizeInBytes(expectType);
-	size_t dataSizeInBytes = height * strideInBytes;
+	int strideInBytes   = width * ColorUtil::pixelSizeInBytes(expectType);
+	int dataSizeInBytes = height * strideInBytes;
 	Span<stbi_uc> src(_uc, _uc + dataSizeInBytes);
 	ByteSpan dst = ByteSpan_make(src);
 

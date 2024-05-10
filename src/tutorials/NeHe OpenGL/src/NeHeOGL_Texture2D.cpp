@@ -30,7 +30,10 @@ GLenum NeHeOGL_Texture2D::_colorType2InternalFormat(ColorType v) {
 
 void NeHeOGL_Texture2D::create(CreateDesc& desc) {
 	destroy();
+
 	_type = RenderDataType::Texture2D;
+	_colorType	= desc.colorType;
+	_size		= desc.size;
 
 	glGenTextures(1, &_tex);
 	OGL::ScopedBindTexture2D scoped(_tex);
@@ -63,9 +66,10 @@ void NeHeOGL_Texture2D::create(CreateDesc& desc) {
 				desc.imageToUpload.dataPtr()
 			);
 
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST); // add in Filter enum ???
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST); // add in Filter enum ??? no need
 		}
-
+		// GL_ARB_xxxxxxxxxxxx
+		// GL_NV_xxxxxxxxxxxxx
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, enumInt(desc.samplerState.filter));
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, enumInt(desc.samplerState.wrapU));

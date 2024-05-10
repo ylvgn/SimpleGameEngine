@@ -34,6 +34,8 @@ struct NeHeOGL_SamplerState {
 };
 
 struct NeHeOGL_Texture_CreateDesc {
+public:
+	ColorType colorType = ColorType::RGBAb;
 };
 
 class NeHeOGL_Texture : public NonCopyable {
@@ -53,8 +55,9 @@ public:
 	using Image			= NeHeOGL_Image;
 	using SamplerState	= NeHeOGL_SamplerState;
 
-	SamplerState		samplerState;
-	Image				imageToUpload;
+	Vec2i			size{ 0,0 };
+	SamplerState	samplerState;
+	Image			imageToUpload;
 };
 
 class NeHeOGL_Texture2D : public NeHeOGL_Texture {
@@ -69,10 +72,18 @@ public:
 
 	void bind();
 	void unbind();
+
+	ColorType	colorType	() const	{ return _colorType; }
+	int			width		() const	{ return _size.x; }
+	int			height		() const	{ return _size.y; }
+	Vec2i		size		() const	{ return _size; }
+
 private:
 	GLenum _colorType2InternalFormat(ColorType v);
 
-	GLuint _tex = 0;
+	GLuint		_tex = 0;
+	ColorType	_colorType = ColorType::None;
+	Vec2i		_size{ 0,0 };
 };
 
 }
