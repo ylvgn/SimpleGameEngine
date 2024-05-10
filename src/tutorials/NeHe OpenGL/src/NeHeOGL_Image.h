@@ -17,6 +17,8 @@ struct NeHeOGL_ImageInfo {
 	ColorType	colorType		= ColorType::None;
 
 	bool		isPreMulAlpha : 1;
+
+	int			pixelSizeInBytes() const { return ColorUtil::pixelSizeInBytes(colorType); }
 };
 
 class NeHeOGL_Image : public NonCopyable {
@@ -53,8 +55,8 @@ public:
 
 	template<class COLOR> void fill(const COLOR& color);
 
-	SGE_INLINE	Span<u8>		rowBytes(int y)			{ return Span<		u8>(&_pixelData[y * _info.strideInBytes], _info.strideInBytes); }
-	SGE_INLINE	Span<const u8>	rowBytes(int y) const	{ return Span<const u8>(&_pixelData[y * _info.strideInBytes], _info.strideInBytes); }
+	SGE_INLINE	Span<u8>		rowBytes(int y)			{ return Span<		u8>(&_pixelData[y * _info.strideInBytes], _info.size.x * _info.pixelSizeInBytes()); }
+	SGE_INLINE	Span<const u8>	rowBytes(int y) const	{ return Span<const u8>(&_pixelData[y * _info.strideInBytes], _info.size.x * _info.pixelSizeInBytes()); }
 
 	const void* dataPtr() const { return _pixelData.data(); }
 

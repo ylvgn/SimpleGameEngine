@@ -6,8 +6,10 @@ namespace sge {
 
 NeHeOGL_Image::NeHeOGL_Image(NeHeOGL_Image && r) noexcept {
 	_pixelData.clear();
-	_info = std::move(r._info);
+	_info = r._info;
 	_pixelData.swap(r._pixelData);
+
+	r._info = NeHeOGL_Image::Info();
 }
 
 void NeHeOGL_Image::clear() {
