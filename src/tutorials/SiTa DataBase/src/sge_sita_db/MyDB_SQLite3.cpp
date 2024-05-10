@@ -7,7 +7,7 @@ namespace sge {
 class MySQLite3_Conn : public Conn {
 public:
 	MySQLite3_Conn(StrView filename);
-	~MySQLite3_Conn() { destroy(); }
+	~MySQLite3_Conn() noexcept { destroy(); }
 
 	virtual void directExec(StrView sql) override;
 	virtual void destroy() override;
@@ -16,20 +16,22 @@ public:
 
 protected:
 	virtual UPtr<Stmt> onCreateStmt(StrView sql) override;
-};
+}; // MySQLite3_Conn
 
-SPtr<Conn> connectSQLite3(StrView filename) { return new MySQLite3_Conn(filename); }
+SPtr<Conn> connectSQLite3(StrView filename) {
+	return new MySQLite3_Conn(filename);
+}
 
 class MySQLite3_Stmt : public Stmt {
 public:
 	void destroy() {
 		if (_stmt) {
-			//		sqlite3_reset(_stmt);
+//			sqlite3_reset(_stmt);
 			sqlite3_finalize(_stmt);
 			_stmt = nullptr;
 		}
 	}
-	~MySQLite3_Stmt() { destroy(); }
+	~MySQLite3_Stmt() noexcept { destroy(); }
 
 	MySQLite3_Stmt::MySQLite3_Stmt(MySQLite3_Conn* conn, StrView sql)
 		: _conn(conn)
@@ -49,7 +51,7 @@ public:
 				if (*c == '\t') continue;
 				if (*c == '\r') continue;
 				if (*c == '\n') continue;
-				if (*c == ' ') continue;
+				if (*c == ' ')  continue;
 
 				throw SGE_ERROR("SQLite3 doesn't support multiple SQL statement");
 			}
@@ -127,12 +129,7 @@ public:
 			throw SGE_ERROR("_stmt is null");
 
 		if (n != sqlite3_column_count(_stmt))
-			throw SGE_ERROR("incorrect parameter count n={}, t={}", n, sqlite3_column_count(_stmt));
-
-		_step();
-
-		if (_endOfRows)
-			return false;
+			throw SGE_ERROR("incorrect parameter count");
 
 		using Type = ResultField::Type;
 		for (int i = 0; i < n; ++i) {
@@ -181,6 +178,8 @@ public:
 				default: throw SGE_ERROR("unsupported field type");
 			}
 		}
+
+		_step();
 		return true;
 	}
 
@@ -267,7 +266,7 @@ public:
 	SPtr<MySQLite3_Conn> _conn;
 	sqlite3_stmt* _stmt = nullptr;
 	bool _endOfRows = false;
-};
+}; // MySQLite3_Stmt
 
 MySQLite3_Conn::MySQLite3_Conn(StrView filename) {
 	TempString db(filename);
@@ -278,20 +277,18 @@ MySQLite3_Conn::MySQLite3_Conn(StrView filename) {
 
 void MySQLite3_Conn::destroy() {
 	if (_conn) {
-		if (SQLITE_OK != sqlite3_close(_conn)) {
-			throw SGE_ERROR(sqlite3_errmsg(_conn));
-		}
+		sqlite3_close(_conn);
 		_conn = nullptr;
 	}
 }
 
 void MySQLite3_Conn::directExec(StrView sql) {
 	TempString sql_(sql);
-	char* zErrMsg = nullptr;
-	if (SQLITE_OK != sqlite3_exec(_conn, sql_.c_str(), nullptr, nullptr, &zErrMsg)) {
-		TempString errMsg(zErrMsg);
-		sqlite3_free(zErrMsg);
-		throw SGE_ERROR(errMsg.c_str());
+	char* outErrMsg = nullptr;
+	if (SQLITE_OK != sqlite3_exec(_conn, sql_.c_str(), nullptr, nullptr, &outErrMsg)) {
+		auto e = SGE_ERROR(outErrMsg);
+		sqlite3_free(outErrMsg);
+		throw e;
 	}
 }
 

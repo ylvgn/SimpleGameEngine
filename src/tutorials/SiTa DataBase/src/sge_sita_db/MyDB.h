@@ -39,18 +39,18 @@ public:
 
 		ExecParam(nullptr_t) : value(nullptr), type(Type::Null) {}
 
-		ExecParam(i8&  v)		{ value = &v; type = Type::Int8;   }
-		ExecParam(i16& v)		{ value = &v; type = Type::Int16;  }
-		ExecParam(i32& v)		{ value = &v; type = Type::Int32;  }
-		ExecParam(i64& v)		{ value = &v; type = Type::Int64;  }
+		ExecParam(i8&  v)			{ value = &v; type = Type::Int8;   }
+		ExecParam(i16& v)			{ value = &v; type = Type::Int16;  }
+		ExecParam(i32& v)			{ value = &v; type = Type::Int32;  }
+		ExecParam(i64& v)			{ value = &v; type = Type::Int64;  }
 
-		ExecParam(u8&  v)		{ value = &v; type = Type::UInt8;  }
-		ExecParam(u16& v)		{ value = &v; type = Type::UInt16; }
-		ExecParam(u32& v)		{ value = &v; type = Type::UInt32; }
-		ExecParam(u64& v)		{ value = &v; type = Type::UInt64; }
+		ExecParam(u8&  v)			{ value = &v; type = Type::UInt8;  }
+		ExecParam(u16& v)			{ value = &v; type = Type::UInt16; }
+		ExecParam(u32& v)			{ value = &v; type = Type::UInt32; }
+		ExecParam(u64& v)			{ value = &v; type = Type::UInt64; }
 
-		ExecParam(float&  v)	{ value = &v; type = Type::Float;  }
-		ExecParam(double& v)	{ value = &v; type = Type::Double; }
+		ExecParam(float&  v)		{ value = &v; type = Type::Float;  }
+		ExecParam(double& v)		{ value = &v; type = Type::Double; }
 
 		ExecParam(const char* v)	{ value = reinterpret_cast<const void*>(v); type = Type::c_str; }
 		ExecParam(std::string& v)	{ value = &v; type = Type::string; }
@@ -118,7 +118,7 @@ protected:
 
 class Conn : public RefCountBase {
 public:
-	virtual ~Conn() = default;
+	virtual ~Conn() noexcept = default;
 
 	virtual void directExec(StrView sql) = 0;
 	virtual void destroy() = 0;

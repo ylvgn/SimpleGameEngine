@@ -3,10 +3,10 @@
 namespace sge {
 
 struct Row {
-	int id;
-	String name;
-	int count;
-	double weight;
+	int		id;
+	String	name;
+	int		count;
+	double	weight;
 
 	void print() {
 		SGE_DUMP_VAR(id, name.c_str(), count, weight);
@@ -68,9 +68,8 @@ private:
 			stmt->reset();
 		}
 
-		Row row;
-#if 1
 		{
+			Row row;
 			auto stmt = _conn->createStmt("select id, count, weight from test_table;");
 			stmt->exec();
 			int n = stmt->resultFieldCount();
@@ -86,8 +85,9 @@ private:
 			}
 			stmt->reset();
 		}
-#else
+
 		{
+			Row row;
 			auto stmt = _conn->createStmt("select id, name, count, weight from test_table;");
 			stmt->exec();
 			int n = stmt->resultFieldCount();
@@ -103,7 +103,7 @@ private:
 			}
 			stmt->reset();
 		}
-#endif
+
 	}
 
 	SPtr<Conn> _conn;

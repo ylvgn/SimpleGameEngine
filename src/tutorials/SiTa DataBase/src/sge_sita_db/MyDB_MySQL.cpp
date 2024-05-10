@@ -8,7 +8,7 @@ namespace sge {
 class MySQL_Conn : public Conn {
 public:
 	MySQL_Conn(StrView host, StrView db, StrView user, StrView password);
-	~MySQL_Conn() { destroy(); }
+	~MySQL_Conn() noexcept { destroy(); }
 
 	virtual void directExec(StrView sql) override;
 	virtual void destroy() override;
@@ -17,9 +17,11 @@ public:
 
 protected:
 	virtual UPtr<Stmt> onCreateStmt(StrView sql) override;
-};
+}; // MySQL_Conn
 
-SPtr<Conn> connectMySQL(StrView host, StrView db, StrView user, StrView password) { return new MySQL_Conn(host, db, user, password); }
+SPtr<Conn> connectMySQL(StrView host, StrView db, StrView user, StrView password) {
+	return new MySQL_Conn(host, db, user, password);
+}
 
 class MySQL_Stmt : public Stmt {
 public:
@@ -37,33 +39,31 @@ public:
 		if (0 != mysql_stmt_prepare(_stmt, sql_.c_str(), static_cast<unsigned long>(sql.size()))) {
 			throw SGE_ERROR(mysql_stmt_error(_stmt));
 		}
-	}
 
-	void _freeMetaResult() {
-		if (_meta) {
-			mysql_free_result(_meta);
-			_meta = nullptr;
+		_meta = mysql_stmt_result_metadata(_stmt);
+		if (!_meta) {
+			throw SGE_ERROR(mysql_stmt_error(_stmt));
 		}
 	}
 
 	void destroy() {
-		_freeMetaResult();
+		if (_meta) {
+			mysql_free_result(_meta);
+			_meta = nullptr;
+		}
 
 		if (_stmt) {
-			if (0 != mysql_stmt_close(_stmt)) {
-				throw SGE_ERROR(mysql_stmt_error(_stmt));
-			}
+			mysql_stmt_close(_stmt);
 			_stmt = nullptr;
 		}
 	}
 
-	~MySQL_Stmt() { destroy(); }
+	~MySQL_Stmt() noexcept { destroy(); }
 
 	virtual void onReset() override {
 		if (!_stmt)
 			throw SGE_ERROR("_stmt is null");
 
-		_freeMetaResult();
 		mysql_stmt_reset(_stmt);
 	}
 
@@ -72,16 +72,6 @@ public:
 			throw SGE_ERROR("_stmt is null");
 
 		return static_cast<int>(mysql_stmt_field_count(_stmt));
-	}
-
-	void _refreshResultMeta() {
-		_freeMetaResult();
-
-		_meta = mysql_stmt_result_metadata(_stmt);
-
-		if (!_meta) {
-			throw SGE_ERROR(mysql_stmt_error(_stmt));
-		}
 	}
 
 	void _throwIfOutOfRange(int i) {
@@ -158,14 +148,12 @@ public:
 		if (0 != mysql_stmt_execute(_stmt)) {
 			throw SGE_ERROR(mysql_stmt_error(_stmt));
 		}
-
-		_refreshResultMeta();
 	}
 
 	template<typename T>
 	void _bind_number_result(MYSQL_BIND& b, enum enum_field_types type, ResultField& f) {
 		b.buffer_type = type;
-		b.buffer = (void*)f.value;
+		b.buffer = f.value;
 		b.is_unsigned = std::is_unsigned<T>::value;
 
 		auto* dst = (T*)f.value;
@@ -177,12 +165,6 @@ public:
 			throw SGE_ERROR("_stmt is null");
 
 		if (n != mysql_stmt_field_count(_stmt))
-			throw SGE_ERROR("incorrect parameter count");
-
-		if (!_meta)
-			throw SGE_ERROR("_meta is null, please exec first");
-		
-		if (n != mysql_num_fields(_meta))
 			throw SGE_ERROR("incorrect parameter count");
 
 		_binds.resize(n);
@@ -216,8 +198,8 @@ public:
 				case Type::Float : _bind_number_result<float >(bind, MYSQL_TYPE_FLOAT,	f); break;
 				case Type::Double: _bind_number_result<double>(bind, MYSQL_TYPE_DOUBLE, f); break;
 
-				case Type::string:		bind.buffer_type = MYSQL_TYPE_STRING;	break; // mysql_stmt_fetch_column later
-				case Type::sge_String:	bind.buffer_type = MYSQL_TYPE_STRING;	break; // mysql_stmt_fetch_column later
+				case Type::string:		bind.buffer_type = MYSQL_TYPE_STRING; break; // mysql_stmt_fetch_column later
+				case Type::sge_String:	bind.buffer_type = MYSQL_TYPE_STRING; break; // mysql_stmt_fetch_column later
 
 				default: throw SGE_ERROR("unsupported params type");
 			}
@@ -278,20 +260,21 @@ public:
 		throw SGE_ERROR("fetch error");
 	}
 
-	SPtr<MySQL_Conn> _conn;
-	Vector<MYSQL_BIND> _binds;
+	SPtr<MySQL_Conn>	_conn;
+	Vector<MYSQL_BIND>	_binds;
+	
+	MYSQL_STMT* _stmt = nullptr;
+	MYSQL_RES*	_meta = nullptr;
+
+	Vector<char, 45>	_tmp;
 
 	struct MySQLBindOutResult {
-		my_bool is_null	= false;
+		my_bool is_null = false;
+		my_bool error	= false;
 		unsigned long length = 0;
-		my_bool error = false;
 	};
-
-	Vector<MySQLBindOutResult> _bindOutResults;
-	MYSQL_STMT* _stmt = nullptr;
-	MYSQL_RES* _meta = nullptr;
-	Vector<char, 45> _tmp;
-};
+	Vector<MySQLBindOutResult>	_bindOutResults;
+}; // MySQL_Stmt
 
 UPtr<Stmt> MySQL_Conn::onCreateStmt(StrView sql) {
 	return UPtr<MySQL_Stmt>(new MySQL_Stmt(this, sql));
@@ -300,14 +283,14 @@ UPtr<Stmt> MySQL_Conn::onCreateStmt(StrView sql) {
 MySQL_Conn::MySQL_Conn(StrView host, StrView db, StrView user, StrView password) {
 	_conn = mysql_init(nullptr);
 	if (!_conn)
-		throw SGE_ERROR("mysql_init: In case of insufficient memory, NULL is returned");
+		throw SGE_ERROR("mysql_init");
 
-	TempString szHost(host);
-	TempString szDB(db);
-	TempString szUser(user);
-	TempString szPassword(password);
+	TempString host_(host);
+	TempString db_(db);
+	TempString user_(user);
+	TempString password_(password);
 
-	if (nullptr == mysql_real_connect(_conn, szHost.c_str(), szUser.c_str(), szPassword.c_str(), szDB.c_str(), 0, nullptr, 0)) {
+	if (nullptr == mysql_real_connect(_conn, host_.c_str(), user_.c_str(), password_.c_str(), db_.c_str(), 0, nullptr, 0)) {
 		throw SGE_ERROR(mysql_error(_conn));
 	}
 }
