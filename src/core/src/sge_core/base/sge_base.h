@@ -275,10 +275,16 @@ private:
 	void operator=(const NonCopyable&) = delete;
 };
 
+class WeakRefBlock : public NonCopyable {
+public:
+	void* _obj = nullptr;
+	std::atomic_int	_weakCount = 0;
+};
+
 class RefCountBase : public NonCopyable {
 public:
+	WeakRefBlock*	_weakRefBlock = nullptr;
 	std::atomic_int	_refCount = 0;
-	std::atomic_int	_weakCount = 0;
 };
 
 template<class T> inline void sge_delete(T* p) noexcept { delete p; }

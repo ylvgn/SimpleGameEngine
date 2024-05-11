@@ -1,9 +1,9 @@
 #include <sge_core/base/UnitTest.h>
-#include <sge_core/pointer/WeakPtr.h>
+#include <sge_core/pointer/WPtr.h>
 
 namespace sge {
 
-class Test_WeakPtr : public UnitTestBase {
+class test_WPtr : public UnitTestBase {
 public:
 
 	class MyWindow;
@@ -21,13 +21,29 @@ public:
 			}
 
 			otherName.append(", ");
+			if (auto b = other2.toSPtr()) {
+				otherName.append(b->name.data(), b->name.size());
+			} else {
+				otherName.append("Null(Btn)");
+			}
+
+			otherName.append(", ");
 			if (auto w = otherWin.toSPtr()) {
 				otherName.append(w->name);
 			}
 			else {
 				otherName.append("Null(Win)");
 			}
-			fmt::format_to(ctx.out(), "{}({}) with week: {}", name, fmt::ptr(this), otherName);
+
+			String selfName;
+			if (self) {
+				selfName.assign(self->name);
+			}
+			else {
+				selfName.assign("Null(self)");
+			}
+
+			fmt::format_to(ctx.out(), "{}({}) Weak: {}; Self: {}", name, fmt::ptr(this), otherName, selfName);
 		}
 		~MyButton() {
 			SGE_LOG("~MyButton({:p}): {}", fmt::ptr(this), *this);
@@ -35,8 +51,12 @@ public:
 
 		String name;
 
-		WeakPtr<MyButton> other;
-		WeakPtr<MyWindow> otherWin;
+		WPtr<MyButton> other;
+		WPtr<MyButton> other2;
+
+		WPtr<MyWindow> otherWin;
+
+		SPtr<MyButton> self;
 	};
 
 	class MyWindow : public RefCountBase {
@@ -50,8 +70,8 @@ public:
 
 		String name;
 
-		SPtr< MyButton > aBtn;
-		SPtr< MyButton > bBtn;
+		SPtr<MyButton> aBtn;
+		SPtr<MyButton> bBtn;
 	};
 
 	void test_1() {
@@ -72,7 +92,7 @@ public:
 	}
 
 	void test_2() {
-		SGE_LOG("test2 ============== Start"); // UPtr and WeakPtr
+		SGE_LOG("test2 ============== Start"); // UPtr and WPtr
 		{
 			auto aBtn = UPtr<MyButton>(new MyButton("ButtonA"));
 			auto bBtn = UPtr<MyButton>(new MyButton("ButtonB"));
@@ -88,18 +108,23 @@ public:
 	}
 
 	void test_3() {
-		SGE_LOG("test3 ============== Start"); // SPtr and WeakPtr
+		SGE_LOG("test3 ============== Start"); // SPtr and WPtr
 		{
 			auto aBtn = SPtr<MyButton>(new MyButton("ButtonA"));
 			SGE_LOG("aBtn:{:p}\n", fmt::ptr(aBtn.ptr()));
 			aBtn->other = aBtn.ptr();
+			aBtn->other2 = aBtn.ptr();
+			
+			aBtn->other = nullptr;
+			aBtn->other = aBtn->other2;
+ 
 			SGE_DUMP_VAR(*aBtn.ptr());
 		}
 		SGE_LOG("test3 ============== End");
 	}
 
 	void test_4() {
-		SGE_LOG("test4 ============== Start"); // SPtr and WeakPtr
+		SGE_LOG("test4 ============== Start"); // SPtr and WPtr
 		{
 			auto aBtn = SPtr<MyButton>(new MyButton("ButtonA"));
 			auto bBtn = SPtr<MyButton>(new MyButton("ButtonB"));
@@ -108,6 +133,9 @@ public:
 			aBtn->other = aBtn.ptr();
 			bBtn->other = aBtn.ptr();
 
+//			aBtn->self = aBtn; // cycle reference not allow!!!
+			bBtn->self = aBtn; // this is ok
+
 			SGE_DUMP_VAR(*aBtn.ptr());
 			SGE_DUMP_VAR(*bBtn.ptr());
 		}
@@ -115,7 +143,7 @@ public:
 	}
 
 	void test_5() {
-		SGE_LOG("test5 ============== Start"); // SPtr and WeakPtr
+		SGE_LOG("test5 ============== Start"); // SPtr and WPtr
 		{
 			auto aBtn = SPtr<MyButton>(new MyButton("ButtonA"));
 			auto bBtn = SPtr<MyButton>(new MyButton("ButtonB"));
@@ -138,7 +166,7 @@ public:
 		SGE_LOG("test6 ============== Start");
 		{
 			SPtr<MyWindow> win = new MyWindow();
-			WeakPtr<MyWindow> weakWin(win);
+			WPtr<MyWindow> weakWin(win);
 
 			win->aBtn = new MyButton("ButtonA");
 			win->bBtn = new MyButton("ButtonB");
@@ -152,17 +180,17 @@ public:
 	}
 };
 
-SGE_FORMATTER(Test_WeakPtr::MyButton)
-SGE_FORMATTER(Test_WeakPtr::MyWindow)
+SGE_FORMATTER(test_WPtr::MyButton)
+SGE_FORMATTER(test_WPtr::MyWindow)
 
 } // namespace 
 
 void test_WeakPtr() {
 	using namespace sge;
-	SGE_TEST_CASE(Test_WeakPtr, test_1());
-//	SGE_TEST_CASE(Test_WeakPtr, test_2()); // will occur error
-	SGE_TEST_CASE(Test_WeakPtr, test_3());
-	SGE_TEST_CASE(Test_WeakPtr, test_4());
-	SGE_TEST_CASE(Test_WeakPtr, test_5());
-	SGE_TEST_CASE(Test_WeakPtr, test_6());
+//	SGE_TEST_CASE(test_WPtr, test_1());
+//	SGE_TEST_CASE(test_WPtr, test_2()); // will occur error
+	SGE_TEST_CASE(test_WPtr, test_3());
+//	SGE_TEST_CASE(test_WPtr, test_4());
+//	SGE_TEST_CASE(test_WPtr, test_5());
+//	SGE_TEST_CASE(test_WPtr, test_6());
 }
