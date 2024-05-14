@@ -515,6 +515,8 @@ void PW5_MyMappingMode::_calcMappingModeExtRatio(PW5_MapMode v) {
 		int y = static_cast<int>(viewportExtInPixel.y * displayScaleRatio);
 		SGE_ASSERT(x == viewportExtInUnit.x);
 		SGE_ASSERT(y == -viewportExtInUnit.y);
+		SGE_UNUSED(x);
+		SGE_UNUSED(y);
 	}
 }
 

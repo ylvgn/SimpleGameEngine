@@ -10,56 +10,56 @@ void Image::clear() {
 	_pixelData.clear();
 }
 
-void Image::loadFile(StrView filename) {
+void Image::loadFile(StrView filename, ColorType expectType /*= ColorType::None*/) {
 	auto ext = FilePath::extension(filename);
 	if (0 == StringUtil::ignoreCaseCompare(ext, "png")) {
-		return loadPngFile(filename);
+		return loadPngFile(filename, expectType);
 	}
 
 	if (0 == StringUtil::ignoreCaseCompare(ext, "dds")) {
-		return loadDdsFile(filename);
+		return loadDdsFile(filename, expectType);
 	}
 
 	if (0 == StringUtil::ignoreCaseCompare(ext, "bmp")) {
-		return loadBmpFile(filename);
+		return loadBmpFile(filename, expectType);
 	}
 
 	throw SGE_ERROR("unsupported image file format {}", ext);
 }
 
-void Image::loadPngFile(StrView filename)
+void Image::loadPngFile(StrView filename, ColorType expectType /*= ColorType::None*/)
 {
 	MemMapFile mm;
 	mm.open(filename);
-	loadPngMem(mm);
+	loadPngMem(mm, expectType);
 }
 
-void Image::loadPngMem(ByteSpan data) {
+void Image::loadPngMem(ByteSpan data, ColorType expectType /*= ColorType::None*/) {
 	ImageIO_png::Reader r;
-	r.load(*this, data);
+	r.load(*this, data, expectType);
 }
 
-void Image::loadDdsFile(StrView filename)
+void Image::loadDdsFile(StrView filename, ColorType expectType /*= ColorType::None*/)
 {
 	MemMapFile mm;
 	mm.open(filename);
-	loadDdsMem(mm);
+	loadDdsMem(mm, expectType);
 }
 
-void Image::loadDdsMem(ByteSpan data) {
+void Image::loadDdsMem(ByteSpan data, ColorType expectType /*= ColorType::None*/) {
 	ImageIO_dds::Reader r;
-	r.load(*this, data);
+	r.load(*this, data, expectType);
 }
 
-void Image::loadBmpFile(StrView filename) {
+void Image::loadBmpFile(StrView filename, ColorType expectType /*= ColorType::None*/) {
 	MemMapFile mm;
 	mm.open(filename);
-	loadBmpMem(mm);
+	loadBmpMem(mm, expectType);
 }
 
-void Image::loadBmpMem(ByteSpan data) {
+void Image::loadBmpMem(ByteSpan data, ColorType expectType /*= ColorType::None*/) {
 	ImageIO_bmp::Reader r;
-	r.load(*this, data, ColorType::RGBAb);
+	r.load(*this, data, expectType);
 }
 
 void Image::create(ColorType colorType, int width, int height) {

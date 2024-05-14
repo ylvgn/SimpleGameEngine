@@ -2,7 +2,9 @@
 
 #include "NeHeOGL_Image.h"
 
-typedef unsigned char stbi_uc;
+// stb_image.h
+typedef unsigned char	stbi_uc;
+typedef unsigned short	stbi_us;
 
 namespace sge {
 
@@ -12,15 +14,16 @@ struct NeHeOGL_ImageIO_bmp {
 
 		void load(NeHeOGL_Image& img, ByteSpan data, ColorType expectType = ColorType::None);
 
-		static int	s_onRead(void* user, char* data, int size);
-		static void s_onSkip(void* user, int size);
-		static int	s_onEOF(void* user);
+		static int s_onRead(void* io_user_data, char* dest, int len);
+		int	onRead(char* dest, int len);
 
-		int			onRead(char* dst, int size);
-		void		onSkip(int size);
-		int			onEOF();
+		static void s_onSkip(void* io_user_data, int len);
+		void onSkip(int len);
 
-		stbi_uc*	_uc = nullptr;
+		static int s_onEOF(void* io_user_data);
+		int	onEOF();
+
+		::stbi_uc*	_uc = nullptr;
 		ByteSpan	_data;
 		const u8*	_readPtr = nullptr;
 	};

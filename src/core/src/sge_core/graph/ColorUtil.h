@@ -26,6 +26,10 @@ constexpr bool ColorUtil::hasAlpha(ColorType t) {
 
 constexpr int ColorUtil::pixelSizeInBytes(ColorType t) {
 	switch (t) {
+		case ColorType::RGBb: return sizeof(ColorRGB<u8> );
+		case ColorType::RGBs: return sizeof(ColorRGB<u16>);
+		case ColorType::RGBf: return sizeof(ColorRGB<f32>);
+
 		case ColorType::RGBAb: return sizeof(ColorRGBAb);
 		case ColorType::RGBAs: return sizeof(ColorRGBAs);
 		case ColorType::RGBAf: return sizeof(ColorRGBAf);

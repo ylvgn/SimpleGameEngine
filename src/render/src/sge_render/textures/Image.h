@@ -21,16 +21,16 @@ public:
 
 					void		clear();
 
-					void		loadFile(StrView filename);
+					void		loadFile(StrView filename, ColorType expectType = ColorType::None);
 
-					void		loadPngFile(StrView filename);
-					void		loadPngMem(ByteSpan data);
+					void		loadPngFile(StrView filename, ColorType expectType = ColorType::None);
+					void		loadPngMem(ByteSpan data, ColorType expectType = ColorType::None);
 
-					void		loadDdsFile(StrView filename);
-					void		loadDdsMem(ByteSpan data);
+					void		loadDdsFile(StrView filename, ColorType expectType = ColorType::None);
+					void		loadDdsMem(ByteSpan data, ColorType expectType = ColorType::None);
 
-					void		loadBmpFile(StrView filename);
-					void		loadBmpMem(ByteSpan data);
+					void		loadBmpFile(StrView filename, ColorType expectType = ColorType::None);
+					void		loadBmpMem(ByteSpan data, ColorType expectType = ColorType::None);
 
 					void		create		(ColorType colorType, int width, int height);
 					void		create		(ColorType colorType, int width, int height, int strideInBytes);
@@ -39,6 +39,7 @@ public:
 	SGE_INLINE	const Info&		info			() const { return _info; }
 	SGE_INLINE	const Vec2i&	size			() const { return _info.size; }
 	SGE_INLINE	int				strideInBytes	() const { return _info.strideInBytes; }
+	SGE_INLINE	int				pixelSizeInBytes() const { return _info.pixelSizeInBytes(); }
 	SGE_INLINE	int				width			() const { return _info.size.x; }
 	SGE_INLINE	int				height			() const { return _info.size.y; }
 	SGE_INLINE	ColorType		colorType		() const { return _info.colorType; }

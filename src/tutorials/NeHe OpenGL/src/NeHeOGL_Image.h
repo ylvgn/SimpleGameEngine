@@ -40,7 +40,7 @@ public:
 
 	void create(ColorType colorType, int width, int height);
 	void create(ColorType colorType, int width, int height, int strideInBytes);
-	void create(ColorType colorType, int width, int height, int strideInBytes, int mipmapCount, int dataSizeInBytes);
+	void create(ColorType colorType, int width, int height, int strideInBytes, int mipmapCount, size_t dataSizeInBytes);
 
 	SGE_INLINE	const Info&		info			() const { return _info; }
 	SGE_INLINE	const Vec2i&	size			() const { return _info.size; }
@@ -84,18 +84,13 @@ private:
 
 template<class COLOR> inline
 void NeHeOGL_Image::fill(const COLOR& color) {
-	SGE_ASSERT(_info.colorType != ColorType::None);
-
-	size_t stride = ColorUtil::pixelSizeInBytes(_info.colorType);
-	SGE_ASSERT(stride == sizeof(color));
-
-	u8* dst = _pixelData.begin();
-	int n = pixelCount();
-	for (size_t i = 0; i < n; ++i) {
-		*reinterpret_cast<COLOR*>(dst) = color;
-		dst += stride;
+	_checkType(color.kColorType);
+	for (int y = 0; y < _info.size.x; ++y) {
+		auto row = row_noCheck<COLOR>(y);
+		for (int x = 0; x < _info.size.y; ++x) {
+			row[x].set(color);
+		}
 	}
-	SGE_ASSERT(dst == _pixelData.end());
 }
 
 }

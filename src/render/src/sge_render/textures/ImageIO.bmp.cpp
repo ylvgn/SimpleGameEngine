@@ -172,130 +172,128 @@ void ImageIO_bmp::Reader::load(Image& img, ByteSpan data, ColorType expectType) 
 	
 	de.io_fixed_le(info.cbSize);
 	
-	auto& cbSize = info.cbSize;
-
-	switch (cbSize) {
+	switch (info.cbSize) {
 		case sizeof(BITMAPCOREHEADER): {
 			BITMAPCOREHEADER hdr;
 			_readHeader(de, hdr);
 
-			info.width = hdr.bcWidth;
+			info.width	= hdr.bcWidth;
 			info.height = hdr.bcHeight;
-			info.bpp = hdr.bcBitCount;
+			info.bpp	= hdr.bcBitCount;
 		} break;
 		case sizeof(OS22XBITMAPHEADER): {
 			OS22XBITMAPHEADER hdr;
 			_readHeader(de, hdr);
 
-			info.width = hdr.Width;
+			info.width	= hdr.Width;
 			info.height = hdr.Height;
-			info.bpp = hdr.BitsPerPixel;
+			info.bpp	= hdr.BitsPerPixel;
 		} break;
 		case sizeof(BITMAPINFOHEADER): {
 			BITMAPINFOHEADER hdr;
 			_readHeader(de, hdr);
 
-			info.width = hdr.biWidth;
+			info.width	= hdr.biWidth;
 			info.height = hdr.biHeight;
-			info.bpp = hdr.biBitCount;
+			info.bpp	= hdr.biBitCount;
 		} break;
 		case sizeof(BITMAPV3HEADER): {
 			BITMAPV3HEADER hdr;
 			_readHeader(de, hdr);
 
-			info.width = hdr.biWidth;
+			info.width	= hdr.biWidth;
 			info.height = hdr.biHeight;
-			info.bpp = hdr.biBitCount;
+			info.bpp	= hdr.biBitCount;
 		} break;
 		case sizeof(BITMAPV4HEADER): {
 			BITMAPV4HEADER hdr;
 			_readHeader(de, hdr);
 
-			info.width = hdr.bV4Width;
+			info.width	= hdr.bV4Width;
 			info.height = hdr.bV4Height;
-			info.bpp = hdr.bV4BitCount;
+			info.bpp	= hdr.bV4BitCount;
 		} break;
 		case sizeof(BITMAPV5HEADER): {
 			BITMAPV5HEADER hdr;
 			_readHeader(de, hdr);
 
-			info.width = hdr.bV5Width;
+			info.width	= hdr.bV5Width;
 			info.height = hdr.bV5Height;
-			info.bpp = hdr.bV5BitCount;
+			info.bpp	= hdr.bV5BitCount;
 		} break;
 
 		default:
-			throw SGE_ERROR("Erros BMP file unknown type cbSize = {}", cbSize);
+			throw SGE_ERROR("Erros BMP file unknown type");
 	}
-
-	auto colorType = ColorType::None;
-
-	if (info.bpp == 24) {
-		colorType = ColorType::RGBb;
-	} else if(info.bpp == 32) {
-		colorType = ColorType::RGBAb;
-	} else {
-		throw SGE_ERROR("Erros BMP file unsupported bpp = {}", info.bpp);
-	}
-
 	SGE_ASSERT(data.begin() + info.offset == de.cur());
 
-	ByteSpan src(de.cur(), de.cur() + de.remain());
-	ByteSpan dst;
+	ByteSpan remainSpan(de.cur(), /*de.cur() +*/ de.remain());
 
-	Vector<u8> pixelData;
+	auto& width  = info.width;
+	auto& height = info.width;
 
-	if (colorType == ColorType::RGBb) {
-		size_t totalSize = info.width * info.height * 3; // width * height * 3bytes(24 bpp)
-		SGE_ASSERT(src.size() >= totalSize);
-
-		if (expectType == ColorType::RGBAb)
-			pixelData.reserve(totalSize * 4 / 3);
-		else
-			pixelData.reserve(totalSize);
-		
-		auto* p = src.begin();
-		for (u32 y = 0; y < info.height; ++y) {
-			for (u32 x = 0; x < info.width; ++x) {
-				auto srcB = *p++;
-				auto srcG = *p++;
-				auto srcR = *p++;
-
-				pixelData.emplace_back(srcR); // r
-				pixelData.emplace_back(srcG); // g
-				pixelData.emplace_back(srcB); // b
-
-				if (expectType == ColorType::RGBAb)
-					pixelData.emplace_back(255); // a
-			}
-		}
-	} else if ((colorType == ColorType::RGBAb)) {
-		size_t totalSize = info.width * info.height * 4; // width * height * 3bytes(24 bpp)
-		SGE_ASSERT(src.size() >= totalSize);
-
-		pixelData.reserve(totalSize);
-		pixelData.assign(src.begin(), src.begin() + totalSize);
-
-		for (int i = 0; i < pixelData.size(); i+=4) {
-			swap(pixelData[i], pixelData[i + 2]); // bgra -> rgba
-		}
-	}
-	else {
-		throw SGE_ERROR("Erros BMP file unsupported colorType = {}", colorType);
+	switch (info.bpp) {
+		case 24: info.colorType = ColorType::RGBb; break;
+		case 32: info.colorType = ColorType::RGBAb; break;
+		default: throw SGE_ERROR("bmp error unsupported format");
 	}
 
-	dst = ByteSpan_make(pixelData.span());
+	size_t totalSize = width * height * ColorUtil::pixelSizeInBytes(info.colorType);
+	ByteSpan srcSpan(remainSpan.begin(), totalSize);
 
-	colorType = expectType;
+	if (expectType == ColorType::None) {
+		_readPixelData(img, info, srcSpan);
+	}
+	else if (expectType == ColorType::RGBAb) {
+		using DST = Color4b;
+		using DST_ElementType = DST::ElementType;
 
-	SGE_ASSERT(colorType != ColorType::None);
+		switch (info.colorType) {
+			case ColorType::RGBAb: _readPixelData(img, info, srcSpan); break;
+			case ColorType::RGBAs: _readPixelDataFromRGBorRGBA<DST, ColorRGBA<u16>>(img, info, srcSpan); break;
+			case ColorType::RGBAf: _readPixelDataFromRGBorRGBA<DST, ColorRGBA<f32>>(img, info, srcSpan); break;
 
-	auto& width = info.width;
-	auto& height = info.height;
+			case ColorType::RGBb:  _readPixelDataFromRGBorRGBA<DST, ColorRGB<u8> >(img, info, srcSpan, 0); break;
+			case ColorType::RGBs:  _readPixelDataFromRGBorRGBA<DST, ColorRGB<u16>>(img, info, srcSpan, 255); break;
+			case ColorType::RGBf:  _readPixelDataFromRGBorRGBA<DST, ColorRGB<f32>>(img, info, srcSpan, 255); break;
 
-	int strideInBytes = width * ColorUtil::pixelSizeInBytes(colorType);
-	img.create(colorType, width, height, strideInBytes);
-	img.copyToPixelData(dst);
+			default: SGE_ERROR("bmp error unsupported format");
+		}
+	}
+	else if (expectType == ColorType::RGBb) {
+		using DST = ColorRGB<u8>;
+		switch (info.colorType) {
+			case ColorType::RGBb:  _readPixelData(img, info, srcSpan); break;
+			case ColorType::RGBs:  _readPixelDataFromRGBorRGBA<DST, ColorRGB<u16>>(img, info, srcSpan);	break;
+			case ColorType::RGBf:  _readPixelDataFromRGBorRGBA<DST, ColorRGB<f32>>(img, info, srcSpan);	break;
+
+			case ColorType::RGBAb: _readPixelDataFromRGBorRGBA<DST, ColorRGBA<u8> >(img, info, srcSpan); break;
+			case ColorType::RGBAs: _readPixelDataFromRGBorRGBA<DST, ColorRGBA<u16>>(img, info, srcSpan); break;
+			case ColorType::RGBAf: _readPixelDataFromRGBorRGBA<DST, ColorRGBA<f32>>(img, info, srcSpan); break;
+			default: SGE_ERROR("bmp error unsupported format");
+		}
+	}
+	else
+		throw SGE_ERROR("bmp error unsupported format");
+}
+
+void ImageIO_bmp::Reader::_readPixelData(Image& out, const BMPInfo& info, ByteSpan srcPixelData) {
+	SGE_ASSERT(info.colorType != ColorType::None);
+	out.create(info.colorType, info.width, info.height);
+	out.copyToPixelData(srcPixelData);
+	_swapBGRAToRGBA(out);
+}
+
+void ImageIO_bmp::Reader::_swapBGRAToRGBA(Image& out) {
+	switch (out.colorType()) {
+		case ColorType::RGBb:	_swapColorChannel< ColorRGB<u8> >(out, 0, 2); break;
+		case ColorType::RGBs:	_swapColorChannel< ColorRGB<u16>>(out, 0, 2); break;
+		case ColorType::RGBf:	_swapColorChannel< ColorRGB<f32>>(out, 0, 2); break;
+
+		case ColorType::RGBAb:	_swapColorChannel< ColorRGBAb	>(out, 0, 2); break;
+		case ColorType::RGBAs:	_swapColorChannel< ColorRGBAs	>(out, 0, 2); break;
+		case ColorType::RGBAf:	_swapColorChannel< ColorRGBAf	>(out, 0, 2); break;
+	}
 }
 
 void ImageIO_bmp::Reader::_readHeader(BinDeserializer& de, BITMAPCOREHEADER& hdr) {

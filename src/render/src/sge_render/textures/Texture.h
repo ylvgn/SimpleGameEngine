@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Image.h"
+#include "sge_render/RenderDataType.h"
 
 namespace sge {
 

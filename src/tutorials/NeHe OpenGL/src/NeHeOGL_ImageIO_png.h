@@ -23,13 +23,15 @@ struct NeHeOGL_ImageIO_png {
 		static void s_onRead(png_structp png_ptr, png_bytep dest, png_size_t length);
 		void onRead(png_bytep dest, png_size_t length);
 
+		bool error_longjmp_restore_point(); // libpng impl by C-function, there is no throw exception in C
+
 		void setReadFilter(ColorType out_color_type, int in_color_type, int in_bit_depth, bool in_palette_has_alpha);
 
 		png_structp _png	= nullptr;
 		png_infop	_info	= nullptr;
 
 		ByteSpan	_data;
-		const u8*	_readPtr;
+		const u8*	_readPtr = nullptr;
 	};
 
 };
