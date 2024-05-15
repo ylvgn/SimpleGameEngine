@@ -30,6 +30,7 @@ public:
 			Texture2D_CreateDesc texDesc;
 			auto& image = texDesc.imageToUpload;
 	#if 1
+			image.loadFile("Assets/Textures/uvChecker.bmp", ColorType::RGBAb);
 			//image.loadFile("Assets/Textures/uvChecker.png");
 			//image.loadFile("Assets/Textures/uvChecker_BC1.dds");
 			//image.loadFile("Assets/Textures/uvChecker_BC2.dds");

@@ -152,8 +152,7 @@ void ImageIO_bmp::Reader::load(Image& img, ByteSpan data, ColorType expectType) 
 	BinDeserializer de(data);
 	BMPInfo info;
 
-	// read 2 bytes 'BM'
-	uint8_t sign;
+	u8 sign;
 	de.io_fixed_le(sign);
 	if (sign != 'B')
 		throw SGE_ERROR("Erros BMP file signature: B");
@@ -161,19 +160,17 @@ void ImageIO_bmp::Reader::load(Image& img, ByteSpan data, ColorType expectType) 
 	if (sign != 'M')
 		throw SGE_ERROR("Erros BMP file signature: M");
 
-	de.advance(4 + 2 + 2);
-		// 4 bytes: The size of the BMP file in bytes
-		// 2 bytes: Reserved
-		// 2 bytes: Reserved
+	de.advance(sizeof(u32)); // 4 bytes: The size of the BMP filesize in bytes
+	de.advance(sizeof(u16)); // 2 bytes: Reserved
+	de.advance(sizeof(u16)); // 2 bytes: Reserved
 
 	de.io_fixed_le(info.offset);
 	if (!info.offset)
 		throw SGE_ERROR("Erros BMP file startingOffset == 0");
-	
+
 	de.io_fixed_le(info.cbSize);
-	
 	switch (info.cbSize) {
-		case sizeof(BITMAPCOREHEADER): {
+		case sizeof(BITMAPCOREHEADER): { // 12
 			BITMAPCOREHEADER hdr;
 			_readHeader(de, hdr);
 
@@ -181,52 +178,79 @@ void ImageIO_bmp::Reader::load(Image& img, ByteSpan data, ColorType expectType) 
 			info.height = hdr.bcHeight;
 			info.bpp	= hdr.bcBitCount;
 		} break;
-		case sizeof(OS22XBITMAPHEADER): {
+		case sizeof(OS22XBITMAPHEADER): { // 64
 			OS22XBITMAPHEADER hdr;
 			_readHeader(de, hdr);
 
-			info.width	= hdr.Width;
-			info.height = hdr.Height;
-			info.bpp	= hdr.BitsPerPixel;
+			info.width		= hdr.Width;
+			info.height		= hdr.Height;
+			info.bpp		= hdr.BitsPerPixel;
+			info.compress	= hdr.Compression;
 		} break;
-		case sizeof(BITMAPINFOHEADER): {
+		case sizeof(BITMAPINFOHEADER): { // 40
 			BITMAPINFOHEADER hdr;
 			_readHeader(de, hdr);
 
-			info.width	= hdr.biWidth;
-			info.height = hdr.biHeight;
-			info.bpp	= hdr.biBitCount;
+			info.width		= hdr.biWidth;
+			info.height		= hdr.biHeight;
+			info.bpp		= hdr.biBitCount;
+			info.compress	= hdr.biCompression;
 		} break;
-		case sizeof(BITMAPV3HEADER): {
+		case sizeof(BITMAPV3HEADER): { // 56
 			BITMAPV3HEADER hdr;
 			_readHeader(de, hdr);
 
-			info.width	= hdr.biWidth;
-			info.height = hdr.biHeight;
-			info.bpp	= hdr.biBitCount;
+			info.width		= hdr.biWidth;
+			info.height		= hdr.biHeight;
+			info.bpp		= hdr.biBitCount;
+			info.compress	= hdr.biCompression;
+			info.maskR		= hdr.biRedMask;
+			info.maskG		= hdr.biGreenMask;
+			info.maskB		= hdr.biBlueMask;
+			info.maskA		= hdr.biAlphaMask;
 		} break;
-		case sizeof(BITMAPV4HEADER): {
+		case sizeof(BITMAPV4HEADER): { // 108
 			BITMAPV4HEADER hdr;
 			_readHeader(de, hdr);
 
-			info.width	= hdr.bV4Width;
-			info.height = hdr.bV4Height;
-			info.bpp	= hdr.bV4BitCount;
+			info.width		= hdr.bV4Width;
+			info.height		= hdr.bV4Height;
+			info.bpp		= hdr.bV4BitCount;
+			info.compress	= hdr.bV4V4Compression;
+			info.maskR		= hdr.bV4RedMask;
+			info.maskG		= hdr.bV4GreenMask;
+			info.maskB		= hdr.bV4BlueMask;
+			info.maskA		= hdr.bV4AlphaMask;
 		} break;
-		case sizeof(BITMAPV5HEADER): {
+		case sizeof(BITMAPV5HEADER): { // 124
 			BITMAPV5HEADER hdr;
 			_readHeader(de, hdr);
 
-			info.width	= hdr.bV5Width;
-			info.height = hdr.bV5Height;
-			info.bpp	= hdr.bV5BitCount;
+			info.width		= hdr.bV5Width;
+			info.height		= hdr.bV5Height;
+			info.bpp		= hdr.bV5BitCount;
+			info.compress	= hdr.bV5Compression;
+			info.maskR		= hdr.bV5RedMask;
+			info.maskG		= hdr.bV5GreenMask;
+			info.maskB		= hdr.bV5BlueMask;
+			info.maskA		= hdr.bV5AlphaMask;
 		} break;
 
 		default:
 			throw SGE_ERROR("Erros BMP file unknown type");
 	}
-	SGE_ASSERT(data.begin() + info.offset == de.cur());
 
+	if (info.cbSize != sizeof(BITMAPCOREHEADER)) {
+		auto& compress = info.compress;
+		if (compress == 1 || compress == 2)
+			throw SGE_ERROR("bmp unsupported RLE");
+		if (compress >= 4)
+			throw SGE_ERROR("bmp jpeg,png mode unsupported compression");
+		if (compress == 3 && info.bpp != 16 && info.bpp != 32)
+			throw SGE_ERROR("bmp bitfields requires 16 or 32 bpp");
+	}
+
+	SGE_ASSERT(data.begin() + info.offset == de.cur());
 	ByteSpan remainSpan(de.cur(), /*de.cur() +*/ de.remain());
 
 	auto& width  = info.width;

@@ -20,11 +20,17 @@ struct ImageIO_bmp {
 
 	private:
 		struct BMPInfo {
-			u32 offset	= 0;
-			int width	= 0;
-			int height	= 0;
-			u32 cbSize	= 0;
-			u32 bpp		= 0;
+			u32 offset		= 0;
+			int width		= 0;
+			int height		= 0;
+			u32 cbSize		= 0;
+			u32 bpp			= 0;
+			u32 compress	= 0;
+
+			u32 maskR		= 0;
+			u32 maskG		= 0;
+			u32 maskB		= 0;
+			u32 maskA		= 0;
 
 			ColorType colorType = ColorType::None;
 		};
