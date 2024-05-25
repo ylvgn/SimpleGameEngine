@@ -34,8 +34,9 @@ struct NeHeOGL_Mesh__RenderState {
 
 class NeHeOGL_Mesh {
 public:
+	using VertexDataType		= NeHeOGL_Vertex_PosColorUvNormal;
+
 	using MyRenderState			= NeHeOGL_Mesh__RenderState;
-	using VertexDataType		= NeHeOGL_Vertex_PosColorUv;
 	using RenderDataType		= NeHeOGL_RenderDataType;
 	using RenderPrimitiveType	= NeHeOGL_RenderPrimitiveType;
 
@@ -62,12 +63,21 @@ public:
 	void bindRenderState();
 	void unbindRenderState();
 
+	void loadObjFile(StrView filename);
+	void loadObjMem(ByteSpan data, StrView filename);
+
 	RenderPrimitiveType				primitive = RenderPrimitiveType::Triangles;
 
+	size_t vertexCount	() const { return vertices.size(); }
+	size_t indexCount	() const { return _indexType == RenderDataType::UInt16 ? indices.size() : indices32.size(); }
+
 	Vector<VertexDataType>			vertices;
-	Vector<u32>						indices;
+	Vector<u16>						indices;
+	Vector<u32>						indices32;
 
 	NeHeOGL_RenderState				renderState;
+
+	RenderDataType indexType() const { return _indexType; }
 
 private:
 	void _addToIndiceOfGrid(int size, const Vec2i& step, bool flipXY);
@@ -75,7 +85,7 @@ private:
 	void _beginDraw();
 	void _endDraw();
 
-	RenderDataType	_indexType = RenderDataType::UInt32;
+	RenderDataType	_indexType = RenderDataType::UInt16;
 
 	MyRenderState	_curRenderState;
 	MyRenderState	_lastRenderState;

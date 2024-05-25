@@ -108,10 +108,10 @@ void NeHeOGL_Mesh::createRect(float w, float h) {
 		vertices.resize(4);
 		auto* p = vertices.data();
 
-		p->pos.set(-x, y, 0); p->color.set(OGL::kbWhite); p->uv.set(0, 0); p ++;
-		p->pos.set(-x,-y, 0); p->color.set(OGL::kbWhite); p->uv.set(0, 1); p ++;
-		p->pos.set( x,-y, 0); p->color.set(OGL::kbWhite); p->uv.set(1, 1); p ++;
-		p->pos.set( x, y, 0); p->color.set(OGL::kbWhite); p->uv.set(1, 0); p ++;
+		p->pos.set(-x, y, 0); p->color.set(OGL::kbWhite); p->uv.set(0, 0); p->normal.set(0,0,0); p ++;
+		p->pos.set(-x,-y, 0); p->color.set(OGL::kbWhite); p->uv.set(0, 1); p->normal.set(0,0,0); p ++;
+		p->pos.set( x,-y, 0); p->color.set(OGL::kbWhite); p->uv.set(1, 1); p->normal.set(0,0,0); p ++;
+		p->pos.set( x, y, 0); p->color.set(OGL::kbWhite); p->uv.set(1, 0); p->normal.set(0,0,0); p ++;
 	}
 
 	indices.assign({
@@ -127,46 +127,6 @@ void NeHeOGL_Mesh::createCube(float w, float h, float d) {
 	float y = h * 0.5f;
 	float z = d * 0.5f;
 
-//------------------------------------------
-//		  0--------1
-//		 /|       /|
-//		3--------2 |
-//      | |      | |
-//		| 4------|-5
-//      |/       |/
-//      7--------6
-#if 0
-	{
-		vertices.resize(8);
-		auto* p = vertices.begin();
-			p->pos.set(-x, y,-z); p->color.set(OGL::kbWhite); p->uv.set(0,0); p ++;
-			p->pos.set( x, y,-z); p->color.set(OGL::kbWhite); p->uv.set(1,0); p ++;
-			p->pos.set( x, y, z); p->color.set(OGL::kbWhite); p->uv.set(1,1); p ++;
-			p->pos.set(-x, y, z); p->color.set(OGL::kbWhite); p->uv.set(0,1); p ++;
-
-			p->pos.set(-x,-y,-z); p->color.set(OGL::kbWhite); p->uv.set(0,0); p ++;
-			p->pos.set( x,-y,-z); p->color.set(OGL::kbWhite); p->uv.set(1,0); p ++;
-			p->pos.set( x,-y, z); p->color.set(OGL::kbWhite); p->uv.set(1,1); p ++;
-			p->pos.set(-x,-y, z); p->color.set(OGL::kbWhite); p->uv.set(0,1); p ++;
-		SGE_ASSERT(p == vertices.end());
-	}
-
-	indices.assign({
-		0, 1, 2, // top
-		0, 2, 3,
-		3, 2, 6, // front
-		3, 6, 7,
-		1, 5, 6, // rigt
-		1, 6, 2,
-		7, 6, 5, // bottom
-		7, 5, 4,
-		4, 5, 1, // back
-		4, 1, 0,
-		4, 0, 3, // left
-		4, 3, 7,
-	});
-#else
-
 	Vec3f v[] = {
 		{-x, y,-z},
 		{ x, y,-z},
@@ -181,66 +141,64 @@ void NeHeOGL_Mesh::createCube(float w, float h, float d) {
 	vertices.resize(36);
 	auto* p = vertices.begin();
 		// top
-		p->pos.set(v[0]); p->uv.set(0,0); p++;
-		p->pos.set(v[1]); p->uv.set(1,0); p++;
-		p->pos.set(v[2]); p->uv.set(1,1); p++;
+		p->pos.set(v[0]); p->uv.set(0,0); p->color.set(OGL::kbWhite); p->normal.set(0,0,0); p++;
+		p->pos.set(v[1]); p->uv.set(1,0); p->color.set(OGL::kbWhite); p->normal.set(0,0,0); p++;
+		p->pos.set(v[2]); p->uv.set(1,1); p->color.set(OGL::kbWhite); p->normal.set(0,0,0); p++;
 
-		p->pos.set(v[0]); p->uv.set(0,0); p++;
-		p->pos.set(v[2]); p->uv.set(1,1); p++;
-		p->pos.set(v[3]); p->uv.set(0,1); p++;
+		p->pos.set(v[0]); p->uv.set(0,0); p->color.set(OGL::kbWhite); p->normal.set(0,0,0); p++;
+		p->pos.set(v[2]); p->uv.set(1,1); p->color.set(OGL::kbWhite); p->normal.set(0,0,0); p++;
+		p->pos.set(v[3]); p->uv.set(0,1); p->color.set(OGL::kbWhite); p->normal.set(0,0,0); p++;
 
 		// front
-		p->pos.set(v[3]); p->uv.set(0,0); p++;
-		p->pos.set(v[2]); p->uv.set(1,0); p++;
-		p->pos.set(v[6]); p->uv.set(1,1); p++;
+		p->pos.set(v[3]); p->uv.set(0,0); p->color.set(OGL::kbWhite); p->normal.set(0,0,0); p++;
+		p->pos.set(v[2]); p->uv.set(1,0); p->color.set(OGL::kbWhite); p->normal.set(0,0,0); p++;
+		p->pos.set(v[6]); p->uv.set(1,1); p->color.set(OGL::kbWhite); p->normal.set(0,0,0); p++;
 
-		p->pos.set(v[3]); p->uv.set(0,0); p++;
-		p->pos.set(v[6]); p->uv.set(1,1); p++;
-		p->pos.set(v[7]); p->uv.set(0,1); p++;
+		p->pos.set(v[3]); p->uv.set(0,0); p->color.set(OGL::kbWhite); p->normal.set(0,0,0); p++;
+		p->pos.set(v[6]); p->uv.set(1,1); p->color.set(OGL::kbWhite); p->normal.set(0,0,0); p++;
+		p->pos.set(v[7]); p->uv.set(0,1); p->color.set(OGL::kbWhite); p->normal.set(0,0,0); p++;
 
 		// right
-		p->pos.set(v[1]); p->uv.set(0,0); p++;
-		p->pos.set(v[5]); p->uv.set(1,0); p++;
-		p->pos.set(v[6]); p->uv.set(1,1); p++;
+		p->pos.set(v[1]); p->uv.set(0,0); p->color.set(OGL::kbWhite); p->normal.set(0,0,0); p++;
+		p->pos.set(v[5]); p->uv.set(1,0); p->color.set(OGL::kbWhite); p->normal.set(0,0,0); p++;
+		p->pos.set(v[6]); p->uv.set(1,1); p->color.set(OGL::kbWhite); p->normal.set(0,0,0); p++;
 
-		p->pos.set(v[1]); p->uv.set(0,0); p++;
-		p->pos.set(v[6]); p->uv.set(1,1); p++;
-		p->pos.set(v[2]); p->uv.set(0,1); p++;
+		p->pos.set(v[1]); p->uv.set(0,0); p->color.set(OGL::kbWhite); p->normal.set(0,0,0); p++;
+		p->pos.set(v[6]); p->uv.set(1,1); p->color.set(OGL::kbWhite); p->normal.set(0,0,0); p++;
+		p->pos.set(v[2]); p->uv.set(0,1); p->color.set(OGL::kbWhite); p->normal.set(0,0,0); p++;
 
 		// bottom
-		p->pos.set(v[7]); p->uv.set(0,0); p++;
-		p->pos.set(v[6]); p->uv.set(1,0); p++;
-		p->pos.set(v[5]); p->uv.set(1,1); p++;
+		p->pos.set(v[7]); p->uv.set(0,0); p->color.set(OGL::kbWhite); p->normal.set(0,0,0); p++;
+		p->pos.set(v[6]); p->uv.set(1,0); p->color.set(OGL::kbWhite); p->normal.set(0,0,0); p++;
+		p->pos.set(v[5]); p->uv.set(1,1); p->color.set(OGL::kbWhite); p->normal.set(0,0,0); p++;
 
-		p->pos.set(v[7]); p->uv.set(0,0); p++;
-		p->pos.set(v[5]); p->uv.set(1,1); p++;
-		p->pos.set(v[4]); p->uv.set(0,1); p++;
+		p->pos.set(v[7]); p->uv.set(0,0); p->color.set(OGL::kbWhite); p->normal.set(0,0,0); p++;
+		p->pos.set(v[5]); p->uv.set(1,1); p->color.set(OGL::kbWhite); p->normal.set(0,0,0); p++;
+		p->pos.set(v[4]); p->uv.set(0,1); p->color.set(OGL::kbWhite); p->normal.set(0,0,0); p++;
 
 		// back
-		p->pos.set(v[4]); p->uv.set(0,0); p++;
-		p->pos.set(v[5]); p->uv.set(1,0); p++;
-		p->pos.set(v[1]); p->uv.set(1,1); p++;
+		p->pos.set(v[4]); p->uv.set(0,0); p->color.set(OGL::kbWhite); p->normal.set(0,0,0); p++;
+		p->pos.set(v[5]); p->uv.set(1,0); p->color.set(OGL::kbWhite); p->normal.set(0,0,0); p++;
+		p->pos.set(v[1]); p->uv.set(1,1); p->color.set(OGL::kbWhite); p->normal.set(0,0,0); p++;
 
-		p->pos.set(v[4]); p->uv.set(0,0); p++;
-		p->pos.set(v[1]); p->uv.set(1,1); p++;
-		p->pos.set(v[0]); p->uv.set(0,1); p++;
+		p->pos.set(v[4]); p->uv.set(0,0); p->color.set(OGL::kbWhite); p->normal.set(0,0,0); p++;
+		p->pos.set(v[1]); p->uv.set(1,1); p->color.set(OGL::kbWhite); p->normal.set(0,0,0); p++;
+		p->pos.set(v[0]); p->uv.set(0,1); p->color.set(OGL::kbWhite); p->normal.set(0,0,0); p++;
 
 		// left
-		p->pos.set(v[4]); p->uv.set(0,0); p++;
-		p->pos.set(v[0]); p->uv.set(1,0); p++;
-		p->pos.set(v[3]); p->uv.set(1,1); p++;
+		p->pos.set(v[4]); p->uv.set(0,0); p->color.set(OGL::kbWhite); p->normal.set(0,0,0); p++;
+		p->pos.set(v[0]); p->uv.set(1,0); p->color.set(OGL::kbWhite); p->normal.set(0,0,0); p++;
+		p->pos.set(v[3]); p->uv.set(1,1); p->color.set(OGL::kbWhite); p->normal.set(0,0,0); p++;
 
-		p->pos.set(v[4]); p->uv.set(0,0); p++;
-		p->pos.set(v[3]); p->uv.set(1,1); p++;
-		p->pos.set(v[7]); p->uv.set(0,1); p++;
+		p->pos.set(v[4]); p->uv.set(0,0); p->color.set(OGL::kbWhite); p->normal.set(0,0,0); p++;
+		p->pos.set(v[3]); p->uv.set(1,1); p->color.set(OGL::kbWhite); p->normal.set(0,0,0); p++;
+		p->pos.set(v[7]); p->uv.set(0,1); p->color.set(OGL::kbWhite); p->normal.set(0,0,0); p++;
 	SGE_ASSERT(p == vertices.end());
 
 	indices.resize(36);
-	for (int i = 0; i < 36; ++i) {
-		vertices[i].color.set(OGL::kbWhite);
+	for (u16 i = 0; i < 36; ++i) {
 		indices[i] = i;
 	}
-#endif
 }
 
 void NeHeOGL_Mesh::createPlane(float w, float h) {
@@ -251,10 +209,10 @@ void NeHeOGL_Mesh::createPlane(float w, float h) {
 
 	vertices.resize(4);
 	auto* p = vertices.begin();
-		p->pos.set(-x, 0,-z); p->color.set(OGL::kbWhite); p->uv.set(0, 0); p ++;
-		p->pos.set(-x, 0, z); p->color.set(OGL::kbWhite); p->uv.set(0, 1); p ++;
-		p->pos.set( x, 0, z); p->color.set(OGL::kbWhite); p->uv.set(1, 1); p ++;
-		p->pos.set( x, 0,-z); p->color.set(OGL::kbWhite); p->uv.set(1, 0); p ++;
+		p->pos.set(-x, 0,-z); p->color.set(OGL::kbWhite); p->uv.set(0, 0); p->normal.set(0,0,0); p++;
+		p->pos.set(-x, 0, z); p->color.set(OGL::kbWhite); p->uv.set(0, 1); p->normal.set(0,0,0); p++;
+		p->pos.set( x, 0, z); p->color.set(OGL::kbWhite); p->uv.set(1, 1); p->normal.set(0,0,0); p++;
+		p->pos.set( x, 0,-z); p->color.set(OGL::kbWhite); p->uv.set(1, 0); p->normal.set(0,0,0); p++;
 	SGE_ASSERT(p == vertices.end());
 
 	indices.assign({
@@ -265,6 +223,8 @@ void NeHeOGL_Mesh::createPlane(float w, float h) {
 
 void NeHeOGL_Mesh::createGrid(int gridSize) {
 	clear();
+
+	_indexType = RenderDataType::UInt32;
 
 	if (gridSize <= 1) {
 		createPlane(1, 1);
@@ -282,6 +242,7 @@ void NeHeOGL_Mesh::createGrid(int gridSize) {
 				p->pos.set(x, 0, y);
 				p->pos += offset;
 				p->uv.set(x / (verticesPerRow-1), y / (verticesPerRow-1));
+				p->normal.set(0,0,0);
 				p++;
 			}
 		}
@@ -303,7 +264,7 @@ void NeHeOGL_Mesh::_addToIndiceOfGrid(int verticesPerRow, const Vec2i& direction
 
 	Span<u32> dstSpan;
 	{
-		size_t oldSize = indices.size();
+		size_t oldSize = indexCount();
 		// tot: n*a1+n*(n-1)*d/2
 			// 1: 1 triangle
 			// 2: 3(1+2)
@@ -312,8 +273,8 @@ void NeHeOGL_Mesh::_addToIndiceOfGrid(int verticesPerRow, const Vec2i& direction
 			// 5: 9(7+2)
 		int tot = totalRow*1 + totalRow*(totalRow - 1);
 		size_t newSize = oldSize + tot*3;
-		indices.resize(newSize);
-		dstSpan = indices.subspan(oldSize);
+		indices32.resize(newSize);
+		dstSpan = indices32.subspan(oldSize);
 	}
 
 	{
@@ -380,12 +341,12 @@ void NeHeOGL_Mesh::createCoordinate() {
 
 	vertices.resize(6);
 	auto* p = vertices.begin();
-		p->pos.set(Vec3f::s_zero());	p->color.set(OGL::kbRed);	p++;
-		p->pos.set(Vec3f::s_right());	p->color.set(OGL::kbRed);	p++;
-		p->pos.set(Vec3f::s_zero());	p->color.set(OGL::kbGreen); p++;
-		p->pos.set(Vec3f::s_up());		p->color.set(OGL::kbGreen); p++;
-		p->pos.set(Vec3f::s_zero());	p->color.set(OGL::kbBlue);	p++;
-		p->pos.set(Vec3f::s_forward()); p->color.set(OGL::kbBlue);	p++;
+		p->pos.set(Vec3f::s_zero());	p->color.set(OGL::kbRed);	p->uv.set(0,0); p->normal.set(0,0,0); p++;
+		p->pos.set(Vec3f::s_right());	p->color.set(OGL::kbRed);	p->uv.set(0,0); p->normal.set(0,0,0); p++;
+		p->pos.set(Vec3f::s_zero());	p->color.set(OGL::kbGreen); p->uv.set(0,0); p->normal.set(0,0,0); p++;
+		p->pos.set(Vec3f::s_up());		p->color.set(OGL::kbGreen); p->uv.set(0,0); p->normal.set(0,0,0); p++;
+		p->pos.set(Vec3f::s_zero());	p->color.set(OGL::kbBlue);	p->uv.set(0,0); p->normal.set(0,0,0); p++;
+		p->pos.set(Vec3f::s_forward()); p->color.set(OGL::kbBlue);	p->uv.set(0,0); p->normal.set(0,0,0); p++;
 	SGE_ASSERT(p == vertices.end());
 }
 
@@ -414,6 +375,14 @@ void NeHeOGL_Mesh::bindRenderState() {
 
 void NeHeOGL_Mesh::unbindRenderState() {
 	_lastRenderState.bind();
+}
+
+void NeHeOGL_Mesh::loadObjFile(StrView filename) {
+	WavefrontObjLoader::loadFile(*this, filename);
+}
+
+void NeHeOGL_Mesh::loadObjMem(ByteSpan data, StrView filename) {
+	WavefrontObjLoader::loadMem(*this, data, filename);
 }
 
 void NeHeOGL_Mesh::_beginDraw() {
@@ -463,12 +432,24 @@ void NeHeOGL_Mesh::drawInheritVertexArrays() {
 }
 
 void NeHeOGL_Mesh::drawByVertexElements() {
-	glDrawElements(
-		OGLUtil::getGlPrimitiveTopology(primitive),
-		static_cast<GLsizei>(indices.size()),
-		OGLUtil::getGlFormat(_indexType),
-		indices.data()
-	);
+	if (_indexType == RenderDataType::UInt16) {
+		glDrawElements(
+			OGLUtil::getGlPrimitiveTopology(primitive),
+			static_cast<GLsizei>(indices.size()),
+			OGLUtil::getGlFormat(_indexType),
+			indices.data()
+		);
+	}
+	else if (_indexType == RenderDataType::UInt32) {
+		glDrawElements(
+			OGLUtil::getGlPrimitiveTopology(primitive),
+			static_cast<GLsizei>(indices32.size()),
+			OGLUtil::getGlFormat(_indexType),
+			indices32.data()
+		);
+	}
+	else
+		throw SGE_ERROR("unsupported index type");
 }
 
 void NeHeOGL_Mesh::drawByVertexArrays() {

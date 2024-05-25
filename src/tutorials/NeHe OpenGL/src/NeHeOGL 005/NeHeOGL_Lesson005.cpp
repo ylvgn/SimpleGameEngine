@@ -9,9 +9,7 @@ NeHeOGL_Lesson005::~NeHeOGL_Lesson005() {
 	}
 }
 
-void NeHeOGL_Lesson005::onCreate(CreateDesc& desc) {
-	Base::onCreate(desc);
-	
+void NeHeOGL_Lesson005::onInitedGL() {
 	_gluQuad = gluNewQuadric();
 
 	_cubeVertexs[0].pos.set(-d, d,-d); _cubeVertexs[0].color.set(OGL::kbRed);
@@ -49,6 +47,24 @@ void NeHeOGL_Lesson005::onCreate(CreateDesc& desc) {
 
 	_rectMesh.createRect(1, 1);
 //	_rectMesh.renderState.wireframe = true;
+
+	{
+		_testMesh.loadObjFile("test.obj");
+		_testMesh.renderState.wireframe = true;
+		_testMesh.renderState.cull = RenderState_Cull::None;
+
+		_donutsMesh.loadObjFile("donuts.obj");
+		_donutsMesh.renderState.wireframe = true;
+
+		_teapotMesh.loadObjFile("teapot.obj");
+		_teapotMesh.renderState.wireframe = true;
+	
+		_cornellMesh.loadObjFile("cornell.obj");
+		_cornellMesh.renderState.wireframe = true;
+
+		_bunnyMesh.loadObjFile("bunny.obj");
+		_bunnyMesh.renderState.wireframe = true;
+	}
 }
 
 void NeHeOGL_Lesson005::onUIMouseEvent(UIMouseEvent& ev) {
@@ -61,16 +77,22 @@ void NeHeOGL_Lesson005::onUIMouseEvent(UIMouseEvent& ev) {
 			_cameraY += dt.x;
 		} break;
 	}
+
+	if (ev.isScroll()) {
+		auto dt = ev.scroll * 0.005f;
+		_cameraZ -= dt.y;
+	}
 }
 
 void NeHeOGL_Lesson005::onDraw() {
-//	_example1();	// draw cone, cube
-//	_example2();	// depth test
-//	_example3();	// stencil test
-//	_example4();	// scissor test
-//	_example5();	// draw sphere
-//	_example6();	// vertex array
-	_example7();	// texture mapping
+//	_example1(); // draw cone, cube
+//	_example2(); // depth test
+//	_example3(); // stencil test
+//	_example4(); // scissor test
+//	_example5(); // draw sphere
+//	_example6(); // vertex array
+//	_example7(); // texture mapping
+	_example8(); // load WaveFront .obj
 }
 
 void NeHeOGL_Lesson005::_drawMyGrid() {
@@ -269,7 +291,7 @@ void NeHeOGL_Lesson005::_example2() {
 	glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 
-	glTranslatef(0, 0, -3.0f);
+	glTranslatef(0, 0, -_cameraZ);
 	glRotatef(_cameraX, 1,0,0);
 	glRotatef(_cameraY, 0,1,0);
 
@@ -491,7 +513,7 @@ void NeHeOGL_Lesson005::_example3() {
 	glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 
-	glTranslatef(0, 0, -3.0f);
+	glTranslatef(0, 0, -_cameraZ);
 	glRotatef(_cameraX, 1,0,0);
 	glRotatef(_cameraY, 0,1,0);
 
@@ -571,7 +593,7 @@ void NeHeOGL_Lesson005::_example4() {
 	glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 
-	glTranslatef(0, 0, -3.0f);
+	glTranslatef(0, 0, -_cameraZ);
 	glRotatef(_cameraX, 1,0,0);
 	glRotatef(_cameraY, 0,1,0);
 
@@ -600,7 +622,7 @@ void NeHeOGL_Lesson005::_example5() {
 	glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 
-	glTranslatef(0, 0, -3.0f);
+	glTranslatef(0, 0, -_cameraZ);
 	glRotatef(_cameraX, 1,0,0);
 	glRotatef(_cameraY, 0,1,0);
 
@@ -751,7 +773,7 @@ void NeHeOGL_Lesson005::_example6() {
 	glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 
-	glTranslatef(0, 0, -3.0f);
+	glTranslatef(0, 0, -_cameraZ);
 	glRotatef(_cameraX, 1,0,0);
 	glRotatef(_cameraY, 0,1,0);
 
@@ -892,7 +914,7 @@ void NeHeOGL_Lesson005::_example7() {
 	glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 
-	glTranslatef(0, 0, -3.0f);
+	glTranslatef(0, 0, -_cameraZ);
 	glRotatef(_cameraX, 1,0,0);
 	glRotatef(_cameraY, 0,1,0);
 
@@ -914,6 +936,63 @@ void NeHeOGL_Lesson005::_example7() {
 			OGL::translatef({ 2, 1, 0 });
 			_cubeMesh.draw();
 		glPopMatrix();
+	}
+
+	swapBuffers();
+	drawNeeded();
+}
+
+void NeHeOGL_Lesson005::_example8() {
+	float width = _clientRect.w;
+	float height = _clientRect.h;
+
+	float aspect = width / height;
+	glViewport(0, 0, static_cast<int>(width), static_cast<int>(height));
+
+	glDisable(GL_SCISSOR_TEST);
+	glClearColor(0.f, 0.2f, 0.2f, 0.f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		gluPerspective(90.f, aspect, 0.01f, 1000.0f);
+
+	glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+
+	glTranslatef(0, 0, -_cameraZ);
+	glRotatef(_cameraX, 1,0,0);
+	glRotatef(_cameraY, 0,1,0);
+
+	_drawMyGrid();
+	_drawMyCoordinate();
+
+	{
+		OGL::Scoped_glPushMatrix s;
+		glRotatef(90.f, 0, 1, 0);
+		_testMesh.draw();
+	}
+	{
+		OGL::Scoped_glPushMatrix s;
+		glTranslatef(0, 0, -2);
+		glRotatef(90.f, 1, 0, 0);
+		_donutsMesh.draw();
+	}
+	{
+		OGL::Scoped_glPushMatrix s;
+		glTranslatef(-3, 0, 0);
+		_teapotMesh.draw();
+	}
+	{
+		OGL::Scoped_glPushMatrix s;
+		glTranslatef(3, 0, 0);
+		_cornellMesh.draw();
+	}
+
+	{
+		OGL::Scoped_glPushMatrix s;
+		glTranslatef(2, 2, 0);
+		_bunnyMesh.draw();
 	}
 
 	swapBuffers();

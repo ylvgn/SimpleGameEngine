@@ -17,7 +17,7 @@ class NeHeOGL_Lesson005 : public NeHeOGL_NativeUIWindow {
 public:
 	~NeHeOGL_Lesson005();
 protected:
-	virtual void onCreate(CreateDesc& desc) override;
+	virtual void onInitedGL() override;
 	virtual void onUIMouseEvent(UIMouseEvent& ev) override;
 	virtual void onDraw() override;
 private:
@@ -51,6 +51,8 @@ private:
 	void _drawMyCube5();
 
 	void _example7();
+
+	void _example8();
 
 	static constexpr float d = 1.f;
 
@@ -110,6 +112,7 @@ private:
 
 	float _cameraX = 30.f;
 	float _cameraY = 30.f;
+	float _cameraZ = 5.f;
 
 	GLUquadric* _gluQuad = nullptr;
 
@@ -118,6 +121,12 @@ private:
 	Mesh	_cubeMesh;
 	Mesh	_rectMesh;
 	GLuint	_texture2d;
+
+	Mesh	_testMesh;
+	Mesh	_donutsMesh;
+	Mesh	_teapotMesh;
+	Mesh	_cornellMesh;
+	Mesh	_bunnyMesh;
 };
 
 }

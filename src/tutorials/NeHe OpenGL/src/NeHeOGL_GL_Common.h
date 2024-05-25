@@ -16,6 +16,7 @@
 #include "NeHeOGL_Vertex.h"
 #include "NeHeOGL_Texture2D.h"
 #include "NeHeOGL_Mesh.h"
+#include "NeHeOGL_WavefrontObjLoader.h"
 
 namespace sge {
 
@@ -46,6 +47,7 @@ using SamplerState				= NeHeOGL_SamplerState;
 using TextureFilter				= NeHeOGL_TextureFilter;
 using TextureWrap				= NeHeOGL_TextureWrap;
 using RenderPrimitiveType		= NeHeOGL_RenderPrimitiveType;
+using WavefrontObjLoader		= NeHeOGL_WavefrontObjLoader;
 
 struct OGLUtil {
 	OGLUtil() = delete;

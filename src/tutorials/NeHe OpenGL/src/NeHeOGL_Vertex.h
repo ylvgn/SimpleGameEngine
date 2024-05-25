@@ -17,4 +17,12 @@ public:
 	Vec2f	uv;
 };
 
+class NeHeOGL_Vertex_PosColorUvNormal {
+public:
+	Vec3f	pos;
+	Color4b color;
+	Vec2f	uv;
+	Vec3f	normal;
+};
+
 }
