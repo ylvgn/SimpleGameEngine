@@ -259,6 +259,8 @@ void NeHeOGL_Mesh::createGrid(int gridSize) {
 }
 
 void NeHeOGL_Mesh::_addToIndiceOfGrid(int verticesPerRow, const Vec2i& direction, bool flipXY) {
+	SGE_ASSERT(_indexType == RenderDataType::UInt32);
+
 	int totalRow = verticesPerRow / 2;
 	Vec2i center { verticesPerRow / 2, verticesPerRow / 2 };
 

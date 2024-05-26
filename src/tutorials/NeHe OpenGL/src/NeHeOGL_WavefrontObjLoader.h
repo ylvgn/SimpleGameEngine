@@ -12,12 +12,13 @@ public:
 	static void loadMem(Mesh& outInfo, ByteSpan data, StrView filename);
 private:
 	void _loadMem(Mesh& outInfo, ByteSpan data, StrView filename);
+	void _parseLine();
 
 	void _nextLine();
-	void _parseLine();
 	void _nextToken();
 
 	void _parseLine_o();
+	void _parseLine_s();
 
 // vertex information
 	void _parseLine_v();
@@ -26,8 +27,6 @@ private:
 
 // element statement
 	void _parseLine_f();
-
-	void _parseLine_s();
 
 	void _error(StrView msg) {
 		throw SGE_ERROR("{} line {}: {}", _filename, _lineNumber, msg);
@@ -50,13 +49,11 @@ private:
 		String smoothingGroup;
 
 		Vector< Tuple3f > v;
-		Vector< Tuple2f > vp;
 		Vector< Tuple3f > vt;
 		Vector< Tuple3f > vn;
 
 		void clear();
 	};
-
 	Info _info;
 };
 

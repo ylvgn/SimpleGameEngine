@@ -3,6 +3,8 @@
 namespace sge {
 
 void NeHeOGL_WavefrontObjLoader::Info::clear() {
+	objectName.clear();
+	smoothingGroup.clear();
 	v.clear();
 	vt.clear();
 	vn.clear();
@@ -68,7 +70,7 @@ void NeHeOGL_WavefrontObjLoader::_parseLine() {
 	if (_token == "vt") return _parseLine_vt();
 	if (_token == "vn") return _parseLine_vn();
 
-// ---- vertex data
+// ---- element
 	if (_token == "f") return _parseLine_f();
 
 // ----
@@ -127,7 +129,7 @@ void NeHeOGL_WavefrontObjLoader::_parseLine_vt() {
 
 void NeHeOGL_WavefrontObjLoader::_parseLine_vn() {
 // Polygonal and free-form geometry statement
-	Tuple3f v(0, 0, 0); // i, j, k
+	Tuple3f v(0,0,0); // i j k
 
 	for (int i = 0; i < 3; ++i) {
 		_nextToken();
@@ -181,19 +183,17 @@ void NeHeOGL_WavefrontObjLoader::_parseLine_f() {
 
 		Mesh::VertexDataType vertex;
 		vertex.pos.set(0,0,0);
-		vertex.color.set(255, 255, 255, 255);
+		vertex.color.set(255,255,255,255);
 		vertex.uv.set(0,0);
 		vertex.normal.set(0,0,0);
 
 		{ // v
 			auto& arr = _info.v;
-			if (v < 0) vertex.pos.set(arr[arr.size() + v]);
-			else if (v > 0) vertex.pos.set(arr[v - 1]);
+			if (v < 0) vertex.pos.set(arr[arr.size()+v]);
+			else if (v > 0) vertex.pos.set(arr[v-1]);
 		}
-
 		{ // vt
 			auto& arr = _info.vt;
-			
 			if (vt < 0) {
 				auto& value = arr[arr.size()+vt];
 				vertex.uv.set(value.x, value.y);
@@ -203,10 +203,9 @@ void NeHeOGL_WavefrontObjLoader::_parseLine_f() {
 				vertex.uv.set(value.x, value.y);
 			}
 		}
-
 		{ // vn
 			auto& arr = _info.vn;
-			if (vn < 0) vertex.normal.set(arr[arr.size() + vn]);
+			if (vn < 0) vertex.normal.set(arr[arr.size()+vn]);
 			else if (vn > 0) vertex.normal.set(arr[vn-1]);
 		}
 
@@ -214,11 +213,11 @@ void NeHeOGL_WavefrontObjLoader::_parseLine_f() {
 		using IndexType		= IndiceArrType::value_type;
 
 		if (_outInfo->vertexCount() > std::numeric_limits<IndexType>::max()) {
-			_error("too many vertices count");
+			_error("too many vertex count");
 		}
 
 		_outInfo->vertices.push_back(vertex);
-		_outInfo->indices.push_back(static_cast<IndexType>(_outInfo->vertices.size() - 1));
+		_outInfo->indices.push_back(static_cast<IndexType>(_outInfo->vertices.size()-1));
 	}
 }
 

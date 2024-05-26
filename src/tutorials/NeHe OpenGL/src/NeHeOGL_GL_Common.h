@@ -258,10 +258,10 @@ namespace OGL {
 		~Scoped_glBegin() { glEnd(); }
 	};
 
-	class ScopedBindTexture2D : public NonCopyable {
+	class Scoped_glBindTexture : public NonCopyable {
 	public:
-		ScopedBindTexture2D(GLuint target) { glBindTexture(GL_TEXTURE_2D, target); }
-		~ScopedBindTexture2D() { glBindTexture(GL_TEXTURE_2D, 0); }
+		Scoped_glBindTexture(GLuint target) { glBindTexture(GL_TEXTURE_2D, target); }
+		~Scoped_glBindTexture() { glBindTexture(GL_TEXTURE_2D, 0); }
 	};
 
 	class Scoped_glPushMatrix : public NonCopyable {
@@ -270,6 +270,21 @@ namespace OGL {
 		~Scoped_glPushMatrix() { glPopMatrix(); }
 	};
 
+	class Scoped_glEnable : public NonCopyable {
+	public:
+		Scoped_glEnable(GLenum cap) : _cap(cap) { glEnable(cap); }
+		~Scoped_glEnable() { glDisable(_cap); }
+	private:
+		GLenum _cap;
+	};
+
+	class Scoped_glColor : public NonCopyable {
+	public:
+		Scoped_glColor(float r, float g, float b, float a) {
+			glColor4f(r, g, b, a);
+		}
+		~Scoped_glColor() { glColor4f(1,1,1,1); }
+	};
 
 	inline void drawGridAndCoordinate(Mesh& grid, Mesh& coordinate) {
 		grid.draw();

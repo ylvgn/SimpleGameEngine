@@ -36,7 +36,7 @@ void NeHeOGL_Texture2D::create(CreateDesc& desc) {
 	_size		= desc.size;
 
 	glGenTextures(1, &_tex);
-	OGL::ScopedBindTexture2D scoped(_tex);
+	OGL::Scoped_glBindTexture scoped(_tex);
 
 	const auto& colorType = desc.imageToUpload.colorType();
 	if (colorType != ColorType::None) {

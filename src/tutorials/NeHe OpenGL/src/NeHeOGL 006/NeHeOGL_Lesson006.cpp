@@ -467,7 +467,7 @@ void NeHeOGL_Lesson006::_example4(float uptime) {
 //	_rectMesh.renderState.cull = RenderState::Cull::None;
 
 	{
-		OGL::ScopedBindTexture2D scopedTex(_texture2d);
+		OGL::Scoped_glBindTexture scopedTex(_texture2d);
 		OGL::Scoped_glPushMatrix scopedMatrix;
 		OGL::translatef({ -4, 1, 0 });
 		_rectMesh.draw();

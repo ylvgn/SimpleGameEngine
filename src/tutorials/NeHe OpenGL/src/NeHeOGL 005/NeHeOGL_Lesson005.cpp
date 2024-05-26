@@ -27,7 +27,7 @@ void NeHeOGL_Lesson005::onInitedGL() {
 
 	{
 		glGenTextures(1, &_texture2d);
-		OGL::ScopedBindTexture2D scoped(_texture2d);
+		OGL::Scoped_glBindTexture scoped(_texture2d);
 
 		Vector<Color4b> pixels;
 		pixels.resize(256 * 256);
@@ -926,7 +926,7 @@ void NeHeOGL_Lesson005::_example7() {
 	_drawMyCoordinate();
 
 	{
-		OGL::ScopedBindTexture2D scopedTex(_texture2d);
+		OGL::Scoped_glBindTexture scopedTex(_texture2d);
 		glPushMatrix();
 			OGL::translatef({ -2, 1, 0 });
 			_rectMesh.draw();
@@ -988,7 +988,6 @@ void NeHeOGL_Lesson005::_example8() {
 		glTranslatef(3, 0, 0);
 		_cornellMesh.draw();
 	}
-
 	{
 		OGL::Scoped_glPushMatrix s;
 		glTranslatef(2, 2, 0);

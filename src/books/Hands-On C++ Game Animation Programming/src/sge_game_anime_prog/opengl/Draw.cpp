@@ -25,13 +25,13 @@ void DrawUtil::draw(const IndexBuffer& indexBuf, DrawMode mode/*=DrawMode::Trian
 		/*
 			Note:
 			it depends on what data size upload to gpu:
-			when you overwrite the signature:
+			when you override the signature:
 					IndexBuffer::uploadToGpu(const u32* data, size_t len)
 				to	IndexBuffer::uploadToGpu(const u8* data, size_t len)
 
 			be careful that u32(GL_UNSIGNED_INT) is different from u8(GL_UNSIGNED_BYTE)
 
-			you'd better overwrite this impl, like that:
+			you'd better override this impl, like that:
 			from:
 				IndexBuffer::uploadToGpu(const u32* data, size_t len)
 				glDrawElements(DrawUtil::getGLEnum(mode), static_cast<GLsizei>(indexBuf.count()), GL_UNSIGNED_INT, 0);

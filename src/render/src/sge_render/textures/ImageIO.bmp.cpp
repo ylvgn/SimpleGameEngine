@@ -251,7 +251,7 @@ void ImageIO_bmp::Reader::load(Image& img, ByteSpan data, ColorType expectType) 
 	}
 
 	SGE_ASSERT(data.begin() + info.offset == de.cur());
-	ByteSpan remainSpan(de.cur(), /*de.cur() +*/ de.remain());
+	ByteSpan remainSpan(de.cur(), de.remain());
 
 	auto& width  = info.width;
 	auto& height = info.width;

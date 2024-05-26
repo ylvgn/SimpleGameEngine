@@ -23,7 +23,7 @@ private:
 	void _internal_uploadToGpu(const IndexType* data, size_t dataSize);
 
 	u32		_handle;	// OpenGL buffer handle
-	size_t	_dataSize;	// The count represents how many total indexbuffer there are
+	size_t	_dataSize;	// The count represents how many total index buffer there are
 };
 
 }
