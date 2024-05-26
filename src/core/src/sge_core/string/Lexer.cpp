@@ -148,7 +148,7 @@ void Lexer::_error(StrView msg) {
 		tmp += "^^^\n";
 	}
 
-	FmtTo(tmp, "  token={}\n  file={}:{}:{}\n", _filename, _line, _col);
+	FmtTo(tmp, "  token={}\n  file={}:{}:{}\n", _token, _filename, _line, _col);
 	throw SGE_ERROR("{}", tmp);
 }
 

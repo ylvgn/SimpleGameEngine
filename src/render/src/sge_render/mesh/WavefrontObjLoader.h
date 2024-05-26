@@ -17,23 +17,25 @@ private:
 	void _parseLine_vn();
 
 	void _parseLine_f();
-	void _parseLine_f_inner(Tuple3<int>& out, StrView str, char splitSymbol);
+	void _parseLine_f_inner(Tuple3i& out, StrView str, bool isSlash);
+
+	void _readVertexDataNumber(String& out);
 
 	template<class T>
-	void _readLineNumbers(T& out) {
+	void _readVertexDataLineNumbers(T& out) {
 		String str;
 		int index = 0;
 		while (_ch && _ch != '\n') {
-			_readNumber(str);
-			//SGE_DUMP_VAR(index, v);
+			_readVertexDataNumber(str);
 			if (!StringUtil::tryParse(str, out.data[index++])) {
 				_error("error _readLineNumbers");
 			}
 		}
+		nextToken();
 	};
-	void _readNumber(String& out);
 
-	EditMesh* _outInfo = nullptr;
+	EditMesh*		_outInfo = nullptr;
+
 	Vector<Tuple3f> _tmpPos;
 	Vector<Tuple2f> _tmpUv;
 	Vector<Tuple3f> _tmpNormal;
