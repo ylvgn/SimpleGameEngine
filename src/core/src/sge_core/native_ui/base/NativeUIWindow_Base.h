@@ -6,12 +6,12 @@
 namespace sge {
 
 class NativeUIScrollInfo_Base;
+struct NativeUIScrollInfo_CreateDesc;
 
 class NativeUIWindow_Base : public NonCopyable {
 public:
 	using KeyCode		= UIKeyboardEventKeyCode;
 	using KeyCodeState	= UIKeyCodeEventType;
-	using ScrollInfo	= NativeUIScrollInfo_Base;
 
 	static const int kKeyCodeCount = 256;
 
@@ -78,7 +78,9 @@ public:
 	virtual void onUINativeScrollBarEvent(UIScrollBarEvent& ev);
 	virtual void onUIScrollBarEvent(UIScrollBarEvent& ev) {}
 
-	ScrollInfo* createScrollBar() { return onCreateScrollBar(); }
+	UPtr<NativeUIScrollInfo_Base> createScrollBar(NativeUIScrollInfo_CreateDesc& desc) {
+		return onCreateScrollBar(desc);
+	}
 
 protected:
 	virtual void onCreate(CreateDesc& desc) {}
@@ -89,7 +91,7 @@ protected:
 	virtual void onSetCursor(UIMouseCursor type) {}
 	virtual void onScrollWindow(const Vec2i& delta) {}
 
-	virtual ScrollInfo* onCreateScrollBar() = 0;
+	virtual UPtr<NativeUIScrollInfo_Base> onCreateScrollBar(NativeUIScrollInfo_CreateDesc& desc) = 0;
 
 	Rect2f	_clientRect {0,0,0,0};
 
@@ -97,8 +99,6 @@ protected:
 	Vec2f				_mousePos{0,0};
 	
 	Vector<UIKeyboardEvent::Type, kKeyCodeCount> _pressedKeyCodes;
-
-	Vec2i _scrollBarPos{0,0};
 };
 
 }

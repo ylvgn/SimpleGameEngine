@@ -30,7 +30,7 @@ enum class DBDataType {
 
 class Stmt : public NonCopyable {
 public:
-	virtual ~Stmt() = default;
+	virtual ~Stmt() noexcept = default;
 
 	virtual void reset() { onReset(); }
 

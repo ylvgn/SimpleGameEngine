@@ -12,7 +12,7 @@ RenderContext_DX11::RenderContext_DX11(CreateDesc& desc)
 	auto* dxgiFactory = _renderer->dxgiFactory();
 	auto* dev = _renderer->d3dDevice();
 	auto* win = static_cast<NativeUIWindow_Win32*>(desc.window);
-	auto* hWnd = win->hwnd();
+	auto* hWnd = win->_hwnd;
 
 	{
 		DXGI_SWAP_CHAIN_DESC swapChainDesc = {};

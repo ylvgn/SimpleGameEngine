@@ -19,6 +19,7 @@ protected:
 	virtual void onClientRectChanged(const Rect2f& rc) override;
 	virtual void onUIScrollBarEvent(UIScrollBarEvent& ev) override;
 	virtual void onUIMouseEvent(UIMouseEvent& ev) override;
+	virtual void onUIKeyboardEvent(UIKeyboardEvent& ev) override;
 	virtual void onDraw() override;
 
 	const DefinationRemarks* _dm = nullptr;

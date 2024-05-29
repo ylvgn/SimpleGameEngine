@@ -19,7 +19,7 @@ void PW5_SysMets3::onCreate(CreateDesc& desc) {
 							 static_cast<int>(desc.rect.y),
 							 static_cast<int>(desc.rect.w),
 							 static_cast<int>(desc.rect.h),
-							 nullptr, nullptr, hInstance, nullptr);
+							 nullptr, nullptr, hInstance, this);
 
 	if (!_hwnd) {
 		throw SGE_ERROR("cannot create native window");
@@ -42,10 +42,6 @@ LRESULT CALLBACK PW5_SysMets3::s_wndProc (HWND hwnd, UINT message, WPARAM wParam
 			int nTrackPos;	// current tracking position
 		} SCROLLINFO, * PSCROLLINFO;
 	*/
-	using ScrollInfo = PW5_SysMets3::ScrollInfo;
-
-	static ScrollInfo siV;
-	static ScrollInfo siH;
 
 	static int cxChar, cxCaps, cyChar, cxClient, cyClient, iMaxWidth;
 
@@ -54,12 +50,17 @@ LRESULT CALLBACK PW5_SysMets3::s_wndProc (HWND hwnd, UINT message, WPARAM wParam
 	auto NUMLINES			= static_cast<int>(sysmetrics.size());
 
 	switch (message) {
-
 		case WM_DESTROY:
 			::PostQuitMessage(0);
 			break;
 
 		case WM_CREATE: {
+
+			auto cs = reinterpret_cast<CREATESTRUCT*>(lParam);
+			auto* thisObj = static_cast<This*>(cs->lpCreateParams);
+			thisObj->_hwnd = hwnd;
+			::SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(thisObj));
+
 			ScopedGetDC hdc(hwnd);
 			MyTextMetrics tm; tm.create(hdc);
 			cxChar = tm.aveCharWidth;
@@ -74,11 +75,11 @@ LRESULT CALLBACK PW5_SysMets3::s_wndProc (HWND hwnd, UINT message, WPARAM wParam
 				using Axis = ScrollInfo::CreateDesc::Axis;
 				{
 					CreateDesc desc(Axis::Horizontal);
-					siH.create(desc);
+					thisObj->_siH.reset(static_cast<ScrollInfo*>(thisObj->createScrollBar(desc).detach()));
 				}
 				{
 					CreateDesc desc(Axis::Vertical);
-					siV.create(desc);
+					thisObj->_siV.reset(static_cast<ScrollInfo*>(thisObj->createScrollBar(desc).detach()));
 				}
 			}
 			
@@ -86,123 +87,130 @@ LRESULT CALLBACK PW5_SysMets3::s_wndProc (HWND hwnd, UINT message, WPARAM wParam
 		}
 
 		case WM_SIZE: {
-			cxClient = LOWORD(lParam);
-			cyClient = HIWORD(lParam);
+			if (auto* thisObj = s_getThis(hwnd)) {
+				cxClient = LOWORD(lParam);
+				cyClient = HIWORD(lParam);
 
-			// Set vertical scroll bar range and page size
-			siV.setRange(0, NUMLINES - 1);
-			siV.setPage(cyClient / cyChar);
-			siV.reset(hwnd);
+				// Set vertical scroll bar range and page size
+				thisObj->_siV->setRange(0, NUMLINES - 1);
+				thisObj->_siV->setPage(cyClient / cyChar);
+				thisObj->_siV->refresh();
 
-			// Set horizontal scroll bar range and page size
-			siH.setRange(0, 2 + iMaxWidth / cxChar);
-			siH.setPage(cxClient / cxChar);
-			siH.reset(hwnd);
+				// Set horizontal scroll bar range and page size
+				thisObj->_siH->setRange(0, 2 + iMaxWidth / cxChar);
+				thisObj->_siH->setPage(cxClient / cxChar);
+				thisObj->_siH->refresh();
 
-			return 0;
-		}
+				return 0;
+			}
+		} break;
 		
 		case WM_VSCROLL: {
-			// Save the position for comparison later on
-			int iOldPos;
-			siV.getPos(hwnd, iOldPos);
+			if (auto* thisObj = s_getThis(hwnd)) {
+				// Save the position for comparison later on
+				int oldPos;
+				thisObj->_siV->getPos(oldPos);
 
-			int newPos = siV.pos();
+				int newPos = oldPos;
+				int request = LOWORD(wParam);
+				switch (request)
+				{
+					/*
+						As you'll note, the WINUSER.H header files
+						includes notification codes of SB_TOP, SB_BOTTOM, SB_LEFT, and SB_RIGHT,
+						indicating that the scroll bar has been moved to its minimum or maximum position.
+						However, you will never receive these notification codes for a scroll bar created as part of your application window
+					*/
+					//case SB_TOP:		newPos = thisObj->_siV->rangeMin(); break; // no use (superfluous code)
+					//case SB_BOTTOM:	newPos = thisObj->_siV->rangeMax(); break; // no use (superfluous code)
+					case SB_LINEUP:		newPos -= 1;							break;
+					case SB_LINEDOWN:	newPos += 1;							break;
+					case SB_PAGEUP:		newPos -= thisObj->_siV->_win32_page();	break;
+					case SB_PAGEDOWN:	newPos += thisObj->_siV->_win32_page();	break;
+					case SB_THUMBTRACK: thisObj->_siV->getTrackPos(newPos);		break;
+				}
+				thisObj->_siV->setPos(newPos);
 
-			int request = LOWORD(wParam);
-			switch (request)
-			{
-				/*
-					As you'll note, the WINUSER.H header files
-					includes notification codes of SB_TOP, SB_BOTTOM, SB_LEFT, and SB_RIGHT,
-					indicating that the scroll bar has been moved to its minimum or maximum position.
-					However, you will never receive these notification codes for a scroll bar created as part of your application window
-				*/
-				//case SB_TOP:		newPos = siV.rangeMin(); break; // no use (superfluous code)
-				//case SB_BOTTOM:	newPos = siV.rangeMax(); break; // no use (superfluous code)
-				case SB_LINEUP:		newPos -= 1;					break;
-				case SB_LINEDOWN:	newPos += 1;					break;
-				case SB_PAGEUP:		newPos -= siV.page();			break;
-				case SB_PAGEDOWN:	newPos += siV.page();			break;
-				case SB_THUMBTRACK: siV.getTrackPos(hwnd, newPos);	break;
+				// If the position has changed, scroll the window and update it
+				int curPos;
+				thisObj->_siV->getPos(curPos);
+				if (curPos != oldPos) {
+					int deltaY = cyChar * (oldPos - curPos);
+					::ScrollWindow(hwnd, 0, deltaY, nullptr, nullptr);
+					::UpdateWindow(hwnd);
+				}
+				return 0;
 			}
-			siV.setPos(newPos);
-
-			// If the position has changed, scroll the window and update it
-			int curPos;
-			siV.getPos(hwnd, curPos);
-			if (curPos != iOldPos) {
-				int deltaY = cyChar * (iOldPos - curPos);
-				::ScrollWindow(hwnd, 0, deltaY, nullptr, nullptr);
-				::UpdateWindow(hwnd);
-			}
-			return 0;
-		}
+		} break;
 
 		case WM_HSCROLL: {
-			int iOldPos;
-			// Save the position for comparison later on
-			siH.getPos(hwnd, iOldPos);
+			if (auto* thisObj = s_getThis(hwnd)) {
+				int oldPos;
+				// Save the position for comparison later on
+				thisObj->_siH->getPos(oldPos);
 
-			int newPos = siH.pos();
+				int newPos = oldPos;
+				int request = LOWORD(wParam);
+				switch (request)
+				{
+					//case SB_LEFT:			newPos = thisObj->_siH->rangeMin(); break; // no use (superfluous code)
+					//case SB_RIGHT:		newPos = thisObj->_siH->rangeMax(); break; // no use (superfluous code)
+					case SB_LINELEFT:		newPos -= 1;							break;
+					case SB_LINERIGHT:		newPos += 1;							break;
+					case SB_PAGELEFT:		newPos -= thisObj->_siH->_win32_page();	break;
+					case SB_PAGERIGHT:		newPos += thisObj->_siH->_win32_page();	break;
+					case SB_THUMBPOSITION:	thisObj->_siH->getTrackPos(newPos);		break;
+				}
+				thisObj->_siH->setPos(newPos);
 
-			int request = LOWORD(wParam);
-			switch (request)
-			{
-				//case SB_LEFT:			newPos = siH.rangeMin(); break; // no use (superfluous code)
-				//case SB_RIGHT:		newPos = siH.rangeMax(); break; // no use (superfluous code)
-				case SB_LINELEFT:		newPos -= 1;					break;
-				case SB_LINERIGHT:		newPos += 1;					break;
-				case SB_PAGELEFT:		newPos -= siH.page();			break;
-				case SB_PAGERIGHT:		newPos += siH.page();			break;
-				case SB_THUMBPOSITION:	siH.getTrackPos(hwnd, newPos);	break;
+				// If the position has changed, scroll the window and update it
+				int curPos;
+				thisObj->_siH->getPos(curPos);
+				if (curPos != oldPos) {
+					int deltaX = cxChar * (oldPos - curPos);
+					::ScrollWindow(hwnd, deltaX, 0, nullptr, nullptr);
+					::UpdateWindow(hwnd);
+				}
+				return 0;
 			}
-			siH.setPos(newPos);
-
-			// If the position has changed, scroll the window and update it
-			int curPos;
-			siH.getPos(hwnd, curPos);
-			if (curPos != iOldPos) {
-				int deltaX = cxChar * (iOldPos - curPos);
-				::ScrollWindow(hwnd, deltaX, 0, nullptr, nullptr);
-				::UpdateWindow(hwnd);
-			}
-			return 0;
-		}
+		} break;
 
 		case WM_PAINT: {
-			// Get vertical scroll bar position
-			int iVertPos;
-			siV.getPos(hwnd, iVertPos);
+			if (auto* thisObj = s_getThis(hwnd)) {
+				// Get vertical scroll bar position
+				int iVertPos;
+				thisObj->_siV->getPos(iVertPos);
 
-			// Get horizontal scroll bar position
-			int iHorzPos;
-			siH.getPos(hwnd, iHorzPos);
+				// Get horizontal scroll bar position
+				int iHorzPos;
+				thisObj->_siH->getPos(iHorzPos);
 
-			// Find painting limits
-			ScopedPaintStruct ps(hwnd);
+				// Find painting limits
+				ScopedPaintStruct ps(hwnd);
 
-			int iPaintBeg = Math::max(0, iVertPos + static_cast<int>(ps.rcPaint().top / cyChar));
-			int iPaintEnd = Math::min(NUMLINES - 1, iVertPos + static_cast<int>(ps.rcPaint().bottom / cyChar));
+				int iPaintBeg = Math::max(0, iVertPos + static_cast<int>(ps.rcPaint().top / cyChar));
+				int iPaintEnd = Math::min(NUMLINES - 1, iVertPos + static_cast<int>(ps.rcPaint().bottom / cyChar));
 
-			for (int i = iPaintBeg; i <= iPaintEnd; i++) {
-				int x = cxChar * (1 - iHorzPos); // or 0
-				int y = cyChar * (i - iVertPos);
+				for (int i = iPaintBeg; i <= iPaintEnd; i++) {
+					int x = cxChar * (1 - iHorzPos); // or 0
+					int y = cyChar * (i - iVertPos);
 
-				ps.textOut(x, y, sysmetrics[i].name);
+					ps.textOut(x, y, sysmetrics[i].name);
 
-				x += 22 * cxCaps;
-				ps.textOut(x, y, sysmetrics[i].remarks);
+					x += 22 * cxCaps;
+					ps.textOut(x, y, sysmetrics[i].remarks);
 
-				ps.setTextAlign(PW5_TextAlignmentOption::Right | PW5_TextAlignmentOption::Top);
-				x += 40 * cxChar;
-				ps.Fmt_textOut(x, y, "{:5d}", ::GetSystemMetrics(sysmetrics[i].id));
+					ps.setTextAlign(PW5_TextAlignmentOption::Right | PW5_TextAlignmentOption::Top);
+					x += 40 * cxChar;
+					ps.Fmt_textOut(x, y, "{:5d}", ::GetSystemMetrics(sysmetrics[i].id));
 
-				ps.setTextAlign(PW5_TextAlignmentOption::Left | PW5_TextAlignmentOption::Top); // reset text align to left-top(default)
+					ps.setTextAlign(PW5_TextAlignmentOption::Left | PW5_TextAlignmentOption::Top); // reset text align to left-top(default)
+				}
+				return 0;
 			}
-			return 0;
-		}
+		} break;
 	} // end switch
+
 	return DefWindowProc(hwnd, message, wParam, lParam);
 }
 

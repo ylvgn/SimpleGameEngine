@@ -97,20 +97,19 @@ void NativeUIWindow_Win32::onCreate(CreateDesc& desc) {
 	{
 		using ScrollInfo_CreateDesc = NativeUIScrollInfo_CreateDesc;
 		using ScrollInfo_CreateDesc_Axis = ScrollInfo_CreateDesc::Axis;
-		using ScrollInfo_Win32 = NativeUIScrollInfo_Win32;
 
 		if (desc.vScrollBar) {
 			ScrollInfo_CreateDesc scrollInfoDesc(ScrollInfo_CreateDesc_Axis::Vertical);
 			scrollInfoDesc.page = static_cast<u32>(desc.rect.h);
-			_vScrollInfo.reset(static_cast<ScrollInfo_Win32*>(createScrollBar()));
-			_vScrollInfo->create(scrollInfoDesc);
+			auto* p = createScrollBar(scrollInfoDesc).detach();
+			_vScrollInfo.reset(static_cast<NativeUIScrollInfo_Win32*>(p));
 		}
 
 		if (desc.hScrollBar) {
 			ScrollInfo_CreateDesc scrollInfoDesc(ScrollInfo_CreateDesc_Axis::Horizontal);
 			scrollInfoDesc.page = static_cast<u32>(desc.rect.w);
-			_hScrollInfo.reset(static_cast<ScrollInfo_Win32*>(createScrollBar()));
-			_hScrollInfo->create(scrollInfoDesc);
+			auto* p = createScrollBar(scrollInfoDesc).detach();
+			_hScrollInfo.reset(static_cast<NativeUIScrollInfo_Win32*>(p));
 		}
 	}
 
@@ -153,21 +152,19 @@ void NativeUIWindow_Win32::onDrawNeeded() {
 void NativeUIWindow_Win32::onScrollWindow(const Vec2i& delta) {
 	int oldPos;
 	if (delta.x) {
-		_hScrollInfo->getPos(_hwnd, oldPos);
-		int newPos = oldPos + delta.x;
-		WPARAM wParam = MAKELONG(SB_THUMBTRACK, newPos);
-		_handleNativeUIScrollBarEvent(_hwnd, WM_HSCROLL, wParam, 0);
+		_hScrollInfo->getPos(oldPos);
+		int newPos = Math::max(0, oldPos + delta.x); // must be positive!!
+		_handleNativeUIScrollBarEvent(_hwnd, WM_HSCROLL, MAKELONG(SB_THUMBTRACK, newPos), 0);
 	}
 	if (delta.y) {
-		_vScrollInfo->getPos(_hwnd, oldPos);
-		int newPos = oldPos + delta.y;
-		WPARAM wParam = MAKELONG(SB_THUMBTRACK, newPos);
-		_handleNativeUIScrollBarEvent(_hwnd, WM_VSCROLL, wParam, 0);
+		_vScrollInfo->getPos(oldPos);
+		int newPos = Math::max(0, oldPos + delta.y); // must be positive!!
+		_handleNativeUIScrollBarEvent(_hwnd, WM_VSCROLL, MAKELONG(SB_THUMBTRACK, newPos), 0);
 	}
 }
 
-NativeUIWindow_Win32::Base::ScrollInfo* NativeUIWindow_Win32::onCreateScrollBar() {
-	return new NativeUIScrollInfo_Win32();
+UPtr<NativeUIScrollInfo_Base> NativeUIWindow_Win32::onCreateScrollBar(NativeUIScrollInfo_Base::CreateDesc& desc) {
+	return eastl::make_unique<NativeUIScrollInfo_Win32>(this, desc);
 }
 
 LRESULT WINAPI NativeUIWindow_Win32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
@@ -347,26 +344,26 @@ bool NativeUIWindow_Win32::_handleNativeUIKeyboardEvent(HWND hwnd,
 		case WM_KEYDOWN: {
 			switch (wParam) {
 				case VK_CONTROL: {
-					if (isKeyDown(KeyCode::LCtrl)) {
+					if (_isKeyDown(VK_LCONTROL)) {
 						_pressedKeyCodes[VK_LCONTROL] = Type::Down;
 					}
-					if (isKeyDown(KeyCode::RCtrl)) {
+					if (_isKeyDown(VK_RCONTROL)) {
 						_pressedKeyCodes[VK_RCONTROL] = Type::Down;
 					}
 				} break;
 				case VK_SHIFT: {
-					if (isKeyDown(KeyCode::LShift)) {
+					if (_isKeyDown(VK_LSHIFT)) {
 						_pressedKeyCodes[VK_LSHIFT] = Type::Down;
 					}
-					if (isKeyDown(KeyCode::RShift)) {
+					if (_isKeyDown(VK_RSHIFT)) {
 						_pressedKeyCodes[VK_RSHIFT] = Type::Down;
 					}
 				} break;
 				case VK_MENU: {
-					if (isKeyDown(KeyCode::LAlt)) {
+					if (_isKeyDown(VK_LMENU)) {
 						_pressedKeyCodes[VK_LMENU] = Type::Down;
 					}
-					if (isKeyDown(KeyCode::RAlt)) {
+					if (_isKeyDown(VK_RMENU)) {
 						_pressedKeyCodes[VK_RMENU] = Type::Down;
 					}
 				} break;
@@ -375,16 +372,16 @@ bool NativeUIWindow_Win32::_handleNativeUIKeyboardEvent(HWND hwnd,
 		case WM_KEYUP: {
 			switch (wParam) {
 				case VK_CONTROL: {
-					_pressedKeyCodes[VK_LCONTROL] = isKeyDown(KeyCode::LCtrl) ? Type::Down : ev.type;
-					_pressedKeyCodes[VK_RCONTROL] = isKeyDown(KeyCode::RCtrl) ? Type::Down : ev.type;
+					_pressedKeyCodes[VK_LCONTROL] = _isKeyDown(VK_LCONTROL) ? Type::Down : ev.type;
+					_pressedKeyCodes[VK_RCONTROL] = _isKeyDown(VK_RCONTROL) ? Type::Down : ev.type;
 				} break;
 				case VK_SHIFT: {
-					_pressedKeyCodes[VK_LSHIFT] = isKeyDown(KeyCode::LShift) ? Type::Down : ev.type;
-					_pressedKeyCodes[VK_RSHIFT] = isKeyDown(KeyCode::RShift) ? Type::Down : ev.type;
+					_pressedKeyCodes[VK_LSHIFT] = _isKeyDown(VK_LSHIFT) ? Type::Down : ev.type;
+					_pressedKeyCodes[VK_RSHIFT] = _isKeyDown(VK_RSHIFT) ? Type::Down : ev.type;
 				} break;
 				case VK_MENU: {
-					_pressedKeyCodes[VK_LMENU] = isKeyDown(KeyCode::LAlt) ? Type::Down : ev.type;
-					_pressedKeyCodes[VK_RMENU] = isKeyDown(KeyCode::RAlt) ? Type::Down : ev.type;
+					_pressedKeyCodes[VK_LMENU] = _isKeyDown(VK_LMENU) ? Type::Down : ev.type;
+					_pressedKeyCodes[VK_RMENU] = _isKeyDown(VK_RMENU) ? Type::Down : ev.type;
 				} break;
 			}
 		} break;
@@ -395,10 +392,10 @@ bool NativeUIWindow_Win32::_handleNativeUIKeyboardEvent(HWND hwnd,
 		case WM_SYSKEYDOWN: {
 			switch (wParam) {
 				case VK_MENU: {
-					if (isKeyDown(KeyCode::LAlt)) {
+					if (_isKeyDown(VK_LMENU)) {
 						_pressedKeyCodes[VK_LMENU] = Type::Down;
 					}
-					if (isKeyDown(KeyCode::RAlt)) {
+					if (_isKeyDown(VK_RMENU)) {
 						_pressedKeyCodes[VK_RMENU] = Type::Down;
 					}
 				} break;
@@ -407,8 +404,8 @@ bool NativeUIWindow_Win32::_handleNativeUIKeyboardEvent(HWND hwnd,
 		case WM_SYSKEYUP: {
 			switch (wParam) {
 				case VK_MENU: {
-					_pressedKeyCodes[VK_LMENU] = isKeyDown(KeyCode::LAlt) ? Type::Down : ev.type;
-					_pressedKeyCodes[VK_RMENU] = isKeyDown(KeyCode::RAlt) ? Type::Down : ev.type;
+					_pressedKeyCodes[VK_LMENU] = _isKeyDown(VK_LMENU) ? Type::Down : ev.type;
+					_pressedKeyCodes[VK_RMENU] = _isKeyDown(VK_RMENU) ? Type::Down : ev.type;
 				} break;
 			}
 		} break;
@@ -566,36 +563,36 @@ bool NativeUIWindow_Win32::_handleNativeUIScrollBarEvent(HWND hwnd, UINT msg, WP
 	switch(msg) {
 		case WM_HSCROLL: {
 			if (auto* thisObj = s_getThis(hwnd)) {
-				int request = LOWORD(wParam);
 				auto& si = thisObj->_hScrollInfo;
 				int oldPos;
-				si->getPos(hwnd, oldPos);
+				si->getPos(oldPos);
+				int request = LOWORD(wParam);
 				switch (request) {
-				case SB_LINELEFT:		ev.mode = Mode::Step;   si->scrollTo(oldPos - si->step());	break;
-					case SB_LINERIGHT:	ev.mode = Mode::Step;   si->scrollTo(oldPos + si->step());	break;
-					case SB_PAGELEFT:	ev.mode = Mode::Page;   si->scrollTo(oldPos - si->page());	break;
-					case SB_PAGERIGHT:	ev.mode = Mode::Page;   si->scrollTo(oldPos + si->page());	break;
-					case SB_THUMBTRACK:	ev.mode = Mode::Scroll; si->scrollTo(HIWORD(wParam));		break;
+					case SB_LINELEFT:	ev.mode = Mode::Step;   si->scrollTo(oldPos - si->_win32_step());	break;
+					case SB_LINERIGHT:	ev.mode = Mode::Step;   si->scrollTo(oldPos + si->_win32_step());	break;
+					case SB_PAGELEFT:	ev.mode = Mode::Page;   si->scrollTo(oldPos - si->_win32_page());	break;
+					case SB_PAGERIGHT:	ev.mode = Mode::Page;   si->scrollTo(oldPos + si->_win32_page());	break;
+					case SB_THUMBTRACK:	ev.mode = Mode::Scroll; si->scrollTo(HIWORD(wParam));				break;
 				}
-				ev.pos.x = si->pos();
+				si->getPos(ev.pos.x);
 				ev.deltaPos.x = ev.pos.x - oldPos;
 			}
 		} break;
 
 		case WM_VSCROLL: {
 			if (auto* thisObj = s_getThis(hwnd)) {
-				int request = LOWORD(wParam);
 				auto& si = thisObj->_vScrollInfo;
 				int oldPos;
-				si->getPos(hwnd, oldPos);
+				si->getPos(oldPos);
+				int request = LOWORD(wParam);
 				switch (request) {
-					case SB_LINEUP:		ev.mode = Mode::Step;   si->scrollTo(oldPos - si->step());	break;
-					case SB_LINEDOWN:	ev.mode = Mode::Step;   si->scrollTo(oldPos + si->step());	break;
-					case SB_PAGEUP:		ev.mode = Mode::Page;   si->scrollTo(oldPos - si->page());	break;
-					case SB_PAGEDOWN:	ev.mode = Mode::Page;   si->scrollTo(oldPos + si->page());	break;
-					case SB_THUMBTRACK:	ev.mode = Mode::Scroll; si->scrollTo(HIWORD(wParam));		break;
+					case SB_LINEUP:		ev.mode = Mode::Step;   si->scrollTo(oldPos - si->_win32_step());	break;
+					case SB_LINEDOWN:	ev.mode = Mode::Step;   si->scrollTo(oldPos + si->_win32_step());	break;
+					case SB_PAGEUP:		ev.mode = Mode::Page;   si->scrollTo(oldPos - si->_win32_page());	break;
+					case SB_PAGEDOWN:	ev.mode = Mode::Page;   si->scrollTo(oldPos + si->_win32_page());	break;
+					case SB_THUMBTRACK:	ev.mode = Mode::Scroll; si->scrollTo(HIWORD(wParam));				break;
 				}
-				ev.pos.y = si->pos();
+				si->getPos(ev.pos.y);
 				ev.deltaPos.y = ev.pos.y - oldPos;
 			}
 		} break;
@@ -631,7 +628,7 @@ UIEventModifier NativeUIWindow_Win32::_getWin32Modifier() {
 }
 
 bool NativeUIWindow_Win32::isKeyDown(KeyCode keyCode) {
-	return ::GetKeyState(Win32Util::toVKKey(keyCode)) & 0x8000;
+	return _isKeyDown(Win32Util::toVKKey(keyCode));
 }
 
 void NativeUIWindow_Win32::_resetModifiedKeyCodeState(UIKeyCodeEventType& keyState) {

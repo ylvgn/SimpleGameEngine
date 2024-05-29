@@ -11,25 +11,21 @@ class NativeUIWindow_Win32 : public NativeUIWindow_Base {
 	using This = NativeUIWindow_Win32;
 	using Base = NativeUIWindow_Base;
 public:
-	using ScrollInfo = NativeUIScrollInfo_Win32;
-
 	virtual void onCreate(CreateDesc& desc) override;
 	virtual void onSetWindowTitle(StrView title) override;
 	virtual void onSetCursor(UIMouseCursor type) override;
 	virtual void onDrawNeeded() override;
 	virtual void onScrollWindow(const Vec2i& delta) override;
 
-	const HWND&	hwnd() const { return _hwnd; }
-
 	bool isKeyDown(KeyCode keyCode);
-
-protected:
-	virtual Base::ScrollInfo* onCreateScrollBar() override;
 
 	HWND _hwnd = nullptr;
 
-	UPtr<ScrollInfo> _hScrollInfo = nullptr;
-	UPtr<ScrollInfo> _vScrollInfo = nullptr;
+protected:
+	virtual UPtr<NativeUIScrollInfo_Base> onCreateScrollBar(NativeUIScrollInfo_Base::CreateDesc& desc) override;
+
+	UPtr<NativeUIScrollInfo_Win32> _hScrollInfo = nullptr;
+	UPtr<NativeUIScrollInfo_Win32> _vScrollInfo = nullptr;
 
 private:
 	static LRESULT WINAPI s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -44,6 +40,8 @@ private:
 	void _resetModifiedKeyCodeState(UIKeyCodeEventType& keyState);
 
 	bool _handleNativeUIScrollBarEvent(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+	bool _isKeyDown(int vkKeyCode) { return ::GetKeyState(vkKeyCode) & 0x8000; }
 
 	UIEventModifier _getWin32Modifier();
 };

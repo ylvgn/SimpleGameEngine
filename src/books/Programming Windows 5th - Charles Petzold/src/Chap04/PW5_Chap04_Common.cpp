@@ -104,10 +104,9 @@ void PW5_MyDefineMarkWindow::onCreate(CreateDesc& desc) {
 	desc.ownDC = true;
 	desc.hScrollBar = true;
 	desc.vScrollBar = true;
-
 	Base::onCreate(desc);
-	_hdc = ::GetDC(_hwnd);
 
+	_hdc = ::GetDC(_hwnd);
 	_tm.create(_hdc);
 
 	_hScrollInfo->setStep(_tm.aveCharWidth);
@@ -115,10 +114,9 @@ void PW5_MyDefineMarkWindow::onCreate(CreateDesc& desc) {
 }
 
 void PW5_MyDefineMarkWindow::onClientRectChanged(const Rect2f& rc) {
-	SGE_ASSERT(_dm != nullptr);
-
-	// WM_SIZE
 	Base::onClientRectChanged(rc);
+
+	SGE_ASSERT(_dm != nullptr);
 
 	auto NUMLINES = static_cast<int>(_dm->data().size());
 
@@ -127,7 +125,7 @@ void PW5_MyDefineMarkWindow::onClientRectChanged(const Rect2f& rc) {
 	int& cyChar = _tm.aveCharHeight;
 
 	int contentMaxHeight = cyChar * NUMLINES;
-	int contentMaxWidth  = 20* cxCaps + 50 * cxChar;
+	int contentMaxWidth  = 20 * cxCaps + 50 * cxChar;
 
 	_vScrollInfo->setRange(0, contentMaxHeight);
 	_vScrollInfo->setPage(static_cast<UINT>(_clientRect.h));
@@ -137,21 +135,34 @@ void PW5_MyDefineMarkWindow::onClientRectChanged(const Rect2f& rc) {
 }
 
 void PW5_MyDefineMarkWindow::onUIScrollBarEvent(UIScrollBarEvent& ev) {
-	drawNeeded(); // ::UpdateWindow(_hwnd);
+	drawNeeded();
 }
 
 void PW5_MyDefineMarkWindow::onUIMouseEvent(UIMouseEvent& ev) {
 	if (ev.isScroll()) {
 		auto d = ev.scroll * 0.015f;
-		if (_clientRect.w < _hScrollInfo->rangeMax()) {
-			_hScrollInfo->setPos(_hScrollInfo->pos() + static_cast<int>(_tm.aveCharWidth * d.x));
+		if (_clientRect.w < _hScrollInfo->_win32_rangeMax()) {
+			_hScrollInfo->setPos(_hScrollInfo->_win32_pos() + static_cast<int>(_tm.aveCharWidth * d.x));
 			drawNeeded();
 		}
-		if (_clientRect.h < _vScrollInfo->rangeMax()) {
-			_vScrollInfo->setPos(_vScrollInfo->pos() + static_cast<int>(_tm.aveCharHeight * -d.y));
+		if (_clientRect.h < _vScrollInfo->_win32_rangeMax()) {
+			_vScrollInfo->setPos(_vScrollInfo->_win32_pos() + static_cast<int>(_tm.aveCharHeight * -d.y));
 			drawNeeded();
 		}
 	}
+}
+
+void PW5_MyDefineMarkWindow::onUIKeyboardEvent(UIKeyboardEvent& ev) {
+	using KeyCode = UIKeyboardEvent::KeyCode;
+
+	if (ev.isDown(KeyCode::Home))		_vScrollInfo->scrollToHome();
+	if (ev.isDown(KeyCode::End))		_vScrollInfo->scrollToEnd();
+	if (ev.isDown(KeyCode::PageUp))		_vScrollInfo->scrollPageBackward();
+	if (ev.isDown(KeyCode::PageDown))	_vScrollInfo->scrollPageForward();
+	if (ev.isDown(KeyCode::UpArrow))	_vScrollInfo->scrollStepBackward();
+	if (ev.isDown(KeyCode::DownArrow))	_vScrollInfo->scrollStepForward();
+	if (ev.isDown(KeyCode::LeftArrow))	_hScrollInfo->scrollStepBackward();
+	if (ev.isDown(KeyCode::RightArrow))	_hScrollInfo->scrollStepForward();
 }
 
 void PW5_MyDefineMarkWindow::onDraw() {
@@ -163,10 +174,10 @@ void PW5_MyDefineMarkWindow::onDraw() {
 	const auto& sysmetrics = _dm->data();
 
 	int offsetY;
-	_vScrollInfo->getPos(_hwnd, offsetY);
+	_vScrollInfo->getPos(offsetY);
 
 	int offsetX;
-	_hScrollInfo->getPos(_hwnd, offsetX);
+	_hScrollInfo->getPos(offsetX);
 
 	DefinationRemarks* dm = constCast(_dm);
 

@@ -27,12 +27,13 @@
 #include "Chap05/RandRect/PW5_RandRect.h"
 #include "Chap05/Clover/PW5_MyRgn.h"
 #include "Chap05/Clover/PW5_Clover.h"
+/* Chap06 Keyboard */
 
 namespace sge {
 
 class ProgWin5App : public NativeUIApp {
 	using Base = NativeUIApp;
-	using ProgWin5MainWin = PW5_Clover;
+	using ProgWin5MainWin = PW5_MySysMets3;
 protected:
 	virtual void onCreate(CreateDesc& desc) override {
 		{ // set working dir

@@ -105,7 +105,7 @@ void Grid::onClick(int x, int y) {
 	if (!c) return;
 	
 	if (c->hasMine) {
-		::MessageBox(PW5_MyMineSweeper::instance()->hwnd(), L"Game Over", L"", MB_OK);
+		::MessageBox(PW5_MyMineSweeper::instance()->_hwnd, L"Game Over", L"", MB_OK);
 		create(_width, _height);
 		return;
 	}
