@@ -168,6 +168,10 @@ template<class T> using StrViewT = eastl::basic_string_view<T>;
 using StrViewA = StrViewT<char>;
 using StrViewW = StrViewT<wchar_t>;
 
+using StrView8  = StrViewT<char8_t>;
+using StrView16 = StrViewT<char16_t>;
+using StrView32 = StrViewT<char32_t>;
+
 template<class T, size_t N, bool bEnableOverflow = true>
 struct StringT_Base {
 	using Type = typename eastl::fixed_string<T, N, bEnableOverflow>;
@@ -209,6 +213,10 @@ public:
 
 template<size_t N, bool bEnableOverflow = true> using StringA_ = StringT<char,    N, bEnableOverflow>;
 template<size_t N, bool bEnableOverflow = true> using StringW_ = StringT<wchar_t, N, bEnableOverflow>;
+
+template<size_t N, bool bEnableOverflow = true> using String8_  = StringT<char8_t,	N, bEnableOverflow>;
+template<size_t N, bool bEnableOverflow = true> using String16_ = StringT<char16_t, N, bEnableOverflow>;
+template<size_t N, bool bEnableOverflow = true> using String32_ = StringT<char32_t, N, bEnableOverflow>;
 
 using TempStringA = StringA_<220>;
 using TempStringW = StringW_<220>;

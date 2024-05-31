@@ -120,3 +120,7 @@ add_subdirectory(src/tutorials/NeHe\ OpenGL)
 add_subdirectory(src/tutorials/SiTa\ DataBase)
 add_subdirectory(src/tutorials/SiTa\ DataBase/examples/sge_sita_db_example_001)
 add_subdirectory(src/tutorials/SiTa\ DataBase/examples/sge_sita_db_example_002)
+
+#-- SiTa Localization ---
+add_subdirectory(src/tutorials/SiTa\ Localization)
+add_subdirectory(src/tutorials/SiTa\ Localization/test)
