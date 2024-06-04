@@ -33,12 +33,10 @@ public:
 		StringW w;
 		StringA a;
 
-		Utf::decodeUtf8(w, src);
-//		dumpHex(w);
+		Utf::convert(w, src);
 		SGE_DUMP_VAR(w);
 
-		Utf::encodeUtf8(a, w);
-//		dumpHex(a);
+		Utf::convert(a, w);
 		SGE_DUMP_VAR(a);
 
 		SGE_ASSERT(a == src);
