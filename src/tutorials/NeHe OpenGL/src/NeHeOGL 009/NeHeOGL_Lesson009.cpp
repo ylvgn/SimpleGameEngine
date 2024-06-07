@@ -6,18 +6,25 @@ void NeHeOGL_Lesson009::StarInfo::randomColor() {
 	color.set(rand()%256, rand()%256, rand()%256, 255);
 }
 
+void NeHeOGL_Lesson009::StarInfo::setVertexColor(const Color4b& c) {
+	auto& vertices = mesh.vertices;
+	for (auto& v : vertices) {
+		v.color.set(c);
+	}
+}
+
 void NeHeOGL_Lesson009::onInitedGL() {
 	Base::onInitedGL();
 
 	setClearColor({ 0, 0, 0, 0.5f }); // Black Background
 	setCameraPos({ -0.78f, -0.08f, 17.f });
-	setCameraAngle({ 22.35f, 19.05f });
+	setCameraOrbitAngle({ 22.35f, 19.05f });
 
 	_starList.resize(kStarCount);
 	for (int i = 0; i < kStarCount; ++i) {
 		auto& star = _starList[i];
 		star.randomColor();
-		star.dist = (static_cast<float>(i) / kStarCount) * 5.0f;
+		star.distToOrigin = (static_cast<float>(i) / kStarCount) * kMaxDistFromOrigin;
 		star.mesh.createRect(1, 1);
 	}
 
@@ -27,6 +34,8 @@ void NeHeOGL_Lesson009::onInitedGL() {
 		desc.samplerState.filter = Texture2D::TextureFilter::Linear;
 		_starTex.create(desc);
 	}
+
+	OGLUtil::throwIfError();
 }
 
 void NeHeOGL_Lesson009::onUIKeyboardEvent(UIKeyboardEvent& ev) {
@@ -47,64 +56,78 @@ void NeHeOGL_Lesson009::onRender() {
 }
 
 void NeHeOGL_Lesson009::_example1() {
-	glEnable(GL_TEXTURE_2D);	// Enable Texture Mapping
-	glShadeModel(GL_SMOOTH);	// Enable Smooth Shading
+	glEnable(GL_TEXTURE_2D);							// Enable Texture Mapping
+	glShadeModel(GL_SMOOTH);							// Enable Smooth Shading
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);  // Really Nice Perspective Calculations
 
-	beginOpaquePass();
-	{
-		// do nothing
-	}
-	endOpaquePass();
-
-
+#define SGE_PLANE_ROT 1
+		// 0: XOY
+		// 1: ZOY
+		// 2: XOZ
 	beginTransparentPass();
 	{
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE); // additive blend
+
 		_starTex.bind();
+
+	#if (2 == SGE_PLANE_ROT)
+		glRotatef(90, 1, 0, 0);
+	#elif (1 == SGE_PLANE_ROT)
+		glRotatef(90,0, 1, 0);
+	#endif
+
 		int starCount = static_cast<int>(_starList.size());
 		for (int i = 0; i < starCount; ++ i) {
 			auto& star = _starList[i];
-			OGL::Scoped_glPushMatrix scoped; // Reset The View Before We Draw Each Star
-
-			glRotatef(_tilt,		1.0f,0.0f,0.0f);	// Tilt The View
-			glRotatef(star.angle,	0.0f,1.0f,0.0f);	// Rotate To The Current Stars Angle
-			glTranslatef(star.dist,	0.0f,0.0f);			// Move Forward On The X Plane
-			glRotatef(-star.angle,	0.0f,1.0f,0.0f);	// Cancel The Current Stars Angle
-			glRotatef(-_tilt,		1.0f,0.0f,0.0f);	// Cancel The Screen Tilt
-
-			if (_isTwinkle) {
-				const auto& anotherStar = _starList[(starCount - i) - 1];
-				const auto& anotherStarColor = anotherStar.color;
-#if 0 // Assign A Color Using Bytes
-				glColor4ub(anotherStarColor.r, anotherStarColor.g, anotherStarColor.b, 255);
-#else
-				auto& vertices = star.mesh.vertices;
-				for (auto& v : vertices) {
-					v.color.set(anotherStarColor);
-				}
-#endif
-				star.mesh.drawInherit();
-			}
-
-			glRotatef(_spin, 0.0f, 0.0f, 1.0f); // Rotate The Star On The Z Axis
-#if 0 // Assign A Color Using Bytes
-			OGL::color4b(star.color);
-#else
-			auto& vertices = star.mesh.vertices;
-			for (auto& v : vertices) {
-				v.color.set(star.color);
-			}
-#endif
-			star.mesh.drawInherit();
-
-			_spin += 0.01f;                    // Used To Spin The Stars
-			star.angle += static_cast<float>(i) / _starList.size();
-			star.dist  -= 0.01f;
-			if (star.dist < 0.0f)
 			{
-				star.dist += 5.0f;
-				star.randomColor();
+				OGL::Scoped_glPushMatrix scoped;			// Reset The View Before We Draw Each Star
+		#if (0 == SGE_PLANE_ROT)
+			#if 0
+				OGL::rotatef(_tilt, Vec3f::s_right());		// Tilt The View
+				OGL::rotatef(star.angle, Vec3f::s_up());	// Rotate To The Current Stars Angle
+				glTranslatef(star.distToOrigin,0,0);		// Move Forward On The X Plane (XOY)
+				OGL::rotatef(-star.angle, Vec3f::s_up());	// Cancel The Current Stars Angle
+				OGL::rotatef(-_tilt, Vec3f::s_right());		// Cancel The Screen Tilt
+			#else
+				OGL::rotatef(-_tilt, Vec3f::s_up());
+				OGL::rotatef(star.angle, Vec3f::s_right());
+				glTranslatef(0, star.distToOrigin, 0);
+				OGL::rotatef(-star.angle, Vec3f::s_right());
+				OGL::rotatef(_tilt, Vec3f::s_up());
+			#endif
+		#elif (1 == SGE_PLANE_ROT)
+				OGL::rotatef(star.angle, Vec3f::s_forward());
+				glTranslatef(0, star.distToOrigin, 0);
+				OGL::rotatef(-star.angle, Vec3f::s_forward());
+		#elif (2 == SGE_PLANE_ROT)
+				OGL::rotatef(_tilt, Vec3f::s_right());
+				OGL::rotatef(star.angle, Vec3f::s_up());
+				glTranslatef(star.distToOrigin, 0, star.distToOrigin);
+				OGL::rotatef(-star.angle, Vec3f::s_up());
+				OGL::rotatef(-_tilt, Vec3f::s_right());
+		#else
+			#error "unsupported"
+		#endif
+				if (_isTwinkle) { // because use GL_SRC_ALPHA, GL_ONE, draw the same pos will additive!
+					const auto& anotherStar			= _starList[(starCount - i) - 1]; // just for symmetry
+					const auto& anotherStarColor	= anotherStar.color;
+					star.setVertexColor(anotherStarColor);
+					star.mesh.drawInherit();
+				}
+
+				OGL::rotatef(_spin, Vec3f::s_forward()); // star local rotate on The Z Axis
+
+				star.setVertexColor(star.color);
+				star.mesh.drawInherit();
+
+				_spin += 0.15f;  // Used To Spin All The Stars, add spin speed
+
+				star.angle += static_cast<float>(i) / starCount;
+				star.distToOrigin -= 0.01f;
+				if (star.distToOrigin < 0.0f) {
+					star.distToOrigin += kMaxDistFromOrigin;
+					star.randomColor();
+				}
 			}
 		}
 		_starTex.unbind();

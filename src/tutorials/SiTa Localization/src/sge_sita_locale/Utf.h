@@ -6,192 +6,195 @@ namespace sge {
 
 namespace Utf {
 
-	inline u32 _decodeUtf(const char8_t*& p, const char8_t* ed) {
-		auto ch = static_cast<u8>(*p);
-
-		if (ch < 0x80U) {
-			return static_cast<u8>(*p++);
+	inline u32 _decodeUtf(const char8_t*& src, const char8_t* end) {
+		auto v = static_cast<u8>(*src);
+		u32 o = 0;
+		if (v < 0x80U) {
+			o = static_cast<u8>(*src++);
+			return o;
 		}
 
-		if ((ch & 0xE0U) == 0xC0U) {
-			if (p + 2 > ed) throw SGE_ERROR("_decodeUtf8 2");
-			u32 a = static_cast<u8>(*p++);
-			u32 b = static_cast<u8>(*p++);
-			return ((a & 0x1FU) << 6) | (b & 0x3FU);
+		if ((v & 0xE0U) == 0xC0U) {
+			if (src + 2 > end) throw SGE_ERROR("_decodeUtf8 2");
+			o |= (static_cast<u8>(*src) & 0x1FU) << 6;	++src;
+			o |= (static_cast<u8>(*src) & 0x3FU);		++src;
+			return o;
 		}
 
-		if ((ch & 0xF0U) == 0xE0U) {
-			if (p + 3 > ed) throw SGE_ERROR("_decodeUtf8 3");
-			u32 a = static_cast<u8>(*p++);
-			u32 b = static_cast<u8>(*p++);
-			u32 c = static_cast<u8>(*p++);
-			return ((a & 0x0FU) << 12) | ((b & 0x3FU) << 6) | (c & 0x3FU);
+		if ((v & 0xF0U) == 0xE0U) {
+			if (src + 3 > end) throw SGE_ERROR("_decodeUtf8 3");
+			o |= (static_cast<u8>(*src) & 0x0FU) << 12;	++src;
+			o |= (static_cast<u8>(*src) & 0x3FU) << 6;	++src;
+			o |= (static_cast<u8>(*src) & 0x3FU);		++src;
+			return o;
 		}
 
-		if ((ch & 0xF8U) == 0xF0U) {
-			if (p + 4 > ed) throw SGE_ERROR("_decodeUtf8 4");
-			u32 a = static_cast<u8>(*p++);
-			u32 b = static_cast<u8>(*p++);
-			u32 c = static_cast<u8>(*p++);
-			u32 d = static_cast<u8>(*p++);
-			return ((a & 0x07U) << 18) | ((b & 0x3FU) << 12) | ((c & 0x3FU) << 6) | (d & 0x3FU);
+		if ((v & 0xF8U) == 0xF0U) {
+			if (src + 4 > end) throw SGE_ERROR("_decodeUtf8 4");
+			o |= (static_cast<u8>(*src) & 0x07U) << 18;	++src;
+			o |= (static_cast<u8>(*src) & 0x0FU) << 12;	++src;
+			o |= (static_cast<u8>(*src) & 0x3FU) << 6;	++src;
+			o |= (static_cast<u8>(*src) & 0x3FU);		++src;
+			return o;
 		}
 
-		if ((ch & 0xFCU) == 0xF8U) {
-			if (p + 5 > ed) throw SGE_ERROR("_decodeUtf8 5");
-			u32 a = static_cast<u8>(*p++);
-			u32 b = static_cast<u8>(*p++);
-			u32 c = static_cast<u8>(*p++);
-			u32 d = static_cast<u8>(*p++);
-			u32 e = static_cast<u8>(*p++);
-			return ((a & 0x03U) << 24) | ((b & 0x3FU) << 18) | ((c & 0x3FU) << 12) | ((d & 0x3FU) << 6) | (e & 0x3FU);
+		if ((v & 0xFCU) == 0xF8U) {
+			if (src + 5 > end) throw SGE_ERROR("_decodeUtf8 5");
+			o |= (static_cast<u8>(*src) & 0x03U) << 24;	++src;
+			o |= (static_cast<u8>(*src) & 0x07U) << 18;	++src;
+			o |= (static_cast<u8>(*src) & 0x0FU) << 12;	++src;
+			o |= (static_cast<u8>(*src) & 0x3FU) << 6;	++src;
+			o |= (static_cast<u8>(*src) & 0x3FU);		++src;
+			return o;
 		}
 
-		if ((ch & 0xFEU) == 0xFCU) { // read 6 bytes
-			if (p + 6 > ed) throw SGE_ERROR("_decodeUtf8 6");
-			u32 a = static_cast<u8>(*p++);
-			u32 b = static_cast<u8>(*p++);
-			u32 c = static_cast<u8>(*p++);
-			u32 d = static_cast<u8>(*p++);
-			u32 e = static_cast<u8>(*p++);
-			u32 f = static_cast<u8>(*p++);
-			return ((a & 0x01U) << 30) | ((b & 0x3FU) << 24) | ((c & 0x3FU) << 18) | ((d & 0x3FU) << 12) | ((e & 0x3FU) << 6) | (f & 0x3FU);
+		if ((v & 0xFEU) == 0xFCU) {
+			if (src + 6 > end) throw SGE_ERROR("_decodeUtf8 6");
+			o |= (static_cast<u8>(*src) & 0x01U) << 30;	++src;
+			o |= (static_cast<u8>(*src) & 0x03U) << 24;	++src;
+			o |= (static_cast<u8>(*src) & 0x07U) << 18;	++src;
+			o |= (static_cast<u8>(*src) & 0x0FU) << 12;	++src;
+			o |= (static_cast<u8>(*src) & 0x3FU) << 6;	++src;
+			o |= (static_cast<u8>(*src) & 0x3FU);		++src;
+			return o;
 		}
 
 		{
 			SGE_ASSERT(FALSE);
-			return static_cast<uint8_t>(*p++);
+			return static_cast<uint8_t>(*src++);
 		}
 	}
 
-	inline u32 _decodeUtf(const char16_t*& p, const char16_t* ed) {
-		auto ch = static_cast<u16>(*p);
-
-		if (ch >= 0xD800U && ch < 0xDBFFU) {
-			if (p + 2 > ed) throw SGE_ERROR("_decodeUtf16 2");
-			u32 a = static_cast<u16>(*p++); // high 10-bit
-			u32 b = static_cast<u16>(*p++); // low  6-bit
-			return ((a - 0xD800U) << 10) | (b - 0xDC00U);
+	inline u32 _decodeUtf(const char16_t*& src, const char16_t* end) {
+		auto v = static_cast<u16>(*src);
+		u32 o = 0;
+		if (v >= 0xD800U && v < 0xDBFFU) {
+			if (src + 2 > end) throw SGE_ERROR("_decodeUtf16 2");
+			o |= (static_cast<u16>(*src) - 0xD800U) << 10;	++src;
+			o |= (static_cast<u16>(*src) - 0xDC00U);		++src;
+			return o;
 		}
 
-		SGE_ASSERT(p < ed);
-		return static_cast<u16>(*p++);
+		SGE_ASSERT(src < end);
+		o = static_cast<u16>(*src++);
+		return o;
 	}
 
-	inline u32 _decodeUtf(const char32_t*& p, const char32_t* ed) {
-		SGE_ASSERT(p < ed);
-		return static_cast<u32>(*p++);
+	inline u32 _decodeUtf(const char32_t*& src, const char32_t* end) {
+		SGE_ASSERT(src < end);
+		return static_cast<u32>(*src++);
 	}
 
-	inline u32 _decodeUtf(const wchar_t*& p, const wchar_t* ed) {
+	inline u32 _decodeUtf(const wchar_t*& src, const wchar_t* end) {
 		using C = WCharUtil::Char;
-		const auto*& s  = reinterpret_cast<const C*&>(p);
-		const auto*  e  = reinterpret_cast<const C*>(ed);
+		const auto*& s  = reinterpret_cast<const C*&>(src);
+		const auto*  e  = reinterpret_cast<const C* >(end);
 		return _decodeUtf(s, e);
 	}
 
 	template<typename OUT_STR>
-	inline void _appendChar8(OUT_STR& dst, u32 c) {
-		if (c < 0x80U) { // 1 byte 7 bit
-			dst += static_cast<char>(c);
+	inline void _appendChar8(OUT_STR& dst, u32 v) {
+		using C = typename OUT_STR::value_type;
+		if (v < 0x80U) { // 1 byte 7 bit
+			dst += static_cast<C>(v);
 			return;
 		}
-		if (c < 0x800U) { // 2 bytes 5+6=11 bit
-			char ch[] = {
-				static_cast<char>(((c >> 6) & 0x1FU) | 0xC0U),
-				static_cast<char>( (c & 0x3FU)       | 0x80U),
-				0,
+		if (v < 0x800U) { // 2 bytes 5+6=11 bit
+			C t[] = {
+				static_cast<C>(((v >> 6) & 0x1FU) | 0xC0U),
+				static_cast<C>( (v		 & 0x3FU) | 0x80U),
+				static_cast<C>(0)
 			};
-			dst.append(ch);
+			dst.append(t);
 			return;
 		}
-		if (c < 0x10000U) { // 3 byte 4+6+6=16 bit
-			char ch[] = {
-				static_cast<char>(((c >> 12) & 0x0FU) | 0xE0U),
-				static_cast<char>(((c >> 6)  & 0x3FU) | 0x80U),
-				static_cast<char>( (c        & 0x3FU) | 0x80U),
-				0,
+		if (v < 0x10000U) { // 3 byte 4+6+6=16 bit
+			C t[] = {
+				static_cast<C>(((v >> 12) & 0x0FU) | 0xE0U),
+				static_cast<C>(((v >> 6 ) & 0x3FU) | 0x80U),
+				static_cast<C>( (v        & 0x3FU) | 0x80U),
+				static_cast<C>(0)
 			};
-			dst.append(ch);
+			dst.append(t);
 			return;
 		}
-		if (c < 0x200000U) { // 4 byte 3+6+6+6=21 bit
-			char ch[] = {
-				static_cast<char>(((c >> 18) & 0x07U) | 0xF0U),
-				static_cast<char>(((c >> 12) & 0x3FU) | 0x80U),
-				static_cast<char>(((c >> 6)  & 0x3FU) | 0x80U),
-				static_cast<char>( (c        & 0x3FU) | 0x80U),
-				0
+		if (v < 0x200000U) { // 4 byte 3+6+6+6=21 bit
+			C t[] = {
+				static_cast<C>(((v >> 18) & 0x07U) | 0xF0U),
+				static_cast<C>(((v >> 12) & 0x3FU) | 0x80U),
+				static_cast<C>(((v >> 6 ) & 0x3FU) | 0x80U),
+				static_cast<C>( (v        & 0x3FU) | 0x80U),
+				static_cast<C>(0)
 			};
-			dst.append(ch);
-			return;
-		}
-
-		if (c < 0x4000000U) { // 5 byte 2+6+6+6+6=26 bit
-			char ch[] = {
-				static_cast<char>(((c >> 24) & 0x03U) | 0x1FU),
-				static_cast<char>(((c >> 18) & 0x3FU) | 0x80U),
-				static_cast<char>(((c >> 12) & 0x3FU) | 0x80U),
-				static_cast<char>(((c >> 6 ) & 0x3FU) | 0x80U),
-				static_cast<char>( (c        & 0x3FU) | 0x80U),
-				0
-			};
-			dst.append(ch);
+			dst.append(t);
 			return;
 		}
 
-		if (c < 0x80000000U) { // 6 byte 1+6+6+6+6+6=31 bit
-			char ch[] = {
-				static_cast<char>(((c >> 30) & 0x01U) | 0x3FU),
-				static_cast<char>(((c >> 24) & 0x3FU) | 0x80U),
-				static_cast<char>(((c >> 18) & 0x3FU) | 0x80U),
-				static_cast<char>(((c >> 12) & 0x3FU) | 0x80U),
-				static_cast<char>(((c >> 6)  & 0x3FU) | 0x80U),
-				static_cast<char>( (c        & 0x3FU) | 0x80U),
-				0
+		if (v < 0x4000000U) { // 5 byte 2+6+6+6+6=26 bit
+			C t[] = {
+				static_cast<C>(((v >> 24) & 0x03U) | 0x1FU),
+				static_cast<C>(((v >> 18) & 0x3FU) | 0x80U),
+				static_cast<C>(((v >> 12) & 0x3FU) | 0x80U),
+				static_cast<C>(((v >> 6 ) & 0x3FU) | 0x80U),
+				static_cast<C>( (v        & 0x3FU) | 0x80U),
+				static_cast<C>(0)
 			};
-			dst.append(ch);
+			dst.append(t);
+			return;
+		}
+
+		if (v < 0x80000000U) { // 6 byte 1+6+6+6+6+6=31 bit
+			C t[] = {
+				static_cast<C>(((v >> 30) & 0x01U) | 0x3FU),
+				static_cast<C>(((v >> 24) & 0x3FU) | 0x80U),
+				static_cast<C>(((v >> 18) & 0x3FU) | 0x80U),
+				static_cast<C>(((v >> 12) & 0x3FU) | 0x80U),
+				static_cast<C>(((v >> 6 ) & 0x3FU) | 0x80U),
+				static_cast<C>( (v        & 0x3FU) | 0x80U),
+				static_cast<C>(0)
+			};
+			dst.append(t);
 			return;
 		}
 
 		{
 			SGE_ASSERT(false);
-			dst += static_cast<char>(c);
+			dst += static_cast<C>(v);
 		}
 	}
 
 	template<typename OUT_STR>
-	inline void _appendChar16(OUT_STR& dst, u32 c) {
+	inline void _appendChar16(OUT_STR& dst, u32 v) {
 		using C = typename OUT_STR::value_type;
-		if ((c >= 0 && c < 0xD800U) || (c >= 0xE000U && c < 0x10000U)) { // 1 char16
-			dst += static_cast<C>(c);
+		if ((v >= 0 && v < 0xD800U) || (v >= 0xE000U && v < 0x10000U)) { // 1 char16
+			dst += static_cast<C>(v);
 		} else {
-			C ch[] = {
-				static_cast<C>(((c >> 10) & 0x3FFU + 0xD800U)), // shift right by 10 + 0xD800    (0xD800–0xDBFF)
-				static_cast<C>(( c        & 0x3FFU + 0xDC00U)), // take the low 10 bits + 0xDC00 (0xDC00–0xDFFF)
+			C t[] = {
+				static_cast<C>((((v >> 10) & 0x3FFU) + 0xD800U)), // shift right by 10    + 0xD800 (0xD800–0xDBFF)
+				static_cast<C>( ((v        & 0x3FFU) + 0xDC00U)), // take the low 10 bits + 0xDC00 (0xDC00–0xDFFF)
 				static_cast<C>(0)
 			};
-			dst.append(ch);
+			dst.append(t);
 		}
 	}
 
 	template<typename OUT_STR>
-	inline void _appendChar32(OUT_STR& dst, u32 c) {
+	inline void _appendChar32(OUT_STR& dst, u32 v) {
 		using C = typename OUT_STR::value_type;
-		dst += static_cast<C>(c);
+		dst += static_cast<C>(v);
 	}
 
-//	template<size_t N> inline void _appendChar(StringA_ <N>& dst, u32 c) { _appendChar8 (dst, c); }
-	template<size_t N> inline void _appendChar(String8_ <N>& dst, u32 c) { _appendChar8 (dst, c); }
-	template<size_t N> inline void _appendChar(String16_<N>& dst, u32 c) { _appendChar16(dst, c); }
-	template<size_t N> inline void _appendChar(String32_<N>& dst, u32 c) { _appendChar32(dst, c); }
-	template<size_t N> inline void _appendChar(StringW_ <N>& dst, u32 c) {
+//	template<size_t N> inline void _appendChar(StringA_ <N>& dst, u32 v) { _appendChar8 (dst, v); }
+	template<size_t N> inline void _appendChar(String8_ <N>& dst, u32 v) { _appendChar8 (dst, v); }
+	template<size_t N> inline void _appendChar(String16_<N>& dst, u32 v) { _appendChar16(dst, v); }
+	template<size_t N> inline void _appendChar(String32_<N>& dst, u32 v) { _appendChar32(dst, v); }
+	template<size_t N> inline void _appendChar(StringW_ <N>& dst, u32 v) {
 		using C = WCharUtil::Char;
 
 		if (sizeof(C) == sizeof(char16_t))
-			_appendChar16(dst, c);
+			_appendChar16(dst, v);
 		else
-			_appendChar32(dst, c);
+			_appendChar32(dst, v);
 	}
 
 	template<typename DST, typename SRC>

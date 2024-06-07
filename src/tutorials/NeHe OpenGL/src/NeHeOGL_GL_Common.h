@@ -63,6 +63,10 @@ struct OGLUtil {
 	static GLenum getGlCullMode(RenderState::Cull v);
 	static GLenum getGlDepthTestOp(RenderState::DepthTestOp v);
 
+	static GLenum getGlTextureFilter(TextureFilter v);
+	static GLenum getGlTextureWrap(TextureWrap v);
+	static GLenum getGlInternalFormat(ColorType v);
+
 private:
 	static GLenum _getErrorCode() { return glGetError(); }
 
@@ -184,6 +188,53 @@ GLenum OGLUtil::getGlDepthTestOp(RenderState::DepthTestOp v) {
 		case SRC::Always:		return GL_ALWAYS;
 		case SRC::Never:		return GL_NEVER;
 		default:				throw  SGE_ERROR("unsupported RenderState::DepthTestOp");
+	}
+}
+
+inline
+GLenum OGLUtil::getGlTextureFilter(TextureFilter v) {
+	using SRC = TextureFilter;
+	switch (v) {
+		case SRC::Nearest:	return GL_NEAREST;
+		case SRC::Linear:	return GL_LINEAR;
+		default:			throw  SGE_ERROR("unsupported NeHeOGL_TextureFilter");
+	}
+}
+
+inline
+GLenum OGLUtil::getGlTextureWrap(TextureWrap v) {
+	using SRC = TextureWrap;
+	switch (v) {
+		case SRC::Repeat:	return GL_REPEAT;
+		case SRC::Clamp:	return GL_CLAMP;
+		default:			throw  SGE_ERROR("unsupported NeHeOGL_TextureWrap");
+	}
+}
+
+inline
+GLenum OGLUtil::getGlInternalFormat(ColorType v) {
+	switch (v) {
+//		case ColorType::Lb:		return GL_R8;
+//		case ColorType::Ls:		return GL_R16;
+		case ColorType::Lf:		return GL_R;
+
+//		case ColorType::Rb:		return GL_R8;
+//		case ColorType::Rs:		return GL_R16;
+		case ColorType::Rf:		return GL_R;
+
+//		case ColorType::RGb:	return GL_RG8;
+//		case ColorType::RGs:	return GL_RG16;
+//		case ColorType::RGf:	return GL_RG;
+
+		case ColorType::RGBb:	return GL_RGB8;
+		case ColorType::RGBs:	return GL_RGB16;
+		case ColorType::RGBf:	return GL_RGB;  // GL_RGB32F
+
+		case ColorType::RGBAb:	return GL_RGBA8;
+		case ColorType::RGBAs:	return GL_RGBA16;
+		case ColorType::RGBAf:	return GL_RGBA;	// GL_RGBA32F
+
+		default: throw SGE_ERROR("unsupported ColorType");
 	}
 }
 

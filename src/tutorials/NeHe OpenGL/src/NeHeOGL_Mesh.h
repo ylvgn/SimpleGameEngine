@@ -66,18 +66,18 @@ public:
 	void loadObjFile(StrView filename);
 	void loadObjMem(ByteSpan data, StrView filename);
 
-	RenderPrimitiveType				primitive = RenderPrimitiveType::Triangles;
-
 	size_t vertexCount	() const { return vertices.size(); }
 	size_t indexCount	() const { return _indexType == RenderDataType::UInt16 ? indices.size() : indices32.size(); }
+
+	RenderDataType indexType() const { return _indexType; }
+
+	RenderPrimitiveType				primitive = RenderPrimitiveType::Triangles;
 
 	Vector<VertexDataType>			vertices;
 	Vector<u16>						indices;
 	Vector<u32>						indices32;
 
 	NeHeOGL_RenderState				renderState;
-
-	RenderDataType indexType() const { return _indexType; }
 
 private:
 	void _addToIndiceOfGrid(int size, const Vec2i& step, bool flipXY);

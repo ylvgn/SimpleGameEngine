@@ -21,9 +21,9 @@ protected:
 	void beginTransparentPass();
 	void endTransparentPass();
 
-	void setCameraPos(const Vec3f& pos)		{ _camerMovePos.set(pos); }
-	void setCameraAngle(const Vec2f& angle) { _camerOrbitAngle.set(angle); }
-	void setClearColor(const Color4f& color) { _clearColor.set(color); }
+	void setCameraPos(const Vec3f& pos)			 { _camerMovePos.set(pos); }
+	void setCameraOrbitAngle(const Vec2f& angle) { _camerOrbitAngle.set(angle); }
+	void setClearColor(const Color4f& color)	 { _clearColor.set(color); }
 private:
 	void _beginRender();
 		void _setViewport();

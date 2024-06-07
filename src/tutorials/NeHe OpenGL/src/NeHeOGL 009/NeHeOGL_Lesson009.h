@@ -13,6 +13,7 @@ class NeHeOGL_Lesson009 : public NeHeOGL_Lesson009_NativeUIWindow {
 	using This = NeHeOGL_Lesson009;
 public:
 	static const int kStarCount = 50;
+	static constexpr float kMaxDistFromOrigin = 5.f;
 
 	NeHeOGL_Lesson009()
 		: _isTwinkle(true)
@@ -28,27 +29,23 @@ private:
 	void _example1();
 
 	struct StarInfo {
-		Mesh mesh;
-
 		Color4b color = OGL::kbWhite;
-
-		float dist  = 0;
-		float angle = 0;
+		float	distToOrigin = 0;
+		float	angle = 0;
+		Mesh	mesh;
 
 		void randomColor();
+		void setVertexColor(const Color4b& c);
 	};
 
-	Vector<StarInfo, kStarCount> _starList;
 	Texture2D _starTex;
+	Vector<StarInfo, kStarCount> _starList;
 
 	bool _isTwinkle  : 1;
 	bool _isPressedT : 1;
 
-	float _zoom = -15;
-	float _tilt = 90.f; // Tilt The View
-	float _spin = 0.01f;// Spin Twinkling Stars
-
-	int _loop;
+	float _tilt = 90.f;		// Tilt The View
+	float _spin = 0.01f;	// Spin Twinkling Stars
 };
 
 }

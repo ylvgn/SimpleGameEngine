@@ -1,23 +1,24 @@
 #pragma once
 
-#include "NeHeOGL_GL_Common.h"
 #include "NeHeOGL_Image.h"
+#include "NeHeOGL_RenderDataType.h"
 
 namespace sge {
 
 #define NeHeOGL_TextureFilter_ENUM_LIST(E) \
-	E(Nearest,	= GL_NEAREST) \
-	E(Linear,	= GL_LINEAR	) \
+	E(None,) \
+	E(Nearest,) \
+	E(Linear,) \
 //----
-SGE_ENUM_DECLARE(NeHeOGL_TextureFilter, GLint)
+SGE_ENUM_DECLARE(NeHeOGL_TextureFilter, int)
 SGE_ENUM_ALL_OPERATOR(NeHeOGL_TextureFilter)
 
 #define NeHeOGL_TextureWrap_ENUM_LIST(E) \
-	E(None,					) \
-	E(Repeat,	= GL_REPEAT	) \
-	E(Clamp,	= GL_CLAMP	) \
+	E(None,) \
+	E(Repeat,) \
+	E(Clamp,) \
 //----
-SGE_ENUM_CLASS(NeHeOGL_TextureWrap, GLint)
+SGE_ENUM_CLASS(NeHeOGL_TextureWrap, int)
 
 struct NeHeOGL_SamplerState {
 	using Filter	= NeHeOGL_TextureFilter;
@@ -79,9 +80,7 @@ public:
 	Vec2i		size		() const	{ return _size; }
 
 private:
-	GLenum _colorType2InternalFormat(ColorType v);
-
-	GLuint		_tex = 0;
+	u32			_tex = 0;
 	ColorType	_colorType = ColorType::None;
 	Vec2i		_size{ 0,0 };
 };
