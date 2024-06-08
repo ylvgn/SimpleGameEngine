@@ -356,17 +356,20 @@ void NeHeOGL_Mesh::bindVertexes() {
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_COLOR_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glEnableClientState(GL_NORMAL_ARRAY);
 
 	size_t stride = sizeof(vertices[0]);
 	OGL::vertexPointer(&vertices[0].pos, stride);
 	OGL::colorPointer(&vertices[0].color, stride);
 	OGL::texCoordPointer(&vertices[0].uv, stride);
+	OGL::normalPointer(&vertices[0].normal, stride);
 }
 
 void NeHeOGL_Mesh::unbindVertexes() {
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);
+	glDisableClientState(GL_NORMAL_ARRAY);
 }
 
 void NeHeOGL_Mesh::bindRenderState() {
@@ -393,7 +396,7 @@ void NeHeOGL_Mesh::_beginDraw() {
 }
 
 void NeHeOGL_Mesh::draw() {
-	if (indices.empty())
+	if (indexCount() == 0)
 		return;
 
 	_beginDraw();
@@ -407,7 +410,7 @@ void NeHeOGL_Mesh::_endDraw() {
 }
 
 void NeHeOGL_Mesh::drawInherit() {
-	if (indices.empty())
+	if (indexCount() == 0)
 		return;
 
 	bindVertexes();

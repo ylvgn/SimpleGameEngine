@@ -286,13 +286,13 @@ namespace OGL {
 	inline void normal3fv(const Tuple3f* nl)	{ ::glNormal3fv(nl->data); }
 
 #define SGE_DECLEAR_GLXXXPOINTER(GL_FUNC_NAME, FUNC_NAME, IN_SRC) \
-	inline void FUNC_NAME(const IN_SRC* p, size_t stride) { \
+	inline void FUNC_NAME(const IN_SRC* const p, size_t stride) { \
 		using SRC = IN_SRC; \
 		using DataType = SRC::ElementType; \
 		static constexpr auto type = OGLUtil::getGlFormat(RenderDataTypeUtil::get<DataType>()); \
 		GL_FUNC_NAME(SRC::kElementCount, type, static_cast<GLsizei>(stride), p); \
 	} \
-//-----
+//----- with element count
 	SGE_DECLEAR_GLXXXPOINTER(glVertexPointer,	vertexPointer,		Tuple3f)
 	SGE_DECLEAR_GLXXXPOINTER(glVertexPointer,	vertexPointer,		Vec3f)
 	SGE_DECLEAR_GLXXXPOINTER(glColorPointer,	colorPointer,		Color4b)
@@ -300,6 +300,17 @@ namespace OGL {
 	SGE_DECLEAR_GLXXXPOINTER(glTexCoordPointer, texCoordPointer,	Vec2f)
 #undef SGE_DECLEAR_GLXXXPOINTER
 
+#define SGE_DECLEAR_GLXXXPOINTER(GL_FUNC_NAME, FUNC_NAME, IN_SRC) \
+	inline void FUNC_NAME(const IN_SRC* const p, size_t stride) { \
+		using SRC = IN_SRC; \
+		using DataType = SRC::ElementType; \
+		static constexpr auto type = OGLUtil::getGlFormat(RenderDataTypeUtil::get<DataType>()); \
+		GL_FUNC_NAME(type, static_cast<GLsizei>(stride), p); \
+	} \
+//----- without element count
+	SGE_DECLEAR_GLXXXPOINTER(glNormalPointer, normalPointer, Tuple3f)
+	SGE_DECLEAR_GLXXXPOINTER(glNormalPointer, normalPointer, Vec3f)
+#undef SGE_DECLEAR_GLXXXPOINTER
 
 	class Scoped_glBegin : public NonCopyable {
 	public:
@@ -323,23 +334,59 @@ namespace OGL {
 
 	class Scoped_glEnable : public NonCopyable {
 	public:
-		Scoped_glEnable(GLenum cap) : _cap(cap) { glEnable(cap); }
-		~Scoped_glEnable() { glDisable(_cap); }
+		Scoped_glEnable(GLenum e) : _e(e) { glEnable(e); }
+		~Scoped_glEnable() { glDisable(_e); }
 	private:
-		GLenum _cap;
+		GLenum _e;
 	};
 
-	class Scoped_glColor : public NonCopyable {
+	class Scoped_glEnableClientState : public NonCopyable {
 	public:
-		Scoped_glColor(float r, float g, float b, float a) {
+		Scoped_glEnableClientState(GLenum e) : _e(e) { glEnableClientState(e); }
+		~Scoped_glEnableClientState() { glDisableClientState(_e); }
+	private:
+		GLenum _e;
+	};
+
+	class Scoped_glColor4f : public NonCopyable {
+	public:
+		Scoped_glColor4f(float r, float g, float b, float a) {
 			glColor4f(r, g, b, a);
 		}
-		~Scoped_glColor() { glColor4f(1,1,1,1); }
+		Scoped_glColor4f(const Color4f& c) {
+			OGL::color4f(c);
+		}
+		~Scoped_glColor4f() { glColor4f(1,1,1,1); }
+	};
+
+	class Scoped_glColor4b : public NonCopyable {
+	public:
+		Scoped_glColor4b(const Color4b& c) {
+			OGL::color4b(c);
+		}
+		~Scoped_glColor4b() { OGL::color4b(OGL::kbWhite); }
 	};
 
 	inline void drawGridAndCoordinate(Mesh& grid, Mesh& coordinate) {
 		grid.draw();
 		coordinate.drawVertexArrays();
+	}
+
+	inline void createDisplayNormals(Vector<Vec3f>& o, const Mesh& mesh) {
+		o.clear();
+
+		float d = 0.2f;
+
+		auto& vs = mesh.vertices;
+		o.resize(vs.size() * 2);
+		auto* p = o.begin();
+		auto* e = o.end();
+		for (auto& v : vs) {
+			p->set(v.pos); p++;
+			p->set(v.pos + v.normal * d); p++;
+		}
+
+		SGE_ASSERT(p == e);
 	}
 
 } // namespace OGL
