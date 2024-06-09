@@ -65,11 +65,13 @@ private:
 	void _examplePointLight(float uptime);
 	void _exampleSpotLight(float uptime);
 
+	void _example4(LightType lightType);
+	void _example5(LightType lightType);
+
 	void _drawSpheres(SphereMode mode);
 	void _drawSpheres(Mesh& mesh);
 	void _drawSphereNormals(SphereMode mode);
 	void _drawSphereNormals(const Mesh& mesh);
-
 	void _drawLightPointGizmos();
 
 	bool _isFloorOnMipMap		: 1;
@@ -102,17 +104,17 @@ private:
 	Vec4f	_globalAmbient	{ 0.2f, 0.2f, 0.2f, 1.f };
 
 	// Light is created the same way color is created
-	Vec4f	_lightAmbient	{ 0,0,0,1 };
-	Vec4f	_lightDiffuse	{ 1,1,1,1 };
-	Vec4f	_lightSpecular	{ 1,1,1,1 };
+	Color4f	_lightAmbient	{ 0,0,0,1 };
+	Color4f	_lightDiffuse	{ 1,1,1,1 };
+	Color4f	_lightSpecular	{ 1,1,1,1 };
 	Vec4f	_lightPos		{ 0,0,0,0 };
 
-	Vec3f	_spotDir { 0,0,1 };
-	float	_spotExponent = 0;
-	float	_spotCutoffAngle = 60; // 0~90, 180
+	Vec3f		_spotDir { 0,0,-1 };
+	float		_spotExponent = 0;		// 0~128
+	float		_spotCutoffAngle = 60;	// 0~90, 180
 
-	Mesh	_gridMesh;
-	Mesh	_coordinateMesh;
+	Mesh		_gridMesh;
+	Mesh		_coordinateMesh;
 
 	Mesh		_floorMesh;
 	Texture2D	_floorMainTex;

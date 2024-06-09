@@ -170,9 +170,21 @@ void NeHeOGL_Lesson007::onInitedGL() {
 void NeHeOGL_Lesson007::onDraw() {
 //	_example1(); // nehe lighting
 //	_example2(); // mipmap
+
+	// light type
 //	_example3(LightType::Directional);
 //	_example3(LightType::Point);
-	_example3(LightType::Spot);
+//	_example3(LightType::Spot);
+
+	// light attenuation
+//	_example4(LightType::Directional);
+//	_example4(LightType::Point);
+//	_example4(LightType::Spot);
+
+	// normalize scale
+//	_example5(LightType::Directional);
+//	_example5(LightType::Point);
+	_example5(LightType::Spot);
 }
 
 void NeHeOGL_Lesson007::_example1() {
@@ -427,7 +439,7 @@ void NeHeOGL_Lesson007::_examplePointLight(float uptime) {
 }
 
 void NeHeOGL_Lesson007::_exampleSpotLight(float uptime) {
-#if 1
+#if 0
 	OGL::Scoped_glPushMatrix scoped;
 	glRotatef(uptime * 180, 0, 1, 0);
 #endif
@@ -498,22 +510,15 @@ void NeHeOGL_Lesson007::_drawSpheres(Mesh& mesh) {
 	float d = 3.f;
 
 	{
-		OGL::Scoped_glPushMatrix scoped;
+		OGL::Scoped_glPushMatrix offset;
 		glTranslatef(-nx * 0.5f * d, 0, -nz * 0.5f * d);
 
 		for (int z = 0; z < nz; ++z) {
 			for (int x = 0; x < nx; ++x) {
-				OGL::Scoped_glPushMatrix scoped2;
+				OGL::Scoped_glPushMatrix padding;
 				glTranslatef(x * d, 0, z * d);
 				mesh.renderState.wireframe = _isWireFrame;
 				mesh.draw();
-			}
-		}
-
-		for (int z = 0; z < nz; ++z) {
-			for (int x = 0; x < nx; ++x) {
-				OGL::Scoped_glPushMatrix scoped2;
-				glTranslatef(x * d, 0, z * d);
 			}
 		}
 	}
@@ -525,9 +530,9 @@ void NeHeOGL_Lesson007::_drawSphereNormals(SphereMode mode) {
 
 	using SRC = SphereMode;
 	switch (mode) {
-		case SRC::Flat:		_drawSphereNormals(_sphereFlatMesh); break;
-		case SRC::Smooth:	_drawSphereNormals(_sphereSmoothMesh); break;
-		case SRC::High:		_drawSphereNormals(_sphereHighMesh); break;
+		case SRC::Flat:		_drawSphereNormals(_sphereFlatMesh);	break;
+		case SRC::Smooth:	_drawSphereNormals(_sphereSmoothMesh);	break;
+		case SRC::High:		_drawSphereNormals(_sphereHighMesh);	break;
 		default:			throw SGE_ERROR("unsupported SphereMode");
 	}
 }
@@ -550,8 +555,190 @@ void NeHeOGL_Lesson007::_drawSphereNormals(const Mesh& mesh) {
 void NeHeOGL_Lesson007::_drawLightPointGizmos() {
 	glPointSize(12);
 	OGL::Scoped_glBegin begin(NeHeOGL_BeginMode::Points);
-	OGL::Scoped_glColor4f color(OGL::kYellow);
+	OGL::Scoped_glColor4f color(_lightDiffuse);
 	glVertex3fv(_lightPos.data);
+}
+
+void NeHeOGL_Lesson007::_example4(LightType lightType) {
+	auto uptime = static_cast<float>(_uptime.get());
+
+	float width  = _clientRect.w;
+	float height = _clientRect.h;
+
+	if (height == 0) {
+		height = 1;
+	}
+
+	float aspect = width / height;
+	glViewport(0, 0, static_cast<int>(width), static_cast<int>(height));
+
+	glClearColor(0.f, 0.2f, 0.2f, 0.f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glClearDepth(1.0f);
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
+
+	glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		gluPerspective(60.f, aspect, 0.01f, 1000.0f);
+
+	glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+
+	// setup camera
+	glTranslatef(0, 0, -_camerMovePosZ);
+	glRotatef(_camerOrbitAngle.x, 1,0,0);
+	glRotatef(_camerOrbitAngle.y, 0,1,0);
+
+	OGL::drawGridAndCoordinate(_gridMesh, _coordinateMesh);
+
+	const float kRadius = 3.f;
+	float w = lightType == LightType::Directional ? 0.f : 1.f;
+
+#if 0
+	_lightPos.set(0, kRadius, 0, w);
+	_spotDir.set(0, 0, -1);
+	_lightDiffuse.set(1, 1, 1, 1);
+#else
+	switch (lightType) {
+		case LightType::Directional: {
+			_spotDir.set(0, 0, -1);
+			_lightDiffuse.set(1, 1, 1, 1);
+			_lightPos.set(Math::cos(uptime) * kRadius, Math::sin(uptime) * kRadius, 0, 0);
+		} break;
+			
+		case LightType::Point: {
+			_spotDir.set(0, 0, -1);
+			_lightDiffuse.set(10, 10, 10, 1);
+			_lightPos.set(0, Math::sin(uptime) * kRadius, 0, w);
+		} break;
+		case LightType::Spot: {
+			_lightPos.set(0, kRadius, 0, w);
+			_spotDir.set(Math::cos(uptime) * kRadius, 0, Math::sin(uptime) * kRadius);
+			_lightDiffuse.set(100, 100, 100, 1);
+		} break;
+	}
+#endif
+
+	_lightAmbient.set(0, 0, 0, 1);
+	_lightSpecular.set(1, 1, 1, 1);
+
+	_spotExponent		= 5.f;
+	_spotCutoffAngle	= lightType == LightType::Spot ? 60.f : 180.f;
+
+	_globalAmbient.set(0.2f, 0.2f, 0.2f, 1);
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, _globalAmbient.data);
+
+	glLightfv(GL_LIGHT0, GL_POSITION,		_lightPos.data);
+	glLightfv(GL_LIGHT0, GL_AMBIENT,		_lightAmbient.data);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE,		_lightDiffuse.data);
+	glLightfv(GL_LIGHT0, GL_SPECULAR,		_lightSpecular.data);
+
+	glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, _spotDir.data);
+	glLightfv(GL_LIGHT0, GL_SPOT_EXPONENT,	&_spotExponent);
+	glLightfv(GL_LIGHT0, GL_SPOT_CUTOFF,	&_spotCutoffAngle);
+
+	/*     1
+	    ----------
+		K + L + Q
+	*/
+	glLightf(GL_LIGHT0, GL_CONSTANT_ATTENUATION,	0); // K, default 1
+	glLightf(GL_LIGHT0, GL_LINEAR_ATTENUATION,		0); // L, default 0
+	glLightf(GL_LIGHT0, GL_QUADRATIC_ATTENUATION,	1); // Q, default 0
+
+	_drawLightPointGizmos();
+
+	{
+		OGL::Scoped_glPushMatrix scoped;
+		OGL::translatef(Vec3f::s_up()); // offset
+		_drawSpheres(_sphereMode);
+		_drawSphereNormals(_sphereMode);
+	}
+
+	swapBuffers();
+	drawNeeded();
+}
+
+void NeHeOGL_Lesson007::_example5(LightType lightType) {
+	float width  = _clientRect.w;
+	float height = _clientRect.h;
+
+	if (height == 0) {
+		height = 1;
+	}
+
+	float aspect = width / height;
+	glViewport(0, 0, static_cast<int>(width), static_cast<int>(height));
+
+	glClearColor(0.f, 0.2f, 0.2f, 0.f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glClearDepth(1.0f);
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
+
+	glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		gluPerspective(60.f, aspect, 0.01f, 1000.0f);
+
+	glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+
+	// setup camera
+	glTranslatef(0, 0, -_camerMovePosZ);
+	glRotatef(_camerOrbitAngle.x, 1,0,0);
+	glRotatef(_camerOrbitAngle.y, 0,1,0);
+
+	OGL::drawGridAndCoordinate(_gridMesh, _coordinateMesh);
+
+	const float kRadius = 1.f;
+	float w = lightType == LightType::Directional ? 0.f : 1.f;
+
+	_lightPos.set(0, kRadius, 0, w);
+	_lightDiffuse.set(1, 1, 1, 1);
+	_lightAmbient.set(0, 0, 0, 1);
+	_lightSpecular.set(1, 1, 1, 1);
+	_spotDir.set(0, 0, -1);
+
+	_spotExponent		= 3.f;
+	_spotCutoffAngle	= lightType == LightType::Spot ? 45.f : 180.f;
+
+	_globalAmbient.set(0.2f, 0.2f, 0.2f, 1);
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, _globalAmbient.data);
+
+	glLightfv(GL_LIGHT0, GL_POSITION,		_lightPos.data);
+	glLightfv(GL_LIGHT0, GL_AMBIENT,		_lightAmbient.data);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE,		_lightDiffuse.data);
+	glLightfv(GL_LIGHT0, GL_SPECULAR,		_lightSpecular.data);
+
+	glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, _spotDir.data);
+	glLightfv(GL_LIGHT0, GL_SPOT_EXPONENT,	&_spotExponent);
+	glLightfv(GL_LIGHT0, GL_SPOT_CUTOFF,	&_spotCutoffAngle);
+
+	glLightf(GL_LIGHT0, GL_CONSTANT_ATTENUATION,	1);
+	glLightf(GL_LIGHT0, GL_LINEAR_ATTENUATION,		0);
+	glLightf(GL_LIGHT0, GL_QUADRATIC_ATTENUATION,	0);
+
+	_drawLightPointGizmos();
+
+	{
+#if 1
+		OGL::Scoped_glEnable normalize(GL_NORMALIZE);
+		OGL::Scoped_glPushMatrix scoped;
+		float scaled = 0.2f;
+		OGL::scalef({ scaled,scaled,scaled });
+#else
+		OGL::Scoped_glPushMatrix scoped;
+#endif
+
+		OGL::translatef(Vec3f::s_up());
+		_drawSpheres(_sphereMode);
+		_drawSphereNormals(_sphereMode);
+	}
+
+	swapBuffers();
+	drawNeeded();
 }
 
 }
