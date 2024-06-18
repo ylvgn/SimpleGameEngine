@@ -5,7 +5,9 @@ namespace sge {
 void NeHeOGL_Lesson009_NativeUIWindow::onInitedGL() {
 	_gridMesh.createGrid(10);
 	_gridMesh.renderState.wireframe = true;
+
 	_coordinateMesh.createCoordinate();
+
 	OGLUtil::throwIfError();
 }
 
@@ -16,21 +18,21 @@ void NeHeOGL_Lesson009_NativeUIWindow::onUIMouseEvent(UIMouseEvent& ev) {
 
 	if (ev.isDragging()) {
 		switch (ev.pressedButtons) {
-		case Button::Left: {
-			if (BitUtil::hasAny(ev.modifier, Modifier::Alt)) {
+			case Button::Left: {
+				if (BitUtil::hasAny(ev.modifier, Modifier::Alt)) {
+					float d = 0.15f;
+					_camerOrbitAngle += ev.deltaPos.yx() * d;
+				}
+			} break;
+			case Button::Right: {
 				float d = 0.15f;
 				_camerOrbitAngle += ev.deltaPos.yx() * d;
-			}
-		} break;
-		case Button::Right: {
-			float d = 0.15f;
-			_camerOrbitAngle += ev.deltaPos.yx() * d;
-		} break;
-		case Button::Middle: {
-			float d = 0.01f;
-			_camerMovePos.x += ev.deltaPos.x * d;
-			_camerMovePos.y += ev.deltaPos.y * -d;
-		} break;
+			} break;
+			case Button::Middle: {
+				float d = 0.01f;
+				_camerMovePos.x += ev.deltaPos.x * d;
+				_camerMovePos.y += ev.deltaPos.y * -d;
+			} break;
 		}
 	}
 
@@ -41,12 +43,8 @@ void NeHeOGL_Lesson009_NativeUIWindow::onUIMouseEvent(UIMouseEvent& ev) {
 }
 
 void NeHeOGL_Lesson009_NativeUIWindow::onUIKeyboardEvent(UIKeyboardEvent& ev) {
-	if (ev.isDown(KeyCode::PageUp)) {
-		_camerMovePos.z += 0.02f;
-	}
-	if (ev.isDown(KeyCode::PageDown)) {
-		_camerMovePos.z -= 0.02f;
-	}
+	if (ev.isDown(KeyCode::PageUp)) _camerMovePos.z += 0.02f;
+	if (ev.isDown(KeyCode::PageDown)) _camerMovePos.z -= 0.02f;
 
 	if (ev.isDown(KeyCode::F)) {
 		SGE_DUMP_VAR(_camerOrbitAngle, _camerMovePos);
@@ -117,7 +115,8 @@ void NeHeOGL_Lesson009_NativeUIWindow::_beginRender() {
 	_setViewport();
 	_setDefaultRenderState();
 	_initCamera();
-// --------
+
+//----
 	OGL::drawGridAndCoordinate(_gridMesh, _coordinateMesh);
 }
 
@@ -131,4 +130,5 @@ void NeHeOGL_Lesson009_NativeUIWindow::onDraw() {
 		onRender();
 	_endRender();
 }
+
 }

@@ -2,6 +2,8 @@
 
 #include "NeHeOGL_Common.h"
 
+#include <GL/glew.h> // include glew before gl.h
+
 #include <GL/gl.h>
 #pragma comment(lib, "Opengl32.lib")
 

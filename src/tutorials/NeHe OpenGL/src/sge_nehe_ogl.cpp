@@ -1,12 +1,12 @@
-#include "NeheOGL 001/NeHeOGL_Lesson001.h"
-#include "NeheOGL 002/NeHeOGL_Lesson002.h"
-#include "NeheOGL 003/NeHeOGL_Lesson003.h"
-#include "NeheOGL 004/NeHeOGL_Lesson004.h"
-#include "NeheOGL 005/NeHeOGL_Lesson005.h"
-#include "NeheOGL 006/NeHeOGL_Lesson006.h"
-#include "NeheOGL 007/NeHeOGL_Lesson007.h"
-#include "NeheOGL 008/NeHeOGL_Lesson008.h"
-#include "NeheOGL 009/NeHeOGL_Lesson009.h"
+#include "NeHeOGL 001/NeHeOGL_Lesson001.h"
+#include "NeHeOGL 002/NeHeOGL_Lesson002.h"
+#include "NeHeOGL 003/NeHeOGL_Lesson003.h"
+#include "NeHeOGL 004/NeHeOGL_Lesson004.h"
+#include "NeHeOGL 005/NeHeOGL_Lesson005.h"
+#include "NeHeOGL 006/NeHeOGL_Lesson006.h"
+#include "NeHeOGL 007/NeHeOGL_Lesson007.h"
+#include "NeHeOGL 008/NeHeOGL_Lesson008.h"
+#include "NeHeOGL 009/NeHeOGL_Lesson009.h"
 
 namespace sge {
 

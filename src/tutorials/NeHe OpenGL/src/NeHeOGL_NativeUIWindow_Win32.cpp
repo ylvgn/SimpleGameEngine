@@ -15,16 +15,17 @@ void NeHeOGL_NativeUIWindow_Win32::initGL() {
 	if (!_dc)
 		throw SGE_ERROR("initGL GetDC");
 
-	PIXELFORMATDESCRIPTOR pfd;		// pfd Tells Windows How We Want Things To Be
+	::PIXELFORMATDESCRIPTOR pfd;		// pfd Tells Windows How We Want Things To Be
 	g_bzero(pfd);
-	pfd.nSize = sizeof(pfd);		// Size Of This Pixel Format Descriptor
-	pfd.nVersion = 1;				// Version Number
-	pfd.dwFlags = PFD_DOUBLEBUFFER	// Must Support Double Buffering
-		| PFD_DRAW_TO_WINDOW		// Format Must Support Window
-		| PFD_SUPPORT_OPENGL;		// Format Must Support OpenGL
+	pfd.nSize = sizeof(pfd);			// Size Of This Pixel Format Descriptor
+	pfd.nVersion = 1;					// Version Number
 
-	pfd.iPixelType = PFD_TYPE_RGBA; // Request An RGBA Format
-	pfd.cColorBits = 32;			// 32 bits Color, Number Of Bits 8/16/24/32
+	pfd.dwFlags = PFD_DOUBLEBUFFER		// Must Support Double Buffering
+				| PFD_DRAW_TO_WINDOW	// Format Must Support Window
+				| PFD_SUPPORT_OPENGL;	// Format Must Support OpenGL
+
+	pfd.iPixelType = PFD_TYPE_RGBA;		// Request An RGBA Format
+	pfd.cColorBits = 32;				// 32 bits Color, Number Of Bits 8/16/24/32
 	// Color Bits Ignored
 		// BYTE  cRedBits;
 		// BYTE  cRedShift;
@@ -41,11 +42,11 @@ void NeHeOGL_NativeUIWindow_Win32::initGL() {
 		// BYTE  cAccumGreenBits;
 		// BYTE  cAccumBlueBits;
 		// BYTE  cAccumAlphaBits;
-	pfd.cDepthBits = 32;			// 32 bits Z-Buffer(Depth Buffer)
-	pfd.cStencilBits = 8;			// 8 bits Stencil Buffer
+	pfd.cDepthBits = 32;				// 32 bits Z-Buffer(Depth Buffer)
+	pfd.cStencilBits = 8;				// 8 bits Stencil Buffer
 	// No Auxiliary Buffer
 		// BYTE  cAuxBuffers;
-	pfd.iLayerType = PFD_MAIN_PLANE; // Main Drawing Layer
+	pfd.iLayerType = PFD_MAIN_PLANE;	// Main Drawing Layer
 	// bReserved 0, Layer Masks Ignored
 		// BYTE  bReserved;
 		// DWORD dwLayerMask;

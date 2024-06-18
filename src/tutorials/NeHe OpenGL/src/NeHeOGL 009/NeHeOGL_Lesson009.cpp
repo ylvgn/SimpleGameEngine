@@ -60,19 +60,20 @@ void NeHeOGL_Lesson009::_example1() {
 	glShadeModel(GL_SMOOTH);							// Enable Smooth Shading
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);  // Really Nice Perspective Calculations
 
-#define SGE_PLANE_ROT 1
-		// 0: XOY
-		// 1: ZOY
-		// 2: XOZ
+#define SGE_PLANE_ROT_XOY 0
+#define SGE_PLANE_ROT_ZOY 1
+#define SGE_PLANE_ROT_XOZ 2
+#define SGE_PLANE_ROT SGE_PLANE_ROT_XOZ
+
 	beginTransparentPass();
 	{
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE); // additive blend
 
 		_starTex.bind();
 
-	#if (2 == SGE_PLANE_ROT)
+	#if (SGE_PLANE_ROT_XOZ == SGE_PLANE_ROT)
 		glRotatef(90, 1, 0, 0);
-	#elif (1 == SGE_PLANE_ROT)
+	#elif (SGE_PLANE_ROT_ZOY == SGE_PLANE_ROT)
 		glRotatef(90,0, 1, 0);
 	#endif
 
@@ -81,7 +82,7 @@ void NeHeOGL_Lesson009::_example1() {
 			auto& star = _starList[i];
 			{
 				OGL::Scoped_glPushMatrix scoped;			// Reset The View Before We Draw Each Star
-		#if (0 == SGE_PLANE_ROT)
+		#if (SGE_PLANE_ROT_XOY == SGE_PLANE_ROT)
 			#if 0
 				OGL::rotatef(_tilt, Vec3f::s_right());		// Tilt The View
 				OGL::rotatef(star.angle, Vec3f::s_up());	// Rotate To The Current Stars Angle
@@ -95,11 +96,11 @@ void NeHeOGL_Lesson009::_example1() {
 				OGL::rotatef(-star.angle, Vec3f::s_right());
 				OGL::rotatef(_tilt, Vec3f::s_up());
 			#endif
-		#elif (1 == SGE_PLANE_ROT)
+		#elif (SGE_PLANE_ROT_ZOY == SGE_PLANE_ROT)
 				OGL::rotatef(star.angle, Vec3f::s_forward());
 				glTranslatef(0, star.distToOrigin, 0);
 				OGL::rotatef(-star.angle, Vec3f::s_forward());
-		#elif (2 == SGE_PLANE_ROT)
+		#elif (SGE_PLANE_ROT_XOZ == SGE_PLANE_ROT)
 				OGL::rotatef(_tilt, Vec3f::s_right());
 				OGL::rotatef(star.angle, Vec3f::s_up());
 				glTranslatef(star.distToOrigin, 0, star.distToOrigin);
@@ -133,6 +134,11 @@ void NeHeOGL_Lesson009::_example1() {
 		_starTex.unbind();
 	}
 	endTransparentPass();
+
+#undef SGE_PLANE_ROT_XOY
+#undef SGE_PLANE_ROT_ZOY
+#undef SGE_PLANE_ROT_XOZ
+#undef SGE_PLANE_ROT
 }
 
 }

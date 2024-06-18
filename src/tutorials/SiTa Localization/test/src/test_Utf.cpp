@@ -3,6 +3,10 @@
 
 #include <sge_sita_locale.h>
 
+#include <clocale>
+#include <Windows.h>
+#include <codecvt>
+
 namespace sge {
 
 class Test_Utf : public UnitTestBase {
@@ -18,7 +22,7 @@ public:
 		}
 	}
 
-	void test() {
+	void test1() {
 		String filename(__FILE__);
 		filename.append("_sample.txt");
 
@@ -41,11 +45,38 @@ public:
 
 		SGE_ASSERT(a == src);
 	}
+
+	void test2() {
+		const char* sz8			= u8"A你";
+		const wchar_t* szW		= L"A你";
+		const char32_t* sz32	= U"A你";
+
+		SGE_UNUSED(sz32);
+
+		{
+			std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> convertor;
+			auto s = convertor.to_bytes(szW);
+			std::cout << s << "\n";
+			SGE_ASSERT(0 == s.compare(sz8));
+		}
+
+		//mbstowcs - multi-byte string to wide char string
+		{
+			// Maps a UTF-16 (wide character) string to a new character string.
+			// The new character string is not necessarily from a multibyte character set.
+			char buf[256];
+			int n = WideCharToMultiByte(CP_UTF8, 0, szW, 2, buf, 256, nullptr, nullptr);
+			buf[n] = 0;
+			std::cout << buf << "\n";
+		}
+	}
 };
 
 } // namespace 
 
 void test_Utf() {
 	using namespace sge;
-	SGE_TEST_CASE(Test_Utf, test());
+	SGE_TEST_CASE(Test_Utf, test1());
+	SGE_TEST_CASE(Test_Utf, test2());
+
 }
