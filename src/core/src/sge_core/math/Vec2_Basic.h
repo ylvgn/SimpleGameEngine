@@ -42,6 +42,8 @@ struct Vec2_Basic : public DATA {
 	SGE_INLINE void setAll(const T& v) { set(v,v); }
 	SGE_INLINE bool isAll (const T& v) { return equals(Vec2(v,v)); }
 
+	SGE_INLINE Vec2 operator-() const { return Vec2(-x, -y); }
+
 	SGE_INLINE Vec2 operator+(const Vec2& r) const { return Vec2(x + r.x, y + r.y); }
 	SGE_INLINE Vec2 operator-(const Vec2& r) const { return Vec2(x - r.x, y - r.y); }
 	SGE_INLINE Vec2 operator*(const Vec2& r) const { return Vec2(x * r.x, y * r.y); }

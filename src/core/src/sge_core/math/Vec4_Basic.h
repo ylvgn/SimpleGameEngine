@@ -42,6 +42,8 @@ public:
 	SGE_INLINE void setAll(const T& v) { set(v,v,v,v); }
 	SGE_INLINE bool isAll (const T& v) { return operator==(Vec4(v,v,v,v)); }
 
+	SGE_INLINE Vec4 operator-() const { return Vec4(-x, -y, -z, -w); }
+
 	SGE_INLINE Vec4 operator+(const Vec4& r) const { return Vec4(x + r.x, y + r.y, z + r.z, w + r.w); }
 	SGE_INLINE Vec4 operator-(const Vec4& r) const { return Vec4(x - r.x, y - r.y, z - r.z, w - r.w); }
 	SGE_INLINE Vec4 operator*(const Vec4& r) const { return Vec4(x * r.x, y * r.y, z * r.z, w * r.w); }

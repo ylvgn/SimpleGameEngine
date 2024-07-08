@@ -49,7 +49,8 @@ public:
 	SGE_INLINE void setAll(const T& v) { set(v,v,v); }
 	SGE_INLINE bool isAll (const T& v) { return equals(Vec3(v,v,v)); }
 
-//----
+	SGE_INLINE Vec3 operator-() const { return Vec3(-x, -y, -z); }
+
 	SGE_INLINE Vec3 operator+(const Vec3& r) const { return Vec3(x + r.x, y + r.y, z + r.z); }
 	SGE_INLINE Vec3 operator-(const Vec3& r) const { return Vec3(x - r.x, y - r.y, z - r.z); }
 	SGE_INLINE Vec3 operator*(const Vec3& r) const { return Vec3(x * r.x, y * r.y, z * r.z); }

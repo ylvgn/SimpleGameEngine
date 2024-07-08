@@ -374,6 +374,39 @@ namespace OGL {
 		coordinate.drawVertexArrays();
 	}
 
+	inline void drawGrid() {
+		glLineWidth(1);
+		glColor4f(0.5f, 0.5f, 0.5f, 1);
+		glBegin(GL_LINES);
+		for (float x = -10; x <= 10; x++) {
+			glVertex3f(x, 0, -10);
+			glVertex3f(x, 0, 10);
+		}
+
+		for (float z = -10; z <= 10; z++) {
+			glVertex3f(-10, 0, z);
+			glVertex3f(10, 0, z);
+		}
+		glEnd();
+		glColor4f(1, 1, 1, 1);
+	}
+
+	inline void drawOriginAxis() {
+		glLineWidth(2);
+		glBegin(GL_LINES);
+			glColor4f(1, 0, 0, 1); glVertex3f(0, 0, 0); glVertex3f(1, 0, 0);
+			glColor4f(0, 1, 0, 1); glVertex3f(0, 0, 0); glVertex3f(0, 1, 0);
+			glColor4f(0, 0, 1, 1); glVertex3f(0, 0, 0); glVertex3f(0, 0, 1);
+		glEnd();
+		glColor4f(1, 1, 1, 1);
+		glLineWidth(1);
+	}
+
+	inline void drawGridAndOriginAxis() {
+		drawGrid();
+		drawOriginAxis();
+	}
+
 	inline void createDisplayNormals(Vector<Vec3f>& o, const Mesh& mesh) {
 		o.clear();
 
