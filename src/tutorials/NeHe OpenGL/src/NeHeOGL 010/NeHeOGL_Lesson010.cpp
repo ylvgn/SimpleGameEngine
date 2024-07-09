@@ -8,11 +8,13 @@ void NeHeOGL_Lesson010::onInitedGL() {
 	WorldLoader::s_readFile(_sector, "World.txt");
 
 	{
-		NeHeOGL_Texture2D::CreateDesc desc;
+		Texture2D::CreateDesc desc;
 		desc.imageToUpload.loadFile("Mud.bmp");
 		desc.samplerState.filter = TextureFilter::Linear;
 		_tex.create(desc);
 	}
+
+	OGLUtil::throwIfError();
 }
 
 void NeHeOGL_Lesson010::onUIMouseEvent(UIMouseEvent& ev) {
@@ -32,8 +34,6 @@ void NeHeOGL_Lesson010::onUIKeyboardEvent(UIKeyboardEvent& ev) {
 	if (ev.isDown(KeyCode::LeftArrow)) {
 		_camerOrbitAngle.y -= 1.5f;
 	}
-
-	static constexpr float kOffsetGround = 0.25f;
 
 	if (ev.isDown(KeyCode::UpArrow)) {
 		float s, c;
@@ -99,7 +99,6 @@ void NeHeOGL_Lesson010::onDraw() {
 
 	OGL::drawGridAndOriginAxis();
 
-// test case
 	_example1();
 
 // swap buffer
@@ -120,7 +119,6 @@ void NeHeOGL_Lesson010::_example1() {
 	}
 	_tex.unbind();
 }
-
 
 void NeHeOGL_Lesson010::WorldLoader::s_readFile(SECTOR& outInfo, StrView filename) {
 	MemMapFile mm;

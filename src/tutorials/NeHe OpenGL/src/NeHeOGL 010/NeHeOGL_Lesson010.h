@@ -70,16 +70,17 @@ protected:
 	virtual void onDraw() override;
 private:
 	const float kPIOver180 = Math::PI<float>() / 180.f;
+	const float kOffsetGround = 0.25f;
 
 	void _example1();
 
 	SECTOR _sector;
 
-	NeHeOGL_Texture2D _tex;
+	Texture2D _tex;
 
 	float _walkBiasAngle = 0.f;
 
-	Vec3f _camerMovePos		{ 0, 0.25f, 0.5f };
+	Vec3f _camerMovePos		{ 0, kOffsetGround, 0.5f };
 	Vec2f _camerOrbitAngle	{ 10,0 };
 };
 

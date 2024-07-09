@@ -5,13 +5,6 @@
 
 namespace sge {
 
-enum class NeHeOGL_RenderPrimitiveType {
-	None,
-	Points,
-	Lines,
-	Triangles,
-};
-
 struct NeHeOGL_Mesh__RenderState {
 	using RenderState	= NeHeOGL_RenderState;
 	using Cull			= RenderState::Cull;

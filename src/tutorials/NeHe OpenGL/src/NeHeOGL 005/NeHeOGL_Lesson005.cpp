@@ -820,7 +820,7 @@ void NeHeOGL_Lesson005::_drawMyCube1() {
 		glArrayElement(0); glArrayElement(3); glArrayElement(2);
 		glArrayElement(3); glArrayElement(6); glArrayElement(2); // front
 		glArrayElement(3); glArrayElement(7); glArrayElement(6);
-		glArrayElement(2); glArrayElement(5); glArrayElement(1); // rigt
+		glArrayElement(2); glArrayElement(5); glArrayElement(1); // right
 		glArrayElement(2); glArrayElement(6); glArrayElement(5);
 		glArrayElement(7); glArrayElement(5); glArrayElement(6); // bottom
 		glArrayElement(7); glArrayElement(4); glArrayElement(5);

@@ -17,6 +17,7 @@
 #include "NeHeOGL_RenderState.h"
 #include "NeHeOGL_Vertex.h"
 #include "NeHeOGL_Texture2D.h"
+#include "NeHeOGL_EditMesh.h"
 #include "NeHeOGL_Mesh.h"
 #include "NeHeOGL_WavefrontObjLoader.h"
 
@@ -36,6 +37,7 @@ namespace sge {
 //----
 SGE_ENUM_CLASS(NeHeOGL_BeginMode, GLenum)
 
+using EditMesh					= NeHeOGL_EditMesh;
 using Mesh						= NeHeOGL_Mesh;
 using RenderDataType			= NeHeOGL_RenderDataType;
 using RenderDataTypeUtil		= NeHeOGL_RenderDataTypeUtil;

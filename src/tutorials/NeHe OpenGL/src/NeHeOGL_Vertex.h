@@ -4,6 +4,19 @@
 
 namespace sge {
 
+enum class NeHeOGL_RenderPrimitiveType {
+	None,
+	Points,
+	Lines,
+	Triangles,
+};
+
+class NeHeOGL_Vertex_PosUv {
+public:
+	Vec3f pos;
+	Vec2f uv;
+};
+
 class NeHeOGL_Vertex_PosColor {
 public:
 	Vec3f	pos;
