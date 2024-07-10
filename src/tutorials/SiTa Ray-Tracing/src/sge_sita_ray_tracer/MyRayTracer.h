@@ -10,6 +10,7 @@ class MyRayTracer {
 public:
 	using T = float;
 	using ElementType = T;
+	using MyVec2 = MyVec2<T>;
 	using MyMat4 = MyMat4<T>;
 	using MyRay3 = MyRay3<T>;
 
@@ -23,7 +24,7 @@ public:
 	MyMat4 _invProjMatrix;
 	MyMat4 _invModelview;
 
-	MyVec2f	_screenSize;
+	MyVec2	_screenSize;
 };
 
 }

@@ -9,7 +9,7 @@ protected:
 		Base::onInitGL();
 		_mesh.loadObjFile("Assets/models/sphere_smooth.obj");
 
-		_debugRay.origin.set(MyVec3f::s_zero());
+		_debugRay.origin = MyVec3f::s_zero();
 		_debugRay.dir = MyVec3f::s_zero();
 	}
 
@@ -25,6 +25,7 @@ protected:
 		_mesh.draw();
 
 		drawDebugRay();
+		drawRaycastResult();
 
 		swapBuffers();
 		drawNeeded();
@@ -37,23 +38,63 @@ protected:
 		glGetFloatv(GL_PROJECTION_MATRIX, projMatrix.data);
 		glGetFloatv(GL_MODELVIEW_MATRIX, modelview.data);
 
-		MyVec2f screenSize{ _frameBufferSize.x, _frameBufferSize.y };
+		MyVec2f screenSize = _frameBufferSize;
 
 		_rayTraser.init(screenSize, projMatrix, modelview);
 
 		MyRay3f ray = _rayTraser.getRay(x, y);
 
 		_debugRay = ray;
+
+		{
+			//Math::MyPlane3f plane(MyVec3f(0,1,0), 0.5f);
+			//ray.raycast(_hitResult, plane);
+		}
+
+		{
+			Math::MySphere3f sphere(MyVec3f(0, 0, 0), 1.f);
+			ray.raycast(_hitResult, sphere);
+		}
 	}
 
 	void drawDebugRay() {
-		if (!_debugRay.dir.sqrMagnitude()) return;
+		drawDebugRay(_debugRay);
+	}
 
-		auto start = _debugRay.origin;
-		auto end = _debugRay.origin + _debugRay.dir;
+	void drawRaycastResult() {
+		drawRaycastResult(_hitResult);
+	}
 
-		glColor4f(1,0,1,1);
-		glBegin(GL_POINTS);
+	void drawRaycastResult(const MyRay3f::HitResult& result, const Color4f& c = { 1,0,0,1 }, float lineWidth = 1) {
+		if (!result.hasResult)
+			return;
+
+		glLineWidth(lineWidth);
+
+		auto pt = result.point;
+		auto nl = result.normal;
+
+		glColor4f(c.r, c.g, c.g, c.a);
+			glBegin(GL_POINTS);
+			glVertex3fv(pt.data);
+		glEnd();
+
+		glBegin(GL_LINES);
+			glVertex3fv(pt.data);
+			glVertex3fv((pt + nl).data);
+		glEnd();
+	}
+
+	void drawDebugRay(MyRay3f ray, const Color4f& c = {1,0,1,1}, float lineWidth = 1) {
+		if (!ray.dir.sqrMagnitude())
+			return;
+
+		glLineWidth(lineWidth);
+		auto start = ray.origin;
+		auto end = ray.origin + ray.dir;
+
+		glColor4f(c.r, c.g, c.g,c.a);
+			glBegin(GL_POINTS);
 			glVertex3fv(start.data);
 		glEnd();
 
@@ -83,6 +124,8 @@ private:
 	MyMesh		_mesh;
 	MyRayTracer _rayTraser;
 	MyRay3f		_debugRay;
+
+	MyRay3f::HitResult _hitResult;
 };
 
 class SiTaRayTracerTestApp : public NativeUIApp {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "MyMat4.h"
+#include "MyMathGeometry.h"
 
 namespace sge {
 
@@ -11,23 +12,45 @@ private:
 	using MyVec3 = MyVec3<T>;
 	using MyVec4 = MyVec4<T>;
 	using MyMat4 = MyMat4<T>;
+
+	using Plane3  = Math::MyPlane3<T>;
+	using Sphere3 = Math::MySphere3<T>;
 public:
 
 	MyVec3 origin, dir;
 
-	constexpr MyRay3() noexcept = default;
+	struct HitResult {
+		HitResult() {
+			reset();
+		}
+
+		void reset() {
+			distance = Math::inf<T>();
+			hasResult = false;
+		}
+
+		T		distance;
+		MyVec3	point;
+		MyVec3	normal;
+		bool	hasResult : 1;
+	};
+
+	constexpr MyRay3() = default;
 	constexpr MyRay3(const MyVec3& origin_, const MyVec3& dir_) noexcept
-		: origin(origin_), dir(dir_) {}
+		: origin(origin_), dir(dir_) {} // assume the dir_ is normalized
 
-	constexpr static MyRay3 s_zero() { return MyRay3(MyRay3::s_zero(), MyRay3::s_zero()); }
+	constexpr static MyRay3 s_zero() { return MyRay3(MyVec3::s_zero(), MyVec3::s_zero()); }
 
-	SGE_INLINE void set(const MyVec3& origin_, const MyVec3& dir_) noexcept {
+	constexpr void set(const MyVec3& origin_, const MyVec3& dir_) noexcept {
 		// assume the dir_ is normalized
 		origin.set(origin_);
 		dir.set(dir_);
 	}
 
 	static MyRay3 unprojectFromInverseMatrix(const MyMat4& invProj, const MyMat4& invModelview, const MyVec2& pointOnScreen, const MyVec2& screenSize);
+
+	bool raycast(HitResult& outResult, Plane3 plane, T maxDistance = Math::inf<T>());
+	bool raycast(HitResult& outResult, Sphere3 sphere, T maxDistance = Math::inf<T>());
 };
 
 using MyRay3f = MyRay3<float>;

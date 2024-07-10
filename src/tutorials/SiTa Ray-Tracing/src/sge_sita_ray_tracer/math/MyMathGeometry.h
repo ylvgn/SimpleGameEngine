@@ -25,12 +25,6 @@ struct MyTriangle3 {
 	constexpr MyTriangle3(const MyVec3& v0_, const MyVec3& v1_, const MyVec3& v2_) noexcept
 		: v0(v0_), v1(v1_), v2(v2_) {}
 
-	void set(const MyVec3& v0_, const MyVec3& v1_, const MyVec3& v2_) noexcept {
-		v0 = v0_;
-		v1 = v1_;
-		v2 = v2_;
-	}
-
 	MyVec3 normal() const {
 		MyVec3 v10(v1-v0);
 		MyVec3 v20(v2-v0);
@@ -45,11 +39,11 @@ struct MyPlane3 {
 	using MyVec3 = MyVec3<T>;
 
 	constexpr MyPlane3() noexcept = default;
+	constexpr MyPlane3(const MyVec3& normal_, const T& distance_) noexcept
+		: normal(normal_), distance(distance_) {}
+
 	constexpr MyPlane3(const MyVec3& normal_, const MyVec3& pos) noexcept
 		: normal(normal_), distance(normal_.dot(pos)) {}
-
-	constexpr MyPlane3(const MyVec3& normal_, T distance_) noexcept
-		: normal(normal_), distance(distance_) {}
 
 	void setByTriangle(const MyVec3& v0, const MyVec3& v1, const MyVec3& v2) {
 		MyVec3 v10(v1-v0);
@@ -61,8 +55,20 @@ struct MyPlane3 {
 
 	T dot(const MyVec3& pt) const { return normal.dot(pt) - distance; }
 
-	MyVec3	normal;
 	T		distance;
+	MyVec3	normal;
+};
+
+template<typename T>
+struct MySphere3 {
+	using MyVec3 = MyVec3<T>;
+
+	constexpr MySphere3() noexcept = default;
+	constexpr MySphere3(const MyVec3& center_, const T& radius_) noexcept
+		: center(center_), radius(radius_) {}
+
+	T		radius;
+	MyVec3	center;
 };
 
 //-----------------
@@ -74,6 +80,9 @@ using MyTriangle3d = MyTriangle3<double>;
 
 using MyPlane3f = MyPlane3<float>;
 using MyPlane3d = MyPlane3<double>;
+
+using MySphere3f = MySphere3<float>;
+using MySphere3d = MySphere3<double>;
 
 } // namespace Math
 } // namespace sge

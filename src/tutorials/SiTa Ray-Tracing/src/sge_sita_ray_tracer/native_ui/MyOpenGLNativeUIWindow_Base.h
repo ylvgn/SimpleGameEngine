@@ -2,6 +2,8 @@
 
 #include "../MyCommon.h"
 
+#include <sge_sita_ray_tracer/math/MyMat4.h>
+
 namespace sge {
 
 class MyOpenGLNativeUIWindow_Base : public NativeUIWindow {
@@ -14,13 +16,13 @@ public:
 	void drawGrid();
 	void drawOriginAxis();
 
-	void setFrameBufferSize(const Vec2f& newSize);
+	void setFrameBufferSize(const MyVec2f& newSize);
 
 	Math::Camera3f	_camera;
 
-	Mat4f	_matrix_proj;
-	Mat4f	_matrix_view;
-	Vec2f	_frameBufferSize{ 0, 0 };
+	MyMat4f	_matrix_proj;
+	MyMat4f	_matrix_view;
+	MyVec2f	_frameBufferSize{ 0, 0 };
 
 protected:
 	virtual void onCreate(CreateDesc& desc) override;

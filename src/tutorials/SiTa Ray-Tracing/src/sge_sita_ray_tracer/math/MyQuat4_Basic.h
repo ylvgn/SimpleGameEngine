@@ -145,10 +145,10 @@ MyQuat4_Basic<T, DATA> MyQuat4_Basic<T, DATA>::s_fromTo(const MyVec3& from, cons
 	MyVec3 f = from.normalize();
 	MyVec3 t = to.normalize();
 
-	if (f.equals(t)) {
+	if (Math::equals(f, t)) {
 		return MyQuat4::s_identity();
 	}
-	else if (f.equals(-t)) {
+	else if (Math::equals(f, -t)) {
 		MyVec3 ortho = MyVec3::s_right();
 
 		if (Math::abs(f.y) < Math::abs(f.x)) {

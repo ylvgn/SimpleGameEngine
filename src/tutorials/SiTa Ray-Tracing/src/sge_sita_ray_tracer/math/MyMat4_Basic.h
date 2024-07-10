@@ -119,8 +119,7 @@ Figure 4-2	----|---------------------
 		, _20(__20), _21(__21), _22(__22), _23(__23)
 		, _30(__30), _31(__31), _32(__32), _33(__33) {}
 
-
-	void set(T __00, T __01, T __02, T __03,
+	constexpr void set(T __00, T __01, T __02, T __03,
 			 T __10, T __11, T __12, T __13,
 			 T __20, T __21, T __22, T __23,
 			 T __30, T __31, T __32, T __33)
@@ -131,26 +130,35 @@ Figure 4-2	----|---------------------
 		_30 = __30; _31 = __31; _32 = __32; _33 = __33;
 	}
 
-	void set(const MyVec4& cx_, const MyVec4& cy_, const MyVec4& cz_, const MyVec4& cw_) {
+	constexpr void set(const MyVec4& cx_, const MyVec4& cy_, const MyVec4& cz_, const MyVec4& cw_) {
 		cx.set(cx_);
 		cy.set(cy_);
 		cw.set(cw_);
 		cz.set(cz_);
 	}
 
-	void set(const MyMat4_Basic_Data& v) {
+	constexpr void set(const MyMat4_Basic_Data& v) {
 		cx.set(v.cx);
 		cy.set(v.cy);
 		cz.set(v.cz);
 		cw.set(v.cw);
 	}
 
-	void setAll(const T& v) {
+	constexpr void setAll(const T& v) {
 		cx.setAll(v);
 		cy.setAll(v);
 		cz.setAll(v);
 		cw.setAll(v);
 	}
+
+	constexpr MyMat4_Basic_Data(const sge::Mat4_Basic_Data<T>& r) : MyMat4_Basic_Data(r._elements) {}
+	constexpr void operator= (const sge::Mat4_Basic_Data<T>& r) {
+		set(r.cx);
+		set(r.cy);
+		set(r.cw);
+		set(r.cz);
+	}
+	constexpr void set(const sge::Mat4_Basic_Data<T>& r) { *this = r; }
 };
 
 #define SGE_M4_MINOR3X3(c0,c1,c2, r0,r1,r2) \
@@ -206,6 +214,8 @@ struct MyMat4_Basic : public DATA {
 			   __10, __11, __12, __13,
 			   __20, __21, __22, __23,
 			   __30, __31, __32, __33) {}
+
+	constexpr MyMat4(const sge::Mat4<T>& r) : DATA(r) {}
 
 	SGE_INLINE static MyMat4 s_identity() {
 		return MyMat4(1,0,0,0,
@@ -332,9 +342,6 @@ struct MyMat4_Basic : public DATA {
 	SGE_INLINE MyMat4 inverse3x3() const;
 	SGE_INLINE MyMat4 inverse3x3Transpose() const;
 
-	SGE_INLINE bool equals (const MyMat4& r,	T epsilon = Math::epsilon<T>()) const;
-	SGE_INLINE bool equals0(					T epsilon = Math::epsilon<T>()) const;
-
 	SGE_INLINE			MyVec4& operator[](int i)		{ SGE_ASSERT(i >= 0 && i < 4); return _columns[i]; }
 	SGE_INLINE const	MyVec4& operator[](int i) const	{ SGE_ASSERT(i >= 0 && i < 4); return _columns[i]; }
 
@@ -400,9 +407,9 @@ MyMat4_Basic<T, DATA> MyMat4_Basic<T, DATA>::s_perspective(T fovy_rad, T aspect,
 	T xmax = ymax  * aspect;
 	return s_frustum(-xmax, xmax, -ymax, ymax, zNear, zFar);
 #else
+
 	T deltaZ = zFar - zNear;
 	T tf = Math::tan(fovy_rad * T(0.5));
-
 	return MyMat4(T(1)/(aspect*tf),	T(0),		T(0),						T(0),
 				  T(0),				T(1)/tf,	T(0),						T(0),
 				  T(0),				T(0),		-(zFar + zNear)/deltaZ,		T(-1),
@@ -429,7 +436,7 @@ template<typename T, class DATA> SGE_INLINE
 MyMat4_Basic<T, DATA> MyMat4_Basic<T, DATA>::s_lookAt(const MyVec3& eye, const MyVec3& aim, const MyVec3& up) {
 	MyVec3 f = (aim - eye).normalize();
 	MyVec3 r = f.cross(up).normalize();
-	if (r.equals0()) {
+	if (Math::equals0(r)) {
 		return MyMat4::s_identity();
 	}
 
@@ -485,22 +492,6 @@ MyMat4_Basic<T, DATA> MyMat4_Basic<T, DATA>::s_TS(const MyVec3& t, const MyVec3&
 				  T(0), s.y,  T(0), T(0),
 				  T(0), T(0), s.z,  T(0),
 				  t.x,  t.y,  t.z,  T(1));
-}
-
-template<typename T, class DATA> SGE_INLINE
-bool MyMat4_Basic<T, DATA>::equals(const MyMat4_Basic<T, DATA>& r, T epsilon) const {
-	return cx.equals(r.cx, epsilon)
-		&& cy.equals(r.cy, epsilon)
-		&& cz.equals(r.cz, epsilon)
-		&& cw.equals(r.cw, epsilon);
-}
-
-template<typename T, class DATA> SGE_INLINE
-bool MyMat4_Basic<T, DATA>::equals0(T epsilon) const {
-	return cx.equals0(epsilon)
-		&& cy.equals0(epsilon)
-		&& cz.equals0(epsilon)
-		&& cw.equals0(epsilon);
 }
 
 template<typename T, class DATA> SGE_INLINE
@@ -719,6 +710,29 @@ MyMat4_Basic<T, DATA> MyMat4_Basic<T, DATA>::inverse3x3Transpose() const {
 				  (xy*yz-xz*yy) *  inv, (xx*yz-xz*yx) * -inv, (xx*yy-xy*yx) *  inv, T(0),
 				  T(0),     			T(0),				  T(0),					T(1));
 }
+
+#if 0
+#pragma mark ========= Math ============
+#endif
+namespace Math {
+
+template<typename T, class DATA> SGE_INLINE
+bool equals(const MyMat4_Basic<T, DATA>& a, const MyMat4_Basic<T, DATA>& b, T epsilon) {
+	return Math::equals(a.cx, b.cx, epsilon)
+		&& Math::equals(a.cy, b.cy, epsilon)
+		&& Math::equals(a.cz, b.cz, epsilon)
+		&& Math::equals(a.cw, b.cw, epsilon);
+}
+
+template<typename T, class DATA> SGE_INLINE
+bool equals0(const MyMat4_Basic<T, DATA>& m, T epsilon) {
+	return Math::equals0(m.cx, epsilon)
+		&& Math::equals0(m.cy, epsilon)
+		&& Math::equals0(m.cz, epsilon)
+		&& Math::equals0(m.cw, epsilon);
+}
+
+} // namespace Math
 
 #undef SGE_M4_MINOR3X3
 } // namespace sge

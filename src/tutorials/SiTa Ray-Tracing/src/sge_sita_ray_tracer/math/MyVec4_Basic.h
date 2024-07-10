@@ -24,6 +24,7 @@ struct MyVec4_Basic : public DATA {
 	constexpr MyVec4(const T& x_, const T& y_, const T& z_, const T& w_) : DATA(x_,y_,z_,w_) {}
 	constexpr MyVec4(const MyVec2& v, const T& z_, const T& w_) : DATA(v.x, v.y, z_, w_) {}
 	constexpr MyVec4(const MyVec3& v, const T& w_) : DATA(v.x, v.y, v.z, w_) {}
+	constexpr MyVec4(const sge::Vec4<T>& r) : DATA(r) {}
 
 	SGE_INLINE static MyVec4 s_zero()	{ return MyVec4(0,0,0,0); }
 	SGE_INLINE static MyVec4 s_one()	{ return MyVec4(1,1,1,1); }
@@ -40,9 +41,6 @@ struct MyVec4_Basic : public DATA {
 		auto invW = T(1) / w;
 		return MyVec3(x,y,z) * invW;
 	}
-
-	SGE_INLINE bool equals (const MyVec4& r, const T& epsilon = Math::epsilon<T>()) const;
-	SGE_INLINE bool equals0(				 const T& epsilon = Math::epsilon<T>()) const;
 
 	SGE_INLINE			T& operator[](int i)		{ SGE_ASSERT(i >= 0 && i < kElementCount); return data[i]; }
 	SGE_INLINE const	T& operator[](int i) const	{ SGE_ASSERT(i >= 0 && i < kElementCount); return data[i]; }
@@ -89,25 +87,26 @@ using MyVec4_Basicd	= MyVec4_Basic<double>;
 
 SGE_FORMATTER_T( SGE_ARGS(typename T, class DATA), MyVec4_Basic< SGE_ARGS(T, DATA) >)
 
-
-template<class T, class DATA> SGE_INLINE
-bool MyVec4_Basic<T, DATA>::equals(const MyVec4_Basic<T, DATA>& r, const T& epsilon) const {
-	return Math::equals(x, r.x, epsilon)
-		&& Math::equals(y, r.y, epsilon)
-		&& Math::equals(z, r.z, epsilon)
-		&& Math::equals(w, r.w, epsilon);
-}
-
-template<class T, class DATA> SGE_INLINE
-bool MyVec4_Basic<T, DATA>::equals0(const T& epsilon) const {
-	return Math::equals0(x, epsilon)
-		&& Math::equals0(y, epsilon)
-		&& Math::equals0(z, epsilon)
-		&& Math::equals0(w, epsilon);
-}
-
-
+#if 0
+#pragma mark ========= Math ============
+#endif
 namespace Math {
+
+template<class T, class DATA> SGE_INLINE
+bool equals(const MyVec4_Basic<T, DATA>& a, const MyVec4_Basic<T, DATA>& b, const T& epsilon = Math::epsilon<T>()) {
+	return Math::equals(a.x, b.x, epsilon)
+		&& Math::equals(a.y, b.y, epsilon)
+		&& Math::equals(a.z, b.z, epsilon)
+		&& Math::equals(a.w, b.w, epsilon);
+}
+
+template<class T, class DATA> SGE_INLINE
+bool equals0(const MyVec4_Basic<T, DATA>& v, const T& epsilon = Math::epsilon<T>()) {
+	return Math::equals0(v.x, epsilon)
+		&& Math::equals0(v.y, epsilon)
+		&& Math::equals0(v.z, epsilon)
+		&& Math::equals0(v.w, epsilon);
+}
 
 template<class T, class DATA> SGE_INLINE
 void sincos(const MyVec4_Basic<T, DATA>& th, MyVec4_Basic<T, DATA>& outSin, MyVec4_Basic<T, DATA>& outCos) {

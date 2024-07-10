@@ -20,12 +20,10 @@ struct MyVec2_Basic : public DATA {
 
 	constexpr MyVec2_Basic() = default;
 	constexpr MyVec2_Basic(const T& x_, const T& y_) : DATA(x_,y_) {}
+	constexpr MyVec2_Basic(const sge::Vec2<T>& r) : DATA(r) {}
 
 	SGE_INLINE static MyVec2 s_zero()	{ return MyVec2(0,0); }
 	SGE_INLINE static MyVec2 s_one()	{ return MyVec2(1,1); }
-
-	SGE_INLINE bool equals (const MyVec2& r, const T& epsilon = Math::epsilon<T>()) const;
-	SGE_INLINE bool equals0(				 const T& epsilon = Math::epsilon<T>()) const;
 
 	SGE_INLINE			T& operator[](int i)		{ SGE_ASSERT(i >= 0 && i < kElementCount); return data[i]; }
 	SGE_INLINE const	T& operator[](int i) const	{ SGE_ASSERT(i >= 0 && i < kElementCount); return data[i]; }
@@ -70,19 +68,22 @@ using MyVec2_Basicd = MyVec2_Basic<double>;
 
 SGE_FORMATTER_T(SGE_ARGS(typename T, class DATA), MyVec2_Basic< SGE_ARGS(T, DATA) >)
 
-
-template<typename T, class DATA> SGE_INLINE
-bool MyVec2_Basic<T, DATA>::equals(const MyVec2_Basic<T, DATA>& r, const T& epsilon) const {
-	return Math::equals(x, r.x, epsilon) && Math::equals(y, r.y, epsilon);
-}
-
-template<typename T, class DATA> SGE_INLINE
-bool MyVec2_Basic<T, DATA>::equals0(const T& epsilon) const {
-	return Math::equals0(x, epsilon) && Math::equals0(y, epsilon);
-}
-
-
+#if 0
+#pragma mark ========= Math ============
+#endif
 namespace Math {
+
+template<class T, class DATA> SGE_INLINE
+bool equals(const MyVec2_Basic<T, DATA>& a, const MyVec2_Basic<T, DATA>& b, const T& epsilon = Math::epsilon<T>()) {
+	return Math::equals(a.x, b.x, epsilon)
+		&& Math::equals(a.y, b.y, epsilon);
+}
+
+template<class T, class DATA> SGE_INLINE
+bool equals0(const MyVec2_Basic<T, DATA>& v, const T& epsilon = Math::epsilon<T>()) {
+	return Math::equals0(v.x, epsilon)
+		&& Math::equals0(v.y, epsilon);
+}
 
 template<class T, class DATA> SGE_INLINE
 void sincos(const MyVec2_Basic<T, DATA>& th, MyVec2_Basic<T, DATA>& outSin, MyVec2_Basic<T, DATA>& outCos) {

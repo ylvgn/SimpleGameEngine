@@ -20,6 +20,7 @@ struct MyVec3_Basic : public DATA {
 
 	constexpr MyVec3() = default;
 	constexpr MyVec3(const T& x_, const T& y_, const T& z_) : DATA(x_,y_,z_) {}
+	constexpr MyVec3(const sge::Vec3<T>& r) : DATA(r) {}
 
 	SGE_INLINE static MyVec3 s_zero()		{ return MyVec3(0,  0,  0); }
 	SGE_INLINE static MyVec3 s_one()		{ return MyVec3(1,  1,  1); }
@@ -52,9 +53,6 @@ struct MyVec3_Basic : public DATA {
 	SGE_INLINE MyVec3	lerp (const MyVec3& to, const T& t) const;
 	SGE_INLINE MyVec3	slerp(const MyVec3& to_, const T& t) const;
 	SGE_INLINE MyVec3	nlerp(const MyVec3& to, const T& t) const { return lerp(to, t).normalize(); }
-
-	SGE_INLINE bool equals (const MyVec3& r, const T& epsilon = Math::epsilon<T>()) const;
-	SGE_INLINE bool equals0(				 const T& epsilon = Math::epsilon<T>()) const;
 
 	SGE_INLINE			T& operator[](int i)		{ SGE_ASSERT(i >= 0 && i < kElementCount); return data[i]; }
 	SGE_INLINE const	T& operator[](int i) const	{ SGE_ASSERT(i >= 0 && i < kElementCount); return data[i]; }
@@ -101,20 +99,6 @@ SGE_FORMATTER_T( SGE_ARGS(typename T, class DATA), MyVec3_Basic< SGE_ARGS(T, DAT
 
 
 template<typename T, class DATA> SGE_INLINE
-bool MyVec3_Basic<T, DATA>::equals(const MyVec3_Basic<T, DATA>& r, const T& epsilon) const {
-	return Math::equals(x, r.x, epsilon)
-		&& Math::equals(y, r.y, epsilon)
-		&& Math::equals(z, r.z, epsilon);
-}
-
-template<typename T, class DATA> SGE_INLINE
-bool MyVec3_Basic<T, DATA>::equals0(const T& epsilon) const {
-	return Math::equals0(x, epsilon)
-		&& Math::equals0(y, epsilon)
-		&& Math::equals0(z, epsilon);
-}
-
-template<typename T, class DATA> SGE_INLINE
 T MyVec3_Basic<T, DATA>::radians(const MyVec3_Basic<T, DATA>& r) const {
 	T sqMagL = sqrMagnitude();
 	T sqMagR = r.sqrMagnitude();
@@ -144,7 +128,7 @@ MyVec3_Basic<T, DATA> MyVec3_Basic<T, DATA>::reject(const MyVec3_Basic<T, DATA>&
 template<typename T, class DATA> SGE_INLINE
 MyVec3_Basic<T, DATA> MyVec3_Basic<T, DATA>::reflect(const MyVec3_Basic<T, DATA>& r) const {
 	auto proj = project(r);
-	if (proj.equals0()) {
+	if (Math::equals0(proj)) {
 		SGE_LOG_ERROR("reflect zero vector");
 		return MyVec3::s_zero();
 	}
@@ -177,7 +161,24 @@ MyVec3_Basic<T, DATA> MyVec3_Basic<T, DATA>::slerp(const MyVec3_Basic<T, DATA>& 
 	return (from*a) + (to * b);
 }
 
+#if 0
+#pragma mark ========= Math ============
+#endif
 namespace Math {
+
+template<class T, class DATA> SGE_INLINE
+bool equals(const MyVec3_Basic<T, DATA>& a, const MyVec3_Basic<T, DATA>& b, const T& epsilon = Math::epsilon<T>()) {
+	return Math::equals(a.x, b.x, epsilon)
+		&& Math::equals(a.y, b.y, epsilon)
+		&& Math::equals(a.z, b.z, epsilon);
+}
+
+template<class T, class DATA> SGE_INLINE
+bool equals0(const MyVec3_Basic<T, DATA>& v, const T& epsilon = Math::epsilon<T>()) {
+	return Math::equals0(v.x, epsilon)
+		&& Math::equals0(v.y, epsilon)
+		&& Math::equals0(v.z, epsilon);
+}
 
 template<class T, class DATA> SGE_INLINE
 void sincos(const MyVec3_Basic<T, DATA>& th, MyVec3_Basic<T, DATA>& outSin, MyVec3_Basic<T, DATA>& outCos) {

@@ -83,7 +83,7 @@ void MyOpenGLNativeUIWindow_Base::onUIKeyboardEvent(UIKeyboardEvent& ev) {
 	}
 }
 
-void MyOpenGLNativeUIWindow_Base::setFrameBufferSize(const Vec2f& newSize) {
+void MyOpenGLNativeUIWindow_Base::setFrameBufferSize(const MyVec2f& newSize) {
 	_camera.setViewport(_clientRect);
 	_matrix_proj = _camera.projMatrix();
 	_matrix_view = _camera.viewMatrix();
