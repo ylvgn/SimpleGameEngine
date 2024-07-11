@@ -24,10 +24,8 @@ MyRay3<T> MyRay3<T>::unprojectFromInverseMatrix (const MyMat4& invProj,
 }
 
 template<typename T>
-bool MyRay3<T>::raycast(HitResult& outResult, Plane3 plane, T maxDistance) {
+bool MyRay3<T>::raycast(HitResult& outResult, const MyPlane3& plane, T maxDistance /*= Math::inf<T>()*/) {
 // https://www.cs.princeton.edu/courses/archive/fall00/cs426/lectures/raycast/sld017.htm
-	outResult.reset();
-
 	T s = dir.dot(plane.normal);
 
 	if (Math::equals0(s)) {
@@ -51,67 +49,107 @@ bool MyRay3<T>::raycast(HitResult& outResult, Plane3 plane, T maxDistance) {
 }
 
 template<typename T>
-bool MyRay3<T>::raycast(HitResult& outResult, Sphere3 sphere, T maxDistance) {
-	outResult.reset();
-
-	const auto& C = sphere.center;
-	const auto& r = sphere.radius;
+bool MyRay3<T>::raycast(HitResult& outResult, const MySphere3& sphere, T maxDistance /*= Math::inf<T>()*/) {
+	const T& r = sphere.radius;
 
 #if false // no need check
 	if (Math::equals0(r) || r < 0)
 		return false;
 #endif
 
-	auto OC = C - origin;
-	T s = OC.dot(dir);
+	auto v = sphere.center - origin; // vector from origin to sphere center
+	T t = v.dot(dir); // distance 't' to closest point to sphere center
 
-	if (s < 0)
+	if (t < 0)
 		return false;
 
-	auto M = origin + dir * s;
-	auto CM = M - C;
-	auto d2 = CM.sqrMagnitude();
-	auto r2 = r * r;
+	T d2 = v.dot(v) - (t * t); // squared distance between closest point to sphere center
+	T r2 = r * r;
 
 	if (r2 < d2)
 		return false;
 
-	if (Math::equals0(d2)) {
-		T distance	= OC.magnitude() - r;
-		if (distance < 0 || distance > maxDistance)
-			return false;
+	T q = Math::sqrt(r2 - d2);
 
-		outResult.distance  = distance;
-		outResult.normal	= -OC.normalize();
-		outResult.point		= origin + dir * outResult.distance;
-		outResult.hasResult = true;
-		return true;
+	T t0 = t + q;
+	T t1 = t - q;
+
+	bool hasResult = false;
+
+	T dis = Math::inf<T>();
+	if (t0 >= 0 && t0 < maxDistance) {
+		dis = t0;
+		hasResult = true;
 	}
 
-	auto d = Math::sqrt(d2);
-	if (Math::equals(d, r)) {
-		T distance = d;
-		if (distance < 0 || distance > maxDistance)
-			return false;
-
-		outResult.distance	= distance;
-		outResult.normal	= CM.normalize();
-		outResult.point		= M;
-		outResult.hasResult = true;
-		return true;
+	if (t1 >= 0 && t1 < maxDistance) {
+		if (!hasResult || t1 < dis) {
+			dis = t1;
+			hasResult = true;
+		}
 	}
 
-	{
-		auto offset = Math::sqrt(r2 - d2);
-		T distance = (M - origin).magnitude() - offset;
-		if (distance < 0 || distance > maxDistance)
-			return false;
-
-		outResult.distance	= distance;
-		outResult.point		= origin + dir * outResult.distance;
-		outResult.normal	= (outResult.point - C).normalize();
-		outResult.hasResult = true;
+	if (!hasResult) {
+		return false;
 	}
+
+	auto pt = origin + dir * dis;
+
+	outResult.distance	= dis;
+	outResult.point		= pt;
+	outResult.normal	= (pt - sphere.center).normalize();
+	outResult.hasResult = true;
+	return true;
+}
+
+template<typename T>
+bool MyRay3<T>::raycast(HitResult& outResult, const MyTriangle3& tri, T maxDistance /*= Math::inf<T>()*/) {
+	HitResult r;
+	MyPlane3 plane(tri);
+	if (!raycast(r, plane, maxDistance))
+		return false;
+
+	auto e0 = tri.v1 - tri.v0;
+	auto e1 = tri.v2 - tri.v1;
+	auto e2 = tri.v0 - tri.v2;
+
+	auto t0 = r.point - tri.v0;
+	auto t1 = r.point - tri.v1;
+	auto t2 = r.point - tri.v2;
+
+	if ((e0.cross(t0)).dot(r.normal) < 0) return false;
+	if ((e1.cross(t1)).dot(r.normal) < 0) return false;
+	if ((e2.cross(t2)).dot(r.normal) < 0) return false;
+
+	outResult = r;
+	return true;
+}
+
+template<typename T>
+bool MyRay3<T>::raycast(HitResult& outResult, const MyMesh& mesh, T maxDistance /*= Math::inf<T>()*/) {
+	size_t indiceCount = mesh.indices.size();
+
+	size_t trangleCount = indiceCount / 3;
+	if (trangleCount <= 0)
+		return false;
+
+	HitResult r;
+	r.distance = maxDistance;
+
+	MyTriangle3 tri;
+
+	auto* indices = mesh.indices.begin();
+	for (int i = 0; i < trangleCount; ++i) {
+		tri.v0 = mesh.vertices[*indices].pos; indices++;
+		tri.v1 = mesh.vertices[*indices].pos; indices++;
+		tri.v2 = mesh.vertices[*indices].pos; indices++;
+		raycast(r, tri, r.distance);
+	}
+
+	if (!r.hasResult)
+		return false;
+
+	outResult = r;
 	return true;
 }
 

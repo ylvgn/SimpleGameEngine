@@ -31,6 +31,11 @@ struct MyVec3_Basic : public DATA {
 	SGE_INLINE static MyVec3 s_right()		{ return MyVec3(1,  0,  0); }
 	SGE_INLINE static MyVec3 s_left()		{ return MyVec3(-1, 0,  0); }
 
+	template<typename R, typename R_DATA>
+	MyVec3 operator=(const MyVec3_Basic<R, R_DATA>& v) {
+		return MyVec3(static_cast<T>(v.x), static_cast<T>(v.y), static_cast<T>(v.z));
+	}
+
 	SGE_INLINE MyVec2 xy() const { return MyVec2(x,y); }
 	SGE_INLINE MyVec2 xz() const { return MyVec2(x,z); }
 	SGE_INLINE MyVec2 yz() const { return MyVec2(y,z); }

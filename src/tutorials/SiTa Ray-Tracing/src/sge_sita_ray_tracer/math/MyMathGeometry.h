@@ -25,10 +25,12 @@ struct MyTriangle3 {
 	constexpr MyTriangle3(const MyVec3& v0_, const MyVec3& v1_, const MyVec3& v2_) noexcept
 		: v0(v0_), v1(v1_), v2(v2_) {}
 
-	MyVec3 normal() const {
-		MyVec3 v10(v1-v0);
-		MyVec3 v20(v2-v0);
-		return v10.cross(v20).normalize();
+	MyVec3 calcNormal() const {
+		return (v1-v0).cross(v2-v0).normalize();
+	}
+
+	MyVec3 calcCenter() const {
+		return (v0+v1+v2) / T(3);
 	}
 
 	MyVec3 v0, v1, v2;
@@ -36,8 +38,10 @@ struct MyTriangle3 {
 
 template<typename T>
 struct MyPlane3 {
+private:
+	using MyTriangle3 = MyTriangle3<T>;
 	using MyVec3 = MyVec3<T>;
-
+public:
 	constexpr MyPlane3() noexcept = default;
 	constexpr MyPlane3(const MyVec3& normal_, const T& distance_) noexcept
 		: normal(normal_), distance(distance_) {}
@@ -45,11 +49,13 @@ struct MyPlane3 {
 	constexpr MyPlane3(const MyVec3& normal_, const MyVec3& pos) noexcept
 		: normal(normal_), distance(normal_.dot(pos)) {}
 
-	void setByTriangle(const MyVec3& v0, const MyVec3& v1, const MyVec3& v2) {
-		MyVec3 v10(v1-v0);
-		MyVec3 v20(v2-v0);
+	constexpr MyPlane3(const MyTriangle3& tri) noexcept {
+		normal = tri.calcNormal();
+		distance = normal.dot(tri.v0);
+	}
 
-		normal	 = v10.cross(v20).normalize();
+	void setByTriangle(const MyVec3& v0, const MyVec3& v1, const MyVec3& v2) {
+		normal	 = (v1-v0).cross(v2-v0).normalize();
 		distance = normal.dot(v0);
 	}
 

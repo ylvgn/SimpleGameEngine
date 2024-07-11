@@ -2,6 +2,7 @@
 
 #include "MyMat4.h"
 #include "MyMathGeometry.h"
+#include "../render/MyMesh.h"
 
 namespace sge {
 
@@ -13,8 +14,9 @@ private:
 	using MyVec4 = MyVec4<T>;
 	using MyMat4 = MyMat4<T>;
 
-	using Plane3  = Math::MyPlane3<T>;
-	using Sphere3 = Math::MySphere3<T>;
+	using MyPlane3		= Math::MyPlane3<T>;
+	using MySphere3		= Math::MySphere3<T>;
+	using MyTriangle3	= Math::MyTriangle3<T>;
 public:
 
 	MyVec3 origin, dir;
@@ -49,8 +51,10 @@ public:
 
 	static MyRay3 unprojectFromInverseMatrix(const MyMat4& invProj, const MyMat4& invModelview, const MyVec2& pointOnScreen, const MyVec2& screenSize);
 
-	bool raycast(HitResult& outResult, Plane3 plane, T maxDistance = Math::inf<T>());
-	bool raycast(HitResult& outResult, Sphere3 sphere, T maxDistance = Math::inf<T>());
+	bool raycast(HitResult& outResult, const MyPlane3& plane, T maxDistance = Math::inf<T>());
+	bool raycast(HitResult& outResult, const MySphere3& sphere, T maxDistance = Math::inf<T>());
+	bool raycast(HitResult& outResult, const MyTriangle3& tri, T maxDistance = Math::inf<T>());
+	bool raycast(HitResult& outResult, const MyMesh& mesh, T maxDistance = Math::inf<T>());
 };
 
 using MyRay3f = MyRay3<float>;
