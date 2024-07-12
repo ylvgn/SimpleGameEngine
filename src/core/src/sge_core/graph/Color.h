@@ -128,14 +128,17 @@ struct ColorR {
 	constexpr ColorR(const T& r_)
 		: r(r_) {}
 
-	SGE_INLINE void set(const T& r_) {
-		r = r_;
-	}
+	constexpr void set(const T& r_) { r = r_; }
+	constexpr void set(const ColorR& v) { *this = v; }
+	constexpr void setAll(const T& s) { set(s); }
 
-	SGE_INLINE void set(const ColorR<T>& v) { *this = v; }
+	constexpr ColorR operator+(const T& s) const { return ColorR(r+s); }
+	constexpr ColorR operator-(const T& s) const { return ColorR(r-s); }
+	constexpr ColorR operator*(const T& s) const { return ColorR(r*s); }
+	constexpr ColorR operator/(const T& s) const { return ColorR(r/s); }
 
-	SGE_INLINE bool operator==(const ColorR<T>& v) const { return r == v.r }
-	SGE_INLINE bool operator!=(const ColorR<T>& v) const { return r != v.r }
+	bool operator==(const ColorR<T>& v) const { return r == v.r }
+	bool operator!=(const ColorR<T>& v) const { return r != v.r }
 
 	template<class COLOR>
 	static ColorR s_cast(const COLOR& r) {
@@ -168,15 +171,17 @@ struct ColorRG {
 	constexpr ColorRG(const T& r_, const T& g_)
 		: r(r_), g(g_) {}
 
-	SGE_INLINE void set(const T& r_, const T& g_) {
-		r = r_;
-		g = g_;
-	}
+	constexpr void set(const T& r_, const T& g_) { r = r_; g = g_; }
+	constexpr void set(const ColorRG& v) { *this = v; }
+	constexpr void setAll(const T& s) { set(s,s); }
 
-	SGE_INLINE void set(const ColorRG<T>& v) { *this = v; }
+	constexpr ColorRG operator+(const T& s) const { return ColorRG(r+s, g+s); }
+	constexpr ColorRG operator-(const T& s) const { return ColorRG(r-s, g-s); }
+	constexpr ColorRG operator*(const T& s) const { return ColorRG(r*s, g*s); }
+	constexpr ColorRG operator/(const T& s) const { return ColorRG(r/s, g/s); }
 
-	SGE_INLINE bool operator==(const ColorRG<T>& v) const { return r == v.r && g == v.g; }
-	SGE_INLINE bool operator!=(const ColorRG<T>& v) const { return r != v.r || g != v.g; }
+	bool operator==(const ColorRG<T>& v) const { return r == v.r && g == v.g; }
+	bool operator!=(const ColorRG<T>& v) const { return r != v.r || g != v.g; }
 
 	template<class COLOR>
 	static ColorRG s_cast(const COLOR& r) {
@@ -210,16 +215,20 @@ struct ColorRGB {
 	constexpr ColorRGB(const T& r_, const T& g_, const T& b_)
 		: r(r_), g(g_), b(b_) {}
 
-	SGE_INLINE void set(const T& r_, const T& g_, const T& b_) {
-		r = r_;
-		g = g_;
-		b = b_;
-	}
+	constexpr void set(const T& r_, const T& g_, const T& b_) { r = r_; g = g_; b = b_; }
+	constexpr void set(const ColorRGB& v) { *this = v; }
+	constexpr void setAll(const T& s) { set(s,s,s); }
 
-	SGE_INLINE void set(const ColorRGB<T>& v) { *this = v; }
+	Tuple3<T>	toTuple() const { return Tuple3<T>(r,g,b); }
+	operator Tuple3<T>()  const { return toTuple(); }
 
-	SGE_INLINE bool operator==(const ColorRGB<T>& v) const { return r == v.r && g == v.g && b == v.b; }
-	SGE_INLINE bool operator!=(const ColorRGB<T>& v) const { return r != v.r || g != v.g || b != v.b; }
+	constexpr ColorRGB operator+(const T& s) const { return ColorRGB(r+s, g+s, b+s); }
+	constexpr ColorRGB operator-(const T& s) const { return ColorRGB(r-s, g-s, b-s); }
+	constexpr ColorRGB operator*(const T& s) const { return ColorRGB(r*s, g*s, b*s); }
+	constexpr ColorRGB operator/(const T& s) const { return ColorRGB(r/s, g/s, b/s); }
+
+	bool operator==(const ColorRGB<T>& v) const { return r == v.r && g == v.g && b == v.b; }
+	bool operator!=(const ColorRGB<T>& v) const { return r != v.r || g != v.g || b != v.b; }
 
 	template<class COLOR>
 	static ColorRGB s_cast(const COLOR& r) {
@@ -255,22 +264,22 @@ struct ColorRGBA {
 	constexpr ColorRGBA(const T& r_, const T& g_, const T& b_, const T& a_)
 		: r(r_), g(g_), b(b_), a(a_) {}
 
-	ColorRGB<T> rgb() const { return ColorRGB(r,g,b); }
+	ColorRGB<T> rgb() const { return ColorRGB<T>(r,g,b); }
 
 	Tuple4<T>	toTuple() const { return Tuple4<T>(r,g,b,a); }
-	operator Tuple4<T>() const { return toTuple(); }
+	operator Tuple4<T>()  const { return toTuple(); }
 
-	SGE_INLINE void set(const T& r_, const T& g_, const T& b_, const T& a_) {
-		r = r_;
-		g = g_;
-		b = b_;
-		a = a_;
-	}
+	constexpr void set(const T& r_, const T& g_, const T& b_, const T& a_) { r = r_; g = g_; b = b_; a = a_; }
+	constexpr void set(const ColorRGBA& v) { *this = v; }
+	constexpr void setAll(const T& s) { set(s,s,s,s); }
 
-	SGE_INLINE void set(const ColorRGBA<T>& v) { *this = v; }
+	constexpr ColorRGBA operator+(const T& s) const { return ColorRGBA(r+s, g+s, b+s, a+s); }
+	constexpr ColorRGBA operator-(const T& s) const { return ColorRGBA(r-s, g-s, b-s, a-s); }
+	constexpr ColorRGBA operator*(const T& s) const { return ColorRGBA(r*s, g*s, b*s, a*s); }
+	constexpr ColorRGBA operator/(const T& s) const { return ColorRGBA(r/s, g/s, b/s, a/s); }
 
-	SGE_INLINE bool operator==(const ColorRGBA<T>& v) const { return r == v.r && g == v.g && b == v.b && a == v.a; }
-	SGE_INLINE bool operator!=(const ColorRGBA<T>& v) const { return r != v.r || g != v.g || b != v.b || a != v.a; }
+	bool operator==(const ColorRGBA<T>& v) const { return r == v.r && g == v.g && b == v.b && a == v.a; }
+	bool operator!=(const ColorRGBA<T>& v) const { return r != v.r || g != v.g || b != v.b || a != v.a; }
 
 	template<class COLOR>
 	static ColorRGBA s_cast(const COLOR& r) {

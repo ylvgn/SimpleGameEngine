@@ -80,7 +80,7 @@ protected:
 		{ // create opengl render context
 
 			PIXELFORMATDESCRIPTOR pfd;
-			pfd 				= {};
+			memset(&pfd, 0, sizeof(pfd));
 			pfd.nSize 			= sizeof(PIXELFORMATDESCRIPTOR);
 			pfd.nVersion 		= 1;
 			pfd.dwFlags 		= PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW | PFD_DOUBLEBUFFER;
@@ -102,10 +102,10 @@ protected:
 			const int attribList[] = {
 				WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
 				WGL_CONTEXT_MINOR_VERSION_ARB, 3,
+
 				WGL_CONTEXT_FLAGS_ARB, 0,
-				WGL_CONTEXT_PROFILE_MASK_ARB,
-				WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-				0,
+				WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+				0, // End of attributes list
 			};
 
 			// modern render context

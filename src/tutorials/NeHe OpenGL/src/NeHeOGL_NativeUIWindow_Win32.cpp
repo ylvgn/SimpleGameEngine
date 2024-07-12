@@ -69,7 +69,9 @@ void NeHeOGL_NativeUIWindow_Win32::initGL() {
 		throw SGE_ERROR("wglCreateContext");
 
 	makeCurrent();
+
 	onInitedGL();
+	OGLUtil::throwIfError();
 }
 
 void NeHeOGL_NativeUIWindow_Win32::makeCurrent() {
@@ -113,28 +115,28 @@ void NeHeOGL_NativeUIWindow_Win32::onUIMouseEvent(UIMouseEvent& ev) {
 
 	if (ev.isDragging()) {
 		switch (ev.pressedButtons) {
-		case Button::Left: {
-			if (BitUtil::hasAny(ev.modifier, Modifier::Alt)) {
-				auto d = ev.deltaPos * -0.005f;
-				_camera.orbit(d.x, d.y);
-			}
-		}break;
-		case Button::Middle: {
-			if (BitUtil::hasAny(ev.modifier, Modifier::Alt)) {
-				auto d = ev.deltaPos * 0.05f;
-				_camera.move(d.x, d.y, 0);
-			}
-		}break;
-		case Button::Right: {
-			if (BitUtil::hasAny(ev.modifier, Modifier::Alt)) {
-				auto d = ev.deltaPos * 0.03f;
-				_camera.dolly(d.y);
-			}
-			else {
-				auto d = ev.deltaPos * -0.005f;
-				_camera.orbit(d.x, d.y);
-			}
-		}break;
+			case Button::Left: {
+				if (BitUtil::hasAny(ev.modifier, Modifier::Alt)) {
+					auto d = ev.deltaPos * -0.005f;
+					_camera.orbit(d.x, d.y);
+				}
+			}break;
+			case Button::Middle: {
+				if (BitUtil::hasAny(ev.modifier, Modifier::Alt)) {
+					auto d = ev.deltaPos * 0.05f;
+					_camera.move(d.x, d.y, 0);
+				}
+			}break;
+			case Button::Right: {
+				if (BitUtil::hasAny(ev.modifier, Modifier::Alt)) {
+					auto d = ev.deltaPos * 0.03f;
+					_camera.dolly(d.y);
+				}
+				else {
+					auto d = ev.deltaPos * -0.005f;
+					_camera.orbit(d.x, d.y);
+				}
+			}break;
 		}
 	}
 	if (ev.isScroll()) {
@@ -173,7 +175,7 @@ void NeHeOGL_NativeUIWindow_Win32::setFrameBufferSize(const Vec2f& newSize) {
 	glClearColor(0.0f, 0.2f, 0.2f, 0);
 	glClearDepth(1);
 	glClearStencil(0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadMatrixf(_matrix_proj._columns->data);

@@ -269,11 +269,12 @@ namespace OGL {
 	static constexpr Color4b kbOrange	{ 255,128,0,  255 };
 
 	inline void color4b(const Color4b& c) {
+		constexpr static const float k = 127.f / 255.f; // [0, 255] -> [0, 127]
 		::glColor4b(
-			static_cast<GLbyte>(c.r - 128),
-			static_cast<GLbyte>(c.g - 128),
-			static_cast<GLbyte>(c.b - 128),
-			static_cast<GLbyte>(c.a - 128)
+			static_cast<GLbyte>(k * c.r),
+			static_cast<GLbyte>(k * c.g),
+			static_cast<GLbyte>(k * c.b),
+			static_cast<GLbyte>(k * c.a)
 		);
 	}
 	inline void color4f(const Color4f& c)					{ ::glColor4f(c.r, c.g, c.b, c.a); }
@@ -354,7 +355,7 @@ namespace OGL {
 
 	class Scoped_glColor4f : public NonCopyable {
 	public:
-		Scoped_glColor4f(float r, float g, float b, float a) {
+		Scoped_glColor4f(GLfloat r, GLfloat g, GLfloat b, GLfloat a) {
 			glColor4f(r, g, b, a);
 		}
 		Scoped_glColor4f(const Color4f& c) {
@@ -369,6 +370,14 @@ namespace OGL {
 			OGL::color4b(c);
 		}
 		~Scoped_glColor4b() { OGL::color4b(OGL::kbWhite); }
+	};
+
+	class Scoped_glNewList : public NonCopyable {
+	public:
+		Scoped_glNewList(GLuint list, GLenum mode) {
+			glNewList(list, mode);
+		}
+		~Scoped_glNewList() { glEndList(); }
 	};
 
 	inline void drawGridAndCoordinate(Mesh& grid, Mesh& coordinate) {
@@ -400,7 +409,7 @@ namespace OGL {
 			glColor4f(0, 1, 0, 1); glVertex3f(0, 0, 0); glVertex3f(0, 1, 0);
 			glColor4f(0, 0, 1, 1); glVertex3f(0, 0, 0); glVertex3f(0, 0, 1);
 		glEnd();
-		glColor4f(1, 1, 1, 1);
+		glColor4f(1,1,1,1);
 		glLineWidth(1);
 	}
 
