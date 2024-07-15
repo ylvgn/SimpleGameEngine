@@ -21,9 +21,7 @@ struct Tuple2 {
 	constexpr Tuple2(const T& x_, const T& y_) : x(x_), y(y_) {}
 
 	SGE_INLINE void set(const Tuple2<T>& v) { *this = v; }
-	SGE_INLINE void set(const T& x_, const T& y_) {
-		x = x_; y = y_;
-	}
+	SGE_INLINE void set(const T& x_, const T& y_) { x = x_; y = y_; }
 
 	SGE_INLINE bool setAll(const T& v) { set(v,v); }
 };

@@ -28,6 +28,7 @@
 #include "Chap05/Clover/PW5_MyRgn.h"
 #include "Chap05/Clover/PW5_Clover.h"
 /* Chap06 Keyboard */
+//#include "Chap06/SysMets4/PW5_SysMets4.h" already impl into PW5_MyDefineMarkWindow
 
 namespace sge {
 

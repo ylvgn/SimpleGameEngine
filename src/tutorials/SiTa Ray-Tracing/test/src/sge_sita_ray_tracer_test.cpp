@@ -14,7 +14,8 @@ public:
 	~Scoped_glBegin() { glEnd(); }
 };
 
-class TestRayCastWindow : public MyOpenGLNativeUIWindow {
+
+class SiTaRayTracerTestMainWin : public MyOpenGLNativeUIWindow {
 	using Base = MyOpenGLNativeUIWindow;
 protected:
 	virtual void onInitGL() override {
@@ -35,7 +36,8 @@ protected:
 		_debugTri.v1 = { 2,2,1 };
 		_debugTri.v2 = { 1,2,0 };
 
-		_debugMesh.loadObjFile("Assets/models/test.obj");
+		//_debugMesh.loadObjFile("Assets/models/test.obj");
+		_debugMesh.loadObjFile("Assets/models/test2.obj");
 	}
 
 	virtual void onDraw() override {
@@ -345,14 +347,15 @@ protected:
 	}
 
 private:
+	MyRay3f				_debugRay;
+
+	MyRay3f::HitResult	_hitResult;
+	MyRayTracer			_rayTraser;
+
 	Math::MyPlane3f		_debugPlane;
 	Math::MySphere3f	_debugSphere;
 	Math::MyTriangle3f	_debugTri;
 	MyMesh				_debugMesh;
-
-	MyRay3f				_debugRay;
-	MyRay3f::HitResult	_hitResult;
-	MyRayTracer			_rayTraser;
 };
 
 class SiTaRayTracerTestApp : public NativeUIApp {
@@ -375,12 +378,12 @@ protected:
 			NativeUIWindow::CreateDesc winDesc;
 			winDesc.isMainWindow = true;
 			winDesc.rect = { 10, 10, 1376, 768 };
-			_testRayWin.create(winDesc);
+			_mainWin.create(winDesc);
 		}
 	}
 
 private:
-	TestRayCastWindow _testRayWin;
+	SiTaRayTracerTestMainWin _mainWin;
 };
 
 }
