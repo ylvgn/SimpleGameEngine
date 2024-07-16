@@ -33,7 +33,6 @@ void NeHeOGL_WavefrontObjLoader::_loadMem(Mesh& outInfo, ByteSpan data, StrView 
 
 	while (!_sourceRemain.empty()) {
 		_nextLine();
-		if (_lineRemain.empty()) break;
 		_parseLine();
 	}
 }
