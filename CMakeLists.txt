@@ -128,3 +128,6 @@ add_subdirectory(src/tutorials/SiTa\ Localization/test)
 #-- SiTa Ray-Tracing ---
 add_subdirectory(src/tutorials/SiTa\ Ray-Tracing)
 add_subdirectory(src/tutorials/SiTa\ Ray-Tracing/test)
+
+#-- SiTa Advance OpenGL---
+add_subdirectory(src/tutorials/SiTa\ Advance\ OpenGL)
