@@ -123,7 +123,7 @@ add_subdirectory(src/tutorials/SiTa\ DataBase/examples/sge_sita_db_example_002)
 
 #-- SiTa Localization ---
 add_subdirectory(src/tutorials/SiTa\ Localization)
-add_subdirectory(src/tutorials/SiTa\ Localization/test)
+add_subdirectory(src/tutorials/SiTa\ Localization/examples/sge_sita_locale_example_001)
 
 #-- SiTa Ray-Tracing ---
 add_subdirectory(src/tutorials/SiTa\ Ray-Tracing)
