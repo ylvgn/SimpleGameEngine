@@ -164,7 +164,7 @@ private:
 			return;
 		}
 
-		if (token == "vn" ) {
+		if (token == "vn") {
 			MyVec3f vn;
 			int ret = sscanf(p, "%f %f %f", &vn.x, &vn.y, &vn.z);
 			if (ret < 3)

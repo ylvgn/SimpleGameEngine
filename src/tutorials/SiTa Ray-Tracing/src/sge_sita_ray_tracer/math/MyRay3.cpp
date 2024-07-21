@@ -3,6 +3,30 @@
 namespace sge {
 
 template<typename T>
+void MyRay3<T>::HitResult::draw() {
+	if (!hasResult)
+		return;
+
+	const auto& pt = point;
+	const auto& nl = normal;
+
+	{
+		Scoped_glBegin begin(GL_POINTS);
+		my_glColor4(T(1), T(0), T(0), T(1));
+			my_glVertex3(pt.x, pt.y, pt.z);
+		my_glColor4(T(1), T(1), T(1), T(1));
+	}
+
+	{
+		Scoped_glBegin begin(GL_LINES);
+		auto ptEd = pt + nl;
+		my_glVertex3(pt.x, pt.y, pt.z);
+		my_glVertex3(ptEd.x, ptEd.y, ptEd.z);
+	}
+}
+
+
+template<typename T>
 MyRay3<T> MyRay3<T>::unprojectFromInverseMatrix (const MyMat4& invProj,
 												 const MyMat4& invModelview,
 												 const MyVec2& pointOnScreen,
@@ -11,21 +35,21 @@ MyRay3<T> MyRay3<T>::unprojectFromInverseMatrix (const MyMat4& invProj,
 	auto v2HCS = pointOnScreen / screenSize * T(2) - T(1);
 	v2HCS.y = -v2HCS.y;
 
-	auto v4PCSSt = invProj.mulPoint(MyVec4(v2HCS.x, v2HCS.y, 0, 1));
-	auto v4PCSEd = invProj.mulPoint(MyVec4(v2HCS.x, v2HCS.y, 1, 1));
+	auto v4PCS_st = invProj.mulPoint(MyVec4(v2HCS.x, v2HCS.y, 0, 1));
+	auto v4PCS_ed = invProj.mulPoint(MyVec4(v2HCS.x, v2HCS.y, 1, 1));
 
-	auto v4LCSSt = invModelview.mulPoint(v4PCSSt);
-	auto v4LCSEd = invModelview.mulPoint(v4PCSEd);
+	auto v4LCS_st = invModelview.mulPoint(v4PCS_st);
+	auto v4LCS_ed = invModelview.mulPoint(v4PCS_ed);
 
 	MyRay3 o;
-	o.origin = v4LCSSt.toVec3();
-	o.dir = (v4LCSEd.toVec3() - o.origin).normalize();
+	o.origin = v4LCS_st.toVec3();
+	o.dir = (v4LCS_ed.toVec3() - o.origin).normalize();
 	return o;
 }
 
 template<typename T>
 bool MyRay3<T>::raycast(HitResult& outResult, const MyPlane3& plane, T maxDistance /*= Math::inf<T>()*/) {
-// https://www.cs.princeton.edu/courses/archive/fall00/cs426/lectures/raycast/sld017.htm
+	// https://www.cs.princeton.edu/courses/archive/fall00/cs426/lectures/raycast/sld017.htm
 	T s = dir.dot(plane.normal);
 
 	if (Math::equals0(s)) {
@@ -152,6 +176,29 @@ bool MyRay3<T>::raycast(HitResult& outResult, const MyMesh& mesh, T maxDistance 
 	outResult = r;
 	return true;
 }
+
+template<typename T>
+void MyRay3<T>::draw() {
+	if (!dir.sqrMagnitude())
+		return;
+
+	auto start = origin;
+	auto end   = origin + dir;
+
+	{
+		glColor4f(1,0,1,1);
+		Scoped_glBegin begin(GL_POINTS);
+		my_glVertex3v(start.data);
+		glColor4f(1,1,1,1);
+	}
+
+	{
+		Scoped_glBegin begin(GL_LINES);
+		my_glVertex3v(start.data);
+		my_glVertex3v(end.data);
+	}
+}
+
 
 // explicit specialization, and it will help that no need impl template member function in .h file
 template struct MyRay3<float>;

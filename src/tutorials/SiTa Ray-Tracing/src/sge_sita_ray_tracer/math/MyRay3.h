@@ -31,6 +31,8 @@ public:
 			hasResult = false;
 		}
 
+		void draw();
+
 		T		distance;
 		MyVec3	point;
 		MyVec3	normal;
@@ -55,6 +57,8 @@ public:
 	bool raycast(HitResult& outResult, const MySphere3& sphere, T maxDistance = Math::inf<T>());
 	bool raycast(HitResult& outResult, const MyTriangle3& tri, T maxDistance = Math::inf<T>());
 	bool raycast(HitResult& outResult, const MyMesh& mesh, T maxDistance = Math::inf<T>());
+
+	void draw();
 };
 
 using MyRay3f = MyRay3<float>;
