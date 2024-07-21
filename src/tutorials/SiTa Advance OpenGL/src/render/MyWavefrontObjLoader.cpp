@@ -174,17 +174,17 @@ void MyWavefrontObjLoader::_parseLine_f() {
 		// ------
 		{ // v
 			auto& arr = _info.v;
-			if (v < 0) _info.face_v.emplace_back(arr.size() + v);
+			if (v < 0) _info.face_v.emplace_back(static_cast<int>(arr.size() + v));
 			else if (v > 0) _info.face_v.emplace_back(v - 1);
 		}
 		{ // vt
 			auto& arr = _info.vt;
-			if (vt < 0) { _info.face_vt.emplace_back(arr.size() + vt); }
+			if (vt < 0) { _info.face_vt.emplace_back(static_cast<int>(arr.size() + vt)); }
 			else if (vt > 0) { _info.face_vt.emplace_back(vt - 1); }
 		}
 		{ // vn
 			auto& arr = _info.vn;
-			if (vn < 0) _info.face_vn.emplace_back(arr.size() + vn);
+			if (vn < 0) _info.face_vn.emplace_back(static_cast<int>(arr.size() + vn));
 			else if (vn > 0) _info.face_vn.emplace_back(vn - 1);
 		}
 	}

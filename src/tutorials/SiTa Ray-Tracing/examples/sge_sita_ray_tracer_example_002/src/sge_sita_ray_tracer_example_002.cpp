@@ -10,6 +10,22 @@ protected:
 
 		_debugRay.origin = MyVec3f::s_zero();
 		_debugRay.dir = MyVec3f::s_zero();
+
+//		_debugPlane.normal = MyVec3f(-1,-1,-1).normalize();
+		_debugPlane.normal = MyVec3f::s_forward();
+		_debugPlane.distance = -5;
+
+//		_debugMesh.loadObjFile("Assets/models/sphere_smooth.obj");
+		_debugSphere.center = {3,3,3};
+		_debugSphere.radius = 1;
+
+		_debugTri.v0 = { 1,1,1 };
+		_debugTri.v1 = { 2,2,1 };
+		_debugTri.v2 = { 1,2,0 };
+
+		//_debugMesh.loadObjFile("Assets/models/test.obj");
+		_debugMesh.loadObjFile("Assets/models/test2.obj");
+		_debugMesh.wireframe = true;
 	}
 
 	virtual void onDraw() override {
@@ -20,7 +36,13 @@ protected:
 		my_drawOriginAxis();
 
 		glPointSize(10);
+
+		_debugMesh.draw();
 		_debugRay.draw();
+		_debugPlane.draw();
+		_debugSphere.draw();
+		_debugTri.draw();
+		_hitResult.draw();
 
 		swapBuffers();
 		drawNeeded();
@@ -45,17 +67,33 @@ protected:
 		glGetFloatv(GL_MODELVIEW_MATRIX, _tmpModelview.data);
 
 		const auto& screenSize = _frameBufferSize;
+
 		_rayTraser.init(screenSize, _tmpProjMatrix, _tmpModelview);
 
-		_debugRay = _rayTraser.getRay(x, y);
+		MyRay3f ray = _rayTraser.getRay(x, y);
+
+		_debugRay = ray;
+
+		_hitResult.reset();
+		ray.raycast(_hitResult, _debugPlane,	_hitResult.distance);
+		ray.raycast(_hitResult, _debugSphere,	_hitResult.distance);
+		ray.raycast(_hitResult, _debugTri,		_hitResult.distance);
+		ray.raycast(_hitResult, _debugMesh,		_hitResult.distance);
 	}
 
 private:
-	MyRay3f		_debugRay;
-	MyRayTracer	_rayTraser;
+	MyRay3f				_debugRay;
 
-	MyMat4f		_tmpProjMatrix;
-	MyMat4f		_tmpModelview;
+	MyRayTracer			_rayTraser;
+	MyRay3f::HitResult	_hitResult;
+
+	Math::MyPlane3f		_debugPlane;
+	Math::MySphere3f	_debugSphere;
+	Math::MyTriangle3f	_debugTri;
+	MyMesh				_debugMesh;
+
+	MyMat4f				_tmpProjMatrix;
+	MyMat4f				_tmpModelview;
 };
 
 class MyApp : public NativeUIApp {

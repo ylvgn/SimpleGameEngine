@@ -35,8 +35,8 @@ MyRay3<T> MyRay3<T>::unprojectFromInverseMatrix (const MyMat4& invProj,
 	auto v2HCS = pointOnScreen / screenSize * T(2) - T(1);
 	v2HCS.y = -v2HCS.y;
 
-	auto v4PCS_st = invProj.mulPoint(MyVec4(v2HCS.x, v2HCS.y, 0, 1));
-	auto v4PCS_ed = invProj.mulPoint(MyVec4(v2HCS.x, v2HCS.y, 1, 1));
+	auto v4PCS_st = invProj.mulPoint(MyVec4(v2HCS.x, v2HCS.y, T(0), T(1)));
+	auto v4PCS_ed = invProj.mulPoint(MyVec4(v2HCS.x, v2HCS.y, T(1), T(1)));
 
 	auto v4LCS_st = invModelview.mulPoint(v4PCS_st);
 	auto v4LCS_ed = invModelview.mulPoint(v4PCS_ed);

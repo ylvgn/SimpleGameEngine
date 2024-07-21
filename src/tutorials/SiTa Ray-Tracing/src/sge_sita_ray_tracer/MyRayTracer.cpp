@@ -2,7 +2,7 @@
 
 namespace sge {
 
-void MyRayTracer::init(const MyVec2f& screenSize, const MyMat4& projMatrix, const MyMat4& modelview) {
+void MyRayTracer::init(const MyVec2& screenSize, const MyMat4& projMatrix, const MyMat4& modelview) {
 	_screenSize = screenSize;
 	_projMatrix = projMatrix;
 	_modelview  = modelview;

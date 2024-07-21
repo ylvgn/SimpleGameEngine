@@ -14,7 +14,7 @@ public:
 	using MyMat4 = MyMat4<T>;
 	using MyRay3 = MyRay3<T>;
 
-	void init(const MyVec2f& screenSize, const MyMat4& projMatrix, const MyMat4& modelview);
+	void init(const MyVec2& screenSize, const MyMat4& projMatrix, const MyMat4& modelview);
 
 	MyRay3 getRay(T x, T y);
 
