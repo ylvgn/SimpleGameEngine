@@ -195,10 +195,6 @@ void MyOpenGLNativeUIWindow_Win32::onSwapBuffers() {
 
 void MyOpenGLNativeUIWindow_Win32::onBeginRender() {
 	setFrameBufferSize(_clientRect.size);
-
-// -----
-	drawGrid();
-	drawOriginAxis();
 }
 
 void MyOpenGLNativeUIWindow_Win32::onEndRender() {

@@ -19,8 +19,12 @@ Attribute<T>::Attribute()
 }
 
 template<typename T>
-Attribute<T>::~Attribute() {
-	glDeleteBuffers(1, &_handle);
+void Attribute<T>::destroy() {
+	if (_handle) {
+		glDeleteBuffers(1, &_handle);
+		_handle = 0;
+	}
+	_count = 0;
 }
 
 template<typename T>

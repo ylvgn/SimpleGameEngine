@@ -11,19 +11,20 @@ public:
 	using IndexType = u32;
 
 	IndexBuffer();
-	~IndexBuffer();
+	~IndexBuffer() { destroy(); }
+
+	void destroy();
 
 	void uploadToGpu(ByteSpan data);
+	void uploadToGpu(const IndexType* p, size_t n);
 
-	u32		handle		() const { return _handle; }
-	size_t	dataSize	() const { return _dataSize; }
-	size_t	count		() const { return _dataSize / sizeof(IndexType); }
+	GLuint	handle		() const { return _handle; }
+	size_t	count		() const { return _count; }
+	size_t	byteSize	() const { return _count * sizeof(IndexType); }
 
 private:
-	void _internal_uploadToGpu(const IndexType* data, size_t dataSize);
-
-	u32		_handle;	// OpenGL buffer handle
-	size_t	_dataSize;	// The count represents how many total index buffer there are
+	GLuint _handle;	// OpenGL buffer handle
+	size_t _count;	// The count represents how many total index buffer there are
 };
 
 }

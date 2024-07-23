@@ -3,31 +3,34 @@
 namespace sge {
 
 IndexBuffer::IndexBuffer()
-	: _dataSize(0)
+	: _count(0)
 {
 	// call any opengl function after "gladLoadGL" done
 	glGenBuffers(1, &_handle);
 }
 
-IndexBuffer::~IndexBuffer() {
-	glDeleteBuffers(1, &_handle);
+void IndexBuffer::destroy() {
+	if (_handle) {
+		glDeleteBuffers(1, &_handle);
+		_handle = 0;
+	}
+	_count = 0;
 }
 
 void IndexBuffer::uploadToGpu(ByteSpan data) {
-	auto s = spanCast<const IndexType>(data);
-	_internal_uploadToGpu(s.data(), s.size());
+	auto span = spanCast<const IndexType>(data);
+	uploadToGpu(span.data(), span.size());
 }
 
-void IndexBuffer::_internal_uploadToGpu(const IndexType* data, size_t len) {
-	if (len <= 0) return;
+void IndexBuffer::uploadToGpu(const IndexType* p, size_t n) {
+	if (!p || !n)
+		return;
 
-	SGE_ASSERT(data != nullptr);
-
-	_dataSize = sizeof(data[0]) * len;
+	_count = n;
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _handle);
 	{
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, _dataSize, data, GL_STATIC_DRAW);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(*p) * n, p, GL_STATIC_DRAW);
 	}
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }

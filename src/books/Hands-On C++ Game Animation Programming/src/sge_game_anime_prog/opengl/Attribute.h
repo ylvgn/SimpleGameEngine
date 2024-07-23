@@ -16,7 +16,9 @@ template<typename T>
 class Attribute : public NonCopyable {
 public:
 	Attribute();
-	~Attribute();
+	~Attribute() { destroy(); }
+
+	void destroy();
 
 	// We need a way of binding and unbinding attributes from bind slots defined by the shader.
 	// bind and unbind the attribute to a slot specified in the Shader class.
@@ -27,7 +29,7 @@ public:
 	// Each element in the array represents the attribute for one vertex.
 	void uploadToGpu(ByteSpan data);
 
-	u32		handle	() const { return _handle; }
+	GLuint	handle	() const { return _handle; }
 	size_t	count	() const { return _count;  }
 
 private:
@@ -37,7 +39,7 @@ private:
 	// int, float, vec2/3/4, quat
 	void _setAttribPointer(u32 slot);
 
-	u32		_handle;	// OpenGL buffer handle
+	GLuint	_handle;	// OpenGL buffer handle
 	size_t	_count;		// The count represents how many total attributes there are
 };
 

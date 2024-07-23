@@ -10,15 +10,12 @@ public:
 	void destroy()		{ onDestroy(); } // is it allright ???
 	void swapBuffers()	{ onSwapBuffers(); }
 
-	void drawGrid();
-	void drawOriginAxis();
-
 	void beginRender() { onBeginRender(); }
 	void endRender() { onEndRender(); }
 
 	void setFrameBufferSize(const Vec2f& newSize);
 
-	Vec2f	_frameBufferSize{ 0,0 };
+	Vec2f			_frameBufferSize{ 0,0 };
 
 	Math::Camera3f	_camera;
 	Mat4f			_matrix_proj;

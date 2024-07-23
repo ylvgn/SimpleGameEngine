@@ -848,8 +848,8 @@ void NeHeOGL_Lesson005::_drawMyCube2() {
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glVertexPointer(3, GL_FLOAT, 0, kCube_Quad);
 
-		GLsizei vertexCount = static_cast<GLsizei>(sizeof(kCube_Quad) / sizeof(kCube_Quad[0]));
-		glDrawArrays(GL_QUADS, 0, vertexCount);
+		GLsizei quadCount = static_cast<GLsizei>(sizeof(kCube_Quad) / sizeof(kCube_Quad[0]));
+		glDrawArrays(GL_QUADS, 0, quadCount);
 		glDisableClientState(GL_VERTEX_ARRAY);
 	}
 }
