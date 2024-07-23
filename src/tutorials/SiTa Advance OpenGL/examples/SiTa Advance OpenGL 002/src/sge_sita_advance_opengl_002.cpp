@@ -8,14 +8,29 @@ public:
 	virtual void onInitGL() override {
 		Base::onInitGL();
 
-		_wireframe = true;
-		_shader    = new MyShader();
+		_wireframe  = true;
+		_simpleColorShader = new MyShader();
 
-		MyWavefrontObjLoader::loadFile(_editMesh, "Assets/Models/test.obj");
-		_editMesh.setColor({ 255, 255, 255, 255 });
-		_editMesh.updateIndex();
+		{
+			MyEditMesh editMesh;
+			MyWavefrontObjLoader::loadFile(editMesh, "Assets/Models/test.obj");
+			editMesh.setColor({ 255, 0, 255, 255 });
+			_renderMesh.updateVBO(editMesh);
+		}
 
-		_shader->loadFile("Assets/Shaders/test001");
+		{
+			MyEditMesh editMesh;
+			editMesh.createGrid(20, 20, 1, { 255, 255, 255, 255 });
+			_gridMesh.updateVBO(editMesh);
+		}
+
+		{
+			MyEditMesh editMesh;
+			editMesh.createOrigin();
+			_originMesh.updateVBO(editMesh);
+		}
+		
+		_simpleColorShader->loadFile("Assets/Shaders/simpleColor");
 	}
 
 	virtual void onDraw() override {
@@ -23,23 +38,25 @@ public:
 
 		beginRender();
 
-		my_drawGrid();
-		my_drawOriginAxis();
-
-		_shader->bind();
+		_simpleColorShader->bind();
 
 		if (_wireframe)
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 		{
-			_shader->setUniform("matMVP", _matrix_vp);
-			_editMesh.draw();
+			_simpleColorShader->setUniform("matMVP", _matrix_vp);
+
+			_simpleColorShader->draw(_gridMesh);
+			_simpleColorShader->draw(_originMesh);
+
+			_simpleColorShader->draw(_renderMesh);
 		}
 
 		if (_wireframe)
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-		_shader->unbind();
+		_simpleColorShader->unbind();
+
 		endRender();
 	}
 
@@ -52,8 +69,12 @@ public:
 		
 		if (ev.isDown()) {
 			switch (ev.pressedButtons) {
-				case Button::Right: _shader->reload(); break;
-				case Button::Left: _wireframe = !_wireframe; break;
+				case Button::Right: {
+					_simpleColorShader->reload();
+				}break;
+				case Button::Left: {
+					_wireframe = !_wireframe;
+				}break;
 			}
 		}
 	}
@@ -61,8 +82,12 @@ public:
 private:
 	bool _wireframe : 1;
 
-	MyEditMesh		_editMesh;
-	SPtr<MyShader>	_shader;
+	MyRenderMesh	_gridMesh;
+	MyRenderMesh	_originMesh;
+
+	MyRenderMesh	_renderMesh;
+
+	SPtr<MyShader>	_simpleColorShader;
 };
 
 class MyApp : public NativeUIApp {

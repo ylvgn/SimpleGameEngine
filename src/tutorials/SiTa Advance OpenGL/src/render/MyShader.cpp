@@ -3,6 +3,44 @@
 
 namespace sge {
 
+class Scoped_MyShader_VertexAttrib : public NonCopyable {
+public:
+	Scoped_MyShader_VertexAttrib(GLuint program, StrView name, GLint numComponets, GLenum type, bool normalized, GLsizei stride, intptr_t vertexBufferOffset) {
+		_loc = glGetAttribLocation(program, name.data());
+		if (_loc < 0)
+			return;
+		glVertexAttribPointer(_loc, numComponets, type, normalized, stride, reinterpret_cast<const void*>(vertexBufferOffset));
+		glEnableVertexAttribArray(_loc);
+	}
+
+	~Scoped_MyShader_VertexAttrib() {
+		if (_loc < 0)
+			return;
+		glDisableVertexAttribArray(_loc);
+	}
+private:
+	GLint _loc = -1;
+};
+
+#if 0
+#pragma mark ========= MyVertexArray ============
+#endif
+void MyVertexArray::create() {
+	if (!_p) {
+		glGenVertexArrays(1, &_p);
+	}
+}
+
+void MyVertexArray::destroy() {
+	if (_p) {
+		glDeleteVertexArrays(1, &_p);
+		_p = 0;
+	}
+}
+
+#if 0
+#pragma mark ========= MyShader ============
+#endif
 void MyShader::loadFile(StrView filename) {
 	_filename = filename;
 	reload();
@@ -126,6 +164,40 @@ GLint MyShader::getAttribLoc(StrView name) {
 		SGE_LOG_ERROR("cannot find shader attrib variable '{}'", name);
 	}
 	return loc;
+}
+
+void MyShader::draw(const MyRenderMesh& mesh) {
+	if (!_program)
+		return;
+
+	if (!mesh.vertexCount)
+		return;
+
+	_vertexArray.create();
+
+	_vertexArray.bind();
+	mesh.vertexBuffer.bind();
+	mesh.indexBuffer.bind();
+
+	using VertexType = MyRenderMesh::Test_VertexType;
+
+	GLsizei stride = static_cast<GLsizei>(sizeof(VertexType));
+	Scoped_MyShader_VertexAttrib v_pos	 (_program, "v_pos",    3, GL_FLOAT,         true, stride, memberOffset(&VertexType::pos));
+	Scoped_MyShader_VertexAttrib v_color (_program, "v_color",  4, GL_UNSIGNED_BYTE, true, stride, memberOffset(&VertexType::color));
+	Scoped_MyShader_VertexAttrib v_uv	 (_program, "v_uv",     2, GL_FLOAT,         true, stride, memberOffset(&VertexType::uv));
+	Scoped_MyShader_VertexAttrib v_normal(_program, "v_normal", 3, GL_FLOAT,         true, stride, memberOffset(&VertexType::normal));
+
+	if (mesh.indexCount > 0) {
+		const void* indexBufferOffset = 0;
+		glDrawElements(my_getGlPrimitiveTopology(mesh.primitive), static_cast<GLsizei>(mesh.indexCount), GL_UNSIGNED_SHORT, indexBufferOffset);
+	}
+	else {
+		glDrawArrays(my_getGlPrimitiveTopology(mesh.primitive), 0, static_cast<GLsizei>(mesh.vertexCount));
+	}
+
+	_vertexArray.unbind();
+	mesh.vertexBuffer.unbind();
+	mesh.indexBuffer.unbind();
 }
 
 void MyShader::_compileShader(GLuint& shader, GLenum type, StrView filename) {

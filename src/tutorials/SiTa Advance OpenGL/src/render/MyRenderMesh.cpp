@@ -3,35 +3,77 @@
 
 namespace sge {
 
-void MyRenderMesh::create(MyEditMesh& src) {
+void MyVertexBuffer::create(const Span<const MyVertex_PosColorUv> data) {
+	destroy();
+
+	if (data.empty())
+		return;
+
+	glGenBuffers(1, &_p);
+	glBindBuffer(GL_ARRAY_BUFFER, _p);
+	glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(data.size_bytes()), data.data(), GL_DYNAMIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+void MyVertexBuffer::destroy() {
+	if (_p) {
+		glDeleteBuffers(1, &_p);
+		_p = 0;
+	}
+}
+
+void MyIndexBuffer::create(const Span<const IndexType> data) {
+	destroy();
+	if (data.empty())
+		return;
+
+	glGenBuffers(1, &_p);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _p);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLsizeiptr>(data.size_bytes()), data.data(), GL_DYNAMIC_DRAW);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+}
+
+void MyIndexBuffer::destroy() {
+	if (_p) {
+		glDeleteBuffers(1, &_p);
+		_p = 0;
+	}
+}
+
+void MyRenderMesh::updateVBO(MyEditMesh& src) {
+	using IndexType = MyIndexBuffer::IndexType;
+
 	clear();
 
-	_vertexCount = src.pos.size();
-	 _indexCount = src.indices.size();
+	vertexCount = src.vertexCount();
+	indexCount = src.indexCount();
 
-	if (_vertexCount <= 0) return;
+	if (vertexCount <= 0)
+		return;
 
-	_primitive = RenderPrimitiveType::Triangles;
+	primitive = src.primitive;
 
-	{
-		_vertexBuffer.resize(_vertexCount);
-		auto* dst = _vertexBuffer.begin();
+	Vector<Test_VertexType> vertexData;
+
+	{ // vertex buffer
+		vertexData.resize(vertexCount);
+		auto* dst = vertexData.begin();
 
 		auto* pos = src.pos.begin();		auto* ed_pos = src.pos.end();
 		auto* uv = src.uv[0].begin();		auto* ed_uv = src.uv[0].end();
 		auto* color = src.color.begin();	auto* ed_color = src.color.end();
 		auto* normal = src.normal.begin();	auto* ed_normal = src.normal.end();
 
-		if (src.uv[0].size() < _vertexCount)
+		if (src.uv[0].size() < vertexCount)
 			SGE_ASSERT(false);
 
-		if (src.color.size() < _vertexCount)
+		if (src.color.size() < vertexCount)
 			SGE_ASSERT(false);
 
-		if (src.normal.size() < _vertexCount)
+		if (src.normal.size() < vertexCount)
 			SGE_ASSERT(false);
 
-		for (int i = 0; i < _vertexCount; ++i) {
+		for (int i = 0; i < vertexCount; ++i) {
 			dst->pos	= *pos;		pos++;
 			dst->uv		= *uv;		uv++;
 			dst->color	= *color;	color++;
@@ -46,91 +88,17 @@ void MyRenderMesh::create(MyEditMesh& src) {
 		SGE_ASSERT(normal == ed_normal);
 	}
 
-	{
-		if (_vertexCount >= std::numeric_limits<IndexType>::max()) {
-			throw SGE_ERROR("too many vertexs");
-		}
-
-		if (_indexCount > 0) {
-			_indexBuffer.resize(_indexCount);
-			auto* _src = src.indices.begin();
-			auto* _ed = src.indices.end();
-			auto* dst = _indexBuffer.begin();
-			for (; _src < _ed; _src++) {
-				*dst = static_cast<IndexType>(*_src);
-				dst++;
-			}
-		}
+	{ // index buffer
+		src.updateIndex();
 	}
+
+	vertexBuffer.create(vertexData);
+	 indexBuffer.create(src.indexData());
 }
 
 void MyRenderMesh::clear() {
-	_vertexBuffer.clear();
-	_indexBuffer.clear();
-	_vertexCount = 0;
-	_indexCount  = 0;
-}
-
-void MyRenderMesh::draw() {
-	if (_indexCount > 0) {
-		_drawIndice();
-	} else {
-		_drawArray();
-	}
-}
-
-void MyRenderMesh::_drawIndice() {
-	if (_indexCount <= 0)
-		return;
-
-	auto stride = static_cast<GLint>(sizeof(decltype(_vertexBuffer)::value_type));
-
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(3, GL_FLOAT, stride, _vertexBuffer[0].pos.data);
-
-	glEnableClientState(GL_COLOR_ARRAY);
-	glColorPointer(4, GL_UNSIGNED_BYTE, stride, _vertexBuffer[0].color.data);
-
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glTexCoordPointer(2, GL_FLOAT, stride, _vertexBuffer[0].uv.data);
-
-	glEnableClientState(GL_NORMAL_ARRAY);
-	glNormalPointer(GL_FLOAT, stride, _vertexBuffer[0].normal.data);
-
-	glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(_indexBuffer.size()), GL_UNSIGNED_SHORT, _indexBuffer.data());
-
-	glDisableClientState(GL_VERTEX_ARRAY);
-	glDisableClientState(GL_COLOR_ARRAY);
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	glDisableClientState(GL_NORMAL_ARRAY);
-}
-
-void MyRenderMesh::_drawArray() {
-	if (_vertexCount <= 0)
-		return;
-
-	auto stride = static_cast<GLint>(sizeof(decltype(_vertexBuffer)::value_type));
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(3, GL_FLOAT, stride, _vertexBuffer[0].pos.data);
-
-	glEnableClientState(GL_COLOR_ARRAY);
-	glColorPointer(4, GL_UNSIGNED_BYTE, stride, _vertexBuffer[0].color.data);
-
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glTexCoordPointer(2, GL_FLOAT, stride, _vertexBuffer[0].uv.data);
-
-	glEnableClientState(GL_NORMAL_ARRAY);
-	glNormalPointer(GL_FLOAT, stride, _vertexBuffer[0].normal.data);
-
-	{
-		GLsizei triangleCount = static_cast<GLsizei>(_vertexCount / 3);
-		glDrawArrays(GL_TRIANGLES, 0, triangleCount);
-	}
-
-	glDisableClientState(GL_NORMAL_ARRAY);
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	glDisableClientState(GL_COLOR_ARRAY);
-	glDisableClientState(GL_VERTEX_ARRAY);
+	vertexCount = 0;
+	 indexCount = 0;
 }
 
 }

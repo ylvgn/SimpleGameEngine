@@ -1,41 +1,49 @@
 #pragma once
 
 #include "MyEditMesh.h"
+#include "MyVertex.h"
 
 namespace sge {
 
+class MyVertexBuffer : public NonCopyable {
+public:
+	void create(const Span<const MyVertex_PosColorUv> data);
+	void destroy();
+
+	void bind	() const { glBindBuffer(GL_ARRAY_BUFFER, _p); }
+	void unbind	() const { glBindBuffer(GL_ARRAY_BUFFER, 0); }
+private:
+	GLuint _p = 0;
+};
+
+class MyIndexBuffer : public NonCopyable {
+public:
+	using IndexType = MyEditMesh::IndexType;
+
+	void create(const Span<const IndexType> data);
+	void destroy();
+
+	void bind	() const { glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _p); }
+	void unbind	() const { glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); }
+private:
+	GLuint _p = 0;
+};
+
 class MyRenderMesh {
 public:
-	void create(MyEditMesh& src);
+	using Test_VertexType = MyVertex_PosColorUv;
+
 	void clear();
 
-	void draw();
+	void updateVBO(MyEditMesh& src);
 
-	RenderPrimitiveType primitive() const { return _primitive; }
+	MyVertexBuffer vertexBuffer;
+	MyIndexBuffer   indexBuffer;
 
-	size_t vertexCount()			const { return _vertexCount; }
-	size_t indexCount()				const { return _indexCount; }
+	size_t vertexCount = 0;
+	size_t indexCount  = 0;
 
-private:
-	void _drawIndice();
-	void _drawArray();
-
-	using IndexType = u16;
-
-	struct MyVertex {
-		Color4b	color;
-		Vec2f	uv;
-		Vec3f	pos;
-		Vec3f	normal;
-	};
-
-	Vector<MyVertex>	_vertexBuffer;
-	Vector<IndexType>	_indexBuffer;
-
-	size_t _vertexCount = 0;
-	size_t _indexCount  = 0;
-
-	RenderPrimitiveType _primitive = RenderPrimitiveType::Triangles;
+	RenderPrimitiveType primitive = RenderPrimitiveType::Triangles;
 };
 
 }

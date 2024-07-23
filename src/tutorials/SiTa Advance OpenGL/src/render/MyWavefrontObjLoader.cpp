@@ -241,13 +241,13 @@ void MyWavefrontObjLoader::_parseLine_f() {
 	}
 
 	// ------
-	using IndexType = decltype(_outInfo->indices)::value_type;
+	using IndexType = decltype(_outInfo->index)::value_type;
 
 	for (size_t i = 0; i < newAddVertexCount; i++) {
 		if (i >= 3) {
 			// FYI: https://www.reddit.com/r/opengl/comments/3t5fmu/understanding_wavefront_obj_model_format_face/
-			_outInfo->indices.emplace_back(static_cast<IndexType>(indicesStart /* + 0*/));
-			_outInfo->indices.emplace_back(static_cast<IndexType>(indicesStart + i - 1));
+			_outInfo->index.emplace_back(static_cast<IndexType>(indicesStart/*+0*/));
+			_outInfo->index.emplace_back(static_cast<IndexType>(indicesStart + i-1));
 		}
 
 		IndexType vi = static_cast<IndexType>(indicesStart + i);
@@ -258,7 +258,7 @@ void MyWavefrontObjLoader::_parseLine_f() {
 		if (currentVertexCount > std::numeric_limits<IndexType>::max()) {
 			_error("_parseLine_f too many vertex count");
 		}
-		_outInfo->indices.emplace_back(vi);
+		_outInfo->index.emplace_back(vi);
 	}
 }
 

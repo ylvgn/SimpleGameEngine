@@ -1,6 +1,22 @@
 #pragma once
 
+#include "MyRenderMesh.h"
+
 namespace sge {
+
+class MyVertexArray : public NonCopyable {
+public:
+	~MyVertexArray() { destroy(); }
+
+	void create();
+	void destroy();
+
+	void bind	() const { glBindVertexArray(_p); }
+	void unbind	() const { glBindVertexArray(0); }
+
+private:
+	GLuint _p = 0;
+};
 
 class MyShader : public RefCountBase {
 public:
@@ -30,6 +46,8 @@ public:
 
 	GLint getAttribLoc(StrView name);
 
+	void draw(const MyRenderMesh& mesh);
+
 private:
 
 	void _compileShader(GLuint& shader, GLenum type, StrView filename);
@@ -43,6 +61,8 @@ private:
 	GLuint _program = 0;
 	GLuint _vertexShader = 0;
 	GLuint _pixelShader = 0;
+
+	MyVertexArray _vertexArray;
 };
 
 }
