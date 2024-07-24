@@ -40,9 +40,7 @@ void MyIndexBuffer::destroy() {
 	}
 }
 
-void MyRenderMesh::updateVBO(MyEditMesh& src) {
-	using IndexType = MyIndexBuffer::IndexType;
-
+void MyRenderMesh::create(MyEditMesh& src) {
 	clear();
 
 	vertexCount = src.vertexCount();
@@ -92,13 +90,17 @@ void MyRenderMesh::updateVBO(MyEditMesh& src) {
 		src.updateIndex();
 	}
 
-	vertexBuffer.create(vertexData);
-	 indexBuffer.create(src.indexData());
+	_updateVBO(vertexData, src.indexData());
 }
 
 void MyRenderMesh::clear() {
 	vertexCount = 0;
 	 indexCount = 0;
+}
+
+void MyRenderMesh::_updateVBO(const Span<const Test_VertexType> vertexData, const Span<const IndexType> indexData) {
+	vertexBuffer.create(vertexData);
+	indexBuffer.create(indexData);
 }
 
 }

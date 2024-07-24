@@ -31,11 +31,12 @@ private:
 
 class MyRenderMesh {
 public:
-	using Test_VertexType = MyVertex_PosColorUv;
+	using Test_VertexType	= MyVertex_PosColorUv;
+	using IndexType			= MyEditMesh::IndexType;
 
 	void clear();
 
-	void updateVBO(MyEditMesh& src);
+	void create(MyEditMesh& src);
 
 	MyVertexBuffer vertexBuffer;
 	MyIndexBuffer   indexBuffer;
@@ -44,6 +45,8 @@ public:
 	size_t indexCount  = 0;
 
 	RenderPrimitiveType primitive = RenderPrimitiveType::Triangles;
+private:
+	void _updateVBO(const Span<const Test_VertexType> vertexData, const Span<const IndexType> indexData);
 };
 
 }

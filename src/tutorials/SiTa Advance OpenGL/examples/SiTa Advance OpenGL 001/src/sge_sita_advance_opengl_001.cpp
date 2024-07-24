@@ -23,32 +23,33 @@ public:
 
 		beginRender();
 
+		example1();
+
+		endRender();
+	}
+
+	void example1() {
 		my_drawGrid();
 		my_drawOriginAxis();
-
-		_shader->bind();
 
 		if (_wireframe)
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
+		_shader->bind();
 		{
 			_shader->setUniform("matMVP", _matrix_vp);
 			_editMesh.draw();
 		}
+		_shader->unbind();
 
 		if (_wireframe)
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-		_shader->unbind();
-		endRender();
 	}
 
 	virtual void onUIMouseEvent(UIMouseEvent& ev) override {
 		Base::onUIMouseEvent(ev);
 
-		using Button	= UIMouseEvent::Button;
-		using Type		= UIMouseEvent::Type;
-		using Modifier	= UIEventModifier;
+		using Button = UIMouseEvent::Button;
 		
 		if (ev.isDown()) {
 			switch (ev.pressedButtons) {
