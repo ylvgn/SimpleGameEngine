@@ -29,3 +29,4 @@ add_subdirectory(externals/glew)
 #-- examples ---
 add_subdirectory(examples/SiTa\ Advance\ OpenGL\ 001)
 add_subdirectory(examples/SiTa\ Advance\ OpenGL\ 002)
+add_subdirectory(examples/SiTa\ Advance\ OpenGL\ 003)

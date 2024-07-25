@@ -1,0 +1,39 @@
+struct MyVertexInput {
+	float4 pos 	 	: POSITION;
+	float4 color 	: COLOR;
+	float4 normal 	: NORMAL;
+};
+
+struct v2f {
+	float4 pos 		: POSITION;
+	float4 color 	: COLOR;
+	float4 wpos 	: TEXCOORD0;
+	float4 normal 	: TEXCOORD1; // semantics NORMAL in v2f is invalid
+};
+
+mat4x4 matMVP;
+float  uptime;
+float3 lightPos;
+
+v2f vs_main(MyVertexInput i) {
+	v2f o;
+	o.pos = i.pos;
+	o.color = i.color;
+	o.wpos = o.pos;
+	o.normal = i.normal;
+	
+	// vertex animation
+	float t = uptime * 0.5 + o.pos.x - o.pos.z;
+	o.pos.y += sin(t * 2) * 0.25;
+
+	o.pos = mul(o.pos, matMVP);
+	return o;
+}
+
+float4 ps_main(v2f i) : COLOR {
+	float3 lightDir = normalize(lightPos - i.wpos.xyz);
+	float d = dot(normalize(i.normal.xyz), lightDir);
+	return float4(d,d,d,1) * i.color;
+
+//	return float4(1,0,1,1);
+}

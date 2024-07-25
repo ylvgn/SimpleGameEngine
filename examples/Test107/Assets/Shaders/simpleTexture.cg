@@ -1,0 +1,38 @@
+struct MyVertexInput {
+	float4 pos 	 	: POSITION;
+	float4 color 	: COLOR;
+	float4 normal 	: NORMAL;
+	float2 uv		: TEXCOORD0;
+};
+
+struct v2f {
+	float4 pos 		: POSITION;
+	float4 color 	: COLOR;
+	float2 uv 		: TEXCOORD0;
+	float4 normal 	: TEXCOORD1; // semantics NORMAL in v2f is invalid
+};
+
+mat4x4 matMVP;
+float  uptime;
+
+sampler2D sampler0;
+sampler2D sampler1;
+
+v2f vs_main(MyVertexInput i) {
+	v2f o;
+	o.pos = mul(i.pos, matMVP);
+	o.color = i.color;
+	o.uv = i.uv;
+	
+	return o;
+}
+
+float4 ps_main(v2f i) : COLOR {
+	float4 texColor0 = tex2D(sampler0, i.uv);
+	float4 texColor1 = tex2D(sampler1, i.uv + float2(uptime * 0.2, 0));
+
+	float4 t = texColor0 * texColor1;
+	return i.color * t;
+
+//	return float4(1,0,1,1);
+}

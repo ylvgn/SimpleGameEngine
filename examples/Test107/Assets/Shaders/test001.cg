@@ -1,0 +1,25 @@
+// FYI: 
+	// https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-semantics?redirectedfrom=MSDN
+	// https://developer.download.nvidia.cn/cg/Cg_language.html
+
+struct MyVertexInput {
+	float4 pos : POSITION;
+};
+
+// varying variable
+struct v2f {
+	float4 pos : POSITION;
+};
+
+// global(uniform) variable
+mat4x4 matMVP; // Projection * ModelView
+
+v2f vs_main(MyVertexInput i) {
+	v2f o;
+	o.pos = mul(i.pos, matMVP);
+	return o;
+}
+
+float4 ps_main(v2f i) : COLOR {
+	return float4(1,1,0,1);
+}

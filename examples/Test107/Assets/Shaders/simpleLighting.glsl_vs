@@ -17,7 +17,7 @@ void main() {
 
 	p_pos = v_pos; // world pos
 
-	// vertex animation (sin wave)
+	// vertex animation
 //	float t = uptime; //+ p_pos.x;// - p_pos.z;
 //	float t = 0 + p_pos.x - p_pos.z;
 	float t = uptime * 0.5 + p_pos.x - p_pos.z;

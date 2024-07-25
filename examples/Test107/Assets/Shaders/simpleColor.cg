@@ -1,0 +1,24 @@
+struct MyVertexInput {
+	float4 pos 	 : POSITION;
+	float4 color : COLOR;
+};
+
+
+struct v2f {
+	float4 pos : POSITION;
+	float4 color : COLOR;
+};
+
+mat4x4 matMVP;
+
+v2f vs_main(MyVertexInput i) {
+	v2f o;
+	o.pos = mul(i.pos, matMVP);
+	o.color = i.color;
+	return o;
+}
+
+float4 ps_main(v2f i) : COLOR {
+	return i.color;
+//	return float4(1,0,1,1);
+}

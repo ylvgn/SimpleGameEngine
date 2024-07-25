@@ -7,7 +7,9 @@ namespace sge {
 
 class MyVertexBuffer : public NonCopyable {
 public:
-	void create(const Span<const MyVertex_PosColorUv> data);
+	template<class MyVertexT>
+	void create(const Span<const MyVertexT> data);
+
 	void destroy();
 
 	void bind	() const { glBindBuffer(GL_ARRAY_BUFFER, _p); }
@@ -31,12 +33,16 @@ private:
 
 class MyRenderMesh {
 public:
-	using Test_VertexType	= MyVertex_PosColorUv;
+	using Test_VertexType	= MyVertex_PosColorUvNormal;
+	using TestCg_VertexType = MyVertexCg_PosColorUvNormal;
 	using IndexType			= MyEditMesh::IndexType;
 
 	void clear();
 
 	void create(MyEditMesh& src);
+	void createCg(MyEditMesh& src);
+
+	RenderPrimitiveType primitive = RenderPrimitiveType::Triangles;
 
 	MyVertexBuffer vertexBuffer;
 	MyIndexBuffer   indexBuffer;
@@ -44,9 +50,12 @@ public:
 	size_t vertexCount = 0;
 	size_t indexCount  = 0;
 
-	RenderPrimitiveType primitive = RenderPrimitiveType::Triangles;
 private:
-	void _updateVBO(const Span<const Test_VertexType> vertexData, const Span<const IndexType> indexData);
+	template<class MyVertexT>
+	void _updateVBO(const Span<const MyVertexT> vertexData, const Span<const IndexType> indexData) {
+		vertexBuffer.create(vertexData);
+		indexBuffer.create(indexData);
+	}
 };
 
 }

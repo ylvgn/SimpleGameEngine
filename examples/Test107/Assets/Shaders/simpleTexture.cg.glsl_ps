@@ -1,0 +1,59 @@
+// glslf output by Cg compiler
+// cgc version 3.1.0013, build date Apr 18 2012
+// command line args: -profile glslf -po version=330
+// source file: simpleTexture.cg
+//vendor NVIDIA Corporation
+//version 3.1.0.13
+//profile glslf
+//program ps_main
+//semantic matMVP
+//semantic uptime
+//semantic sampler0
+//semantic sampler1
+//var float uptime :  : _uptime : -1 : 1
+//var sampler2D sampler0 :  : _sampler0 : -1 : 1
+//var sampler2D sampler1 :  : _sampler1 : -1 : 1
+//var float4 i.color : $vin.COLOR : COLOR : 0 : 1
+//var float2 i.uv : $vin.TEXCOORD0 : TEXCOORD0 : 0 : 1
+//var float4 i.normal : $vin.TEXCOORD1 :  : 0 : 0
+//var float4 ps_main : $vout.COLOR : COLOR : -1 : 1
+
+#version 330
+
+struct MyVertexInput {
+    vec4 _color1;
+    vec4 _normal1;
+    vec2 _uv1;
+};
+
+struct v2f {
+    vec4 _color;
+    vec2 _uv;
+    vec4 _normal;
+};
+
+vec4 _ret_0;
+vec2 _c0008;
+uniform float _uptime;
+uniform sampler2D _sampler0;
+uniform sampler2D _sampler1;
+in vec4 cg_FrontColor;
+in vec4 cg_TexCoord0;
+out vec4 cg_FragColor;
+
+ // main procedure, the original name was ps_main
+void main()
+{
+
+    vec4 _texColor0;
+    vec4 _texColor1;
+    vec4 _t;
+
+    _texColor0 = texture(_sampler0, cg_TexCoord0.xy);
+    _c0008 = cg_TexCoord0.xy + vec2(_uptime*2.00000003E-001, _uptime*2.00000003E-001);
+    _texColor1 = texture(_sampler1, _c0008);
+    _t = _texColor0*_texColor1;
+    _ret_0 = cg_FrontColor*_t;
+    cg_FragColor = _ret_0;
+    return;
+} // main end

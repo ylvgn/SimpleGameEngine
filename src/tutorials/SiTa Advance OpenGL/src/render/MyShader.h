@@ -1,6 +1,7 @@
 #pragma once
 
 #include "MyRenderMesh.h"
+#include "MyTexture2D.h"
 
 namespace sge {
 
@@ -13,6 +14,20 @@ public:
 
 	void bind	() const { glBindVertexArray(_p); }
 	void unbind	() const { glBindVertexArray(0); }
+
+private:
+	GLuint _p = 0;
+};
+
+class MySampler : public NonCopyable {
+public:
+	~MySampler() { destroy(); }
+
+	void create();
+	void destroy();
+
+	void bind(GLuint texUnit)	const { glBindSampler(texUnit, _p); }
+	void unbind(GLuint texUnit) const { glBindSampler(0, _p); }
 
 private:
 	GLuint _p = 0;
@@ -44,9 +59,19 @@ public:
 	void setUniform(StrView name, const Quat4f& value);
 	void setUniform(StrView name, const Mat4f& value);
 
+	void setUniformCg(StrView name, const Mat4f& value);
+
 	GLint getAttribLoc(StrView name);
 
+	constexpr static const int kMaxSamplers = 16;
+
+	void setUniform(StrView name, const MyTexture2D& value);
+
 	void draw(const MyRenderMesh& mesh);
+
+	void drawCg(const MyRenderMesh& mesh);
+
+	void dumpActiveAttrib();
 
 private:
 
@@ -63,6 +88,14 @@ private:
 	GLuint _pixelShader = 0;
 
 	MyVertexArray _vertexArray;
+
+	int _boundTexCount = 0;
+
+	struct TextureUnit {
+		MySampler sampler;
+		const MyTexture2D* tex = nullptr;
+	};
+	TextureUnit _texUnits[kMaxSamplers];
 };
 
 }

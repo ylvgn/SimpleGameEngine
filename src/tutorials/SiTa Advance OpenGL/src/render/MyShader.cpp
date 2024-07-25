@@ -80,10 +80,18 @@ void MyShader::bind() {
 	if (!_program)
 		SGE_ASSERT(glIsProgram(_program) == GL_TRUE);
 
+	SGE_ASSERT(_boundTexCount == 0);
 	glUseProgram(_program);
 }
 
 void MyShader::unbind() {
+	for (int i = 0; i < _boundTexCount; ++i) {
+		auto& t = _texUnits[i];
+		t.sampler.unbind(i);
+		t.tex->unbind();
+	}
+
+	_boundTexCount = 0;
 	glUseProgram(0);
 }
 
@@ -157,6 +165,31 @@ void MyShader::setUniform(StrView name, const Mat4f& value) {
 	glUniformMatrix4fv(loc, 1, false, value._elements);
 }
 
+void MyShader::setUniformCg(StrView name, const Mat4f& value) {
+	auto loc = getUniformLoc(name);
+	glUniform4fv(loc, 4, value._elements);
+}
+
+void MyShader::setUniform(StrView name, const MyTexture2D& value) {
+	if (_boundTexCount >= kMaxSamplers)
+		throw SGE_ERROR("too many samplers");
+
+	auto loc = getUniformLoc(name);	
+	glUniform1i(loc, _boundTexCount);
+
+	glActiveTexture(GL_TEXTURE0 + _boundTexCount);
+	value.bind();
+
+	{
+		auto& t = _texUnits[_boundTexCount];
+		t.sampler.create();
+		t.sampler.bind(_boundTexCount);
+		t.tex = &value;
+	}
+
+	_boundTexCount++;
+}
+
 GLint MyShader::getAttribLoc(StrView name) {
 	auto loc = glGetAttribLocation(_program, name.data());
 	if (loc < 0) {
@@ -200,6 +233,59 @@ void MyShader::draw(const MyRenderMesh& mesh) {
 	mesh.indexBuffer.unbind();
 }
 
+void MyShader::drawCg(const MyRenderMesh& mesh) {
+	if (!_program)
+		return;
+
+	if (!mesh.vertexCount)
+		return;
+
+	_vertexArray.create();
+
+	_vertexArray.bind();
+	mesh.vertexBuffer.bind();
+	mesh.indexBuffer.bind();
+
+	using VertexType = MyRenderMesh::TestCg_VertexType;
+
+	GLsizei stride = static_cast<GLsizei>(sizeof(VertexType));
+	Scoped_MyShader_VertexAttrib v_pos	 (_program, "cg_Vertex",    4, GL_FLOAT,         true, stride, memberOffset(&VertexType::pos));
+	Scoped_MyShader_VertexAttrib v_color (_program, "COLOR",		4, GL_FLOAT,		 true, stride, memberOffset(&VertexType::color));
+	Scoped_MyShader_VertexAttrib v_normal(_program, "NORMAL",		4, GL_FLOAT,         true, stride, memberOffset(&VertexType::normal));
+	Scoped_MyShader_VertexAttrib v_uv	 (_program, "TEXCOORD0",	2, GL_FLOAT,         true, stride, memberOffset(&VertexType::uv)); // todo
+
+	if (mesh.indexCount > 0) {
+		const void* indexBufferOffset = 0;
+		glDrawElements(my_getGlPrimitiveTopology(mesh.primitive), static_cast<GLsizei>(mesh.indexCount), GL_UNSIGNED_SHORT, indexBufferOffset);
+	}
+	else {
+		glDrawArrays(my_getGlPrimitiveTopology(mesh.primitive), 0, static_cast<GLsizei>(mesh.vertexCount));
+	}
+
+	_vertexArray.unbind();
+	mesh.vertexBuffer.unbind();
+	mesh.indexBuffer.unbind();
+}
+
+void MyShader::dumpActiveAttrib() {
+	GLint activeCount = 0;
+	glGetProgramiv(_program, GL_ACTIVE_ATTRIBUTES, &activeCount);
+
+	static const size_t kszNameSize = 1024;
+	for (int i = 0; i < activeCount; ++i) {
+		char out_szName[kszNameSize + 1];
+		GLsizei out_len = 0;
+		GLint   out_dataSize = 0;
+		GLenum  out_dataType = 0;
+
+		glGetActiveAttrib(_program, static_cast<GLuint>(i), kszNameSize, &out_len, &out_dataSize, &out_dataType, out_szName);
+		out_szName[kszNameSize] = 0;
+
+		auto loc = glGetAttribLocation(_program, out_szName);
+		SGE_LOG("{}: {}", out_szName, loc);
+	}
+}
+
 void MyShader::_compileShader(GLuint& shader, GLenum type, StrView filename) {
 	if (!shader) {
 		shader = glCreateShader(type);
@@ -222,7 +308,7 @@ void MyShader::_compileShader(GLuint& shader, GLenum type, StrView filename) {
 		TempString tmp;
 		FmtTo(tmp, "Error compile shader filename = {}\n{}", filename, errmsg);
 
-		throw SGE_ERROR(tmp.c_str());
+		throw SGE_ERROR("{}", tmp.c_str());
 	}
 }
 
@@ -262,7 +348,7 @@ void MyShader::_linkProgram() {
 		TempString tmp;
 		FmtTo(tmp, "Error link shader filename = {}\n{}", _filename, errmsg);
 
-		throw SGE_ERROR(tmp.c_str());
+		throw SGE_ERROR("{}", tmp.c_str());
 	}
 
 	//----
@@ -276,7 +362,7 @@ void MyShader::_linkProgram() {
 		TempString tmp;
 		FmtTo(tmp, "Error validate shader filename = {}\n{}", _filename, errmsg);
 
-		throw SGE_ERROR(tmp.c_str());
+		throw SGE_ERROR("{}", tmp.c_str());
 	}
 }
 
@@ -293,6 +379,26 @@ void MyShader::_getProgramInfoLog(GLuint program, String& outMsg) {
 	glGetProgramInfoLog(program, bufLen, &outLen, outMsg.begin());
 
 	outMsg.resize(outLen);
+}
+
+void MySampler::create() {
+	if (!_p) {
+		glGenSamplers(1, &_p);
+
+		glSamplerParameterf(_p, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glSamplerParameterf(_p, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glSamplerParameterf(_p, GL_TEXTURE_WRAP_R, GL_REPEAT);
+
+		glSamplerParameterf(_p, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glSamplerParameterf(_p, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	}
+}
+
+void MySampler::destroy() {
+	if (_p) {
+		glDeleteSamplers(1, &_p);
+		_p = 0;
+	}
 }
 
 }

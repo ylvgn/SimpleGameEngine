@@ -11,15 +11,15 @@ public:
 		_wireframe = true;
 
 		_simpleColorShader = new MyShader();
-		_simpleLightingShader = new MyShader();
-	//-----
+		_simpleTextureShader = new MyShader();
+	//----
 		_simpleColorCgShader = new MyShader();
-		_simpleLightingCgShader = new MyShader();
+		_simpleCgTextureShader = new MyShader();
 
 		{
 			MyEditMesh editMesh;
-//			MyWavefrontObjLoader::loadFile(editMesh, "Assets/Models/test.obj");
-			MyWavefrontObjLoader::loadFile(editMesh, "Assets/Models/test2.obj");
+			MyWavefrontObjLoader::loadFile(editMesh, "Assets/Models/test.obj");
+//			MyWavefrontObjLoader::loadFile(editMesh, "Assets/Models/test2.obj");
 			editMesh.setColor({ 255, 255, 255, 255 });
 			_renderMesh.create(editMesh);
 			_renderCgMesh.createCg(editMesh);
@@ -38,12 +38,15 @@ public:
 			_originMesh.create(editMesh);
 			_originCgMesh.createCg(editMesh);
 		}
-		
-		_simpleColorShader->loadFile("Assets/Shaders/simpleColor");
-		_simpleLightingShader->loadFile("Assets/Shaders/simpleLighting");
 
+		_tex0.loadPngFile("Assets/Textures/Kingfisher.png", false);
+		_tex1.loadPngFile("Assets/Textures/happymask.png", false);
+
+		_simpleColorShader->loadFile("Assets/Shaders/simpleColor");
+		_simpleTextureShader->loadFile("Assets/Shaders/simpleTexture");
+	//----
 		_simpleColorCgShader->loadFile("Assets/Shaders/simpleColor.cg");
-		_simpleLightingCgShader->loadFile("Assets/Shaders/simpleLighting.cg");
+		_simpleCgTextureShader->loadFile("Assets/Shaders/simpleTexture.cg");
 	}
 
 	virtual void onUIMouseEvent(UIMouseEvent& ev) override {
@@ -55,11 +58,10 @@ public:
 			switch (ev.pressedButtons) {
 				case Button::Right: {
 					_simpleColorShader->reload();
-					_simpleLightingShader->reload();
-				//-----
+					_simpleTextureShader->reload();
+				//----
 					_simpleColorCgShader->reload();
-					_simpleLightingCgShader->reload();
-
+					_simpleCgTextureShader->reload();
 				}break;
 				case Button::Left: {
 					_wireframe = !_wireframe;
@@ -107,16 +109,14 @@ public:
 		}
 
 		{
-			auto& s = _simpleLightingShader;
+			auto& s = _simpleTextureShader;
 			s->bind();
-				s->setUniform("uptime", uptime);
 				s->setUniform("matMVP", _matrix_vp);
-				s->setUniform("lightPos", Vec3f(1,2,2));
+				s->setUniform("sampler0", _tex0);
+				s->setUniform("sampler1", _tex1);
+				s->setUniform("uptime", uptime);
 
-				glEnable(GL_POLYGON_OFFSET_FILL);
-				glPolygonOffset(-1.f, 0.001f);
-					s->draw(_renderMesh);
-				glDisable(GL_POLYGON_OFFSET_FILL);
+				s->draw(_renderMesh);
 			s->unbind();
 		}
 	}
@@ -125,24 +125,22 @@ public:
 		{
 			auto& s = _simpleColorCgShader;
 			s->bind();
-				s->setUniformCg("_matMVP", _matrix_vp);
+			s->setUniformCg("_matMVP", _matrix_vp);
 
-				s->drawCg(_gridCgMesh);
-				s->drawCg(_originCgMesh);
+			s->drawCg(_gridCgMesh);
+			s->drawCg(_originCgMesh);
 			s->unbind();
 		}
 
 		{
-			auto& s = _simpleLightingCgShader;
+			auto& s = _simpleCgTextureShader;
 			s->bind();
 				s->setUniformCg("_matMVP", _matrix_vp);
-				s->setUniform("_lightPos", Vec3f(-1,2,2));
 				s->setUniform("_uptime", uptime);
+				s->setUniform("_sampler0", _tex0);
+				s->setUniform("_sampler1", _tex1);
 
-				glEnable(GL_POLYGON_OFFSET_FILL);
-				glPolygonOffset(-1.f, 0.001f);
-					s->drawCg(_renderCgMesh);
-				glDisable(GL_POLYGON_OFFSET_FILL);
+				s->drawCg(_renderCgMesh);
 			s->unbind();
 		}
 	}
@@ -152,20 +150,24 @@ private:
 
 	MyHiResTimer	_uptime;
 
+	MyTexture2D		_tex0;
+	MyTexture2D		_tex1;
+
 //-----
 	MyRenderMesh	_gridMesh;
 	MyRenderMesh	_originMesh;
 	MyRenderMesh	_renderMesh;
 
 	SPtr<MyShader>	_simpleColorShader;
-	SPtr<MyShader>	_simpleLightingShader;
+	SPtr<MyShader>	_simpleTextureShader;
+
 //-----
 	MyRenderMesh	_gridCgMesh;
 	MyRenderMesh	_originCgMesh;
 	MyRenderMesh	_renderCgMesh;
 
 	SPtr<MyShader>	_simpleColorCgShader;
-	SPtr<MyShader>	_simpleLightingCgShader;
+	SPtr<MyShader>	_simpleCgTextureShader;
 };
 
 class MyApp : public NativeUIApp {
