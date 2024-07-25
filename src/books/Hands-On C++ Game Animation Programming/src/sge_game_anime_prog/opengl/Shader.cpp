@@ -153,10 +153,10 @@ void Shader::_populateAttributes() {
 			glGetActiveAttrib(_handle, static_cast<GLuint>(i), kNameSize, &length, &size, &type, name);
 
 			// Finally, call glGetAttribLocation to get the location of each attribute
-			int attrib = glGetAttribLocation(_handle, name);
+			auto loc = glGetAttribLocation(_handle, name);
 
-			if (attrib >= 0) {
-				_attributes[name] = attrib;
+			if (loc >= 0) {
+				_attributes[name] = loc;
 			}
 		}
 	}

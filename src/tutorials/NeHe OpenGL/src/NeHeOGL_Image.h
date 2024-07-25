@@ -56,8 +56,8 @@ public:
 	template<class COLOR> SGE_INLINE	Span<      COLOR>	row(int y)			{ _checkType(COLOR::kColorType); return row_noCheck<COLOR>(y); }
 	template<class COLOR> SGE_INLINE	Span<const COLOR>	row(int y) const	{ _checkType(COLOR::kColorType); return row_noCheck<COLOR>(y); }
 
-	template<class COLOR> SGE_INLINE	const COLOR&		pixel(int x, int y) const	{ return row<COLOR>(y)[x]; }
 	template<class COLOR> SGE_INLINE		  COLOR&		pixel(int x, int y)			{ return row<COLOR>(y)[x]; }
+	template<class COLOR> SGE_INLINE	const COLOR&		pixel(int x, int y) const	{ return row<COLOR>(y)[x]; }
 
 	template<class COLOR> SGE_INLINE Span<      COLOR>		row_noCheck(int y)			{ return Span<      COLOR>(reinterpret_cast<      COLOR*>(rowBytes(y).data()), _info.size.x); }
 	template<class COLOR> SGE_INLINE Span<const COLOR>		row_noCheck(int y) const	{ return Span<const COLOR>(reinterpret_cast<const COLOR*>(rowBytes(y).data()), _info.size.x); }

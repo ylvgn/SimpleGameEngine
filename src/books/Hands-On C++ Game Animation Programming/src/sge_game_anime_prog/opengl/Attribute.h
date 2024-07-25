@@ -22,8 +22,8 @@ public:
 
 	// We need a way of binding and unbinding attributes from bind slots defined by the shader.
 	// bind and unbind the attribute to a slot specified in the Shader class.
-	void bind(u32 slot);
-	void unbind(u32 slot);
+	void bind(GLuint loc);
+	void unbind(GLuint loc);
 
 	// it will upload an array of data to the GPU.
 	// Each element in the array represents the attribute for one vertex.
@@ -37,10 +37,10 @@ private:
 	// it will need to be implemented once for each type of attribute that will be supported.
 	// wraps glVertesAttribPointer or glVertesAttribIPointer
 	// int, float, vec2/3/4, quat
-	void _setAttribPointer(u32 slot);
+	void _setAttribPointer(GLuint loc);
 
-	GLuint	_handle;	// OpenGL buffer handle
-	size_t	_count;		// The count represents how many total attributes there are
+	GLuint	_handle = 0;	// OpenGL buffer handle
+	size_t	_count = 0;		// The count represents how many total attributes there are
 };
 
 }

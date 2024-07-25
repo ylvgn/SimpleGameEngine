@@ -13,9 +13,9 @@ template <typename T>
 struct Uniform {
 	Uniform() = delete;
 
-	static void set(u32 slot, const T& value);
-	static void set(u32 slot, const T* data, size_t dataSize);
-	static void set(u32 slot, const Span<const T>& value);
+	static void set(GLuint loc, const T& value);
+	static void set(GLuint loc, const T* data, size_t dataSize);
+	static void set(GLuint loc, const Span<const T>& value);
 };
 
 }

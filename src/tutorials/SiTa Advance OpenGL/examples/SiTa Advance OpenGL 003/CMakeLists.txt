@@ -1,4 +1,4 @@
-set(PROJECT_NAME sge_sita_advance_opengl_002)
+set(PROJECT_NAME sge_sita_advance_opengl_003)
 message("==== ${PROJECT_NAME} ====")
 project(${PROJECT_NAME})
 
