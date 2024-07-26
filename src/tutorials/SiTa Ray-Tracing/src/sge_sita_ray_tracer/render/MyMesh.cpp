@@ -19,6 +19,8 @@ void MyMesh::createRect(float w, float h) {
 		0,1,2, 
 		0,2,3,
 	});
+
+	updateAABB();
 }
 
 void MyMesh::createCube(float w, float h, float d) {
@@ -53,6 +55,8 @@ void MyMesh::createCube(float w, float h, float d) {
 		4,7,6,
 		4,6,5,
 	});
+
+	updateAABB();
 }
 
 void MyMesh::draw() {
@@ -104,6 +108,13 @@ void MyMesh::clear() {
 void MyMesh::setColor(const Color4b& c) {
 	for (auto& v : vertices) {
 		v.color = c;
+	}
+}
+
+void MyMesh::updateAABB() {
+	aabb.setEmpty();
+	for (auto& v : vertices) {
+		aabb.unionPoint(v.pos);
 	}
 }
 
@@ -289,6 +300,7 @@ private:
 
 void MyMesh::loadObjFile(const char* filename) {
 	WavefrontObjReader::loadFile(*this, filename);
+	updateAABB();
 }
 
 }

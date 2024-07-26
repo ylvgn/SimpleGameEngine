@@ -129,6 +129,7 @@ add_subdirectory(src/tutorials/SiTa\ Localization/examples/sge_sita_locale_examp
 add_subdirectory(src/tutorials/SiTa\ Ray-Tracing)
 add_subdirectory(src/tutorials/SiTa\ Ray-Tracing/examples/sge_sita_ray_tracer_example_001)
 add_subdirectory(src/tutorials/SiTa\ Ray-Tracing/examples/sge_sita_ray_tracer_example_002)
+add_subdirectory(src/tutorials/SiTa\ Ray-Tracing/examples/sge_sita_ray_tracer_example_003)
 
 #-- SiTa Advance OpenGL---
 add_subdirectory(src/tutorials/SiTa\ Advance\ OpenGL)

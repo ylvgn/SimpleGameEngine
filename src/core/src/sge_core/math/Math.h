@@ -45,6 +45,10 @@ namespace Math {
 		return x + 1;
 	}
 
+	constexpr bool isPow2(i64 v) {
+		return !(v & (v - 1)) && v;
+	}
+
 	template<class T, class ENABLE = std::enable_if< std::is_integral_v<T> > >
 	constexpr T lowbit(T x) { return x & (-static_cast<i64>(x)); }
 

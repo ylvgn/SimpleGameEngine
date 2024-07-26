@@ -7,6 +7,7 @@ namespace Math {
 
 template<typename T>
 struct MyLine3 {
+	using ElementType = T;
 	using MyVec3 = MyVec3<T>;
 
 	constexpr MyLine3() noexcept = default;
@@ -19,6 +20,7 @@ struct MyLine3 {
 
 template<typename T>
 struct MyTriangle3 {
+	using ElementType = T;
 	using MyVec3 = MyVec3<T>;
 
 	constexpr MyTriangle3() noexcept = default;
@@ -67,6 +69,8 @@ private:
 	using MyTriangle3 = MyTriangle3<T>;
 	using MyVec3 = MyVec3<T>;
 public:
+	using ElementType = T;
+
 	constexpr MyPlane3() noexcept = default;
 	constexpr MyPlane3(const MyVec3& normal_, const T& distance_) noexcept
 		: normal(normal_), distance(distance_) {}
@@ -84,11 +88,13 @@ public:
 		distance = normal.dot(v0);
 	}
 
-	T dot(const MyVec3& pt) const { return normal.dot(pt) - distance; }
+	T dot(const MyVec3& pt) const {
+		return normal.dot(pt) - distance;
+	}
 
 	void draw(T size = 5);
 
-	T		distance;
+	T		distance = 0;
 	MyVec3	normal;
 };
 
@@ -137,6 +143,7 @@ void MyPlane3<T>::draw(T size /*= 5*/) {
 
 template<typename T>
 struct MySphere3 {
+	using ElementType = T;
 	using MyVec3 = MyVec3<T>;
 
 	constexpr MySphere3() noexcept = default;
@@ -272,6 +279,130 @@ void MySphere3<T>::draw(int subAxis /*= 16*/, int subHeight /*= 16*/) {
 	glDisable(GL_CULL_FACE);
 }
 
+template<typename T>
+struct MyAABB3 {
+	using ElementType = T;
+	using MyVec3 = MyVec3<T>;
+
+	constexpr MyAABB3() noexcept {
+		setEmpty();
+	}
+
+	constexpr MyAABB3(const MyVec3& minPt_, const MyVec3& maxPt_) noexcept
+		: minPt(minPt_)
+		, maxPt(maxPt_) {}
+
+	template<typename DST, typename SRC>
+	static MyAABB3<DST> s_cast(const MyAABB3<SRC>& v) {
+		MyAABB3<DST> o;
+		o.minPt = v.minPt;
+		o.maxPt = v.maxPt;
+		return o;
+	}
+
+	template<>
+	static MyAABB3<T> s_cast(const MyAABB3<T>& v) {
+		return v;
+	}
+
+	constexpr void setEmpty() {
+		minPt.set( 1, 1, 1);
+		maxPt.set(-1,-1,-1);
+	}
+
+	bool empty() const {
+		return maxPt.x < minPt.x;
+	}
+
+	void unionPoint(MyVec3 pt) {
+		if (empty()) {
+			minPt = pt;
+			maxPt = pt;
+		} else {
+			minPt = Math::min(minPt, pt);
+			maxPt = Math::max(maxPt, pt);
+		}
+	}
+
+	MyVec3 center() const {
+		if (empty())
+			return MyVec3::s_zero();
+
+		return minPt + (maxPt - minPt) / T(2);
+	}
+	
+	bool isInside(const MyVec3& pt) const {
+		if (empty()) return false;
+		if (pt.x < minPt.x || pt.x > maxPt.x) return false;
+		if (pt.y < minPt.y || pt.y > maxPt.y) return false;
+		if (pt.z < minPt.z || pt.z > maxPt.z) return false;
+		return true;
+	}
+
+	void draw() {
+		if (empty())
+			return;
+
+		static MyVec3 kVertexs[] = {
+			MyVec3(minPt.x, minPt.y, minPt.z),
+			MyVec3(maxPt.x, minPt.y, minPt.z),
+			MyVec3(maxPt.x, maxPt.y, minPt.z),
+			MyVec3(minPt.x, maxPt.y, minPt.z),
+
+			MyVec3(minPt.x, minPt.y, maxPt.z),
+			MyVec3(maxPt.x, minPt.y, maxPt.z),
+			MyVec3(maxPt.x, maxPt.y, maxPt.z),
+			MyVec3(minPt.x, maxPt.y, maxPt.z),
+		};
+
+		{
+			glPointSize(2);
+			Scoped_glBegin begin(GL_POINTS);
+			for (const MyVec3& v : kVertexs) {
+				my_glVertex3(v.x, v.y, v.z);
+			}
+			glPointSize(1);
+		}
+
+		{
+			glColor4f(1,1,0,1);
+			//		  0--------1
+			//		 /|       /|
+			//		3--------2 |
+			//      | |      | |
+			//		| 4------|-5
+			//      |/       |/
+			//      7--------6
+
+			static u16 kIndices[] = {
+				0,1,
+				1,2,
+				2,3,
+				3,0,
+				
+				4,5,
+				5,6,
+				6,7,
+				7,4,
+
+				1,5,
+				2,6,
+				3,7,
+				0,4,
+			};
+
+			glEnableClientState(GL_VERTEX_ARRAY);
+				glVertexPointer(3, GL_FLOAT, 0, kVertexs);
+				glDrawElements(GL_LINES, 24, GL_UNSIGNED_SHORT, kIndices);
+			glDisableClientState(GL_VERTEX_ARRAY);
+			glColor4f(1,1,1,1);
+		}
+	}
+
+	MyVec3 minPt;
+	MyVec3 maxPt;
+};
+
 //-----------------
 using MyLine3f = MyLine3<float>;
 using MyLine3d = MyLine3<double>;
@@ -284,6 +415,9 @@ using MyPlane3d = MyPlane3<double>;
 
 using MySphere3f = MySphere3<float>;
 using MySphere3d = MySphere3<double>;
+
+using MyAABB3f = MyAABB3<float>;
+using MyAABB3d = MyAABB3<double>;
 
 } // namespace Math
 } // namespace sge

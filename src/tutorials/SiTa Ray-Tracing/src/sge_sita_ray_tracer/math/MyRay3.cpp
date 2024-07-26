@@ -151,23 +151,28 @@ bool MyRay3<T>::raycast(HitResult& outResult, const MyTriangle3& tri, T maxDista
 
 template<typename T>
 bool MyRay3<T>::raycast(HitResult& outResult, const MyMesh& mesh, T maxDistance /*= Math::inf<T>()*/) {
+	MyAABB3 aabb = MyAABB3::s_cast<T>(mesh.aabb); // how to make it nice ??? cuz mesh aabb is only float
+	if (!raycast(aabb, maxDistance)) {
+		outResult.hasResult = false;
+		return false;
+	}
+		
 	size_t indiceCount = mesh.indices.size();
-
 	size_t trangleCount = indiceCount / 3;
+
 	if (trangleCount <= 0)
 		return false;
 
 	HitResult r;
 	r.distance = maxDistance;
 
-	MyTriangle3 tri;
-
-	auto* indices = mesh.indices.begin();
+	MyTriangle3 tmpTri;
+	auto* ind = mesh.indices.begin();
 	for (int i = 0; i < trangleCount; ++i) {
-		tri.v0 = mesh.vertices[*indices].pos; indices++;
-		tri.v1 = mesh.vertices[*indices].pos; indices++;
-		tri.v2 = mesh.vertices[*indices].pos; indices++;
-		raycast(r, tri, r.distance);
+		tmpTri.v0 = mesh.vertices[*ind].pos; ind++;
+		tmpTri.v1 = mesh.vertices[*ind].pos; ind++;
+		tmpTri.v2 = mesh.vertices[*ind].pos; ind++;
+		raycast(r, tmpTri, r.distance);
 	}
 
 	if (!r.hasResult)
@@ -175,6 +180,80 @@ bool MyRay3<T>::raycast(HitResult& outResult, const MyMesh& mesh, T maxDistance 
 
 	outResult = r;
 	return true;
+}
+
+template<typename T>
+bool MyRay3<T>::raycast(const MyAABB3& aabb, T maxDistance /*= Math::inf<T>()*/) {
+	if (aabb.empty())
+		return false;
+
+	if (aabb.isInside(origin))
+		return true;
+
+	HitResult out_hit;
+	MyPlane3  plane;
+
+	//--- x ---
+	{
+		out_hit.reset();
+		if (dir.x < 0) {
+			plane.normal.set(1,0,0);
+			plane.distance = aabb.maxPt.x;
+		} 
+		else {
+			plane.normal.set(-1,0,0);
+			plane.distance = -aabb.minPt.x;
+		}
+		if (raycast(out_hit, plane, maxDistance)) {
+			auto y = out_hit.point.y;
+			auto z = out_hit.point.z;
+			if (y >= aabb.minPt.y && y <= aabb.maxPt.y)
+				if (z >= aabb.minPt.z && z <= aabb.maxPt.z)
+					return true;
+		}
+	}
+
+	//--- y ---
+	{
+		out_hit.reset();
+		if (dir.y < 0) {
+			plane.normal.set(0, 1, 0);
+			plane.distance = aabb.maxPt.y;
+		}
+		else {
+			plane.normal.set(0, -1, 0);
+			plane.distance = -aabb.minPt.y;
+		}
+		if (raycast(out_hit, plane, maxDistance)) {
+			auto x = out_hit.point.x;
+			auto z = out_hit.point.z;
+			if (x >= aabb.minPt.x && x <= aabb.maxPt.x)
+				if (z >= aabb.minPt.z && z <= aabb.maxPt.z)
+					return true;
+		}
+	}
+
+	//--- z ---
+	{
+		out_hit.reset();
+		if (dir.z < 0) {
+			plane.normal.set(0, 0, 1);
+			plane.distance = aabb.maxPt.z;
+		}
+		else {
+			plane.normal.set(0, 0, -1);
+			plane.distance = -aabb.minPt.z;
+		}
+		if (raycast(out_hit, plane, maxDistance)) {
+			auto y = out_hit.point.y;
+			auto x = out_hit.point.x;
+			if (y >= aabb.minPt.y && y <= aabb.maxPt.y)
+				if (x >= aabb.minPt.x && x <= aabb.maxPt.x)
+					return true;
+		}
+	}
+
+	return false;
 }
 
 template<typename T>

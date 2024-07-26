@@ -28,6 +28,20 @@ protected:
 		_debugMesh.wireframe = true;
 	}
 
+	void onUIMouseEvent(UIMouseEvent& ev) override {
+		Base::onUIMouseEvent(ev);
+
+		using Button = UIMouseEvent::Button;
+
+		if (ev.isDown()) {
+			switch (ev.pressedButtons) {
+				case Button::Left: {
+					rayTracing(ev.pos.x, ev.pos.y);
+				} break;
+			}
+		}
+	}
+
 	virtual void onDraw() override {
 		Base::onDraw();
 
@@ -48,29 +62,13 @@ protected:
 		drawNeeded();
 	}
 
-	void onUIMouseEvent(UIMouseEvent& ev) override {
-		Base::onUIMouseEvent(ev);
-
-		using Button = UIMouseEvent::Button;
-
-		if (ev.isDown()) {
-			switch (ev.pressedButtons) {
-				case Button::Left: {
-					rayTracing(ev.pos.x, ev.pos.y);
-				} break;
-			}
-		}
-	}
-
 	void rayTracing(float x, float y) {
 		glGetFloatv(GL_PROJECTION_MATRIX, _tmpProjMatrix.data);
 		glGetFloatv(GL_MODELVIEW_MATRIX, _tmpModelview.data);
 
-		const auto& screenSize = _frameBufferSize;
+		_rayTracer.init(_frameBufferSize, _tmpProjMatrix, _tmpModelview);
 
-		_rayTraser.init(screenSize, _tmpProjMatrix, _tmpModelview);
-
-		MyRay3f ray = _rayTraser.getRay(x, y);
+		MyRay3f ray = _rayTracer.getRay(x, y);
 
 		_debugRay = ray;
 
@@ -82,18 +80,18 @@ protected:
 	}
 
 private:
+	MyMat4f				_tmpProjMatrix;
+	MyMat4f				_tmpModelview;
+
 	MyRay3f				_debugRay;
 
-	MyRayTracer			_rayTraser;
+	MyRayTracerf		_rayTracer;
 	MyRay3f::HitResult	_hitResult;
 
 	Math::MyPlane3f		_debugPlane;
 	Math::MySphere3f	_debugSphere;
 	Math::MyTriangle3f	_debugTri;
 	MyMesh				_debugMesh;
-
-	MyMat4f				_tmpProjMatrix;
-	MyMat4f				_tmpModelview;
 };
 
 class MyApp : public NativeUIApp {

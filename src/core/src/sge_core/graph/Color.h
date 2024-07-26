@@ -283,7 +283,7 @@ struct ColorRGBA {
 
 	template<class COLOR>
 	static ColorRGBA s_cast(const COLOR& r) {
-		ColorRGBA o;
+		ColorRGBA o {0,0,0,1};;
 		for (int i = 0; i < COLOR::kElementCount && i < kElementCount; ++i) {
 			o.data[i] = static_cast<T>(r.data[i]);
 		}

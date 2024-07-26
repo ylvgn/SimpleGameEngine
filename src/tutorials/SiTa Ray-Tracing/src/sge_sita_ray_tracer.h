@@ -16,5 +16,6 @@
 #include <sge_sita_ray_tracer/native_ui/MyOpenGLNativeUIWindow.h>
 
 #include <sge_sita_ray_tracer/render/MyMesh.h>
+#include <sge_sita_ray_tracer/render/MyTexture2D.h>
 
 #include <sge_sita_ray_tracer/MyRayTracer.h>

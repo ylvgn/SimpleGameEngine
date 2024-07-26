@@ -17,8 +17,8 @@ private:
 	using MyPlane3		= Math::MyPlane3<T>;
 	using MySphere3		= Math::MySphere3<T>;
 	using MyTriangle3	= Math::MyTriangle3<T>;
+	using MyAABB3		= Math::MyAABB3<T>;
 public:
-
 	MyVec3 origin, dir;
 
 	struct HitResult {
@@ -57,6 +57,8 @@ public:
 	bool raycast(HitResult& outResult, const MySphere3& sphere, T maxDistance = Math::inf<T>());
 	bool raycast(HitResult& outResult, const MyTriangle3& tri, T maxDistance = Math::inf<T>());
 	bool raycast(HitResult& outResult, const MyMesh& mesh, T maxDistance = Math::inf<T>());
+
+	bool raycast(const MyAABB3& aabb, T maxDistance = Math::inf<T>());
 
 	void draw();
 };

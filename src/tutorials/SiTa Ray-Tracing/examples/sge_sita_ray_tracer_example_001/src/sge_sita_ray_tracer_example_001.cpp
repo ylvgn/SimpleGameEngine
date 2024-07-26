@@ -12,6 +12,20 @@ protected:
 		_debugRay.dir = MyVec3f::s_zero();
 	}
 
+	void onUIMouseEvent(UIMouseEvent& ev) override {
+		Base::onUIMouseEvent(ev);
+
+		using Button = UIMouseEvent::Button;
+
+		if (ev.isDown()) {
+			switch (ev.pressedButtons) {
+				case Button::Left: {
+					rayTracing(ev.pos.x, ev.pos.y);
+				}break;
+			}
+		}
+	}
+
 	virtual void onDraw() override {
 		Base::onDraw();
 
@@ -26,36 +40,21 @@ protected:
 		drawNeeded();
 	}
 
-	void onUIMouseEvent(UIMouseEvent& ev) override {
-		Base::onUIMouseEvent(ev);
-
-		using Button = UIMouseEvent::Button;
-
-		if (ev.isDown()) {
-			switch (ev.pressedButtons) {
-				case Button::Left: {
-					rayTracing(ev.pos.x, ev.pos.y);
-				} break;
-			}
-		}
-	}
-
 	void rayTracing(float x, float y) {
 		glGetFloatv(GL_PROJECTION_MATRIX, _tmpProjMatrix.data);
 		glGetFloatv(GL_MODELVIEW_MATRIX, _tmpModelview.data);
 
-		const auto& screenSize = _frameBufferSize;
-		_rayTraser.init(screenSize, _tmpProjMatrix, _tmpModelview);
+		_rayTracer.init(_frameBufferSize, _tmpProjMatrix, _tmpModelview);
 
-		_debugRay = _rayTraser.getRay(x, y);
+		_debugRay = _rayTracer.getRay(x, y);
 	}
 
 private:
-	MyRay3f		_debugRay;
-	MyRayTracer	_rayTraser;
+	MyMat4f			_tmpProjMatrix;
+	MyMat4f			_tmpModelview;
 
-	MyMat4f		_tmpProjMatrix;
-	MyMat4f		_tmpModelview;
+	MyRay3f			_debugRay;
+	MyRayTracerf	_rayTracer;
 };
 
 class MyApp : public NativeUIApp {

@@ -1,10 +1,11 @@
 #pragma once
 
 #include "MyVertex.h"
+#include "../math/MyMathGeometry.h"
 
 namespace sge {
 
-class MyMesh {
+class MyMesh : public NonCopyable {
 public:
 	using IndexType = uint16_t;
 
@@ -23,11 +24,15 @@ public:
 
 	void setColor(const Color4b& c);
 
+	void updateAABB();
+
 	Vector<MyVertex_PosColorUv> vertices;
 	Vector<IndexType> indices;
 
-	bool doubleSided : 1;
-	bool wireframe : 1;
+	Math::MyAABB3f aabb;
+
+	bool doubleSided	: 1;
+	bool wireframe		: 1;
 };
 
 }
