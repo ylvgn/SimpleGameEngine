@@ -251,8 +251,8 @@ void MyShader::drawCg(const MyRenderMesh& mesh) {
 	GLsizei stride = static_cast<GLsizei>(sizeof(VertexType));
 	Scoped_MyShader_VertexAttrib v_pos	 (_program, "cg_Vertex",    4, GL_FLOAT,         true, stride, memberOffset(&VertexType::pos));
 	Scoped_MyShader_VertexAttrib v_color (_program, "COLOR",		4, GL_FLOAT,		 true, stride, memberOffset(&VertexType::color));
+	Scoped_MyShader_VertexAttrib v_uv	 (_program, "TEXCOORD0",	2, GL_FLOAT,         true, stride, memberOffset(&VertexType::uv));
 	Scoped_MyShader_VertexAttrib v_normal(_program, "NORMAL",		4, GL_FLOAT,         true, stride, memberOffset(&VertexType::normal));
-	Scoped_MyShader_VertexAttrib v_uv	 (_program, "TEXCOORD0",	2, GL_FLOAT,         true, stride, memberOffset(&VertexType::uv)); // todo
 
 	if (mesh.indexCount > 0) {
 		const void* indexBufferOffset = 0;

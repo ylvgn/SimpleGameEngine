@@ -9,6 +9,7 @@ public:
 		Base::onInitGL();
 
 		_wireframe = true;
+
 		_testShader = new MyShader();
 		_testCgShader = new MyShader();
 

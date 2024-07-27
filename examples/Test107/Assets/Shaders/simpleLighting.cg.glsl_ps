@@ -1,0 +1,60 @@
+// glslf output by Cg compiler
+// cgc version 3.1.0013, build date Apr 18 2012
+// command line args: -profile glslf -po version=330
+// source file: simpleLighting.cg
+//vendor NVIDIA Corporation
+//version 3.1.0.13
+//profile glslf
+//program ps_main
+//semantic matMVP
+//semantic uptime
+//semantic lightPos
+//var float3 lightPos :  : _lightPos : -1 : 1
+//var float4 i.color : $vin.COLOR : COLOR : 0 : 1
+//var float4 i.wpos : $vin.TEXCOORD0 : TEXCOORD0 : 0 : 1
+//var float4 i.normal : $vin.TEXCOORD1 : TEXCOORD1 : 0 : 1
+//var float4 ps_main : $vout.COLOR : COLOR : -1 : 1
+
+#version 330
+
+struct MyVertexInput {
+    vec4 _color1;
+    vec4 _normal1;
+};
+
+struct v2f {
+    vec4 _color;
+    vec4 _wpos;
+    vec4 _normal;
+};
+
+vec4 _ret_0;
+vec3 _TMP0;
+float _TMP2;
+float _TMP1;
+vec3 _v0008;
+uniform vec3 _lightPos;
+in vec4 cg_FrontColor;
+in vec4 cg_TexCoord1;
+in vec4 cg_TexCoord0;
+out vec4 cg_FragColor;
+
+ // main procedure, the original name was ps_main
+void main()
+{
+
+    vec3 _lightDir;
+    float _d;
+
+    _v0008 = _lightPos - cg_TexCoord0.xyz;
+    _TMP1 = dot(_v0008, _v0008);
+    _TMP2 = inversesqrt(_TMP1);
+    _lightDir = _TMP2*_v0008;
+    _TMP1 = dot(cg_TexCoord1.xyz, cg_TexCoord1.xyz);
+    _TMP2 = inversesqrt(_TMP1);
+    _TMP0 = _TMP2*cg_TexCoord1.xyz;
+    _d = dot(_TMP0, _lightDir);
+    _ret_0 = vec4(_d, _d, _d, 1.00000000E+000)*cg_FrontColor;
+    cg_FragColor = _ret_0;
+    return;
+} // main end

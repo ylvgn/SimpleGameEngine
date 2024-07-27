@@ -9,7 +9,7 @@ public:
 	~MyTexture2D() { destroy(); }
 
 	void destroy();
-	void create(int width, int height, const Span<const Color4b> pixels);
+	void create(int width, int height, Color4b* pixels);
 
 	void bind() const;
 	void unbind() const;

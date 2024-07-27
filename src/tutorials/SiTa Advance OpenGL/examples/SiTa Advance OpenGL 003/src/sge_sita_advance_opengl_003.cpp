@@ -125,10 +125,10 @@ public:
 		{
 			auto& s = _simpleColorCgShader;
 			s->bind();
-			s->setUniformCg("_matMVP", _matrix_vp);
+				s->setUniformCg("_matMVP", _matrix_vp);
 
-			s->drawCg(_gridCgMesh);
-			s->drawCg(_originCgMesh);
+				s->drawCg(_gridCgMesh);
+				s->drawCg(_originCgMesh);
 			s->unbind();
 		}
 

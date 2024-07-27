@@ -3,9 +3,9 @@
 @cd %~dp0
 
 
-@rem cg_to_glsl330.bat test001.cg
-@rem cg_to_glsl330.bat simpleColog.cg
-cg_to_glsl330.bat simpleLighting.cg
-@rem cg_to_glsl330.bat simpleTexture.cg
+start .\cg_to_glsl330.bat test001.cg
+start .\cg_to_glsl330.bat simpleColor.cg
+start .\cg_to_glsl330.bat simpleLighting.cg
+start .\cg_to_glsl330.bat simpleTexture.cg
 
 @pause

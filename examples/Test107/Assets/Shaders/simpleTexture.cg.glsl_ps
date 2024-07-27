@@ -50,7 +50,7 @@ void main()
     vec4 _t;
 
     _texColor0 = texture(_sampler0, cg_TexCoord0.xy);
-    _c0008 = cg_TexCoord0.xy + vec2(_uptime*2.00000003E-001, _uptime*2.00000003E-001);
+    _c0008 = cg_TexCoord0.xy + vec2(_uptime*2.00000003E-001, 0.00000000E+000);
     _texColor1 = texture(_sampler1, _c0008);
     _t = _texColor0*_texColor1;
     _ret_0 = cg_FrontColor*_t;

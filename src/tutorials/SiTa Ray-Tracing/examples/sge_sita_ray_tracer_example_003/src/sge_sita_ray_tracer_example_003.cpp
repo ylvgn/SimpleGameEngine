@@ -17,8 +17,6 @@ protected:
 		Base::onUIMouseEvent(ev);
 
 		using Button = UIMouseEvent::Button;
-		using Type = UIMouseEvent::Type;
-		using Modifier = UIEventModifier;
 
 		if (ev.isDown()) {
 			switch (ev.pressedButtons) {

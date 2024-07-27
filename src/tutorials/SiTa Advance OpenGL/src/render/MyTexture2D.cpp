@@ -3,7 +3,7 @@
 
 namespace sge {
 
-void MyTexture2D::create(int width, int height, const Span<const Color4b> pixels) {
+void MyTexture2D::create(int width, int height, Color4b* pixels) {
 	destroy();
 
 	if (!my_is_pow2(width) || !my_is_pow2(height))
@@ -11,7 +11,7 @@ void MyTexture2D::create(int width, int height, const Span<const Color4b> pixels
 
 	glGenTextures(1, &_tex);
 	glBindTexture(GL_TEXTURE_2D, _tex);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels.empty() ? nullptr : pixels.data());
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	_width  = width;
@@ -194,8 +194,10 @@ public:
 	int width () const { return _width; }
 	int height() const { return _height; }
 
-			Span<Color4b> pixels()				{ return _pixels.span(); }
+			Span<Color4b>		pixels()		{ return _pixels.span(); }
 	const	Span<const Color4b> pixels() const	{ return _pixels.span(); }
+
+	Color4b* pixels_ptr() { return _pixels.data(); }
 
 private:
 	png_structp	_png  = nullptr;
@@ -214,7 +216,7 @@ void MyTexture2D::loadPngFile(StrView filename, bool mulAlpha) {
 	PngReader r;
 	r.loadFile(filename, mulAlpha);
 
-	create(r.width(), r.height(), r.pixels());
+	create(r.width(), r.height(), r.pixels_ptr());
 }
 
 }

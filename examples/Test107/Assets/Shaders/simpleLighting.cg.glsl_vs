@@ -1,0 +1,69 @@
+// glslv output by Cg compiler
+// cgc version 3.1.0013, build date Apr 18 2012
+// command line args: -profile glslv -po version=330
+// source file: simpleLighting.cg
+//vendor NVIDIA Corporation
+//version 3.1.0.13
+//profile glslv
+//program vs_main
+//semantic matMVP
+//semantic uptime
+//semantic lightPos
+//var float4x4 matMVP :  : _matMVP[0], 4 : -1 : 1
+//var float uptime :  : _uptime : -1 : 1
+//var float4 i.pos : $vin.POSITION : POSITION : 0 : 1
+//var float4 i.color : $vin.COLOR : COLOR : 0 : 1
+//var float4 i.normal : $vin.NORMAL : NORMAL : 0 : 1
+//var float4 vs_main.pos : $vout.POSITION : HPOS : -1 : 1
+//var float4 vs_main.color : $vout.COLOR : COLOR : -1 : 1
+//var float4 vs_main.wpos : $vout.TEXCOORD0 : TEXCOORD0 : -1 : 1
+//var float4 vs_main.normal : $vout.TEXCOORD1 : TEXCOORD1 : -1 : 1
+
+#version 330
+
+struct MyVertexInput {
+    vec4 _pos;
+    vec4 _color;
+    vec4 _normal;
+};
+
+struct v2f {
+    vec4 _pos1;
+    vec4 _color1;
+    vec4 _wpos;
+    vec4 _normal1;
+};
+
+float _TMP0;
+float _a0006;
+vec4 _r0008;
+in vec4 COLOR;
+in vec4 NORMAL;
+uniform vec4 _matMVP[4];
+uniform float _uptime;
+in vec4 cg_Vertex;
+out vec4 cg_FrontColor;
+out vec4 cg_TexCoord1;
+out vec4 cg_TexCoord0;
+
+ // main procedure, the original name was vs_main
+void main()
+{
+
+    v2f _o;
+    float _t;
+
+    _t = (_uptime*5.00000000E-001 + cg_Vertex.x) - cg_Vertex.z;
+    _a0006 = _t*2.00000000E+000;
+    _TMP0 = sin(_a0006);
+    _o._pos1.y = cg_Vertex.y + _TMP0*2.50000000E-001;
+    _r0008 = cg_Vertex.x*_matMVP[0];
+    _r0008 = _r0008 + _o._pos1.y*_matMVP[1];
+    _r0008 = _r0008 + cg_Vertex.z*_matMVP[2];
+    _r0008 = _r0008 + cg_Vertex.w*_matMVP[3];
+    cg_TexCoord0 = cg_Vertex;
+    cg_TexCoord1 = NORMAL;
+    gl_Position = _r0008;
+    cg_FrontColor = COLOR;
+    return;
+} // main end

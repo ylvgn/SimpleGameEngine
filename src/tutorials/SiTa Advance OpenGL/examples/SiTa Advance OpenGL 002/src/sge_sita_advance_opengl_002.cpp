@@ -41,7 +41,7 @@ public:
 		
 		_simpleColorShader->loadFile("Assets/Shaders/simpleColor");
 		_simpleLightingShader->loadFile("Assets/Shaders/simpleLighting");
-
+	//-----
 		_simpleColorCgShader->loadFile("Assets/Shaders/simpleColor.cg");
 		_simpleLightingCgShader->loadFile("Assets/Shaders/simpleLighting.cg");
 	}
@@ -159,6 +159,7 @@ private:
 
 	SPtr<MyShader>	_simpleColorShader;
 	SPtr<MyShader>	_simpleLightingShader;
+
 //-----
 	MyRenderMesh	_gridCgMesh;
 	MyRenderMesh	_originCgMesh;
