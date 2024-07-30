@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sge_render/vertex/Vertex.h>
+#include <sge_render/vertex/VertexLayoutManager.h>
 #include <sge_render/buffer/RenderGpuBuffer.h>
 #include <sge_render/shader/Material.h>
 
