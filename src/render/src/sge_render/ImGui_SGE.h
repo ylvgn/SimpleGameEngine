@@ -5,7 +5,7 @@
 namespace sge {
 
 class ImGui_SGE : public NonCopyable {
-	using Vertex		= Vertex_ImGui;
+	using Vertex = Vertex_ImGui;
 public:
 	~ImGui_SGE();
 

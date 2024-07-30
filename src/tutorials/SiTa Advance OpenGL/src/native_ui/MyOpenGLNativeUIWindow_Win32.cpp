@@ -158,7 +158,7 @@ void MyOpenGLNativeUIWindow_Win32::onCreate(CreateDesc& desc) {
 	HGLRC sharedContext = nullptr;
 	_rc = wglCreateContextAttribsARB(_dc, sharedContext, contextAttrs);
 	if (!_rc)
-		throw SGE_ERROR("wglCreateContext");
+		throw SGE_ERROR("wglCreateContextAttribsARB");
 
 	_makeCurrent();
 

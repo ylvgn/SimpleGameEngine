@@ -25,8 +25,7 @@ void ImGui_SGE::create() {
 
 	auto* renderer = Renderer::instance();
 	{ // vertex layout
-		Vertex vertex;
-		_vertexLayout = vertex.s_layout();
+		_vertexLayout = Vertex::s_layout();
 	}
 	{ // material
 		auto shader = Renderer::instance()->createShader("Assets/Shaders/imgui.shader");

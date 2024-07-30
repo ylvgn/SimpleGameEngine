@@ -193,7 +193,7 @@ void RenderContext_DX11::_createRenderTarget() {
 	Util::throwIfError(hr);
 }
 
-void RenderContext_DX11::onSetFrameBufferSize(Vec2f newSize) {
+void RenderContext_DX11::onSetFrameBufferSize(const Vec2f& newSize) {
 	_renderTargetView.reset(nullptr); // release buffer and render target view before resize
 	_depthStencilView.reset(nullptr);
 

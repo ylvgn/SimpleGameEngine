@@ -10,19 +10,18 @@ namespace sge {
 class NativeUIWindow_Win32 : public NativeUIWindow_Base {
 	using This = NativeUIWindow_Win32;
 	using Base = NativeUIWindow_Base;
-public:
+protected:
 	virtual void onCreate(CreateDesc& desc) override;
 	virtual void onSetWindowTitle(StrView title) override;
 	virtual void onSetCursor(UIMouseCursor type) override;
 	virtual void onDrawNeeded() override;
 	virtual void onScrollWindow(const Vec2i& delta) override;
+	virtual UPtr<NativeUIScrollInfo_Base> onCreateScrollBar(NativeUIScrollInfo_Base::CreateDesc& desc) override;
 
+public:
 	bool isKeyDown(KeyCode keyCode);
 
 	HWND _hwnd = nullptr;
-
-protected:
-	virtual UPtr<NativeUIScrollInfo_Base> onCreateScrollBar(NativeUIScrollInfo_Base::CreateDesc& desc) override;
 
 	UPtr<NativeUIScrollInfo_Win32> _hScrollInfo = nullptr;
 	UPtr<NativeUIScrollInfo_Win32> _vScrollInfo = nullptr;

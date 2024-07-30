@@ -15,7 +15,7 @@ struct RenderContext_Statistics { // tmp
 	u64 verts = 0;
 	u64 tris = 0;
 
-	void clean() { std::memset(this, 0, sizeof(RenderContext_Statistics)); }
+	void clean() { memset(this, 0, sizeof(RenderContext_Statistics)); }
 };
 
 // abstruct class
@@ -46,7 +46,7 @@ protected:
 	virtual void onBeginRender() {}
 	virtual void onEndRender() {}
 
-	virtual void onSetFrameBufferSize(Vec2f newSize) {};
+	virtual void onSetFrameBufferSize(const Vec2f& newSize) {};
 	virtual void onCommit(RenderCommandBuffer& cmdBuf) {};
 
 	template<class IMPL>
