@@ -186,6 +186,4 @@ const char* enumStr(NeHeOGL_Lesson007_LightType v) {
 	}
 }
 
-SGE_FORMATTER_ENUM(NeHeOGL_Lesson007_SphereMode)
-SGE_FORMATTER_ENUM(NeHeOGL_Lesson007_LightType)
 }

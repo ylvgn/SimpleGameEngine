@@ -131,7 +131,6 @@ const char* enumStr(Lexer::TokenType v) {
 }
 
 SGE_FORMATTER(Lexer::Token)
-SGE_FORMATTER_ENUM(Lexer::TokenType)
 
 template<class E> inline
 void Lexer::readEnum(E& v) {
