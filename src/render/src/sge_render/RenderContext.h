@@ -42,6 +42,8 @@ public:
 	bool onUIMouseEvent(UIMouseEvent& ev);
 	void onUIKeyboardEvent(UIKeyboardEvent& ev);
 
+	virtual void testRender() {}; // just for test
+
 protected:
 	virtual void onBeginRender() {}
 	virtual void onEndRender() {}

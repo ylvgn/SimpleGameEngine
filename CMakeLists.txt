@@ -101,6 +101,7 @@ add_subdirectory(src/engine)
 #-- editor ---
 add_subdirectory(src/editor)
 add_subdirectory(src/editor/app)
+add_subdirectory(src/editor/app_opengl) # just for test
 
 set_property (DIRECTORY PROPERTY VS_STARTUP_PROJECT sge_editor_app)
 

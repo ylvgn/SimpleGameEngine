@@ -22,7 +22,7 @@ public:
 	enum class ApiType {
 		None = 0,
 		DX11,
-		OpenGL,
+		GL3,
 	};
 
 	struct CreateDesc {

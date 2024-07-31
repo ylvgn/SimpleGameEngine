@@ -1,0 +1,38 @@
+// glslv output by Cg compiler
+// cgc version 3.1.0013, build date Apr 18 2012
+// command line args: -profile glslv -po version=330
+// source file: test001.cg
+//vendor NVIDIA Corporation
+//version 3.1.0.13
+//profile glslv
+//program vs_main
+//var float4 input.position : $vin.POSITION : POSITION : 0 : 1
+//var float4 input.color : $vin.COLOR : COLOR : 0 : 1
+//var float4 vs_main.position : $vout.POSITION : HPOS : -1 : 1
+//var float4 vs_main.color : $vout.COLOR : COLOR : -1 : 1
+
+#version 330
+
+struct VIn {
+    vec4 _position;
+    vec4 _color;
+};
+
+struct VOut {
+    vec4 _position1;
+    vec4 _color1;
+};
+
+in vec4 COLOR;
+in vec4 cg_Vertex;
+out vec4 cg_FrontColor;
+
+ // main procedure, the original name was vs_main
+void main()
+{
+
+
+    gl_Position = cg_Vertex;
+    cg_FrontColor = COLOR;
+    return;
+} // main end

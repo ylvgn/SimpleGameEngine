@@ -1,6 +1,7 @@
 #include "Renderer.h"
 
 #include "backend/dx11/Renderer_DX11.h"
+#include "backend/gl3/Renderer_GL3.h"
 
 namespace sge {
 
@@ -21,6 +22,9 @@ Renderer* Renderer::create(CreateDesc& desc) {
 	switch (desc.apiType) {
 		case Renderer::ApiType::DX11: {
 			p = new Renderer_DX11(desc);
+		}break;
+		case Renderer::ApiType::GL3: {
+			p = new Renderer_GL3(desc);
 		}break;
 		default: {
 			SGE_ASSERT("error: not support render api");
