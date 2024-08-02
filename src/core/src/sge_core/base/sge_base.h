@@ -227,6 +227,15 @@ using StringW = StringW_<0>;
 using StrView		= StrViewA;
 using String		= StringA;
 
+template<class T, size_t N> inline bool operator==(const StringT<T, N>& lhs, StrViewT<T> rhs) { return lhs.compare(rhs.data()) == 0; }
+template<class T, size_t N> inline bool operator!=(const StringT<T, N>& lhs, StrViewT<T> rhs) { return lhs.compare(rhs.data()) != 0; }
+
+template<class T, size_t N> inline bool operator==(StrViewT<T> lhs, const StringT<T, N>& rhs) { return rhs.compare(lhs.data()) == 0; }
+template<class T, size_t N> inline bool operator!=(StrViewT<T> lhs, const StringT<T, N>& rhs) { return rhs.compare(lhs.data()) != 0; }
+
+template<class T> inline bool operator==(StrViewT<T> lhs, const T* rhs) { return lhs.compare(rhs) == 0; }
+template<class T> inline bool operator!=(StrViewT<T> lhs, const T* rhs) { return lhs.compare(rhs) != 0; }
+
 inline StrView StrView_c_str(const char* s) {
 	return s ? StrView(s, strlen(s)) : StrView();
 }
@@ -300,6 +309,7 @@ template<class T> inline void sge_delete(T* p) noexcept { delete p; }
 template<class T>
 class ScopedValue : public NonCopyable {
 public:
+	ScopedValue() = default;
 	ScopedValue(T* p) : _p(p) { _oldValue = *p; }
 	ScopedValue(T* p, const T& newValue) : ScopedValue(p) { *p = newValue; }
 
@@ -309,9 +319,9 @@ public:
 		r._p = nullptr;
 	}
 
-	~ScopedValue() { detach(); }
+	~ScopedValue() { discard(); }
 
-	void detach() {
+	void discard() {
 		if (_p) {
 			*_p = _oldValue;
 			_p = nullptr;

@@ -13,7 +13,8 @@
 namespace sge {
 
 void run_temp_test() {
-	RUN_TEST(test_WeakPtr);
+	//RUN_TEST(test_WeakPtr);
+	RUN_TEST(test_String);
 }
 
 void run_all_test() {
@@ -33,6 +34,7 @@ void run_all_test() {
 // string
 	RUN_TEST(test_Fmt);
 	RUN_TEST(test_UtfUtil);
+	RUN_TEST(test_String);
 
 // net
 	RUN_TEST(test_Socket);
