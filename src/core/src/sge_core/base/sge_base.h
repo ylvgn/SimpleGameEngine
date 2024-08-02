@@ -236,10 +236,6 @@ template<class T, size_t N> inline bool operator!=(StrViewT<T> lhs, const String
 template<class T> inline bool operator==(StrViewT<T> lhs, const T* rhs) { return lhs.compare(rhs) == 0; }
 template<class T> inline bool operator!=(StrViewT<T> lhs, const T* rhs) { return lhs.compare(rhs) != 0; }
 
-inline StrView StrView_c_str(const char* s) {
-	return s ? StrView(s, strlen(s)) : StrView();
-}
-
 inline StrView StrView_make(ByteSpan s) {
 	return StrView(reinterpret_cast<const char*>(s.data()), s.size());
 }
@@ -268,6 +264,19 @@ struct WCharUtil {
 	wchar_t toWChar(Char    c) { return static_cast<wchar_t>(c); }
 };
 
+template<typename T> inline
+size_t charStrlen(const T* p) {
+	const auto* pCurrent = p;
+	while (*pCurrent)
+		++pCurrent;
+	return static_cast<size_t>(pCurrent - p);
+}
+
+inline StrView   StrView_c_str(const char*		s)	{ return s ? StrView  (s, strlen(s)) : StrView (); }
+inline StrViewW  StrView_c_str(const wchar_t*	s)	{ return s ? StrViewW (s, wcslen(s)) : StrViewW(); }
+//inline StrView8  StrView_c_str(const char8_t*	s)	{ return s ? StrView8 (s, charStrlen(s)) : StrView8 (); }
+inline StrView16 StrView_c_str(const char16_t*	s)	{ return s ? StrView16(s, charStrlen(s)) : StrView16(); }
+inline StrView32 StrView_c_str(const char32_t*	s)	{ return s ? StrView32(s, charStrlen(s)) : StrView32(); }
 
 //! Source Location
 class SrcLoc {

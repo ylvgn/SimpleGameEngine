@@ -15,8 +15,6 @@ public:
 			renderContextDesc.window = this;
 			_renderContext = renderer->createContext(renderContextDesc);
 		}
-
-		_material = renderer->createMaterial(); // TEMP, for pass linker.
 	}
 
 	virtual void onCloseButton() {
@@ -30,12 +28,9 @@ public:
 		_renderContext->setFrameBufferSize(clientRect().size);
 		_renderContext->testRender();
 
-		if (_material) _material->setParam("test_float", 0.5f); // TEMP, for pass linker.
-
 		drawNeeded();
 	}
 
-	SPtr<Material>		_material; // TEMP, for pass linker.
 	SPtr<RenderContext>	_renderContext;
 };
 
