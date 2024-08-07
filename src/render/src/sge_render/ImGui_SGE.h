@@ -39,7 +39,7 @@ private:
 
 	void _onAddKeyEventByUIKeyboardEvent(ImGuiIO& io, UIKeyboardEvent& ev, UIKeyboardEventKeyCode v);
 
-	ImGuiContext* _ctx;
+	ImGuiContext* _ctx = nullptr;
 };
 
 inline Vec2f Vec2f_make(const ImVec2& v) { return Vec2f(v.x, v.y); }
