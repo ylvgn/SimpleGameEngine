@@ -7,7 +7,7 @@ RenderContext::RenderContext(CreateDesc& desc) {
 }
 
 void RenderContext::onPostCreate() {
-	_imgui.create();
+	//_imgui.create(); TODO TEMP just for opengl
 }
 
 void RenderContext::beginRender() {

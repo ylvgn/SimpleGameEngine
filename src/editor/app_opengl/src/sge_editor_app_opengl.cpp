@@ -66,11 +66,11 @@ public:
 		_vertexBuffer->uploadToGpu(spanCast<u8>(vertexData.span()));
 	}
 
-	virtual void onCloseButton() {
+	virtual void onCloseButton() override {
 		NativeUIApp::current()->quit(0);
 	}
 
-	virtual void onDraw() {
+	virtual void onDraw() override {
 		Base::onDraw();
 		if (!_renderContext) return;
 

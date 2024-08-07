@@ -3,87 +3,106 @@
 
 namespace sge {
 
-class test_WPtr : public UnitTestBase {
+class Test_WPtr_MyWindow;
+
+class Test_WPtr_MyButton : public RefCountBase {
+	using MyWindow = Test_WPtr_MyWindow;
+	using MyButton = Test_WPtr_MyButton;
+public:
+	Test_WPtr_MyButton(StrView name_) : name(name_) { SGE_LOG("ctor {}({:p})",		name, fmt::ptr(this)); }
+	~Test_WPtr_MyButton()							{ SGE_LOG("dtor {}({:p}):{}",	name, fmt::ptr(this), *this); }
+
+	void onFormat(fmt::format_context& ctx) const;
+
+	String name;
+
+	WPtr<MyButton> other;
+	WPtr<MyButton> other2;
+	WPtr<MyWindow> otherWin;
+
+	SPtr<MyButton> self;
+};
+
+#if 0
+#pragma mark ========= Test_WPtr_MyWindow ============
+#endif
+class Test_WPtr_MyWindow : public RefCountBase {
+	using MyButton = Test_WPtr_MyButton;
+public:
+	Test_WPtr_MyWindow(StrView name_) : name(name_) { SGE_LOG("ctor {}({:p})",		name, fmt::ptr(this)); }
+	~Test_WPtr_MyWindow()							{ SGE_LOG("dtor {}({:p}):{}",	name, fmt::ptr(this), *this); }
+
+	void onFormat(fmt::format_context& ctx) const;
+
+	String name;
+	SPtr<MyButton> aBtn;
+	SPtr<MyButton> bBtn;
+};
+
+inline
+void Test_WPtr_MyWindow::onFormat(fmt::format_context& ctx) const {
+	if (aBtn && bBtn) {
+		fmt::format_to(ctx.out(), "\naBtn: {}\nbBtn: {}", *aBtn.ptr(), *bBtn.ptr());
+	}
+	else if (aBtn) {
+		fmt::format_to(ctx.out(), "\naBtn: {}\nbBtn: nullptr", *aBtn.ptr());
+	}
+	else if (bBtn) {
+		fmt::format_to(ctx.out(), "\naBtn: nullptr\nbBtn:{}", *bBtn.ptr());
+	}
+}
+
+inline
+void Test_WPtr_MyButton::onFormat(fmt::format_context& ctx) const {
+	String otherName;
+	if (auto b = other.toSPtr()) {
+		FmtTo(otherName, "{}({:p})", b->name, fmt::ptr(b.ptr()));
+	} else {
+		otherName.assign("other(nullptr)");
+	}
+
+	otherName.append("\n\t\t");
+	if (auto b = other2.toSPtr()) {
+		FmtTo(otherName, "{}({:p})", b->name, fmt::ptr(b.ptr()));
+	} else {
+		otherName.append("other2(nullptr)");
+	}
+
+	otherName.append("\n\t\t");
+	if (auto w = otherWin.toSPtr()) {
+		FmtTo(otherName, "{}({:p})", w->name, fmt::ptr(w.ptr()));
+	} else {
+		otherName.append("otherWin(nullptr)");
+	}
+
+	TempString selfName = self != nullptr ? self->name : "self(nullptr)";
+
+	fmt::format_to(ctx.out(), "{}({:p})\n\tWeak:\n\t\t{};\n\tSelf:\n\t\t{}", name, fmt::ptr(this), otherName, selfName);
+}
+
+SGE_FORMATTER(Test_WPtr_MyButton)
+SGE_FORMATTER(Test_WPtr_MyWindow)
+
+
+#if 0
+#pragma mark ========= Test_WPtr ============
+#endif
+class Test_WPtr : public UnitTestBase {
+	using MyWindow = Test_WPtr_MyWindow;
+	using MyButton = Test_WPtr_MyButton;
 public:
 
-	class MyWindow;
-
-	class MyButton : public RefCountBase {
-	public:
-		MyButton(StrView name_) : name(name_) {}
-
-		void onFormat(fmt::format_context& ctx) const {
-			String otherName;
-			if (auto b = other.toSPtr()) {
-				otherName.assign(b->name.data(), b->name.size());
-			} else {
-				otherName.assign("Null(Btn)");
-			}
-
-			otherName.append(", ");
-			if (auto b = other2.toSPtr()) {
-				otherName.append(b->name.data(), b->name.size());
-			} else {
-				otherName.append("Null(Btn)");
-			}
-
-			otherName.append(", ");
-			if (auto w = otherWin.toSPtr()) {
-				otherName.append(w->name);
-			}
-			else {
-				otherName.append("Null(Win)");
-			}
-
-			String selfName;
-			if (self) {
-				selfName.assign(self->name);
-			}
-			else {
-				selfName.assign("Null(self)");
-			}
-
-			fmt::format_to(ctx.out(), "{}({}) Weak: {}; Self: {}", name, fmt::ptr(this), otherName, selfName);
-		}
-		~MyButton() {
-			SGE_LOG("~MyButton({:p}): {}", fmt::ptr(this), *this);
-		}
-
-		String name;
-
-		WPtr<MyButton> other;
-		WPtr<MyButton> other2;
-
-		WPtr<MyWindow> otherWin;
-
-		SPtr<MyButton> self;
-	};
-
-	class MyWindow : public RefCountBase {
-	public:
-		void onFormat(fmt::format_context& ctx) const {
-			fmt::format_to(ctx.out(), "\naBtn: {}\nbBtn: {}", *aBtn.ptr(), *bBtn.ptr());
-		}
-		~MyWindow() {
-			SGE_LOG("~MyWindow({:p})", fmt::ptr(this));
-		}
-
-		String name;
-
-		SPtr<MyButton> aBtn;
-		SPtr<MyButton> bBtn;
-	};
-
 	void test_1() {
-
 		SGE_LOG("test1 ============== Start");
 		{
-			MyWindow win;
+			MyWindow win("test1-MyWindow");
 			win.aBtn = new MyButton("ButtonA");
 			win.bBtn = new MyButton("ButtonB");
 			win.aBtn->other = win.bBtn;
 			win.bBtn->other = win.aBtn;
-			
+//			win.bBtn->otherWin = &win;	// not allow stack value with raw pointer
+			win.bBtn->otherWin = new MyWindow("test1-other-Window"); // this line is ok
+
 			SGE_LOG("win:{:p}\naBtn:{:p}\nbBtn:{:p}\n", fmt::ptr(&win), fmt::ptr(win.aBtn.ptr()), fmt::ptr(win.bBtn.ptr()));
 
 			SGE_DUMP_VAR(win);
@@ -92,7 +111,7 @@ public:
 	}
 
 	void test_2() {
-		SGE_LOG("test2 ============== Start"); // UPtr and WPtr
+		SGE_LOG("test2 ============== Start"); // UPtr(EASTL) and WPtr (not allow)
 		{
 			auto aBtn = UPtr<MyButton>(new MyButton("ButtonA"));
 			auto bBtn = UPtr<MyButton>(new MyButton("ButtonB"));
@@ -133,8 +152,8 @@ public:
 			aBtn->other = aBtn.ptr();
 			bBtn->other = aBtn.ptr();
 
-//			aBtn->self = aBtn; // cycle reference not allow!!!
-			bBtn->self = aBtn; // this is ok
+//			aBtn->self = aBtn; // not allow SPtr cycle reference!!!
+			bBtn->self = aBtn; // this line is ok
 
 			SGE_DUMP_VAR(*aBtn.ptr());
 			SGE_DUMP_VAR(*bBtn.ptr());
@@ -159,19 +178,20 @@ public:
 	}
 
 	void test_6() {
-		bool a;
-		SGE_LOG("{}", a);
-		SGE_DUMP_VAR(a);
-
 		SGE_LOG("test6 ============== Start");
+		auto other = SPtr<MyWindow>(new MyWindow("test_6-other-MyWindow"));
+
 		{
-			SPtr<MyWindow> win = new MyWindow();
+			SPtr<MyWindow> win = new MyWindow("test_6-MyWindow");
 			WPtr<MyWindow> weakWin(win);
 
 			win->aBtn = new MyButton("ButtonA");
 			win->bBtn = new MyButton("ButtonB");
 			win->aBtn->other = win->bBtn;
 			win->bBtn->other = win->aBtn;
+
+			win->bBtn->otherWin = weakWin;
+			win->aBtn->otherWin = other;
 
 			SGE_LOG("win:{:p}\naBtn:{:p}\nbBtn:{:p}\n", fmt::ptr(win.ptr()), fmt::ptr(win->aBtn.ptr()), fmt::ptr(win->bBtn.ptr()));
 			SGE_DUMP_VAR(*win.ptr());
@@ -180,17 +200,14 @@ public:
 	}
 };
 
-SGE_FORMATTER(test_WPtr::MyButton)
-SGE_FORMATTER(test_WPtr::MyWindow)
-
 } // namespace 
 
-void test_WeakPtr() {
+void test_WPtr() {
 	using namespace sge;
-//	SGE_TEST_CASE(test_WPtr, test_1());
-//	SGE_TEST_CASE(test_WPtr, test_2()); // will occur error
-	SGE_TEST_CASE(test_WPtr, test_3());
-//	SGE_TEST_CASE(test_WPtr, test_4());
-//	SGE_TEST_CASE(test_WPtr, test_5());
-//	SGE_TEST_CASE(test_WPtr, test_6());
+	SGE_TEST_CASE(Test_WPtr, test_1());
+//	SGE_TEST_CASE(Test_WPtr, test_2()); // will occur error
+	SGE_TEST_CASE(Test_WPtr, test_3());
+	SGE_TEST_CASE(Test_WPtr, test_4());
+	SGE_TEST_CASE(Test_WPtr, test_5());
+	SGE_TEST_CASE(Test_WPtr, test_6());
 }

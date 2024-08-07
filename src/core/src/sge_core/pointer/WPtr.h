@@ -31,12 +31,12 @@ public:
 		}
 		_block = nullptr;
 		_p = p;
-		if (p) {
-			_block = p->_weakRefBlock;
+		if (_p) {
+			_block = _p->_weakRefBlock;
 			if (!_block) {
 				_block = new WeakRefBlock();
-				p->_weakRefBlock = _block;
-				_block->_obj = p;
+				_p->_weakRefBlock = _block;
+				_block->_obj = _p;
 			}
 			++_block->_weakCount;
 		}
