@@ -5,7 +5,12 @@ namespace sge {
 class MainWin : public NativeUIWindow {
 	using Base = NativeUIWindow;
 public:
+	using Vertex_PosColorCg = VertexT_Color<Color4f, 1, VertexT_Pos<Tuple4f>>;
+
 	virtual void onCreate(CreateDesc& desc) {
+		SGE_DUMP_VAR(sizeof(Vertex_PosColorCg));
+		VertexLayoutManager::instance()->registerLayout<Vertex_PosColorCg>();
+
 		desc.ownDC = true;
 		Base::onCreate(desc);
 		auto* renderer = Renderer::instance();
@@ -15,6 +20,49 @@ public:
 			renderContextDesc.window = this;
 			_renderContext = renderer->createContext(renderContextDesc);
 		}
+
+		_createMesh();
+	}
+
+	void _createMesh() {
+
+		EditMesh editMesh;
+
+		float d = 0.5f;
+		editMesh.pos.emplace_back( 0, d, 0);
+		editMesh.pos.emplace_back( d,-d, 0);
+		editMesh.pos.emplace_back(-d,-d, 0);
+
+		editMesh.color.emplace_back(255, 0, 0, 255);
+		editMesh.color.emplace_back(0, 255, 0, 255);
+		editMesh.color.emplace_back(0, 0, 255, 255);
+
+		_vertexCount = editMesh.pos.size();
+
+		Vector<Vertex_PosColorCg> vertexData;
+		_vertexLayout = Vertex_PosColorCg::s_layout();
+		vertexData.resize(_vertexCount);
+
+		auto* dst = vertexData.begin();
+		for (int i = 0; i < _vertexCount; i++) {
+			auto& pos = editMesh.pos[i];
+			auto& color = editMesh.color[i];
+			dst->pos.set(pos.x, pos.y, pos.z, 1);
+			dst->color[0].set(
+				static_cast<float>(color.r / 255),
+				static_cast<float>(color.g / 255),
+				static_cast<float>(color.b / 255),
+				static_cast<float>(color.a / 255)
+			);
+			dst++;
+		}
+		SGE_ASSERT(dst == vertexData.end());
+
+		RenderGpuBuffer::CreateDesc desc;
+		desc.type = RenderGpuBufferType::Vertex;
+		desc.bufferSize = _vertexCount * _vertexLayout->stride;
+		_vertexBuffer = Renderer::instance()->createGpuBuffer(desc);
+		_vertexBuffer->uploadToGpu(spanCast<u8>(vertexData.span()));
 	}
 
 	virtual void onCloseButton() {
@@ -26,12 +74,35 @@ public:
 		if (!_renderContext) return;
 
 		_renderContext->setFrameBufferSize(clientRect().size);
-		_renderContext->testRender();
 
+		_renderContext->beginRender();
+
+		_cmdBuf.reset(_renderContext);
+		_cmdBuf.clearFrameBuffers();
+		{
+			auto* cmd = _cmdBuf.addDrawCall();
+#if _DEBUG
+			cmd->debugLoc = SGE_LOC;
+#endif
+			cmd->primitive		= RenderPrimitiveType::Triangles;
+			cmd->vertexLayout	= _vertexLayout;
+			cmd->vertexBuffer	= _vertexBuffer;
+			cmd->vertexCount	= _vertexCount;
+		}
+		_cmdBuf.swapBuffers();
+
+		_renderContext->commit(_cmdBuf);
+
+		_renderContext->endRender();
 		drawNeeded();
 	}
 
 	SPtr<RenderContext>	_renderContext;
+	RenderCommandBuffer _cmdBuf;
+
+	const VertexLayout*		_vertexLayout = nullptr;
+	SPtr<RenderGpuBuffer>	_vertexBuffer;
+	size_t					_vertexCount = 0;
 };
 
 class EditorApp : public NativeUIApp {

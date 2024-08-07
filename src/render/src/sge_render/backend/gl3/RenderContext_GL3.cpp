@@ -1,5 +1,6 @@
 #include "RenderContext_GL3.h"
 #include "RenderFalseContext_GL3.h"
+#include "RenderGpuBuffer_GL3.h"
 
 namespace sge {
 
@@ -61,86 +62,206 @@ RenderContext_GL3::RenderContext_GL3(CreateDesc& desc)
 #endif
 
 	Util::throwIfError();
-
-// just for test
-	_testShader = new Shader_GL3();
-	_testShader->loadFile("Assets/Shaders/test001.cg");
 }
 
-void RenderContext_GL3::onSetFrameBufferSize(const Vec2f& newSize) {
-	glViewport(0, 0, static_cast<GLsizei>(newSize.x), static_cast<GLsizei>(newSize.y));
+void RenderContext_GL3::onCmd_ClearFrameBuffers(RenderCommand_ClearFrameBuffers& cmd) {
+	GLenum clearFlag = 0;
+	if (cmd.color.has_value()) {
+		glClearColor(cmd.color->r, cmd.color->g, cmd.color->b, cmd.color->a);
+		clearFlag |= GL_COLOR_BUFFER_BIT;
+	}
+	if (cmd.depth.has_value()) {
+		glClearDepth(*cmd.depth);
+		clearFlag |= GL_DEPTH_BUFFER_BIT;
+	}
+//	if (cmd.stencil.has_value()) {
+//		glClearStencil(*cmd.stencil);
+//		clearFlag |= GL_STENCIL_BUFFER_BIT;
+//	}
+	glClear(clearFlag);
 
 	Util::throwIfError();
 }
 
-void RenderContext_GL3::testRender() {
-	onBeginRender();
-		onClearColorAndDepthBuffer();
-		onTestDraw();
-		onSwapBuffers();
-	onEndRender();
+void RenderContext_GL3::onCmd_DrawCall(RenderCommand_DrawCall& cmd) {
+	if (!cmd.vertexLayout) { SGE_ASSERT(false); return; }
+
+	auto* vertexBuffer = static_cast<RenderGpuBuffer_GL3*>(cmd.vertexBuffer.ptr());
+	RenderGpuBuffer_GL3* indexBuffer = nullptr;
+
+	if (!vertexBuffer && cmd.vertexCount <= 0) { SGE_ASSERT(false); return; }
+	if (cmd.primitive == RenderPrimitiveType::None) { SGE_ASSERT(false); return; }
+	if (cmd.indexCount > 0) {
+		indexBuffer = static_cast<RenderGpuBuffer_GL3*>(cmd.indexBuffer.ptr());
+		if (!indexBuffer) { SGE_ASSERT(false); return; }
+	}
+
+	_setTestShaders();
+
+	if (!_testVertexArrayObject) {
+		glGenVertexArrays(1, &_testVertexArrayObject);
+		Util::throwIfError();
+	}
+	glBindVertexArray(_testVertexArrayObject);
+
+	auto primitive = Util::getGlPrimitiveTopology(cmd.primitive);
+	GLsizei stride = static_cast<GLsizei>(cmd.vertexLayout->stride);
+	GLsizei vertexCount = static_cast<GLsizei>(cmd.vertexCount);
+	GLsizei  indexCount = static_cast<GLsizei>(cmd.indexCount);
+	const GLint offset = 0;
+
+	if (indexCount > 0) {
+		auto indexType = Util::getGlFormat(cmd.indexType);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer->glBuf());
+		glDrawElements(primitive, indexCount, indexType, reinterpret_cast<const void*>(offset));
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	}
+	else {
+		glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer->glBuf());
+#if 0 // name -> loc
+		using Vertex = VertexT_Color<Color4f, 1, VertexT_Pos<Tuple4f>>;
+		Scoped_RenderContext_GL3_VertexAttrib _pos  (_testShaderProgram, "cg_Vertex",	4, GL_FLOAT, true, stride, memberOffset(&Vertex::pos));
+		Scoped_RenderContext_GL3_VertexAttrib _color(_testShaderProgram, "COLOR",		4, GL_FLOAT, true, stride, memberOffset(&Vertex::color));
+//		SGE_DUMP_VAR(memberOffset(&Vertex::pos));
+//		SGE_DUMP_VAR(memberOffset(&Vertex::color));
+#else // loc only
+		glVertexAttribPointer(0, 4, GL_FLOAT, true, stride, reinterpret_cast<const void*>(16)); // COLOR
+		glEnableVertexAttribArray(0);
+
+		glVertexAttribPointer(1, 4, GL_FLOAT, true, stride, reinterpret_cast<const void*>(0));  // cg_Vertex
+		glEnableVertexAttribArray(1);
+#endif
+
+		glDrawArrays(primitive, offset, static_cast<GLsizei>(vertexCount));
+
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+#if 1 // loc only
+		glDisableVertexAttribArray(0);
+		glDisableVertexAttribArray(1);
+#endif
+
+		Util::throwIfError();
+	}
+
+	Util::throwIfError();
+}
+
+void RenderContext_GL3::onCmd_SwapBuffers(RenderCommand_SwapBuffers& cmd) {
+#if SGE_OS_WINDOWS
+	if (_win32_dc)
+		::SwapBuffers(_win32_dc);
+#endif
+	Util::throwIfError();
+}
+
+void RenderContext_GL3::onCommit(RenderCommandBuffer& cmdBuf) {
+	_dispatch(this, cmdBuf);
+}
+
+void RenderContext_GL3::onSetFrameBufferSize(const Vec2f& newSize) {
+	glViewport(0, 0, static_cast<GLsizei>(newSize.x), static_cast<GLsizei>(newSize.y));
+	Util::throwIfError();
 }
 
 void RenderContext_GL3::onBeginRender() {
 	
 }
 
-void RenderContext_GL3::onClearColorAndDepthBuffer() {
-	glClearDepth(1);
-	glClearStencil(0);
-	glClearColor(0.0f, 0.2f, 0.2f, 0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-	Util::throwIfError();
-}
-
-void RenderContext_GL3::onTestDraw() {
-	_testShader->bind();
-
-	struct Vertex {
-		Vec4f	pos;
-		Color4f color;
-	};
-
-	float d = 0.5f;
-	static Vertex vertexData[] = {
-		{ Vec4f( 0,  d, 0, 1), Color4f( 1,0,0,1 ) },
-		{ Vec4f( d, -d, 0, 1), Color4f( 0,1,0,1 ) },
-		{ Vec4f(-d, -d, 0, 1), Color4f( 0,0,1,1 ) },
-	};
-
-	size_t vertexCount = sizeof(vertexData) / sizeof(vertexData[0]);
-
-	_vertexArray.create();
-	_vertexArray.bind();
-
-	MyVertexBuffer vertexBuffer;
-	Span<Vertex> vertexDataSpan(vertexData, 3);
-	vertexBuffer.create<Vertex>(vertexDataSpan);
-	vertexBuffer.bind();
-
-	GLsizei stride = static_cast<GLsizei>(sizeof(Vertex));
-	Scoped_RenderContext_GL3_VertexAttrib _pos  (_testShader->_program,	"cg_Vertex",	4, GL_FLOAT, true, stride, memberOffset(&Vertex::pos));
-	Scoped_RenderContext_GL3_VertexAttrib _color(_testShader->_program, "COLOR",		4, GL_FLOAT, true, stride, memberOffset(&Vertex::color));
-
-	glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(vertexCount));
-
-	_vertexArray.unbind();
-	vertexBuffer.unbind();
-	_testShader->unbind();
-
-	Util::throwIfError();
-}
-
 void RenderContext_GL3::onEndRender() {
 
 }
 
-void RenderContext_GL3::onSwapBuffers() {
-#if SGE_OS_WINDOWS
-	if (_win32_dc)
-		::SwapBuffers(_win32_dc);
-#endif
+void RenderContext_GL3::_setTestShaders() {
+	TempString shaderFile("Assets/Shaders/test001.cg");
+
+//---- compile shader
+	{
+		if (!_testVertexShader) {
+			TempString tmp(shaderFile + ".glsl_vs");
+			Util::compileShader(_testVertexShader, GL_VERTEX_SHADER, tmp.c_str());
+			Util::throwIfError();
+		}
+	}
+	{
+		if (!_testPixelShader) {
+			TempString tmp(shaderFile + ".glsl_ps");
+			Util::compileShader(_testPixelShader, GL_FRAGMENT_SHADER, tmp.c_str());
+			Util::throwIfError();
+		}
+	}
+
+//---- link shader program
+	if (!_testShaderProgram) {
+		_testShaderProgram = glCreateProgram();
+		Util::throwIfError();
+
+		if (_testVertexShader) {
+			glAttachShader(_testShaderProgram, _testVertexShader);
+			Util::throwIfError();
+		}
+		if (_testPixelShader) {
+			glAttachShader(_testShaderProgram, _testPixelShader);
+			Util::throwIfError();
+		}
+		
+		glLinkProgram(_testShaderProgram);
+		GLint linked;
+		glGetProgramiv(_testShaderProgram, GL_LINK_STATUS, &linked);
+		if (linked != GL_TRUE) {
+			String errmsg;
+			Util::getProgramInfoLog(_testShaderProgram, errmsg);
+
+			TempString tmp;
+			FmtTo(tmp, "Error link shader filename = {}\n{}", shaderFile, errmsg);
+
+			throw SGE_ERROR("{}", tmp.c_str());
+		}
+		Util::throwIfError();
+
+		//---- validate shader program
+		glValidateProgram(_testShaderProgram);
+		GLint validated;
+		glGetProgramiv(_testShaderProgram, GL_VALIDATE_STATUS, &validated);
+		if (validated != GL_TRUE) {
+			String errmsg;
+			Util::getProgramInfoLog(_testShaderProgram, errmsg);
+
+			TempString tmp;
+			FmtTo(tmp, "Error validate shader filename = {}\n{}", shaderFile, errmsg);
+
+			throw SGE_ERROR("{}", tmp.c_str());
+		}
+		Util::throwIfError();
+
+		SGE_ASSERT(glIsProgram(_testShaderProgram) == GL_TRUE);
+	}
+
+	glUseProgram(_testShaderProgram);
+}
+
+void RenderContext_GL3::_destroy() {
+	_destroyTestShaders();
+	if (_testVertexArrayObject) {
+		glDeleteVertexArrays(1, &_testVertexArrayObject);
+		_testVertexArrayObject = 0;
+	}
+	glBindVertexArray(0);
+}
+
+void RenderContext_GL3::_destroyTestShaders() {
+	if (_testVertexShader) {
+		glDeleteShader(_testVertexShader);
+		_testVertexShader = 0;
+	}
+	if (_testPixelShader) {
+		glDeleteShader(_testPixelShader);
+		_testPixelShader = 0;
+	}
+	if (_testShaderProgram) {
+		glDeleteProgram(_testShaderProgram);
+		_testShaderProgram = 0;
+	}
 }
 
 }

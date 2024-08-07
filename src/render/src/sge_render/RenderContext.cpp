@@ -11,13 +11,13 @@ void RenderContext::onPostCreate() {
 }
 
 void RenderContext::beginRender() {
-	_imgui.onBeginRender(this);
+	//_imgui.onBeginRender(this); TODO TEMP just for opengl
 	onBeginRender();
 }
 
 void RenderContext::endRender() {
 	onEndRender();
-	_imgui.onEndRender(this);
+	//_imgui.onEndRender(this);  TODO TEMP just for opengl
 }
 
 void RenderContext::setFrameBufferSize(Vec2f newSize) {

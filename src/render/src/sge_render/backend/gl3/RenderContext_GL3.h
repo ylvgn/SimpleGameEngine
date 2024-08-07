@@ -33,68 +33,6 @@ private:
 };
 
 #if 0
-#pragma mark ========= MyVertexBuffer ============
-#endif
-class MyVertexBuffer : public NonCopyable {
-public:
-	template<class MyVertexT>
-	void create(const Span<const MyVertexT> data) {
-		destroy();
-
-		if (data.empty())
-			return;
-
-		glGenBuffers(1, &_p);
-		glBindBuffer(GL_ARRAY_BUFFER, _p);
-		glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(data.size_bytes()), data.data(), GL_DYNAMIC_DRAW);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-	}
-
-	void destroy() {
-		if (_p) {
-			glDeleteBuffers(1, &_p);
-			_p = 0;
-		}
-	}
-
-	void bind	() const { glBindBuffer(GL_ARRAY_BUFFER, _p); }
-	void unbind	() const { glBindBuffer(GL_ARRAY_BUFFER, 0); }
-private:
-	GLuint _p = 0;
-};
-
-#if 0
-#pragma mark ========= MyIndexBuffer ============
-#endif
-class MyIndexBuffer : public NonCopyable {
-public:
-	using IndexType = u16;
-
-	void create(const Span<const IndexType> data) {
-		destroy();
-		if (data.empty())
-			return;
-
-		glGenBuffers(1, &_p);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _p);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLsizeiptr>(data.size_bytes()), data.data(), GL_DYNAMIC_DRAW);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	}
-
-	void destroy() {
-		if (_p) {
-			glDeleteBuffers(1, &_p);
-			_p = 0;
-		}
-	}
-
-	void bind	() const { glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _p); }
-	void unbind	() const { glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); }
-private:
-	GLuint _p = 0;
-};
-
-#if 0
 #pragma mark ========= Scoped_RenderContext_GL3_VertexAttrib ============
 #endif
 class Scoped_RenderContext_GL3_VertexAttrib : public NonCopyable {
@@ -126,8 +64,13 @@ private:
 
 public:
 	RenderContext_GL3(CreateDesc& desc);
+	~RenderContext_GL3() { _destroy(); }
 
-	void testRender() override;
+	void onCmd_ClearFrameBuffers(RenderCommand_ClearFrameBuffers&	cmd);
+	void onCmd_SwapBuffers		(RenderCommand_SwapBuffers&			cmd);
+	void onCmd_DrawCall			(RenderCommand_DrawCall&			cmd);
+
+	void onCmd_SetScissorRect	(RenderCommand_SetScissorRect& cmd) { /*TODO*/ }
 
 protected:
 	Renderer_GL3* _renderer = nullptr;
@@ -136,20 +79,22 @@ protected:
 	virtual void onEndRender() override;
 
 	virtual void onSetFrameBufferSize(const Vec2f& newSize) override;
+	virtual void onCommit(RenderCommandBuffer& cmdBuf);
 
-	void onTestDraw();
-	void onClearColorAndDepthBuffer();
-	void onSwapBuffers();
-private:
+	void _destroy();
+	void _destroyTestShaders();
+
+	void _setTestShaders();
 
 #if SGE_OS_WINDOWS
 	::HDC	_win32_dc = nullptr;
 	::HGLRC	_win32_rc = nullptr;
 #endif
 
-// just for test
-	SPtr<Shader_GL3> _testShader;
-	MyVertexArray _vertexArray;
+	GLuint _testShaderProgram		= 0;
+	GLuint _testVertexShader		= 0;
+	GLuint _testPixelShader			= 0;
+	GLuint _testVertexArrayObject	= 0;
 };
 
 }

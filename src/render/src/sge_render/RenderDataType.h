@@ -79,6 +79,7 @@ struct RenderDataTypeUtil {
 	template<> static constexpr Type get<Mat4f>() { return Type::Float32_4x4; }
 
 	template<> static constexpr Type get<Color4b>() { return Type::UNorm8x4; }
+	template<> static constexpr Type get<Color4f>() { return Type::Float32x4; }
 
 	template<> static constexpr Type get<Texture1D>()	{ return Type::Texture1D; }
 	template<> static constexpr Type get<Texture2D>()	{ return Type::Texture2D; }
