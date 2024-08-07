@@ -10,23 +10,31 @@ void RenderGpuBuffer_GL3::destroy() {
 	}
 }
 
+void RenderGpuBuffer_GL3::glBind() {
+	glBindBuffer(glBufTarget(), _p);
+}
+
+void RenderGpuBuffer_GL3::glUnbind() {
+	glBindBuffer(glBufTarget(), 0);
+}
+
 void RenderGpuBuffer_GL3::onCreate(CreateDesc& desc)  {
 	destroy();
 
 	if (desc.bufferSize <= 0) throw SGE_ERROR("buffer size = 0");
 	if (desc.stride <= 0) throw SGE_ERROR("stride == 0");
 
-	auto target = Util::getGlBufferBindingTarget(_desc.type);
+	auto target = glBufTarget();
 	glGenBuffers(1, &_p);
 	glBindBuffer(target, _p);
 	glBufferData(target, static_cast<GLsizeiptr>(desc.bufferSize), nullptr, GL_DYNAMIC_DRAW);
-	glBindBuffer(target, 0);
+//	glBindBuffer(target, 0);
 
 	Util::throwIfError();
 }
 
 void RenderGpuBuffer_GL3::onUploadToGpu(ByteSpan data, size_t offset) {
-	auto target = Util::getGlBufferBindingTarget(_desc.type);
+	auto target = glBufTarget();
 	glBindBuffer(target, _p);
 
 #if 1 // which is better ???
@@ -36,6 +44,7 @@ void RenderGpuBuffer_GL3::onUploadToGpu(ByteSpan data, size_t offset) {
 #else
 	glBufferSubData(target, static_cast<GLintptr>(offset), static_cast<GLsizeiptr>(data.size()), data.data());
 #endif
+//	glBindBuffer(target, 0);
 
 	Util::throwIfError();
 }

@@ -5,11 +5,13 @@ namespace sge {
 class MainWin : public NativeUIWindow {
 	using Base = NativeUIWindow;
 public:
-	using Vertex_PosColorCg = VertexT_Color<Color4f, 1, VertexT_Pos<Tuple4f>>;
+	using TestVertex = VertexT_Color<Color4f, 1, VertexT_Pos<Tuple4f>>;
 
 	virtual void onCreate(CreateDesc& desc) {
-		SGE_DUMP_VAR(sizeof(Vertex_PosColorCg));
-		VertexLayoutManager::instance()->registerLayout<Vertex_PosColorCg>();
+		SGE_DUMP_VAR(sizeof(TestVertex));
+		SGE_DUMP_VAR(memberOffset(&TestVertex::pos));
+		SGE_DUMP_VAR(memberOffset(&TestVertex::color));
+		VertexLayoutManager::instance()->registerLayout<TestVertex>();
 
 		desc.ownDC = true;
 		Base::onCreate(desc);
@@ -21,11 +23,10 @@ public:
 			_renderContext = renderer->createContext(renderContextDesc);
 		}
 
-		_createMesh();
+		_createTestMesh();
 	}
 
-	void _createMesh() {
-
+	void _createTestMesh() {
 		EditMesh editMesh;
 
 		float d = 0.5f;
@@ -39,8 +40,8 @@ public:
 
 		_vertexCount = editMesh.pos.size();
 
-		Vector<Vertex_PosColorCg> vertexData;
-		_vertexLayout = Vertex_PosColorCg::s_layout();
+		Vector<TestVertex> vertexData;
+		_vertexLayout = TestVertex::s_layout();
 		vertexData.resize(_vertexCount);
 
 		auto* dst = vertexData.begin();

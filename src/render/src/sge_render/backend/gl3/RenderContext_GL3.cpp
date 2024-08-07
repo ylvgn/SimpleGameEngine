@@ -6,9 +6,8 @@ namespace sge {
 
 RenderContext_GL3::RenderContext_GL3(CreateDesc& desc)
 	: Base(desc)
+	, _renderer(Renderer_GL3::current())
 {
-	_renderer = Renderer_GL3::current();
-
 	RenderFalseContext_GL3 falseContext;
 	falseContext.create();
 	glewInit();
@@ -91,59 +90,37 @@ void RenderContext_GL3::onCmd_DrawCall(RenderCommand_DrawCall& cmd) {
 
 	if (!vertexBuffer && cmd.vertexCount <= 0) { SGE_ASSERT(false); return; }
 	if (cmd.primitive == RenderPrimitiveType::None) { SGE_ASSERT(false); return; }
+
 	if (cmd.indexCount > 0) {
 		indexBuffer = static_cast<RenderGpuBuffer_GL3*>(cmd.indexBuffer.ptr());
 		if (!indexBuffer) { SGE_ASSERT(false); return; }
 	}
 
-	_setTestShaders();
-
-	if (!_testVertexArrayObject) {
+	if (!_testVertexArrayObject) { // TODO
 		glGenVertexArrays(1, &_testVertexArrayObject);
 		Util::throwIfError();
 	}
 	glBindVertexArray(_testVertexArrayObject);
 
-	auto primitive = Util::getGlPrimitiveTopology(cmd.primitive);
-	GLsizei stride = static_cast<GLsizei>(cmd.vertexLayout->stride);
-	GLsizei vertexCount = static_cast<GLsizei>(cmd.vertexCount);
-	GLsizei  indexCount = static_cast<GLsizei>(cmd.indexCount);
-	const GLint offset = 0;
+	vertexBuffer->glBind();
+	{
+		_setTestShaders();
 
-	if (indexCount > 0) {
-		auto indexType = Util::getGlFormat(cmd.indexType);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer->glBuf());
-		glDrawElements(primitive, indexCount, indexType, reinterpret_cast<const void*>(offset));
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+		auto primitive		= Util::getGlPrimitiveTopology(cmd.primitive);
+	//	GLsizei stride		= static_cast<GLsizei>(cmd.vertexLayout->stride);
+		GLsizei vertexCount = static_cast<GLsizei>(cmd.vertexCount);
+		GLsizei  indexCount = static_cast<GLsizei>(cmd.indexCount);
+
+		if (indexCount > 0) {
+			indexBuffer->glBind();
+			glDrawElements(primitive, indexCount, Util::getGlFormat(cmd.indexType), nullptr);
+			indexBuffer->glUnbind();
+		}
+		else {
+			glDrawArrays(primitive, 0, static_cast<GLsizei>(vertexCount));
+		}
 	}
-	else {
-		glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer->glBuf());
-#if 0 // name -> loc
-		using Vertex = VertexT_Color<Color4f, 1, VertexT_Pos<Tuple4f>>;
-		Scoped_RenderContext_GL3_VertexAttrib _pos  (_testShaderProgram, "cg_Vertex",	4, GL_FLOAT, true, stride, memberOffset(&Vertex::pos));
-		Scoped_RenderContext_GL3_VertexAttrib _color(_testShaderProgram, "COLOR",		4, GL_FLOAT, true, stride, memberOffset(&Vertex::color));
-//		SGE_DUMP_VAR(memberOffset(&Vertex::pos));
-//		SGE_DUMP_VAR(memberOffset(&Vertex::color));
-#else // loc only
-		glVertexAttribPointer(0, 4, GL_FLOAT, true, stride, reinterpret_cast<const void*>(16)); // COLOR
-		glEnableVertexAttribArray(0);
-
-		glVertexAttribPointer(1, 4, GL_FLOAT, true, stride, reinterpret_cast<const void*>(0));  // cg_Vertex
-		glEnableVertexAttribArray(1);
-#endif
-
-		glDrawArrays(primitive, offset, static_cast<GLsizei>(vertexCount));
-
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-#if 1 // loc only
-		glDisableVertexAttribArray(0);
-		glDisableVertexAttribArray(1);
-#endif
-
-		Util::throwIfError();
-	}
-
+	vertexBuffer->glUnbind();
 	Util::throwIfError();
 }
 
@@ -165,7 +142,7 @@ void RenderContext_GL3::onSetFrameBufferSize(const Vec2f& newSize) {
 }
 
 void RenderContext_GL3::onBeginRender() {
-	
+
 }
 
 void RenderContext_GL3::onEndRender() {
@@ -238,6 +215,32 @@ void RenderContext_GL3::_setTestShaders() {
 	}
 
 	glUseProgram(_testShaderProgram);
+	Util::throwIfError();
+
+#if 1
+	using TestVertex = VertexT_Color<Color4f, 1, VertexT_Pos<Tuple4f>>;
+	GLsizei stride = static_cast<GLsizei>(sizeof(TestVertex));
+//	SGE_DUMP_VAR(stride);
+//	SGE_DUMP_VAR(memberOffset(&TestVertex::pos));
+//	SGE_DUMP_VAR(memberOffset(&TestVertex::color));
+	{
+		auto loc = glGetAttribLocation(_testShaderProgram, "cg_Vertex");
+		glVertexAttribPointer(loc, 4, GL_FLOAT, true, stride, reinterpret_cast<const void*>(memberOffset(&TestVertex::pos)));
+		glEnableVertexAttribArray(loc);
+	}
+	{
+		auto loc = glGetAttribLocation(_testShaderProgram, "COLOR");
+		glVertexAttribPointer(loc, 4, GL_FLOAT, true, stride, reinterpret_cast<const void*>(memberOffset(&TestVertex::color)));
+		glEnableVertexAttribArray(loc);
+	}
+#else
+	glVertexAttribPointer(1, 4, GL_FLOAT, true, 32, reinterpret_cast<const void*>(0));  // cg_Vertex
+	glEnableVertexAttribArray(1);
+
+	glVertexAttribPointer(0, 4, GL_FLOAT, true, 32, reinterpret_cast<const void*>(16)); // COLOR
+	glEnableVertexAttribArray(0);
+#endif
+	Util::throwIfError();
 }
 
 void RenderContext_GL3::_destroy() {

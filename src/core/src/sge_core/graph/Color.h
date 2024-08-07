@@ -142,7 +142,7 @@ struct ColorR {
 
 	template<class COLOR>
 	static ColorR s_cast(const COLOR& r) {
-		ColorR o;
+		ColorR o {0};
 		for (int i = 0; i < COLOR::kElementCount && i < kElementCount; ++i) {
 			o.data[i] = static_cast<T>(r.data[i]);
 		}
@@ -185,7 +185,7 @@ struct ColorRG {
 
 	template<class COLOR>
 	static ColorRG s_cast(const COLOR& r) {
-		ColorRG o;
+		ColorRG o {0,0};
 		for (int i = 0; i < COLOR::kElementCount && i < kElementCount; ++i) {
 			o.data[i] = static_cast<T>(r.data[i]);
 		}
@@ -232,7 +232,7 @@ struct ColorRGB {
 
 	template<class COLOR>
 	static ColorRGB s_cast(const COLOR& r) {
-		ColorRGB o;
+		ColorRGB o {0,0,0};
 		for (int i = 0; i < COLOR::kElementCount && i < kElementCount; ++i) {
 			o.data[i] = static_cast<T>(r.data[i]);
 		}
@@ -283,7 +283,7 @@ struct ColorRGBA {
 
 	template<class COLOR>
 	static ColorRGBA s_cast(const COLOR& r) {
-		ColorRGBA o {0,0,0,1};;
+		ColorRGBA o {0,0,0,0};
 		for (int i = 0; i < COLOR::kElementCount && i < kElementCount; ++i) {
 			o.data[i] = static_cast<T>(r.data[i]);
 		}
@@ -326,7 +326,7 @@ struct ColorL {
 
 	template<class COLOR>
 	static ColorL s_cast(const COLOR& r) {
-		ColorL o;
+		ColorL o {0};
 		for (int i = 0; i < COLOR::kElementCount && i < kElementCount; ++i) {
 			o.data[i] = static_cast<T>(r.data[i]);
 		}
@@ -367,7 +367,7 @@ struct ColorLA {
 
 	template<class COLOR>
 	static ColorLA s_cast(const COLOR& r) {
-		ColorLA o;
+		ColorLA o {0,0};
 		for (int i = 0; i < COLOR::kElementCount && i < kElementCount; ++i) {
 			o.data[i] = static_cast<T>(r.data[i]);
 		}
