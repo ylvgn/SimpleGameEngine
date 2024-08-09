@@ -49,7 +49,7 @@ namespace Math {
 		return !(v & (v - 1)) && v;
 	}
 
-	template<class T, class ENABLE = std::enable_if< std::is_integral_v<T> > >
+	template<class T, class ENABLE = std::enable_if_t< std::is_integral_v<T> > >
 	constexpr T lowbit(T x) { return x & (-static_cast<i64>(x)); }
 
 	//Splits a floating-point value into fractional and integer parts

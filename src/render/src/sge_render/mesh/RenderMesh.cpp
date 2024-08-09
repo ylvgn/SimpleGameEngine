@@ -100,20 +100,17 @@ void RenderSubMesh::create(const EditMesh& src) {
 	using Helper = RenderMesh_InternalHelper;
 	clear();
 
-	_vertexCount = src.pos.size();
+	size_t vc = src.pos.size();
 	_indexCount = src.indices.size();
 
-	if (_vertexCount <= 0) return;
+	if (vc <= 0) return;
+	setVertexCount(vc);
 
-	auto* vertexLayout = _mesh->vertexLayout();
+	auto* _vertexLayout = vertexLayout();
+	auto* pData = _vertexData.data();
+	auto stride = _vertexLayout->stride;
 
-	Vector<u8, 1024> vertexData;
-	vertexData.resize(vertexLayout->stride * _vertexCount);
-	auto* pData = vertexData.data();
-	auto stride = vertexLayout->stride;
-	auto vc = _vertexCount;
-
-	for (auto& e : vertexLayout->elements) {
+	for (auto& e : _vertexLayout->elements) {
 		using S		= VertexSemantic;
 		using ST	= VertexSemanticType;
 		using U		= VertexSemanticUtil;
@@ -153,14 +150,7 @@ void RenderSubMesh::create(const EditMesh& src) {
 	}
 	//------
 	auto* renderer = Renderer::instance();
-	{
-		RenderGpuBuffer::CreateDesc desc;
-		desc.type		= RenderGpuBufferType::Vertex;
-		desc.bufferSize = _vertexCount * vertexLayout->stride;
-
-		_vertexBuffer = renderer->createGpuBuffer(desc);
-		_vertexBuffer->uploadToGpu(vertexData);
-	}
+	setVertexBuffer();
 
 	if (_indexCount > 0) {
 		ByteSpan indexData;
@@ -168,7 +158,7 @@ void RenderSubMesh::create(const EditMesh& src) {
 
 		if (_vertexCount > UINT16_MAX) {
 			_indexType = RenderDataType::UInt32;
-			indexData = spanCast<const u8, const u32>(src.indices);
+			indexData = ByteSpan_make(src.indices.span());
 		}
 		else {
 			_indexType = RenderDataType::UInt16;
@@ -177,7 +167,7 @@ void RenderSubMesh::create(const EditMesh& src) {
 				u32 vi = src.indices[i];
 				index16Data[i] = static_cast<u16>(vi);
 			}
-			indexData = spanCast<const u8, const u16>(index16Data);
+			indexData = ByteSpan_make(index16Data.span());
 		}
 
 		RenderGpuBuffer::CreateDesc desc;
@@ -197,17 +187,7 @@ void RenderSubMesh::clear() {
 	_vertexData.clear();
 }
 
-SGE_INLINE RenderPrimitiveType RenderSubMesh::primitive() const {
-	return _mesh->primitive();
-}
-
-SGE_INLINE const VertexLayout* RenderSubMesh::vertexLayout() const {
-	return _mesh->vertexLayout();
-}
-
-void RenderSubMesh::setVertexBuffer(ByteSpan vertexData) {
-	SGE_ASSERT(_vertexCount > 0 && !vertexData.empty());
-
+void RenderSubMesh::_setVertexBuffer(ByteSpan vertexData) {
 	auto* renderer = Renderer::instance();
 
 	RenderGpuBuffer::CreateDesc desc;

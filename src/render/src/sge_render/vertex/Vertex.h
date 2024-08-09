@@ -16,8 +16,8 @@ namespace sge {
 // tangentCount		: 2 bit (from 44), normalType
 // binormalCount	: 2 bit (from 46), normalType
 // vertexId         : 1 bit (from 48)
-// xxxxxxxxxxxxxx   : ? bit(from 49)
-enum class VertexType : u64 { None = 0 }; // VertexType = VertexSemantic|RenderDataType
+// xxxxxxxxxxxxxx   : ? bit (from 49)
+enum class VertexType : u64 { None = 0 }; // VertexType = VertexSemantic|RenderDataType|RenderDataTypeCount
 
 struct VertexTypeUtil {
 #define LSR(V, N) (static_cast<u64>((V)) << (N))

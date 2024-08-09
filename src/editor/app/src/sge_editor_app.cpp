@@ -5,7 +5,7 @@ namespace sge {
 class MainWin : public NativeUIWindow {
 	using Base = NativeUIWindow;
 public:
-	virtual void onCreate(CreateDesc& desc) {
+	virtual void onCreate(CreateDesc& desc) override {
 		Base::onCreate(desc);
 		auto* renderer = Renderer::instance();
 		auto* editor = EditorContext::instance();
@@ -167,7 +167,7 @@ public:
 		}
 	}
 
-	virtual void onCloseButton() {
+	virtual void onCloseButton() override {
 		NativeUIApp::current()->quit(0);
 	}
 
@@ -198,7 +198,7 @@ public:
 		_renderContext->onUIKeyboardEvent(ev);
 	}
 
-	virtual void onDraw() {
+	virtual void onDraw() override {
 		Base::onDraw();
 		if (!_renderContext) return;
 

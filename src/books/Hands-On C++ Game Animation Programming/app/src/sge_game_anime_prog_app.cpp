@@ -13,7 +13,7 @@ namespace sge {
 #define WGL_CONTEXT_PROFILE_MASK_ARB      0x9126
 typedef HGLRC(WINAPI* PFNWGLCREATECONTEXTATTRIBSARBPROC) (HDC, HGLRC, const int*);
 
-// V Synch
+// VSynch
 typedef const char* (WINAPI* PFNWGLGETEXTENSIONSSTRINGEXTPROC) (void);
 typedef BOOL		(WINAPI* PFNWGLSWAPINTERVALEXTPROC) (int);
 typedef int			(WINAPI* PFNWGLGETSWAPINTERVALEXTPROC) (void);
@@ -77,15 +77,14 @@ protected:
 
 		_hdc = ::GetDC(_hwnd);
 
-		{ // create opengl render context
-
-			PIXELFORMATDESCRIPTOR pfd;
+		{ // create OpenGL render context
+			::PIXELFORMATDESCRIPTOR pfd;
 			memset(&pfd, 0, sizeof(pfd));
 			pfd.nSize 			= sizeof(PIXELFORMATDESCRIPTOR);
 			pfd.nVersion 		= 1;
 			pfd.dwFlags 		= PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW | PFD_DOUBLEBUFFER;
 			pfd.iPixelType 		= PFD_TYPE_RGBA;
-			pfd.cColorBits 		= 24;
+			pfd.cColorBits 		= 32;
 			pfd.cDepthBits 		= 32;
 			pfd.cStencilBits 	= 8;
 			pfd.iLayerType 		= PFD_MAIN_PLANE;
@@ -94,7 +93,7 @@ protected:
 			SetPixelFormat(_hdc, pixelFormat, &pfd);
 
 			// legacy render context
-			HGLRC tempRC = wglCreateContext(_hdc);
+			::HGLRC tempRC = wglCreateContext(_hdc);
 			wglMakeCurrent(_hdc, tempRC);
 
 			// legacy render context just for get function pointer of 'wglCreateContextAttribsARB'
@@ -109,13 +108,13 @@ protected:
 			};
 
 			// modern render context
-			HGLRC hglrc = wglCreateContextAttribsARB(_hdc, 0, attribList);
+			::HGLRC hglrc = wglCreateContextAttribsARB(_hdc, 0, attribList);
 
 			wglMakeCurrent(NULL, NULL);
 			wglDeleteContext(tempRC);
 			wglMakeCurrent(_hdc, hglrc);
 
-			// use 'glad' to load all opengl core function
+			// use 'glad' to load all OpenGL core function
 			if (!gladLoadGL()) {
 				throw SGE_ERROR("Could not initialize GLAD\n");
 			}
@@ -123,7 +122,7 @@ protected:
 			SGE_LOG("OpenGL Version: {}.{} loaded", GLVersion.major, GLVersion.minor);
 		}
 
-		{ // vsynch: https://www.khronos.org/opengl/wiki/Swap_Interval
+		{ // VSynch: https://www.khronos.org/opengl/wiki/Swap_Interval
 			PFNWGLGETEXTENSIONSSTRINGEXTPROC _wglGetExtensionsStringEXT = reinterpret_cast<PFNWGLGETEXTENSIONSSTRINGEXTPROC>(wglGetProcAddress("wglGetExtensionsStringEXT"));
 			bool isSwapControlSupported = strstr(_wglGetExtensionsStringEXT(), "WGL_EXT_swap_control") != 0;
 
@@ -133,11 +132,11 @@ protected:
 				PFNWGLGETSWAPINTERVALEXTPROC wglGetSwapIntervalEXT = reinterpret_cast<PFNWGLGETSWAPINTERVALEXTPROC>(wglGetProcAddress("wglGetSwapIntervalEXT"));
 
 				if (wglSwapIntervalEXT(1)) {
-					SGE_LOG("Enabled vsynch\n");
+					SGE_LOG("Enabled VSynch\n");
 					_vsynch = wglGetSwapIntervalEXT();
 				}
 				else {
-					SGE_LOG("Could not enable vsynch\n");
+					SGE_LOG("Could not enable VSynch\n");
 				}
 			}
 			else { // !swapControlSupported
@@ -157,7 +156,7 @@ protected:
 		_camera.setPos(0, 10, 10);
 		_camera.setAim(0, 0, 0);
 
-		// create Nuklear (imgui)
+		// create Nuklear (kind of ImGui)
 		NuklearUI::createContext();
 
 		// create sample
@@ -166,14 +165,14 @@ protected:
 
 	virtual void onCloseButton() override {
 		if (_vertexArrayObject != 0) {
-			HGLRC hglrc = wglGetCurrentContext();
+			::HGLRC hglrc = wglGetCurrentContext();
 
 			// delete VAO
 			glBindVertexArray(0);
 			glDeleteVertexArrays(1, &_vertexArrayObject);
 			_vertexArrayObject = 0;
 
-			// deleate Nuklear
+			// delete Nuklear
 			NuklearUI::destroyContext();
 
 			// delete render context

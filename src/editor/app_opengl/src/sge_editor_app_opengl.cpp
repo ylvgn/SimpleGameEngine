@@ -5,13 +5,14 @@ namespace sge {
 class MainWin : public NativeUIWindow {
 	using Base = NativeUIWindow;
 public:
-	using TestVertex = VertexT_Color<Color4f, 1, VertexT_Pos<Tuple4f>>;
 
-	virtual void onCreate(CreateDesc& desc) {
-		SGE_DUMP_VAR(sizeof(TestVertex));
-		SGE_DUMP_VAR(memberOffset(&TestVertex::pos));
-		SGE_DUMP_VAR(memberOffset(&TestVertex::color));
-		VertexLayoutManager::instance()->registerLayout<TestVertex>();
+	using MyTestVertexT = VertexT_Color<Color4f, 1, VertexT_Pos<Tuple4f>>;
+
+	virtual void onCreate(CreateDesc& desc) override {
+		SGE_DUMP_VAR(sizeof(MyTestVertexT));
+		SGE_DUMP_VAR(memberOffset(&MyTestVertexT::pos));
+		SGE_DUMP_VAR(memberOffset(&MyTestVertexT::color));
+		VertexLayoutManager::instance()->registerLayout<MyTestVertexT>();
 
 		desc.ownDC = true;
 		Base::onCreate(desc);
@@ -45,34 +46,7 @@ public:
 		editMesh.color.emplace_back(0, 255, 0, 255);
 		editMesh.color.emplace_back(0, 0, 255, 255);
 
-		size_t vertexCount = editMesh.pos.size();
-
-		Vector<TestVertex> vertexData;
-		vertexData.resize(vertexCount);
-
-		_renderMesh.setSubMeshCount(1);
-		_renderMesh.setVertexLayout(TestVertex::s_layout());
-		auto subMeshes = _renderMesh.subMeshes();
-		auto& subMesh = subMeshes[0];
-
-		auto* dst = vertexData.begin();
-		for (int i = 0; i < vertexCount; i++) {
-			auto& pos	= editMesh.pos[i];
-			auto& color = editMesh.color[i];
-
-			dst->pos.set(pos.x, pos.y, pos.z, 1);
-			dst->color[0].set(
-				static_cast<float>(color.r / 255),
-				static_cast<float>(color.g / 255),
-				static_cast<float>(color.b / 255),
-				static_cast<float>(color.a / 255)
-			);
-			dst++;
-		}
-		SGE_ASSERT(dst == vertexData.end());
-
-		subMesh.setVertexCount(vertexCount);
-		subMesh.setVertexBuffer(ByteSpan_make(vertexData.span()));
+		_createMyRenderMesh(editMesh);
 	}
 
 	void _loadTestMesh() {
@@ -80,22 +54,23 @@ public:
 
 		WavefrontObjLoader::readFile(editMesh, "Assets/Mesh/test.obj");
 		editMesh.addColors({ 255, 0, 255, 255 }); // the current shader need color
-		// the current shader has no uv or normal
-		editMesh.uv[0].clear();
-		editMesh.normal.clear();
-		
-		size_t vertexCount = editMesh.pos.size();
+
+		_createMyRenderMesh(editMesh);
+	}
+
+	void _createMyRenderMesh(EditMesh& editMesh) {
+		size_t vc = editMesh.pos.size();
 
 		_renderMesh.setSubMeshCount(1);
-		_renderMesh.setVertexLayout(TestVertex::s_layout());
+		_renderMesh.setVertexLayout(MyTestVertexT::s_layout());
 		auto subMeshes = _renderMesh.subMeshes();
 		auto& subMesh = subMeshes[0];
-		subMesh.setSize<TestVertex>(vertexCount);
+		subMesh.setVertexCount(vc);
 
-		for (int i = 0; i < vertexCount; ++i) {
-			auto& pos = editMesh.pos[i];
+		for (int i = 0; i < vc; ++i) {
+			auto& pos	= editMesh.pos[i];
 			auto& color = editMesh.color[i];
-			auto* dst = subMesh.vertex<TestVertex>(i);
+			auto* dst	= subMesh.vertex<MyTestVertexT>(i);
 
 			(*dst).pos.set(pos.x, pos.y, pos.z, 1);
 			(*dst).color[0].set(
@@ -107,7 +82,9 @@ public:
 			++dst;
 		}
 		subMesh.setVertexBuffer();
-		subMesh.setIndexData(editMesh.indices);
+
+		if (!editMesh.indices.empty())
+			subMesh.setIndexData(editMesh.indices);
 	}
 
 	virtual void onDraw() override {

@@ -77,7 +77,7 @@ void Mesh::cpuSkin(const Skeleton& skeleton, const Pose& pose) {
 		_skinnedNormal[i] = skin.transformVector(normal[i]);
 	}
 
-#else // skin tranform
+#else // skin transform
 /*
 	basic skinning algorithm:
 	// 1. calc skin transform: combine current animated pose with inverse bind pose of jointInfluences
