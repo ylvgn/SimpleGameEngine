@@ -16,6 +16,24 @@ public:
 	void create(const EditMesh& src);
 	void clear();
 
+	template<class VertexT>
+	VertexT* vertex(int i) {
+		static_assert(std::is_base_of<VertexBase, VertexT>::value, "");
+
+		size_t offset = vertexLayout()->stride * i;
+		return _vertex<VertexT>(offset);
+	}
+
+	template<class VertexT>
+	void setSize(size_t vertexCount) {
+		static_assert(std::is_base_of<VertexBase, VertexT>::value, "");
+
+		size_t byteSize = vertexLayout()->stride * vertexCount;
+
+		setVertexCount(vertexCount);
+		_vertexData.resize(byteSize);
+	}
+
 	RenderGpuBuffer* vertexBuffer() const	{ return constCast(_vertexBuffer); }
 	RenderGpuBuffer* indexBuffer() const	{ return constCast(_indexBuffer); }
 
@@ -26,6 +44,16 @@ public:
 	RenderPrimitiveType primitive() const;
 	const VertexLayout* vertexLayout() const;
 
+	void setIndexData(const Span<const u16> indexData) { _setIndexData(indexData); }
+	void setIndexData(const Span<const u32> indexData) { _setIndexData(indexData); }
+
+	void setVertexCount(size_t v) { _vertexCount = v; }
+	void setVertexBuffer(ByteSpan vertexData);
+	void setVertexBuffer() {
+		if (_vertexData.empty()) return;
+		setVertexBuffer(_vertexData);
+	}
+
 	const BBox3f& boundingBox() const { return _boundingBox; }
 
 friend class RenderMesh;
@@ -33,7 +61,34 @@ protected:
 	RenderMesh* _mesh = nullptr;
 
 	RenderDataType _indexType = RenderDataType::None;
+	
+	template<class T, class ENABLE = std::enable_if_t< std::is_unsigned_v<T> > >
+	void _setIndexData(const Span<const T> indexData) {
+		auto* renderer = Renderer::instance();
+		auto byteSpan = ByteSpan_make(indexData);
 
+		RenderGpuBuffer::CreateDesc desc;
+		desc.type		= RenderGpuBufferType::Index;
+		desc.bufferSize = byteSpan.size();
+
+		_indexType  = RenderDataTypeUtil::get<T>();
+		_indexCount = indexData.size();
+
+		_indexBuffer = renderer->createGpuBuffer(desc);
+		_indexBuffer->uploadToGpu(byteSpan);
+	}
+
+	template<class VertexT>
+	VertexT* _vertex(size_t offset) {
+		if (offset < 0 || offset >= _vertexData.size())
+			throw SGE_ERROR("out of range");
+
+		void* buf = _vertexData.data() + offset;
+		auto* res = new (buf) VertexT();
+		return res;
+	}
+
+	Vector<u8, 1024>		_vertexData;
 	SPtr<RenderGpuBuffer>	_vertexBuffer;
 	SPtr<RenderGpuBuffer>	_indexBuffer;
 
@@ -55,6 +110,7 @@ public:
 	Span<      SubMesh>	subMeshes()				{ return _subMeshes; }
 	Span<const SubMesh>	subMeshes() const		{ return _subMeshes; }
 
+	void setVertexLayout(const VertexLayout* v)	{ _vertexLayout = v; }
 	void setSubMeshCount(size_t newSize);
 
 private:

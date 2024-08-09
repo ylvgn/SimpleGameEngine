@@ -22,8 +22,15 @@ public:
 			renderContextDesc.window = this;
 			_renderContext = renderer->createContext(renderContextDesc);
 		}
-
+#if 1
+		_loadTestMesh();
+#else
 		_createTestMesh();
+#endif
+	}
+
+	virtual void onCloseButton() override {
+		NativeUIApp::current()->quit(0);
 	}
 
 	void _createTestMesh() {
@@ -38,16 +45,21 @@ public:
 		editMesh.color.emplace_back(0, 255, 0, 255);
 		editMesh.color.emplace_back(0, 0, 255, 255);
 
-		_vertexCount = editMesh.pos.size();
+		size_t vertexCount = editMesh.pos.size();
 
 		Vector<TestVertex> vertexData;
-		_vertexLayout = TestVertex::s_layout();
-		vertexData.resize(_vertexCount);
+		vertexData.resize(vertexCount);
+
+		_renderMesh.setSubMeshCount(1);
+		_renderMesh.setVertexLayout(TestVertex::s_layout());
+		auto subMeshes = _renderMesh.subMeshes();
+		auto& subMesh = subMeshes[0];
 
 		auto* dst = vertexData.begin();
-		for (int i = 0; i < _vertexCount; i++) {
-			auto& pos = editMesh.pos[i];
+		for (int i = 0; i < vertexCount; i++) {
+			auto& pos	= editMesh.pos[i];
 			auto& color = editMesh.color[i];
+
 			dst->pos.set(pos.x, pos.y, pos.z, 1);
 			dst->color[0].set(
 				static_cast<float>(color.r / 255),
@@ -59,15 +71,43 @@ public:
 		}
 		SGE_ASSERT(dst == vertexData.end());
 
-		RenderGpuBuffer::CreateDesc desc;
-		desc.type = RenderGpuBufferType::Vertex;
-		desc.bufferSize = _vertexCount * _vertexLayout->stride;
-		_vertexBuffer = Renderer::instance()->createGpuBuffer(desc);
-		_vertexBuffer->uploadToGpu(spanCast<u8>(vertexData.span()));
+		subMesh.setVertexCount(vertexCount);
+		subMesh.setVertexBuffer(ByteSpan_make(vertexData.span()));
 	}
 
-	virtual void onCloseButton() override {
-		NativeUIApp::current()->quit(0);
+	void _loadTestMesh() {
+		EditMesh editMesh;
+
+		WavefrontObjLoader::readFile(editMesh, "Assets/Mesh/test.obj");
+		editMesh.addColors({ 255, 0, 255, 255 }); // the current shader need color
+		// the current shader has no uv or normal
+		editMesh.uv[0].clear();
+		editMesh.normal.clear();
+		
+		size_t vertexCount = editMesh.pos.size();
+
+		_renderMesh.setSubMeshCount(1);
+		_renderMesh.setVertexLayout(TestVertex::s_layout());
+		auto subMeshes = _renderMesh.subMeshes();
+		auto& subMesh = subMeshes[0];
+		subMesh.setSize<TestVertex>(vertexCount);
+
+		for (int i = 0; i < vertexCount; ++i) {
+			auto& pos = editMesh.pos[i];
+			auto& color = editMesh.color[i];
+			auto* dst = subMesh.vertex<TestVertex>(i);
+
+			(*dst).pos.set(pos.x, pos.y, pos.z, 1);
+			(*dst).color[0].set(
+				static_cast<float>(color.r / 255),
+				static_cast<float>(color.g / 255),
+				static_cast<float>(color.b / 255),
+				static_cast<float>(color.a / 255)
+			);
+			++dst;
+		}
+		subMesh.setVertexBuffer();
+		subMesh.setIndexData(editMesh.indices);
 	}
 
 	virtual void onDraw() override {
@@ -82,13 +122,18 @@ public:
 		_cmdBuf.clearFrameBuffers();
 		{
 			auto* cmd = _cmdBuf.addDrawCall();
+			auto submeshes = _renderMesh.subMeshes();
+			auto& submesh = submeshes[0];
 #if _DEBUG
 			cmd->debugLoc = SGE_LOC;
 #endif
 			cmd->primitive		= RenderPrimitiveType::Triangles;
-			cmd->vertexLayout	= _vertexLayout;
-			cmd->vertexBuffer	= _vertexBuffer;
-			cmd->vertexCount	= _vertexCount;
+			cmd->vertexLayout	= _renderMesh.vertexLayout();
+			cmd->vertexBuffer	= submesh.vertexBuffer();
+			cmd->vertexCount	= submesh.vertexCount();
+			cmd->indexCount		= submesh.indexCount();
+			cmd->indexBuffer	= submesh.indexBuffer();
+			cmd->indexType		= submesh.indexType();
 		}
 		_cmdBuf.swapBuffers();
 
@@ -100,10 +145,7 @@ public:
 
 	SPtr<RenderContext>	_renderContext;
 	RenderCommandBuffer _cmdBuf;
-
-	const VertexLayout*		_vertexLayout = nullptr;
-	SPtr<RenderGpuBuffer>	_vertexBuffer;
-	size_t					_vertexCount = 0;
+	RenderMesh			_renderMesh;
 };
 
 class EditorApp : public NativeUIApp {

@@ -194,6 +194,7 @@ void RenderSubMesh::clear() {
 	_indexBuffer	= nullptr;
 	_vertexCount	= 0;
 	_indexCount		= 0;
+	_vertexData.clear();
 }
 
 SGE_INLINE RenderPrimitiveType RenderSubMesh::primitive() const {
@@ -202,6 +203,19 @@ SGE_INLINE RenderPrimitiveType RenderSubMesh::primitive() const {
 
 SGE_INLINE const VertexLayout* RenderSubMesh::vertexLayout() const {
 	return _mesh->vertexLayout();
+}
+
+void RenderSubMesh::setVertexBuffer(ByteSpan vertexData) {
+	SGE_ASSERT(_vertexCount > 0 && !vertexData.empty());
+
+	auto* renderer = Renderer::instance();
+
+	RenderGpuBuffer::CreateDesc desc;
+	desc.type		= RenderGpuBufferType::Vertex;
+	desc.bufferSize = vertexData.size();
+
+	_vertexBuffer = renderer->createGpuBuffer(desc);
+	_vertexBuffer->uploadToGpu(vertexData);
 }
 
 } // namespace
