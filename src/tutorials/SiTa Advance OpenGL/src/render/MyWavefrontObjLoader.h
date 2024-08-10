@@ -4,6 +4,8 @@
 
 namespace sge {
 
+// wiki: https://en.wikipedia.org/wiki/Wavefront_.obj_file
+// spec: https://www.martinreddy.net/gfx/3d/OBJ.spec
 class MyWavefrontObjLoader : public NonCopyable {
 	using Mesh = MyEditMesh;
 public:

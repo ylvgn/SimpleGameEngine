@@ -285,7 +285,7 @@ void RenderContext_DX11::_setTestDefaultRenderState() {
 
 void RenderContext_DX11::_setTestShaders(const VertexLayout* vertexLayout) {
 	HRESULT hr;
-	const wchar_t* shaderFile = L"Assets/Shaders/test.hlsl"; // tmp
+	const wchar_t* shaderFile = L"Assets/Shaders/test.hlsl";
 
 	auto* dev = _renderer->d3dDevice();
 	auto* dc = _renderer->d3dDeviceContext();
@@ -346,10 +346,10 @@ DX11_ID3DInputLayout* RenderContext_DX11::_getTestInputLayout(const VertexLayout
 
 	auto* dev = _renderer->d3dDevice();
 	auto hr = dev->CreateInputLayout(inputDesc.data()
-								, static_cast<UINT>(inputDesc.size())
-								, _testVertexShaderBytecode->GetBufferPointer()
-								, _testVertexShaderBytecode->GetBufferSize()
-								, outLayout.ptrForInit());
+									, static_cast<UINT>(inputDesc.size())
+									, _testVertexShaderBytecode->GetBufferPointer()
+									, _testVertexShaderBytecode->GetBufferSize()
+									, outLayout.ptrForInit());
 	Util::throwIfError(hr);
 
 	_testInputLayouts[src] = outLayout;

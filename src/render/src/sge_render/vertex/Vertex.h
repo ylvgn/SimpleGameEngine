@@ -5,7 +5,7 @@
 
 namespace sge {
 
-//    : size bit(from start bit)
+// VertexSemantic	: size bit (from start bit)
 // posType			: 8 bit (from 0)
 // colorType		: 8 bit (from 8)
 // colorCount		: 2 bit (from 16), colorType
@@ -217,7 +217,7 @@ private:
 	void _addElement(Semantic semantic, ATTR VERTEX::* attr, size_t index) {
 		auto& o = elements.push_back();
 		o.semantic = semantic;
-		using A = std::remove_extent<ATTR>::type;
+		using A = std::remove_extent_t<ATTR>;
 		o.dataType = RenderDataTypeUtil::get<A>();
 		o.offset = static_cast<u16>(memberOffset(attr) + sizeof(A) * index);
 	}
@@ -337,7 +337,7 @@ struct VertexT_Tangent : public BASE
 
 	static const RenderDataType	kTangentType = RenderDataTypeUtil::get<TANGENT_TYPE>();
 	static const u8 kTangentCount = TANGENT_COUNT;
-	static const VertexType kType = VertexTypeUtil::addTangent(BASE::kType, kTangentCount); // kTangentType same as kNormalType
+	static const VertexType kType = VertexTypeUtil::addTangent(BASE::kType, kTangentCount);
 
 	static const VertexLayout* s_layout() {
 		static const VertexLayout* s = VertexLayoutManager::instance()->getLayout(kType);
@@ -360,7 +360,7 @@ struct VertexT_Binormal : public BASE
 
 	static const RenderDataType	kBinormalType = RenderDataTypeUtil::get<BINORMAL_TYPE>();
 	static const u8 kBinormalCount = BINORMAL_COUNT;
-	static const VertexType kType = VertexTypeUtil::addBinormal(BASE::kType, kBinormalCount); // kBinormalType same as kNormalType
+	static const VertexType kType = VertexTypeUtil::addBinormal(BASE::kType, kBinormalCount);
 
 	static const VertexLayout* s_layout() {
 		static const VertexLayout* s = VertexLayoutManager::instance()->getLayout(kType);
