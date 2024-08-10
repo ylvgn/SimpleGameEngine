@@ -7,17 +7,17 @@ RenderContext::RenderContext(CreateDesc& desc) {
 }
 
 void RenderContext::onPostCreate() {
-	//_imgui.create(); TODO TEMP just for opengl
+	_imgui.create();
 }
 
 void RenderContext::beginRender() {
-	//_imgui.onBeginRender(this); TODO TEMP just for opengl
+	_imgui.onBeginRender(this);
 	onBeginRender();
 }
 
 void RenderContext::endRender() {
 	onEndRender();
-	//_imgui.onEndRender(this);  TODO TEMP just for opengl
+	_imgui.onEndRender(this);
 }
 
 void RenderContext::setFrameBufferSize(Vec2f newSize) {

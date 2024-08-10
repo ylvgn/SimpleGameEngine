@@ -19,16 +19,14 @@ public:
 	template<class VertexT>
 	VertexT* vertex(int i);
 
-	void setVertexCount(size_t vc) {
-		_vertexCount = vc;
-		size_t byteSize = vertexLayout()->stride * _vertexCount;
-		_vertexData.resize(byteSize);
-	}
+	void setVertexCount(size_t vc);
+	void  setIndexCount(size_t ic);
 
-	void setVertexBuffer() { SGE_ASSERT(_vertexCount > 0 && !_vertexData.empty()); _setVertexBuffer(_vertexData); }
+	void setVertexBuffer(bool isKeepData = false);
+	void  setIndexBuffer(bool isKeepData = false);
 
-	void setIndexData(const Span<const u16> indexData)	{ _setIndexData(indexData); }
-	void setIndexData(const Span<const u32> indexData)	{ _setIndexData(indexData); }
+	void setIndexData(const Span<const u16> indexData);
+	void setIndexData(const Span<const u32> indexData);
 
 	RenderPrimitiveType primitive()		const;
 	const VertexLayout* vertexLayout()	const;
@@ -44,20 +42,23 @@ public:
 friend class RenderMesh;
 protected:
 
-	template<class T, class ENABLE = std::enable_if_t< std::is_unsigned_v<T> > >
-	void _setIndexData(const Span<const T> indexData);
-
 	void _setVertexBuffer(ByteSpan vertexData);
+	void  _setIndexBuffer(ByteSpan indexData);
 
 	template<class VertexT>
 	VertexT* _vertex(size_t offset);
 
+	template<class DST, class SRC>
+	void _setIndexData(const Span<const SRC>& indexData);
+
 	RenderMesh*				_mesh = nullptr;
 
-	Vector<u8, 1024>		_vertexData;
-	SPtr<RenderGpuBuffer>	_vertexBuffer;
-
 	RenderDataType			_indexType = RenderDataType::None;
+
+	Vector<u8>				_vertexData;
+	Vector<u8>				_indexData;
+
+	SPtr<RenderGpuBuffer>	_vertexBuffer;
 	SPtr<RenderGpuBuffer>	_indexBuffer;
 
 	size_t _vertexCount = 0;
@@ -117,20 +118,16 @@ VertexT* RenderSubMesh::_vertex(size_t offset) {
 	return res;
 }
 
-template<class T, class ENABLE /*= std::enable_if_t< std::is_unsigned_v<T> >*/ > inline
-void RenderSubMesh::_setIndexData(const Span<const T> indexData) {
-	auto* renderer = Renderer::instance();
-	auto byteSpan = ByteSpan_make(indexData);
+template<class DST, class SRC> inline
+void RenderSubMesh::_setIndexData(const Span<const SRC>& indexData) {
+	size_t stride = sizeof(DST);
 
-	RenderGpuBuffer::CreateDesc desc;
-	desc.type = RenderGpuBufferType::Index;
-	desc.bufferSize = byteSpan.size();
-
-	_indexType = RenderDataTypeUtil::get<T>();
-	_indexCount = indexData.size();
-
-	_indexBuffer = renderer->createGpuBuffer(desc);
-	_indexBuffer->uploadToGpu(byteSpan);
+	u8* p = _indexData.begin();
+	for (const SRC& src : indexData) {
+		*reinterpret_cast<DST*>(p) = static_cast<DST>(src);
+		p += stride;
+	}
+	SGE_ASSERT(_indexData.end() == p);
 }
 
 template<> const TypeInfo* TypeOf<RenderMesh>();

@@ -60,31 +60,40 @@ public:
 
 	void _createMyRenderMesh(EditMesh& editMesh) {
 		size_t vc = editMesh.pos.size();
+		size_t ic = editMesh.indices.size();
 
 		_renderMesh.setSubMeshCount(1);
 		_renderMesh.setVertexLayout(MyTestVertexT::s_layout());
-		auto subMeshes = _renderMesh.subMeshes();
-		auto& subMesh = subMeshes[0];
-		subMesh.setVertexCount(vc);
+		auto subMeshes	= _renderMesh.subMeshes();
+		auto& subMesh	= subMeshes[0];
 
-		for (int i = 0; i < vc; ++i) {
-			auto& pos	= editMesh.pos[i];
-			auto& color = editMesh.color[i];
-			auto* dst	= subMesh.vertex<MyTestVertexT>(i);
+		if (vc > 0) {
+			subMesh.setVertexCount(vc);
 
-			(*dst).pos.set(pos.x, pos.y, pos.z, 1);
-			(*dst).color[0].set(
-				static_cast<float>(color.r / 255),
-				static_cast<float>(color.g / 255),
-				static_cast<float>(color.b / 255),
-				static_cast<float>(color.a / 255)
-			);
-			++dst;
+			for (int i = 0; i < vc; ++i) {
+				auto& pos	= editMesh.pos[i];
+				auto& color = editMesh.color[i];
+				auto* dst	= subMesh.vertex<MyTestVertexT>(i);
+
+				(*dst).pos.set(pos.x, pos.y, pos.z, 1);
+				(*dst).color[0].set(
+					static_cast<float>(color.r / 255),
+					static_cast<float>(color.g / 255),
+					static_cast<float>(color.b / 255),
+					static_cast<float>(color.a / 255)
+				);
+				++dst;
+			}
+			// ----
+			subMesh.setVertexBuffer();
 		}
-		subMesh.setVertexBuffer();
 
-		if (!editMesh.indices.empty())
+		if (ic > 0) {
 			subMesh.setIndexData(editMesh.indices);
+
+			// ----
+			subMesh.setIndexBuffer();
+		}
 	}
 
 	virtual void onDraw() override {

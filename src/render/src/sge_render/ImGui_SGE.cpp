@@ -67,6 +67,9 @@ void ImGui_SGE::_createFontsTexture() {
 }
 
 void ImGui_SGE::onBeginRender(RenderContext* renderContext) {
+#if _DEBUG
+	if (!_ctx) return;
+#endif
 	ImGuiIO& io = ImGui::GetIO();
 	auto s = renderContext->frameBufferSize();
 	io.DisplaySize = ImVec2(s.x, s.y);
@@ -80,6 +83,9 @@ void ImGui_SGE::onBeginRender(RenderContext* renderContext) {
 }
 
 void ImGui_SGE::onEndRender(RenderContext* renderContext) {
+#if _DEBUG
+	if (!_ctx) return;
+#endif
 }
 
 void ImGui_SGE::onDrawUI(RenderRequest& req) {

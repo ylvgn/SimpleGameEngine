@@ -6,7 +6,9 @@
 #include <sge_render/Renderer.h>
 
 namespace sge {
-
+#if 0
+#pragma mark ========= RenderMesh_InternalHelper ============
+#endif
 struct RenderMesh_InternalHelper {
 
 static bool hasAttr(size_t arraySize, size_t vertexCount) {
@@ -42,7 +44,9 @@ static void copyVertexData(DST* dst
 
 }; // RenderMesh_InternalHelper
 
-
+#if 0
+#pragma mark ========= RenderMesh ============
+#endif
 void RenderMesh::create(const EditMesh& src) {
 	using Helper = RenderMesh_InternalHelper;
 	clear();
@@ -96,86 +100,71 @@ void RenderMesh::setSubMeshCount(size_t newSize) {
 	}
 }
 
+#if 0
+#pragma mark ========= RenderSubMesh ============
+#endif
 void RenderSubMesh::create(const EditMesh& src) {
 	using Helper = RenderMesh_InternalHelper;
 	clear();
 
 	size_t vc = src.pos.size();
-	_indexCount = src.indices.size();
+	size_t ic = src.indices.size();
 
-	if (vc <= 0) return;
-	setVertexCount(vc);
+	if (vc > 0) {
+		setVertexCount(vc);
 
-	auto* _vertexLayout = vertexLayout();
-	auto* pData = _vertexData.data();
-	auto stride = _vertexLayout->stride;
+		auto* _vertexLayout = vertexLayout();
+		auto* pData = _vertexData.data();
+		auto stride = _vertexLayout->stride;
 
-	for (auto& e : _vertexLayout->elements) {
-		using S		= VertexSemantic;
-		using ST	= VertexSemanticType;
-		using U		= VertexSemanticUtil;
+		for (auto& e : _vertexLayout->elements) {
+			using S		= VertexSemantic;
+			using ST	= VertexSemanticType;
+			using U		= VertexSemanticUtil;
 
-		auto semanticType = U::getType(e.semantic);
-		auto semanticIndex = U::getIndex(e.semantic);
+			auto semanticType = U::getType(e.semantic);
+			auto semanticIndex = U::getIndex(e.semantic);
 
-		switch (semanticType) {
-		case ST::TEXCOORD: {
-			if (semanticIndex < EditMesh::kUvCountMax) {
-				Helper::copyVertexData(pData, vc, e, stride, src.uv[semanticIndex].data()); break;
+			switch (semanticType) {
+				case ST::TEXCOORD: {
+					if (semanticIndex < EditMesh::kUvCountMax) {
+						Helper::copyVertexData(pData, vc, e, stride, src.uv[semanticIndex].data()); break;
+					}
+					continue;
+				} break;
 			}
-			continue;
-		} break;
+
+			switch (e.semantic) {
+				case S::POSITION: {
+//					Helper::copyVertexData(pData, vc, e, stride, src.pos.data());
+					const Tuple3f* srcData = src.pos.data();
+
+					u8* dstData = pData + e.offset;
+					for (size_t i = 0; i < vc; i++) {
+						*reinterpret_cast<Tuple3f*>(dstData) = *srcData;
+
+						_boundingBox.encapsulate(*srcData);
+
+						srcData++;
+						dstData += stride;
+					}
+				} break;
+				case S::COLOR0:		Helper::copyVertexData(pData, vc, e, stride, src.color.data()); break;
+				case S::NORMAL:		Helper::copyVertexData(pData, vc, e, stride, src.normal.data()); break;
+				case S::TANGENT:	Helper::copyVertexData(pData, vc, e, stride, src.tangent.data()); break;
+				case S::BINORMAL:	Helper::copyVertexData(pData, vc, e, stride, src.binormal.data()); break;
+			}
 		}
 
-		switch (e.semantic) {
-		case S::POSITION: {
-//			Helper::copyVertexData(pData, vc, e, stride, src.pos.data());
-			const Tuple3f* srcData = src.pos.data();
-
-			u8* dstData = pData + e.offset;
-			for (size_t i = 0; i < vc; i++) {
-				*reinterpret_cast<Tuple3f*>(dstData) = *srcData;
-
-				_boundingBox.encapsulate(*srcData);
-
-				srcData++;
-				dstData += stride;
-			}
-		} break;
-		case S::COLOR0:		Helper::copyVertexData(pData, vc, e, stride, src.color.data()); break;
-		case S::NORMAL:		Helper::copyVertexData(pData, vc, e, stride, src.normal.data()); break;
-		case S::TANGENT:	Helper::copyVertexData(pData, vc, e, stride, src.tangent.data()); break;
-		case S::BINORMAL:	Helper::copyVertexData(pData, vc, e, stride, src.binormal.data()); break;
-		}
+		// ----
+		setVertexBuffer();
 	}
-	//------
-	auto* renderer = Renderer::instance();
-	setVertexBuffer();
 
-	if (_indexCount > 0) {
-		ByteSpan indexData;
-		Vector<u16, 1024> index16Data;
+	if (ic > 0) {
+		setIndexData(src.indices.span());
 
-		if (_vertexCount > UINT16_MAX) {
-			_indexType = RenderDataType::UInt32;
-			indexData = ByteSpan_make(src.indices.span());
-		}
-		else {
-			_indexType = RenderDataType::UInt16;
-			index16Data.resize(src.indices.size());
-			for (size_t i = 0; i < src.indices.size(); i++) {
-				u32 vi = src.indices[i];
-				index16Data[i] = static_cast<u16>(vi);
-			}
-			indexData = ByteSpan_make(index16Data.span());
-		}
-
-		RenderGpuBuffer::CreateDesc desc;
-		desc.type		= RenderGpuBufferType::Index;
-		desc.bufferSize = indexData.size();
-
-		_indexBuffer = renderer->createGpuBuffer(desc);
-		_indexBuffer->uploadToGpu(indexData);
+		// ----
+		setIndexBuffer();
 	}
 }
 
@@ -184,18 +173,116 @@ void RenderSubMesh::clear() {
 	_indexBuffer	= nullptr;
 	_vertexCount	= 0;
 	_indexCount		= 0;
+	_indexType		= RenderDataType::None;
 	_vertexData.clear();
+	_indexData.clear();
+}
+
+void RenderSubMesh::setVertexCount(size_t vc) {
+	_vertexCount = vc;
+	_vertexData.resize(vertexLayout()->stride * _vertexCount);
+
+	if (_vertexCount > std::numeric_limits<u16>::max()) {
+		_indexType = RenderDataType::UInt32;
+	} else {
+		_indexType = RenderDataType::UInt16;
+	}
+}
+
+void RenderSubMesh::setIndexCount(size_t ic) {
+	using SRC	= RenderDataType;
+	using T		= decltype(_indexData)::value_type;
+
+	_indexCount = ic;
+
+	switch (_indexType) {
+		case SRC::UInt32: _indexData.resize(ic * sizeof(u32) / sizeof(T)); break;
+		case SRC::UInt16: _indexData.resize(ic * sizeof(u16) / sizeof(T)); break;
+		default: throw SGE_ERROR("unsupported indexType");
+	}
+}
+
+void RenderSubMesh::setVertexBuffer(bool isKeepData /*= false*/) {
+	_setVertexBuffer(_vertexData);
+	if (!isKeepData) _vertexData.clear();
+}
+
+void RenderSubMesh::setIndexBuffer(bool isKeepData /*= false*/) {
+	_setIndexBuffer(_indexData);
+	if (!isKeepData) _indexData.clear();
+}
+
+void RenderSubMesh::setIndexData(const Span<const u16> indexData) {
+	using SRC = RenderDataType;
+
+	switch (_indexType) {
+		case SRC::UInt16: {
+			setIndexCount(indexData.size());
+			auto byteSpan = ByteSpan_make(indexData);
+			_indexData.assign(byteSpan.begin(), byteSpan.end());
+			_indexCount = _indexData.size();
+		} break;
+		case SRC::UInt32: {
+			SGE_ASSERT(_vertexCount > UINT16_MAX);
+			setIndexCount(indexData.size());
+
+			using DST_T = u32;
+			using SRC_T = decltype(indexData)::element_type;
+
+			_setIndexData<DST_T, SRC_T>(indexData);
+		} break;
+		default:
+			throw SGE_ERROR("setIndexData unsupported indexType");
+	}
+}
+
+void RenderSubMesh::setIndexData(const Span<const u32> indexData) {
+	using SRC = RenderDataType;
+
+	switch (_indexType) {
+		case SRC::UInt16: {
+			SGE_ASSERT(_vertexCount <= UINT16_MAX);
+			setIndexCount(indexData.size());
+
+			using DST_T = u16;
+			using SRC_T = decltype(indexData)::element_type;
+
+			_setIndexData<DST_T, SRC_T>(indexData);
+		} break;
+		case SRC::UInt32: {
+			setIndexCount(indexData.size());
+
+			auto byteSpan = ByteSpan_make(indexData);
+			_indexData.assign(byteSpan.begin(), byteSpan.end());
+		} break;
+		default:
+			throw SGE_ERROR("setIndexData unsupported indexType");
+	}
 }
 
 void RenderSubMesh::_setVertexBuffer(ByteSpan vertexData) {
-	auto* renderer = Renderer::instance();
+	SGE_ASSERT(_vertexCount > 0);
+	SGE_ASSERT(!vertexData.empty());
 
 	RenderGpuBuffer::CreateDesc desc;
 	desc.type		= RenderGpuBufferType::Vertex;
 	desc.bufferSize = vertexData.size();
 
-	_vertexBuffer = renderer->createGpuBuffer(desc);
+	_vertexBuffer = Renderer::instance()->createGpuBuffer(desc);
 	_vertexBuffer->uploadToGpu(vertexData);
+}
+
+void RenderSubMesh::_setIndexBuffer(ByteSpan indexData) {
+	SGE_ASSERT(_indexType != RenderDataType::None);
+	SGE_ASSERT(_indexCount > 0);
+	SGE_ASSERT(!indexData.empty());
+
+	RenderGpuBuffer::CreateDesc desc;
+	desc.type		= RenderGpuBufferType::Index;
+	desc.bufferSize = indexData.size();
+
+	_indexBuffer = Renderer::instance()->createGpuBuffer(desc);
+	_indexBuffer->uploadToGpu(indexData);
 }
 
 } // namespace
