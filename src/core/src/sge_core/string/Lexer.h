@@ -96,7 +96,7 @@ protected:
 	void _appendAndNextChar();
 
 	bool _parseString();
-	void _parseIdentifier();
+	bool _parseIdentifier();
 	bool _parseNumber();
 	void _parseNewline();
 	void _parseCommentBlock();
