@@ -106,6 +106,8 @@ void RenderContext_GL3::onCmd_DrawCall(RenderCommand_DrawCall& cmd) {
 	{
 		_setTestShaders();
 
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe ON tmp
+
 		auto primitive		= Util::getGlPrimitiveTopology(cmd.primitive);
 	//	GLsizei stride		= static_cast<GLsizei>(cmd.vertexLayout->stride);
 		GLsizei vertexCount = static_cast<GLsizei>(cmd.vertexCount);
@@ -119,6 +121,8 @@ void RenderContext_GL3::onCmd_DrawCall(RenderCommand_DrawCall& cmd) {
 		else {
 			glDrawArrays(primitive, 0, static_cast<GLsizei>(vertexCount));
 		}
+
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // wireframe Off tmp
 	}
 	vertexBuffer->glUnbind();
 	Util::throwIfError();

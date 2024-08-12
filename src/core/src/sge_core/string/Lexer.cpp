@@ -58,6 +58,14 @@ bool Lexer::nextToken() {
 	return true;
 }
 
+bool Lexer::nextLine() {
+	_ch = 0;
+	if (_cur == nullptr) return false;
+	if (_cur >= _source.end()) return false;
+	_nextLine();
+	return true;
+}
+
 void Lexer::trimSpaces() {
 	while (_ch == ' ' || _ch == '\t' || _ch == '\r') {
 		nextChar();
@@ -158,6 +166,7 @@ bool Lexer::_nextToken() {
 		trimSpaces();
 		if (!_ch) return false;
 
+		// check comment
 		if (_ch == '#') {
 			_parseCommentSingleLine();
 			continue;
@@ -165,7 +174,9 @@ bool Lexer::_nextToken() {
 
 		// check newline
 		if (_ch == '\n') {
-			_parseNewline();
+			_token.type = TokenType::Newline;
+			_token.str += "<newline>";
+			nextChar();
 			return true;
 		}
 
@@ -198,6 +209,20 @@ bool Lexer::_nextToken() {
 			return _parseNumber();
 		}
 
+#if 0 // check number with + or - !!<----- dont handle this internal
+		if (_ch == '-' || _ch == '+') {
+			char oldCh = _ch;
+			nextChar(); // skip + -
+			if (isDigit(_ch)) {
+				_token.str = oldCh;
+				return _parseNumber();
+			}
+			_token.type = TokenType::Operator;
+			_token.str = oldCh;
+			return true;
+		}
+#endif
+
 		// check identifier
 		if (_ch == '_' || isAlpha(_ch)) {
 			return _parseIdentifier();
@@ -210,19 +235,30 @@ bool Lexer::_nextToken() {
 	}
 }
 
-void Lexer::_parseNewline() {
-	// _ch start as '\n'
-	_token.reset(TokenType::Newline, "<newline>");
-	nextChar();
+std::pair<StrView, StrView> Lexer::_nextLine() {
+	if (_cur == nullptr || _cur >= _source.end()) {
+		return { StrView(), StrView() };
+	}
+	auto pair = StringUtil::splitByChar(_cur, "\n");
+	_ch = *pair.first.end();
+	_cur = pair.second.begin();
+	if (_cur) {
+		_line++;
+		_col = 0;
+	}
+	else if (!pair.first.empty()) {
+		_col = pair.first.length() - 1;
+	}
+	return pair;
 }
 
-// e.g. 1234.56e-78;
+// e.g. 1234.56e-78
 bool Lexer::_parseNumber() {
 	// _ch start as '0' ~ '9'
-		
-	_token.reset(TokenType::Number);
+	_token.type = TokenType::Number;
+
 	bool hasDot = false;
-	bool hasE = false;
+	bool hasE   = false;
 
 	while (_ch) {
 			

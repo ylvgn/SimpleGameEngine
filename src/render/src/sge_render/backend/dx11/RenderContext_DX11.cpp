@@ -43,7 +43,7 @@ void RenderContext_DX11::onBeginRender() {
 		_createRenderTarget();
 	}
 
-	// set-up renger target
+	// set-up render target
 	DX11_ID3DRenderTargetView* rt = _renderTargetView;
 	dc->OMSetRenderTargets(1, &rt, _depthStencilView);
 
@@ -136,8 +136,10 @@ void RenderContext_DX11::onCmd_DrawCall(RenderCommand_DrawCall& cmd) {
 	}
 
 	// test
-	_statistics.drawCall++;
-	_statistics.verts += vertexBuffer->bufferSize() / stride;
+	if (vertexBuffer) {
+		_statistics.drawCall++;
+		_statistics.verts += vertexBuffer->bufferSize() / stride;
+	}
 }
 
 void RenderContext_DX11::onCmd_SetScissorRect(RenderCommand_SetScissorRect& cmd) {

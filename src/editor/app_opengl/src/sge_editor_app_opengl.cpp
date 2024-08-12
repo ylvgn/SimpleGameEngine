@@ -53,7 +53,7 @@ public:
 		EditMesh editMesh;
 
 		WavefrontObjLoader::readFile(editMesh, "Assets/Mesh/test.obj");
-		editMesh.addColors({ 255, 0, 255, 255 }); // the current shader need color
+		editMesh.addColors({ 255, 255, 255, 255 }); // the current shader need color
 
 		_createMyRenderMesh(editMesh);
 	}
@@ -105,22 +105,22 @@ public:
 		_renderContext->beginRender();
 
 		_cmdBuf.reset(_renderContext);
-		_cmdBuf.clearFrameBuffers();
-		{
+		_cmdBuf.clearFrameBuffers()->setColor({ 0, 0, 0.2f, 1 });
+
+		for (auto& sm : _renderMesh.subMeshes()) {
 			auto* cmd = _cmdBuf.addDrawCall();
-			auto submeshes = _renderMesh.subMeshes();
-			auto& submesh = submeshes[0];
 #if _DEBUG
 			cmd->debugLoc = SGE_LOC;
 #endif
 			cmd->primitive		= RenderPrimitiveType::Triangles;
 			cmd->vertexLayout	= _renderMesh.vertexLayout();
-			cmd->vertexBuffer	= submesh.vertexBuffer();
-			cmd->vertexCount	= submesh.vertexCount();
-			cmd->indexCount		= submesh.indexCount();
-			cmd->indexBuffer	= submesh.indexBuffer();
-			cmd->indexType		= submesh.indexType();
+			cmd->vertexBuffer	= sm.vertexBuffer();
+			cmd->vertexCount	= sm.vertexCount();
+			cmd->indexCount		= sm.indexCount();
+			cmd->indexBuffer	= sm.indexBuffer();
+			cmd->indexType		= sm.indexType();
 		}
+
 		_cmdBuf.swapBuffers();
 
 		_renderContext->commit(_cmdBuf);

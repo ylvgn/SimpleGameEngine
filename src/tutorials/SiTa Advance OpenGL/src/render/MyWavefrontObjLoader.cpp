@@ -3,15 +3,19 @@
 namespace sge {
 
 void MyWavefrontObjLoader::Info::clear() {
-	resetFace();
 	objectName.clear();
 	smoothingGroup.clear();
+
 	v.clear();
 	vt.clear();
 	vn.clear();
+
+	face_v.clear();
+	face_vt.clear();
+	face_vn.clear();
 }
 
-void MyWavefrontObjLoader::Info::resetFace() {
+void MyWavefrontObjLoader::Info::clearFace() {
 	face_v.clear();
 	face_vt.clear();
 	face_vn.clear();
@@ -92,11 +96,10 @@ void MyWavefrontObjLoader::_parseLine_v() {
 
 	for (int i = 0; i < 4; ++i) {
 		_nextToken();
-		if (i < 3 && _token.empty())
-			_error("_parseLine_v error: missing component");
-
-		if (_token.empty())
+		if (_token.empty()) {
+			if (i < 3) _error("_parseLine_v error: missing component");
 			break;
+		}
 
 		if (!StringUtil::tryParse(_token, v[i])) {
 			_error("_parseLine_v tryPase error");
@@ -111,10 +114,9 @@ void MyWavefrontObjLoader::_parseLine_vt() {
 	for (int i = 0; i < 3; ++i) {
 		_nextToken();
 		if (_token.empty()) {
-			if (i == 1) _error("_parseLine_vt error: missing x");
+			if (!i) _error("_parseLine_vt error: missing u");
 			break;
 		}
-
 		if (!StringUtil::tryParse(_token, v[i])) {
 			_error("_parseLine_vt tryPase error");
 		}
@@ -138,7 +140,7 @@ void MyWavefrontObjLoader::_parseLine_vn() {
 }
 
 void MyWavefrontObjLoader::_parseLine_f() {
-	_info.resetFace();
+	_info.clearFace();
 
 	while (!_lineRemain.empty()) {
 		_nextToken();
@@ -172,6 +174,7 @@ void MyWavefrontObjLoader::_parseLine_f() {
 		}
 
 		// ------
+		// index start from 1 and Negative values indicate relative vertex numbers
 		{ // v
 			auto& arr = _info.v;
 			if (v < 0) _info.face_v.emplace_back(static_cast<int>(arr.size() + v));

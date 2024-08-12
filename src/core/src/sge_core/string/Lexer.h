@@ -38,9 +38,7 @@ public:
 
 		bool isBool(StrView s) const		{ return type == TokenType::Identifier && (s == "true" || s == "false"); }
 
-		void setNone()							{ type = TokenType::None; str.clear(); }
-		void reset(TokenType type_)				{ type = type_; str.clear(); }
-		void reset(TokenType type_, StrView s)	{ type = type_; str.assign(s.begin(), s.end()); }
+		void setNone()						{ type = TokenType::None; str.clear(); }
 
 		void onFormat(fmt::format_context& ctx) const;
 
@@ -51,6 +49,7 @@ public:
 
 	bool nextChar();
 	bool nextToken();
+	bool nextLine();
 
 	void trimSpaces();
 	void skipNewlineTokens();
@@ -93,12 +92,12 @@ protected:
 	void _error(StrView msg);
 
 	bool _nextToken();
+	std::pair<StrView, StrView> _nextLine();
 	void _appendAndNextChar();
 
 	bool _parseString();
 	bool _parseIdentifier();
 	bool _parseNumber();
-	void _parseNewline();
 	void _parseCommentBlock();
 	void _parseCommentSingleLine();
 

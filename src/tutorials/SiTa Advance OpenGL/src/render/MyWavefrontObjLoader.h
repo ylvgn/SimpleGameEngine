@@ -56,7 +56,7 @@ private:
 		Vector<int, 64> face_vn;
 
 		void clear();
-		void resetFace();
+		void clearFace();
 	};
 	Info _info;
 };
