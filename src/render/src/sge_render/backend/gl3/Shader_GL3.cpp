@@ -48,6 +48,22 @@ void Shader_GL3::unbind() {
 	glUseProgram(0);
 }
 
+GLint Shader_GL3::glGetAttribLoc(StrView name) {
+	auto loc = glGetAttribLocation(_program, name.data());
+	if (loc < 0) {
+		throw SGE_ERROR("cannot find shader attrib variable \"{}\"", name);
+	}
+	return loc;
+}
+
+GLint Shader_GL3::glGetUniformLoc(StrView name) {
+	auto loc = glGetUniformLocation(_program, name.data());
+	if (loc < 0) {
+		throw SGE_ERROR("cannot find shader uniform variable \"{}\"", name);
+	}
+	return loc;
+}
+
 void Shader_GL3::_compileShader(GLuint& shader, GLenum type, StrView filename) {
 	if (!shader) {
 		shader = glCreateShader(type);

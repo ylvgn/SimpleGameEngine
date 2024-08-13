@@ -14,7 +14,9 @@ public:
 	virtual void willQuit() {}
 
 	void	setFps(int fps);
-	int		fps() const	{ return _fps; }
+
+	int		fps()			const { return _fps; }
+	u64		frameCount()	const { return _frameCount; }
 
 protected:
 	virtual void onCreate(CreateDesc& desc) {}
@@ -26,6 +28,7 @@ protected:
 	constexpr static float	kFastForwardFrequency	= 1.f / kFastForwardFps;
 
 	u64		_tickCount			= 0;
+	u64		_frameCount			= 0;
 	float	_deltaTime			= 0;
 
 	int		_fps				= 60;

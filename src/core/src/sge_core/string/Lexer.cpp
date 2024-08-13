@@ -111,11 +111,13 @@ void Lexer::readString(String& outputStr) {
 }
 
 void Lexer::readBool(bool& v) {
-	if (!_token.isBool(_token.str)) {
+	if (!_token.isIdentifier()) errorUnexpectedToken();
+	if (_token.str == "true")
+		v = true;
+	else if (_token.str == "false")
+		v = false;
+	else
 		errorUnexpectedToken();
-	}
-	if (_token.str == "true") v = true;
-	else v = false;
 	nextToken();
 }
 

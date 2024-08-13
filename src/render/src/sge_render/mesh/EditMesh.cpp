@@ -2,12 +2,38 @@
 
 namespace sge {
 
-void EditMesh::addColors(const Color4b& c) {
-	for (size_t i = color.size(); i < pos.size(); i++) {
-		color.emplace_back(c);
+#if 0
+#pragma mark ========= EditMeshUtil ============
+#endif
+void EditMeshUtil::addColors(EditMesh& src, const Color4b& solidColor) {
+	for (size_t i = src.color.size(); i < src.pos.size(); ++i) {
+		src.color.emplace_back(solidColor);
 	}
 }
 
+Span<const Tuple3f> EditMeshUtil::subPos(const EditMesh& src, size_t offset, size_t count) {
+	using T = decltype(src.pos)::value_type;
+
+	const T* p = src.pos.begin() + offset;
+	if (p + count > src.pos.end()) {
+		throw SGE_ERROR("out of range");
+	}
+	return Span<const T>(p, count);
+}
+
+Span<const u32> EditMeshUtil::subIndices(const EditMesh& src, size_t offset, size_t count) {
+	using T = decltype(src.indices)::value_type;
+
+	const T* p = src.indices.begin() + offset;
+	if (p + count > src.indices.end()) {
+		throw SGE_ERROR("out of range");
+	}
+	return Span<const T>(p, count);
+}
+
+#if 0
+#pragma mark ========= EditMesh ============
+#endif
 void EditMesh::clear() {
 	indices.clear();
 	pos.clear();
@@ -51,4 +77,4 @@ void EditMesh::onFormat(fmt::format_context& ctx) const {
 	fmt::format_to(ctx.out(), "{}", tmp);
 }
 
-} // namespace
+}

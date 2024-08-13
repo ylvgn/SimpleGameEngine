@@ -4,8 +4,25 @@
 
 namespace sge {
 
+#if 0
+#pragma mark ========= EditMeshUtil ============
+#endif
+struct EditMeshUtil {
+	EditMeshUtil() = delete;
+
+	static void addColors(EditMesh& src, const Color4b& solidColor);
+
+	static Span<const u32> subIndices(const EditMesh& src, size_t offset, size_t count);
+	static Span<const Tuple3f> subPos(const EditMesh& src, size_t offset, size_t count);
+};
+
+#if 0
+#pragma mark ========= EditMeshUtil ============
+#endif
 class EditMesh : public NonCopyable {
 public:
+	using Util = EditMeshUtil;
+
 	static const u8 kUvCountMax = 4;
 
 	RenderPrimitiveType	primitive = RenderPrimitiveType::Triangles;
@@ -20,11 +37,10 @@ public:
 	Vector<Tuple3f>	binormal;
 
 	void clear();
-	void addColors(const Color4b& color);
-	void onFormat(fmt::format_context& ctx) const;
 
-}; // EditMesh
+	void onFormat(fmt::format_context& ctx) const;
+};
 
 SGE_FORMATTER(EditMesh)
 
-} // namespace
+}

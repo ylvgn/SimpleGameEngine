@@ -283,9 +283,10 @@ void RenderSubMesh::_createVB(const EditMesh& src, size_t vc, size_t offet /*= 0
 }
 
 void RenderSubMesh::_createIB(const EditMesh& src, size_t ic, size_t offset /*= 0*/) {
-	if (ic <= 0) return;
+	if (ic <= 0)
+		return;
 
-	const Span<const u32> span(src.indices.begin() + offset, ic);
+	auto span = EditMeshUtil::subIndices(src, offset, ic);
 
 	setIndexData(span);
 	setIndexBuffer();

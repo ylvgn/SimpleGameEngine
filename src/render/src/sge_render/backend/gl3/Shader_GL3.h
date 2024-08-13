@@ -15,6 +15,9 @@ public:
 	void bind();
 	void unbind();
 
+	GLint glGetAttribLoc(StrView name);
+	GLint glGetUniformLoc(StrView name);
+
 private:
 	void _compileShader(GLuint& shader, GLenum type, StrView filename);
 	void _getShaderInfoLog(GLuint shader, String& outMsg);

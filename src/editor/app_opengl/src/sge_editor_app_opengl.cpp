@@ -53,7 +53,7 @@ public:
 		EditMesh editMesh;
 
 		WavefrontObjLoader::readFile(editMesh, "Assets/Mesh/test.obj");
-		editMesh.addColors({ 255, 255, 255, 255 }); // the current shader need color
+		EditMesh::Util::addColors(editMesh, Color4b(255, 255, 255, 255));
 
 		_createMyRenderMesh(editMesh);
 	}
@@ -96,8 +96,18 @@ public:
 		}
 	}
 
+#if 1
 	virtual void onDraw() override {
 		Base::onDraw();
+		static float dt = 1 / 60.f;
+		onUpdate(dt);
+		drawNeeded();
+	}
+#endif
+
+	void onUpdate(float dt) {
+//		SGE_DUMP_VAR(NativeUIApp::current()->frameCount());
+
 		if (!_renderContext) return;
 
 		_renderContext->setFrameBufferSize(clientRect().size);
@@ -126,7 +136,6 @@ public:
 		_renderContext->commit(_cmdBuf);
 
 		_renderContext->endRender();
-		drawNeeded();
 	}
 
 	SPtr<RenderContext>	_renderContext;
@@ -163,6 +172,10 @@ public:
 			_mainWin.create(winDesc);
 			_mainWin.setWindowTitle("SGE Editor");
 		}
+	}
+
+	virtual void onUpdate(float dt) override {
+		_mainWin.onUpdate(dt);
 	}
 
 private:

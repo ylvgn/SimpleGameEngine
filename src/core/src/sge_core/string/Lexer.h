@@ -5,19 +5,21 @@
 
 namespace sge {
 
+#define Lexer_TokenType_ENUM_LIST(E) \
+	E(None, ) \
+	E(Identifier, /*e.g. x, color, UP, true*/) \
+	E(Operator,	/*e.g. +, -, #, %, [*/) \
+	E(Number, /*e.g. 6.02e23*/) \
+	E(String, /*e.g. "Hello  \n  World!"*/) \
+	E(Newline, /*e.g. '\n'*/) \
+//----
+SGE_ENUM_CLASS(Lexer_TokenType, u8)
+
 class Lexer : public NonCopyable {
 public:
-	enum class TokenType {
-		None,
-		Identifier, // x, color, UP
-		Operator,
-		Number,     // true, 6.02e23, 
-		String,     // "music"
-		Newline,    // '\n'
-	};
+	using TokenType = Lexer_TokenType;
 
 	struct Token {
-
 		TokenType	type = TokenType::None;
 		String		str;
 
@@ -36,13 +38,10 @@ public:
 
 		bool isNewline() const				{ return type == TokenType::Newline; }
 
-		bool isBool(StrView s) const		{ return type == TokenType::Identifier && (s == "true" || s == "false"); }
-
 		void setNone()						{ type = TokenType::None; str.clear(); }
 
 		void onFormat(fmt::format_context& ctx) const;
-
-	}; // Token
+	};
 
 	void reset(ByteSpan source, StrView filename);
 	void reset(StrView source, StrView filename);
@@ -54,11 +53,11 @@ public:
 	void trimSpaces();
 	void skipNewlineTokens();
 
-	bool isAlpha                (char c) { return isLowerCase(c) || isUpperCase(c); }
-	bool isLowerCase            (char c) { return c >= 'a' && c <= 'z'; }
-	bool isUpperCase            (char c) { return c >= 'A' && c <= 'Z'; }
-	bool isDigit                (char c) { return c >= '0' && c <= '9'; }
-	bool isAlphaDigitUnderscore (char c) { return isAlpha(c) || c == '_' || isDigit(c); }
+	bool isAlpha                (char c) const { return isLowerCase(c) || isUpperCase(c); }
+	bool isLowerCase            (char c) const { return c >= 'a' && c <= 'z'; }
+	bool isUpperCase            (char c) const { return c >= 'A' && c <= 'Z'; }
+	bool isDigit                (char c) const { return c >= '0' && c <= '9'; }
+	bool isAlphaDigitUnderscore (char c) const { return isAlpha(c) || c == '_' || isDigit(c); }
 
 	const Token& token() const { return _token; }
 
@@ -109,27 +108,7 @@ protected:
 	size_t			_line       = 0;
 	const char*     _cur        = nullptr;
 
-}; // Lexer
-
-inline
-const char* enumStr(Lexer::TokenType v) {
-	switch (v) {
-#define E(T) case Lexer::TokenType::T: return #T;
-		E(None)
-		E(Identifier)
-		E(Operator)
-		E(Number)
-		E(String)
-		E(Newline)
-#undef E
-		default: {
-			SGE_ASSERT(false);
-			return "";
-		}
-	}
-}
-
-SGE_FORMATTER(Lexer::Token)
+};
 
 template<class E> inline
 void Lexer::readEnum(E& v) {
@@ -144,4 +123,6 @@ void Lexer::readEnum(E& v) {
 	nextToken();
 }
 
-} // namespace
+SGE_FORMATTER(Lexer::Token)
+
+}

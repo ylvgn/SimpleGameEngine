@@ -6,11 +6,13 @@
 
 namespace sge {
 
-// forward declare
 class RenderMesh;
 class EditMesh;
 struct VertexLayout;
 
+#if 0
+#pragma mark ========= RenderSubMesh ============
+#endif	
 class RenderSubMesh {
 public:
 	void create(const EditMesh& src);
@@ -67,8 +69,11 @@ protected:
 	size_t  _indexCount = 0;
 
 	BBox3f _boundingBox;
-}; // RenderSubMesh
+};
 
+#if 0
+#pragma mark ========= RenderMesh ============
+#endif	
 class RenderMesh {
 public:
 	using SubMesh = RenderSubMesh;
@@ -93,8 +98,7 @@ private:
 
 	Vector<SubMesh, 1>	_subMeshes;
 	RenderPrimitiveType _primitive = RenderPrimitiveType::Triangles;
-
-}; // RenderMesh
+};
 
 SGE_INLINE RenderPrimitiveType RenderSubMesh::primitive() const {
 	return _mesh->primitive();

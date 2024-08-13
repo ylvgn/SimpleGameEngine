@@ -13,7 +13,7 @@ int NativeUIApp_Base::run(CreateDesc& desc) {
 void NativeUIApp_Base::update(float dt) {
 	_deltaTime += dt;
 
-	// avoid overfrequency calls
+	// avoid too frequent calls
 	constexpr static float kToleranceEpison = 0.015f;
 	if (_targetFrequency - _deltaTime > kToleranceEpison) {
 		return;
@@ -26,8 +26,9 @@ void NativeUIApp_Base::update(float dt) {
 		while (n > 0) {
 			onUpdate(n == 1 ? kFastForwardFrequency : doubleFrequency);
 			n -= 2;
+			++_frameCount;
 		}
-		// avoid overfrequency calls
+		// avoid too frequent calls
 		if (_targetFrequency - _deltaTime > kToleranceEpison) {
 			return;
 		}
@@ -35,6 +36,7 @@ void NativeUIApp_Base::update(float dt) {
 	
 	onUpdate(_deltaTime);
 	_deltaTime = 0;
+	++_frameCount;
 }
 
 void NativeUIApp_Base::quit(int exitCode) {

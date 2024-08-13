@@ -96,11 +96,13 @@ void ShaderParser::_readProperty() {
 				expectOperator("=");
 				readString(o.displayName);
 			}
+			// !!<------ add new token feature here!!
+
 			if (_token.isOperator("]")) {
 				nextToken();
 				break;
 			}
-			//expectOperator(","); why
+			expectOperator(",");
 		}
 	}
 
