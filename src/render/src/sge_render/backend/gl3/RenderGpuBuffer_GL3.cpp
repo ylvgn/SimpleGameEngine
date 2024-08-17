@@ -21,8 +21,8 @@ void RenderGpuBuffer_GL3::glUnbind() {
 void RenderGpuBuffer_GL3::onCreate(CreateDesc& desc)  {
 	destroy();
 
-	if (desc.bufferSize <= 0) throw SGE_ERROR("buffer size = 0");
-	if (desc.stride <= 0) throw SGE_ERROR("stride == 0");
+	if (desc.bufferSize <= 0) throw SGE_ERROR("buffer size <= 0");
+	if (desc.stride <= 0) throw SGE_ERROR("stride <= 0");
 
 	auto target = glBufTarget();
 	glGenBuffers(1, &_p);
@@ -37,7 +37,7 @@ void RenderGpuBuffer_GL3::onUploadToGpu(ByteSpan data, size_t offset) {
 	auto target = glBufTarget();
 	glBindBuffer(target, _p);
 
-#if 1 // which is better ???
+#if 0 // which is better ???
 	u8* dst = reinterpret_cast<u8*>(glMapBuffer(target, GL_WRITE_ONLY));
 	memcpy(dst + offset, data.data(), data.size());
 	glUnmapBuffer(target);

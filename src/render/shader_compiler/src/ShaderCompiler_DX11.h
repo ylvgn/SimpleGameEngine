@@ -8,7 +8,7 @@ class ShaderCompiler_DX11 : public NonCopyable {
 	using Util = DX11Util;
 	using DataType = RenderDataType;
 public:
-	void compile(StrView outFilename, ShaderStageMask shaderStage, StrView srcFilename, StrView entryFunc);
+	void compile(StrView outPath, ShaderStageMask shaderStage, StrView srcFilename, StrView entryFunc);
 
 private:
 	void _reflect(StrView outFilename, ByteSpan bytecode, ShaderStageMask stage, StrView profile);

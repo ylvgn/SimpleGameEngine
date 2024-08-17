@@ -17,6 +17,8 @@ find_package(nlohmann_json CONFIG REQUIRED)
 find_package(libpng CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
 find_package(glad CONFIG REQUIRED)
+find_package(spirv_cross_core)
+find_package(spirv_cross_glsl CONFIG REQUIRED)
 
 function(sge_source_group src_path src_files)
 	foreach(FILE ${src_files}) 

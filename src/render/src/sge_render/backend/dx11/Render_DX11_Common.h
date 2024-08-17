@@ -157,9 +157,9 @@ String DX11Util::getStrFromHRESULT(HRESULT hr) {
 inline
 const char* DX11Util::getDxStageProfile(ShaderStageMask s) {
 	switch (s) {
-	case ShaderStageMask::Vertex:	return "vs_5_0";
-	case ShaderStageMask::Pixel:	return "ps_5_0";
-	default: return "";
+		case ShaderStageMask::Vertex:	return "vs_5_0";
+		case ShaderStageMask::Pixel:	return "ps_5_0";
+		default: return "";
 	}
 }
 

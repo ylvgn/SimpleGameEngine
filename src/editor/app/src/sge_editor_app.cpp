@@ -124,8 +124,8 @@ public:
 		{ // ECS
 			EditMesh editMesh;
 			WavefrontObjLoader::readFile(editMesh, "Assets/Mesh/box.obj");
-			editMesh.addColors(Color4b(255, 255, 255, 255));
-
+			EditMesh::Util::addColors(editMesh, Color4b(255, 255, 255, 255));
+			
 			_meshAsset = new MeshAsset();
 			_meshAsset->mesh.create(editMesh);
 
@@ -289,7 +289,7 @@ public:
 			auto curDir = Directory::getCurrent();
 			SGE_LOG("current dir={}", curDir);
 		}
-
+#if SGE_OS_WINDOWS
 	#if 1 // for quick testing (but not work for RenderDoc !!)
 		{ // compile shader
 			SHELLEXECUTEINFO ShExecInfo = {};
@@ -307,6 +307,7 @@ public:
 			CloseHandle(ShExecInfo.hProcess);
 		}
 	#endif
+#endif
 		Base::onCreate(desc);
 
 		{ // create renderer
