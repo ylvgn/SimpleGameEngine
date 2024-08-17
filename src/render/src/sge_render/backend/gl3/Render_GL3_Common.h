@@ -20,6 +20,7 @@
 #include "../../Render_Common.h"
 #include "../../RenderDataType.h"
 #include "../../buffer/RenderGpuBuffer.h"
+#include <sge_render/shader/Shader.h>
 
 namespace sge {
 
@@ -55,12 +56,15 @@ struct GL3Util {
 	static GLenum getErrorCode() { return glGetError(); }
 
 	static void compileShader(GLuint& shader, GLenum type, StrView filename);
+	static void compileShader(GLuint& shader, GLenum type, ByteSpan sourceCode, StrView filename = StrView());
 	static void getShaderInfoLog(GLuint shader, String& outMsg);
 	static void getProgramInfoLog(GLuint program, String& outMsg);
 
 	static GLenum getGlPrimitiveTopology(RenderPrimitiveType v);
 	static GLenum getGlFormat(RenderDataType v);
 	static GLenum getGlBufferBindingTarget(RenderGpuBufferType v);
+	static const char* getGlStageProfile(ShaderStageMask s);
+	static GLenum getGlShaderType(ShaderStageMask s);
 
 private:
 	static bool _checkError(GLenum errCode) {
@@ -105,6 +109,25 @@ GLenum GL3Util::getGlFormat(RenderDataType v) {
 	}
 }
 
+inline
+const char* GL3Util::getGlStageProfile(ShaderStageMask s) {
+	switch (s) {
+		case ShaderStageMask::Vertex:	return "330";
+		case ShaderStageMask::Pixel:	return "330";
+		default: return "";
+	}
+}
+
+inline
+GLenum GL3Util::getGlShaderType(ShaderStageMask s) {
+	switch (s) {
+		case ShaderStageMask::Vertex:	return GL_VERTEX_SHADER;
+		case ShaderStageMask::Pixel:	return GL_FRAGMENT_SHADER;
+		default: throw SGE_ERROR("unsupported ShaderStageMask");
+	}
+}
+
+//GL_VERTEX_SHADER
 }
 
 #endif

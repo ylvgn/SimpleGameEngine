@@ -3,15 +3,20 @@
 namespace sge {
 
 void GL3Util::compileShader(GLuint& shader, GLenum type, StrView filename) {
-	if (!shader) {
-		shader = glCreateShader(type);
-	}
-	
 	MemMapFile mm;
 	mm.open(filename);
-	StrView sourceCode	= StrView_make(mm.span());
-	auto* const data	= sourceCode.data();
-	GLint dataSize		= static_cast<GLint>(sourceCode.size());
+	compileShader(shader, type, mm, filename);
+}
+
+void GL3Util::compileShader(GLuint& shader, GLenum type, ByteSpan sourceCode, StrView filename) {
+	if (!shader) {
+		shader = glCreateShader(type);
+		throwIfError();
+	}
+
+	StrView source		= StrView_make(sourceCode);
+	auto* const data	= source.data();
+	GLint dataSize		= static_cast<GLint>(source.size());
 
 	glShaderSource(shader, 1, &data, &dataSize);
 	glCompileShader(shader);
@@ -22,10 +27,8 @@ void GL3Util::compileShader(GLuint& shader, GLenum type, StrView filename) {
 		String errmsg;
 		getShaderInfoLog(shader, errmsg);
 
-		TempString tmp;
-		FmtTo(tmp, "Error compile shader filename = {}\n{}", filename, errmsg);
-
-		throw SGE_ERROR("{}", tmp.c_str());
+		throw SGE_ERROR("Error compile shader: {}\nfilename: {}",
+			errmsg.c_str(), filename.empty() ? "Unknown" : filename);
 	}
 }
 

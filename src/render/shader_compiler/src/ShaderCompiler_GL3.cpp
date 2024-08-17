@@ -97,10 +97,10 @@ void ShaderCompiler_GL3_Helper::convert(Compiler& comp, DataType& o, const SPIRT
 	else {
 		if (vecsize == 1 && columns == 1) { // Scalar
 			// do nothing
-		} else if (vecsize > 1 && columns == 1) { // Vector
-			FmtTo(dataType, "x{}", vecsize);
-		} else if (columns > 1) { // Matrix
-			FmtTo(dataType, "_{}x{}", columns, vecsize);
+		} else if (vecsize > 1 && columns == 1) {
+			FmtTo(dataType, "x{}", vecsize); // vector
+		} else if (columns > 1) {
+			FmtTo(dataType, "_{}x{}", columns, vecsize); // matrix
 		}
 	}
 
@@ -116,7 +116,6 @@ void ShaderCompiler_GL3_Helper::reflect(StrView outFilename, Compiler& comp, Sha
 	outInfo.stage = shaderStage;
 
 	{
-		// Querying statically accessed resources
 		auto active = comp.get_active_interface_variables();
 		ShaderResources resources = comp.get_shader_resources(active);
 		comp.set_enabled_interface_variables(move(active));
@@ -223,24 +222,21 @@ void ShaderCompiler_GL3_Helper::_reflect_samplers(ShaderStageInfo& outInfo, Comp
 void ShaderCompiler_GL3::compile(StrView outPath, ShaderStageMask shaderStage, StrView srcFilename, StrView entryFunc) {
 	auto profile = Util::getGlStageProfile(shaderStage);
 
-//	TempString	outFilename;
 	TempString	spirvOutFilename;
 	TempStringW tmpShaderStage;
 	switch (shaderStage) {
 		case ShaderStageMask::Vertex:
-//			outFilename			= Fmt("{}/vs_{}.bin", outPath, profile);
 			spirvOutFilename	= Fmt("{}/vs_{}.spv", outPath, profile);
 			tmpShaderStage		= L"vertex";
 			break;
 		case ShaderStageMask::Pixel:
-//			outFilename			= Fmt("{}/ps_{}.bin", outPath, profile);
 			spirvOutFilename	= Fmt("{}/ps_{}.spv", outPath, profile);
 			tmpShaderStage		= L"fragment";
 			break;
 		default: throw SGE_ERROR("");
 	}
 
-	TempString glslOutFilename = Fmt("{}.glsl", spirvOutFilename);
+	TempString outFilename = Fmt("{}.glsl", spirvOutFilename);
 
 	Directory::create(outPath);
 
@@ -255,6 +251,7 @@ void ShaderCompiler_GL3::compile(StrView outPath, ShaderStageMask shaderStage, S
 		TempStringW tmpSrcFilename;
 		UtfUtil::convert(tmpSrcFilename, srcFilename);
 
+#if 0 // can not using env path???
 		TempStringW tmpCmdParams;
 		fmt::format_to(std::back_inserter(tmpCmdParams),
 			L"-fshader-stage={} -fentry-point={} -o {} -x hlsl {}"
@@ -263,7 +260,7 @@ void ShaderCompiler_GL3::compile(StrView outPath, ShaderStageMask shaderStage, S
 			, tmpOutput.c_str()
 			, tmpSrcFilename.c_str());
 
-//		printf("HLSL->SPIRV : glslc.exe %ws\n\n", tmpCmdParams.c_str());
+		printf("HLSL->SPIRV : glslc.exe %ws\n\n", tmpCmdParams.c_str());
 
 		SHELLEXECUTEINFO ShExecInfo = {};
 		ShExecInfo.cbSize			= sizeof(SHELLEXECUTEINFO);
@@ -278,6 +275,30 @@ void ShaderCompiler_GL3::compile(StrView outPath, ShaderStageMask shaderStage, S
 		ShellExecuteEx(&ShExecInfo);
 		WaitForSingleObject(ShExecInfo.hProcess, INFINITE);
 		CloseHandle(ShExecInfo.hProcess);
+#else
+		TempStringW tmpCmdParams;
+		tmpCmdParams.append(tmpShaderStage.c_str());	tmpCmdParams.append(L" ");
+		tmpCmdParams.append(tmpEntryPoint.c_str());		tmpCmdParams.append(L" ");
+		tmpCmdParams.append(tmpOutput.c_str());			tmpCmdParams.append(L" ");
+		tmpCmdParams.append(tmpSrcFilename.c_str());
+
+		printf("HLSL->SPIRV : sge_glslc.bat %ws\n\n", tmpCmdParams.c_str());
+
+		SHELLEXECUTEINFO ShExecInfo = {};
+		ShExecInfo.cbSize			= sizeof(SHELLEXECUTEINFO);
+		ShExecInfo.fMask			= SEE_MASK_NOCLOSEPROCESS;
+		ShExecInfo.hwnd				= NULL;
+		ShExecInfo.lpVerb			= L"open";
+		ShExecInfo.lpFile			= L"sge_glslc.bat";
+		ShExecInfo.lpParameters		= tmpCmdParams.c_str();
+		ShExecInfo.lpDirectory		= NULL;
+		ShExecInfo.nShow			= SW_HIDE; // SW_SHOW
+		ShExecInfo.hInstApp			= NULL;
+		ShellExecuteEx(&ShExecInfo);
+		WaitForSingleObject(ShExecInfo.hProcess, INFINITE);
+		CloseHandle(ShExecInfo.hProcess);
+#endif
+
 #endif
 	}
 
@@ -291,7 +312,7 @@ void ShaderCompiler_GL3::compile(StrView outPath, ShaderStageMask shaderStage, S
 		mm.open(spirvOutFilename);
 
 		Span<const u32> bytecode = spanCast<const u32>(mm.span());
-		Compiler glsl(bytecode.data(), bytecode.size());
+		Compiler comp(bytecode.data(), bytecode.size());
 
 		CompilerOptions options;
 		options.es = false;
@@ -300,15 +321,15 @@ void ShaderCompiler_GL3::compile(StrView outPath, ShaderStageMask shaderStage, S
 		if (!StringUtil::tryParse(profile, options.version)) {
 			throw SGE_ERROR("_reflect tryParse error");
 		}
-		glsl.build_combined_image_samplers();
-		glsl.set_common_options(options);
+		comp.build_combined_image_samplers();
+		comp.set_common_options(options);
 
-		std::string source = glsl.compile();
-		StrView glslSource(source.c_str(), source.size());
-		File::writeFileIfChanged(glslOutFilename, glslSource, false);
+		std::string GLSLSource = comp.compile();
+		StrView source(GLSLSource.c_str(), GLSLSource.size());
+		File::writeFileIfChanged(outFilename, source, false);
 
 		// reflection
-		Helper::reflect(glslOutFilename, glsl, shaderStage, profile);
+		Helper::reflect(outFilename, comp, shaderStage, profile);
 	}
 }
 
