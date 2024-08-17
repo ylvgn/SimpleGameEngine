@@ -32,7 +32,7 @@ protected:
 	void _destroy();
 	void _destroyTestShaders();
 
-	void _setTestShaders();
+	void _setTestShaders(const VertexLayout* vertexLayout);
 
 #if SGE_OS_WINDOWS
 	::HDC	_win32_dc = nullptr;

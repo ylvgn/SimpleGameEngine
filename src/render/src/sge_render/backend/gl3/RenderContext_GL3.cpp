@@ -104,7 +104,7 @@ void RenderContext_GL3::onCmd_DrawCall(RenderCommand_DrawCall& cmd) {
 
 	vertexBuffer->glBind();
 	{
-		_setTestShaders();
+		_setTestShaders(cmd.vertexLayout);
 
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe ON tmp
 
@@ -153,7 +153,7 @@ void RenderContext_GL3::onEndRender() {
 
 }
 
-void RenderContext_GL3::_setTestShaders() {
+void RenderContext_GL3::_setTestShaders(const VertexLayout* vertexLayout) {
 	TempString shaderFile("Assets/Shaders/test001.cg");
 
 //---- compile shader
@@ -222,19 +222,17 @@ void RenderContext_GL3::_setTestShaders() {
 	Util::throwIfError();
 
 #if 1
-	using TestVertex = VertexT_Color<Color4f, 1, VertexT_Pos<Tuple4f>>;
-	GLsizei stride = static_cast<GLsizei>(sizeof(TestVertex));
-//	SGE_DUMP_VAR(stride);
-//	SGE_DUMP_VAR(memberOffset(&TestVertex::pos));
-//	SGE_DUMP_VAR(memberOffset(&TestVertex::color));
+	GLsizei stride = static_cast<GLsizei>(vertexLayout->stride);
 	{
+		auto* e = vertexLayout->find(VertexSemantic::POSITION);
 		auto loc = glGetAttribLocation(_testShaderProgram, "cg_Vertex");
-		glVertexAttribPointer(loc, 4, GL_FLOAT, true, stride, reinterpret_cast<const void*>(memberOffset(&TestVertex::pos)));
+		glVertexAttribPointer(loc, 4, GL_FLOAT, true, stride, reinterpret_cast<const void*>(e->offset));
 		glEnableVertexAttribArray(loc);
 	}
 	{
+		auto* e = vertexLayout->find(VertexSemantic::COLOR0);
 		auto loc = glGetAttribLocation(_testShaderProgram, "COLOR");
-		glVertexAttribPointer(loc, 4, GL_FLOAT, true, stride, reinterpret_cast<const void*>(memberOffset(&TestVertex::color)));
+		glVertexAttribPointer(loc, 4, GL_FLOAT, true, stride, reinterpret_cast<const void*>(e->offset));
 		glEnableVertexAttribArray(loc);
 	}
 #else

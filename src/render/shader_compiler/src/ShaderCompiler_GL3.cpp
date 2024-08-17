@@ -19,7 +19,7 @@ struct ShaderCompiler_GL3_Helper {
 
 	using DataType			= RenderDataType;
 
-	static void convert(Compiler& comp, DataType& o, const SPIRType& i, u32 index = 0);
+	static void convert(Compiler& comp, DataType& o, const SPIRType& i, u32 memberIndex = 0);
 
 	static void reflect(StrView outFilename, Compiler& comp, ShaderStageMask shaderStage, StrView profile);
 private:
@@ -29,7 +29,7 @@ private:
 	static void _reflect_samplers(ShaderStageInfo& outInfo, Compiler& comp, const ShaderResources& reflect);
 };
 
-void ShaderCompiler_GL3_Helper::convert(Compiler& comp, DataType& o, const SPIRType& i, u32 index /*= 0*/) {
+void ShaderCompiler_GL3_Helper::convert(Compiler& comp, DataType& o, const SPIRType& i, u32 memberIndex /*= 0*/) {
 	// For vectors and matrices, look at SPIRType::vecsize and SPIRType::columns. 1 column means it's a vector.
 	using SRC = SPIRType;
 	
@@ -68,7 +68,7 @@ void ShaderCompiler_GL3_Helper::convert(Compiler& comp, DataType& o, const SPIRT
 
 	if (!i.array.empty()) {
 		// Get array stride, e.g. float4 foo[]; Will have array stride of 16 bytes.
-		//size_t array_stride = comp.type_struct_member_array_stride(i, index);
+		//size_t array_stride = comp.type_struct_member_array_stride(i, memberIndex);
 		throw SGE_ERROR("unsupported SPIRType array: {}", static_cast<int>(type));
 	}
 
@@ -140,12 +140,12 @@ void ShaderCompiler_GL3_Helper::_reflect_inputs(ShaderStageInfo& outInfo, Compil
 
 		using InputSlotType = decltype(outInput.inputSlot);
 
+		auto resId = resource.id;
 		// you should not care about Name here unless your backend assigns bindings based on name, or for debugging purposes
 		// outInput.name.assign(resource.name.c_str(), resource.name.size());
 
 		// No semantic in OpenGL, just save input slot index
 		// outInput.semantic = VertexSemantic::None;
-		outInput.inputSlot = static_cast<InputSlotType>(comp.get_decoration(resource.id, spv::DecorationLocation));
 
 		const SPIRType& type	= comp.get_type(resource.base_type_id);
 		auto componentCount		= type.vecsize;
@@ -158,9 +158,9 @@ void ShaderCompiler_GL3_Helper::_reflect_inputs(ShaderStageInfo& outInfo, Compil
 #if 0
 		printf("Input '%s':\tlayout set = %u\tlayout binding = %u\tlayout location= %u\n",
 			resource.name.c_str(),
-			comp.get_decoration(resource.id, spv::DecorationDescriptorSet),
-			comp.get_decoration(resource.id, spv::DecorationBinding),
-			comp.get_decoration(resource.id, spv::DecorationLocation));
+			comp.get_decoration(resId, spv::DecorationDescriptorSet),
+			comp.get_decoration(resId, spv::DecorationBinding),
+			comp.get_decoration(resId, spv::DecorationLocation));
 #endif
 	}
 }
@@ -171,6 +171,8 @@ void ShaderCompiler_GL3_Helper::_reflect_constBuffers(ShaderStageInfo& outInfo, 
 	for (auto& resource : reflect.uniform_buffers) {
 		auto& outCB = outInfo.constBuffers.emplace_back();
 
+		auto resId = resource.id;
+
 		using SGE_BindPoint = decltype(outCB.bindPoint);
 		using SGE_BindCount = decltype(outCB.bindCount);
 		using SGE_DataSize	= decltype(outCB.dataSize);
@@ -178,7 +180,7 @@ void ShaderCompiler_GL3_Helper::_reflect_constBuffers(ShaderStageInfo& outInfo, 
 		auto& type = comp.get_type(resource.base_type_id);
 		size_t memberCount = type.member_types.size();
 
-		outCB.bindPoint = static_cast<SGE_BindPoint>(comp.get_decoration(resource.id, spv::DecorationBinding));
+		outCB.bindPoint = static_cast<SGE_BindPoint>(comp.get_decoration(resId, spv::DecorationBinding));
 		outCB.name.assign(resource.name.c_str(), resource.name.size());
 		outCB.dataSize = comp.get_declared_struct_size(type);
 
@@ -194,6 +196,10 @@ void ShaderCompiler_GL3_Helper::_reflect_constBuffers(ShaderStageInfo& outInfo, 
 
 			outVar.name.assign(name.data(), name.size());
 			outVar.offset = startOffset;
+
+			if (comp.get_member_decoration(resId, i, spv::Decoration::DecorationRowMajor)) {
+				outVar.rowMajor = true;
+			}
 
 			convert(comp, outVar.dataType, memberType, i);
 #if 0
@@ -282,7 +288,7 @@ void ShaderCompiler_GL3::compile(StrView outPath, ShaderStageMask shaderStage, S
 		tmpCmdParams.append(tmpOutput.c_str());			tmpCmdParams.append(L" ");
 		tmpCmdParams.append(tmpSrcFilename.c_str());
 
-		printf("HLSL->SPIRV : sge_glslc.bat %ws\n\n", tmpCmdParams.c_str());
+//		printf("HLSL->SPIRV : sge_glslc.bat %ws\n\n", tmpCmdParams.c_str());
 
 		SHELLEXECUTEINFO ShExecInfo = {};
 		ShExecInfo.cbSize			= sizeof(SHELLEXECUTEINFO);

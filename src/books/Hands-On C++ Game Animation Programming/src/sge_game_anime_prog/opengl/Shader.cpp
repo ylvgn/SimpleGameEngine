@@ -220,4 +220,46 @@ void Shader::_populateUniforms() {
 	glUseProgram(0);
 }
 
+
+void Shader::dumpUniformBlocks() {
+	GLint blockCount;
+	glGetProgramiv(_handle, GL_ACTIVE_UNIFORM_BLOCKS, &blockCount);
+	Vector<String> nameList;
+	nameList.reserve(blockCount);
+	for (int i = 0; i < blockCount; ++i) {
+		auto& o = nameList.emplace_back();
+
+		GLint out_NameLen;
+		glGetActiveUniformBlockiv(_handle, i, GL_UNIFORM_BLOCK_NAME_LENGTH, &out_NameLen);
+
+		o.resize(out_NameLen);
+		glGetActiveUniformBlockName(_handle, i, out_NameLen, NULL, o.begin());
+
+		auto loc = glGetUniformBlockIndex(_handle, o.c_str());
+		SGE_ASSERT(loc >= 0);
+
+		SGE_LOG("GL_ACTIVE_UNIFORM_BLOCKS\t{}({})", o.c_str(), loc);
+	}
+}
+
+void Shader::dumpActiveAttrib() {
+	GLint activeCount = 0;
+	glGetProgramiv(_handle, GL_ACTIVE_ATTRIBUTES, &activeCount);
+
+	static const size_t kszNameSize = 1024;
+	for (int i = 0; i < activeCount; ++i) {
+		char out_szName[kszNameSize + 1];
+		GLsizei out_len = 0;
+		GLint   out_dataSize = 0;
+		GLenum  out_dataType = 0;
+
+		glGetActiveAttrib(_handle, static_cast<GLuint>(i), kszNameSize, &out_len, &out_dataSize, &out_dataType, out_szName);
+		out_szName[kszNameSize] = 0;
+
+		auto loc = glGetAttribLocation(_handle, out_szName);
+		SGE_ASSERT(loc >= 0);
+		SGE_LOG("GL_ACTIVE_ATTRIBUTES\t{}({})", out_szName, loc);
+	}
+}
+
 }
