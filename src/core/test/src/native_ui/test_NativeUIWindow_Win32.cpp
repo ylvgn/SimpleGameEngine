@@ -17,8 +17,6 @@
 #include <sge_core/base/Error.h>
 
 #include "imgui.h"
-#include "imgui_impl_dx11.h"
-#include "imgui_impl_win32.h"
 #include <tchar.h>
 
 // define the screen resolution (bad practics)
@@ -26,9 +24,6 @@
 #define SCREEN_WIDTH  800
 #define SCREEN_HEIGHT 600
 */
-
-// Forward declare message handler from imgui_impl_win32.cpp
-extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 namespace sge {
 
@@ -55,9 +50,6 @@ private:
 
 	static LRESULT WINAPI s_wndProcImGUI(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	{
-		if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
-			return true;
-
 		switch (msg)
 		{
 		case WM_SIZE:
@@ -129,12 +121,6 @@ public:
 
 	void CreateRenderTarget();
 	void CleanupRenderTarget();
-	LRESULT WINAPI Test_NativeUIWindow_Win32::MyWindowWithImGUI(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow);
-	void test_imgui() {
-		// https://github.com/ocornut/imgui/blob/master/examples/example_win32_directx11/main.cpp
-		MyWindowWithImGUI(GetModuleHandle(nullptr), 0, GetCommandLineA(), SW_NORMAL);
-	}
-		
 }; // Test_NativeUIWindow_Win32
 
 LRESULT CALLBACK Test_NativeUIWindow_Win32::s_MyWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -510,139 +496,6 @@ void Test_NativeUIWindow_Win32::InitGraphics() {
 	devcon->Unmap(pVBuffer, NULL);						// unmap the buffer, This reallows the GPU access to the buffer, and reblocks the CPU
 }
 
-LRESULT WINAPI Test_NativeUIWindow_Win32::MyWindowWithImGUI(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
-{
-	WNDCLASSEX wc;
-	ZeroMemory(&wc, sizeof(WNDCLASSEX));
-
-	LPTCH szClassName = L"Test_NativeUIWindow_Win32";
-
-	wc.cbSize = sizeof(WNDCLASSEX);
-	wc.style = CS_HREDRAW | CS_VREDRAW;
-	wc.lpfnWndProc = s_wndProcImGUI;
-	wc.hInstance = hInstance;
-	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wc.lpszClassName = szClassName;
-	RegisterClassEx(&wc);
-	RECT wr = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
-	AdjustWindowRect(&wr, WS_OVERLAPPEDWINDOW, FALSE);
-
-	// create the window and use the result as the handle
-	HWND hWnd = CreateWindowEx(0,
-		szClassName,
-		L"Test_NativeUIWindow_Win32(imgui)",
-		WS_OVERLAPPEDWINDOW,
-		300, 300,
-		wr.right - wr.left,
-		wr.bottom - wr.top,
-		NULL,
-		NULL,
-		hInstance,
-		0);
-
-	InitD3D(hWnd);
-	ShowWindow(hWnd, nCmdShow);
-	UpdateWindow(hWnd);
-
-	CreateRenderTarget();
-
-	// Setup Dear ImGui context
-	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
-	ImGuiIO& io = ImGui::GetIO(); (void)io;
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-
-	ImGui::StyleColorsDark();
-
-	// Setup Platform/Renderer backends
-	ImGui_ImplWin32_Init(hWnd);
-	ImGui_ImplDX11_Init(dev, devcon);
-
-	// Our state
-	bool show_demo_window = true;
-	bool show_another_window = false;
-	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-
-	// Main loop
-	bool done = false;
-	
-	while (!done)
-    {
-		MSG msg;
-		while (::PeekMessage(&msg, NULL, 0U, 0U, PM_REMOVE))
-		{
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-			if (msg.message == WM_QUIT)
-				done = true;
-		}
-
-        if (done) break;
-
-        // Start the Dear ImGui frame
-        ImGui_ImplDX11_NewFrame();
-        ImGui_ImplWin32_NewFrame();
-        ImGui::NewFrame();
-
-        // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-        if (show_demo_window)
-            ImGui::ShowDemoWindow(&show_demo_window);
-
-        // 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
-        {
-            static float f = 0.0f;
-            static int counter = 0;
-
-            ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
-
-            ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-            ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-            ImGui::Checkbox("Another Window", &show_another_window);
-
-            ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-            ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
-
-            if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-                counter++;
-            ImGui::SameLine();
-            ImGui::Text("counter = %d", counter);
-
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-            ImGui::End();
-        }
-
-        // 3. Show another simple window.
-        if (show_another_window)
-        {
-            ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-            ImGui::Text("Hello from another window!");
-            if (ImGui::Button("Close Me"))
-                show_another_window = false;
-            ImGui::End();
-        }
-
-        // Rendering
-        ImGui::Render();
-        const float clear_color_with_alpha[4] = { clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w };
-        devcon->OMSetRenderTargets(1, &backbuffer, NULL);
-        devcon->ClearRenderTargetView(backbuffer, clear_color_with_alpha);
-        ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-
-        swapchain->Present(1, 0); // Present with vsync
-        //swapchain->Present(0, 0); // Present without vsync
-    }
-
-	// Cleanup
-	ImGui_ImplDX11_Shutdown();
-	ImGui_ImplWin32_Shutdown();
-	ImGui::DestroyContext();
-
-	CleanupRenderTarget();
-	CleanD3D();
-	return 0;
-}
-
 void Test_NativeUIWindow_Win32::CreateRenderTarget() {
 	ID3D11Texture2D* pBackBuffer;
 	swapchain->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer));
@@ -667,7 +520,5 @@ void test_NativeUIWindow_Win32() {
 
 	//SGE_TEST_CASE(Test_NativeUIWindow_Win32, test_createWindow());
 
-	//SGE_TEST_CASE(Test_NativeUIWindow_Win32, test_drawD3DTriangle());
-
-	SGE_TEST_CASE(Test_NativeUIWindow_Win32, test_imgui());
+	SGE_TEST_CASE(Test_NativeUIWindow_Win32, test_drawD3DTriangle());
 }
