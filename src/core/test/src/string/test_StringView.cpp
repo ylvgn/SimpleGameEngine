@@ -80,9 +80,9 @@ public:
 	}
 
 	template<size_t N>	static void foo(String_<N>& s)	{ SGE_LOG("foo String_: {}", s); }
-	template<size_t N>	static void foo(StringW_<N>& s) { SGE_LOG("foo StringW_: {}", s); }
+	template<size_t N>	static void foo(StringW_<N>& s) { wprintf(L"foo StringW_: %ws", s.c_str()); }
 						static void foo(String& s)		{ SGE_LOG("foo String: {}", s); }
-						static void foo(StringW& s)		{ SGE_LOG("foo StringW: {}", s); }
+						static void foo(StringW& s)		{ wprintf(L"foo StringW: %ws", s.c_str()); }
 
 	void test_4() {
 		String s1 = "s1 - String";

@@ -49,7 +49,7 @@ public:
 		StringA a;
 
 		Utf::convert(w, src);
-		SGE_DUMP_VAR(w);
+		wprintf(L"w=%ws", w.c_str());
 
 		Utf::convert(a, w);
 		SGE_DUMP_VAR(a);

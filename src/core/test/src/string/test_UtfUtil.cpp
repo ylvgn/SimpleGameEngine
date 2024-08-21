@@ -22,7 +22,7 @@ public:
 		StringA a;
 
 		UtfUtil::convert(w, src);
-		SGE_DUMP_VAR(w);
+		wsprintf(L"w=[%ws]", w.c_str());
 
 		UtfUtil::convert(a, w);
 		SGE_DUMP_VAR(a);

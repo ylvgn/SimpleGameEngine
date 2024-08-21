@@ -75,7 +75,7 @@ LRESULT CALLBACK PW5_MyHelloWin::s_wndProc(HWND hwnd, UINT message, WPARAM wPara
 			auto y = GET_Y_LPARAM(lParam); // high-order word specifies the y-coordinate (16 bit)
 
 			POINT pt;
-			TempStringW s;
+			TempString s;
 			Vec2i from, to;
 
 			ScopedGetDC hdc(hwnd);

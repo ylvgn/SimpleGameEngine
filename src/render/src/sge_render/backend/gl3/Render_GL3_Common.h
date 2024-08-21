@@ -31,7 +31,7 @@ struct GL3Util {
 
 	static void reportError(GLenum errCode) {
 		auto* sz = reinterpret_cast<const char*>(gluErrorString(errCode));
-		TempStringW str = UtfUtil::toStringW(sz);
+		TempString str = UtfUtil::toString(sz);
 		SGE_LOG("glGetError = (0x{:X}) {}", static_cast<u32>(errCode), str);
 	}
 
