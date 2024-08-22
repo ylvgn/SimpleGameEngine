@@ -16160,6 +16160,10 @@ typedef void (GLAPIENTRY * PFNGLGETINTEGERVPROC) (GLenum pname, GLint *params);
 
 static GLenum GLEWAPIENTRY glewContextInit ()
 {
+#if SGE_COMPILER_VC
+	#pragma warning(push) 
+	#pragma warning(disable: 4456) // gyh: warning C4456: declaration of 'n' hides previous local declaration
+#endif
   PFNGLGETSTRINGPROC getString;
   const GLubyte* s;
   GLuint dot;
@@ -16290,6 +16294,9 @@ static GLenum GLEWAPIENTRY glewContextInit ()
       }
     }
   }
+#if SGE_COMPILER_VC
+	#pragma warning(pop) // gyh
+#endif
 #ifdef GL_VERSION_1_2
   if (glewExperimental || GLEW_VERSION_1_2) GLEW_VERSION_1_2 = !_glewInit_GL_VERSION_1_2();
 #endif /* GL_VERSION_1_2 */

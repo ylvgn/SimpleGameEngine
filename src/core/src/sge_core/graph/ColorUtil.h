@@ -11,7 +11,7 @@ struct ColorUtil {
 	static constexpr int bytesPerPixelBlock(ColorType type);
 
 	static constexpr ColorElementType	elementType(ColorType t) { return static_cast<ColorElementType>(enumInt(t) & 0xff); }
-	static constexpr ColorModel			colorModel( ColorType t) { return static_cast<ColorModel>((enumInt(t) >> 8) & 0xff); }
+	static constexpr ColorModel			colorModel (ColorType t) { return static_cast<ColorModel>((enumInt(t) >> 8) & 0xff); }
 
 	static constexpr bool hasAlpha(ColorType t);
 };

@@ -44,7 +44,7 @@ void MyOpenGLNativeUIWindow_Win32::onInitGL() {
 	_makeCurrent();
 }
 
-void MyOpenGLNativeUIWindow_Win32::onDestroyGL() {
+void MyOpenGLNativeUIWindow_Win32::destroy() {
 	if (_rc) {
 		::wglMakeCurrent(nullptr, nullptr);
 		::wglDeleteContext(_rc);

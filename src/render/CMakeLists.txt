@@ -5,8 +5,4 @@ project(${PROJECT_NAME})
 sge_add_library(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR})
 set_target_properties (${PROJECT_NAME} PROPERTIES FOLDER sge/render)
 
-target_link_libraries(${PROJECT_NAME} PUBLIC sge_core PNG::PNG sge_sita_glew) 
-
-# not work
-    #add_compile_definitions(${PROJECT_NAME} PUBLIC GLEW_STATIC)
-    #target_link_libraries(${PROJECT_NAME} PUBLIC sge_core png GLEW::GLEW)
+target_link_libraries(${PROJECT_NAME} PUBLIC sge_core PNG::PNG)

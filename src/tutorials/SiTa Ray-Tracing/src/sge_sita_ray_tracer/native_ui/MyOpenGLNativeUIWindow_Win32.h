@@ -9,11 +9,13 @@ namespace sge {
 class MyOpenGLNativeUIWindow_Win32 : public MyOpenGLNativeUIWindow_Base {
 	using Base = MyOpenGLNativeUIWindow_Base;
 public:
-	virtual ~MyOpenGLNativeUIWindow_Win32() { destroyGL(); }
+	virtual ~MyOpenGLNativeUIWindow_Win32() { destroy(); }
+
+	void destroy();
+
 protected:
 	virtual void onCreate(CreateDesc& desc) override;
 	virtual void onInitGL() override;
-	virtual void onDestroyGL() override;
 	virtual void onSwapBuffers() override;
 
 private:

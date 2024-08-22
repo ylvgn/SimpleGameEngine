@@ -146,17 +146,17 @@ void MyOpenGLNativeUIWindow_Win32::onCreate(CreateDesc& desc) {
 	};
 
 	int format, numFormat;
-	if (!wglChoosePixelFormatARB(_dc, formatAttrs, nullptr, 1, &format, reinterpret_cast<UINT*>(&numFormat))) {
+	if (!::wglChoosePixelFormatARB(_dc, formatAttrs, nullptr, 1, &format, reinterpret_cast<UINT*>(&numFormat))) {
 		throw SGE_ERROR("wglChoosePixelFormatARB");
 	}
 
 	::PIXELFORMATDESCRIPTOR pfd;
-	if (!SetPixelFormat(_dc, format, &pfd)) {
+	if (!::SetPixelFormat(_dc, format, &pfd)) {
 		throw SGE_ERROR("SetPixelFormat");
 	}
 
-	HGLRC sharedContext = nullptr;
-	_rc = wglCreateContextAttribsARB(_dc, sharedContext, contextAttrs);
+	::HGLRC sharedContext = nullptr;
+	_rc = ::wglCreateContextAttribsARB(_dc, sharedContext, contextAttrs);
 	if (!_rc)
 		throw SGE_ERROR("wglCreateContextAttribsARB");
 
@@ -168,7 +168,7 @@ void MyOpenGLNativeUIWindow_Win32::onCreate(CreateDesc& desc) {
 	::UpdateWindow(_hwnd);
 }
 
-void MyOpenGLNativeUIWindow_Win32::onDestroy() {
+void MyOpenGLNativeUIWindow_Win32::destroy() {
 	if (_rc) {
 		::wglMakeCurrent(nullptr, nullptr);
 		::wglDeleteContext(_rc);

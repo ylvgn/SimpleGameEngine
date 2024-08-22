@@ -7,11 +7,9 @@ namespace sge {
 class MyOpenGLNativeUIWindow_Base : public NativeUIWindow {
 	using Base = NativeUIWindow;
 public:
-	void destroy()		{ onDestroy(); } // is it allright ???
+	void beginRender()	{ onBeginRender(); }
+	void endRender()	{ onEndRender(); }
 	void swapBuffers()	{ onSwapBuffers(); }
-
-	void beginRender() { onBeginRender(); }
-	void endRender() { onEndRender(); }
 
 	void setFrameBufferSize(const Vec2f& newSize);
 
@@ -26,18 +24,12 @@ protected:
 	virtual void onCreate(CreateDesc& desc) override;
 	virtual void onUIMouseEvent(UIMouseEvent& ev) override;
 	virtual void onUIKeyboardEvent(UIKeyboardEvent& ev) override;
+	virtual void onCloseButton() override;
 
-	virtual void onCloseButton() {
-		destroy();
-		NativeUIApp::current()->quit(0);
-	}
-
-	virtual void onInitGL() {}
-	virtual void onDestroy() {}
-	virtual void onSwapBuffers() {}
-
-	virtual void onBeginRender() {}
-	virtual void onEndRender() {}
+	virtual void onInitGL()			{}
+	virtual void onSwapBuffers()	{}
+	virtual void onBeginRender()	{}
+	virtual void onEndRender()		{}
 };
 
 }

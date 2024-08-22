@@ -77,10 +77,10 @@ void MyRenderMesh::create(MyEditMesh& src) {
 			dst++;
 		}
 
-		SGE_ASSERT(pos == ed_pos);
-		SGE_ASSERT(uv == ed_uv);
-		SGE_ASSERT(color == ed_color);
-		SGE_ASSERT(normal == ed_normal);
+		SGE_ASSERT(pos == ed_pos); SGE_UNUSED(ed_pos);
+		SGE_ASSERT(uv == ed_uv); SGE_UNUSED(ed_uv);
+		SGE_ASSERT(color == ed_color); SGE_UNUSED(ed_color);
+		SGE_ASSERT(normal == ed_normal); SGE_UNUSED(ed_normal);
 	}
 
 	indexCount = src.indexCount();
@@ -142,10 +142,10 @@ void MyRenderMesh::createCg(MyEditMesh& src) {
 			dst++;
 		}
 
-		SGE_ASSERT(pos == ed_pos);
-		SGE_ASSERT(uv == ed_uv);
-		SGE_ASSERT(color == ed_color);
-		SGE_ASSERT(normal == ed_normal);
+		SGE_ASSERT(pos == ed_pos); SGE_UNUSED(ed_pos);
+		SGE_ASSERT(uv == ed_uv); SGE_UNUSED(ed_uv);
+		SGE_ASSERT(color == ed_color); SGE_UNUSED(ed_color);
+		SGE_ASSERT(normal == ed_normal); SGE_UNUSED(ed_normal);
 	}
 
 	indexCount = src.indexCount();

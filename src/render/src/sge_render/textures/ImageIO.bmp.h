@@ -50,9 +50,8 @@ struct ImageIO_bmp {
 		void _swapBGRAToRGBA(Image& out);
 		template<class COLOR> void _swapColorChannel(Image& out, int fromChannel, int toChannel) {
 			SGE_ASSERT(out.colorType() != ColorType::None);
-
-			auto colorModel = ColorUtil::colorModel(out.colorType());
-			SGE_ASSERT(colorModel == ColorModel::RGB || colorModel == ColorModel::RGBA);
+			SGE_ASSERT(ColorUtil::colorModel(out.colorType()) == ColorModel::RGB 
+					|| ColorUtil::colorModel(out.colorType()) == ColorModel::RGBA);
 
 			for (int y = 0; y < out.width(); ++y) {
 				auto row = out.row<COLOR>(y);

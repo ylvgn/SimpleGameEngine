@@ -432,7 +432,7 @@ namespace OGL {
 			p->set(v.pos + v.normal * d); p++;
 		}
 
-		SGE_ASSERT(p == e);
+		SGE_ASSERT(p == e); SGE_UNUSED(e);
 	}
 
 } // namespace OGL

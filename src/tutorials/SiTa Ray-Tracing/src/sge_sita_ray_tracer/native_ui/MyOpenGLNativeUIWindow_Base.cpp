@@ -55,6 +55,10 @@ void MyOpenGLNativeUIWindow_Base::onUIKeyboardEvent(UIKeyboardEvent& ev) {
 	}
 }
 
+void MyOpenGLNativeUIWindow_Base::onCloseButton() {
+	NativeUIApp::current()->quit(0);
+}
+
 void MyOpenGLNativeUIWindow_Base::setFrameBufferSize(const MyVec2f& newSize) {
 	_camera.setViewport(_clientRect);
 	_matrix_proj = _camera.projMatrix();

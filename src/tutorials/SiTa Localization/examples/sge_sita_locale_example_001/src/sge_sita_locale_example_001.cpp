@@ -68,7 +68,7 @@ public:
 			std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> convertor;
 			auto s = convertor.to_bytes(szW);
 			std::cout << s << "\n";
-			SGE_ASSERT(0 == s.compare(sz8));
+			SGE_ASSERT(0 == s.compare(sz8)); SGE_UNUSED(sz8);
 		}
 
 		//mbstowcs - multi-byte string to wide char string
