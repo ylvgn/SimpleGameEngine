@@ -21,16 +21,18 @@ Shader {
 }
 #endif
 
+#include "define.h"
+
 struct VertexIn {
-	float2 positionOS : POSITION;
+	VA_POS(float2);
 };
 
 struct PixelIn {
-	float4 positionHCS : SV_POSITION;
-	float3 positionWS  : TEXCOORD10;
-	float2 uv		: TEXCOORD0;
-	float4 color  	: COLOR;
-	float3 normal 	: NORMAL;
+	PA_POS(float4);
+	PA_WPOS(float3);
+	PA_UV(float2);
+	PA_COLOR(float4);
+	PA_NORMAL(float3);
 };
 
 float4x4	sge_matrix_model;

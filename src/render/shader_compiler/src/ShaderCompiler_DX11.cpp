@@ -10,10 +10,126 @@
 #pragma comment(lib, "d3dcompiler.lib")
 
 namespace sge {
+#if SGE_OS_WINDOWS
+#if 0
+#pragma mark ========= ShaderCompiler_DX11_ID3DInclude ============
+#endif
+class ShaderCompiler_DX11_ID3DInclude : public ID3DInclude { // shader compiler callback
+	using Util = DX11Util;
 
+	class Chunk : public NonCopyable {
+	public:
+		Chunk(StrView filename) : _filename(filename) {
+			MemMapFile mm;
+			mm.open(filename);
+
+			_bufSize = mm.size();
+			_buf = reinterpret_cast<u8*>(malloc(_bufSize * sizeof(u8)));
+			if (!_buf) return;
+			memcpy(_buf, mm.data(), _bufSize);
+		}
+
+		~Chunk() {
+			if (_buf) {
+				free(_buf);
+				_buf = nullptr;
+			}
+			_bufSize = 0;
+		}
+
+		STDMETHOD (map) (LPCVOID*& ppData, UINT*& pBytes) const {
+			if (!_buf)
+				return E_OUTOFMEMORY;
+
+			*pBytes = static_cast<UINT>(_bufSize);
+			*ppData = _buf;
+			return S_OK;
+		}
+
+		ByteSpan	span()		const { return ByteSpan(_buf, _bufSize); }
+		StrView		filename()	const { return _filename.view(); }
+
+	private:
+		u8*		_buf = nullptr;
+		size_t  _bufSize = 0;
+		String  _filename;
+	};
+
+public:
+	~ShaderCompiler_DX11_ID3DInclude() {
+		_chunks.clear();
+	}
+
+	STDMETHOD(Open) (THIS_ D3D_INCLUDE_TYPE IncludeType, LPCSTR pFileName, LPCVOID pParentData, LPCVOID* ppData, UINT* pBytes) override {
+		TempString tmpName;
+
+		switch (IncludeType) {
+			case D3D_INCLUDE_LOCAL :
+				if (!_workingDir.empty()) {
+					tmpName.assign(_workingDir.data(), _workingDir.size());
+					tmpName += '/';
+				}
+				break;
+			case D3D_INCLUDE_SYSTEM: /*do nothing*/ break;
+			default: return E_NOTIMPL;
+		}
+		tmpName += pFileName;
+
+		if (_filename == tmpName)
+			return E_INVALIDARG;
+
+		auto it = _chunks.find(tmpName.c_str());
+		if (it != _chunks.end()) {
+			auto& chunk = it->second;
+			for (auto& c : _stack) {
+				if (c->filename() == tmpName)
+					return E_INVALIDARG; // cycle include file
+			}
+			_stack.emplace_back(chunk.get());
+			return chunk->map(ppData, pBytes);
+		}
+
+		if (!File::exists(tmpName))
+			return E_ACCESSDENIED;
+		
+		auto newChunk = eastl::make_unique<Chunk>(tmpName);
+		_chunks[tmpName.c_str()] = eastl::move(newChunk);
+
+		auto& chunk = _chunks[tmpName.c_str()];
+		_stack.emplace_back(chunk.get());
+		return chunk->map(ppData, pBytes);
+	}
+
+	STDMETHOD(Close)(THIS_ LPCVOID pData) override {
+		if (!_stack.empty()) {
+			auto& chunk = _stack.back();
+			auto span = chunk->span();
+			if (span.data() != pData)
+				return E_FAIL;
+			_stack.pop_back();
+		}
+		return S_OK;
+	}
+
+	void setFileName(StrView srcFilename) {
+		_filename.assign(srcFilename.data(), srcFilename.size());
+		_workingDir = FilePath::dirname(_filename);
+	}
+
+private:
+	StringMap<UPtr<Chunk>>		_chunks;
+	Vector<const Chunk*, 64>	_stack;
+
+	String	_workingDir;
+	String	_filename;
+};
+#endif
+
+#if 0
+#pragma mark ========= ShaderCompiler_DX11 ============
+#endif
 void ShaderCompiler_DX11::compile(StrView outPath, ShaderStageMask shaderStage, StrView srcFilename, StrView entryFunc) {
 	TempStringA entryPoint = entryFunc;
-
 
 	MemMapFile memmap;
 	memmap.open(srcFilename);
@@ -24,22 +140,22 @@ void ShaderCompiler_DX11::compile(StrView outPath, ShaderStageMask shaderStage, 
 	UINT flags2 = 0;
 
 #if _DEBUG
-	//flags1 |= D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+	flags1 |= D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
 #endif
 
 	ComPtr<ID3DBlob>	bytecode;
 	ComPtr<ID3DBlob>	errorMsg;
+	ShaderCompiler_DX11_ID3DInclude include;
+	include.setFileName(srcFilename);
 
 	auto profile = Util::getDxStageProfile(shaderStage);
 
 	auto hr = D3DCompile2(
 				hlsl.data(), hlsl.size(), memmap.filename().c_str(),
-				nullptr, nullptr,
-				entryPoint.c_str(),
-				profile, 
+				nullptr, &include,
+				entryPoint.c_str(), profile,
 				flags1, flags2, 0, nullptr, 0,
-				bytecode.ptrForInit(),
-				errorMsg.ptrForInit());
+				bytecode.ptrForInit(), errorMsg.ptrForInit());
 
 	if (FAILED(hr)) {
 		throw SGE_ERROR("HRESULT={}\n Error Message: {}", hr, Util::toStrView(errorMsg));

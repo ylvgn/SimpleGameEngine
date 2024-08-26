@@ -62,4 +62,43 @@ void GL3Util::getProgramInfoLog(GLuint program, String& outMsg) {
 	outMsg.resize(outLen);
 }
 
+VertexSemantic GL3Util::parseGlSemanticName(StrView vkName) {
+	auto pair = StringUtil::splitByChar(vkName, '_');
+
+	StrView defineName = pair.second.empty() ? pair.first : pair.second;
+
+#define E(DEFINE, OUTPUT) \
+	if (defineName == #DEFINE) return OUTPUT; \
+// -----
+		E(positionOS,	VertexSemantic::POSITION)
+		E(positionHCS,	VertexSemantic::POSITION)
+		E(positionWS,	VertexSemantic::TEXCOORD10)
+		E(positionVS,	VertexSemantic::TEXCOORD11)
+		E(positionCS,	VertexSemantic::TEXCOORD12)
+		E(positionSS,	VertexSemantic::TEXCOORD13)
+
+		E(color,		VertexSemantic::COLOR0)
+		E(color1,		VertexSemantic::COLOR1)
+		E(color2,		VertexSemantic::COLOR2)
+		E(color3,		VertexSemantic::COLOR3)
+
+		E(uv,			VertexSemantic::TEXCOORD0)
+		E(uv1,			VertexSemantic::TEXCOORD1)
+		E(uv2,			VertexSemantic::TEXCOORD2)
+		E(uv3,			VertexSemantic::TEXCOORD3)
+		E(uv4,			VertexSemantic::TEXCOORD4)
+		E(uv5,			VertexSemantic::TEXCOORD5)
+		E(uv6,			VertexSemantic::TEXCOORD6)
+		E(uv7,			VertexSemantic::TEXCOORD7)
+		E(uv8,			VertexSemantic::TEXCOORD8)
+
+		E(normal,		VertexSemantic::NORMAL)
+		E(tangent,		VertexSemantic::TANGENT)
+		E(binormal,		VertexSemantic::BINORMAL)
+#undef E
+// -----
+
+	throw SGE_ERROR("unknown VertexLayout_SemanticType {}", vkName);
+}
+
 }

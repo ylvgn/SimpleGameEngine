@@ -65,6 +65,7 @@ struct GL3Util {
 	static GLenum getGlBufferBindingTarget(RenderGpuBufferType v);
 	static const char* getGlStageProfile(ShaderStageMask s);
 	static GLenum getGlShaderType(ShaderStageMask s);
+	static VertexSemantic parseGlSemanticName(StrView vkName);
 
 private:
 	static bool _checkError(GLenum errCode) {

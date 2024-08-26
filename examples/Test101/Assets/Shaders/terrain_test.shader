@@ -17,12 +17,14 @@ Shader {
 }
 #endif
 
+#include "define.h"
+
 struct VertexIn {
-	float4 positionOS : POSITION;
+	VA_POS(float4);
 };
 
 struct PixelIn {
-	float4 positionHCS : SV_POSITION;
+	PA_POS(float4);
 };
 
 float4x4	sge_matrix_model;

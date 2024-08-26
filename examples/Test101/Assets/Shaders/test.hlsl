@@ -10,24 +10,25 @@ Shader {
 }
 #endif
 
-struct VOut
-{
-    float4 position : SV_POSITION;
-    float4 color : COLOR;
+#include "define.h"
+	
+struct VOut {	
+	VA_POS(float4);
+	VA_COLOR(float4);
 };
 
-VOut vs_main(float4 position : POSITION, float4 color : COLOR)
+VOut vs_main(VA_POS(float4), VA_COLOR(float))
 {
     VOut output;
 
-    output.position = position;
+    output.positionOS = positionOS;
     output.color = color;
 
     return output;
 }
 
 
-float4 ps_main(float4 position : SV_POSITION, float4 color : COLOR) : SV_TARGET
+float4 ps_main(PA_POS(float4), PA_COLOR(float)) : SV_TARGET
 {
     return color;
 }

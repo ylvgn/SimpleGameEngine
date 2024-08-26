@@ -19,16 +19,18 @@ Shader {
 }
 #endif
 
+#include "define.h"
+
 struct VertexIn {
-	float2 pos : POSITION;
-	float4 col : COLOR0;
-	float2 uv  : TEXCOORD0;
+	VA_POS(float2);
+	VA_COLOR(float4);
+	VA_UV(float2);
 };
 
 struct PixelIn {
-	float4 pos 	: SV_POSITION;
-	float4 col 	: COLOR0;
-	float2 uv	: TEXCOORD0;
+	PA_POS(float4);
+	PA_COLOR(float4);
+	PA_UV(float2);
 };
 
 float4x4 ProjectionMatrix; 
@@ -38,13 +40,13 @@ SamplerState sampler0;
 
 PixelIn vs_main(VertexIn i) {
 	PixelIn o;
-	o.pos = mul(ProjectionMatrix, float4(i.pos.xy, 0.f, 1.f));
-	o.col = i.col;
+	o.positionHCS = mul(ProjectionMatrix, float4(i.positionOS.xy, 0.f, 1.f));
+	o.color = i.color;
 	o.uv  = i.uv;
 	return o;
 }
 
 float4 ps_main(PixelIn i) : SV_TARGET {
-	float4 o = i.col * texture0.Sample(sampler0, i.uv).r;
+	float4 o = i.color * texture0.Sample(sampler0, i.uv).r;
 	return o;
 }

@@ -30,19 +30,21 @@ Shader {
 }
 #endif
 
+#include "define.h"
+
 struct VertexIn {
-	float4 positionOS : POSITION;
-	float4 color : COLOR;
-	float2 uv : TEXCOORD0;
-	float3 normal : NORMAL;
+	VA_POS(float4);
+	VA_COLOR(float4);
+	VA_UV(float2);
+	VA_NORMAL(float3);
 };
 
 struct PixelIn {
-	float4 positionHCS : SV_POSITION;
-	float4 positionWS  : TEXCOORD10;
-	float2 uv		: TEXCOORD0;
-	float4 color  	: COLOR;
-	float3 normal 	: NORMAL;
+	PA_POS(float4);
+	PA_WPOS(float4);
+	PA_UV(float2);
+	PA_COLOR(float4);
+	PA_NORMAL(float3);
 };
 
 float4x4	sge_matrix_model;
@@ -131,7 +133,7 @@ float4 ps_main(PixelIn i) : SV_TARGET
 	Surface s;
 	s.positionWS = i.positionWS;
 	s.normal     = i.normal;
-	s.color	     = test_color;
+	s.color	     = i.color * test_color;
 	s.specular   = float3(0.8, 0.8, 0.8);
 	s.ambient    = float3(0.2, 0.2, 0.2);
 	s.diffuse	 = float3(1, 1, 1);

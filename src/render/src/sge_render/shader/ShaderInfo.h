@@ -124,14 +124,12 @@ public:
 		String			name;
 		VertexSemantic	semantic = VertexSemantic::None;
 		RenderDataType	dataType = RenderDataType::None;
-		i16				inputSlot= 0;
 
 		template<class SE>
 		void onJson(SE& se) {
 			SGE_NAMED_IO(se, name);
 			SGE_NAMED_IO(se, semantic);
 			SGE_NAMED_IO(se, dataType);
-			SGE_NAMED_IO(se, inputSlot);
 		}
 	};
 
