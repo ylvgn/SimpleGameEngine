@@ -199,6 +199,9 @@ public:
 
 	void operator=(const StringT& s) { Base::assign(s.data(), s.size()); }
 
+	template<size_t N>
+	void operator=(const StringT<T, N>& r) { Base::assign(s.data(), s.size()); }
+
 	template<class R> void operator=(R&& r) { Base::operator=(SGE_FORWARD(r)); }
 
 	void operator+=(StrViewT<T> v) { Base::append(v.begin(), v.end()); }
@@ -214,7 +217,8 @@ public:
 template<size_t N, bool bEnableOverflow = true> using StringA_ = StringT<char,    N, bEnableOverflow>;
 template<size_t N, bool bEnableOverflow = true> using StringW_ = StringT<wchar_t, N, bEnableOverflow>;
 
-template<size_t N, bool bEnableOverflow = true> using String8_  = StringT<char8_t,	N, bEnableOverflow>;
+template<size_t N, bool bEnableOverflow = true> using String8_  = StringT<char,		N, bEnableOverflow>;
+//template<size_t N, bool bEnableOverflow = true> using String8_  = StringT<char8_t,	N, bEnableOverflow>;
 template<size_t N, bool bEnableOverflow = true> using String16_ = StringT<char16_t, N, bEnableOverflow>;
 template<size_t N, bool bEnableOverflow = true> using String32_ = StringT<char32_t, N, bEnableOverflow>;
 
@@ -229,6 +233,9 @@ using String		= StringA;
 
 template<class T, size_t N> inline bool operator==(const StringT<T, N>& lhs, StrViewT<T> rhs) { return lhs.compare(rhs.data()) == 0; }
 template<class T, size_t N> inline bool operator!=(const StringT<T, N>& lhs, StrViewT<T> rhs) { return lhs.compare(rhs.data()) != 0; }
+
+template<class T, size_t N, size_t M> inline bool operator==(const StringT<T, N>& lhs, const StringT<T, M>& rhs) { return lhs.compare(rhs.data()) == 0; }
+template<class T, size_t N, size_t M> inline bool operator!=(const StringT<T, N>& lhs, const StringT<T, M>& rhs) { return lhs.compare(rhs.data()) != 0; }
 
 template<class T, size_t N> inline bool operator==(StrViewT<T> lhs, const StringT<T, N>& rhs) { return rhs.compare(lhs.data()) == 0; }
 template<class T, size_t N> inline bool operator!=(StrViewT<T> lhs, const StringT<T, N>& rhs) { return rhs.compare(lhs.data()) != 0; }
@@ -251,7 +258,7 @@ ByteSpan ByteSpan_make(Span<SRC> v) {
 }
 
 template<size_t N> using String_ = StringA_<N>;
-using TempString	= TempStringA;
+using TempString = TempStringA;
 
 template<size_t N> struct CharBySize;
 template<> struct CharBySize<1> { using Type = char; };
@@ -265,11 +272,10 @@ struct WCharUtil {
 };
 
 template<typename T> inline
-size_t charStrlen(const T* p) {
-	const auto* pCurrent = p;
-	while (*pCurrent)
-		++pCurrent;
-	return static_cast<size_t>(pCurrent - p);
+size_t charStrlen(const T* sz) {
+	const auto* p = sz;
+	while (*p) ++p;
+	return static_cast<size_t>(p - sz);
 }
 
 inline StrView   StrView_c_str(const char*		s)	{ return s ? StrView  (s, strlen(s)) : StrView (); }

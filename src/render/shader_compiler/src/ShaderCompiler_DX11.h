@@ -5,8 +5,8 @@
 namespace sge {
 
 class ShaderCompiler_DX11 : public NonCopyable {
-	using Util = DX11Util;
-	using DataType = RenderDataType;
+	using Util		= DX11Util;
+	using DataType	= RenderDataType;
 public:
 	void compile(StrView outPath, ShaderStageMask shaderStage, StrView srcFilename, StrView entryFunc);
 

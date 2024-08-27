@@ -11,7 +11,7 @@ public:
 	ComPtr(ComPtr && r)		noexcept { _p = r.detach(); }
 
 	void operator=(const ComPtr& r) noexcept { reset(r._p); }
-	void operator=(ComPtr&& r)	noexcept { reset(nullptr); _p = r.detach(); }
+	void operator=(ComPtr&& r)		noexcept { reset(nullptr); _p = r.detach(); }
 
 	~ComPtr() noexcept { reset(nullptr); }
 

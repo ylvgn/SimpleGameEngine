@@ -37,7 +37,7 @@ void RenderGpuBuffer_GL3::onUploadToGpu(ByteSpan data, size_t offset) {
 	auto target = glBufTarget();
 	glBindBuffer(target, _p);
 
-#if 0 // which is better ???
+#if 1 // use which one is ok
 	u8* dst = reinterpret_cast<u8*>(glMapBuffer(target, GL_WRITE_ONLY));
 	memcpy(dst + offset, data.data(), data.size());
 	glUnmapBuffer(target);

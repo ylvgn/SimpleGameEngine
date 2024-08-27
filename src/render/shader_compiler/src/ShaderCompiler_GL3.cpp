@@ -36,7 +36,7 @@ void ShaderCompiler_GL3::compile(StrView outPath, ShaderStageMask shaderStage, S
 		TempStringW tmpSrcFilename;
 		UtfUtil::convert(tmpSrcFilename, srcFilename);
 
-#if 0 // can not using env path???
+#if 0
 		TempStringW tmpCmdParams;
 		fmt::format_to(std::back_inserter(tmpCmdParams),
 			L"-fshader-stage={} -fentry-point={} -o {} -x hlsl {}"
@@ -45,7 +45,7 @@ void ShaderCompiler_GL3::compile(StrView outPath, ShaderStageMask shaderStage, S
 			, tmpOutput.c_str()
 			, tmpSrcFilename.c_str());
 
-		printf("HLSL->SPIRV : glslc.exe %ws\n\n", tmpCmdParams.c_str());
+		wprintf(L"HLSL->SPIRV : glslc.exe %ls\n\n", tmpCmdParams.c_str());
 
 		SHELLEXECUTEINFO ShExecInfo = {};
 		ShExecInfo.cbSize			= sizeof(SHELLEXECUTEINFO);
@@ -67,7 +67,7 @@ void ShaderCompiler_GL3::compile(StrView outPath, ShaderStageMask shaderStage, S
 		tmpCmdParams.append(tmpOutput.c_str());			tmpCmdParams.append(L" ");
 		tmpCmdParams.append(tmpSrcFilename.c_str());
 
-//		printf("HLSL->SPIRV : sge_glslc.bat %ws\n\n", tmpCmdParams.c_str());
+		wprintf(L"HLSL->SPIRV : sge_glslc.bat %ls\n\n", tmpCmdParams.c_str());
 
 		SHELLEXECUTEINFO ShExecInfo = {};
 		ShExecInfo.cbSize			= sizeof(SHELLEXECUTEINFO);
@@ -112,15 +112,13 @@ void ShaderCompiler_GL3::compile(StrView outPath, ShaderStageMask shaderStage, S
 	}
 }
 
-void ShaderCompiler_GL3::_convert(Compiler& comp, DataType& o, const SPIRType& i, u32 memberIndex /*= 0*/) {
-	// For vectors and matrices, look at SPIRType::vecsize and SPIRType::columns. 1 column means it's a vector.
-	using SRC = SPIRType;
-	
+void ShaderCompiler_GL3::_convert(Compiler& comp, DataType& o, const SPIRType& i, u32 memberIndex /*= 0*/) {	
 	const auto& type	= i.basetype;
 	const auto& vecsize = i.vecsize;
 	const auto& columns = i.columns;
 	const auto& image	= i.image;
 
+	using SRC = SPIRType;
 	TempString dataType;
 	switch (type) {
 		case SRC::Boolean:	dataType.append("Bool");	break;
@@ -150,7 +148,7 @@ void ShaderCompiler_GL3::_convert(Compiler& comp, DataType& o, const SPIRType& i
 
 	if (!i.array.empty()) {
 		// Get array stride, e.g. float4 foo[]; Will have array stride of 16 bytes.
-		//size_t array_stride = comp.type_struct_member_array_stride(i, memberIndex);
+		// size_t array_stride = comp.type_struct_member_array_stride(i, memberIndex);
 		throw SGE_ERROR("unsupported SPIRType array: {}", static_cast<int>(type));
 	}
 
@@ -177,7 +175,7 @@ void ShaderCompiler_GL3::_convert(Compiler& comp, DataType& o, const SPIRType& i
 		};
 	}
 	else {
-		if (vecsize == 1 && columns == 1) { // Scalar
+		if (vecsize == 1 && columns == 1) { // scalar
 			// do nothing
 		} else if (vecsize > 1 && columns == 1) {
 			FmtTo(dataType, "x{}", vecsize); // vector
@@ -237,7 +235,7 @@ void ShaderCompiler_GL3::_reflect_inputs(ShaderStageInfo& outInfo, Compiler& com
 		}
 
 		_convert(comp, outInput.dataType, type);
-#if 1
+#if 0
 		printf("Input '%s':\tlayout set = %u\tlayout binding = %u\tlayout location= %u\n",
 			resource.name.c_str(),
 			comp.get_decoration(resId, spv::DecorationDescriptorSet),
@@ -259,8 +257,8 @@ void ShaderCompiler_GL3::_reflect_constBuffers(ShaderStageInfo& outInfo, Compile
 		using SGE_BindCount = decltype(outCB.bindCount);
 		using SGE_DataSize	= decltype(outCB.dataSize);
 
-		auto& type = comp.get_type(resource.base_type_id);
-		size_t memberCount = type.member_types.size();
+		auto&	type = comp.get_type(resource.base_type_id);
+		size_t	memberCount = type.member_types.size();
 
 		outCB.bindPoint = static_cast<SGE_BindPoint>(comp.get_decoration(resId, spv::DecorationBinding));
 		outCB.name.assign(resource.name.c_str(), resource.name.size());
@@ -274,7 +272,7 @@ void ShaderCompiler_GL3::_reflect_constBuffers(ShaderStageInfo& outInfo, Compile
 			auto& memberType	= comp.get_type(type.member_types[i]);
 			const auto& name	= comp.get_member_name(type.self, i);
 			size_t startOffset	= comp.type_struct_member_offset(type, i);
-			size_t memberSize	= comp.get_declared_struct_member_size(type, i);
+//			size_t memberSize	= comp.get_declared_struct_member_size(type, i);
 
 			outVar.name.assign(name.data(), name.size());
 			outVar.offset = startOffset;
@@ -284,7 +282,7 @@ void ShaderCompiler_GL3::_reflect_constBuffers(ShaderStageInfo& outInfo, Compile
 			}
 
 			_convert(comp, outVar.dataType, memberType, i);
-#if 1
+#if 0
 			printf("name=%s\tvecsize=%u\tcolumns=%u\tmemberSize=%zu\tstartOffset=%zu\n",
 				name.c_str(),
 				type.vecsize,
