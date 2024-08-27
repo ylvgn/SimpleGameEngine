@@ -80,9 +80,9 @@ void RenderContext_DX11::onCmd_ClearFrameBuffers(RenderCommand_ClearFrameBuffers
 		dc->ClearRenderTargetView(_renderTargetView, cmd.color->data);
 	}
 
-	// clear depth buffer
-	if (_depthStencilView && cmd.depth.has_value()) {
-		dc->ClearDepthStencilView(_depthStencilView, D3D11_CLEAR_DEPTH, *cmd.depth, 0);
+	// clear depth&stencil buffer
+	if (_depthStencilView && (cmd.depth.has_value() || cmd.stencil.has_value())) {
+		dc->ClearDepthStencilView(_depthStencilView, D3D11_CLEAR_DEPTH, *cmd.depth, static_cast<UINT8>(*cmd.stencil));
 	}
 }
 
@@ -90,9 +90,8 @@ void RenderContext_DX11::onCmd_DrawCall(RenderCommand_DrawCall& cmd) {
 	if (!cmd.vertexLayout) { SGE_ASSERT(false); return; }
 
 	auto* vertexBuffer = static_cast<RenderGpuBuffer_DX11*>(cmd.vertexBuffer.ptr());
-//	if (!vertexBuffer) { SGE_ASSERT(false); return; }
 
-//	if (cmd.vertexCount <= 0) { SGE_ASSERT(false); return; }
+	if (!vertexBuffer && cmd.vertexCount <= 0) { SGE_ASSERT(false); return; }
 	if (cmd.primitive == RenderPrimitiveType::None) { SGE_ASSERT(false); return; }
 
 	RenderGpuBuffer_DX11* indexBuffer = nullptr;
@@ -114,12 +113,12 @@ void RenderContext_DX11::onCmd_DrawCall(RenderCommand_DrawCall& cmd) {
 	auto primitive = Util::getDxPrimitiveTopology(cmd.primitive);
 	dc->IASetPrimitiveTopology(primitive);
 
-	UINT stride = static_cast<UINT>(cmd.vertexLayout->stride);
-	UINT vertexOffset = static_cast<UINT>(cmd.vertexOffset);
-	UINT indexOffset = static_cast<UINT>(cmd.indexOffset);
+	UINT stride			= static_cast<UINT>(cmd.vertexLayout->stride);
+	UINT vertexOffset	= static_cast<UINT>(cmd.vertexOffset);
+	UINT indexOffset	= static_cast<UINT>(cmd.indexOffset);
 
-	UINT vertexCount = static_cast<UINT>(cmd.vertexCount);
-	UINT indexCount = static_cast<UINT>(cmd.indexCount);
+	UINT vertexCount	= static_cast<UINT>(cmd.vertexCount);
+	UINT indexCount		= static_cast<UINT>(cmd.indexCount);
 
 	DX11_ID3DBuffer* ppVertexBuffers[] = { vertexBuffer ? vertexBuffer->d3dBuf() : nullptr };
 	dc->IASetVertexBuffers(0, 1, ppVertexBuffers, &stride, &vertexOffset);
@@ -358,4 +357,4 @@ DX11_ID3DInputLayout* RenderContext_DX11::_getTestInputLayout(const VertexLayout
 	return outLayout;
 }
 
-} // namespace
+}

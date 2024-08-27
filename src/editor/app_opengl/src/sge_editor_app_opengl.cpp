@@ -5,14 +5,8 @@ namespace sge {
 class MainWin : public NativeUIWindow {
 	using Base = NativeUIWindow;
 public:
-
-	using MyTestVertexT = VertexT_Color<Color4f, 1, VertexT_Pos<Tuple4f>>;
-
 	virtual void onCreate(CreateDesc& desc) override {
-		SGE_DUMP_VAR(sizeof(MyTestVertexT));
-		SGE_DUMP_VAR(memberOffset(&MyTestVertexT::pos));
-		SGE_DUMP_VAR(memberOffset(&MyTestVertexT::color));
-		VertexLayoutManager::instance()->registerLayout<MyTestVertexT>();
+		SGE_DUMP_VAR(sizeof(Vertex_PosColor));
 
 		desc.ownDC = true;
 		Base::onCreate(desc);
@@ -46,7 +40,7 @@ public:
 		editMesh.color.emplace_back(0, 255, 0, 255);
 		editMesh.color.emplace_back(0, 0, 255, 255);
 
-		_createMyRenderMesh(editMesh);
+		_renderMesh.create(editMesh);
 	}
 
 	void _loadTestMesh() {
@@ -55,45 +49,7 @@ public:
 		WavefrontObjLoader::readFile(editMesh, "Assets/Mesh/test.obj");
 		EditMesh::Util::addColors(editMesh, Color4b(255, 255, 255, 255));
 
-		_createMyRenderMesh(editMesh);
-	}
-
-	void _createMyRenderMesh(EditMesh& editMesh) {
-		size_t vc = editMesh.pos.size();
-		size_t ic = editMesh.indices.size();
-
-		_renderMesh.setSubMeshCount(1);
-		_renderMesh.setVertexLayout(MyTestVertexT::s_layout());
-		auto subMeshes	= _renderMesh.subMeshes();
-		auto& subMesh	= subMeshes[0];
-
-		if (vc > 0) {
-			subMesh.setVertexCount(vc);
-
-			for (int i = 0; i < vc; ++i) {
-				auto& pos	= editMesh.pos[i];
-				auto& color = editMesh.color[i];
-				auto* dst	= subMesh.vertex<MyTestVertexT>(i);
-
-				(*dst).pos.set(pos.x, pos.y, pos.z, 1);
-				(*dst).color[0].set(
-					static_cast<float>(color.r / 255),
-					static_cast<float>(color.g / 255),
-					static_cast<float>(color.b / 255),
-					static_cast<float>(color.a / 255)
-				);
-				++dst;
-			}
-			// ----
-			subMesh.setVertexBuffer();
-		}
-
-		if (ic > 0) {
-			subMesh.setIndexData(editMesh.indices);
-
-			// ----
-			subMesh.setIndexBuffer();
-		}
+		_renderMesh.create(editMesh);
 	}
 
 #if 1

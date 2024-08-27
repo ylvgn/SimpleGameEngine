@@ -8,7 +8,7 @@ class ShaderCompiler : public ConsoleApp {
 public:
 
 protected:
-	virtual void onRun() {
+	virtual void onRun() override {
 		{
 			String file = getExecutableFilename();
 			String path = FilePath::dirname(file);
@@ -22,7 +22,7 @@ protected:
 		compile("Assets/Shaders/test.shader");
 		compile("Assets/Shaders/test.hlsl");
 		compile("Assets/Shaders/terrain.shader");
-		compile("Assets/Shaders/terrain_test.shader"); // just for test 5x5 terrain
+		compile("Assets/Shaders/terrain_test.shader");
 		compile("Assets/Shaders/imgui.shader");
 		compile("Assets/Shaders/line.shader");
 
@@ -58,7 +58,7 @@ protected:
 					c.compile(passOutPath, ShaderStageMask::Pixel, shaderFilename, pass.psFunc);
 				}
 
-				passIndex++;
+				++passIndex;
 			}
 		}
 
@@ -67,24 +67,23 @@ protected:
 			for (auto& pass : info.passes) {
 				auto passOutPath = Fmt("{}/gl3/pass{}", outputPath, passIndex);
 
+				ShaderCompiler_GL3 c;
 				if (pass.vsFunc.size()) {
-					ShaderCompiler_GL3 c;
 					c.compile(passOutPath, ShaderStageMask::Vertex, shaderFilename, pass.vsFunc);
 				}
 
 				if (pass.psFunc.size()) {
-					ShaderCompiler_GL3 c;
 					c.compile(passOutPath, ShaderStageMask::Pixel, shaderFilename, pass.psFunc);
 				}
 
-				passIndex++;
+				++passIndex;
 			}
 		}
 	}
 
-}; // ShaderCompiler
+};
 
-} // namespace
+}
 
 int main() {
 	sge::ShaderCompiler app;

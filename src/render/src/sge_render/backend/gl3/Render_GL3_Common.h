@@ -21,6 +21,7 @@
 #include "../../RenderDataType.h"
 #include "../../buffer/RenderGpuBuffer.h"
 #include <sge_render/shader/Shader.h>
+#include <sge_render/textures/Texture.h>
 
 namespace sge {
 
@@ -67,6 +68,8 @@ struct GL3Util {
 	static GLenum getGlShaderType(ShaderStageMask s);
 	static VertexSemantic parseGlSemanticName(StrView vkName);
 
+	static void dumpActiveAttrib(GLint program);
+
 private:
 	static bool _checkError(GLenum errCode) {
 		return errCode != GL_NO_ERROR; // if got error, return true
@@ -80,6 +83,7 @@ GLenum GL3Util::getGlPrimitiveTopology(RenderPrimitiveType v) {
 		case SRC::Points:		return GL_POINTS;
 		case SRC::Lines:		return GL_LINES;
 		case SRC::Triangles:	return GL_TRIANGLES;
+	//---
 		default: throw SGE_ERROR("unsupported RenderPrimitiveType");
 	}
 }
@@ -91,6 +95,7 @@ GLenum GL3Util::getGlBufferBindingTarget(RenderGpuBufferType v) {
 		case SRC::Vertex:	return GL_ARRAY_BUFFER;
 		case SRC::Index:	return GL_ELEMENT_ARRAY_BUFFER;
 		case SRC::Const:	return GL_UNIFORM_BUFFER;
+	//---
 		default: throw SGE_ERROR("unsupported RenderGpuBufferType");
 	}
 }
@@ -106,7 +111,8 @@ GLenum GL3Util::getGlFormat(RenderDataType v) {
 		case SRC::Int32:		return GL_INT;
 		case SRC::UInt32:		return GL_UNSIGNED_INT;
 		case SRC::Float32:		return GL_FLOAT;
-		default:				throw  SGE_ERROR("unsupported RenderDataType");
+	//---
+		default: throw SGE_ERROR("unsupported RenderDataType");
 	}
 }
 
@@ -115,6 +121,7 @@ const char* GL3Util::getGlStageProfile(ShaderStageMask s) {
 	switch (s) {
 		case ShaderStageMask::Vertex:	return "330";
 		case ShaderStageMask::Pixel:	return "330";
+	//---
 		default: return "";
 	}
 }
@@ -124,11 +131,11 @@ GLenum GL3Util::getGlShaderType(ShaderStageMask s) {
 	switch (s) {
 		case ShaderStageMask::Vertex:	return GL_VERTEX_SHADER;
 		case ShaderStageMask::Pixel:	return GL_FRAGMENT_SHADER;
+	//---
 		default: throw SGE_ERROR("unsupported ShaderStageMask");
 	}
 }
 
-//GL_VERTEX_SHADER
-}
+} // namespace
 
-#endif
+#endif // SGE_RENDER_HAS_GL3

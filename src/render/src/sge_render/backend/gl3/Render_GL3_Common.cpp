@@ -62,43 +62,60 @@ void GL3Util::getProgramInfoLog(GLuint program, String& outMsg) {
 	outMsg.resize(outLen);
 }
 
-VertexSemantic GL3Util::parseGlSemanticName(StrView vkName) {
-	auto pair = StringUtil::splitByChar(vkName, '_');
+VertexSemantic GL3Util::parseGlSemanticName(StrView s) {
+	using SRC = VertexSemantic;
 
-	StrView defineName = pair.second.empty() ? pair.first : pair.second;
+#define E(SGE_DEFINE, SGE_SEMANTIC) \
+		if (s == #SGE_DEFINE) return SGE_SEMANTIC; \
+	// -----
+		E(positionOS,	SRC::POSITION)
+		E(positionHCS,	SRC::POSITION)
+		E(positionWS,	SRC::TEXCOORD10)
+		E(positionVS,	SRC::TEXCOORD11)
+		E(positionCS,	SRC::TEXCOORD12)
+		E(positionSS,	SRC::TEXCOORD13)
 
-#define E(DEFINE, OUTPUT) \
-	if (defineName == #DEFINE) return OUTPUT; \
-// -----
-		E(positionOS,	VertexSemantic::POSITION)
-		E(positionHCS,	VertexSemantic::POSITION)
-		E(positionWS,	VertexSemantic::TEXCOORD10)
-		E(positionVS,	VertexSemantic::TEXCOORD11)
-		E(positionCS,	VertexSemantic::TEXCOORD12)
-		E(positionSS,	VertexSemantic::TEXCOORD13)
+		E(color,		SRC::COLOR0)
+		E(color1,		SRC::COLOR1)
+		E(color2,		SRC::COLOR2)
+		E(color3,		SRC::COLOR3)
 
-		E(color,		VertexSemantic::COLOR0)
-		E(color1,		VertexSemantic::COLOR1)
-		E(color2,		VertexSemantic::COLOR2)
-		E(color3,		VertexSemantic::COLOR3)
+		E(uv,			SRC::TEXCOORD0)
+		E(uv1,			SRC::TEXCOORD1)
+		E(uv2,			SRC::TEXCOORD2)
+		E(uv3,			SRC::TEXCOORD3)
+		E(uv4,			SRC::TEXCOORD4)
+		E(uv5,			SRC::TEXCOORD5)
+		E(uv6,			SRC::TEXCOORD6)
+		E(uv7,			SRC::TEXCOORD7)
+		E(uv8,			SRC::TEXCOORD8)
 
-		E(uv,			VertexSemantic::TEXCOORD0)
-		E(uv1,			VertexSemantic::TEXCOORD1)
-		E(uv2,			VertexSemantic::TEXCOORD2)
-		E(uv3,			VertexSemantic::TEXCOORD3)
-		E(uv4,			VertexSemantic::TEXCOORD4)
-		E(uv5,			VertexSemantic::TEXCOORD5)
-		E(uv6,			VertexSemantic::TEXCOORD6)
-		E(uv7,			VertexSemantic::TEXCOORD7)
-		E(uv8,			VertexSemantic::TEXCOORD8)
-
-		E(normal,		VertexSemantic::NORMAL)
-		E(tangent,		VertexSemantic::TANGENT)
-		E(binormal,		VertexSemantic::BINORMAL)
+		E(normal,		SRC::NORMAL)
+		E(tangent,		SRC::TANGENT)
+		E(binormal,		SRC::BINORMAL)
 #undef E
 // -----
 
-	throw SGE_ERROR("unknown VertexLayout_SemanticType {}", vkName);
+	throw SGE_ERROR("unknown VertexLayout_SemanticType {}", s);
+}
+
+void GL3Util::dumpActiveAttrib(GLint program) {
+	GLint activeCount;
+	glGetProgramiv(program, GL_ACTIVE_ATTRIBUTES, &activeCount);
+
+	static const size_t kszNameSize = 4096;
+	for (int i = 0; i < activeCount; ++i) {
+		char out_szName[kszNameSize + 1];
+		GLsizei out_len = 0;
+		GLint   out_dataSize = 0;
+		GLenum  out_dataType = 0;
+
+		glGetActiveAttrib(program, static_cast<GLuint>(i), kszNameSize, &out_len, &out_dataSize, &out_dataType, out_szName);
+		out_szName[kszNameSize] = 0; // ensure terminate with 0
+
+		auto loc = glGetAttribLocation(program, out_szName);
+		SGE_LOG("layout(location = {}) {}", loc, out_szName);
+	}
 }
 
 }

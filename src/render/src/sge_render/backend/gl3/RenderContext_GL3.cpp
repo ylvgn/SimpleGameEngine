@@ -73,10 +73,10 @@ void RenderContext_GL3::onCmd_ClearFrameBuffers(RenderCommand_ClearFrameBuffers&
 		glClearDepth(*cmd.depth);
 		clearFlag |= GL_DEPTH_BUFFER_BIT;
 	}
-//	if (cmd.stencil.has_value()) {
-//		glClearStencil(*cmd.stencil);
-//		clearFlag |= GL_STENCIL_BUFFER_BIT;
-//	}
+	if (cmd.stencil.has_value()) {
+		glClearStencil(GLint(*cmd.stencil));
+		clearFlag |= GL_STENCIL_BUFFER_BIT;
+	}
 	glClear(clearFlag);
 
 	Util::throwIfError();
@@ -109,7 +109,7 @@ void RenderContext_GL3::onCmd_DrawCall(RenderCommand_DrawCall& cmd) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe ON tmp
 
 		auto primitive		= Util::getGlPrimitiveTopology(cmd.primitive);
-	//	GLsizei stride		= static_cast<GLsizei>(cmd.vertexLayout->stride);
+//		GLsizei stride		= static_cast<GLsizei>(cmd.vertexLayout->stride);
 		GLsizei vertexCount = static_cast<GLsizei>(cmd.vertexCount);
 		GLsizei  indexCount = static_cast<GLsizei>(cmd.indexCount);
 
@@ -125,6 +125,7 @@ void RenderContext_GL3::onCmd_DrawCall(RenderCommand_DrawCall& cmd) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // wireframe Off tmp
 	}
 	vertexBuffer->glUnbind();
+
 	Util::throwIfError();
 }
 
@@ -154,19 +155,19 @@ void RenderContext_GL3::onEndRender() {
 }
 
 void RenderContext_GL3::_setTestShaders(const VertexLayout* vertexLayout) {
-	TempString shaderFile("Assets/Shaders/test001.cg");
+	TempString shaderFile("Assets/Shaders/test.hlsl");
 
 //---- compile shader
 	{
 		if (!_testVertexShader) {
-			TempString tmp(shaderFile + ".glsl_vs");
+			TempString tmp(shaderFile + ".spv_vs.vert");
 			Util::compileShader(_testVertexShader, GL_VERTEX_SHADER, tmp.c_str());
 			Util::throwIfError();
 		}
 	}
 	{
 		if (!_testPixelShader) {
-			TempString tmp(shaderFile + ".glsl_ps");
+			TempString tmp(shaderFile + ".spv_ps.frag");
 			Util::compileShader(_testPixelShader, GL_FRAGMENT_SHADER, tmp.c_str());
 			Util::throwIfError();
 		}
@@ -218,30 +219,22 @@ void RenderContext_GL3::_setTestShaders(const VertexLayout* vertexLayout) {
 		SGE_ASSERT(glIsProgram(_testShaderProgram) == GL_TRUE);
 	}
 
+//---- use shader program
 	glUseProgram(_testShaderProgram);
 	Util::throwIfError();
 
-#if 1
 	GLsizei stride = static_cast<GLsizei>(vertexLayout->stride);
-	{
-		auto* e = vertexLayout->find(VertexSemantic::POSITION);
-		auto loc = glGetAttribLocation(_testShaderProgram, "cg_Vertex");
-		glVertexAttribPointer(loc, 4, GL_FLOAT, true, stride, reinterpret_cast<const void*>(e->offset));
-		glEnableVertexAttribArray(loc);
-	}
-	{
-		auto* e = vertexLayout->find(VertexSemantic::COLOR0);
-		auto loc = glGetAttribLocation(_testShaderProgram, "COLOR");
-		glVertexAttribPointer(loc, 4, GL_FLOAT, true, stride, reinterpret_cast<const void*>(e->offset));
-		glEnableVertexAttribArray(loc);
-	}
-#else
-	glVertexAttribPointer(1, 4, GL_FLOAT, true, 32, reinterpret_cast<const void*>(0));  // cg_Vertex
+	auto* pos	= vertexLayout->find(VertexSemantic::POSITION);
+	auto* color = vertexLayout->find(VertexSemantic::COLOR0);
+
+//	Util::dumpActiveAttrib(_testShaderProgram);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT,			true, stride, reinterpret_cast<const void*>(pos->offset));
+	glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE,	true, stride, reinterpret_cast<const void*>(color->offset));
+
+	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 
-	glVertexAttribPointer(0, 4, GL_FLOAT, true, 32, reinterpret_cast<const void*>(16)); // COLOR
-	glEnableVertexAttribArray(0);
-#endif
 	Util::throwIfError();
 }
 

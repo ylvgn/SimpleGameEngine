@@ -30,7 +30,7 @@ Shader {
 }
 #endif
 
-#include "define.h"
+#include "sge_define.h"
 
 struct VertexIn {
 	VA_POS(float4);

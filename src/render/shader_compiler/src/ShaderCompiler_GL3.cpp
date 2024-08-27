@@ -94,6 +94,8 @@ void ShaderCompiler_GL3::compile(StrView outPath, ShaderStageMask shaderStage, S
 		Span<const u32> bytecode = spanCast<const u32>(mm.span());
 		Compiler comp(bytecode.data(), bytecode.size());
 
+		_interComm(comp, shaderStage, profile);
+
 		CompilerOptions options;
 		options.es = false;
 		options.enable_420pack_extension = false;
@@ -224,8 +226,13 @@ void ShaderCompiler_GL3::_reflect_inputs(ShaderStageInfo& outInfo, Compiler& com
 //		you should not care about Name here unless your backend assigns bindings based on name, or for debugging purposes
 //		outInput.name.assign(resource.name.c_str(), resource.name.size());
 
-		// No semantic in OpenGL, just save input slot index
-		outInput.semantic = GL3Util::parseGlSemanticName(name);
+		{ // find last '_' name without underline
+			auto pair = StringUtil::splitByChar(name, '_');
+			while (!pair.second.empty()) {
+				pair = StringUtil::splitByChar(pair.second, '_');
+			}
+			outInput.semantic = GL3Util::parseGlSemanticName(pair.first);
+		}
 
 		const SPIRType& type	= comp.get_type(resource.base_type_id);
 		auto componentCount		= type.vecsize;
@@ -235,13 +242,22 @@ void ShaderCompiler_GL3::_reflect_inputs(ShaderStageInfo& outInfo, Compiler& com
 		}
 
 		_convert(comp, outInput.dataType, type);
-#if 0
+#if 1
 		printf("Input '%s':\tlayout set = %u\tlayout binding = %u\tlayout location= %u\n",
 			resource.name.c_str(),
 			comp.get_decoration(resId, spv::DecorationDescriptorSet),
 			comp.get_decoration(resId, spv::DecorationBinding),
 			comp.get_decoration(resId, spv::DecorationLocation));
 #endif
+	}
+
+	for (auto& resource : resources.stage_outputs) {
+		auto resId = resource.id;
+		printf("Output '%s':\tlayout set = %u\tlayout binding = %u\tlayout location= %u\n",
+			resource.name.c_str(),
+			comp.get_decoration(resId, spv::DecorationDescriptorSet),
+			comp.get_decoration(resId, spv::DecorationBinding),
+			comp.get_decoration(resId, spv::DecorationLocation));
 	}
 }
 
@@ -300,6 +316,56 @@ void ShaderCompiler_GL3::_reflect_textures(ShaderStageInfo& outInfo, Compiler& c
 
 void ShaderCompiler_GL3::_reflect_samplers(ShaderStageInfo& outInfo, Compiler& comp, const ShaderResources& resources) {
 	// TODO
+}
+
+void ShaderCompiler_GL3::_interComm(Compiler& comp, ShaderStageMask shaderStage, StrView profile) {
+	ShaderResources resources = comp.get_shader_resources();
+	
+	switch (shaderStage) {
+		case ShaderStageMask::Vertex: {
+			_vsSlot2Name.resize(resources.stage_outputs.size());
+
+			TempString tmpStr;
+
+			for (auto& resource : resources.stage_outputs) {
+				const auto resId	= resource.id;
+				const auto loc		= comp.get_decoration(resId, spv::DecorationLocation);
+				auto& resName		= resource.name;
+				auto& attribName	= _vsSlot2Name[loc];
+
+				tmpStr.assign(resName.data(), resName.size());
+
+				auto* p = StringUtil::findCharFromEnd(tmpStr, "_.", false);
+				if (!p)
+					throw SGE_ERROR("unexpected attrib name {}", resName.c_str());
+				++p; // ignore "-."
+
+				StrView lastUnderlineNam(p, tmpStr.end() - p);
+				attribName.assign(lastUnderlineNam.data(), lastUnderlineNam.size());
+
+//				SGE_LOG("[M] VA: (location = {}) {} -> {}", loc, resName.c_str(), attribName.c_str());
+
+				resName.assign(attribName.data(), attribName.size());
+				comp.set_name(resId, resName);
+			}
+		} break;
+		case ShaderStageMask::Pixel: {
+			for (auto& resource : resources.stage_inputs) {
+				const auto resId	= resource.id;
+				const auto loc		= comp.get_decoration(resId, spv::DecorationLocation);
+				auto& resName		= resource.name;
+
+				SGE_ASSERT(_vsSlot2Name.size() > loc);
+				auto& attribName = _vsSlot2Name[loc];
+
+//				SGE_LOG("[M] PA: (location = {}) {} -> {}", loc, resName.c_str(), attribName.c_str());
+
+				resName.assign(attribName.data(), attribName.size());
+				comp.set_name(resId, resName);
+			}
+		} break;
+		default: throw SGE_ERROR("unexpeted");
+	}
 }
 
 }

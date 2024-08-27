@@ -10,25 +10,30 @@ Shader {
 }
 #endif
 
-#include "define.h"
-	
-struct VOut {	
+#include "sge_define.h"
+
+struct VertexIn {
 	VA_POS(float4);
 	VA_COLOR(float4);
 };
 
-VOut vs_main(VA_POS(float4), VA_COLOR(float))
+struct PixelIn {	
+	PA_POS(float4);
+	PA_COLOR(float4);
+};
+
+PixelIn vs_main(VertexIn i)
 {
-    VOut output;
+    PixelIn o;
 
-    output.positionOS = positionOS;
-    output.color = color;
+    o.positionHCS = i.positionOS;
+    o.color = i.color;
 
-    return output;
+    return o;
 }
 
 
-float4 ps_main(PA_POS(float4), PA_COLOR(float)) : SV_TARGET
+float4 ps_main(PixelIn i) : SV_TARGET
 {
-    return color;
+    return i.color;
 }
