@@ -52,7 +52,7 @@ using DX11_ID3DDepthStencilState	= ID3D11DepthStencilState;
 using DX11_ID3DBlendState			= ID3D11BlendState;
 
 // render reflect -------------
-using DX11_ID3DShaderReflection = ID3D11ShaderReflection;
+using DX11_ID3DShaderReflection		= ID3D11ShaderReflection;
 
 struct DX11Util {
 	DX11Util() = delete;
@@ -159,6 +159,7 @@ const char* DX11Util::getDxStageProfile(ShaderStageMask s) {
 	switch (s) {
 		case ShaderStageMask::Vertex:	return "vs_5_0";
 		case ShaderStageMask::Pixel:	return "ps_5_0";
+	//---
 		default: return "";
 	}
 }
@@ -176,10 +177,11 @@ inline
 D3D11_PRIMITIVE_TOPOLOGY DX11Util::getDxPrimitiveTopology(RenderPrimitiveType t) {
 	using SRC = RenderPrimitiveType;
 	switch (t) {
-	case SRC::Points:		return D3D_PRIMITIVE_TOPOLOGY_POINTLIST;
-	case SRC::Lines:		return D3D_PRIMITIVE_TOPOLOGY_LINELIST;
-	case SRC::Triangles:	return D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-	default: throw SGE_ERROR("unknown RenderPrimitiveType");
+		case SRC::Points:		return D3D_PRIMITIVE_TOPOLOGY_POINTLIST;
+		case SRC::Lines:		return D3D_PRIMITIVE_TOPOLOGY_LINELIST;
+		case SRC::Triangles:	return D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+	//---
+		default: throw SGE_ERROR("unknown RenderPrimitiveType");
 	}
 }
 
@@ -294,8 +296,8 @@ DXGI_FORMAT DX11Util::getDxColorType(ColorType v) {
 		case SRC::BC5:		return DXGI_FORMAT_BC5_UNORM;
 		case SRC::BC6h:		return DXGI_FORMAT_BC6H_UF16;
 		case SRC::BC7:		return DXGI_FORMAT_BC7_UNORM;
-
-		default: throw SGE_ERROR("unsupported ColorType");
+	//---
+		default:			throw SGE_ERROR("unsupported ColorType");
 	}
 }
 
@@ -307,6 +309,7 @@ D3D11_CULL_MODE DX11Util::getDxCullMode(RenderState_Cull v) {
 		case SRC::None:		return D3D11_CULL_NONE;
 		case SRC::Back:		return D3D11_CULL_BACK;
 		case SRC::Front:	return D3D11_CULL_FRONT;
+	//---
 		default: throw SGE_ERROR("unsupported CullMode");
 	}
 }
@@ -324,6 +327,7 @@ D3D11_COMPARISON_FUNC DX11Util::getDxDepthTestOp(RenderState_DepthTestOp v) {
 		case SRC::GreaterEqual:	return  D3D11_COMPARISON_GREATER_EQUAL;
 		case SRC::NotEqual:		return  D3D11_COMPARISON_NOT_EQUAL;
 		case SRC::Never:		return  D3D11_COMPARISON_NEVER;
+	//---
 		default: throw SGE_ERROR("unsupported DepthTestOp");
 	}
 }
@@ -338,6 +342,7 @@ D3D11_BLEND_OP DX11Util::getDxBlendOp(RenderState_BlendOp v) {
 		case SRC::Max:		return D3D11_BLEND_OP_MAX;
 		case SRC::Sub:		return D3D11_BLEND_OP_SUBTRACT;
 		case SRC::RevSub:	return D3D11_BLEND_OP_REV_SUBTRACT;
+	//---
 		default: throw SGE_ERROR("unsupported BlendOp");
 	}
 }

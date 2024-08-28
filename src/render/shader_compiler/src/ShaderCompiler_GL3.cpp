@@ -94,7 +94,7 @@ void ShaderCompiler_GL3::compile(StrView outPath, ShaderStageMask shaderStage, S
 		Span<const u32> bytecode = spanCast<const u32>(mm.span());
 		Compiler comp(bytecode.data(), bytecode.size());
 
-		_interComm(comp, shaderStage, profile);
+		_beforeGLSLCompile(comp, shaderStage, profile);
 
 		CompilerOptions options;
 		options.es = false;
@@ -202,6 +202,41 @@ void ShaderCompiler_GL3::_reflect(StrView outFilename, Compiler& comp, ShaderSta
 		ShaderResources resources = comp.get_shader_resources(active);
 		comp.set_enabled_interface_variables(move(active));
 
+#if 0
+		for (auto& resource : resources.stage_inputs) {
+			printf("Input '%s':\tlayout set = %u\tlayout binding = %u\tlayout location= %u\n",
+				resource.name.c_str(),
+				comp.get_decoration(resource.id, spv::DecorationDescriptorSet),
+				comp.get_decoration(resource.id, spv::DecorationBinding),
+				comp.get_decoration(resource.id, spv::DecorationLocation));
+		}
+
+		for (auto& resource : resources.stage_outputs) {
+			printf("Output '%s':\tlayout set = %u\tlayout binding = %u\tlayout location= %u\n",
+				resource.name.c_str(),
+				comp.get_decoration(resource.id, spv::DecorationDescriptorSet),
+				comp.get_decoration(resource.id, spv::DecorationBinding),
+				comp.get_decoration(resource.id, spv::DecorationLocation));
+		}
+
+		for (auto& resource : resources.uniform_buffers) {
+			auto& uniform_type = comp.get_type(resource.base_type_id);
+
+			int i = 0;
+			for (auto& member_type_id : uniform_type.member_types) {
+				auto& member_type = comp.get_type(member_type_id);
+				printf("uniform_member_name=%s\tvecsize=%u\tcolumns=%u\tmemberSize=%zu\tstartOffset=%u\n",
+						comp.get_member_name(uniform_type.self, i).c_str(),
+						member_type.vecsize,
+						member_type.columns,
+						comp.get_declared_struct_member_size(uniform_type, i),
+						comp.type_struct_member_offset(uniform_type, i)
+				);
+				++i;
+			}
+		}
+#endif
+
 		_reflect_inputs			(outInfo, comp, resources);
 		_reflect_constBuffers	(outInfo, comp, resources);
 		_reflect_textures		(outInfo, comp, resources);
@@ -221,7 +256,7 @@ void ShaderCompiler_GL3::_reflect_inputs(ShaderStageInfo& outInfo, Compiler& com
 		auto& outInput = outInfo.inputs.emplace_back();
 
 		auto resId = resource.id;
-		StrView name(resource.name.c_str(), resource.name.size());
+		StrView name(resource.name.data(), resource.name.size());
 
 //		you should not care about Name here unless your backend assigns bindings based on name, or for debugging purposes
 //		outInput.name.assign(resource.name.c_str(), resource.name.size());
@@ -234,30 +269,14 @@ void ShaderCompiler_GL3::_reflect_inputs(ShaderStageInfo& outInfo, Compiler& com
 			outInput.semantic = GL3Util::parseGlSemanticName(pair.first);
 		}
 
-		const SPIRType& type	= comp.get_type(resource.base_type_id);
-		auto componentCount		= type.vecsize;
+		const auto& type	= comp.get_type(resource.base_type_id);
+		auto componentCount	= type.vecsize;
 
 		if (componentCount < 1 || componentCount > 4) {
 			throw SGE_ERROR("invalid componentCount {}", componentCount);
 		}
 
 		_convert(comp, outInput.dataType, type);
-#if 1
-		printf("Input '%s':\tlayout set = %u\tlayout binding = %u\tlayout location= %u\n",
-			resource.name.c_str(),
-			comp.get_decoration(resId, spv::DecorationDescriptorSet),
-			comp.get_decoration(resId, spv::DecorationBinding),
-			comp.get_decoration(resId, spv::DecorationLocation));
-#endif
-	}
-
-	for (auto& resource : resources.stage_outputs) {
-		auto resId = resource.id;
-		printf("Output '%s':\tlayout set = %u\tlayout binding = %u\tlayout location= %u\n",
-			resource.name.c_str(),
-			comp.get_decoration(resId, spv::DecorationDescriptorSet),
-			comp.get_decoration(resId, spv::DecorationBinding),
-			comp.get_decoration(resId, spv::DecorationLocation));
 	}
 }
 
@@ -265,47 +284,39 @@ void ShaderCompiler_GL3::_reflect_constBuffers(ShaderStageInfo& outInfo, Compile
 	outInfo.constBuffers.reserve(resources.uniform_buffers.size());
 
 	for (auto& resource : resources.uniform_buffers) {
+		auto  resId = resource.id;
+		const auto& uniform_type = comp.get_type(resource.base_type_id);
+
 		auto& outCB = outInfo.constBuffers.emplace_back();
 
-		auto resId = resource.id;
-
 		using SGE_BindPoint = decltype(outCB.bindPoint);
-		using SGE_BindCount = decltype(outCB.bindCount);
+		using SGE_BindCount = decltype(outCB.bindCount); // TODO
 		using SGE_DataSize	= decltype(outCB.dataSize);
-
-		auto&	type = comp.get_type(resource.base_type_id);
-		size_t	memberCount = type.member_types.size();
 
 		outCB.bindPoint = static_cast<SGE_BindPoint>(comp.get_decoration(resId, spv::DecorationBinding));
 		outCB.name.assign(resource.name.c_str(), resource.name.size());
-		outCB.dataSize = comp.get_declared_struct_size(type);
+		outCB.dataSize = comp.get_declared_struct_size(uniform_type);
 
-		for (int i = 0; i < memberCount; ++i) {
-			auto& outVar = outCB.variables.emplace_back();
+		int i = 0;
+		for (auto& member_type_id : uniform_type.member_types) {
+			auto& member_type = comp.get_type(member_type_id);
 
-			using SGE_Offset = decltype(outVar.offset);
+			auto& outVar	  = outCB.variables.emplace_back();
+			using SGE_Offset  = decltype(outVar.offset);
 
-			auto& memberType	= comp.get_type(type.member_types[i]);
-			const auto& name	= comp.get_member_name(type.self, i);
-			size_t startOffset	= comp.type_struct_member_offset(type, i);
-//			size_t memberSize	= comp.get_declared_struct_member_size(type, i);
+			const auto& member_name   = comp.get_member_name(uniform_type.self, i);
+			const auto& member_offset = comp.type_struct_member_offset(uniform_type, i);
 
-			outVar.name.assign(name.data(), name.size());
-			outVar.offset = startOffset;
+			outVar.name.assign(member_name.data(), member_name.size());
+			outVar.offset = static_cast<SGE_Offset>(member_offset);
 
 			if (comp.get_member_decoration(resId, i, spv::Decoration::DecorationRowMajor)) {
 				outVar.rowMajor = true;
 			}
 
-			_convert(comp, outVar.dataType, memberType, i);
-#if 0
-			printf("name=%s\tvecsize=%u\tcolumns=%u\tmemberSize=%zu\tstartOffset=%zu\n",
-				name.c_str(),
-				type.vecsize,
-				type.columns,
-				memberSize,
-				startOffset);
-#endif
+			_convert(comp, outVar.dataType, member_type, i);
+
+			++i;
 		}
 	}
 }
@@ -318,30 +329,26 @@ void ShaderCompiler_GL3::_reflect_samplers(ShaderStageInfo& outInfo, Compiler& c
 	// TODO
 }
 
-void ShaderCompiler_GL3::_interComm(Compiler& comp, ShaderStageMask shaderStage, StrView profile) {
+void ShaderCompiler_GL3::_beforeGLSLCompile(Compiler& comp, ShaderStageMask shaderStage, StrView profile) {
 	ShaderResources resources = comp.get_shader_resources();
 	
 	switch (shaderStage) {
 		case ShaderStageMask::Vertex: {
-			_vsSlot2Name.resize(resources.stage_outputs.size());
-
-			TempString tmpStr;
+			_vsOutputLocation2VarName.resize(resources.stage_outputs.size());
 
 			for (auto& resource : resources.stage_outputs) {
 				const auto resId	= resource.id;
 				const auto loc		= comp.get_decoration(resId, spv::DecorationLocation);
+
 				auto& resName		= resource.name;
-				auto& attribName	= _vsSlot2Name[loc];
-
-				tmpStr.assign(resName.data(), resName.size());
-
-				auto* p = StringUtil::findCharFromEnd(tmpStr, "_.", false);
-				if (!p)
-					throw SGE_ERROR("unexpected attrib name {}", resName.c_str());
+				auto& attribName	= _vsOutputLocation2VarName[loc];
+				
+				StrView view(resName.data(), resName.size());
+				auto* p = StringUtil::findCharFromEnd(view, "_.", false);
+				if (!p) throw SGE_ERROR("unexpected attrib name {}", resName.c_str());
 				++p; // ignore "-."
 
-				StrView lastUnderlineNam(p, tmpStr.end() - p);
-				attribName.assign(lastUnderlineNam.data(), lastUnderlineNam.size());
+				attribName.assign(p, view.end() - p);
 
 //				SGE_LOG("[M] VA: (location = {}) {} -> {}", loc, resName.c_str(), attribName.c_str());
 
@@ -355,8 +362,8 @@ void ShaderCompiler_GL3::_interComm(Compiler& comp, ShaderStageMask shaderStage,
 				const auto loc		= comp.get_decoration(resId, spv::DecorationLocation);
 				auto& resName		= resource.name;
 
-				SGE_ASSERT(_vsSlot2Name.size() > loc);
-				auto& attribName = _vsSlot2Name[loc];
+				SGE_ASSERT(_vsOutputLocation2VarName.size() > loc);
+				auto& attribName = _vsOutputLocation2VarName[loc];
 
 //				SGE_LOG("[M] PA: (location = {}) {} -> {}", loc, resName.c_str(), attribName.c_str());
 

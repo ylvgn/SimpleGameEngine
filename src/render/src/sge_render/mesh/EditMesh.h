@@ -12,8 +12,8 @@ struct EditMeshUtil {
 
 	static void addColors(EditMesh& src, const Color4b& solidColor);
 
-	static Span<const u32> subIndices(const EditMesh& src, size_t offset, size_t count);
-	static Span<const Tuple3f> subPos(const EditMesh& src, size_t offset, size_t count);
+	static Span<const u32> subIndices(const EditMesh& src, size_t count, size_t offset = 0);
+	static Span<const Tuple3f> subPos(const EditMesh& src, size_t count, size_t offset = 0);
 };
 
 #if 0

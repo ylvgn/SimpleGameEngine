@@ -16,6 +16,6 @@ private:
 	void _reflect_constBuffers	(ShaderStageInfo& outInfo, ID3D11ShaderReflection* reflect, D3D11_SHADER_DESC& desc);
 	void _reflect_textures		(ShaderStageInfo& outInfo, ID3D11ShaderReflection* reflect, D3D11_SHADER_DESC& desc);
 	void _reflect_samplers		(ShaderStageInfo& outInfo, ID3D11ShaderReflection* reflect, D3D11_SHADER_DESC& desc);
-}; // ShaderCompiler_DX11
+};
 
-} // namespace
+}

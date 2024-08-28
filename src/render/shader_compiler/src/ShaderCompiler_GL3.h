@@ -27,9 +27,9 @@ private:
 	static void _reflect_textures		(ShaderStageInfo& outInfo, Compiler& comp, const ShaderResources& resources);
 	static void _reflect_samplers		(ShaderStageInfo& outInfo, Compiler& comp, const ShaderResources& resources);
 
-	void _interComm(Compiler& comp, ShaderStageMask shaderStage, StrView profile);
+	void _beforeGLSLCompile(Compiler& comp, ShaderStageMask shaderStage, StrView profile);
 
-	Vector<String> _vsSlot2Name;
+	Vector<String> _vsOutputLocation2VarName;
 };
 
 }

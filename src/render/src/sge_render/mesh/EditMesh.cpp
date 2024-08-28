@@ -11,7 +11,7 @@ void EditMeshUtil::addColors(EditMesh& src, const Color4b& solidColor) {
 	}
 }
 
-Span<const Tuple3f> EditMeshUtil::subPos(const EditMesh& src, size_t offset, size_t count) {
+Span<const Tuple3f> EditMeshUtil::subPos(const EditMesh& src, size_t count, size_t offset /*= 0*/) {
 	using T = decltype(src.pos)::value_type;
 
 	const T* p = src.pos.begin() + offset;
@@ -21,7 +21,7 @@ Span<const Tuple3f> EditMeshUtil::subPos(const EditMesh& src, size_t offset, siz
 	return Span<const T>(p, count);
 }
 
-Span<const u32> EditMeshUtil::subIndices(const EditMesh& src, size_t offset, size_t count) {
+Span<const u32> EditMeshUtil::subIndices(const EditMesh& src, size_t count, size_t offset /*= 0*/) {
 	using T = decltype(src.indices)::value_type;
 
 	const T* p = src.indices.begin() + offset;

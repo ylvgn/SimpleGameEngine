@@ -43,8 +43,8 @@ public:
 
 friend class RenderMesh;
 protected:
-	void _createVB(const EditMesh& src, size_t vertexCount, size_t offset = 0);
-	void _createIB(const EditMesh& src, size_t  indexCount, size_t offset = 0);
+	void _createVB(const EditMesh& src, size_t vertexCount);
+	void _createIB(const EditMesh& src, size_t  indexCount);
 
 	void _setVertexBuffer(ByteSpan vertexData);
 	void  _setIndexBuffer(ByteSpan indexData);

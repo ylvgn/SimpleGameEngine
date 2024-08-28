@@ -14,8 +14,8 @@ public:
 	const u8* data() const { return _span.data(); }
 	size_t    size() const { return _span.size(); }
 
-	ByteSpan	span() const { return _span; }
-	operator ByteSpan() { return _span; }
+	ByteSpan	span() const	{ return _span; }
+	operator ByteSpan()			{ return _span; }
 
 	const String& filename() const { return _fs.filename(); }
 

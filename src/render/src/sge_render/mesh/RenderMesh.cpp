@@ -86,33 +86,11 @@ void RenderMesh::create(const EditMesh& src) {
 
 	_vertexLayout = VertexLayoutManager::instance()->getLayout(vertexType);
 	if (!_vertexLayout) {
-		throw SGE_ERROR("cannot find vertex Layout for mesh");
+		throw SGE_ERROR("cannot find vertex layout for mesh");
 	}
 
-#if 0
 	setSubMeshCount(1);
 	_subMeshes[0].create(src);
-#else
-	{
-		int subMeshCount = Math::ceilToInt(static_cast<double>(vertexCount) / kSubMeshMaxVertexCount);
-		setSubMeshCount(subMeshCount);
-
-		// --- vertex buffer
-		size_t offset = 0;
-		for (int i = 0; i < subMeshCount - 1; ++i) {
-			_subMeshes[i]._createVB(src, kSubMeshMaxVertexCount, offset);
-			offset += kSubMeshMaxVertexCount;
-		}
-		_subMeshes[subMeshCount - 1]._createVB(src, vertexCount - offset, offset);
-
-		// --- index buffer
-		auto& subMesh = _subMeshes[0];
-		subMesh._createIB(src, src.indices.size()); // TODO
-		for (int i = 1; i < subMeshCount; ++i) {
-			_subMeshes[i]._indexBuffer = subMesh._indexBuffer;
-		}
-	}
-#endif
 }
 
 void RenderMesh::clear() {
@@ -166,7 +144,7 @@ void RenderSubMesh::setIndexCount(size_t ic) {
 	switch (_indexType) {
 		case SRC::UInt16: _indexData.resize(ic * sizeof(u16) / sizeof(T)); break;
 		case SRC::UInt32: _indexData.resize(ic * sizeof(u32) / sizeof(T)); break;
-		default: throw SGE_ERROR("unsupported indexType");
+		default: throw SGE_ERROR("unsupported indexType {}", _indexType);
 	}
 }
 
@@ -198,8 +176,8 @@ void RenderSubMesh::setIndexData(const Span<const u16> indexData) {
 			setIndexCount(indexData.size());
 			_setIndexData<DST_T, SRC_T>(indexData);
 		} break;
-		default:
-			throw SGE_ERROR("setIndexData unsupported indexType");
+	//---
+		default: throw SGE_ERROR("setIndexData unsupported indexType");
 	}
 }
 
@@ -221,12 +199,12 @@ void RenderSubMesh::setIndexData(const Span<const u32> indexData) {
 			auto byteSpan = ByteSpan_make(indexData);
 			_indexData.assign(byteSpan.begin(), byteSpan.end());
 		} break;
-		default:
-			throw SGE_ERROR("setIndexData unsupported indexType");
+	//---
+		default: throw SGE_ERROR("setIndexData unsupported indexType");
 	}
 }
 
-void RenderSubMesh::_createVB(const EditMesh& src, size_t vc, size_t offet /*= 0*/) {
+void RenderSubMesh::_createVB(const EditMesh& src, size_t vc) {
 	using Helper = RenderMesh_InternalHelper;
 
 	clear();
@@ -251,7 +229,7 @@ void RenderSubMesh::_createVB(const EditMesh& src, size_t vc, size_t offet /*= 0
 		switch (semanticType) {
 			case ST::TEXCOORD: {
 				if (semanticIndex < EditMesh::kUvCountMax) {
-					Helper::copyVertexData(pData, vc, e, stride, src.uv[semanticIndex].data() + offet); break;
+					Helper::copyVertexData(pData, vc, e, stride, src.uv[semanticIndex].data()); break;
 				}
 				continue;
 			} break;
@@ -272,21 +250,21 @@ void RenderSubMesh::_createVB(const EditMesh& src, size_t vc, size_t offet /*= 0
 					dstData += stride;
 				}
 			} break;
-			case S::COLOR0:		Helper::copyVertexData(pData, vc, e, stride, src.color.data() + offet); break;
-			case S::NORMAL:		Helper::copyVertexData(pData, vc, e, stride, src.normal.data() + offet); break;
-			case S::TANGENT:	Helper::copyVertexData(pData, vc, e, stride, src.tangent.data() + offet); break;
-			case S::BINORMAL:	Helper::copyVertexData(pData, vc, e, stride, src.binormal.data() + offet); break;
+			case S::COLOR0:		Helper::copyVertexData(pData, vc, e, stride, src.color.data()); break;
+			case S::NORMAL:		Helper::copyVertexData(pData, vc, e, stride, src.normal.data()); break;
+			case S::TANGENT:	Helper::copyVertexData(pData, vc, e, stride, src.tangent.data()); break;
+			case S::BINORMAL:	Helper::copyVertexData(pData, vc, e, stride, src.binormal.data()); break;
 		}
 	}
 
 	setVertexBuffer();
 }
 
-void RenderSubMesh::_createIB(const EditMesh& src, size_t ic, size_t offset /*= 0*/) {
+void RenderSubMesh::_createIB(const EditMesh& src, size_t ic) {
 	if (ic <= 0)
 		return;
 
-	auto span = EditMeshUtil::subIndices(src, offset, ic);
+	auto span = EditMeshUtil::subIndices(src, ic);
 
 	setIndexData(span);
 	setIndexBuffer();

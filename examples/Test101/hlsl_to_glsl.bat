@@ -5,8 +5,10 @@
 @REM glslc: https://github.com/google/shaderc/tree/main/glslc
 @REM spirv-cross: https://github.com/KhronosGroup/SPIRV-Cross
 
+call :HLSL2GLSLC %1
+
 @REM @pause
-exit /B %ERRORLEVEL%
+@REM exit /B %ERRORLEVEL%
 
 @REM #helper function ===================================
 :HLSL2SPIRV
@@ -38,5 +40,5 @@ goto :eof
 :ERROR
     @echo on
     echo Failed!!!
-	@pause
+	@REM @pause
 	exit /B %ERRORLEVEL%

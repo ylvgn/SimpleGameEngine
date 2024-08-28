@@ -18,6 +18,9 @@ class RenderSubMesh;
 //----
 SGE_ENUM_CLASS(RenderCommandType, u32)
 
+#if 0
+#pragma mark ========= RenderCommand ============
+#endif
 class RenderCommand : NonCopyable {
 	using Type = RenderCommandType;
 public:
@@ -35,29 +38,40 @@ private:
 	Type _type = Type::None;
 }; // RenderCommand
 
+#if 0
+#pragma mark ========= RenderCommand_ClearFrameBuffers ============
+#endif
 class RenderCommand_ClearFrameBuffers : public RenderCommand {
 	using Base = RenderCommand;
 	using This = RenderCommand_ClearFrameBuffers;
 public:
 	RenderCommand_ClearFrameBuffers() : Base(Type::ClearFrameBuffers) {}
 
-	This& setColor(const Color4f& color_)	{ color = color_; return *this; }
-	This& setDepth(float depth_)			{ depth = depth_; return *this; }
+	This& setColor(const Color4f& color_)	{ color		= color_;	return *this; }
+	This& setDepth(float depth_)			{ depth		= depth_;	return *this; }
+	This& setStencil(u8 stencil_)			{ stencil	= stencil_; return *this; }
 
-	This& dontClearColor() { color.reset(); return *this; }
-	This& dontClearDepth() { depth.reset(); return *this; }
+	This& dontClearColor()		{ color.reset();	return *this; }
+	This& dontClearDepth()		{ depth.reset();	return *this; }
+	This& dontClearStencil()	{ stencil.reset();	return *this; }
 
-	Opt<Color4f> color = Color4f(1, 1, 1, 1);
-	Opt<float>   depth = 1;
+	Opt<Color4f>	color = Color4f(1,1,1,1);
+	Opt<float>		depth = 1;
+	Opt<u8>			stencil = 0;
+};
 
-}; // RenderCommand_ClearFrameBuffers
-
+#if 0
+#pragma mark ========= RenderCommand_SwapBuffers ============
+#endif
 class RenderCommand_SwapBuffers : public RenderCommand {
 	using Base = RenderCommand;
 public:
 	RenderCommand_SwapBuffers() : Base(Type::SwapBuffers) {}
-}; // RenderCommand_SwapBuffers
+};
 
+#if 0
+#pragma mark ========= RenderCommand_DrawCall ============
+#endif
 class RenderCommand_DrawCall : public RenderCommand {
 	using Base = RenderCommand;
 public:
@@ -81,15 +95,21 @@ public:
 	size_t vertexOffset = 0;
 	size_t vertexCount	= 0;
 	size_t indexCount	= 0;
-}; // RenderCommand_DrawCall
+};
 
+#if 0
+#pragma mark ========= RenderCommand_SetScissorRect ============
+#endif
 class RenderCommand_SetScissorRect : public RenderCommand {
 	using Base = RenderCommand;
 public:
 	RenderCommand_SetScissorRect() : Base(Type::SetScissorRect) {}
 	Rect2f rect;
-}; // RenderCommand_SetScissorRect
+};
 
+#if 0
+#pragma mark ========= RenderCommandBuffer ============
+#endif
 class RenderCommandBuffer : public NonCopyable {
 public:
 
@@ -111,6 +131,7 @@ public:
 
 	template<class CMD>
 	CMD* newCommand() {
+		static_assert(std::is_base_of<RenderCommand, CMD>::value, "");
 		auto* buf = _allocator.allocate(sizeof(CMD));
 		auto* cmd = new(buf) CMD();
 		_commands.emplace_back(cmd);
@@ -119,10 +140,13 @@ public:
 
 private:
 	Vector<RenderCommand*, 64>	_commands;
-	LinearAllocator _allocator;
-	Rect2f _scissorRect;
-}; // RenderCommandBuffer
+	LinearAllocator				_allocator;
+	Rect2f						_scissorRect;
+};
 
+#if 0
+#pragma mark ========= RenderScissorRectScope ============
+#endif
 class RenderScissorRectScope : public NonCopyable {
 public:
 	RenderScissorRectScope() = default;

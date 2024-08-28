@@ -10,11 +10,11 @@
 #pragma comment(lib, "d3dcompiler.lib")
 
 namespace sge {
-#if SGE_OS_WINDOWS
+
 #if 0
 #pragma mark ========= ShaderCompiler_DX11_ID3DInclude ============
 #endif
-class ShaderCompiler_DX11_ID3DInclude : public ID3DInclude { // shader compiler callback
+class ShaderCompiler_DX11_ID3DInclude : public ID3DInclude {
 	using Util = DX11Util;
 
 	class Chunk : public NonCopyable {
@@ -46,8 +46,8 @@ class ShaderCompiler_DX11_ID3DInclude : public ID3DInclude { // shader compiler 
 			return S_OK;
 		}
 
-		ByteSpan	span()		const { return ByteSpan(_buf, _bufSize); }
-		StrView		filename()	const { return _filename.view(); }
+				ByteSpan	span() const { return ByteSpan(_buf, _bufSize); }
+		const	String& filename() const { return _filename; }
 
 	private:
 		u8*		_buf = nullptr;
@@ -123,7 +123,6 @@ private:
 	String	_workingDir;
 	String	_filename;
 };
-#endif
 
 #if 0
 #pragma mark ========= ShaderCompiler_DX11 ============
@@ -145,6 +144,7 @@ void ShaderCompiler_DX11::compile(StrView outPath, ShaderStageMask shaderStage, 
 
 	ComPtr<ID3DBlob>	bytecode;
 	ComPtr<ID3DBlob>	errorMsg;
+
 	ShaderCompiler_DX11_ID3DInclude include;
 	include.setFileName(srcFilename);
 
