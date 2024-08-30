@@ -17,20 +17,11 @@ public:
 			renderContextDesc.window = this;
 			_renderContext = renderer->createContext(renderContextDesc);
 		}
-#if 1
-		_loadTestMesh();
-#else
-		_createTestMesh();
-#endif
-	}
-
-	virtual void onCloseButton() override {
-		NativeUIApp::current()->quit(0);
-	}
-
-	void _createTestMesh() {
 		EditMesh editMesh;
-
+#if 1
+		WavefrontObjLoader::readFile(editMesh, "Assets/Mesh/test.obj");
+		EditMesh::Util::addColors(editMesh, Color4b(255, 255, 255, 255));
+#else
 		float d = 0.5f;
 		editMesh.pos.emplace_back( 0, d, 0);
 		editMesh.pos.emplace_back( d,-d, 0);
@@ -39,17 +30,12 @@ public:
 		editMesh.color.emplace_back(255, 0, 0, 255);
 		editMesh.color.emplace_back(0, 255, 0, 255);
 		editMesh.color.emplace_back(0, 0, 255, 255);
-
+#endif
 		_renderMesh.create(editMesh);
 	}
 
-	void _loadTestMesh() {
-		EditMesh editMesh;
-
-		WavefrontObjLoader::readFile(editMesh, "Assets/Mesh/test.obj");
-		EditMesh::Util::addColors(editMesh, Color4b(255, 255, 255, 255));
-
-		_renderMesh.create(editMesh);
+	virtual void onCloseButton() override {
+		NativeUIApp::current()->quit(0);
 	}
 
 #if 1
@@ -62,8 +48,6 @@ public:
 #endif
 
 	void onUpdate(float dt) {
-//		SGE_DUMP_VAR(NativeUIApp::current()->frameCount());
-
 		if (!_renderContext) return;
 
 		_renderContext->setFrameBufferSize(clientRect().size);

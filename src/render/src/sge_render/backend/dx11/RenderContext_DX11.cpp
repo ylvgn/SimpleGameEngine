@@ -15,20 +15,20 @@ RenderContext_DX11::RenderContext_DX11(CreateDesc& desc)
 	auto* hWnd = win->_hwnd;
 
 	{
-		DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
-		swapChainDesc.BufferDesc.Width = 8;								// set the back buffer width
-		swapChainDesc.BufferDesc.Height = 8;							// set the back buffer height
-		swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;	// use 32-bit color
-		swapChainDesc.BufferDesc.RefreshRate.Numerator = 60;
-		swapChainDesc.BufferDesc.RefreshRate.Denominator = 1;
-		swapChainDesc.SampleDesc.Count = 1;								// how many multisamples
-		swapChainDesc.SampleDesc.Quality = 0;
-		swapChainDesc.BufferCount = 1;									// one back buffer
-		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;	// how swap chain is to be used
-		swapChainDesc.OutputWindow = hWnd;								// the window to be used
-		swapChainDesc.Windowed = TRUE;									// windowed/full-screen mode
-		swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
-		swapChainDesc.Flags = 0;
+		DXGI_SWAP_CHAIN_DESC swapChainDesc					= {};
+		swapChainDesc.BufferDesc.Width						= 8;								// set the back buffer width
+		swapChainDesc.BufferDesc.Height						= 8;								// set the back buffer height
+		swapChainDesc.BufferDesc.Format						= DXGI_FORMAT_R8G8B8A8_UNORM;		// use 32-bit color
+		swapChainDesc.BufferDesc.RefreshRate.Numerator		= 60;
+		swapChainDesc.BufferDesc.RefreshRate.Denominator	= 1;
+		swapChainDesc.SampleDesc.Count						= 1;								// how many multisamples
+		swapChainDesc.SampleDesc.Quality					= 0;
+		swapChainDesc.BufferCount							= 1;								// one back buffer
+		swapChainDesc.BufferUsage							= DXGI_USAGE_RENDER_TARGET_OUTPUT;	// how swap chain is to be used
+		swapChainDesc.OutputWindow							= hWnd;								// the window to be used
+		swapChainDesc.Windowed								= TRUE;								// windowed/full-screen mode
+		swapChainDesc.SwapEffect							= DXGI_SWAP_EFFECT_DISCARD;
+		swapChainDesc.Flags									= 0;
 
 		auto hr = dxgiFactory->CreateSwapChain(dev, &swapChainDesc, _swapChain.ptrForInit());
 		Util::throwIfError(hr);
@@ -159,7 +159,7 @@ void RenderContext_DX11::_createRenderTarget() {
 	HRESULT hr;
 
 	ComPtr<ID3D11Texture2D> backBuffer;
-	hr = _swapChain->GetBuffer(0, IID_PPV_ARGS(backBuffer.ptrForInit())); // IID_PPV_ARGS -> __uuidof(**(ppType)), IID_PPV_ARGS_Helper(ppType)
+	hr = _swapChain->GetBuffer(0, IID_PPV_ARGS(backBuffer.ptrForInit()));
 	Util::throwIfError(hr);
 
 	// use the back buffer address to create the render target

@@ -6,12 +6,12 @@
 namespace sge {
 
 #define Lexer_TokenType_ENUM_LIST(E) \
-	E(None, ) \
-	E(Identifier, /*e.g. x, color, UP, true*/) \
-	E(Operator,	/*e.g. +, -, #, %, [*/) \
-	E(Number, /*e.g. 6.02e23*/) \
-	E(String, /*e.g. "Hello  \n  World!"*/) \
-	E(Newline, /*e.g. '\n'*/) \
+	E(None,)		\
+	E(Identifier,)	\
+	E(Operator,)	\
+	E(Number,)		\
+	E(String,)		\
+	E(Newline,)		\
 //----
 SGE_ENUM_CLASS(Lexer_TokenType, u8)
 
@@ -20,8 +20,8 @@ public:
 	using TokenType = Lexer_TokenType;
 
 	struct Token {
-		TokenType	type = TokenType::None;
 		String		str;
+		TokenType	type = TokenType::None;
 
 		bool isNone() const					{ return type == TokenType::None; }
 
@@ -44,7 +44,7 @@ public:
 	};
 
 	void reset(ByteSpan source, StrView filename);
-	void reset(StrView source, StrView filename);
+	void reset(StrView  source, StrView filename);
 
 	bool nextChar();
 	bool nextToken();
@@ -53,13 +53,13 @@ public:
 	void trimSpaces();
 	void skipNewlineTokens();
 
+	bool isEOF() const { return _cur == nullptr || _source.empty() || _cur >= _source.end(); }
+
 	bool isAlpha                (char c) const { return isLowerCase(c) || isUpperCase(c); }
 	bool isLowerCase            (char c) const { return c >= 'a' && c <= 'z'; }
 	bool isUpperCase            (char c) const { return c >= 'A' && c <= 'Z'; }
 	bool isDigit                (char c) const { return c >= '0' && c <= '9'; }
 	bool isAlphaDigitUnderscore (char c) const { return isAlpha(c) || c == '_' || isDigit(c); }
-
-	const Token& token() const { return _token; }
 
 	template<class... Args>
 	void error(const Args &... args) {
@@ -77,37 +77,40 @@ public:
 	void readIdentifier(String& outputStr);
 
 	template<class E> void readEnum(E& v);
-	void readBool(bool& v);
+	void readBool(bool& v); //!!<-------- pass 1 bit bool& cause undefined behaviour
 
 	StrView getLastFewLines(size_t lineCount);
 
-	const char& ch()  const { return _ch;     }
-	const char* cur() const { return _cur;    }
-	StrView source()  const { return _source; }
-	size_t line()     const { return _line;   }
-	size_t col()      const { return _col;    }
+	const char& ch		() const { return _ch;		}
+	const char* cur		() const { return _cur;		}
+	StrView source		() const { return _source;	}
+	size_t line			() const { return _line;	}
+	size_t col			() const { return _col;		}
+	const Token& token	() const { return _token;	}
 
 protected:
 	void _error(StrView msg);
 
 	bool _nextToken();
 	std::pair<StrView, StrView> _nextLine();
-	void _appendAndNextChar();
 
-	bool _parseString();
-	bool _parseIdentifier();
-	bool _parseNumber();
-	void _parseCommentBlock();
 	void _parseCommentSingleLine();
+	void _parseNewline();
+	bool _parseCommentBlock();
+
+	void _parseIdentifier();
+	bool _parseNumber();
+	bool _parseString();
+	bool _parseOperator();
 
 	Token			_token;
 	String			_filename;  // for error message
 	StrView			_source;
-	char			_ch         = 0;
+
 	size_t			_col        = 0;
 	size_t			_line       = 0;
 	const char*     _cur        = nullptr;
-
+	char			_ch         = 0;
 };
 
 template<class E> inline

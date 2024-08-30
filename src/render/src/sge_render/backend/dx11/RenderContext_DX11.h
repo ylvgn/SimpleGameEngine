@@ -29,8 +29,8 @@ protected:
 	virtual void onSetFrameBufferSize(const Vec2f& newSize) override;
 
 	ComPtr<DX11_IDXGISwapChain>			_swapChain;
-	ComPtr<DX11_ID3DRenderTargetView>	_renderTargetView; // back buffer(color buffer)
-	ComPtr<DX11_ID3DDepthStencilView>	_depthStencilView; // depth buffer
+	ComPtr<DX11_ID3DRenderTargetView>	_renderTargetView;
+	ComPtr<DX11_ID3DDepthStencilView>	_depthStencilView;
 	ComPtr<DX11_ID3DTexture2D>			_depthStencil;
 
 	ComPtr<DX11_ID3DBuffer>				_testVertexBuffer;

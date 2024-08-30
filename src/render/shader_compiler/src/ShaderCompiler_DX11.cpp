@@ -145,6 +145,16 @@ void ShaderCompiler_DX11::compile(StrView outPath, ShaderStageMask shaderStage, 
 	ComPtr<ID3DBlob>	bytecode;
 	ComPtr<ID3DBlob>	errorMsg;
 
+	D3D_SHADER_MACRO macros[] = {
+
+#if SGE_OS_WINDOWS
+		"SGE_OS_WINDOWS", "1",
+#elif SGE_OS_MACOSX
+		"SGE_OS_MACOSX", "1",
+#endif
+		NULL, NULL
+	};
+
 	ShaderCompiler_DX11_ID3DInclude include;
 	include.setFileName(srcFilename);
 
@@ -152,10 +162,12 @@ void ShaderCompiler_DX11::compile(StrView outPath, ShaderStageMask shaderStage, 
 
 	auto hr = D3DCompile2(
 				hlsl.data(), hlsl.size(), memmap.filename().c_str(),
-				nullptr, &include,
-				entryPoint.c_str(), profile,
+				macros, &include,
+				entryPoint.c_str(),
+				profile,
 				flags1, flags2, 0, nullptr, 0,
-				bytecode.ptrForInit(), errorMsg.ptrForInit());
+				bytecode.ptrForInit(),
+				errorMsg.ptrForInit());
 
 	if (FAILED(hr)) {
 		throw SGE_ERROR("HRESULT={}\n Error Message: {}", hr, Util::toStrView(errorMsg));

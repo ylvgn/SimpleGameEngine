@@ -112,7 +112,7 @@ inline
 ByteSpan DX11Util::toSpan(ID3DBlob* blob) {
 	if (!blob) return ByteSpan();
 	return ByteSpan(reinterpret_cast<const u8*>(blob->GetBufferPointer()),
-		static_cast<size_t>(blob->GetBufferSize()));
+					static_cast<size_t>(blob->GetBufferSize()));
 }
 
 inline

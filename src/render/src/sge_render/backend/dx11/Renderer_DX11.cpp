@@ -18,27 +18,27 @@ Renderer_DX11::Renderer_DX11(CreateDesc& desc) {
 	ComPtr<ID3D11DeviceContext>		d3dDeviceContext;
 
 	HRESULT hr;
-	hr = D3D11CreateDevice(nullptr,
-		D3D_DRIVER_TYPE_HARDWARE,
-		nullptr,
-		createDeviceFlags,
-		nullptr,
-		0,
-		D3D11_SDK_VERSION,
-		d3dDevice.ptrForInit(),
-		&featureLevel,
-		d3dDeviceContext.ptrForInit());
+	hr = D3D11CreateDevice(	nullptr,
+							D3D_DRIVER_TYPE_HARDWARE,
+							nullptr,
+							createDeviceFlags,
+							nullptr,
+							0,
+							D3D11_SDK_VERSION,
+							d3dDevice.ptrForInit(),
+							&featureLevel,
+							d3dDeviceContext.ptrForInit());
 	Util::throwIfError(hr);
 	//This method returns DXGI_ERROR_SDK_COMPONENT_MISSING if you specify D3D11_CREATE_DEVICE_DEBUG in Flags
 	//and the incorrect version of the debug layer is installed on your computer. Install the latest Windows SDK to get the correct version.
 
-	hr = d3dDevice->QueryInterface(IID_PPV_ARGS(_d3dDevice.ptrForInit()));
+	hr = d3dDevice->QueryInterface(_d3dDevice.ptrForInit());
 	Util::throwIfError(hr);
 
-	hr = d3dDeviceContext->QueryInterface(IID_PPV_ARGS(_d3dDeviceContext.ptrForInit()));
+	hr = d3dDeviceContext->QueryInterface(_d3dDeviceContext.ptrForInit());
 	Util::throwIfError(hr);
 
-	hr = _d3dDevice->QueryInterface(IID_PPV_ARGS(_dxgiDevice.ptrForInit()));
+	hr = _d3dDevice->QueryInterface(_dxgiDevice.ptrForInit());
 	Util::throwIfError(hr);
 
 	{
@@ -46,7 +46,7 @@ Renderer_DX11::Renderer_DX11(CreateDesc& desc) {
 		hr = _dxgiDevice->GetAdapter(adapter.ptrForInit());
 		Util::throwIfError(hr);
 
-		hr = adapter->QueryInterface(IID_PPV_ARGS(_dxgiAdapter.ptrForInit()));
+		hr = adapter->QueryInterface(_dxgiAdapter.ptrForInit());
 		Util::throwIfError(hr);
 	}
 

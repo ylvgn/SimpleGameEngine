@@ -8,20 +8,15 @@ struct WavefrontObjLoader_Info {
 	Vector< Tuple3f > vt;
 	Vector< Tuple3f > vn;
 
-	Vector<int, 64> face_v;
-	Vector<int, 64> face_vt;
-	Vector<int, 64> face_vn;
-
 	void clear();
-	void clearFace();
 };
 
 class WavefrontObjLoader : public Lexer {
 	using Base = Lexer;
 	using Info = WavefrontObjLoader_Info;
 public:
-	static void readFile	(EditMesh& outInfo, StrView filename);
-	static void readMem		(EditMesh& outInfo, ByteSpan data, StrView filename);
+	static void readFile (EditMesh& outInfo, StrView filename);
+	static void readMem	 (EditMesh& outInfo, ByteSpan data, StrView filename);
 private:
 	void _readMem(EditMesh& outInfo, ByteSpan data, StrView filename);
 
@@ -36,6 +31,10 @@ private:
 	StrView	_tmpToken;
 	StrView	_tmpCurrentLine;
 	StrView	_tmpLineRemain;
+
+	Vector<int, 64> _face_v;
+	Vector<int, 64> _face_vt;
+	Vector<int, 64> _face_vn;
 
 	EditMesh*	_outInfo = nullptr;
 

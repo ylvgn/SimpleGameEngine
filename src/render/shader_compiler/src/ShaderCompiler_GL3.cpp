@@ -261,13 +261,7 @@ void ShaderCompiler_GL3::_reflect_inputs(ShaderStageInfo& outInfo, Compiler& com
 //		you should not care about Name here unless your backend assigns bindings based on name, or for debugging purposes
 //		outInput.name.assign(resource.name.c_str(), resource.name.size());
 
-		{ // find last '_' name without underline
-			auto pair = StringUtil::splitByChar(name, '_');
-			while (!pair.second.empty()) {
-				pair = StringUtil::splitByChar(pair.second, '_');
-			}
-			outInput.semantic = GL3Util::parseGlSemanticName(pair.first);
-		}
+		outInput.semantic = GL3Util::parseGlSemanticName(_findLastNameWithoutUnderscore(name));
 
 		const auto& type	= comp.get_type(resource.base_type_id);
 		auto componentCount	= type.vecsize;
@@ -327,6 +321,14 @@ void ShaderCompiler_GL3::_reflect_textures(ShaderStageInfo& outInfo, Compiler& c
 
 void ShaderCompiler_GL3::_reflect_samplers(ShaderStageInfo& outInfo, Compiler& comp, const ShaderResources& resources) {
 	// TODO
+}
+
+StrView ShaderCompiler_GL3::_findLastNameWithoutUnderscore(StrView s) {
+	auto pair = StringUtil::splitByChar(s, '_');
+	while (!pair.second.empty()) {
+		pair = StringUtil::splitByChar(pair.second, '_');
+	}
+	return pair.first;
 }
 
 void ShaderCompiler_GL3::_beforeGLSLCompile(Compiler& comp, ShaderStageMask shaderStage, StrView profile) {

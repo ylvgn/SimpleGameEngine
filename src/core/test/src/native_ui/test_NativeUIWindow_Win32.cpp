@@ -19,18 +19,11 @@
 #include "imgui.h"
 #include <tchar.h>
 
-// define the screen resolution (bad practics)
-/*
-#define SCREEN_WIDTH  800
-#define SCREEN_HEIGHT 600
-*/
-
 namespace sge {
 
 class Test_NativeUIWindow_Win32 : public UnitTestBase {
 private:
 
-	// define constant (for type tracking)
 	static const int SCREEN_WIDTH = 800;
 	static const int SCREEN_HEIGHT = 800;
 
@@ -92,13 +85,11 @@ public:
 		FLOAT Color[4];     // color
 	};
 
-	// test_helloWorld
 	LRESULT WINAPI MyMessageBox(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow);
 	void test_helloWorld() {
 		MyMessageBox(GetModuleHandle(nullptr), 0, GetCommandLineA(), 0);
 	}
 
-	// test_createWindow
 	LRESULT WINAPI MyWindow(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow);
 	LRESULT CALLBACK MyWindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 	void test_createWindow() {
@@ -106,7 +97,6 @@ public:
 		MyWindow(GetModuleHandle(nullptr), 0, GetCommandLineA(), SW_NORMAL);
 	}
 
-	// test_drawD3DTriangle
 	LRESULT WINAPI Test_NativeUIWindow_Win32::MyWindowWithD3D(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow);
 	void InitD3D(HWND hWnd);     // sets up and initializes Direct3D
 	void CleanD3D(void);         // closes Direct3D and releases memory

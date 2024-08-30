@@ -27,6 +27,8 @@ private:
 	static void _reflect_textures		(ShaderStageInfo& outInfo, Compiler& comp, const ShaderResources& resources);
 	static void _reflect_samplers		(ShaderStageInfo& outInfo, Compiler& comp, const ShaderResources& resources);
 
+	static StrView _findLastNameWithoutUnderscore(StrView s);
+
 	void _beforeGLSLCompile(Compiler& comp, ShaderStageMask shaderStage, StrView profile);
 
 	Vector<String> _vsOutputLocation2VarName;
