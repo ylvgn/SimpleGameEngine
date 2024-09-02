@@ -26,7 +26,7 @@ void Lexer::reset(StrView source, StrView filename) {
 	nextToken();
 }
 	
-// _ch is current char value, *cur is next char pointer
+// NOTE: _ch is current char value, *cur is next char pointer
 bool Lexer::nextChar() {
 	_ch = 0;
 	if (_cur == nullptr) return false;
@@ -54,7 +54,7 @@ void Lexer::errorUnexpectedChar() {
 
 bool Lexer::nextToken() {
 	if (!_nextToken()) return false;
-	//SGE_DUMP_VAR(_line, _token);
+//	SGE_DUMP_VAR(_line, _token);
 	return true;
 }
 
@@ -62,6 +62,7 @@ bool Lexer::nextLine() {
 	_ch = 0;
 	if (_cur == nullptr) return false;
 	if (_cur >= _source.end()) return false;
+
 	_nextLine();
 	return true;
 }
@@ -80,7 +81,7 @@ void Lexer::skipNewlineTokens() {
 
 void Lexer::expectOperator(StrView s) {
 	if (!_token.isOperator(s)) {
-		error("expected token {}", s);
+		error("Expected operator token {}", s);
 		return;
 	}
 	nextToken();
@@ -97,6 +98,7 @@ void Lexer::expectNewline() {
 void Lexer::readIdentifier(String& outputStr) {
 	if (!_token.isIdentifier()) {
 		errorUnexpectedToken();
+		return;
 	}
 	outputStr = _token.str;
 	nextToken();
@@ -105,33 +107,38 @@ void Lexer::readIdentifier(String& outputStr) {
 void Lexer::readString(String& outputStr) {
 	if (!_token.isString()) {
 		errorUnexpectedToken();
+		return;
 	}
 	outputStr = _token.str;
 	nextToken();
 }
 
 void Lexer::readBool(bool& v) {
-	if (!_token.isIdentifier()) errorUnexpectedToken();
+	if (!_token.isIdentifier()) {
+		errorUnexpectedToken();
+	}
+
 	if (_token.str == "true")
 		v = true;
 	else if (_token.str == "false")
 		v = false;
-	else
+	else {
 		errorUnexpectedToken();
+	}
 	nextToken();
 }
 
 StrView Lexer::getLastFewLines(size_t lineCount) {
-	if (!_cur) return StrView();
+	if (!_cur)
+		return StrView();
 
 	auto n = lineCount;
-
 	auto* start = _source.data();
 
 	auto* p = _cur;
-	for (; p >= start && n > 0; p--) {
+	for (; p >= start && n > 0; ++p) {
 		if (*p == '\n') {
-			n--;
+			--n;
 		}
 	}
 	p++;
@@ -168,72 +175,58 @@ bool Lexer::_nextToken() {
 		trimSpaces();
 		if (!_ch) return false;
 
-		// check comment
-		if (_ch == '#') {
-			_parseCommentSingleLine();
-			continue;
-		}
-
-		// check newline
-		if (_ch == '\n') {
-			_token.type = TokenType::Newline;
-			_token.str += "<newline>";
-			nextChar();
-			return true;
-		}
-
-		// check comment
-		if (_ch == '/') {
-			nextChar(); // skip '/'
-
-			if (_ch == '/') { // case '//'
+		{ // check comment
+			if (_ch == '#') {
 				_parseCommentSingleLine();
 				continue;
 			}
 
-			if (_ch == '*') { // case /**/
-				_parseCommentBlock();
-				continue;
+			if (_ch == '/') {
+				auto ch0 = _ch;
+				if (nextChar()) { // skip '/'
+					if (_ch == '/') {
+						_parseCommentSingleLine();
+						continue;
+					}
+					else if (_ch == '*') {
+						_parseCommentBlock();
+						continue;
+					}
+				}
+				_token.type = TokenType::Operator;
+				_token.str += ch0;
+				return true;
 			}
+		}
 
-			_token.type = TokenType::Operator;
-			_token.str = '/';
+		if (_ch == '\n') {
+			_parseNewline();
 			return true;
 		}
 
-		// check string (double quote)
-		if (_ch == '\"') {
-			return _parseString();
+		if (_ch == '_' || isAlpha(_ch)) {
+			_parseIdentifier();
+			return true;
 		}
 
-		// check number
 		if (isDigit(_ch)) {
 			return _parseNumber();
 		}
 
-#if 0 // check number with + or - !!<----- dont handle this internal
-		if (_ch == '-' || _ch == '+') {
-			char oldCh = _ch;
-			nextChar(); // skip + -
-			if (isDigit(_ch)) {
-				_token.str = oldCh;
-				return _parseNumber();
-			}
-			_token.type = TokenType::Operator;
-			_token.str = oldCh;
+		if (_ch == '\"') {
+			return _parseString();
+		}
+
+		if (_parseOperator()) {
 			return true;
 		}
-#endif
 
-		// check identifier
-		if (_ch == '_' || isAlpha(_ch)) {
-			return _parseIdentifier();
+		{
+			SGE_ASSERT(false);
+			errorUnexpectedChar();
 		}
 
-		// default must be operator
-		_token.type = TokenType::Operator;
-		_appendAndNextChar();
-		return true;
+		return false;
 	}
 }
 
@@ -254,54 +247,69 @@ std::pair<StrView, StrView> Lexer::_nextLine() {
 	return pair;
 }
 
-// e.g. 1234.56e-78
 bool Lexer::_parseNumber() {
-	// _ch start as '0' ~ '9'
 	_token.type = TokenType::Number;
 
 	bool hasDot = false;
 	bool hasE   = false;
 
-	while (_ch) {
-			
-		// check dot
+	for(;;) {
 		if (_ch == '.') {
 			if (hasDot || hasE) {
 				errorUnexpectedChar();
 				return false;
 			}
 			hasDot = true;
-			_appendAndNextChar();
-			continue;
+
+			_token.str += _ch;
+			if (!nextChar()) return true; // e.g. 1234.
+			else continue;
 		}
-			
-		// check e
+
+		// e.g. 1234.56e-78, 1234e+56
 		if (_ch == 'e' || _ch == 'E') {
 			if (hasE) {
-				errorUnexpectedChar();
+				errorUnexpectedChar(); // e.g. 12e34e
 				return false;
 			}
 			hasE = true;
-			_appendAndNextChar(); // add 'e' or 'E'
 
-			if (nextChar()) {
-				if (_ch == '+' || _ch == '-') {
-					_appendAndNextChar();
+			_token.str += _ch;
+			if (!nextChar()) {
+				errorUnexpectedChar(); // e.g. 1234e
+				return false;
+			}
+
+			if (_ch == '+' || _ch == '-') {
+				_token.str += _ch;
+				if (!nextChar()) {
+					errorUnexpectedChar(); // e.g. 1234e+
+					return false;
 				}
+				if (isDigit(_ch)) {
+					_token.str += _ch;
+					if (!nextChar()) return true; // e.g. 1234e+1
+					else continue;
+				}
+			} else {
+				errorUnexpectedChar(); // e.g. 1234e?
+				return false;
 			}
 		}
 
 		if (isDigit(_ch)) {
-			_appendAndNextChar();
+			_token.str += _ch;
+			if (!nextChar()) return true;
 		} else {
 			break;
 		}
 	}
+
 	return true;
 }
 
 void Lexer::_parseCommentSingleLine() {
-	nextChar(); // _ch start as '/'
+	nextChar(); // skip '/' or '#'
 
 	for (;;) {
 		if (!_ch) return;
@@ -314,36 +322,55 @@ void Lexer::_parseCommentSingleLine() {
 	}	
 }
 
-void Lexer::_parseCommentBlock() {
-	nextChar(); // _ch start as '*'
+void Lexer::_parseNewline() {
+	_token.type = TokenType::Newline;
+
+	static const char* kNewlineStr = "<newline>";
+	_token.str += kNewlineStr;
+	nextChar();
+}
+
+bool Lexer::_parseCommentBlock() {
+	nextChar(); // skip '*'
 
 	for (;;) {
-		if (!_ch) return;
+		if (!_ch) break;
 		if (_ch == '*') {
-			nextChar(); // skip '*'
-			if (_ch == '/') {
-				nextChar(); // skip '/'
-				return;
+//			auto ch0 = _ch;
+			if (nextChar()) { // skip '*'
+				if (_ch == '/') {
+					nextChar(); // skip '/'
+					return true;
+				} else {
+					nextChar();
+				}
+			} else {
+				break;
 			}
-		} else {
+		}
+		else {
 			nextChar();
 		}
 	}
+	return false;
 }
 
 bool Lexer::_parseString() {
-	nextChar(); // _ch start as '\"'
 	_token.type = TokenType::String;
+	nextChar(); // skip '\"'
 
 	for (;;) {
 		if (_ch == '\\') { // handle escape character
-			nextChar();
+			if (!nextChar()) {
+				error("_parseString unexpected EOF");
+				return false;
+			}
 			switch (_ch) { // case \\, \/, \"
 				case '\\':
 				case '/':
 				case '\"':
 					_token.str += _ch;
-					nextChar(); // bypass
+					nextChar();
 					break;
 				case 'b': _token.str += '\b'; break;
 				case 'f': _token.str += '\f'; break;
@@ -359,37 +386,53 @@ bool Lexer::_parseString() {
 			break;
 		} else {
 			_token.str += _ch;
-			nextChar(); // bypass
+			if (!nextChar()) {
+				error("_parseString unexpected EOF");
+				return false;
+			}
 		}
 	}
 	return true;
 }
 
-bool Lexer::_parseIdentifier() {
-	// _ch start as '_' || isAlpha(_ch)
+void Lexer::_parseIdentifier() {
 	_token.type = TokenType::Identifier;
-	_appendAndNextChar();
 
-	for (;;) {
-		if (!_ch) break;
-		if (isAlphaDigitUnderscore(_ch)) {
-			_appendAndNextChar();
-		} else {
+	do {
+		_token.str += _ch;
+		if (!nextChar())
 			break;
+	} while (isAlphaDigitUnderscore(_ch));
+}
+
+bool Lexer::_parseOperator() {
+	_token.type = TokenType::Operator;
+
+	if (_ch == '+' || _ch == '-' || _ch == '*' || _ch == '/' || _ch == '%') {
+//		auto ch0 = _ch;
+		_token.str += _ch;
+		if (nextChar()) {
+			if (_ch == '=') {
+				_token.str += _ch;
+				nextChar();
+				return true;
+			}
+		}
+		nextChar();
+		return true;
+	}
+
+	static const wchar_t kOps[] = L"=[](){}<>`~!@#$%^&,.?";
+	for (auto& c : kOps) {
+		if (c == _ch) {
+			_token.str += _ch;
+			nextChar();
+			return true;
 		}
 	}
 
-	// check invalid, now _ch must be empty character
-	if (!_ch && _ch != ' ' && _ch != '\t' && _ch != '\n' && _ch != '\r') {
-		errorUnexpectedChar();
-		return false;
-	}
-	return true;
+	_token.setNone();
+	return false;
 }
 
-void Lexer::_appendAndNextChar() {
-	_token.str += _ch;
-	nextChar();
 }
-
-} // namespace
