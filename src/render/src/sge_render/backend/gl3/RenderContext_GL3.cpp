@@ -104,8 +104,12 @@ void RenderContext_GL3::onCmd_DrawCall(RenderCommand_DrawCall& cmd) {
 
 	vertexBuffer->glBind();
 	{
-		_setTestShaders(cmd.vertexLayout);
-
+		if (auto* pass = cmd.getMaterialPass()) {
+			pass->bind(this, cmd.vertexLayout);
+		}
+		else {
+			_setTestShaders(cmd.vertexLayout);
+		}
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe ON tmp
 
 		auto primitive		= Util::getGlPrimitiveTopology(cmd.primitive);
