@@ -63,12 +63,20 @@ struct GL3Util {
 
 	static GLenum getGlPrimitiveTopology(RenderPrimitiveType v);
 	static GLenum getGlFormat(RenderDataType v);
+	static GLenum getGlBaseFormat(RenderDataType v);
 	static GLenum getGlBufferBindingTarget(RenderGpuBufferType v);
 	static const char* getGlStageProfile(ShaderStageMask s);
 	static GLenum getGlShaderType(ShaderStageMask s);
-	static VertexSemantic parseGlSemanticName(StrView vkName);
+
+	static const char* getGlSemanticName(VertexSemanticType v);
+	static int getComponentCount(RenderDataType v);
+
+	static void convert(VertexSemantic& o, StrView i);
+	static void convert(String& o, VertexSemantic i);
 
 	static void dumpActiveAttrib(GLint program);
+	static void dumpActiveUniforms(GLint program);
+	static void dumpActiveUniformBlocks(GLint program);
 
 private:
 	static bool _checkError(GLenum errCode) {
@@ -104,13 +112,84 @@ inline
 GLenum GL3Util::getGlFormat(RenderDataType v) {
 	using SRC = RenderDataType;
 	switch (v) {
+	//---
 		case SRC::Int8:			return GL_BYTE;
-		case SRC::UInt8:		return GL_UNSIGNED_BYTE;
 		case SRC::Int16:		return GL_SHORT;
-		case SRC::UInt16:		return GL_UNSIGNED_SHORT;
+	//---
+		case SRC::SNorm8:		return GL_R8_SNORM;
+		case SRC::SNorm8x2:		return GL_RG8_SNORM;
+//		case SRC::SNorm8x3:		return GL_RGB8_SNORM; // does not support in GL3
+		case SRC::SNorm8x4:		return GL_RGBA8_SNORM;
+	//---
+		case SRC::SNorm16:		return GL_R16_SNORM_EXT;
+		case SRC::SNorm16x2:	return GL_RG16_SNORM_EXT;
+//		case SRC::SNorm16x3:	return GL_RGB16_SNORM_EXT; // does not support in GL3
+		case SRC::SNorm16x4:	return GL_RGBA16_SNORM_EXT;
+	//---
 		case SRC::Int32:		return GL_INT;
+		case SRC::Int32x2:		return GL_INT_VEC2;
+		case SRC::Int32x3:		return GL_INT_VEC3;
+		case SRC::Int32x4:		return GL_INT_VEC4; 
+	//---
+		case SRC::UInt8:		return GL_UNSIGNED_BYTE;
+		case SRC::UInt16:		return GL_UNSIGNED_SHORT;
+	//---
 		case SRC::UInt32:		return GL_UNSIGNED_INT;
+		case SRC::UInt32x2:		return GL_UNSIGNED_INT_VEC2;
+		case SRC::UInt32x3:		return GL_UNSIGNED_INT_VEC3;
+		case SRC::UInt32x4:		return GL_UNSIGNED_INT_VEC4;
+	//---
 		case SRC::Float32:		return GL_FLOAT;
+		case SRC::Float32x2:	return GL_FLOAT_VEC2;
+		case SRC::Float32x3:	return GL_FLOAT_VEC3;
+		case SRC::Float32x4:	return GL_FLOAT_VEC4;
+	//---
+		case SRC::Float64:		return GL_DOUBLE;
+	//---
+		case SRC::Float32_4x4:	return GL_FLOAT_MAT4;
+	//---
+		default: throw SGE_ERROR("unsupported RenderDataType");
+	}
+}
+
+inline
+GLenum GL3Util::getGlBaseFormat(RenderDataType v) {
+	using SRC = RenderDataType;
+	switch (v) {
+	//---
+		case SRC::Int8:			return GL_BYTE;
+		case SRC::Int16:		return GL_SHORT;
+	//---
+		case SRC::SNorm8:		return GL_R8_SNORM;
+		case SRC::SNorm8x2:		return GL_R8_SNORM;
+//		case SRC::SNorm8x3:		return GL_R8_SNORM; // does not support in GL3
+		case SRC::SNorm8x4:		return GL_R8_SNORM;
+	//---
+		case SRC::SNorm16:		return GL_R16_SNORM_EXT;
+		case SRC::SNorm16x2:	return GL_R16_SNORM_EXT;
+//		case SRC::SNorm16x3:	return GL_R16_SNORM_EXT; // does not support in GL3
+		case SRC::SNorm16x4:	return GL_R16_SNORM_EXT;
+	//---
+		case SRC::UNorm8:		return GL_UNSIGNED_BYTE;
+		case SRC::UNorm8x2:		return GL_UNSIGNED_BYTE;
+//		case SRC::UNorm8x3:		return GL_UNSIGNED_BYTE; // does not support in GL3
+		case SRC::UNorm8x4:		return GL_UNSIGNED_BYTE;
+	//---
+		case SRC::Int32:		return GL_INT;
+		case SRC::Int32x2:		return GL_INT;
+		case SRC::Int32x3:		return GL_INT;
+		case SRC::Int32x4:		return GL_INT;
+	//---
+		case SRC::UInt8:		return GL_UNSIGNED_BYTE;
+		case SRC::UInt16:		return GL_UNSIGNED_SHORT;
+		case SRC::UInt32:		return GL_UNSIGNED_INT;
+	//---
+		case SRC::Float32:		return GL_FLOAT;
+		case SRC::Float32x2:	return GL_FLOAT;
+		case SRC::Float32x3:	return GL_FLOAT;
+		case SRC::Float32x4:	return GL_FLOAT;
+	//---
+		case SRC::Float32_4x4:	return GL_FLOAT;
 	//---
 		default: throw SGE_ERROR("unsupported RenderDataType");
 	}

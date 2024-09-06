@@ -258,10 +258,12 @@ void ShaderCompiler_GL3::_reflect_inputs(ShaderStageInfo& outInfo, Compiler& com
 		auto resId = resource.id;
 		StrView name(resource.name.data(), resource.name.size());
 
-//		you should not care about Name here unless your backend assigns bindings based on name, or for debugging purposes
-//		outInput.name.assign(resource.name.c_str(), resource.name.size());
+		outInput.slot = static_cast<decltype(outInput.slot)>(comp.get_decoration(resource.id, spv::DecorationLocation));
 
-		outInput.semantic = GL3Util::parseGlSemanticName(_findLastNameWithoutUnderscore(name));
+//		you should not care about Name here unless your backend assigns bindings based on name, or for debugging purposes
+//		outInput.name.assign(name.data(), name.size());
+
+		Util::convert(outInput.semantic, _findLastNameWithoutUnderscore(name));
 
 		const auto& type	= comp.get_type(resource.base_type_id);
 		auto componentCount	= type.vecsize;
@@ -284,10 +286,13 @@ void ShaderCompiler_GL3::_reflect_constBuffers(ShaderStageInfo& outInfo, Compile
 		auto& outCB = outInfo.constBuffers.emplace_back();
 
 		using SGE_BindPoint = decltype(outCB.bindPoint);
-		using SGE_BindCount = decltype(outCB.bindCount); // TODO
 		using SGE_DataSize	= decltype(outCB.dataSize);
 
 		outCB.bindPoint = static_cast<SGE_BindPoint>(comp.get_decoration(resId, spv::DecorationBinding));
+
+		if (outCB.bindPoint >= GL_MAX_UNIFORM_BUFFER_BINDINGS)
+			throw SGE_ERROR("invalid bindPoint out of bound: {} >= {}", outCB.bindPoint, GL_MAX_UNIFORM_BUFFER_BINDINGS);
+
 		outCB.name.assign(resource.name.c_str(), resource.name.size());
 		outCB.dataSize = comp.get_declared_struct_size(uniform_type);
 

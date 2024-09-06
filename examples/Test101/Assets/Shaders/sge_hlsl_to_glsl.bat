@@ -4,6 +4,7 @@ call :HLSL2GLSLC test.shader
 call :HLSL2GLSLC terrain.shader
 call :HLSL2GLSLC imgui.shader
 call :HLSL2GLSLC line.shader
+call :HLSL2GLSLC test_constbuffer.shader
 
 @pause
 exit /B %ERRORLEVEL%

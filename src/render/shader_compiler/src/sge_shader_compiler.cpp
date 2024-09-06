@@ -25,6 +25,7 @@ protected:
 		compile("Assets/Shaders/terrain_test.shader");
 		compile("Assets/Shaders/imgui.shader");
 		compile("Assets/Shaders/line.shader");
+		compile("Assets/Shaders/test_constbuffer.shader");
 
 		SGE_LOG("---- end ----");
 	}

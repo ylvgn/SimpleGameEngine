@@ -1,6 +1,7 @@
 #include "Renderer_GL3.h"
 #include "RenderContext_GL3.h"
 #include "RenderGpuBuffer_GL3.h"
+#include "Material_GL3.h"
 
 namespace sge {
 
@@ -22,6 +23,14 @@ SPtr<RenderGpuBuffer> Renderer_GL3::onCreateGpuBuffer(RenderGpuBuffer_CreateDesc
 	SPtr<RenderGpuBuffer> p = new RenderGpuBuffer_GL3();
 	p->create(desc);
 	return p;
+}
+
+SPtr<Shader> Renderer_GL3::onCreateShader(StrView filename) {
+	return new Shader_GL3(filename);
+}
+
+SPtr<Material> Renderer_GL3::onCreateMaterial() {
+	return new Material_GL3();
 }
 
 }

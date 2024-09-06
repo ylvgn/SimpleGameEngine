@@ -18,8 +18,8 @@ protected:
 	virtual SPtr<RenderContext>		onCreateContext(RenderContext_CreateDesc& desc) override;
 	virtual SPtr<RenderGpuBuffer>	onCreateGpuBuffer(RenderGpuBuffer_CreateDesc& desc) override;
 
-	virtual SPtr<Shader>			onCreateShader(StrView filename) { return nullptr; } // TODO
-	virtual SPtr<Material>			onCreateMaterial() { return nullptr; } // TODO
+	virtual SPtr<Shader>			onCreateShader(StrView filename);
+	virtual SPtr<Material>			onCreateMaterial();
 	virtual SPtr<Texture2D>			onCreateTexture2D(Texture2D_CreateDesc& desc) { return nullptr; } // TODO
 }; // Renderer_GL3
 

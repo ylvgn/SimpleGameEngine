@@ -1,35 +1,75 @@
 #pragma once
+
 #include "Render_GL3_Common.h"
 
 namespace sge {
 
-class Shader_GL3 : public Object /*Shader*/ {
+class RenderContext_GL3;
+
+class Shader_GL3 : public Shader {
+	using Base = Shader;
+	using Util = GL3Util;
 public:
-	~Shader_GL3() { destroy(); }
+	Shader_GL3(StrView filename);
 
-	void loadFile(StrView filename);
-	void destroy();
+	struct MyPass;
 
-	void reload();
+	static void _loadStageFile(StrView passPath, ShaderStageMask stageMask, Vector<u8>& outBytecode, ShaderStageInfo& outInfo);
 
-	void bind();
-	void unbind();
+	struct MyVertexStage : public ShaderVertexStage {
+		~MyVertexStage() { destroy(); }
 
-	GLint glGetAttribLoc(StrView name);
-	GLint glGetUniformLoc(StrView name);
+		void destroy();
 
-private:
-	void _compileShader(GLuint& shader, GLenum type, StrView filename);
-	void _getShaderInfoLog(GLuint shader, String& outMsg);
+		void load(MyPass* pass, StrView passPath);
+		void bind(RenderContext_GL3* ctx);
+		ByteSpan bytecode() const { return _bytecode; }
 
-	void _linkProgram();
-	void _getProgramInfoLog(GLuint program, String& outMsg);
+	friend struct MyPass;
+	private:
+		Vector<u8>	_bytecode;
+		MyPass*		_pass = nullptr;
+		GLuint		_shader = 0;
+	};
 
-public:
-	String _filename;
-	GLuint _program = 0;
-	GLuint _vertexShader = 0;
-	GLuint _pixelShader = 0;
+	struct MyPixelStage : public ShaderPixelStage {
+		~MyPixelStage() { destroy(); }
+
+		void destroy();
+
+		void load(MyPass* pass, StrView passPath);
+		void bind(RenderContext_GL3* ctx);
+		ByteSpan bytecode() const { return _bytecode; }
+
+	friend struct MyPass;
+	private:
+		Vector<u8>	_bytecode;
+		MyPass*		_pass = nullptr;
+		GLuint		_shader = 0;
+	};
+
+	struct MyPass : public ShaderPass {
+		using Base = ShaderPass;
+
+		MyPass(Shader_GL3* shader, StrView passPath, ShaderInfo::Pass& info);
+
+		~MyPass() { destroy(); }
+
+		void destroy();
+
+		void bind();
+		void unbind();
+
+		GLuint program() const { return _myProgram; }
+
+	private:
+		MyVertexStage	_myVertexStage;
+		MyPixelStage	_myPixelStage;
+		GLuint			_myProgram = 0;
+
+		void _linkProgram();
+		void _getProgramInfoLog(GLuint program, String& outMsg);
+	};
 };
 
 }
