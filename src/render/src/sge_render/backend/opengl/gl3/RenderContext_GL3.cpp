@@ -2,6 +2,8 @@
 #include "RenderFalseContext_GL3.h"
 #include "RenderGpuBuffer_GL3.h"
 
+#if SGE_RENDER_HAS_GL3
+
 namespace sge {
 
 RenderContext_GL3::RenderContext_GL3(CreateDesc& desc)
@@ -267,3 +269,5 @@ void RenderContext_GL3::_destroyTestShaders() {
 }
 
 }
+
+#endif // SGE_RENDER_HAS_GL3

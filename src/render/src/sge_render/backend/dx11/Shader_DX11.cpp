@@ -10,12 +10,15 @@ Shader_DX11::Shader_DX11(StrView filename)
 	auto* proj = ProjectSettings::instance();
 	TempString passPath;
 
-	size_t n = _info.passes.size();
-	_passes.reserve(n);
-	for (size_t i = 0; i < n; i++) {
+	_passes.clear();
+	_passes.reserve(_info.passes.size());
+
+	int i = 0;
+	for (auto& info : _info.passes) {
 		FmtTo(passPath, "{}/{}/dx11/pass{}", proj->importedPath(), filename, i);
-		auto* pass = new MyPass(this, passPath, _info.passes[i]);
-		_passes.emplace_back(pass);
+		UPtr<Pass> pass = eastl::make_unique<MyPass>(this, passPath, info);
+		_passes.emplace_back(std::move(pass));
+		++i;
 	}
 }
 
@@ -57,13 +60,13 @@ Shader_DX11::MyPass::MyPass(Shader_DX11* shader, StrView passPath, ShaderInfo::P
 	: Base(shader, info)
 {
 	_vertexStage = &_myVertexStage;
-	_pixelStage  = &_myPixelStage;
+	 _pixelStage  = &_myPixelStage;
 
 	auto* renderer = Renderer_DX11::instance();
 	auto* dev = renderer->d3dDevice();
 
 	if (info.vsFunc.size()) { _myVertexStage.load(this, passPath, dev); }
-	if (info.psFunc.size()) { _myPixelStage.load(this, passPath, dev); }
+	if (info.psFunc.size()) {  _myPixelStage.load(this, passPath, dev); }
 }
 
 }

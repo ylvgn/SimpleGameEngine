@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sge_render/backend/gl3/Render_GL3_Common.h>
+#include <sge_render/backend/opengl/gl3/Render_GL3_Common.h>
 
 #include "spirv_cross.hpp"
 #include "spirv_glsl.hpp"

@@ -45,4 +45,4 @@ protected:
 
 } // namespace
 
-#endif
+#endif // SGE_RENDER_HAS_DX11

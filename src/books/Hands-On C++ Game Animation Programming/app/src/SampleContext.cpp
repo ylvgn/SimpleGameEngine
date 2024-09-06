@@ -14,7 +14,6 @@ void SampleContext::test_None_onCreate(Request& req) {
 	);
 	_staticShader->dumpUniformBlocks();
 	_staticShader->dumpActiveAttrib();
-
 }
 void SampleContext::test__END_onCreate(Request& req) {}
 void SampleContext::test_LitTexture_onCreate(Request& req) {

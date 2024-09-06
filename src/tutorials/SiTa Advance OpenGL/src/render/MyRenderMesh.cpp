@@ -3,8 +3,8 @@
 
 namespace sge {
 
-template<class MyVertexT>
-void MyVertexBuffer::create(const Span<const MyVertexT> data) {
+template<class T>
+void MyVertexBuffer::create(const Span<const T> data) {
 	destroy();
 
 	if (data.empty())

@@ -7,8 +7,10 @@ namespace sge {
 
 class MyVertexBuffer : public NonCopyable {
 public:
-	template<class MyVertexT>
-	void create(const Span<const MyVertexT> data);
+	~MyVertexBuffer() { destroy(); }
+
+	template<class T>
+	void create(const Span<const T> data);
 
 	void destroy();
 
@@ -21,6 +23,8 @@ private:
 class MyIndexBuffer : public NonCopyable {
 public:
 	using IndexType = MyEditMesh::IndexType;
+
+	~MyIndexBuffer() { destroy(); }
 
 	void create(const Span<const IndexType> data);
 	void destroy();

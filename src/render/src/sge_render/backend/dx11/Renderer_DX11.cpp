@@ -4,6 +4,8 @@
 #include "Material_DX11.h"
 #include "Texture_DX11.h"
 
+#if SGE_RENDER_HAS_DX11
+
 namespace sge {
 
 Renderer_DX11::Renderer_DX11(CreateDesc& desc) {
@@ -148,3 +150,5 @@ void Renderer_DX11::reportLiveObjects() {
 #endif
 
 } // namespace
+
+#endif // SGE_RENDER_HAS_DX11

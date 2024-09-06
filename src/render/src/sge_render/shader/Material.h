@@ -127,14 +127,13 @@ protected:
 	ShaderStage* _shaderStage = nullptr;
 
 	Vector<ConstBuffer, 4>	_constBuffers;
-	Vector<TexParam, 4>	_texParams;
+	Vector<TexParam, 4>		_texParams;
 public:
 
 	Span<ConstBuffer>	constBuffers()	{ return _constBuffers; }
 	Span<TexParam>		texParams()		{ return _texParams; }
 
 	const ShaderStageInfo* info() const { return _shaderStage->info(); }
-
 }; // MaterialPass_Stage
 
 struct MaterialPass_VertexStage : public MaterialPass_Stage {
@@ -153,7 +152,7 @@ struct MaterialPass_PixelStage : public MaterialPass_Stage {
 
 class MaterialPass : public NonCopyable {
 public:
-	virtual ~MaterialPass() = default;
+	virtual ~MaterialPass() noexcept = default;
 
 	using Pass			= MaterialPass;
 	using Stage			= MaterialPass_Stage;
@@ -175,23 +174,23 @@ protected:
 
 	template<class V> void _setParam(StrView name, const V& v) {
 		if (_vertexStage) _vertexStage->_setParam(name, v);
-		if (_pixelStage)  _pixelStage->_setParam(name, v);
+		 if (_pixelStage)  _pixelStage->_setParam(name, v);
 	}
 
 	template<class V> void _setTexParam(StrView name, const V& v) {
 		if (_vertexStage) _vertexStage->_setTexParam(name, v);
-		if (_pixelStage)  _pixelStage->_setTexParam(name, v);
+		 if (_pixelStage)  _pixelStage->_setTexParam(name, v);
 	}
 
-	Material*	_material		= nullptr;
-	ShaderPass* _shaderPass		= nullptr;
+	Material*	 _material		= nullptr;
+	ShaderPass*  _shaderPass	= nullptr;
 	VertexStage* _vertexStage	= nullptr;
-	PixelStage* _pixelStage		= nullptr;
+	PixelStage*  _pixelStage	= nullptr;
 }; // MaterialPass
 
 class Material : public RefCountBase {
 public:
-	virtual ~Material() = default;
+	virtual ~Material() noexcept = default;
 
 	using Pass			= MaterialPass;
 	using Stage			= MaterialPass_Stage;
@@ -210,8 +209,8 @@ public:
 	void setParam(StrView name, const Tuple4f& v) { _setParam(name, v); }
 	void setParam(StrView name, const Mat4f&   v) { _setParam(name, v); }
 
-	void setShader(Shader * shader);
-	Span<UPtr<Pass>>	passes() { return _passes; }
+	void setShader(Shader* shader);
+	Span< UPtr<Pass> >	passes() { return _passes; }
 
 	Pass* getPass(size_t index) {
 		if (index >= _passes.size()) {

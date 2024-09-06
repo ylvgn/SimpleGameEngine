@@ -1,7 +1,7 @@
 #include "Renderer.h"
 
 #include "backend/dx11/Renderer_DX11.h"
-#include "backend/gl3/Renderer_GL3.h"
+#include "backend/opengl/gl3/Renderer_GL3.h"
 
 namespace sge {
 
@@ -84,9 +84,9 @@ SPtr<Texture2D> Renderer::createSolidColorTexture2D(const Color4b& color) {
 	image.create(Color4b::kColorType, w, h);
 
 	for (int y = 0; y < w; y++) {
-		auto span = image.row<Color4b>(y);
+		auto row = image.row<Color4b>(y);
 		for (int x = 0; x < h; x++) {
-			span[x] = color; // span[x] means row[x]
+			row[x] = color;
 		}
 	}
 	return createTexture2D(texDesc);

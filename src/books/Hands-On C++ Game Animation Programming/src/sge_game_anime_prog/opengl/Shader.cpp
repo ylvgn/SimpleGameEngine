@@ -72,13 +72,13 @@ u32 Shader::_compileVertexShader(StrView vertex) {
 	glCompileShader(v_shader);
 
 	// Check for errors with glGetShaderiv
-	int success = 0;
+	int success;
 	glGetShaderiv(v_shader, GL_COMPILE_STATUS, &success);
-	if (!success) {
+	if (success != GL_TRUE) {
 		char infoLog[kInfoLogSize];
 		glGetShaderInfoLog(v_shader, kInfoLogSize, NULL, infoLog);
-		SGE_ERROR("Vertex compilation failed.\n{}", infoLog);
 		glDeleteShader(v_shader);
+		SGE_LOG("Vertex compilation failed.\n{}", infoLog);
 		return 0;
 	};
 	return v_shader;
@@ -93,13 +93,13 @@ u32 Shader::_compileFragmentShader(StrView fragment) {
 	glShaderSource(f_shader, 1, &sz, NULL);
 	glCompileShader(f_shader);
 
-	int success = 0;
+	int success;
 	glGetShaderiv(f_shader, GL_COMPILE_STATUS, &success);
-	if (!success) {
+	if (success != GL_TRUE) {
 		char infoLog[kInfoLogSize];
 		glGetShaderInfoLog(f_shader, kInfoLogSize, NULL, infoLog);
-		SGE_ERROR("Fragment compilation failed.\n{}", infoLog);
 		glDeleteShader(f_shader);
+		SGE_LOG("Fragment compilation failed.\n{}", infoLog);
 		return 0;
 	};
 	return f_shader;
@@ -115,14 +115,14 @@ bool Shader::_linkShaders(u32 vertex, u32 fragment) {
 	glLinkProgram(_handle);
 
 	// check for errors with glGetProgramiv
-	int success = 0;
+	int success;
 	glGetProgramiv(_handle, GL_LINK_STATUS, &success);
-	if (!success) {
+	if (success != GL_TRUE) {
 		char infoLog[kInfoLogSize];
 		glGetProgramInfoLog(_handle, kInfoLogSize, NULL, infoLog);
-		SGE_ERROR("Shader linking failed.\n{}", infoLog);
 		glDeleteShader(vertex);
 		glDeleteShader(fragment);
+		SGE_LOG("Shader linking failed.\n{}", infoLog);
 		return false;
 	}
 
@@ -175,7 +175,7 @@ void Shader::_populateUniforms() {
 	glUseProgram(_handle);
 	{
 		// glGetProgramiv needs to take GL_ACTIVE_UNIFORMS as the parameter name
-		// and you need to call glGetActiveUniformand glGetUniformLocation:
+		// and you need to call glGetActiveUniform and glGetUniformLocation:
 		glGetProgramiv(_handle, GL_ACTIVE_UNIFORMS, &count);
 
 		for (int i = 0; i < count; ++i) {
@@ -206,11 +206,11 @@ void Shader::_populateUniforms() {
 					while (true) {
 						testName.clear();
 						FmtTo(testName, "{}[{}]", uniformName.c_str(), uniformIndex++);
-						int uniformLocation = glGetUniformLocation(_handle, testName.c_str());
-						if (uniformLocation < 0) {
+						int loc = glGetUniformLocation(_handle, testName.c_str());
+						if (loc < 0) {
 							break; // invalid index
 						}
-						_uniforms[testName.c_str()] = uniformLocation;
+						_uniforms[testName.c_str()] = loc;
 					}
 				}
 				_uniforms[uniformName.c_str()] = uniform;
@@ -220,25 +220,23 @@ void Shader::_populateUniforms() {
 	glUseProgram(0);
 }
 
-
 void Shader::dumpUniformBlocks() {
 	GLint blockCount;
 	glGetProgramiv(_handle, GL_ACTIVE_UNIFORM_BLOCKS, &blockCount);
-	Vector<String> nameList;
-	nameList.reserve(blockCount);
+	TempString name;
+
+	TempString out_ubName;
 	for (int i = 0; i < blockCount; ++i) {
-		auto& o = nameList.emplace_back();
+		GLint out_nameLen;
+		glGetActiveUniformBlockiv(_handle, GLuint(i), GL_UNIFORM_BLOCK_NAME_LENGTH, &out_nameLen);
+		out_ubName.resize(out_nameLen);
 
-		GLint out_NameLen;
-		glGetActiveUniformBlockiv(_handle, i, GL_UNIFORM_BLOCK_NAME_LENGTH, &out_NameLen);
+		glGetActiveUniformBlockName(_handle, GLuint(i), out_nameLen, NULL, out_ubName.data());
 
-		o.resize(out_NameLen);
-		glGetActiveUniformBlockName(_handle, i, out_NameLen, NULL, o.begin());
+		auto ubIndex = glGetUniformBlockIndex(_handle, out_ubName.c_str());
+		SGE_ASSERT(ubIndex != GL_INVALID_INDEX); // NOTE: ubIndex != i
 
-		auto loc = glGetUniformBlockIndex(_handle, o.c_str());
-		SGE_ASSERT(loc >= 0);
-
-		SGE_LOG("GL_ACTIVE_UNIFORM_BLOCKS\t{}({})", o.c_str(), loc);
+		SGE_LOG("uniform block '{}' ({})", out_ubName.c_str(), ubIndex);
 	}
 }
 
@@ -247,18 +245,19 @@ void Shader::dumpActiveAttrib() {
 	glGetProgramiv(_handle, GL_ACTIVE_ATTRIBUTES, &activeCount);
 
 	static const size_t kszNameSize = 1024;
+	char out_szName[kszNameSize + 1];
 	for (int i = 0; i < activeCount; ++i) {
-		char out_szName[kszNameSize + 1];
-		GLsizei out_len = 0;
-		GLint   out_dataSize = 0;
-		GLenum  out_dataType = 0;
+		GLsizei out_length;
+		GLint   out_dataSize;
+		GLenum  out_dataType;
 
-		glGetActiveAttrib(_handle, static_cast<GLuint>(i), kszNameSize, &out_len, &out_dataSize, &out_dataType, out_szName);
-		out_szName[kszNameSize] = 0;
+		glGetActiveAttrib(_handle, GLuint(i), kszNameSize, &out_length, &out_dataSize, &out_dataType, out_szName);
+		out_szName[kszNameSize] = 0; // ensure terminate with 0
 
 		auto loc = glGetAttribLocation(_handle, out_szName);
-		SGE_ASSERT(loc >= 0);
-		SGE_LOG("GL_ACTIVE_ATTRIBUTES\t{}({})", out_szName, loc);
+		SGE_ASSERT(loc >= 0); // NOTE: loc != i
+
+		SGE_LOG("layout(location = {}) {}", loc, out_szName);
 	}
 }
 

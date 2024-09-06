@@ -1,7 +1,9 @@
 #pragma once
 
-#include "../../RenderContext.h"
+#include <sge_render/RenderContext.h>
 #include "Render_GL3_Common.h"
+
+#if SGE_RENDER_HAS_GL3
 
 namespace sge {
 
@@ -9,7 +11,6 @@ class RenderContext_GL3 : public RenderContext {
 private:
 	using Base = RenderContext;
 	using Util = GL3Util;
-
 public:
 	RenderContext_GL3(CreateDesc& desc);
 	~RenderContext_GL3() { _destroy(); }
@@ -46,3 +47,4 @@ protected:
 };
 
 }
+#endif // SGE_RENDER_HAS_GL3

@@ -22,29 +22,34 @@ struct ShaderPixelStage  : public ShaderStage {
 struct ShaderPass : public NonCopyable {
 	ShaderPass(Shader* shader, ShaderInfo::Pass& info);
 
-	virtual ~ShaderPass() = default;
+	virtual ~ShaderPass() noexcept = default;
 
-	ShaderVertexStage* vertexStage() { return _vertexStage; }
-	ShaderPixelStage*  pixelStage()  { return _pixelStage;  } 
-	const ShaderInfo::Pass*	info() const { return _info; }
+	ShaderVertexStage* vertexStage()		{ return _vertexStage; }
+	ShaderPixelStage*   pixelStage()		{ return _pixelStage; }
+	const ShaderInfo::Pass*	info() const	{ return _info; }
 
 protected:
-	Shader* _shader = nullptr;
-	ShaderInfo::Pass*  _info = nullptr;
-	ShaderVertexStage* _vertexStage = nullptr;
-	ShaderPixelStage*  _pixelStage  = nullptr;
+	Shader*				_shader			= nullptr;
+	ShaderInfo::Pass*   _info			= nullptr;
+	ShaderVertexStage*	_vertexStage	= nullptr;
+	ShaderPixelStage*   _pixelStage		= nullptr;
 };
 
 class Shader : public RefCountBase {
 public:
+	using Pass			= ShaderPass;
+	using Stage			= ShaderStage;
+	using VertexStage	= ShaderVertexStage;
+	using PixelStage	= ShaderPixelStage;
+
 	Shader(StrView filename);
 	virtual ~Shader();
 
 	const String& filename() const { return _filename; }
 
 	const ShaderInfo* info() const { return &_info; }
-	
-	Span<UPtr<ShaderPass>>	passes() { return _passes; }
+
+	Span< UPtr<ShaderPass> > passes() { return _passes; }
 
 protected:
 	String	_filename;

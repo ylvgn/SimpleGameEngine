@@ -1,5 +1,7 @@
 #include "Render_GL3_Common.h"
 
+#if SGE_RENDER_HAS_GL3
+
 namespace sge {
 
 void GL3Util::compileShader(GLuint& shader, GLenum type, StrView filename) {
@@ -361,3 +363,5 @@ void GL3Util::dumpActiveUniformBlocks(GLint program) {
 }
 
 }
+
+#endif // SGE_RENDER_HAS_GL3

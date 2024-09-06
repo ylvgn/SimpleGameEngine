@@ -5,7 +5,7 @@
 
 namespace sge {
 
-class RenderContext_DX11; // tmp
+class RenderContext_DX11;
 
 class Shader_DX11 : public Shader {
 	using Base = Shader;

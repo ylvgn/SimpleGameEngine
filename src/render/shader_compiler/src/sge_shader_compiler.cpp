@@ -17,7 +17,7 @@ protected:
 
 			auto* proj = ProjectSettings::instance();
 			proj->setProjectRoot(path);
-		}		
+		}
 
 		compile("Assets/Shaders/test.shader");
 		compile("Assets/Shaders/test.hlsl");
