@@ -1,4 +1,5 @@
 #include "RenderContext_GL3.h"
+#include "Renderer_GL3.h"
 #include "RenderFalseContext_GL3.h"
 #include "RenderGpuBuffer_GL3.h"
 

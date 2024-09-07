@@ -187,7 +187,7 @@ void Shader::_populateUniforms() {
 
 				// When a valid uniform is encountered,
 				// you need to determine whether the uniform is an array or not.
-				// To do this, search for the array bracket([) in the uniform name.
+				// To do this, search for the array bracket '[' in the uniform name.
 				// If the bracket is found, the uniform is an array
 
 				TempString uniformName = name;

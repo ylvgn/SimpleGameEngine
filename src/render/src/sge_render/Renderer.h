@@ -7,15 +7,12 @@
 
 namespace sge {
 
-// render context
 class RenderContext;
 struct RenderContext_CreateDesc;
 
-// render gpu buffer
 class RenderGpuBuffer;
 struct RenderGpuBuffer_CreateDesc;
 
-// abstract class
 class Renderer : public NonCopyable {
 public:
 
@@ -26,7 +23,7 @@ public:
 	};
 
 	struct CreateDesc {
-		CreateDesc(); // declare constructor -> RenderContext::CreateDesc::CreateDesc()
+		CreateDesc();
 		ApiType apiType;
 		bool multithread : 1;
 	};
@@ -41,11 +38,11 @@ public:
 
 	bool vsync() const { return _vsync; }
 
-	SPtr<RenderContext>		createContext(RenderContext_CreateDesc& desc)		{ return onCreateContext(desc); }
-	SPtr<RenderGpuBuffer>	createGpuBuffer(RenderGpuBuffer_CreateDesc& desc)	{ return onCreateGpuBuffer(desc); }
+	SPtr<RenderContext>		createContext	(RenderContext_CreateDesc& desc)	{ return onCreateContext(desc); }
+	SPtr<RenderGpuBuffer>	createGpuBuffer	(RenderGpuBuffer_CreateDesc& desc)	{ return onCreateGpuBuffer(desc); }
 	SPtr<Texture2D>			createTexture2D	(Texture2D_CreateDesc& desc)		{ return onCreateTexture2D(desc); }
-	SPtr<Shader>			createShader(StrView filename);
-	SPtr<Material>			createMaterial()									{ return onCreateMaterial(); };
+	SPtr<Shader>			createShader	(StrView filename);
+	SPtr<Material>			createMaterial	()									{ return onCreateMaterial(); };
 
 	void onShaderDestory(Shader* shader);
 
@@ -64,19 +61,17 @@ public:
 	SPtr<Texture2D>	createSolidColorTexture2D(const Color4b& color);
 
 protected:
-	virtual SPtr<RenderContext>		onCreateContext(RenderContext_CreateDesc& desc) = 0;
-	virtual SPtr<RenderGpuBuffer>	onCreateGpuBuffer(RenderGpuBuffer_CreateDesc& desc) = 0;
-	virtual SPtr<Shader>			onCreateShader(StrView filename) = 0;
-	virtual SPtr<Material>			onCreateMaterial() = 0;
-	virtual SPtr<Texture2D>			onCreateTexture2D(Texture2D_CreateDesc& desc) = 0;
-
-	StringMap<Shader*>	_shaders;
+	virtual SPtr<RenderContext>		onCreateContext		(RenderContext_CreateDesc& desc) = 0;
+	virtual SPtr<RenderGpuBuffer>	onCreateGpuBuffer	(RenderGpuBuffer_CreateDesc& desc) = 0;
+	virtual SPtr<Shader>			onCreateShader		(StrView filename) = 0;
+	virtual SPtr<Material>			onCreateMaterial	() = 0;
+	virtual SPtr<Texture2D>			onCreateTexture2D	(Texture2D_CreateDesc& desc) = 0;
 
 	static Renderer* s_instance;
-	RenderAdapterInfo _adapterInfo;
 
+	StringMap<Shader*>	_shaders;
+	RenderAdapterInfo	_adapterInfo;
 	bool _vsync : 1;
-	ApiType _apiType = ApiType::None;
-}; // Renderer
+};
 
-} // namespace
+}

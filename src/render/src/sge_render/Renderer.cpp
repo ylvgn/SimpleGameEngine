@@ -7,14 +7,14 @@ namespace sge {
 
 Renderer* Renderer::s_instance = nullptr;
 
-Renderer::CreateDesc::CreateDesc() {
+Renderer::CreateDesc::CreateDesc() 
+	: multithread(false)
+{
 #if SGE_OS_WINDOWS
 	apiType = ApiType::DX11;
 #else
 	apiType = ApiType::None;
 #endif
-
-	multithread = false;
 }
 
 Renderer* Renderer::create(CreateDesc& desc) {
@@ -51,12 +51,12 @@ Renderer::Renderer() {
 }
 
 Renderer::~Renderer() {
+	SGE_ASSERT(_shaders.size() == 0);
 	SGE_ASSERT(s_instance == this);
 	s_instance = nullptr;
 }
 
-SPtr<Shader> Renderer::createShader(StrView filename)
-{
+SPtr<Shader> Renderer::createShader(StrView filename) {
 	TempString tmpName = filename;
 	auto it = _shaders.find(tmpName.c_str());
 	if (it != _shaders.end()) {

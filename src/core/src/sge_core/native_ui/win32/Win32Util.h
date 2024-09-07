@@ -7,9 +7,9 @@ namespace sge {
 enum class UIKeyboardEventKeyCode : u32;
 
 struct Win32Util {
-	using KeyCode = UIKeyboardEventKeyCode;
-
 	Win32Util() = delete;
+
+	using KeyCode = UIKeyboardEventKeyCode;
 
 	static void convert(Rect2f& o, const ::RECT& i) {
 		o.x = static_cast<float>(i.left);
@@ -82,7 +82,7 @@ struct Win32Util {
 	static ::POINT	toPoint(const Vec2f& i)		{ ::POINT o; convert(o, i); return o; }
 	static ::RECT	toRect(const Rect2f& i)		{ ::RECT o;  convert(o, i); return o; }
 
-	static int toVKKey(const KeyCode& i);
+	static int		toVKKey(const KeyCode& i);
 
 }; // Win32Util
 

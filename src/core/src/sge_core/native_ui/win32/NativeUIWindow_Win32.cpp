@@ -124,6 +124,17 @@ void NativeUIWindow_Win32::onSetWindowTitle(StrView title) {
 	::SetWindowText(_hwnd, tmp.c_str());
 }
 
+
+void NativeUIWindow_Win32::onSetWindowPos(const Vec2f& pos) {
+	Base::onSetWindowPos(pos);
+	::SetWindowPos(_hwnd, HWND_TOP, int(pos.x), int(pos.y), 0, 0, SWP_ASYNCWINDOWPOS | SWP_NOSIZE);
+}
+
+void NativeUIWindow_Win32::onSetWindowSize(const Vec2f& size) {
+	Base::onSetWindowPos(size);
+	::SetWindowPos(_hwnd, HWND_TOP, 0, 0, int(size.x), int(size.y), SWP_ASYNCWINDOWPOS | SWP_NOMOVE);
+}
+
 void NativeUIWindow_Win32::onSetCursor(UIMouseCursor type) {
 	if (!_hwnd) return;
 

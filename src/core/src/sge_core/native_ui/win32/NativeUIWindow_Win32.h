@@ -7,12 +7,17 @@
 
 namespace sge {
 
+struct Win32Util;
+
 class NativeUIWindow_Win32 : public NativeUIWindow_Base {
 	using This = NativeUIWindow_Win32;
 	using Base = NativeUIWindow_Base;
+	using Util = Win32Util;
 protected:
 	virtual void onCreate(CreateDesc& desc) override;
 	virtual void onSetWindowTitle(StrView title) override;
+	virtual void onSetWindowPos(const Vec2f& pos) override;
+	virtual void onSetWindowSize(const Vec2f& size) override;
 	virtual void onSetCursor(UIMouseCursor type) override;
 	virtual void onDrawNeeded() override;
 	virtual void onScrollWindow(const Vec2i& delta) override;

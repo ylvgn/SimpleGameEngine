@@ -84,6 +84,8 @@ struct UIMouseEvent {
 	\
 	_E(F1,) _E(F2,) _E(F3,) _E(F4,)  _E(F5,)  _E(F6,) \
 	_E(F7,) _E(F8,) _E(F9,) _E(F10,) _E(F11,) _E(F12,) \
+	_E(F13,) _E(F14,) _E(F15,) _E(F16,) _E(F17,) _E(F18,) \
+	_E(F19,) _E(F20,) _E(F21,) _E(F22,) _E(F23,) _E(F24,) \
 	\
 	_E(Alpha0,) _E(Alpha1,) _E(Alpha2,) _E(Alpha3,) _E(Alpha4,) \
 	_E(Alpha5,) _E(Alpha6,) _E(Alpha7,) _E(Alpha8,) _E(Alpha9,) \
@@ -104,9 +106,10 @@ struct UIMouseEvent {
 	_E(UpArrow,) _E(DownArrow,) _E(LeftArrow,) _E(RightArrow,) \
 	\
 	_E(PrintScreen,) _E(ScrollLock,) _E(Pause,) \
-	_E(NumLock,) _E(KeypadDivide,) _E(KeypadMultiply,) _E(KeypadMinus,) _E(KeypadPlus,) _E(KeypadPeriod,) \
+	_E(NumLock,) _E(KeypadDivide,) _E(KeypadMultiply,) _E(KeypadMinus,) _E(KeypadPlus,) _E(KeypadPeriod,) _E(KeypadEnter,) \
 	_E(Keypad0,) _E(Keypad1,) _E(Keypad2,) _E(Keypad3,) _E(Keypad4,) \
 	_E(Keypad5,) _E(Keypad6,) _E(Keypad7,) _E(Keypad8,) _E(Keypad9,) \
+	\
 	_E(_End,) \
 //----
 SGE_ENUM_CLASS(UIKeyboardEventKeyCode, u32)
