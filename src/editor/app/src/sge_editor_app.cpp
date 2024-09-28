@@ -291,21 +291,7 @@ public:
 		}
 #if SGE_OS_WINDOWS
 	#if 1 // for quick testing (but not work for RenderDoc !!)
-		{ // compile shader
-			SHELLEXECUTEINFO ShExecInfo = {};
-			ShExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
-			ShExecInfo.fMask = SEE_MASK_NOCLOSEPROCESS;
-			ShExecInfo.hwnd = NULL;
-			ShExecInfo.lpVerb = L"open";
-			ShExecInfo.lpFile = L"compile_shaders.bat";
-			ShExecInfo.lpParameters = L"";
-			ShExecInfo.lpDirectory = NULL;
-			ShExecInfo.nShow = SW_SHOW;
-			ShExecInfo.hInstApp = NULL;
-			ShellExecuteEx(&ShExecInfo);
-			WaitForSingleObject(ShExecInfo.hProcess, INFINITE);
-			CloseHandle(ShExecInfo.hProcess);
-		}
+		CommandLine::runShell("compile_shaders.bat");
 	#endif
 #endif
 		Base::onCreate(desc);

@@ -35,7 +35,6 @@ void ShaderCompiler_GL3::compile(StrView outPath, ShaderStageMask shaderStage, S
 
 		TempStringW tmpSrcFilename;
 		UtfUtil::convert(tmpSrcFilename, srcFilename);
-
 #if 0
 		TempStringW tmpCmdParams;
 		fmt::format_to(std::back_inserter(tmpCmdParams),
@@ -61,27 +60,13 @@ void ShaderCompiler_GL3::compile(StrView outPath, ShaderStageMask shaderStage, S
 		WaitForSingleObject(ShExecInfo.hProcess, INFINITE);
 		CloseHandle(ShExecInfo.hProcess);
 #else
-		TempStringW tmpCmdParams;
-		tmpCmdParams.append(tmpShaderStage.c_str());	tmpCmdParams.append(L" ");
-		tmpCmdParams.append(tmpEntryPoint.c_str());		tmpCmdParams.append(L" ");
-		tmpCmdParams.append(tmpOutput.c_str());			tmpCmdParams.append(L" ");
-		tmpCmdParams.append(tmpSrcFilename.c_str());
-
-		wprintf(L"HLSL->SPIRV : sge_glslc.bat %ls\n\n", tmpCmdParams.c_str());
-
-		SHELLEXECUTEINFO ShExecInfo = {};
-		ShExecInfo.cbSize			= sizeof(SHELLEXECUTEINFO);
-		ShExecInfo.fMask			= SEE_MASK_NOCLOSEPROCESS;
-		ShExecInfo.hwnd				= NULL;
-		ShExecInfo.lpVerb			= L"open";
-		ShExecInfo.lpFile			= L"sge_glslc.bat";
-		ShExecInfo.lpParameters		= tmpCmdParams.c_str();
-		ShExecInfo.lpDirectory		= NULL;
-		ShExecInfo.nShow			= SW_HIDE; // SW_SHOW
-		ShExecInfo.hInstApp			= NULL;
-		ShellExecuteEx(&ShExecInfo);
-		WaitForSingleObject(ShExecInfo.hProcess, INFINITE);
-		CloseHandle(ShExecInfo.hProcess);
+		using Param = CommandLine::Param;
+		Vector<Param, 4> params;
+		params.emplace_back(Param(tmpShaderStage));
+		params.emplace_back(Param(tmpEntryPoint));
+		params.emplace_back(Param(tmpOutput));
+		params.emplace_back(Param(tmpSrcFilename));
+		CommandLine::runShell("sge_glslc.bat", params);
 #endif
 
 #endif

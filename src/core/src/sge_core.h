@@ -45,5 +45,7 @@
 
 #include <sge_core/file/FilePath.h>
 
+#include <sge_core/cmd/CommandLine.h>
+
 #include <sge_core/native_ui/NativeUI.h>
 

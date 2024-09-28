@@ -113,23 +113,9 @@ public:
 			auto curDir = Directory::getCurrent();
 			SGE_LOG("current dir={}", curDir);
 		}
-#if SGE_OS_WINDOWS
-		{ // compile shader
-			SHELLEXECUTEINFO ShExecInfo = {};
-			ShExecInfo.cbSize		= sizeof(ShExecInfo);
-			ShExecInfo.fMask		= SEE_MASK_NOCLOSEPROCESS;
-			ShExecInfo.hwnd			= NULL;
-			ShExecInfo.lpVerb		= L"open";
-			ShExecInfo.lpFile		= L"compile_shaders.bat";
-			ShExecInfo.lpParameters = L"";
-			ShExecInfo.lpDirectory	= NULL;
-			ShExecInfo.nShow		= SW_SHOW;
-			ShExecInfo.hInstApp		= NULL;
-			ShellExecuteEx(&ShExecInfo);
-			WaitForSingleObject(ShExecInfo.hProcess, INFINITE);
-			CloseHandle(ShExecInfo.hProcess);
-		}
-#endif
+
+		CommandLine::runShell("compile_shaders.bat");
+
 		Base::onCreate(desc);
 
 		{ // create renderer
