@@ -7,6 +7,28 @@
 
 namespace sge {
 
+#if 0
+#pragma mark ========= GLVertexArray ============
+#endif
+void RenderContext_GL3::GLVertexArray::bind() {
+	if (!_gl) {
+		glGenVertexArrays(1, &_gl);
+		Util::throwIfError();
+	}
+	glBindVertexArray(_gl);
+	Util::throwIfError();
+}
+
+void RenderContext_GL3::GLVertexArray::_destroy() {
+	if (_gl) {
+		glDeleteVertexArrays(1, &_gl);
+		_gl = 0;
+	}
+}
+
+#if 0
+#pragma mark ========= RenderContext_GL3 ============
+#endif
 RenderContext_GL3::RenderContext_GL3(CreateDesc& desc)
 	: Base(desc)
 	, _renderer(Renderer_GL3::current())
@@ -99,12 +121,6 @@ void RenderContext_GL3::onCmd_DrawCall(RenderCommand_DrawCall& cmd) {
 		if (!indexBuffer) { SGE_ASSERT(false); return; }
 	}
 
-	if (!_testVertexArrayObject) { // TODO
-		glGenVertexArrays(1, &_testVertexArrayObject);
-		Util::throwIfError();
-	}
-	glBindVertexArray(_testVertexArrayObject);
-
 	vertexBuffer->glBind();
 	{
 		if (auto* pass = cmd.getMaterialPass()) {
@@ -120,6 +136,7 @@ void RenderContext_GL3::onCmd_DrawCall(RenderCommand_DrawCall& cmd) {
 		GLsizei vertexCount = static_cast<GLsizei>(cmd.vertexCount);
 		GLsizei  indexCount = static_cast<GLsizei>(cmd.indexCount);
 
+		//_renderTarget.bind();
 		if (indexCount > 0) {
 			indexBuffer->glBind();
 			glDrawElements(primitive, indexCount, Util::getGlFormat(cmd.indexType), nullptr);
@@ -128,6 +145,8 @@ void RenderContext_GL3::onCmd_DrawCall(RenderCommand_DrawCall& cmd) {
 		else {
 			glDrawArrays(primitive, 0, static_cast<GLsizei>(vertexCount));
 		}
+
+		//_renderTarget.unbind();
 
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // wireframe Off tmp
 	}
@@ -153,12 +172,145 @@ void RenderContext_GL3::onSetFrameBufferSize(const Vec2f& newSize) {
 	Util::throwIfError();
 }
 
-void RenderContext_GL3::onBeginRender() {
+void RenderContext_GL3::_destroyBuffers() {
+	if (_viewFramebuffer) {
+		glDeleteFramebuffers(1, &_viewFramebuffer);
+		_viewFramebuffer = 0;
+	}
+	if (_viewRenderbuffer) {
+		glDeleteRenderbuffers(1, &_viewRenderbuffer);
+		_viewRenderbuffer = 0;
+	}
+	if (_depthRenderbuffer) {
+		glDeleteRenderbuffers(1, &_depthRenderbuffer);
+		_depthRenderbuffer = 0;
+	}
+}
 
+void RenderContext_GL3::onBeginRender() {
+	_vao.bind();
+	_createBuffers();
+	glBindFramebuffer(GL_FRAMEBUFFER, _viewFramebuffer);
+	glEnable(GL_DEPTH_TEST);
 }
 
 void RenderContext_GL3::onEndRender() {
+	_setTestFrameBufferScreenShaders();
 
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glDisable(GL_DEPTH_TEST);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	glBindTexture(GL_TEXTURE_2D, _testScreenQuadTexturebuffer);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+}
+
+void RenderContext_GL3::_setTestFrameBufferScreenShaders() {
+	static const char* s_vs = "#version 330\n"
+	"layout(location = 0) in vec2 i_positionOS;\n"
+	"layout(location = 1) in vec2 i_uv;\n"
+	"out vec2 uv;\n"
+	"void main()\n"
+	"{\n"
+		"gl_Position = vec4(i_positionOS.xy, 0.0, 1.0);\n"
+		"uv = i_uv;\n"
+	"}";
+
+	static const char* s_ps = "#version 330\n"
+	"uniform sampler2D _73;\n"
+	"in vec2 uv;\n"
+	"layout(location = 0) out vec4 _entryPointOutput;\n"
+	"void main()\n"
+	"{\n"
+		"_entryPointOutput = vec4(texture(_73, uv).xyz, 1.0);\n"
+	"}";
+
+	if (!_testFrameBufferVertexShader) {
+		_testFrameBufferVertexShader = GL3Util::compileShader(GL_VERTEX_SHADER, s_vs);
+	}
+
+	if (!_testFrameBufferPixelShader) {
+		_testFrameBufferPixelShader = GL3Util::compileShader(GL_FRAGMENT_SHADER, s_ps);
+	}
+
+	//---- link shader program
+	if (!_testFrameBufferShaderProgram) {
+		_testFrameBufferShaderProgram = glCreateProgram();
+		Util::throwIfError();
+
+		if (_testFrameBufferVertexShader) {
+			glAttachShader(_testFrameBufferShaderProgram, _testFrameBufferVertexShader);
+			Util::throwIfError();
+		}
+		if (_testFrameBufferPixelShader) {
+			glAttachShader(_testFrameBufferShaderProgram, _testFrameBufferPixelShader);
+			Util::throwIfError();
+		}
+		
+		glLinkProgram(_testFrameBufferShaderProgram);
+		GLint linked;
+		glGetProgramiv(_testFrameBufferShaderProgram, GL_LINK_STATUS, &linked);
+		if (linked != GL_TRUE) {
+			String errmsg;
+			Util::getProgramInfoLog(_testFrameBufferShaderProgram, errmsg);
+
+			TempString tmp;
+			FmtTo(tmp, "Error link shader: {}", errmsg);
+
+			throw SGE_ERROR("{}", tmp.c_str());
+		}
+		Util::throwIfError();
+
+		//---- validate shader program
+		glValidateProgram(_testFrameBufferShaderProgram);
+		GLint validated;
+		glGetProgramiv(_testFrameBufferShaderProgram, GL_VALIDATE_STATUS, &validated);
+		if (validated != GL_TRUE) {
+			String errmsg;
+			Util::getProgramInfoLog(_testFrameBufferShaderProgram, errmsg);
+
+			TempString tmp;
+			FmtTo(tmp, "Error validate shader {}", errmsg);
+
+			throw SGE_ERROR("{}", tmp.c_str());
+		}
+		Util::throwIfError();
+
+		SGE_ASSERT(glIsProgram(_testFrameBufferShaderProgram) == GL_TRUE);
+	}
+
+//---- use shader program
+	glUseProgram(_testFrameBufferShaderProgram);
+	Util::throwIfError();
+
+	// screen quad vertex buffer
+	static float s_quadVertices[] = {
+		// positions   // texCoords
+		-1.0f,  1.0f,  0.0f, 1.0f,
+		-1.0f, -1.0f,  0.0f, 0.0f,
+		 1.0f, -1.0f,  1.0f, 0.0f,
+
+		-1.0f,  1.0f,  0.0f, 1.0f,
+		 1.0f, -1.0f,  1.0f, 0.0f,
+		 1.0f,  1.0f,  1.0f, 1.0f
+	};
+
+	if (!_testScreenQuadVertexbuffer) {
+		glGenBuffers(1, &_testScreenQuadVertexbuffer);
+		glBindBuffer(GL_ARRAY_BUFFER, _testScreenQuadVertexbuffer);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(s_quadVertices), &s_quadVertices, GL_STATIC_DRAW);
+		Util::throwIfError();
+	}
+
+	constexpr size_t stride = 4 * sizeof(float);
+
+	glBindBuffer(GL_ARRAY_BUFFER, _testScreenQuadVertexbuffer);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, stride, (const void*)0);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride, (const void*)(2 * sizeof(float)));
+
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+	Util::throwIfError();
 }
 
 void RenderContext_GL3::_setTestShaders(const VertexLayout* vertexLayout) {
@@ -245,13 +397,37 @@ void RenderContext_GL3::_setTestShaders(const VertexLayout* vertexLayout) {
 	Util::throwIfError();
 }
 
+void RenderContext_GL3::_createBuffers() {
+	_destroyBuffers();
+
+	if (_viewFramebuffer) return;
+
+	GLint width  = GLint(_frameBufferSize.x);
+	GLint height = GLint(_frameBufferSize.y);
+
+	glGenFramebuffers(1, &_viewFramebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, _viewFramebuffer);
+
+	glGenTextures(1, &_testScreenQuadTexturebuffer);
+	glBindTexture(GL_TEXTURE_2D, _testScreenQuadTexturebuffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _testScreenQuadTexturebuffer, 0);
+
+	glGenRenderbuffers(1, &_testScreenQuadRenderbuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, _testScreenQuadRenderbuffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _testScreenQuadRenderbuffer);
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+		throw SGE_ERROR("failed to create frame buffer");
+	}
+}
+
 void RenderContext_GL3::_destroy() {
 	_destroyTestShaders();
-	if (_testVertexArrayObject) {
-		glDeleteVertexArrays(1, &_testVertexArrayObject);
-		_testVertexArrayObject = 0;
-	}
-	glBindVertexArray(0);
+	_destroyTestScreenFrameBuffer();
 }
 
 void RenderContext_GL3::_destroyTestShaders() {
@@ -266,6 +442,21 @@ void RenderContext_GL3::_destroyTestShaders() {
 	if (_testShaderProgram) {
 		glDeleteProgram(_testShaderProgram);
 		_testShaderProgram = 0;
+	}
+}
+
+void RenderContext_GL3::_destroyTestScreenFrameBuffer() {
+	if (!_testScreenQuadVertexbuffer) {
+		glDeleteBuffers(1, &_testScreenQuadVertexbuffer);
+		_testScreenQuadVertexbuffer = 0;
+	}
+	if (!_testScreenQuadTexturebuffer) {
+		glDeleteTextures(1, &_testScreenQuadTexturebuffer);
+		_testScreenQuadTexturebuffer = 0;
+	}
+	if (_testScreenQuadRenderbuffer) {
+		glDeleteRenderbuffers(1, &_testScreenQuadRenderbuffer);
+		_testScreenQuadRenderbuffer = 0;
 	}
 }
 

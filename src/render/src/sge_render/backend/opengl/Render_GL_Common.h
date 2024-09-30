@@ -40,20 +40,6 @@ protected:
 };
 
 #if 0
-#pragma mark ========= GLVertexArray ============
-#endif
-class GLVertexArray : public GLObject {
-public:
-	~GLVertexArray() { destroy(); }
-
-	void create();
-	void destroy();
-
-	void bind() const	{ glBindVertexArray(_gl); }
-	void unbind() const { glBindVertexArray(0); }
-};
-
-#if 0
 #pragma mark ========= GLVertexBuffer ============
 #endif
 class GLVertexBuffer : public GLObject {
@@ -81,32 +67,6 @@ public:
 
 	void bind	() const { glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _gl); }
 	void unbind	() const { glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); }
-};
-
-#if 0
-#pragma mark ========= GLFrameBuffer ============
-#endif
-class GLFrameBuffer : public GLObject {
-public:
-	~GLFrameBuffer() { destroy(); }
-
-	void create();
-	void destroy();
-
-	void bind()		{ glBindFramebuffer(GL_FRAMEBUFFER, _gl); }
-	void unbind()	{ glBindFramebuffer(GL_FRAMEBUFFER, 0); }
-};
-
-#if 0
-#pragma mark ========= GLRenderBuffer ============
-#endif
-class GLRenderBuffer : public GLObject {
-public:
-	~GLRenderBuffer() { destroy(); }
-
-	void create(GLsizei width, GLsizei height);
-	
-	void destroy();
 };
 
 }

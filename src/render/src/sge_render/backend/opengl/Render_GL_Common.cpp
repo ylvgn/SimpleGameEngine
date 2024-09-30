@@ -2,21 +2,6 @@
 
 namespace sge {
 #if 0
-#pragma mark ========= GLVertexArray ============
-#endif
-void GLVertexArray::create() {
-	destroy();
-	glGenVertexArrays(1, &_gl);
-}
-
-void GLVertexArray::destroy() {
-	if (_gl) {
-		glDeleteVertexArrays(1, &_gl);
-		_gl = 0;
-	}
-}
-
-#if 0
 #pragma mark ========= GLVertexBuffer ============
 #endif
 template<class T>
@@ -67,47 +52,6 @@ void GLIndexBuffer::create(const Span<const u32> data) {
 void GLIndexBuffer::destroy() {
 	if (_gl) {
 		glDeleteBuffers(1, &_gl);
-		_gl = 0;
-	}
-}
-
-#if 0
-#pragma mark ========= GLFrameBuffer ============
-#endif
-void GLFrameBuffer::create() {
-	destroy();
-
-	glGenFramebuffers(1, &_gl);
-	glBindFramebuffer(GL_FRAMEBUFFER, _gl);
-}
-
-void GLFrameBuffer::destroy() {
-	if (_gl) {
-		glDeleteFramebuffers(1, &_gl);
-		_gl = 0;
-	}
-}
-
-#if 0
-#pragma mark ========= GLRenderBuffer ============
-#endif
-void GLRenderBuffer::create(GLsizei width, GLsizei height) {
-	destroy();
-
-	glGenRenderbuffers(1, &_gl);
-	glBindRenderbuffer(GL_RENDERBUFFER, _gl);
-
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
-
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _gl);
-
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		throw SGE_ERROR("Framebuffer is not complete");
-}
-
-void GLRenderBuffer::destroy() {
-	if (_gl) {
-		glDeleteRenderbuffers(1, &_gl);
 		_gl = 0;
 	}
 }

@@ -3,7 +3,9 @@
 namespace sge {
 /*
 	* Hello Window
-	* FYI: https://learnopengl.com/Getting-started/Hello-Window
+	* FYI:
+		* 1.1.hello_window: https://learnopengl.com/Getting-started/Creating-a-window
+		* 1.2.hello_window_clear: https://learnopengl.com/Getting-started/Hello-Window
 */
 
 class MainWin : public MyGLFWNativeUIWindow {
@@ -42,7 +44,7 @@ protected:
 			winDesc.isMainWindow = true;
 			winDesc.rect = { 10, 10, 1376, 768 };
 			_mainWin->create(winDesc);
-			_mainWin->setWindowTitle("1.1.hello_window");
+			_mainWin->setWindowTitle("1.getting_started - Hello Window");
 		}
 
 		Base::onCreate(desc);

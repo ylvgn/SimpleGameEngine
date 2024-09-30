@@ -34,6 +34,26 @@ void GL3Util::compileShader(GLuint& shader, GLenum type, ByteSpan sourceCode, St
 	}
 }
 
+GLuint GL3Util::compileShader(GLenum type, StrView source) {
+	GLuint shader = glCreateShader(type);
+	throwIfError();
+
+	auto* const data = source.data();
+	GLint dataSize = static_cast<GLint>(source.size());
+
+	glShaderSource(shader, 1, &data, &dataSize);
+	glCompileShader(shader);
+
+	GLint compiled;
+	glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
+	if (compiled != GL_TRUE) {
+		String errmsg;
+		getShaderInfoLog(shader, errmsg);
+		throw SGE_ERROR("Error compile shader: {}", errmsg.c_str());
+	}
+	return shader;
+}
+
 void GL3Util::getShaderInfoLog(GLuint shader, String& outMsg) {
 	outMsg.clear();
 	if (!shader) return;

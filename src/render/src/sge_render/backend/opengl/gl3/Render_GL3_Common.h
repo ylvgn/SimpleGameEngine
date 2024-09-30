@@ -39,6 +39,7 @@ struct GL3Util {
 
 	static void compileShader(GLuint& shader, GLenum type, StrView filename);
 	static void compileShader(GLuint& shader, GLenum type, ByteSpan sourceCode, StrView filename = StrView());
+	static GLuint compileShader(GLenum type, StrView source);
 	static void getShaderInfoLog(GLuint shader, String& outMsg);
 	static void getProgramInfoLog(GLuint program, String& outMsg);
 
