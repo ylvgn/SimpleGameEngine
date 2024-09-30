@@ -26,6 +26,8 @@ enum class FileShareMode {
 };
 
 struct File {
+	File() = delete;
+
 	static bool exists(StrView filename);
 	static void rename(StrView src, StrView dst);
 

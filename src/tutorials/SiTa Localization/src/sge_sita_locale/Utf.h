@@ -184,17 +184,34 @@ namespace Utf {
 		dst += static_cast<C>(v);
 	}
 
+	template<size_t CharSize>
+	struct UtfWCharUtil {
+		UtfWCharUtil() = delete;
+	};
+
+	template<>
+	struct UtfWCharUtil<2> {
+		template<size_t N> static
+			inline void appendChar(StringW_ <N>& dst, u32 v) {
+			_appendChar16(dst, v);
+		}
+	};
+
+	template<>
+	struct UtfWCharUtil<4> {
+		template<size_t N> static
+			inline void appendChar(StringW_ <N>& dst, u32 v) {
+			_appendChar32(dst, v);
+		}
+	};
+
 //	template<size_t N> inline void _appendChar(StringA_ <N>& dst, u32 v) { _appendChar8 (dst, v); }
 	template<size_t N> inline void _appendChar(String8_ <N>& dst, u32 v) { _appendChar8 (dst, v); }
 	template<size_t N> inline void _appendChar(String16_<N>& dst, u32 v) { _appendChar16(dst, v); }
 	template<size_t N> inline void _appendChar(String32_<N>& dst, u32 v) { _appendChar32(dst, v); }
 	template<size_t N> inline void _appendChar(StringW_ <N>& dst, u32 v) {
-		using C = WCharUtil::Char;
-
-		if (sizeof(C) == sizeof(char16_t))
-			_appendChar16(dst, v);
-		else
-			_appendChar32(dst, v);
+		using Char = typename WCharUtil::Char;
+		UtfWCharUtil<sizeof(Char)>::appendChar(dst, v);
 	}
 
 	template<typename DST, typename SRC>

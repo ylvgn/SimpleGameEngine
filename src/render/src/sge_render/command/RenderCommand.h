@@ -26,7 +26,7 @@ class RenderCommand : NonCopyable {
 public:
 
 	RenderCommand(Type type) : _type(type) {}
-	virtual ~RenderCommand() {}
+	virtual ~RenderCommand() noexcept = default;
 
 	Type type() const { return _type; }
 
@@ -36,7 +36,7 @@ public:
 
 private:
 	Type _type = Type::None;
-}; // RenderCommand
+};
 
 #if 0
 #pragma mark ========= RenderCommand_ClearFrameBuffers ============

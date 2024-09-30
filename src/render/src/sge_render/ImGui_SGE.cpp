@@ -11,27 +11,21 @@ ImGui_SGE::~ImGui_SGE() {
 void ImGui_SGE::create() {
 	if (!IMGUI_CHECKVERSION())
 		throw SGE_ERROR("ImGui version error");
-
 	_ctx = ImGui::CreateContext();
+	if (!_ctx) throw SGE_ERROR("ImGui error create context");
 
-	if (!_ctx)
-		throw SGE_ERROR("ImGui error create context");
+	_vertexLayout = Vertex::s_layout();
 
 	ImGuiIO& io = ImGui::GetIO();
 	io.BackendRendererUserData = this;
 	io.BackendRendererName = "ImGui_SGE";
-	io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;  // We can honor the ImDrawCmd::VtxOffset field, allowing for large meshes.
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;		// Enable Keyboard Controls
+	io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;
+	io.ConfigFlags  |= ImGuiConfigFlags_NavEnableKeyboard;
 
 	auto* renderer = Renderer::instance();
-	{ // vertex layout
-		_vertexLayout = Vertex::s_layout();
-	}
-	{ // material
-		auto shader = Renderer::instance()->createShader("Assets/Shaders/imgui.shader");
-		_material = renderer->createMaterial();
-		_material->setShader(shader);
-	}
+	auto shader = Renderer::instance()->createShader("Assets/Shaders/imgui.shader");
+	_material	= renderer->createMaterial();
+	_material->setShader(shader);
 }
 
 void ImGui_SGE::destroy() {

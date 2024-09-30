@@ -101,6 +101,37 @@ using f32 = float;
 using f64 = double;
 using f128 = long double;
 
+template<size_t N> struct TypeByBits;
+
+template<>
+struct TypeByBits<8> {
+	using Int  = i8;
+	using UInt = u8;
+	using Char = char;
+};
+
+template<>
+struct TypeByBits<16> {
+	using Int = i16;
+	using UInt = u16;
+	using Char = char16_t;
+};
+
+template<>
+struct TypeByBits<32> {
+	using Int   = i32;
+	using UInt  = u32;
+	using Float = f32;
+	using Char  = char32_t;
+};
+
+template<>
+struct TypeByBits<64> {
+	using Int   = i64;
+	using UInt  = u64;
+	using Float = f64;
+};
+
 template< class Obj, class Member > constexpr
 intptr_t memberOffset(Member Obj::*ptrToMember) {
 	Obj* c = nullptr;
@@ -228,8 +259,8 @@ using TempStringW = StringW_<220>;
 using StringA = StringA_<0>;
 using StringW = StringW_<0>;
 
-using StrView		= StrViewA;
-using String		= StringA;
+using StrView = StrViewA;
+using String  = StringA;
 
 template<class T, size_t N> inline bool operator==(const StringT<T, N>& lhs, StrViewT<T> rhs) { return lhs.compare(rhs.data()) == 0; }
 template<class T, size_t N> inline bool operator!=(const StringT<T, N>& lhs, StrViewT<T> rhs) { return lhs.compare(rhs.data()) != 0; }

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <sge_core/math/Vec2.h>
+
 namespace sge {
 
 enum class NativeUIScrollInfoAxis {
