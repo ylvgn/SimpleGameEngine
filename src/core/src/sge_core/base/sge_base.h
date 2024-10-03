@@ -35,16 +35,12 @@
 #include <EASTL/fixed_string.h>
 #include <EASTL/string_view.h>
 #include <EASTL/span.h>
-
 #include <EASTL/optional.h>
-
 #include <EASTL/map.h>
 #include <EASTL/hash_map.h>
 #include <EASTL/vector_map.h>
 #include <EASTL/string_map.h>
-
 #include <EASTL/set.h>
-
 #include <EASTL/unique_ptr.h>
 #include <EASTL/shared_ptr.h>
 #include <EASTL/weak_ptr.h>
@@ -100,37 +96,6 @@ using i64 = int64_t;
 using f32 = float;
 using f64 = double;
 using f128 = long double;
-
-template<size_t N> struct TypeByBits;
-
-template<>
-struct TypeByBits<8> {
-	using Int  = i8;
-	using UInt = u8;
-	using Char = char;
-};
-
-template<>
-struct TypeByBits<16> {
-	using Int = i16;
-	using UInt = u16;
-	using Char = char16_t;
-};
-
-template<>
-struct TypeByBits<32> {
-	using Int   = i32;
-	using UInt  = u32;
-	using Float = f32;
-	using Char  = char32_t;
-};
-
-template<>
-struct TypeByBits<64> {
-	using Int   = i64;
-	using UInt  = u64;
-	using Float = f64;
-};
 
 template< class Obj, class Member > constexpr
 intptr_t memberOffset(Member Obj::*ptrToMember) {
@@ -196,10 +161,10 @@ template<class KEY> using Set = eastl::set<KEY>;
 template<class T> using Opt = eastl::optional<T>;
 
 template<class T> using StrViewT = eastl::basic_string_view<T>;
-using StrViewA = StrViewT<char>;
-using StrViewW = StrViewT<wchar_t>;
+using StrViewA  = StrViewT<char>;
+using StrViewW  = StrViewT<wchar_t>;
 
-using StrView8  = StrViewT<char8_t>;
+using StrView8  = StrViewT<char>; // char8_t: require c++20
 using StrView16 = StrViewT<char16_t>;
 using StrView32 = StrViewT<char32_t>;
 
@@ -218,29 +183,20 @@ class StringT : public StringT_Base<T, N, bEnableOverflow>::Type {
 	using Base = typename StringT_Base<T, N, bEnableOverflow>::Type;
 public:
 	StringT() = default;
-	StringT(const T* begin, const T* end) : Base(begin, end) {}
-	StringT(StrViewT<T> view) : Base(view.data(), view.size()) {}
-	StringT(StringT&& str) : Base(std::move(str)) {}
-	StringT(const T* sz) : Base(sz) {}
+	StringT(const T* begin, const T* end)				: Base(begin, end) {}
+	StringT(StrViewT<T> view)							: Base(view.data(), view.size()) {}
+	StringT(StringT&& str)								: Base(std::move(str)) {}
+	StringT(const T* sz)								: Base(sz) {}
+	StringT(const StringT& s)							: Base(s.data(), s.size()) {}
+	template<size_t M> StringT(const StringT<T, M>& s)	: Base(s.data(), s.size()) {}
 
-	template<size_t M>
-	StringT(const StringT<T, M>& s) : Base(s.data(), s.size()) {}
+						void operator=(const StringT& s)		{ Base::assign(s.data(), s.size()); }
+	template<size_t N>	void operator=(const StringT<T, N>& r)	{ Base::assign(s.data(), s.size()); }
+	template<class R>	void operator=(R&& r)					{ Base::operator=(SGE_FORWARD(r)); }
 
-	StringT(const StringT& s) : Base(s.data(), s.size()) {}
-
-	void operator=(const StringT& s) { Base::assign(s.data(), s.size()); }
-
-	template<size_t N>
-	void operator=(const StringT<T, N>& r) { Base::assign(s.data(), s.size()); }
-
-	template<class R> void operator=(R&& r) { Base::operator=(SGE_FORWARD(r)); }
-
-	void operator+=(StrViewT<T> v) { Base::append(v.begin(), v.end()); }
-
-	template<size_t N>
-	void operator+=(const StringT<T, N>& v) { Base::append(v.begin(), v.end()); }
-
-	template<class R> void operator+=(const R& r) { Base::operator+=(r); }
+						void operator+=(StrViewT<T> v)			{ Base::append(v.begin(), v.end()); }
+	template<size_t N>	void operator+=(const StringT<T, N>& v) { Base::append(v.begin(), v.end()); }
+	template<class R>	void operator+=(const R& r)				{ Base::operator+=(r); }
 
 	StrViewT<T>	view() const { return StrViewT<T>(data(), size()); }
 };
@@ -248,8 +204,7 @@ public:
 template<size_t N, bool bEnableOverflow = true> using StringA_ = StringT<char,    N, bEnableOverflow>;
 template<size_t N, bool bEnableOverflow = true> using StringW_ = StringT<wchar_t, N, bEnableOverflow>;
 
-template<size_t N, bool bEnableOverflow = true> using String8_  = StringT<char,		N, bEnableOverflow>;
-//template<size_t N, bool bEnableOverflow = true> using String8_  = StringT<char8_t,	N, bEnableOverflow>;
+template<size_t N, bool bEnableOverflow = true> using String8_  = StringT<char,		N, bEnableOverflow>; // char8_t: require c++20
 template<size_t N, bool bEnableOverflow = true> using String16_ = StringT<char16_t, N, bEnableOverflow>;
 template<size_t N, bool bEnableOverflow = true> using String32_ = StringT<char32_t, N, bEnableOverflow>;
 
@@ -292,7 +247,7 @@ template<size_t N> using String_ = StringA_<N>;
 using TempString = TempStringA;
 
 template<size_t N> struct CharBySize;
-template<> struct CharBySize<1> { using Type = char; };
+template<> struct CharBySize<1> { using Type = char; }; // char8_t: require c++20
 template<> struct CharBySize<2> { using Type = char16_t; };
 template<> struct CharBySize<4> { using Type = char32_t; };
 
@@ -309,17 +264,15 @@ size_t charStrlen(const T* sz) {
 	return static_cast<size_t>(p - sz);
 }
 
-inline StrView   StrView_c_str(const char*		s)	{ return s ? StrView  (s, strlen(s)) : StrView (); }
-inline StrViewW  StrView_c_str(const wchar_t*	s)	{ return s ? StrViewW (s, wcslen(s)) : StrViewW(); }
-//inline StrView8  StrView_c_str(const char8_t*	s)	{ return s ? StrView8 (s, charStrlen(s)) : StrView8 (); }
+inline StrView   StrView_c_str(const char*		s)	{ return s ? StrView  (s, strlen(s))	 : StrView (); } // char8_t: require c++20
 inline StrView16 StrView_c_str(const char16_t*	s)	{ return s ? StrView16(s, charStrlen(s)) : StrView16(); }
 inline StrView32 StrView_c_str(const char32_t*	s)	{ return s ? StrView32(s, charStrlen(s)) : StrView32(); }
+inline StrViewW  StrView_c_str(const wchar_t*	s)	{ return s ? StrViewW (s, wcslen(s))	 : StrViewW(); }
 
 //! Source Location
 class SrcLoc {
 public:
-	SrcLoc() = default;
-	SrcLoc(const char* file_, int line_, const char* func_)
+	SGE_INLINE SrcLoc(const char* file_, int line_, const char* func_)
 		: file(file_)
 		, func(func_)
 		, line(line_)
@@ -329,6 +282,12 @@ public:
 	const char* func = "";
 	int line = 0;
 };
+
+} // namespace sge
+
+#include "TypeTraits.h"
+
+namespace sge {
 
 class NonCopyable {
 public:
@@ -425,4 +384,4 @@ using RangeMinMaxValued = RangeMinMaxValue<double>;
 template<typename T> inline RangeMinMaxValue<T> makeRangeMinMaxValue(T min, T max) { return RangeMinMaxValue<T>(min, max); }
 template<typename T> inline RangeMinMaxValue<T> makeRangeMinMaxValue(T min, T max, T v) { return RangeMinMaxValue<T>(min, max, v); }
 
-} // namespace
+} // namespace sge

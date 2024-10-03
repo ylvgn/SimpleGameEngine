@@ -27,7 +27,7 @@ public:
 	const	T* ptr()		const	noexcept { return _p; }
 
 	void reset(T* p) noexcept {
-		static_assert(std::is_base_of<RefCountBase, T>::value, "");
+		SGE_STATIC_ASSERT(TypeTraits::isBaseOf<RefCountBase, T>::value);
 		if (p == _p) return;
 		if (_p) {
 			auto c = --_p->_refCount;

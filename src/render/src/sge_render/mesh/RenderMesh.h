@@ -110,7 +110,7 @@ SGE_INLINE const VertexLayout* RenderSubMesh::vertexLayout() const {
 
 template<class VertexT> inline
 VertexT* RenderSubMesh::vertex(int i) {
-	static_assert(std::is_base_of<VertexBase, VertexT>::value, "");
+	SGE_STATIC_ASSERT(TypeTraits::isBaseOf<VertexBase, VertexT>::value);
 
 	size_t offset = vertexLayout()->stride * i;
 	return _vertex<VertexT>(offset);

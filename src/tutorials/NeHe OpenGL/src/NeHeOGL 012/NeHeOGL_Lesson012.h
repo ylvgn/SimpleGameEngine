@@ -36,7 +36,7 @@ private:
 	};
 
 	static Color4b kTopColors[kColorCount];
-	static_assert(sizeof(kTopColors) == sizeof(kBoxColors), "");
+	SGE_STATIC_ASSERT(sizeof(kTopColors) == sizeof(kBoxColors));
 
 	void _example1();
 

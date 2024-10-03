@@ -17,7 +17,7 @@ public:
 	void _registerComponentType(const TypeInfo* type);
 
 	template<class C>
-	void registerSystem() { static_assert(std::is_base_of<CSystemBase, C>::value); _registerSystem(new C); }
+	void registerSystem() { SGE_STATIC_ASSERT(TypeTraits::isBaseOf<CSystemBase, C>::value); _registerSystem(new C); }
 	void _registerSystem(CSystemBase* sys);
 
 	const TypeInfo* findTypeByName(StrView typeName);

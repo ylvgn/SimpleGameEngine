@@ -6,6 +6,24 @@ namespace sge {
 
 namespace Utf {
 
+// ----------
+	template<class T> struct WCharEncodeUtil {};
+
+	template<>
+	struct WCharEncodeUtil<char16_t> {
+		template<size_t N> SGE_INLINE static void appendChar(StringW_<N>& dst, u32 v) {
+			_appendChar16(dst, v);
+		}
+	};
+
+	template<>
+	struct WCharEncodeUtil<char32_t> {
+		template<size_t N> SGE_INLINE static void appendChar(StringW_<N>& dst, u32 v) {
+			_appendChar32(dst, v);
+		}
+	};
+
+// ----------
 	inline u32 _decodeUtf(const char8_t*& src, const char8_t* end) {
 		auto v = static_cast<u8>(*src);
 		u32 o = 0;
@@ -61,7 +79,8 @@ namespace Utf {
 
 		{
 			SGE_ASSERT(FALSE);
-			return static_cast<uint8_t>(*src++);
+			o = static_cast<uint8_t>(*src++);
+			return o;
 		}
 	}
 
@@ -184,34 +203,12 @@ namespace Utf {
 		dst += static_cast<C>(v);
 	}
 
-	template<size_t CharSize>
-	struct UtfWCharUtil {
-		UtfWCharUtil() = delete;
-	};
-
-	template<>
-	struct UtfWCharUtil<2> {
-		template<size_t N> static
-			inline void appendChar(StringW_ <N>& dst, u32 v) {
-			_appendChar16(dst, v);
-		}
-	};
-
-	template<>
-	struct UtfWCharUtil<4> {
-		template<size_t N> static
-			inline void appendChar(StringW_ <N>& dst, u32 v) {
-			_appendChar32(dst, v);
-		}
-	};
-
-//	template<size_t N> inline void _appendChar(StringA_ <N>& dst, u32 v) { _appendChar8 (dst, v); }
-	template<size_t N> inline void _appendChar(String8_ <N>& dst, u32 v) { _appendChar8 (dst, v); }
+	template<size_t N> inline void _appendChar(String8_ <N>& dst, u32 v) { _appendChar8 (dst, v); } // String8_ same as StringA_
 	template<size_t N> inline void _appendChar(String16_<N>& dst, u32 v) { _appendChar16(dst, v); }
 	template<size_t N> inline void _appendChar(String32_<N>& dst, u32 v) { _appendChar32(dst, v); }
 	template<size_t N> inline void _appendChar(StringW_ <N>& dst, u32 v) {
-		using Char = typename WCharUtil::Char;
-		UtfWCharUtil<sizeof(Char)>::appendChar(dst, v);
+		using Char = typename ::sge::TypeTraits::typeBySize<sizeof(wchar_t)>::Char; // using Char = typename WCharUtil::Char;
+		WCharEncodeUtil<Char>::appendChar(dst, v);
 	}
 
 	template<typename DST, typename SRC>
@@ -232,6 +229,5 @@ namespace Utf {
 		dst.clear();
 		append(dst, src);
 	}
-}
-
-}
+} // namespace Utf
+} // namespace sge

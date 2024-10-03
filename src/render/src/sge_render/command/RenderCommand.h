@@ -25,7 +25,12 @@ class RenderCommand : NonCopyable {
 	using Type = RenderCommandType;
 public:
 
-	RenderCommand(Type type) : _type(type) {}
+	RenderCommand(Type type)
+		: _type(type)
+#if _DEBUG
+		, debugLoc(SGE_LOC)
+#endif
+	{}
 	virtual ~RenderCommand() noexcept = default;
 
 	Type type() const { return _type; }
@@ -131,7 +136,7 @@ public:
 
 	template<class CMD>
 	CMD* newCommand() {
-		static_assert(std::is_base_of<RenderCommand, CMD>::value, "");
+		SGE_STATIC_ASSERT(TypeTraits::isBaseOf<RenderCommand, CMD>::value);
 		auto* buf = _allocator.allocate(sizeof(CMD));
 		auto* cmd = new(buf) CMD();
 		_commands.emplace_back(cmd);

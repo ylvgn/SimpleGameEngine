@@ -39,6 +39,9 @@
 #define SGE_FORWARD(a)	::std::forward< decltype(a) >(a)
 #define SGE_ASSERT(...)	assert(__VA_ARGS__)
 
+#define SGE_STATIC_ASSERT_MSG	static_assert
+#define SGE_STATIC_ASSERT(...)	SGE_STATIC_ASSERT_MSG(__VA_ARGS__, #__VA_ARGS__)
+
 #if _DEBUG
 	#define SGE_LOC	SrcLoc(__FILE__, __LINE__, SGE_FUNC_NAME_SZ)
 #else

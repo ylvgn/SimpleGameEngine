@@ -21,7 +21,7 @@ struct Vec2_SSE_Data {
 
 	SGE_INLINE Vec2_SSE_Data() = default;
 	SGE_INLINE Vec2_SSE_Data(const T& x_, const T& y_) {
-		static_assert(sizeof(Vec2_SSE_Data) == sizeof(T) * 2);
+		SGE_STATIC_ASSERT(sizeof(Vec2_SSE_Data) == sizeof(T) * 2);
 		set(x_, y_);
 	}
 	SGE_INLINE Vec2_SSE_Data(const Tuple2<T>& v) {

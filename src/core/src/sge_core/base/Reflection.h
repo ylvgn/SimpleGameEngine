@@ -51,9 +51,6 @@ class TypeInfo;
 template<class T> inline const TypeInfo* TypeOf()			{ return T::s_getType(); }
 template<class T> inline const TypeInfo* TypeOf(const T& v) { return TypeOf<T>(); }
 
-
-
-
 class FieldInfo {
 public:
 	using Getter = const void* (*)(const void* obj);
@@ -107,18 +104,7 @@ SGE_FORMATTER(FieldInfo)
 
 class TypeInfo {
 public:
-	const char* name = "";
-	const TypeInfo* base = nullptr;
-	size_t dataSize = 0;
-
-	Span<const FieldInfo> fields() const { return _fields; }
-
 	using Creator = Object * (*)();
-
-	Creator creator;
-
-	bool isContainer = false;
-	const TypeInfo* elementType = nullptr;
 
 	Object* createObject() const {
 		if (!creator) return nullptr;
@@ -140,7 +126,16 @@ public:
 		return isKindOf(TypeOf<DST>());
 	};
 
+	Span<const FieldInfo> fields() const { return _fields; }
+
 	void onFormat(fmt::format_context& ctx) const;
+
+	const char*		name = "";
+	const TypeInfo* base = nullptr;
+	const TypeInfo* elementType = nullptr;
+	Creator			creator;
+	size_t			dataSize = 0;
+	bool			isContainer = false;
 
 protected:
 	Span<const FieldInfo> _fields;
@@ -170,7 +165,7 @@ template<class T, class BASE>
 class TypeInfoInit : public TypeInfoInitNoBase<T> {
 public:
 	TypeInfoInit(const char* name_, Creator creator_) : TypeInfoInitNoBase<T>(name_) {
-		static_assert(std::is_base_of<BASE, T>::value, "invalid base class");
+		SGE_STATIC_ASSERT(TypeTraits::isBaseOf<BASE, T>::value);
 		base = TypeOf<BASE>();
 		this->creator = creator_;
 	}
@@ -210,9 +205,9 @@ SGE_TYPEOF_SIMPLE(uint16_t)
 SGE_TYPEOF_SIMPLE(uint32_t)
 SGE_TYPEOF_SIMPLE(uint64_t)
 
-SGE_TYPEOF_SIMPLE(char8_t) // c++20
+SGE_TYPEOF_SIMPLE(char) // char8_t: require c++20
 SGE_TYPEOF_SIMPLE(char16_t)
 SGE_TYPEOF_SIMPLE(char32_t)
 SGE_TYPEOF_SIMPLE(wchar_t)
 
-} // namespace
+} // namespace sge

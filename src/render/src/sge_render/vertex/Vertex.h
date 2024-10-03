@@ -345,8 +345,8 @@ struct VertexT_Tangent : public BASE
 	}
 
 	static void onRegister(VertexLayout* layout) {
-		static_assert(std::is_same<TangentType, NormalType>::value, "");
-
+		SGE_STATIC_ASSERT(TypeTraits::isSame<TangentType, NormalType>::value);
+		
 		BASE::onRegister(layout);
 		layout->addElement(Semantic::TANGENT, &VertexT_Tangent::tangent);
 	}
@@ -368,7 +368,7 @@ struct VertexT_Binormal : public BASE
 	}
 
 	static void onRegister(VertexLayout* layout) {
-		static_assert(std::is_same<BinormalType, NormalType>::value, "");
+		SGE_STATIC_ASSERT(TypeTraits::isSame<BinormalType, NormalType>::value);
 
 		BASE::onRegister(layout);
 		layout->addElement(Semantic::BINORMAL, &VertexT_Binormal::binormal);

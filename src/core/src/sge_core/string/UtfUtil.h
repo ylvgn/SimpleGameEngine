@@ -49,12 +49,12 @@ void UtfUtil::convert(DST& dst, const SRC& src) {
 }
 
 template<class DST, class SRC> inline
-void UtfUtil::_append(DST& dst, SRC view) {
-	const auto* p = view.data();
-	const auto* end = view.end();
+void UtfUtil::_append(DST& dst, SRC src) {
+	const auto* s = src.begin();
+	const auto* e = src.end();
 
-	while (p < end) {
-		auto v = _decodeUtf(p, end);
+	while (s < e) {
+		auto v = _decodeUtf(s, e);
 		_appendChar(dst, v);
 	}
 }
@@ -223,6 +223,7 @@ void UtfUtil::_appendCharA(OUT_STR& dst, uint32_t v) {
 
 template<class OUT_STR> inline
 void UtfUtil::_appendCharW(OUT_STR& dst, uint32_t v) {
+	SGE_STATIC_ASSERT(sizeof(char16_t) == sizeof(wchar_t)); // TODO
 	if( v <  0x10000 ) {
 		dst += static_cast<wchar_t>(v);
 		return;

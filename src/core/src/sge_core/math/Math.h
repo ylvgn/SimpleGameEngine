@@ -17,7 +17,7 @@ namespace Math {
 	struct _Helper {
 		template<class T>
 		static constexpr T alignTo_uint(T n, T a) {
-			static_assert(std::is_unsigned<T>::value, "");
+			SGE_STATIC_ASSERT(TypeTraits::isUnsigned<T>::value);
 			T r = n % a;
 			return r ? (n + a - r) : n;
 		//	return (n + a - 1) / a * a;

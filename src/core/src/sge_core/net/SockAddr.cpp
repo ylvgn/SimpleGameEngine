@@ -24,7 +24,7 @@ IPv4 SockAddr::ipv4() const {
 	if (family() != Family::IPv4) {
 		return IPv4();
 	}	
-	static_assert(sizeof(IPv4) == sizeof(_addr_in.sin_addr));
+	SGE_STATIC_ASSERT(sizeof(IPv4) == sizeof(_addr_in.sin_addr));
 	return *reinterpret_cast<const IPv4*>(&_addr_in.sin_addr);
 }
 

@@ -100,7 +100,7 @@ const char* StringUtil::findCharFromEnd(StrView view, StrView charList, bool ign
 struct StringUtil_ParseHelper {
 	template<class T> SGE_INLINE
 	static bool tryParseInt(StrView view, T& outValue) {
-		static_assert(std::is_signed<T>::value, "");
+		SGE_STATIC_ASSERT(TypeTraits::isSigned<T>::value);
 		String_<256> tmp = view;
 		i64 v;
 		auto ret = ::sscanf(tmp.c_str(), "%lld", &v);
@@ -113,7 +113,7 @@ struct StringUtil_ParseHelper {
 
 	template<class T> SGE_INLINE
 	static bool tryParseUInt(StrView view, T& outValue) {
-		static_assert(std::is_unsigned<T>::value, "");
+		SGE_STATIC_ASSERT(std::is_unsigned<T>::value);
 		String_<256> tmp = view;
 		u64 v;
 		auto ret = ::sscanf(tmp.c_str(), "%llu", &v);

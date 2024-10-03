@@ -23,7 +23,7 @@ public:
 	const	SPtr<T> toSPtr() const	noexcept { return _block ? SPtr<T>(static_cast<T*>(_block->_obj)) : nullptr; }
 
 	void reset(T* p) noexcept {
-		static_assert(std::is_base_of<RefCountBase, T>::value, "");
+		SGE_STATIC_ASSERT(TypeTraits::isBaseOf<RefCountBase, T>::value);
 		if (p == _p) return;
 		if (_p) {
 			auto c = --_block->_weakCount;
