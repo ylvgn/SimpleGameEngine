@@ -1,4 +1,6 @@
 #include "ShellCmd.h"
+#include <sge_core/string/UtfUtil.h>
+#include "CommandLine.h"
 
 namespace sge {
 
@@ -52,6 +54,6 @@ void ShellCmd::onExec(Param* params, size_t n) {
 	WaitForSingleObject(ShExecInfo.hProcess, INFINITE);
 	CloseHandle(ShExecInfo.hProcess);
 }
-#endif
+#endif // SGE_OS_WINDOWS
 
 }

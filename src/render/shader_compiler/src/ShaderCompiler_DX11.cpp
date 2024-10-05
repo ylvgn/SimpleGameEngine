@@ -60,17 +60,22 @@ public:
 		_chunks.clear();
 	}
 
-	STDMETHOD(Open) (THIS_ D3D_INCLUDE_TYPE IncludeType, LPCSTR pFileName, LPCVOID pParentData, LPCVOID* ppData, UINT* pBytes) override {
+	STDMETHOD(Open) (THIS_ D3D_INCLUDE_TYPE IncludeType,
+					 LPCSTR					pFileName,
+					 LPCVOID				pParentData,
+					 LPCVOID*				ppData,
+					 UINT*					pBytes) override
+	{
 		TempString tmpName;
 
 		switch (IncludeType) {
-			case D3D_INCLUDE_LOCAL :
+			case D3D_INCLUDE_LOCAL: {
 				if (!_workingDir.empty()) {
 					tmpName.assign(_workingDir.data(), _workingDir.size());
 					tmpName += '/';
 				}
-				break;
-			case D3D_INCLUDE_SYSTEM: /*do nothing*/ break;
+			} break;
+			case D3D_INCLUDE_SYSTEM: { /*do nothing*/ } break;
 			default: return E_NOTIMPL;
 		}
 		tmpName += pFileName;

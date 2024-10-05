@@ -9,7 +9,7 @@
 namespace sge {
 
 void File::writeBytes(StrView filename, ByteSpan buf) {
-	FileStream	s;
+	FileStream s;
 	s.openWrite(filename, true );
 	s.writeBytes(buf);
 }

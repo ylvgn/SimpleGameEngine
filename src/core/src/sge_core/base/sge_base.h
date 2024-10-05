@@ -92,10 +92,10 @@ using i16 = int16_t;
 using i32 = int32_t;
 using i64 = int64_t;
 
-// using f16 = half;
-using f32 = float;
-using f64 = double;
-using f128 = long double;
+//using f16 = half;
+using f32	= float;
+using f64	= double;
+using f128	= long double;
 
 template< class Obj, class Member > constexpr
 intptr_t memberOffset(Member Obj::*ptrToMember) {

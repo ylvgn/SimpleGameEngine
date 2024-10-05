@@ -72,7 +72,7 @@ StrView StringUtil::trimChar(StrView view, StrView charList) {
 	return StrView(p, e-p);
 }
 
-} // namespace
+} // namespace sge
 
 inline
 std::ostream& operator<<(std::ostream& s, const sge::StrView& v) {
