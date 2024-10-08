@@ -1,10 +1,10 @@
-#include "ShaderCompiler_GL3.h"
+#include "ShaderCompiler_GL.h"
 
 #include <fmt/xchar.h>
 
 namespace sge {
 
-void ShaderCompiler_GL3::compile(StrView outPath, ShaderStageMask shaderStage, StrView srcFilename, StrView entryFunc) {
+void ShaderCompiler_GL::compile(StrView outPath, ShaderStageMask shaderStage, StrView srcFilename, StrView entryFunc) {
 	auto profile = Util::getGlStageProfile(shaderStage);
 
 	TempString	spirvOutFilename;
@@ -86,7 +86,7 @@ void ShaderCompiler_GL3::compile(StrView outPath, ShaderStageMask shaderStage, S
 		options.enable_420pack_extension = false;
 
 		if (!StringUtil::tryParse(profile, options.version)) {
-			throw SGE_ERROR("_reflect tryParse error");
+			throw SGE_ERROR("tryParse error");
 		}
 		comp.build_combined_image_samplers();
 		comp.set_common_options(options);
@@ -99,7 +99,7 @@ void ShaderCompiler_GL3::compile(StrView outPath, ShaderStageMask shaderStage, S
 	}
 }
 
-void ShaderCompiler_GL3::_convert(Compiler& comp, DataType& o, const SPIRType& i, u32 memberIndex /*= 0*/) {	
+void ShaderCompiler_GL::_convert(Compiler& comp, DataType& o, const SPIRType& i, u32 memberIndex /*= 0*/) {	
 	const auto& type	= i.basetype;
 	const auto& vecsize = i.vecsize;
 	const auto& columns = i.columns;
@@ -162,12 +162,12 @@ void ShaderCompiler_GL3::_convert(Compiler& comp, DataType& o, const SPIRType& i
 		};
 	}
 	else {
-		if (vecsize == 1 && columns == 1) { // scalar
+		if (vecsize == 1 && columns == 1) {					// scalar
 			// do nothing
 		} else if (vecsize > 1 && columns == 1) {
-			FmtTo(dataType, "x{}", vecsize); // vector
+			FmtTo(dataType, "x{}", vecsize);				// vector
 		} else if (columns > 1) {
-			FmtTo(dataType, "_{}x{}", columns, vecsize); // matrix
+			FmtTo(dataType, "_{}x{}", columns, vecsize);	// matrix
 		}
 	}
 
@@ -177,7 +177,7 @@ void ShaderCompiler_GL3::_convert(Compiler& comp, DataType& o, const SPIRType& i
 	SGE_ASSERT(o != DataType::None);
 }
 
-void ShaderCompiler_GL3::_reflect(StrView outFilename, Compiler& comp, ShaderStageMask shaderStage, StrView profile) {
+void ShaderCompiler_GL::_reflect(StrView outFilename, Compiler& comp, ShaderStageMask shaderStage, StrView profile) {
 	ShaderStageInfo outInfo;
 	outInfo.profile = profile;
 	outInfo.stage	= shaderStage;
@@ -234,7 +234,7 @@ void ShaderCompiler_GL3::_reflect(StrView outFilename, Compiler& comp, ShaderSta
 	}
 }
 
-void ShaderCompiler_GL3::_reflect_inputs(ShaderStageInfo& outInfo, Compiler& comp, const ShaderResources& resources) {
+void ShaderCompiler_GL::_reflect_inputs(ShaderStageInfo& outInfo, Compiler& comp, const ShaderResources& resources) {
 	outInfo.inputs.reserve(resources.stage_inputs.size());
 
 	for (auto& resource : resources.stage_inputs) {
@@ -261,7 +261,7 @@ void ShaderCompiler_GL3::_reflect_inputs(ShaderStageInfo& outInfo, Compiler& com
 	}
 }
 
-void ShaderCompiler_GL3::_reflect_constBuffers(ShaderStageInfo& outInfo, Compiler& comp, const ShaderResources& resources) {
+void ShaderCompiler_GL::_reflect_constBuffers(ShaderStageInfo& outInfo, Compiler& comp, const ShaderResources& resources) {
 	outInfo.constBuffers.reserve(resources.uniform_buffers.size());
 
 	for (auto& resource : resources.uniform_buffers) {
@@ -305,15 +305,15 @@ void ShaderCompiler_GL3::_reflect_constBuffers(ShaderStageInfo& outInfo, Compile
 	}
 }
 
-void ShaderCompiler_GL3::_reflect_textures(ShaderStageInfo& outInfo, Compiler& comp, const ShaderResources& resources) {
+void ShaderCompiler_GL::_reflect_textures(ShaderStageInfo& outInfo, Compiler& comp, const ShaderResources& resources) {
 	// TODO
 }
 
-void ShaderCompiler_GL3::_reflect_samplers(ShaderStageInfo& outInfo, Compiler& comp, const ShaderResources& resources) {
+void ShaderCompiler_GL::_reflect_samplers(ShaderStageInfo& outInfo, Compiler& comp, const ShaderResources& resources) {
 	// TODO
 }
 
-StrView ShaderCompiler_GL3::_findLastNameWithoutUnderscore(StrView s) {
+StrView ShaderCompiler_GL::_findLastNameWithoutUnderscore(StrView s) {
 	auto pair = StringUtil::splitByChar(s, '_');
 	while (!pair.second.empty()) {
 		pair = StringUtil::splitByChar(pair.second, '_');
@@ -321,7 +321,7 @@ StrView ShaderCompiler_GL3::_findLastNameWithoutUnderscore(StrView s) {
 	return pair.first;
 }
 
-void ShaderCompiler_GL3::_beforeGLSLCompile(Compiler& comp, ShaderStageMask shaderStage, StrView profile) {
+void ShaderCompiler_GL::_beforeGLSLCompile(Compiler& comp, ShaderStageMask shaderStage, StrView profile) {
 	ShaderResources resources = comp.get_shader_resources();
 	
 	switch (shaderStage) {
@@ -337,7 +337,8 @@ void ShaderCompiler_GL3::_beforeGLSLCompile(Compiler& comp, ShaderStageMask shad
 				
 				StrView view(resName.data(), resName.size());
 				auto* p = StringUtil::findCharFromEnd(view, "_.", false);
-				if (!p) throw SGE_ERROR("unexpected attrib name {}", resName.c_str());
+				if (!p)
+					throw SGE_ERROR("unexpected attrib name {}", resName.c_str());
 				++p; // ignore "-."
 
 				attribName.assign(p, view.end() - p);

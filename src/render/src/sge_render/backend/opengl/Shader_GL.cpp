@@ -1,8 +1,8 @@
-#include "Shader_GL3.h"
+#include "Shader_GL.h"
 
 namespace sge {
 
-Shader_GL3::Shader_GL3(StrView filename)
+Shader_GL::Shader_GL(StrView filename)
 	: Base(filename)
 {
 	auto* proj = ProjectSettings::instance();
@@ -13,14 +13,14 @@ Shader_GL3::Shader_GL3(StrView filename)
 
 	int i = 0;
 	for (auto& info : _info.passes) {
-		FmtTo(passPath, "{}/{}/gl3/pass{}", proj->importedPath(), filename, i);
+		FmtTo(passPath, "{}/{}/glsl/pass{}", proj->importedPath(), filename, i);
 		UPtr<Pass> pass = eastl::make_unique<MyPass>(this, passPath, info);
 		_passes.emplace_back(std::move(pass));
 		++i;
 	}
 }
 
-void Shader_GL3::_loadStageFile(StrView passPath, ShaderStageMask stageMask, Vector<u8>& outBytecode, ShaderStageInfo& outInfo) {
+void Shader_GL::_loadStageFile(StrView passPath, ShaderStageMask stageMask, Vector<u8>& outBytecode, ShaderStageInfo& outInfo) {
 	auto* profile = Util::getGlStageProfile(stageMask);
 
 	TempString filename;
@@ -41,7 +41,7 @@ void Shader_GL3::_loadStageFile(StrView passPath, ShaderStageMask stageMask, Vec
 	JsonUtil::readFile(filename, outInfo);
 }
 
-Shader_GL3::MyPass::MyPass(Shader_GL3* shader, StrView passPath, ShaderInfo::Pass& info)
+Shader_GL::MyPass::MyPass(Shader_GL* shader, StrView passPath, ShaderInfo::Pass& info)
 	: Base(shader, info)
 {
 	_vertexStage = &_myVertexStage;
@@ -53,52 +53,52 @@ Shader_GL3::MyPass::MyPass(Shader_GL3* shader, StrView passPath, ShaderInfo::Pas
 	_linkProgram();
 }
 
-void Shader_GL3::MyVertexStage::destroy() {
+void Shader_GL::MyVertexStage::destroy() {
 	if (_shader) {
 		glDeleteShader(_shader);
 		_shader = 0;
 	}
 }
 
-void Shader_GL3::MyPixelStage::destroy() {
+void Shader_GL::MyPixelStage::destroy() {
 	if (_shader) {
 		glDeleteShader(_shader);
 		_shader = 0;
 	}
 }
 
-void Shader_GL3::MyVertexStage::load(MyPass* pass, StrView passPath) {
+void Shader_GL::MyVertexStage::load(MyPass* pass, StrView passPath) {
 	_loadStageFile(passPath, stageMask(), _bytecode, _info);
 
 	Util::compileShader(_shader, Util::getGlShaderType(stageMask()), _bytecode, passPath);
 	Util::throwIfError();
 }
 
-void Shader_GL3::MyPixelStage::load(MyPass* pass, StrView passPath) {
+void Shader_GL::MyPixelStage::load(MyPass* pass, StrView passPath) {
 	_loadStageFile(passPath, stageMask(), _bytecode, _info);
 
 	Util::compileShader(_shader, Util::getGlShaderType(stageMask()), _bytecode, passPath);
 	Util::throwIfError();
 }
 
-void Shader_GL3::MyVertexStage::bind(RenderContext_GL3* ctx) {
+void Shader_GL::MyVertexStage::bind(RenderContext_GL* ctx) {
 	if (!_shader)
 		throw SGE_ERROR("gl shader is null");
 }
 
-void Shader_GL3::MyPixelStage::bind(RenderContext_GL3* ctx) {
+void Shader_GL::MyPixelStage::bind(RenderContext_GL* ctx) {
 	if (!_shader)
 		throw SGE_ERROR("gl shader is null");
 }
 
-void Shader_GL3::MyPass::destroy() {
+void Shader_GL::MyPass::destroy() {
 	if (_myProgram) {
 		glDeleteProgram(_myProgram);
 		_myProgram = 0;
 	}
 }
 
-void Shader_GL3::MyPass::bind() {
+void Shader_GL::MyPass::bind() {
 	if (!_myProgram)
 		SGE_ASSERT(glIsProgram(_myProgram) == GL_TRUE);
 
@@ -106,11 +106,11 @@ void Shader_GL3::MyPass::bind() {
 	Util::throwIfError();
 }
 
-void Shader_GL3::MyPass::unbind() {
+void Shader_GL::MyPass::unbind() {
 	glUseProgram(0);
 }
 
-void Shader_GL3::MyPass::_linkProgram() {
+void Shader_GL::MyPass::_linkProgram() {
 	if (!_myProgram) {
 		_myProgram = glCreateProgram();
 	}
@@ -150,7 +150,7 @@ void Shader_GL3::MyPass::_linkProgram() {
 	}
 }
 
-void Shader_GL3::MyPass::_getProgramInfoLog(GLuint program, String& outMsg) {
+void Shader_GL::MyPass::_getProgramInfoLog(GLuint program, String& outMsg) {
 	outMsg.clear();
 	if (!program) return;
 

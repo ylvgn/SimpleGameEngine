@@ -1,19 +1,17 @@
 #pragma once
 
-#include <sge_render/RenderContext.h>
-#include "Render_GL3_Common.h"
+#if SGE_OS_WINDOWS
+#if SGE_RENDER_HAS_OPENGL
 
-#if SGE_RENDER_HAS_GL3
+#include "RenderContext_GL_Base.h"
 
 namespace sge {
 
-class RenderContext_GL3 : public RenderContext {
-private:
-	using Base = RenderContext;
-	using Util = GL3Util;
+class RenderContext_GL_Win32 : public RenderContext_GL_Base {
+	using Base = RenderContext_GL_Base;
 public:
-	RenderContext_GL3(CreateDesc& desc);
-	~RenderContext_GL3() { _destroy(); }
+	RenderContext_GL_Win32(CreateDesc& desc);
+	~RenderContext_GL_Win32() { _destroy(); }
 
 	void onCmd_ClearFrameBuffers(RenderCommand_ClearFrameBuffers&	cmd);
 	void onCmd_SwapBuffers		(RenderCommand_SwapBuffers&			cmd);
@@ -22,7 +20,7 @@ public:
 	void onCmd_SetScissorRect	(RenderCommand_SetScissorRect& cmd) { /*TODO*/ }
 
 protected:
-	Renderer_GL3* _renderer = nullptr;
+	Renderer_GL* _renderer = nullptr;
 
 	virtual void onBeginRender() override;
 	virtual void onEndRender() override;
@@ -31,13 +29,7 @@ protected:
 	virtual void onCommit(RenderCommandBuffer& cmdBuf);
 
 private:
-	class GLVertexArray : public GLObject {
-	public:
-		~GLVertexArray() { _destroy(); }
-		void bind();
-	private:
-		void _destroy();
-	};
+	class FalseContext;
 
 	void _createBuffers();
 
@@ -49,12 +41,8 @@ private:
 	void _setTestShaders(const VertexLayout* vertexLayout);
 	void _setTestFrameBufferScreenShaders();
 
-#if SGE_OS_WINDOWS
 	::HDC	_win32_dc = nullptr;
 	::HGLRC	_win32_rc = nullptr;
-#endif
-
-	GLVertexArray	_vao;
 
     GLuint _viewFramebuffer		= 0;
 	GLuint _viewRenderbuffer	= 0;
@@ -73,5 +61,7 @@ private:
 	GLuint _testScreenQuadRenderbuffer		= 0;
 };
 
-}
-#endif // SGE_RENDER_HAS_GL3
+} // namespace sge
+
+#endif // SGE_OS_WINDOWS
+#endif // SGE_RENDER_HAS_OPENGL

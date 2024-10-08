@@ -1,16 +1,16 @@
 #pragma once
 
-#include "Render_GL3_Common.h"
+#include "Render_GL_Common.h"
 
 namespace sge {
 
-class RenderContext_GL3;
+class RenderContext_GL;
 
-class Shader_GL3 : public Shader {
+class Shader_GL : public Shader {
 	using Base = Shader;
-	using Util = GL3Util;
+	using Util = GLUtil;
 public:
-	Shader_GL3(StrView filename);
+	Shader_GL(StrView filename);
 
 	struct MyPass;
 
@@ -22,7 +22,7 @@ public:
 		void destroy();
 
 		void load(MyPass* pass, StrView passPath);
-		void bind(RenderContext_GL3* ctx);
+		void bind(RenderContext_GL* ctx);
 		ByteSpan bytecode() const { return _bytecode; }
 
 	friend struct MyPass;
@@ -38,7 +38,7 @@ public:
 		void destroy();
 
 		void load(MyPass* pass, StrView passPath);
-		void bind(RenderContext_GL3* ctx);
+		void bind(RenderContext_GL* ctx);
 		ByteSpan bytecode() const { return _bytecode; }
 
 	friend struct MyPass;
@@ -51,7 +51,7 @@ public:
 	struct MyPass : public ShaderPass {
 		using Base = ShaderPass;
 
-		MyPass(Shader_GL3* shader, StrView passPath, ShaderInfo::Pass& info);
+		MyPass(Shader_GL* shader, StrView passPath, ShaderInfo::Pass& info);
 
 		~MyPass() { destroy(); }
 

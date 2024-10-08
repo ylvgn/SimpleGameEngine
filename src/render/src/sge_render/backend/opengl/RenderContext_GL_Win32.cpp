@@ -1,39 +1,111 @@
-#include "RenderContext_GL3.h"
-#include "Renderer_GL3.h"
-#include "RenderFalseContext_GL3.h"
-#include "RenderGpuBuffer_GL3.h"
+#include "RenderContext_GL_Win32.h"
+#include "Renderer_GL.h"
+#include "RenderGpuBuffer_GL.h"
 
-#if SGE_RENDER_HAS_GL3
+#if SGE_OS_WINDOWS
+#if SGE_RENDER_HAS_OPENGL
 
 namespace sge {
 
 #if 0
-#pragma mark ========= GLVertexArray ============
+#pragma mark ========= RenderContext_GL_Win32::FalseContext ============
 #endif
-void RenderContext_GL3::GLVertexArray::bind() {
-	if (!_gl) {
-		glGenVertexArrays(1, &_gl);
-		Util::throwIfError();
-	}
-	glBindVertexArray(_gl);
-	Util::throwIfError();
-}
+class RenderContext_GL_Win32::FalseContext : public NonCopyable {
+public:
+	~FalseContext() { destroy(); }
 
-void RenderContext_GL3::GLVertexArray::_destroy() {
-	if (_gl) {
-		glDeleteVertexArrays(1, &_gl);
-		_gl = 0;
+	void FalseContext::create() {
+		destroy();
+
+		static const wchar_t* className = L"FalseContext";
+		auto hInstance = GetModuleHandle(nullptr);
+
+		::WNDCLASSEX wc;
+		if (!GetClassInfoEx(hInstance, className, &wc)) {
+			memset(&wc, 0, sizeof(wc));
+
+			wc.cbSize			= sizeof(wc);
+			wc.hInstance		= hInstance;
+			wc.style			= CS_OWNDC;
+			wc.lpfnWndProc		= DefWindowProc;
+			wc.hCursor			= LoadCursor(nullptr, IDC_ARROW);
+			wc.hbrBackground	= nullptr;
+			wc.lpszMenuName		= nullptr;
+			wc.lpszClassName	= className;
+
+			if (!RegisterClassEx(&wc))
+				throw SGE_ERROR("RegisterClassEx");
+		}
+
+		::DWORD dwExStyle = 0;
+		::DWORD dwStyle = WS_POPUP;
+
+		_hwnd = CreateWindowEx(dwExStyle, className, className, dwStyle,
+							   0, 0, 0, 0,
+							   nullptr, nullptr, hInstance, nullptr);
+
+		if (!_hwnd)
+			throw SGE_ERROR("CreateWindowEx");
+
+		_dc = ::GetDC(_hwnd);
+		if (!_dc)
+			throw SGE_ERROR("GetDC");
+
+		::PIXELFORMATDESCRIPTOR pfd;
+		memset(&pfd, 0, sizeof(pfd));
+		pfd.nSize		= sizeof(pfd);
+		pfd.nVersion	= 1;
+		pfd.dwFlags		= PFD_DOUBLEBUFFER | PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL;
+		pfd.iPixelType	= PFD_TYPE_RGBA;
+		pfd.cColorBits	= 32;
+		pfd.cDepthBits	= 32;
+		pfd.iLayerType	= PFD_MAIN_PLANE;
+
+		int nPixelFormat = ::ChoosePixelFormat(_dc, &pfd);
+		if (!nPixelFormat)
+			throw SGE_ERROR("ChoosePixelFormat");
+
+		if (!::SetPixelFormat(_dc, nPixelFormat, &pfd))
+			throw SGE_ERROR("SetPixelFormat");
+
+		_rc = ::wglCreateContext(_dc);
+		if (!_rc)
+			throw SGE_ERROR("wglCreateContext");
+
+		if (!::wglMakeCurrent(_dc, _rc))
+			throw SGE_ERROR("wglMakeCurrent");
 	}
-}
+
+	void FalseContext::destroy() {
+		if (_rc) {
+			::wglDeleteContext(_rc);
+			_rc = nullptr;
+		}
+		if (_dc) {
+			SGE_ASSERT(_hwnd != nullptr);
+			::ReleaseDC(_hwnd, _dc);
+			_dc = nullptr;
+		}
+		if (_hwnd) {
+			::DestroyWindow(_hwnd);
+			_hwnd = nullptr;
+		}
+	}
+
+private:
+	::HWND	_hwnd = nullptr;
+	::HDC	_dc = nullptr;
+	::HGLRC	_rc = nullptr;
+};
 
 #if 0
-#pragma mark ========= RenderContext_GL3 ============
+#pragma mark ========= RenderContext_GL_Win32 ============
 #endif
-RenderContext_GL3::RenderContext_GL3(CreateDesc& desc)
+RenderContext_GL_Win32::RenderContext_GL_Win32(CreateDesc& desc)
 	: Base(desc)
-	, _renderer(Renderer_GL3::current())
+	, _renderer(Renderer_GL::current())
 {
-	RenderFalseContext_GL3 falseContext;
+	FalseContext falseContext;
 	falseContext.create();
 	glewInit();
 
@@ -88,7 +160,7 @@ RenderContext_GL3::RenderContext_GL3(CreateDesc& desc)
 	Util::throwIfError();
 }
 
-void RenderContext_GL3::onCmd_ClearFrameBuffers(RenderCommand_ClearFrameBuffers& cmd) {
+void RenderContext_GL_Win32::onCmd_ClearFrameBuffers(RenderCommand_ClearFrameBuffers& cmd) {
 	GLenum clearFlag = 0;
 	if (cmd.color.has_value()) {
 		glClearColor(cmd.color->r, cmd.color->g, cmd.color->b, cmd.color->a);
@@ -107,17 +179,17 @@ void RenderContext_GL3::onCmd_ClearFrameBuffers(RenderCommand_ClearFrameBuffers&
 	Util::throwIfError();
 }
 
-void RenderContext_GL3::onCmd_DrawCall(RenderCommand_DrawCall& cmd) {
+void RenderContext_GL_Win32::onCmd_DrawCall(RenderCommand_DrawCall& cmd) {
 	if (!cmd.vertexLayout) { SGE_ASSERT(false); return; }
 
-	auto* vertexBuffer = static_cast<RenderGpuBuffer_GL3*>(cmd.vertexBuffer.ptr());
-	RenderGpuBuffer_GL3* indexBuffer = nullptr;
+	auto* vertexBuffer = static_cast<RenderGpuBuffer_GL*>(cmd.vertexBuffer.ptr());
+	RenderGpuBuffer_GL* indexBuffer = nullptr;
 
 	if (!vertexBuffer && cmd.vertexCount <= 0) { SGE_ASSERT(false); return; }
 	if (cmd.primitive == RenderPrimitiveType::None) { SGE_ASSERT(false); return; }
 
 	if (cmd.indexCount > 0) {
-		indexBuffer = static_cast<RenderGpuBuffer_GL3*>(cmd.indexBuffer.ptr());
+		indexBuffer = static_cast<RenderGpuBuffer_GL*>(cmd.indexBuffer.ptr());
 		if (!indexBuffer) { SGE_ASSERT(false); return; }
 	}
 
@@ -155,7 +227,7 @@ void RenderContext_GL3::onCmd_DrawCall(RenderCommand_DrawCall& cmd) {
 	Util::throwIfError();
 }
 
-void RenderContext_GL3::onCmd_SwapBuffers(RenderCommand_SwapBuffers& cmd) {
+void RenderContext_GL_Win32::onCmd_SwapBuffers(RenderCommand_SwapBuffers& cmd) {
 #if SGE_OS_WINDOWS
 	if (_win32_dc)
 		::SwapBuffers(_win32_dc);
@@ -163,16 +235,16 @@ void RenderContext_GL3::onCmd_SwapBuffers(RenderCommand_SwapBuffers& cmd) {
 	Util::throwIfError();
 }
 
-void RenderContext_GL3::onCommit(RenderCommandBuffer& cmdBuf) {
+void RenderContext_GL_Win32::onCommit(RenderCommandBuffer& cmdBuf) {
 	_dispatch(this, cmdBuf);
 }
 
-void RenderContext_GL3::onSetFrameBufferSize(const Vec2f& newSize) {
+void RenderContext_GL_Win32::onSetFrameBufferSize(const Vec2f& newSize) {
 	glViewport(0, 0, static_cast<GLsizei>(newSize.x), static_cast<GLsizei>(newSize.y));
 	Util::throwIfError();
 }
 
-void RenderContext_GL3::_destroyBuffers() {
+void RenderContext_GL_Win32::_destroyBuffers() {
 	if (_viewFramebuffer) {
 		glDeleteFramebuffers(1, &_viewFramebuffer);
 		_viewFramebuffer = 0;
@@ -187,14 +259,14 @@ void RenderContext_GL3::_destroyBuffers() {
 	}
 }
 
-void RenderContext_GL3::onBeginRender() {
+void RenderContext_GL_Win32::onBeginRender() {
 	_vao.bind();
 	_createBuffers();
 	glBindFramebuffer(GL_FRAMEBUFFER, _viewFramebuffer);
 	glEnable(GL_DEPTH_TEST);
 }
 
-void RenderContext_GL3::onEndRender() {
+void RenderContext_GL_Win32::onEndRender() {
 	_setTestFrameBufferScreenShaders();
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -205,7 +277,7 @@ void RenderContext_GL3::onEndRender() {
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
-void RenderContext_GL3::_setTestFrameBufferScreenShaders() {
+void RenderContext_GL_Win32::_setTestFrameBufferScreenShaders() {
 	static const char* s_vs = "#version 330\n"
 	"layout(location = 0) in vec2 i_positionOS;\n"
 	"layout(location = 1) in vec2 i_uv;\n"
@@ -226,11 +298,11 @@ void RenderContext_GL3::_setTestFrameBufferScreenShaders() {
 	"}";
 
 	if (!_testFrameBufferVertexShader) {
-		_testFrameBufferVertexShader = GL3Util::compileShader(GL_VERTEX_SHADER, s_vs);
+		_testFrameBufferVertexShader = GLUtil::compileShader(GL_VERTEX_SHADER, s_vs);
 	}
 
 	if (!_testFrameBufferPixelShader) {
-		_testFrameBufferPixelShader = GL3Util::compileShader(GL_FRAGMENT_SHADER, s_ps);
+		_testFrameBufferPixelShader = GLUtil::compileShader(GL_FRAGMENT_SHADER, s_ps);
 	}
 
 	//---- link shader program
@@ -313,7 +385,7 @@ void RenderContext_GL3::_setTestFrameBufferScreenShaders() {
 	Util::throwIfError();
 }
 
-void RenderContext_GL3::_setTestShaders(const VertexLayout* vertexLayout) {
+void RenderContext_GL_Win32::_setTestShaders(const VertexLayout* vertexLayout) {
 	TempString shaderFile("Assets/Shaders/test.hlsl");
 
 //---- compile shader
@@ -397,7 +469,7 @@ void RenderContext_GL3::_setTestShaders(const VertexLayout* vertexLayout) {
 	Util::throwIfError();
 }
 
-void RenderContext_GL3::_createBuffers() {
+void RenderContext_GL_Win32::_createBuffers() {
 	_destroyBuffers();
 
 	if (_viewFramebuffer) return;
@@ -425,12 +497,12 @@ void RenderContext_GL3::_createBuffers() {
 	}
 }
 
-void RenderContext_GL3::_destroy() {
+void RenderContext_GL_Win32::_destroy() {
 	_destroyTestShaders();
 	_destroyTestScreenFrameBuffer();
 }
 
-void RenderContext_GL3::_destroyTestShaders() {
+void RenderContext_GL_Win32::_destroyTestShaders() {
 	if (_testVertexShader) {
 		glDeleteShader(_testVertexShader);
 		_testVertexShader = 0;
@@ -445,7 +517,7 @@ void RenderContext_GL3::_destroyTestShaders() {
 	}
 }
 
-void RenderContext_GL3::_destroyTestScreenFrameBuffer() {
+void RenderContext_GL_Win32::_destroyTestScreenFrameBuffer() {
 	if (!_testScreenQuadVertexbuffer) {
 		glDeleteBuffers(1, &_testScreenQuadVertexbuffer);
 		_testScreenQuadVertexbuffer = 0;
@@ -460,6 +532,7 @@ void RenderContext_GL3::_destroyTestScreenFrameBuffer() {
 	}
 }
 
-}
+} // namespace sge
 
-#endif // SGE_RENDER_HAS_GL3
+#endif // SGE_OS_WINDOWS
+#endif // SGE_RENDER_HAS_OPENGL

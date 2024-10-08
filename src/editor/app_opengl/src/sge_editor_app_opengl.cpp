@@ -120,7 +120,7 @@ public:
 
 		{ // create renderer
 			Renderer::CreateDesc renderDesc;
-			renderDesc.apiType = Renderer::ApiType::GL3;
+			renderDesc.apiType = Renderer::ApiType::OpenGL;
 			Renderer::create(renderDesc);
 		}
 

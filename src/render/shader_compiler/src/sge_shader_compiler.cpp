@@ -1,5 +1,5 @@
 #include "ShaderCompiler_DX11.h"
-#include "ShaderCompiler_GL3.h"
+#include "ShaderCompiler_GL.h"
 #include "ShaderParser.h"
 
 namespace sge {
@@ -63,12 +63,12 @@ protected:
 			}
 		}
 
-		{ // GL3
+		{ // OpenGL
 			size_t passIndex = 0;
 			for (auto& pass : info.passes) {
-				auto passOutPath = Fmt("{}/gl3/pass{}", outputPath, passIndex);
+				auto passOutPath = Fmt("{}/glsl/pass{}", outputPath, passIndex);
 
-				ShaderCompiler_GL3 c;
+				ShaderCompiler_GL c;
 				if (pass.vsFunc.size()) {
 					c.compile(passOutPath, ShaderStageMask::Vertex, shaderFilename, pass.vsFunc);
 				}

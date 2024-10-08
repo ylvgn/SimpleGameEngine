@@ -1,24 +1,24 @@
-#include "RenderGpuBuffer_GL3.h"
-#include "Renderer_GL3.h"
+#include "RenderGpuBuffer_GL.h"
+#include "Renderer_GL.h"
 
 namespace sge {
 
-void RenderGpuBuffer_GL3::destroy() {
+void RenderGpuBuffer_GL::destroy() {
 	if (_p) {
 		glDeleteBuffers(1, &_p);
 		_p = 0;
 	}
 }
 
-void RenderGpuBuffer_GL3::glBind() {
+void RenderGpuBuffer_GL::glBind() {
 	glBindBuffer(glBufTarget(), _p);
 }
 
-void RenderGpuBuffer_GL3::glUnbind() {
+void RenderGpuBuffer_GL::glUnbind() {
 	glBindBuffer(glBufTarget(), 0);
 }
 
-void RenderGpuBuffer_GL3::onCreate(CreateDesc& desc)  {
+void RenderGpuBuffer_GL::onCreate(CreateDesc& desc)  {
 	destroy();
 
 	if (desc.bufferSize <= 0) throw SGE_ERROR("buffer size <= 0");
@@ -33,7 +33,7 @@ void RenderGpuBuffer_GL3::onCreate(CreateDesc& desc)  {
 	Util::throwIfError();
 }
 
-void RenderGpuBuffer_GL3::onUploadToGpu(ByteSpan data, size_t offset) {
+void RenderGpuBuffer_GL::onUploadToGpu(ByteSpan data, size_t offset) {
 	auto target = glBufTarget();
 	glBindBuffer(target, _p);
 

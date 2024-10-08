@@ -1,18 +1,18 @@
 #pragma once
 
-#if SGE_RENDER_HAS_GL3
+#if SGE_RENDER_HAS_OPENGL
 
 #include <sge_render/Renderer.h>
-#include "Render_GL3_Common.h"
+#include "Render_GL_Common.h"
 
 namespace sge {
 
-class Renderer_GL3 : public Renderer {
+class Renderer_GL : public Renderer {
 	using Base = Renderer;
-	using Util = GL3Util;
+	using Util = GLUtil;
 public:
-	Renderer_GL3(CreateDesc& desc);
-	static Renderer_GL3* current() { return static_cast<Renderer_GL3*>(s_instance); }
+	Renderer_GL(CreateDesc& desc);
+	static Renderer_GL* current() { return static_cast<Renderer_GL*>(s_instance); }
 
 protected:
 	virtual SPtr<RenderContext>		onCreateContext(RenderContext_CreateDesc& desc) override;
@@ -25,4 +25,4 @@ protected:
 
 }
 
-#endif
+#endif // SGE_RENDER_HAS_OPENGL

@@ -9,8 +9,8 @@ static float SampleContext_sUIHeaderHeight() {
 void SampleContext::test_None_onCreate(Request& req) {
 	// just for test
 	_staticShader = new Shader(
-		"../Test101/LocalTemp/Imported/Assets/Shaders/test.shader/gl3/pass0/vs_330.spv.glsl",
-		"../Test101/LocalTemp/Imported/Assets/Shaders/test.shader/gl3/pass0/ps_330.spv.glsl"
+		"../Test101/LocalTemp/Imported/Assets/Shaders/test.shader/glsl/pass0/vs_330.spv.glsl",
+		"../Test101/LocalTemp/Imported/Assets/Shaders/test.shader/glsl/pass0/ps_330.spv.glsl"
 	);
 	_staticShader->dumpUniformBlocks();
 	_staticShader->dumpActiveAttrib();

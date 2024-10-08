@@ -1,33 +1,33 @@
 #pragma once
 
 #include <sge_render/shader/Material.h>
-#include "Shader_GL3.h"
-#include "RenderGpuBuffer_GL3.h"
+#include "Shader_GL.h"
+#include "RenderGpuBuffer_GL.h"
 
 namespace sge {
 
-class Material_GL3 : public Material {
-	using Util = GL3Util;
+class Material_GL : public Material {
+	using Util = GLUtil;
 
 	struct MyPass;
 
-	Shader_GL3* shader() { return static_cast<Shader_GL3*>(_shader.ptr()); }
+	Shader_GL* shader() { return static_cast<Shader_GL*>(_shader.ptr()); }
 
 	template<class STAGE>
-	static void _bindStageHelper(RenderContext_GL3* ctx, STAGE* stage);
+	static void _bindStageHelper(RenderContext_GL* ctx, STAGE* stage);
 
 	struct MyVertexStage : public VertexStage {
 		using Base			= VertexStage;
-		using Pass			= Material_GL3::MyPass;
-		using MyShaderStage = Shader_GL3::MyVertexStage;
-		using MyShaderPass  = Shader_GL3::MyPass;
+		using Pass			= Material_GL::MyPass;
+		using MyShaderStage = Shader_GL::MyVertexStage;
+		using MyShaderPass  = Shader_GL::MyPass;
 
 		MyVertexStage(MaterialPass* pass, ShaderVertexStage* shaderStage)
 			: Base(pass, shaderStage)
 		{}
 
-		void bind(RenderContext_GL3* ctx, const VertexLayout* vertexLayout);
-		void bindInputLayout(RenderContext_GL3* ctx, const VertexLayout* vertexLayout);
+		void bind(RenderContext_GL* ctx, const VertexLayout* vertexLayout);
+		void bindInputLayout(RenderContext_GL* ctx, const VertexLayout* vertexLayout);
 
 		Pass*			pass()			const { return static_cast<Pass*>(_pass); }
 		MyShaderStage*	shaderStage()	const { return static_cast<MyShaderStage*>(_shaderStage); }
@@ -43,15 +43,15 @@ class Material_GL3 : public Material {
 
 	struct MyPixelStage : public PixelStage {
 		using Base			= PixelStage;
-		using Pass			= Material_GL3::MyPass;
-		using MyShaderStage = Shader_GL3::MyPixelStage;
-		using MyShaderPass  = Shader_GL3::MyPass;
+		using Pass			= Material_GL::MyPass;
+		using MyShaderStage = Shader_GL::MyPixelStage;
+		using MyShaderPass  = Shader_GL::MyPass;
 
 		MyPixelStage(MaterialPass* pass, ShaderPixelStage* shaderStage)
 			: Base(pass, shaderStage)
 		{}
 
-		void bind(RenderContext_GL3* ctx, const VertexLayout* vertexLayout);
+		void bind(RenderContext_GL* ctx, const VertexLayout* vertexLayout);
 
 		Pass*			pass()			const { return static_cast<Pass*>(_pass); }
 		MyShaderStage*	shaderStage()	const { return static_cast<MyShaderStage*>(_shaderStage); }
@@ -66,7 +66,7 @@ class Material_GL3 : public Material {
 
 	struct MyPass : public Pass {
 		using Base			= Pass;
-		using MyShaderPass	= Shader_GL3::MyPass;
+		using MyShaderPass	= Shader_GL::MyPass;
 
 		MyPass(Material* material, ShaderPass* shaderPass);
 

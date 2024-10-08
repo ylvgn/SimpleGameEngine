@@ -19,7 +19,7 @@ public:
 	enum class ApiType {
 		None = 0,
 		DX11,
-		GL3,
+		OpenGL,
 	};
 
 	struct CreateDesc {

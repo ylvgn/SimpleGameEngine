@@ -1,14 +1,14 @@
 #pragma once
 
-#include <sge_render/backend/opengl/gl3/Render_GL3_Common.h>
+#include <sge_render/backend/opengl/Render_GL_Common.h>
 
 #include "spirv_cross.hpp"
 #include "spirv_glsl.hpp"
 
 namespace sge {
 
-class ShaderCompiler_GL3 : public NonCopyable {
-	using Util				= GL3Util;
+class ShaderCompiler_GL : public NonCopyable {
+	using Util				= GLUtil;
 	using DataType			= RenderDataType;
 
 	using Compiler			= spirv_cross::CompilerGLSL;

@@ -1,12 +1,12 @@
 #pragma once
-#include "Render_GL3_Common.h"
+#include "Render_GL_Common.h"
 #include <sge_render/buffer/RenderGpuBuffer.h>
 
 namespace sge {
 
-class RenderGpuBuffer_GL3 : public RenderGpuBuffer {
+class RenderGpuBuffer_GL : public RenderGpuBuffer {
 	using Base = RenderGpuBuffer;
-	using Util = GL3Util;
+	using Util = GLUtil;
 public:
 	void destroy();
 
@@ -22,6 +22,6 @@ protected:
 private:
 	GLuint _p = 0;
 
-}; // RenderGpuBuffer_GL3
+}; // RenderGpuBuffer_GL
 
 } // namespace
