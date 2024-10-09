@@ -1,25 +1,15 @@
-#pragma once
-
 #include "MyGLFWNativeUI.h"
+#include "MyGLFWUIEvent.h"
 
 namespace sge {
 #if 0
-#pragma mark ========= MyGLFWUIKeyboardEvent ============
+#pragma mark ========= MyGLFWNativeUIWindow::CreateDesc ============
 #endif
-bool MyGLFWUIKeyboardEvent::isUp(KeyCode k) const {
-	return _win->getKeyIsRelease(k);
-}
-
-bool MyGLFWUIKeyboardEvent::isDown(KeyCode k) const {
-	return _win->getKeyIsDown(k);
-}
-
-bool MyGLFWUIKeyboardEvent::_glfwIsDown(int k) const {
-	return _win->_getKeyIsDown(k);
-}
-
-bool MyGLFWUIKeyboardEvent::_glfwIsUp(int k) const {
-	return _win->_getKeyIsRelease(k);
+MyGLFWNativeUIWindow::CreateDesc::CreateDesc()
+	: major(3)
+	, minor(3)
+	, profile(Profile::Core)
+{
 }
 
 #if 0
@@ -34,20 +24,8 @@ void MyGLFWNativeUIWindow::update() {
 
 	onRender();
 
-	glfwSwapBuffers(_glfwWin);
-	glfwPollEvents();
-}
-
-bool MyGLFWNativeUIWindow::getKeyIsPress(KeyCode v) const {
-	return _getKeyIsPress(_toGLFWKeyCode(v));
-}
-
-bool MyGLFWNativeUIWindow::getKeyIsRelease(KeyCode v) const {
-	return _getKeyIsRelease(_toGLFWKeyCode(v));
-}
-
-bool MyGLFWNativeUIWindow::getKeyIsRepeat(KeyCode v) const {
-	return _getKeyIsRepeat(_toGLFWKeyCode(v));
+	_glfwSwapBuffers();
+	_glfwPollEvents();
 }
 
 void MyGLFWNativeUIWindow::onSetWindowPos(const Vec2f& pos) {
@@ -56,18 +34,6 @@ void MyGLFWNativeUIWindow::onSetWindowPos(const Vec2f& pos) {
 
 void MyGLFWNativeUIWindow::onSetWindowSize(const Vec2f& size) {
 	glfwSetWindowSize(_glfwWin, int(size.x), int(size.y));
-}
-
-bool MyGLFWNativeUIWindow::_getKeyIsPress(int v) const {
-	return _getKeyCodeState(v, GLFW_PRESS);
-}
-
-bool MyGLFWNativeUIWindow::_getKeyIsRelease(int v) const {
-	return _getKeyCodeState(v, GLFW_RELEASE);
-}
-
-bool MyGLFWNativeUIWindow::_getKeyIsRepeat(int v) const {
-	return _getKeyCodeState(v, GLFW_REPEAT);
 }
 
 void MyGLFWNativeUIWindow::_glfwSetWindowTitle(StrView title) {
@@ -80,27 +46,8 @@ void MyGLFWNativeUIWindow::_handleNativeInputEvent() {
 }
 
 void MyGLFWNativeUIWindow::_handleNativeUIKeyboardEvent() {
-	UIKeyboardEvent ev(this);
+	UIKeyboardEvent ev(this->_glfwWin);
 	onUINativeKeyboardEvent(ev);
-}
-
-int MyGLFWNativeUIWindow::_toGLFWKeyCode(KeyCode v) const {
-#define SGE__CASE(V, ...) case SRC_T::V: return enumInt(DST_T::V);
-#define SGE_SWITCH(S, D) \
-		using SRC_T = S; \
-		using DST_T = D; \
-		switch (v) { \
-			S##_ENUM_LIST(SGE__CASE) \
-			default: SGE_ASSERT(false); return 0; \
-		} \
-//----
-	SGE_SWITCH(UIKeyboardEventKeyCode, GLFWKeyCode)
-#undef SGE__CASE
-#undef SGE_SWITCH
-}
-
-bool MyGLFWNativeUIWindow::_getKeyCodeState(int glfwKeyCode, int state) const {
-	return glfwGetKey(_glfwWin, glfwKeyCode) == state;
 }
 
 void MyGLFWNativeUIWindow::s_glfwSetFramebufferSizeCallback(GLFWwindow* window, int width, int height) {
@@ -186,4 +133,4 @@ void MyGLFWNativeUIApp::onQuit() {
 	}
 }
 
-}
+} // namespace sge

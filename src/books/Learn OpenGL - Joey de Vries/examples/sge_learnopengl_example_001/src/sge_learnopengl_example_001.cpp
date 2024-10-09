@@ -51,7 +51,7 @@ protected:
 	}
 };
 
-}
+} // namespace sge
 
 int main(int argc, const char** argv) {
 	sge::MyApp app;

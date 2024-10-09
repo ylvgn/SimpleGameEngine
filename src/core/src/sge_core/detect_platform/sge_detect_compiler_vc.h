@@ -90,6 +90,4 @@
 #elif _WINCE
 	#define SGE_OS_WinCE     1
 	#define SGE_OS_WINDOWS	1
-#elif __linux
-	#define SGE_OS_LINUX    1
 #endif
