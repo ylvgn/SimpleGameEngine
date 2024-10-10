@@ -1,10 +1,10 @@
 #pragma once
-#include <sge_core/app/AppBase.h>
+#include <sge_core/app/ConsoleApp.h>
 
 namespace sge {
 
-class NativeUIApp_Base : public AppBase {
-	using Base = AppBase;
+class NativeUIApp_Base : public ConsoleApp {
+	using Base = ConsoleApp;
 public:
 	struct CreateDesc {
 	};
@@ -18,6 +18,7 @@ public:
 
 	int		fps()			const { return _fps; }
 	u64		frameCount()	const { return _frameCount; }
+	int		exitCode()		const { return _exitCode; }
 
 protected:
 	virtual void onCreate(CreateDesc& desc) {}

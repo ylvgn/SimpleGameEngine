@@ -52,4 +52,4 @@ protected:
 } // namespace sge
 
 
-SGE_WinMain(sge::MyApp)
+SGE_MAIN(sge::MyApp)

@@ -34,11 +34,17 @@ class TextureCube;
 	E(UNorm16,)	E(UNorm16x2,)	E(UNorm16x3,)	E(UNorm16x4,)	\
 	E(UNorm32,)	E(UNorm32x2,)	E(UNorm32x3,)	E(UNorm32x4,)	\
 	\
-	E(Float32_4x4,) \
+	E(Float16_2x2, ) E(Float16_3x3,) E(Float16_4x4,) E(Float16_4x3,) \
+	E(Float32_2x2, ) E(Float32_3x3,) E(Float32_4x4,) E(Float32_4x3,) \
+	E(Float64_2x2, ) E(Float64_3x3,) E(Float64_4x4,) E(Float64_4x3,) \
+	\
+	E(Bool,)  E(Boolx2,)  E(Boolx3,)  E(Boolx4,) \
 	\
 	E(Texture1D,)		E(Texture2D,)		E(Texture3D,)		E(TextureCube,) \
 	E(Texture1DArray,)	E(Texture2DArray,)	E(Texture3DArray,)	E(TextureCubeArray,) \
-
+	\
+	E(SamplerState,) \
+	\
 //----
 SGE_ENUM_CLASS(RenderDataType, u8)
 

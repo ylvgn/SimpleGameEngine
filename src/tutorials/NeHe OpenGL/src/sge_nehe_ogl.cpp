@@ -45,4 +45,4 @@ private:
 } // namespace sge
 
 
-SGE_WinMain(sge::NeHeOGLApp)
+SGE_MAIN(sge::NeHeOGLApp)

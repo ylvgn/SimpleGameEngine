@@ -68,4 +68,4 @@ private:
 } // namespace sge
 
 
-SGE_WinMain(sge::ProgWin5App)
+SGE_MAIN(sge::ProgWin5App)

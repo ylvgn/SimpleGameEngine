@@ -183,15 +183,17 @@ public:
 	class Texture {
 	public:
 		String		name;
-		i16			bindPoint = 0;
-		i16			bindCount = 0;
-		DataType	dataType = DataType::None;
+		i16			bindPoint	= 0;
+		i16			bindCount	= 0;
+		i16			bindSet		= 0;
+		DataType	dataType	= DataType::None;
 
 		template<class SE>
 		void onJson(SE& se) {
 			SGE_NAMED_IO(se, name);
 			SGE_NAMED_IO(se, bindPoint);
 			SGE_NAMED_IO(se, bindCount);
+			SGE_NAMED_IO(se, bindSet);
 			SGE_NAMED_IO(se, dataType);
 		}
 	};
@@ -200,16 +202,18 @@ public:
 	//----------
 	class Sampler {
 	public:
-		String		name;
-		i16			bindPoint = 0;
-		i16			bindCount = 0;
-		RenderDataType	dataType = RenderDataType::None;
+		String			name;
+		i16				bindPoint	= 0;
+		i16				bindCount	= 0;
+		i16				bindSet		= 0;
+		RenderDataType	dataType	= RenderDataType::None;
 
 		template<class SE>
 		void onJson(SE& se) {
 			SGE_NAMED_IO(se, name);
 			SGE_NAMED_IO(se, bindPoint);
 			SGE_NAMED_IO(se, bindCount);
+			SGE_NAMED_IO(se, bindSet);
 			SGE_NAMED_IO(se, dataType);
 		}
 	};

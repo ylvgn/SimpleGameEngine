@@ -111,4 +111,4 @@ private:
 
 } // namespace sge
 
-SGE_Main(sge::SiTaDBExample001)
+SGE_MAIN(sge::SiTaDBExample001)

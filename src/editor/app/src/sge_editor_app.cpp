@@ -326,4 +326,4 @@ private:
 
 } // namespace sge
 
-SGE_WinMain(sge::EditorApp)
+SGE_MAIN(sge::EditorApp)

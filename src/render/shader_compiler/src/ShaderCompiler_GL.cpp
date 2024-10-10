@@ -121,12 +121,11 @@ void ShaderCompiler_GL::_convert(Compiler& comp, DataType& o, const SPIRType& i,
 		case SRC::Float:	dataType.append("Float32");	break;
 		case SRC::Double:	dataType.append("Float64");	break;
 
-//		TODO
-//		case SRC::Image:
-//		case SRC::SampledImage: dataType.append("Texture"); break;
+		case SRC::Image:
+		case SRC::SampledImage: dataType.append("Texture"); break;
 //		case SRC::AtomicCounter: break;
 //		case SRC::Struct:					break;
-//		case SRC::Sampler:					break;
+		case SRC::Sampler: dataType.append("SamplerState"); break;
 //		case SRC::AccelerationStructure:	break;
 //		case SRC::RayQuery:					break;
 		default:
@@ -149,10 +148,12 @@ void ShaderCompiler_GL::_convert(Compiler& comp, DataType& o, const SPIRType& i,
 			case Dim::Dim2D: dataType.append("2D"); break;
 			case Dim::Dim3D: dataType.append("3D"); break;
 			case Dim::DimCube: dataType.append("Cube"); break;
+			default: throw SGE_ERROR("invalid texture dimension");
 		}
+
 		if (image.arrayed) dataType.append("Array");
 
-		// !!<-------------- TODO
+#if 0 // !!<-------------- TODO
 		if (image.ms) throw SGE_ERROR("unsupported feature image.ms");
 		if (image.sampled) throw SGE_ERROR("unsupported image feature image.sampled={}", image.sampled);
 		switch (image.format) {
@@ -160,8 +161,8 @@ void ShaderCompiler_GL::_convert(Compiler& comp, DataType& o, const SPIRType& i,
 			default:
 				throw SGE_ERROR("unsupported spv ImageFormat: {}", static_cast<int>(image.format));
 		};
-	}
-	else {
+#endif
+	} else {
 		if (vecsize == 1 && columns == 1) {					// scalar
 			// do nothing
 		} else if (vecsize > 1 && columns == 1) {
@@ -188,7 +189,7 @@ void ShaderCompiler_GL::_reflect(StrView outFilename, Compiler& comp, ShaderStag
 		comp.set_enabled_interface_variables(move(active));
 
 #if 0
-		for (auto& resource : resources.stage_inputs) {
+		for (const auto& resource : resources.stage_inputs) {
 			printf("Input '%s':\tlayout set = %u\tlayout binding = %u\tlayout location= %u\n",
 				resource.name.c_str(),
 				comp.get_decoration(resource.id, spv::DecorationDescriptorSet),
@@ -196,7 +197,7 @@ void ShaderCompiler_GL::_reflect(StrView outFilename, Compiler& comp, ShaderStag
 				comp.get_decoration(resource.id, spv::DecorationLocation));
 		}
 
-		for (auto& resource : resources.stage_outputs) {
+		for (const auto& resource : resources.stage_outputs) {
 			printf("Output '%s':\tlayout set = %u\tlayout binding = %u\tlayout location= %u\n",
 				resource.name.c_str(),
 				comp.get_decoration(resource.id, spv::DecorationDescriptorSet),
@@ -204,11 +205,11 @@ void ShaderCompiler_GL::_reflect(StrView outFilename, Compiler& comp, ShaderStag
 				comp.get_decoration(resource.id, spv::DecorationLocation));
 		}
 
-		for (auto& resource : resources.uniform_buffers) {
+		for (const auto& resource : resources.uniform_buffers) {
 			auto& uniform_type = comp.get_type(resource.base_type_id);
 
 			int i = 0;
-			for (auto& member_type_id : uniform_type.member_types) {
+			for (const auto& member_type_id : uniform_type.member_types) {
 				auto& member_type = comp.get_type(member_type_id);
 				printf("uniform_member_name=%s\tvecsize=%u\tcolumns=%u\tmemberSize=%zu\tstartOffset=%u\n",
 						comp.get_member_name(uniform_type.self, i).c_str(),
@@ -237,13 +238,15 @@ void ShaderCompiler_GL::_reflect(StrView outFilename, Compiler& comp, ShaderStag
 void ShaderCompiler_GL::_reflect_inputs(ShaderStageInfo& outInfo, Compiler& comp, const ShaderResources& resources) {
 	outInfo.inputs.reserve(resources.stage_inputs.size());
 
-	for (auto& resource : resources.stage_inputs) {
+	for (const auto& resource : resources.stage_inputs) {
 		auto& outInput = outInfo.inputs.emplace_back();
+
+		using Slot = decltype(outInput.slot);
 
 		auto resId = resource.id;
 		StrView name(resource.name.data(), resource.name.size());
 
-		outInput.slot = static_cast<decltype(outInput.slot)>(comp.get_decoration(resource.id, spv::DecorationLocation));
+		outInput.slot = static_cast<Slot>(comp.get_decoration(resource.id, spv::DecorationLocation));
 
 //		you should not care about Name here unless your backend assigns bindings based on name, or for debugging purposes
 //		outInput.name.assign(name.data(), name.size());
@@ -264,25 +267,27 @@ void ShaderCompiler_GL::_reflect_inputs(ShaderStageInfo& outInfo, Compiler& comp
 void ShaderCompiler_GL::_reflect_constBuffers(ShaderStageInfo& outInfo, Compiler& comp, const ShaderResources& resources) {
 	outInfo.constBuffers.reserve(resources.uniform_buffers.size());
 
-	for (auto& resource : resources.uniform_buffers) {
+	for (const auto& resource : resources.uniform_buffers) {
+		auto& outCB = outInfo.constBuffers.emplace_back();
+
+		using BindPoint = decltype(outCB.bindPoint);
+		using BindCount = decltype(outCB.bindCount);
+		using DataSize	= decltype(outCB.dataSize);
+
 		auto  resId = resource.id;
 		const auto& uniform_type = comp.get_type(resource.base_type_id);
 
-		auto& outCB = outInfo.constBuffers.emplace_back();
-
-		using SGE_BindPoint = decltype(outCB.bindPoint);
-		using SGE_DataSize	= decltype(outCB.dataSize);
-
-		outCB.bindPoint = static_cast<SGE_BindPoint>(comp.get_decoration(resId, spv::DecorationBinding));
+		outCB.bindPoint = static_cast<BindPoint>(comp.get_decoration(resId, spv::DecorationBinding));
 
 		if (outCB.bindPoint >= GL_MAX_UNIFORM_BUFFER_BINDINGS)
 			throw SGE_ERROR("invalid bindPoint out of bound: {} >= {}", outCB.bindPoint, GL_MAX_UNIFORM_BUFFER_BINDINGS);
 
 		outCB.name.assign(resource.name.c_str(), resource.name.size());
-		outCB.dataSize = comp.get_declared_struct_size(uniform_type);
+		outCB.dataSize = static_cast<DataSize>(comp.get_declared_struct_size(uniform_type));
+		outCB.bindCount = Math::max(BindCount(uniform_type.array.size()), BindCount(1));
 
 		int i = 0;
-		for (auto& member_type_id : uniform_type.member_types) {
+		for (const auto& member_type_id : uniform_type.member_types) {
 			auto& member_type = comp.get_type(member_type_id);
 
 			auto& outVar	  = outCB.variables.emplace_back();
@@ -306,11 +311,47 @@ void ShaderCompiler_GL::_reflect_constBuffers(ShaderStageInfo& outInfo, Compiler
 }
 
 void ShaderCompiler_GL::_reflect_textures(ShaderStageInfo& outInfo, Compiler& comp, const ShaderResources& resources) {
-	// TODO
+	outInfo.textures.reserve(resources.separate_images.size());
+
+	for (const auto& resource : resources.separate_images) {
+		auto& outTex = outInfo.textures.emplace_back();
+
+		using BindPoint = decltype(outTex.bindPoint);
+		using BindCount = decltype(outTex.bindCount);
+		using BindSet	= decltype(outTex.bindSet);
+
+		auto  resId = resource.id;
+		const auto& type = comp.get_type(resource.type_id);
+
+		outTex.name.assign(resource.name.c_str(), resource.name.size());
+		outTex.bindPoint = static_cast<BindPoint>(comp.get_decoration(resId, spv::DecorationBinding));
+		outTex.bindCount = Math::max(BindCount(type.array.size()), BindCount(1));
+		outTex.bindSet	 = static_cast<BindSet>(comp.get_decoration(resId, spv::DecorationDescriptorSet));
+
+		_convert(comp, outTex.dataType, type);
+	}
 }
 
 void ShaderCompiler_GL::_reflect_samplers(ShaderStageInfo& outInfo, Compiler& comp, const ShaderResources& resources) {
-	// TODO
+	outInfo.samplers.reserve(resources.separate_samplers.size());
+
+	for (const auto& resource : resources.separate_samplers) {
+		auto& outSampler = outInfo.samplers.emplace_back();
+
+		using BindPoint	= decltype(outSampler.bindPoint);
+		using BindCount	= decltype(outSampler.bindCount);
+		using BindSet	= decltype(outSampler.bindSet);		
+
+		auto  resId = resource.id;
+		const auto& type = comp.get_type(resource.type_id);
+
+		outSampler.name.assign(resource.name.c_str(), resource.name.size());
+		outSampler.bindPoint	= static_cast<BindPoint>(comp.get_decoration(resId, spv::DecorationBinding));
+		outSampler.bindCount	= static_cast<BindSet>(type.array.empty() ? 1 : type.array[0]);
+		outSampler.bindSet		= static_cast<BindSet>(comp.get_decoration(resId, spv::DecorationDescriptorSet));
+
+		_convert(comp, outSampler.dataType, type);
+	}
 }
 
 StrView ShaderCompiler_GL::_findLastNameWithoutUnderscore(StrView s) {

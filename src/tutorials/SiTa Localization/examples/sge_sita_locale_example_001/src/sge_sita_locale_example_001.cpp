@@ -86,4 +86,4 @@ public:
 } // namespace sge
 
 
-SGE_Main(sge::MyApp)
+SGE_MAIN(sge::MyApp)

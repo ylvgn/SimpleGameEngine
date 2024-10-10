@@ -34,30 +34,48 @@ private:
 } // namespace sge
 
 
-//----------
-template<class T> inline
-int sgeWinMain(int argc, const char* argv[]) {
-	SGE_STATIC_ASSERT(sge::TypeTraits::isBaseOf<sge::NativeUIApp, T>::value);
+//------
+template<class T, class ENABLE = void>
+struct sgeMain {
+	sgeMain() = delete;
 
-	T app;
-	T::CreateDesc desc;
-	return app.run(desc);
-}
+	static int run(T& app) {
+		SGE_STATIC_ASSERT(sge::TypeTraits::isBaseOf<sge::AppBase, T>::value);
+		return app._run();
+	}
+};
+
+template<class T>
+struct sgeMain<T, std::enable_if_t< sge::TypeTraits::isBaseOf<sge::NativeUIApp, T>::value> > {
+	sgeMain() = delete;
+
+	static int run(T& app) {
+		T::CreateDesc desc;
+		app.run(desc);
+		return app.exitCode();
+	}
+};
 
 #if SGE_OS_WINDOWS
-	#define SGE_WinMain(T) \
-		int main(int argc, const char* argv[]) { \
-			try { \
-				return sgeWinMain<T>(argc, argv); \
-			} \
-			catch (...) { \
-				SGE_ASSERT(false); \
-				throw; \
-			} \
+#define SGE_MAIN(T) \
+	int main(int argc, const char* argv[]) { \
+		try { \
+			T app; \
+			app.setCommandArguments(argc, argv); \
+			return sgeMain<T>::run(app); \
 		} \
-	//--------
+		catch (...) { \
+			SGE_ASSERT(false); \
+			throw; \
+		} \
+	} \
+	//------
 #else
-	#define SGE_WinMain(T) \
-		int main(int argc, const char* argv[]) { return sgeWinMain<T>(argc, argv); } \
-	//--------
+	#define SGE_MAIN(T) \
+		int main(int argc, const char* argv[]) { \
+			T app; \
+			app.setCommandArguments(argc, argv); \
+			return sgeMain<T>::run(app); \
+		} \
+	//------
 #endif // SGE_OS_WINDOWS

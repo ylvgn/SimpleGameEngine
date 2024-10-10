@@ -87,4 +87,4 @@ protected:
 } // namespace sge
 
 
-SGE_Main(sge::ShaderCompiler)
+SGE_MAIN(sge::ShaderCompiler)

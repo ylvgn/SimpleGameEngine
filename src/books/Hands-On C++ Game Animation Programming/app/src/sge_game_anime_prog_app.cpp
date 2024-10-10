@@ -605,4 +605,4 @@ private:
 } // namespace sge
 
 
-SGE_WinMain(sge::GameAnimeProgApp)
+SGE_MAIN(sge::GameAnimeProgApp)
