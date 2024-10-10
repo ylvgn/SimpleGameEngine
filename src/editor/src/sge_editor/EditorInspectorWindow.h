@@ -19,4 +19,4 @@ private:
 
 };
 
-}
+} // namespace sge

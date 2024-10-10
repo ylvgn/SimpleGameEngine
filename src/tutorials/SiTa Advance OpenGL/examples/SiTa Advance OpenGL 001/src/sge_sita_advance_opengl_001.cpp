@@ -112,12 +112,7 @@ private:
 	MyMainWin _mainWin;
 };
 
-}
+} // namespace sge
 
-int main() {
-	sge::MyApp app;
-	sge::MyApp::CreateDesc desc;
-	app.run(desc);
 
-	return 0;
-}
+SGE_WinMain(sge::MyApp)

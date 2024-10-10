@@ -1,8 +1,6 @@
 #pragma once
 
-namespace sge {
-
-namespace Math {
+namespace sge { namespace Math {
 	template<class T> constexpr T max(const T& a, const T& b) { return a > b ? a : b; }
 	template<class T> constexpr T min(const T& a, const T& b) { return a < b ? a : b; }
 
@@ -236,5 +234,4 @@ namespace Math {
 	SGE_INLINE double rsqrt(double v) { return 1.0 / sqrt(v); }
 	SGE_INLINE int    rsqrt(int    v) { return roundToInt(rsqrt(static_cast<double>(v))); }
 
-} // namespace Math
-} // namespace sge
+}} // namespace sge/Math

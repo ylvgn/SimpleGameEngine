@@ -63,7 +63,7 @@ protected:
 			}
 		}
 
-		{ // OpenGL
+		{ // GLSL
 			size_t passIndex = 0;
 			for (auto& pass : info.passes) {
 				auto passOutPath = Fmt("{}/glsl/pass{}", outputPath, passIndex);
@@ -84,11 +84,7 @@ protected:
 
 };
 
-}
+} // namespace sge
 
-int main() {
-	sge::ShaderCompiler app;
-	app.run();
 
-	return 0;
-}
+SGE_Main(sge::ShaderCompiler)

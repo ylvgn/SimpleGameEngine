@@ -21,6 +21,6 @@ private:
 	DWORD _getMonitorDisplayFrequency();
 };
 
-}
+} // namespace sge
 
-#endif
+#endif // SGE_OS_WINDOWS

@@ -1,13 +1,12 @@
 #pragma once
 
-namespace sge {
-namespace TypeTraits {
+namespace sge { namespace TypeTraits {
 
-	template<class A, class B> struct isSame { static const bool value = std::is_same<A, B>::value; };
-	template<class B, class T> struct isBaseOf { static const bool value = std::is_base_of<B, T>::value; };
+	template<class A, class B> struct isSame		{ static const bool value = std::is_same<A, B>::value; };
+	template<class B, class T> struct isBaseOf		{ static const bool value = std::is_base_of<B, T>::value; };
 
-	template<class T>		   struct isUnsigned { static const bool value = std::is_unsigned<T>::value; };
-	template<class T>		   struct isSigned { static const bool value = std::is_signed<T>::value; };
+	template<class T>		   struct isUnsigned	{ static const bool value = std::is_unsigned<T>::value; };
+	template<class T>		   struct isSigned		{ static const bool value = std::is_signed<T>::value; };
 
 	//--------
 	template<size_t N> struct typeBySize;
@@ -46,5 +45,4 @@ namespace TypeTraits {
 		using Float = f128;
 	};
 
-} // namespace TypeTraits
-} // namespace sge
+}} // namespace sge/TypeTraits

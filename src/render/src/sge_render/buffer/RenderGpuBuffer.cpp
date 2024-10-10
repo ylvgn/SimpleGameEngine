@@ -7,8 +7,7 @@ void RenderGpuBuffer::create(CreateDesc& desc) {
 	onCreate(desc);
 }
 
-void RenderGpuBuffer::uploadToGpu(ByteSpan data, size_t offset)
-{
+void RenderGpuBuffer::uploadToGpu(ByteSpan data, size_t offset) {
 	if (data.size() + offset > _desc.bufferSize) {
 		throw SGE_ERROR("out of range");
 	}

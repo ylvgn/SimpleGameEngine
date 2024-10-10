@@ -13,4 +13,4 @@ private:
 	String _getNumberDesc(u64 n);
 };
 
-}
+} // namespace sge

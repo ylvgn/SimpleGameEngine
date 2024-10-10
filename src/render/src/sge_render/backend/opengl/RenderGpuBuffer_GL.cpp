@@ -11,6 +11,7 @@ void RenderGpuBuffer_GL::destroy() {
 }
 
 void RenderGpuBuffer_GL::glBind() {
+	SGE_ASSERT(_p);
 	glBindBuffer(glBufTarget(), _p);
 }
 
@@ -21,8 +22,8 @@ void RenderGpuBuffer_GL::glUnbind() {
 void RenderGpuBuffer_GL::onCreate(CreateDesc& desc)  {
 	destroy();
 
-	if (desc.bufferSize <= 0) throw SGE_ERROR("buffer size <= 0");
-	if (desc.stride <= 0) throw SGE_ERROR("stride <= 0");
+	if (desc.bufferSize <= 0)	throw SGE_ERROR("buffer size <= 0");
+	if (desc.stride <= 0)		throw SGE_ERROR("stride <= 0");
 
 	auto target = glBufTarget();
 	glGenBuffers(1, &_p);

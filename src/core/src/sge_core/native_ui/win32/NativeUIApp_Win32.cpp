@@ -56,4 +56,4 @@ DWORD NativeUIApp_Win32::_getMonitorDisplayFrequency() {
 
 }
 
-#endif
+#endif // SGE_OS_WINDOWS

@@ -3,9 +3,7 @@
 namespace sge {
 /*
 	* Hello Window
-	* FYI:
-		* 1.1.hello_window: https://learnopengl.com/Getting-started/Creating-a-window
-		* 1.2.hello_window_clear: https://learnopengl.com/Getting-started/Hello-Window
+	* FYI: https://learnopengl.com/Getting-started/Hello-Window
 */
 
 class MainWin : public MyGLFWNativeUIWindow {
@@ -44,7 +42,7 @@ protected:
 			winDesc.isMainWindow = true;
 			winDesc.rect = { 10, 10, 1376, 768 };
 			_mainWin->create(winDesc);
-			_mainWin->setWindowTitle("1.getting_started - Hello Window");
+			_mainWin->setWindowTitle("Hello Window");
 		}
 
 		Base::onCreate(desc);
@@ -53,10 +51,5 @@ protected:
 
 } // namespace sge
 
-int main(int argc, const char** argv) {
-	sge::MyApp app;
-	sge::MyApp::CreateDesc desc;
-	app.run(desc);
 
-	return 0;
-}
+SGE_WinMain(sge::MyApp)

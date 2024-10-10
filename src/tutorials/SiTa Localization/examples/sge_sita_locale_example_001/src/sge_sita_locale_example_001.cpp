@@ -83,11 +83,7 @@ public:
 	}
 };
 
-}
+} // namespace sge
 
-int main(int argc, const char** argv) {
-	sge::MyApp app;
-	app.run();
 
-	return 0;
-}
+SGE_Main(sge::MyApp)

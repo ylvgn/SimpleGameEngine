@@ -65,12 +65,7 @@ private:
 	ProgWin5MainWin _mainWin;
 };
 
-}
+} // namespace sge
 
-int main(int argc, const TCHAR** argv) {
-	sge::ProgWin5App app;
-	sge::ProgWin5App::CreateDesc appDesc;
-	app.run(appDesc);
 
-	return 0;
-}
+SGE_WinMain(sge::ProgWin5App)

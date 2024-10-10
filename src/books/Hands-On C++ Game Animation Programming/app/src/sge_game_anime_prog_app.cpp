@@ -602,13 +602,7 @@ private:
 	GameAnimeProgMainWin _mainWin;
 };
 
-} // namespace
+} // namespace sge
 
 
-int main(int argc, const char** argv) {
-	sge::GameAnimeProgApp app;
-	sge::GameAnimeProgApp::CreateDesc desc;
-	app.run(desc);
-
-	return 0;
-}
+SGE_WinMain(sge::GameAnimeProgApp)

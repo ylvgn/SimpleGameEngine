@@ -4,6 +4,7 @@
 namespace sge {
 
 class NativeUIApp_Base : public AppBase {
+	using Base = AppBase;
 public:
 	struct CreateDesc {
 	};
@@ -39,4 +40,4 @@ protected:
 	int		_exitCode			= 0;
 };
 
-}
+} // namespace sge

@@ -21,4 +21,4 @@ enum class RenderPrimitiveType {
 	Triangles,
 };
 
-} // namespace
+} // namespace sge

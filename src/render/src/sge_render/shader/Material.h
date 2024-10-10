@@ -10,6 +10,9 @@ class RenderContext;
 class Material;
 class MaterialPass;
 
+#if 0
+#pragma mark ========= MaterialPass_Stage ============
+#endif
 struct MaterialPass_Stage : public NonCopyable {
 	using Pass = MaterialPass;
 
@@ -136,6 +139,9 @@ public:
 	const ShaderStageInfo* info() const { return _shaderStage->info(); }
 }; // MaterialPass_Stage
 
+#if 0
+#pragma mark ========= MaterialPass_VertexStage ============
+#endif
 struct MaterialPass_VertexStage : public MaterialPass_Stage {
 	using Base = MaterialPass_Stage;
 	MaterialPass_VertexStage(MaterialPass* pass, ShaderVertexStage* shaderStage)
@@ -143,6 +149,9 @@ struct MaterialPass_VertexStage : public MaterialPass_Stage {
 	{}
 }; // MaterialPass_VertexStage
 
+#if 0
+#pragma mark ========= MaterialPass_PixelStage ============
+#endif
 struct MaterialPass_PixelStage : public MaterialPass_Stage {
 	using Base = MaterialPass_Stage;
 	MaterialPass_PixelStage(MaterialPass* pass, ShaderPixelStage* shaderStage)
@@ -150,6 +159,9 @@ struct MaterialPass_PixelStage : public MaterialPass_Stage {
 	{}
 }; // MaterialPass_PixelStage
 
+#if 0
+#pragma mark ========= MaterialPass ============
+#endif
 class MaterialPass : public NonCopyable {
 public:
 	virtual ~MaterialPass() noexcept = default;
@@ -188,6 +200,9 @@ protected:
 	PixelStage*  _pixelStage	= nullptr;
 }; // MaterialPass
 
+#if 0
+#pragma mark ========= Material ============
+#endif
 class Material : public RefCountBase {
 public:
 	virtual ~Material() noexcept = default;
@@ -242,4 +257,4 @@ protected:
 
 }; // Material
 
-} // namespace
+} // namespace sge

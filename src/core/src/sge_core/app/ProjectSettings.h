@@ -17,4 +17,4 @@ private:
 	String _projectRoot;
 };
 
-}
+} // namespace sge

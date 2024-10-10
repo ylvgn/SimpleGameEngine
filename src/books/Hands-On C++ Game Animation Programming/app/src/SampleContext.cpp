@@ -7,13 +7,6 @@ static float SampleContext_sUIHeaderHeight() {
 }
 
 void SampleContext::test_None_onCreate(Request& req) {
-	// just for test
-	_staticShader = new Shader(
-		"../Test101/LocalTemp/Imported/Assets/Shaders/test.shader/glsl/pass0/vs_330.spv.glsl",
-		"../Test101/LocalTemp/Imported/Assets/Shaders/test.shader/glsl/pass0/ps_330.spv.glsl"
-	);
-	_staticShader->dumpUniformBlocks();
-	_staticShader->dumpActiveAttrib();
 }
 void SampleContext::test__END_onCreate(Request& req) {}
 void SampleContext::test_LitTexture_onCreate(Request& req) {

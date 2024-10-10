@@ -6,11 +6,7 @@ namespace sge {
 
 class AppBase : public NonCopyable {
 public:
-
-	String	getExecutableFilename();
-
-protected:
-
+	String getExecutableFilename();
 };
 
-}
+} // namespace sge

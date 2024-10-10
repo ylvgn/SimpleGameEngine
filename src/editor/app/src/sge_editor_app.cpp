@@ -324,12 +324,6 @@ private:
 	MainWin		_mainWin;
 };
 
-}
+} // namespace sge
 
-int main() {
-	sge::EditorApp app;
-	sge::EditorApp::CreateDesc desc;
-	app.run(desc);
-
-	return 0;
-}
+SGE_WinMain(sge::EditorApp)

@@ -42,12 +42,7 @@ private:
 	NeHeOGLMainWin _mainWin;
 };
 
-}
+} // namespace sge
 
-int main(int argc, const TCHAR** argv) {
-	sge::NeHeOGLApp app;
-	sge::NeHeOGLApp::CreateDesc appDesc;
-	app.run(appDesc);
 
-	return 0;
-}
+SGE_WinMain(sge::NeHeOGLApp)

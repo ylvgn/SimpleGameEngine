@@ -87,4 +87,4 @@ struct RenderDataTypeUtil {
 	template<> static constexpr Type get<TextureCube>()	{ return Type::TextureCube; }
 };
 
-} // namespace
+} // namespace sge

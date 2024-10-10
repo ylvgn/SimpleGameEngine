@@ -16,10 +16,10 @@ public:
 
 	class GLVertexArray : public GLObject {
 	public:
-		~GLVertexArray() { _destroy(); }
+		~GLVertexArray() { destroy(); }
+		void destroy();
+
 		void bind();
-	private:
-		void _destroy();
 	};
 
 protected:

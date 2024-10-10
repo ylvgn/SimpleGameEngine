@@ -140,4 +140,4 @@ void RenderSubMesh::_setIndexData(const Span<const SRC>& indexData) {
 
 template<> const TypeInfo* TypeOf<RenderMesh>();
 
-} // namespace
+} // namespace sge

@@ -18,7 +18,9 @@ struct RenderContext_Statistics { // tmp
 	void clean() { memset(this, 0, sizeof(RenderContext_Statistics)); }
 };
 
-// abstruct class
+#if 0
+#pragma mark ========= RenderContext ============
+#endif
 class RenderContext : public Object {
 public:
 	using CreateDesc = RenderContext_CreateDesc;
@@ -80,4 +82,4 @@ protected:
 	Statistics _statistics;
 }; // RenderContext_CreateDesc
 
-} // namespace
+} // namespace sge

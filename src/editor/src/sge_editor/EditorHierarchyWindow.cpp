@@ -63,4 +63,4 @@ void EditorHierarchyWindow::draw(Scene& scene, RenderRequest& req) {
 	}
 }
 
-} // namespace
+} // namespace sge

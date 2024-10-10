@@ -94,7 +94,6 @@ public:
 	}
 
 	SPtr<Material>		_material;
-
 	SPtr<RenderContext>	_renderContext;
 	RenderCommandBuffer _cmdBuf;
 	RenderMesh			_renderMesh;
@@ -114,6 +113,7 @@ public:
 			SGE_LOG("current dir={}", curDir);
 		}
 
+		// compile shaders
 		CommandLine::runShell("compile_shaders.bat");
 
 		Base::onCreate(desc);
@@ -141,12 +141,7 @@ private:
 	MainWin		_mainWin;
 };
 
-}
+} // namespace sge
 
-int main() {
-	sge::EditorApp app;
-	sge::EditorApp::CreateDesc desc;
-	app.run(desc);
 
-	return 0;
-}
+SGE_WinMain(sge::EditorApp)

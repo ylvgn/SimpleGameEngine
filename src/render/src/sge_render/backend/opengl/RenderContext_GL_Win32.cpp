@@ -20,7 +20,7 @@ public:
 		static const wchar_t* className = L"FalseContext";
 		auto hInstance = GetModuleHandle(nullptr);
 
-		::WNDCLASSEX wc;
+		WNDCLASSEX wc;
 		if (!GetClassInfoEx(hInstance, className, &wc)) {
 			memset(&wc, 0, sizeof(wc));
 
@@ -37,21 +37,20 @@ public:
 				throw SGE_ERROR("RegisterClassEx");
 		}
 
-		::DWORD dwExStyle = 0;
-		::DWORD dwStyle = WS_POPUP;
+		DWORD dwExStyle = 0;
+		DWORD dwStyle	= WS_POPUP;
 
 		_hwnd = CreateWindowEx(dwExStyle, className, className, dwStyle,
 							   0, 0, 0, 0,
 							   nullptr, nullptr, hInstance, nullptr);
-
 		if (!_hwnd)
 			throw SGE_ERROR("CreateWindowEx");
 
-		_dc = ::GetDC(_hwnd);
+		_dc = GetDC(_hwnd);
 		if (!_dc)
 			throw SGE_ERROR("GetDC");
 
-		::PIXELFORMATDESCRIPTOR pfd;
+		PIXELFORMATDESCRIPTOR pfd;
 		memset(&pfd, 0, sizeof(pfd));
 		pfd.nSize		= sizeof(pfd);
 		pfd.nVersion	= 1;
@@ -61,41 +60,41 @@ public:
 		pfd.cDepthBits	= 32;
 		pfd.iLayerType	= PFD_MAIN_PLANE;
 
-		int nPixelFormat = ::ChoosePixelFormat(_dc, &pfd);
+		int nPixelFormat = ChoosePixelFormat(_dc, &pfd);
 		if (!nPixelFormat)
 			throw SGE_ERROR("ChoosePixelFormat");
 
-		if (!::SetPixelFormat(_dc, nPixelFormat, &pfd))
+		if (!SetPixelFormat(_dc, nPixelFormat, &pfd))
 			throw SGE_ERROR("SetPixelFormat");
 
-		_rc = ::wglCreateContext(_dc);
+		_rc = wglCreateContext(_dc);
 		if (!_rc)
 			throw SGE_ERROR("wglCreateContext");
 
-		if (!::wglMakeCurrent(_dc, _rc))
+		if (!wglMakeCurrent(_dc, _rc))
 			throw SGE_ERROR("wglMakeCurrent");
 	}
 
 	void FalseContext::destroy() {
 		if (_rc) {
-			::wglDeleteContext(_rc);
+			wglDeleteContext(_rc);
 			_rc = nullptr;
 		}
 		if (_dc) {
 			SGE_ASSERT(_hwnd != nullptr);
-			::ReleaseDC(_hwnd, _dc);
+			ReleaseDC(_hwnd, _dc);
 			_dc = nullptr;
 		}
 		if (_hwnd) {
-			::DestroyWindow(_hwnd);
+			DestroyWindow(_hwnd);
 			_hwnd = nullptr;
 		}
 	}
 
 private:
-	::HWND	_hwnd = nullptr;
-	::HDC	_dc = nullptr;
-	::HGLRC	_rc = nullptr;
+	HWND	_hwnd = nullptr;
+	HDC		_dc = nullptr;
+	HGLRC	_rc = nullptr;
 };
 
 #if 0
@@ -107,17 +106,16 @@ RenderContext_GL_Win32::RenderContext_GL_Win32(CreateDesc& desc)
 {
 	FalseContext falseContext;
 	falseContext.create();
+
 	glewInit();
 
-#if SGE_OS_WINDOWS
 	auto* win = static_cast<NativeUIWindow_Win32*>(desc.window);
 	const auto& win32_hwnd = win->_hwnd;
 	SGE_ASSERT(win32_hwnd != nullptr);
 
-	_win32_dc = ::GetDC(win32_hwnd);
+	_win32_dc = GetDC(win32_hwnd);
 	SGE_ASSERT(_win32_dc != nullptr);
 
-	// create context
 	const int formatAttrs[] = {
 		WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
 		WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
@@ -143,19 +141,18 @@ RenderContext_GL_Win32::RenderContext_GL_Win32(CreateDesc& desc)
 		throw SGE_ERROR("wglChoosePixelFormatARB");
 	}
 
-	::PIXELFORMATDESCRIPTOR pfd;
-	if (!::SetPixelFormat(_win32_dc, format, &pfd)) {
+	PIXELFORMATDESCRIPTOR pfd;
+	if (!SetPixelFormat(_win32_dc, format, &pfd)) {
 		throw SGE_ERROR("SetPixelFormat");
 	}
 
-	::HGLRC sharedContext = nullptr;
+	HGLRC sharedContext = nullptr;
 	_win32_rc = wglCreateContextAttribsARB(_win32_dc, sharedContext, contextAttrs);
 	if (!_win32_rc)
 		throw SGE_ERROR("wglCreateContextAttribsARB");
 	
-	if (!::wglMakeCurrent(_win32_dc, _win32_rc))
+	if (!wglMakeCurrent(_win32_dc, _win32_rc))
 		throw SGE_ERROR("wglMakeCurrent");
-#endif
 
 	Util::throwIfError();
 }

@@ -109,11 +109,6 @@ private:
 	SPtr<Conn> _conn;
 };
 
-}
+} // namespace sge
 
-int main(int argc, const char** argv) {
-	sge::SiTaDBExample001 app;
-	app.run();
-
-	return 0;
-}
+SGE_Main(sge::SiTaDBExample001)

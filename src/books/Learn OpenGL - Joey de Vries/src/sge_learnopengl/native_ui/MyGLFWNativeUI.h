@@ -6,6 +6,9 @@ namespace sge {
 
 struct MyGLFWUIKeyboardEvent;
 
+#if 0
+#pragma mark ========= MyGLFWNativeUIWindow ============
+#endif
 class MyGLFWNativeUIWindow : public NativeUIWindow_Base {
 	using Base = NativeUIWindow_Base;
 	using This = MyGLFWNativeUIWindow;
@@ -78,22 +81,14 @@ private:
 #if 0
 #pragma mark ========= MyGLFWNativeUIApp ============
 #endif
-class MyGLFWNativeUIApp : public NativeUIApp_Base {
-	using Base = NativeUIApp_Base;
-public:
-	MyGLFWNativeUIApp()  noexcept	{ SGE_ASSERT(_current == nullptr); _current = this; }
-	~MyGLFWNativeUIApp() noexcept	{ _current = nullptr; }
-
-	static MyGLFWNativeUIApp* current() { return _current; }
+class MyGLFWNativeUIApp : public NativeUIApp {
+	using Base = NativeUIApp;
 protected:
 	virtual void onCreate(CreateDesc& desc) override;
 	virtual void onRun() override;
 	virtual void onQuit() override;
 
 	UPtr<MyGLFWNativeUIWindow> _mainWin;
-
-private:
-	static MyGLFWNativeUIApp* _current;
 };
 
 } // namespace sge

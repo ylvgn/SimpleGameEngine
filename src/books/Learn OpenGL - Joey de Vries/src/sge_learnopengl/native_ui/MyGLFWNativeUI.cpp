@@ -98,8 +98,6 @@ void MyGLFWNativeUIWindow::onCreate(CreateDesc& desc) {
 #if 0
 #pragma mark ========= MyGLFWNativeUIApp ============
 #endif
-MyGLFWNativeUIApp* MyGLFWNativeUIApp::_current = nullptr;
-
 void MyGLFWNativeUIApp::onCreate(CreateDesc& desc)
 {
 	{ // set working dir

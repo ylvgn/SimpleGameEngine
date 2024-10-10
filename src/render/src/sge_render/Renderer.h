@@ -24,6 +24,7 @@ public:
 
 	struct CreateDesc {
 		CreateDesc();
+
 		ApiType apiType;
 		bool multithread : 1;
 	};
@@ -33,8 +34,9 @@ public:
 	Renderer();
 	virtual ~Renderer();
 
-	static Renderer* instance() { return s_instance; };
-	const RenderAdapterInfo& adapterInfo() { return _adapterInfo; };
+	static Renderer* instance()	{ return s_instance; };
+
+	const RenderAdapterInfo& adapterInfo() const { return _adapterInfo; };
 
 	bool vsync() const { return _vsync; }
 

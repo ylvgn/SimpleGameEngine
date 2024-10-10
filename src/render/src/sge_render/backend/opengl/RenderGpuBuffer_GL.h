@@ -8,10 +8,12 @@ class RenderGpuBuffer_GL : public RenderGpuBuffer {
 	using Base = RenderGpuBuffer;
 	using Util = GLUtil;
 public:
+	~RenderGpuBuffer_GL() { destroy(); }
+
 	void destroy();
 
-	GLuint glBuf() const { return _p; }
-	GLenum glBufTarget() const { return Util::getGlBufferBindingTarget(_desc.type); }
+	GLuint glBuf()			const { return _p; }
+	GLenum glBufTarget()	const { return Util::getGlBufferBindingTarget(_desc.type); }
 
 	void glBind();
 	void glUnbind();

@@ -1,5 +1,4 @@
 #include "Renderer.h"
-
 #include "backend/dx11/Renderer_DX11.h"
 #include "backend/opengl/Renderer_GL.h"
 
@@ -46,10 +45,11 @@ Renderer* Renderer::create(CreateDesc& desc) {
 	return p;
 }
 
-Renderer::Renderer() {
+Renderer::Renderer() 
+	: _vsync(true)
+{
 	SGE_ASSERT(s_instance == nullptr);
 	s_instance = this;
-	_vsync = true;
 }
 
 Renderer::~Renderer() {
@@ -94,4 +94,4 @@ SPtr<Texture2D> Renderer::createSolidColorTexture2D(const Color4b& color) {
 	return createTexture2D(texDesc);
 }
 
-} // namespace
+} // namespace sge

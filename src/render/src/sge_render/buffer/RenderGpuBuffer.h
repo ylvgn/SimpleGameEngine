@@ -13,15 +13,15 @@ SGE_ENUM_CLASS(RenderGpuBufferType, u8)
 struct RenderGpuBuffer_CreateDesc {
 	using Type = RenderGpuBufferType;
 
-	Type	type = Type::None;
-	size_t	bufferSize = 0;
-	size_t	stride = 16;
+	Type	type		= Type::None;
+	size_t	bufferSize	= 0;
+	size_t	stride		= 16;
 };
 
 class RenderGpuBuffer : public Object {
 public:
-	using Type = RenderGpuBufferType;
-	using CreateDesc = RenderGpuBuffer_CreateDesc;
+	using Type			= RenderGpuBufferType;
+	using CreateDesc	= RenderGpuBuffer_CreateDesc;
 
 	void create(CreateDesc& desc);
 
@@ -36,4 +36,4 @@ protected:
 	CreateDesc _desc;
 }; // RenderGpuBuffer
 
-} // namespace
+} // namespace sge
