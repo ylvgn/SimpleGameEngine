@@ -1,5 +1,7 @@
 #include "Render_GL_Common.h"
 
+#if SGE_RENDER_HAS_OPENGL
+
 namespace sge {
 #if 0
 #pragma mark ========= GLVertexBuffer ============
@@ -78,11 +80,11 @@ void GLUtil::compileShader(GLuint& shader, GLenum type, ByteSpan sourceCode, Str
 	GLint compiled;
 	glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
 	if (compiled != GL_TRUE) {
-		String errmsg;
-		getShaderInfoLog(shader, errmsg);
+		//String errmsg;
+		//getShaderInfoLog(shader, errmsg);
 
-		throw SGE_ERROR("Error compile shader: {}\nfilename: {}",
-			errmsg.c_str(), filename.empty() ? "Unknown" : filename);
+		//throw SGE_ERROR("Error compile shader: {}\nfilename: {}",
+		//	errmsg.c_str(), filename.empty() ? "Unknown" : filename);
 	}
 }
 
@@ -99,26 +101,11 @@ GLuint GLUtil::compileShader(GLenum type, StrView source) {
 	GLint compiled;
 	glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
 	if (compiled != GL_TRUE) {
-		String errmsg;
-		getShaderInfoLog(shader, errmsg);
-		throw SGE_ERROR("Error compile shader: {}", errmsg.c_str());
+		//String errmsg;
+		//getShaderInfoLog(shader, errmsg);
+		//throw SGE_ERROR("Error compile shader: {}", errmsg.c_str());
 	}
 	return shader;
-}
-
-void GLUtil::getShaderInfoLog(GLuint shader, String& outMsg) {
-	outMsg.clear();
-	if (!shader) return;
-
-	GLsizei bufLen = 0;
-
-	glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &bufLen);
-	outMsg.resize(bufLen);
-
-	GLsizei outLen = 0;
-	glGetShaderInfoLog(shader, bufLen, &outLen, outMsg.begin());
-
-	outMsg.resize(outLen);
 }
 
 void GLUtil::getProgramInfoLog(GLuint program, String& outMsg) {
@@ -435,3 +422,5 @@ void GLUtil::dumpActiveUniformBlocks(GLint program) {
 }
 
 } // namespace sge
+
+#endif // SGE_RENDER_HAS_OPENGL

@@ -97,7 +97,7 @@ public:
 		if (!File::exists(tmpName))
 			return E_ACCESSDENIED;
 		
-		auto newChunk = eastl::make_unique<Chunk>(tmpName);
+		auto newChunk = UPtr_make<Chunk>(tmpName);
 		_chunks[tmpName.c_str()] = eastl::move(newChunk);
 
 		auto& chunk = _chunks[tmpName.c_str()];

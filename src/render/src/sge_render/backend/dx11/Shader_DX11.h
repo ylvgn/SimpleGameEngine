@@ -3,6 +3,8 @@
 #include <sge_render/shader/Shader.h>
 #include <sge_render/backend/dx11/Render_DX11_Common.h>
 
+#if SGE_RENDER_HAS_DX11
+
 namespace sge {
 
 class RenderContext_DX11;
@@ -39,11 +41,18 @@ public:
 	struct MyPass : public ShaderPass {
 		using Base = ShaderPass;
 
-		MyPass(Shader_DX11* shader, StrView passPath, ShaderInfo::Pass& info);
+		MyPass(Shader_DX11* shader, int passIndex) noexcept;
 	private:
+		virtual void onInit() override;
+
 		MyVertexStage		_myVertexStage;
 		MyPixelStage		_myPixelStage;
 	};
+protected:
+	virtual UPtr<ShaderPass> onCreateShaderPass(Shader* shader, int passIndex) override;
+
 }; // Shader_DX11
 
-} // namespace
+} // namespace sge
+
+#endif SGE_RENDER_HAS_DX11

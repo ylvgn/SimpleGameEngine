@@ -23,15 +23,15 @@ void HingeSocketConstraintExample<IKSolver>::onCreate(Request& req) {
 	for (int i = 3; i < jointCount; ++i) {
 		_jointId2LimitAxis[i] = sLimitAxis;
 
-		_limitAxisVisuals[i] = eastl::make_unique<DebugDrawPL>();
+		_limitAxisVisuals[i] = UPtr_make<DebugDrawPL>();
 		_limitAxisVisuals[i]->setColor(DebugDraw::kYellow);
 
 		int j = i * 3;
-		_jointAxisVisuals[j  ] = eastl::make_unique<DebugDrawPL>();
+		_jointAxisVisuals[j  ] = UPtr_make<DebugDrawPL>();
 		_jointAxisVisuals[j  ]->setColor(DebugDraw::kRed);
-		_jointAxisVisuals[j+1] = eastl::make_unique<DebugDrawPL>();
+		_jointAxisVisuals[j+1] = UPtr_make<DebugDrawPL>();
 		_jointAxisVisuals[j+1]->setColor(DebugDraw::kGreen);
-		_jointAxisVisuals[j+2] = eastl::make_unique<DebugDrawPL>();
+		_jointAxisVisuals[j+2] = UPtr_make<DebugDrawPL>();
 		_jointAxisVisuals[j+2]->setColor(DebugDraw::kBlue);
 	}
 

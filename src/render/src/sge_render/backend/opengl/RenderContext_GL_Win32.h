@@ -11,16 +11,16 @@ class RenderContext_GL_Win32 : public RenderContext_GL_Base {
 	using Base = RenderContext_GL_Base;
 public:
 	RenderContext_GL_Win32(CreateDesc& desc);
-	~RenderContext_GL_Win32() { _destroy(); }
+	~RenderContext_GL_Win32();
 
 	void onCmd_ClearFrameBuffers(RenderCommand_ClearFrameBuffers&	cmd);
 	void onCmd_SwapBuffers		(RenderCommand_SwapBuffers&			cmd);
 	void onCmd_DrawCall			(RenderCommand_DrawCall&			cmd);
-
 	void onCmd_SetScissorRect	(RenderCommand_SetScissorRect& cmd) { /*TODO*/ }
 
 protected:
-	Renderer_GL* _renderer = nullptr;
+	Renderer_GL*			_renderer	= nullptr;
+	NativeUIWindow_Win32*	_window		= nullptr;
 
 	virtual void onBeginRender() override;
 	virtual void onEndRender() override;
@@ -41,24 +41,24 @@ private:
 	void _setTestShaders(const VertexLayout* vertexLayout);
 	void _setTestFrameBufferScreenShaders();
 
-	::HDC	_win32_dc = nullptr;
-	::HGLRC	_win32_rc = nullptr;
+	HDC		_win32_dc = nullptr;
+	HGLRC	_win32_rc = nullptr;
 
-    GLuint _viewFramebuffer		= 0;
-	GLuint _viewRenderbuffer	= 0;
-    GLuint _depthRenderbuffer	= 0;
+    GLuint	_viewFramebuffer	= 0;
+	GLuint	_viewRenderbuffer	= 0;
+    GLuint	_depthRenderbuffer	= 0;
 
-	GLuint _testShaderProgram	= 0;
-	GLuint _testVertexShader	= 0;
-	GLuint _testPixelShader		= 0;
+	GLuint	_testShaderProgram	= 0;
+	GLuint	_testVertexShader	= 0;
+	GLuint	_testPixelShader	= 0;
 
-	GLuint _testFrameBufferShaderProgram	= 0;
-	GLuint _testFrameBufferVertexShader		= 0;
-	GLuint _testFrameBufferPixelShader		= 0;
+	GLuint	_testFrameBufferShaderProgram	= 0;
+	GLuint	_testFrameBufferVertexShader	= 0;
+	GLuint	_testFrameBufferPixelShader		= 0;
 
-	GLuint _testScreenQuadVertexbuffer		= 0;
-	GLuint _testScreenQuadTexturebuffer		= 0;
-	GLuint _testScreenQuadRenderbuffer		= 0;
+	GLuint	_testScreenQuadVertexbuffer		= 0;
+	GLuint	_testScreenQuadTexturebuffer	= 0;
+	GLuint	_testScreenQuadRenderbuffer		= 0;
 };
 
 } // namespace sge

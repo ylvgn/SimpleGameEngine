@@ -24,7 +24,7 @@ void EditorPropertyDrawer_struct::draw(DrawRequest& parentreq) {
 
 void EditorPropertyDrawer_float::draw(DrawRequest& req) {
 	bool isMixed = req.isMixedValue<float>();
-	auto mv = makeScopedValue(&EditorUI::showMixedValue, isMixed);
+	auto mv = ScopedValue_make(&EditorUI::showMixedValue, isMixed);
 
 	float oldV = req.getFirstObjectValue<float>();
 	float newV = oldV;
@@ -58,7 +58,7 @@ void EditorPropertyDrawer_Vec3f::draw(DrawRequest& req) {
 
 	struct Helper {
 		static bool drawField(const char* name, float& newV, bool& isMixed) {
-			auto mv = makeScopedValue(&EditorUI::showMixedValue, isMixed);
+			auto mv = ScopedValue_make(&EditorUI::showMixedValue, isMixed);
 			return EditorUI::DragFloat(name, &newV);
 		}
 	};
@@ -99,7 +99,7 @@ void EditorPropertyDrawer_Quat4f::draw(DrawRequest& req) {
 
 	struct Helper {
 		static bool drawField(const char* name, float& newV, bool& isMixed) {
-			auto mv = makeScopedValue(&EditorUI::showMixedValue, isMixed);
+			auto mv = ScopedValue_make(&EditorUI::showMixedValue, isMixed);
 			auto tmpValue = Math::degrees(newV);
 			if (EditorUI::DragFloat(name, &tmpValue)) {
 				newV = Math::radians(tmpValue);

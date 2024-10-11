@@ -6,7 +6,6 @@
 #if SGE_RENDER_HAS_OPENGL
 
 namespace sge {
-
 #if 0
 #pragma mark ========= RenderContext_GL_Win32::FalseContext ============
 #endif
@@ -92,9 +91,9 @@ public:
 	}
 
 private:
-	HWND	_hwnd = nullptr;
-	HDC		_dc = nullptr;
-	HGLRC	_rc = nullptr;
+	HWND	_hwnd	= nullptr;
+	HDC		_dc		= nullptr;
+	HGLRC	_rc		= nullptr;
 };
 
 #if 0
@@ -109,8 +108,8 @@ RenderContext_GL_Win32::RenderContext_GL_Win32(CreateDesc& desc)
 
 	glewInit();
 
-	auto* win = static_cast<NativeUIWindow_Win32*>(desc.window);
-	const auto& win32_hwnd = win->_hwnd;
+	_window = static_cast<NativeUIWindow_Win32*>(desc.window);
+	const auto& win32_hwnd = _window->_hwnd;
 	SGE_ASSERT(win32_hwnd != nullptr);
 
 	_win32_dc = GetDC(win32_hwnd);
@@ -127,9 +126,13 @@ RenderContext_GL_Win32::RenderContext_GL_Win32(CreateDesc& desc)
 		0 // End of attributes list
 	};
 
+	GLint major, minor;
+	glGetIntegerv(GL_MAJOR_VERSION, &major);
+	glGetIntegerv(GL_MINOR_VERSION, &minor);
+
 	int contextAttrs[] = {
-		WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
-		WGL_CONTEXT_MINOR_VERSION_ARB, 3,
+		WGL_CONTEXT_MAJOR_VERSION_ARB, major, // 3
+		WGL_CONTEXT_MINOR_VERSION_ARB, minor, // 3
 
 		WGL_CONTEXT_PROFILE_MASK_ARB,	WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
 		WGL_CONTEXT_FLAGS_ARB,			WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
@@ -141,20 +144,35 @@ RenderContext_GL_Win32::RenderContext_GL_Win32(CreateDesc& desc)
 		throw SGE_ERROR("wglChoosePixelFormatARB");
 	}
 
-	PIXELFORMATDESCRIPTOR pfd;
-	if (!SetPixelFormat(_win32_dc, format, &pfd)) {
+	PIXELFORMATDESCRIPTOR pfd; SGE_UNUSED(pfd);
+	if (!SetPixelFormat(_win32_dc, format, &pfd))
 		throw SGE_ERROR("SetPixelFormat");
-	}
 
 	HGLRC sharedContext = nullptr;
 	_win32_rc = wglCreateContextAttribsARB(_win32_dc, sharedContext, contextAttrs);
-	if (!_win32_rc)
+	if (!_win32_rc) {
+		Util::throwIfError();
 		throw SGE_ERROR("wglCreateContextAttribsARB");
-	
+	}
+
 	if (!wglMakeCurrent(_win32_dc, _win32_rc))
 		throw SGE_ERROR("wglMakeCurrent");
 
 	Util::throwIfError();
+}
+
+RenderContext_GL_Win32::~RenderContext_GL_Win32() {
+	_destroyTestShaders();
+	_destroyTestScreenFrameBuffer();
+
+	if (_win32_rc) {
+		wglDeleteContext(_win32_rc);
+		_win32_rc = nullptr;
+	}
+	if (_win32_dc) {
+		ReleaseDC(_window->_hwnd, _win32_dc);
+		_win32_dc = nullptr;
+	}
 }
 
 void RenderContext_GL_Win32::onCmd_ClearFrameBuffers(RenderCommand_ClearFrameBuffers& cmd) {
@@ -225,10 +243,8 @@ void RenderContext_GL_Win32::onCmd_DrawCall(RenderCommand_DrawCall& cmd) {
 }
 
 void RenderContext_GL_Win32::onCmd_SwapBuffers(RenderCommand_SwapBuffers& cmd) {
-#if SGE_OS_WINDOWS
 	if (_win32_dc)
-		::SwapBuffers(_win32_dc);
-#endif
+		SwapBuffers(_win32_dc);
 	Util::throwIfError();
 }
 
@@ -492,11 +508,6 @@ void RenderContext_GL_Win32::_createBuffers() {
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
 		throw SGE_ERROR("failed to create frame buffer");
 	}
-}
-
-void RenderContext_GL_Win32::_destroy() {
-	_destroyTestShaders();
-	_destroyTestScreenFrameBuffer();
 }
 
 void RenderContext_GL_Win32::_destroyTestShaders() {

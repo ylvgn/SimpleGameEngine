@@ -6,7 +6,7 @@ template<class IKSolver>
 void IKExampleTestBase<IKSolver>::_createIKChains() {
 	constexpr const size_t kJointCount = 6;
 
-	_solver = eastl::make_unique<IKSolver>();
+	_solver = UPtr_make<IKSolver>();
 	_solver->resize(kJointCount);
 
 	_solver->setLocalTransform(0, Transform(vec3f::s_zero(), quat4f::s_angleAxis(Math::radians(90.f), vec3f::s_right()), vec3f::s_one()));
@@ -60,7 +60,7 @@ void IKExampleTestBase<IKSolver>::onCreate(Request& req) {
 
 	_targetVisual.resize(3);
 	for (int i = 0; i < 3; i++) {
-		_targetVisual[i] = eastl::make_unique<DebugDraw>(2);
+		_targetVisual[i] = UPtr_make<DebugDraw>(2);
 	}
 }
 

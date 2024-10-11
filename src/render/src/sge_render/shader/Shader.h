@@ -6,35 +6,62 @@ namespace sge {
 
 class Shader;
 
+#if 0
+#pragma mark ========= ShaderStage ============
+#endif
 struct ShaderStage : public NonCopyable {
 	const ShaderStageInfo* info() const { return &_info; }
 protected:
 	ShaderStageInfo _info;
 };
 
+#if 0
+#pragma mark ========= ShaderVertexStage ============
+#endif
 struct ShaderVertexStage : public ShaderStage {
 	static constexpr ShaderStageMask stageMask() { return ShaderStageMask::Vertex; }
 };
+
+#if 0
+#pragma mark ========= ShaderPixelStage ============
+#endif
 struct ShaderPixelStage  : public ShaderStage {
 	static constexpr ShaderStageMask stageMask() { return ShaderStageMask::Pixel; }
 };
 
+#if 0
+#pragma mark ========= ShaderPass ============
+#endif
 struct ShaderPass : public NonCopyable {
-	ShaderPass(Shader* shader, ShaderInfo::Pass& info);
+	using Info = ShaderInfo::Pass;
+
+	ShaderPass(Shader* shader, int passIndex) noexcept;
 
 	virtual ~ShaderPass() noexcept = default;
 
-	ShaderVertexStage* vertexStage()		{ return _vertexStage; }
+	ShaderVertexStage*	vertexStage()		{ return _vertexStage; }
 	ShaderPixelStage*   pixelStage()		{ return _pixelStage; }
-	const ShaderInfo::Pass*	info() const	{ return _info; }
 
+	Shader* shader()			{ return _shader; }
+	int		passIndex()			{ return _passIndex; }
+
+	const Info* info()				const	{ return _info; }
+	StrView		shaderFilename()	const;
+
+friend class Shader;
 protected:
-	Shader*				_shader			= nullptr;
-	ShaderInfo::Pass*   _info			= nullptr;
+	virtual void onInit() = 0;
+
+	const Info*			_info			= nullptr;
 	ShaderVertexStage*	_vertexStage	= nullptr;
 	ShaderPixelStage*   _pixelStage		= nullptr;
+	Shader*				_shader			= nullptr;
+	int					_passIndex		= -1;
 };
 
+#if 0
+#pragma mark ========= Shader ============
+#endif
 class Shader : public RefCountBase {
 public:
 	using Pass			= ShaderPass;
@@ -42,19 +69,26 @@ public:
 	using VertexStage	= ShaderVertexStage;
 	using PixelStage	= ShaderPixelStage;
 
-	Shader(StrView filename);
 	virtual ~Shader();
 
-	const String& filename() const { return _filename; }
+	void _internal_init();
 
-	const ShaderInfo* info() const { return &_info; }
+	const String&				filename()		const	{ return _filename; }
+	const ShaderInfo*			info()			const	{ return &_info; }
+	const ShaderInfo::Pass*		passInfo(int i)	const	{ return _info.passes.inBound(i) ? &_info.passes[i] : nullptr; }
+	size_t						passCount()		const	{ return _info.passes.size(); }
 
-	Span< UPtr<ShaderPass> > passes() { return _passes; }
+	Span< UPtr<ShaderPass> >	passes()				{ return _passes; }
+	Pass*						findPass(int i)			{ return _passes.inBound(i) ? _passes[i].get() : nullptr; }
 
 protected:
-	String	_filename;
-	ShaderInfo	_info;
+	Shader(StrView filename);  // please create from 'Renderer::createShader'
+
+	virtual UPtr<ShaderPass> onCreateShaderPass	(Shader* shader, int passIndex) = 0;
+
+	String						_filename;
+	ShaderInfo					_info;
 	Vector<UPtr<ShaderPass>, 1> _passes;
 };
 
-}
+} // namespace sge

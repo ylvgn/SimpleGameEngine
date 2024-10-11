@@ -116,7 +116,9 @@ SPtr<Texture2D> Renderer_DX11::onCreateTexture2D(Texture2D_CreateDesc& desc) {
 }
 
 SPtr<Shader> Renderer_DX11::onCreateShader(StrView filename) {
-	return new Shader_DX11(filename);
+	SPtr<Shader> p = new Shader_DX11(filename);
+	p->_internal_init();
+	return p;
 }
 
 SPtr<Material> Renderer_DX11::onCreateMaterial() {
@@ -149,6 +151,6 @@ void Renderer_DX11::reportLiveObjects() {
 }
 #endif
 
-} // namespace
+} // namespace sge
 
 #endif // SGE_RENDER_HAS_DX11

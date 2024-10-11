@@ -14,16 +14,14 @@ public:
 
 	RenderContext_GL_Base(CreateDesc& desc);
 
-	class GLVertexArray : public GLObject {
+protected:
+	class VertexArray : public GLObject {
 	public:
-		~GLVertexArray() { destroy(); }
-		void destroy();
-
+		~VertexArray();
 		void bind();
 	};
 
-protected:
-	GLVertexArray	_vao;
+	VertexArray	_vao;
 };
 
 } // namespace sge

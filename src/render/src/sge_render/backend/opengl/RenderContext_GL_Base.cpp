@@ -1,21 +1,21 @@
 #pragma once
 
-#if SGE_RENDER_HAS_OPENGL
-
 #include "RenderContext_GL_Base.h"
+
+#if SGE_RENDER_HAS_OPENGL
 
 namespace sge {
 #if 0
-#pragma mark ========= GLVertexArray ============
+#pragma mark ========= RenderContext_GL_Base::VertexArray ============
 #endif
-void RenderContext_GL_Base::GLVertexArray::destroy() {
+RenderContext_GL_Base::VertexArray::~VertexArray() {
 	if (_gl) {
 		glDeleteVertexArrays(1, &_gl);
 		_gl = 0;
 	}
 }
 
-void RenderContext_GL_Base::GLVertexArray::bind() {
+void RenderContext_GL_Base::VertexArray::bind() {
 	if (!_gl) {
 		glGenVertexArrays(1, &_gl);
 		Util::throwIfError();

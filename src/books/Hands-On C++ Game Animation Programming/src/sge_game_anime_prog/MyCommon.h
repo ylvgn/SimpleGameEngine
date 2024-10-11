@@ -22,6 +22,6 @@ namespace sge {
 
 // EASTL
 template<class T, class... Args> inline
-UPtr<T> make_unique(Args&&... args) { return eastl::make_unique<T>(SGE_FORWARD(args)...); }
+UPtr<T> make_unique(Args&&... args) { return UPtr_make<T>(SGE_FORWARD(args)...); }
 
 }

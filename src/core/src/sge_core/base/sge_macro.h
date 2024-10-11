@@ -36,6 +36,7 @@
 	} while(false) \
 //------
 
+#define	SGE_MOVE		::std::move
 #define SGE_FORWARD(a)	::std::forward< decltype(a) >(a)
 #define SGE_ASSERT(...)	assert(__VA_ARGS__)
 

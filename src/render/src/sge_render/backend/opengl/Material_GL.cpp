@@ -1,6 +1,8 @@
 #include "Material_GL.h"
 #include "RenderContext_GL.h"
 
+#if SGE_RENDER_HAS_OPENGL
+
 namespace sge {
 
 template<class STAGE>
@@ -26,7 +28,7 @@ void Material_GL::_bindStageHelper(RenderContext_GL* ctx, STAGE* stage) {
 		if (ubIndex == GL_INVALID_INDEX)
 			throw SGE_ERROR("shader program not found uniform block '{}'", cbInfo->name);
 
-		GLuint bindPoint = cbInfo->bindPoint;
+		GLuint bindPoint = cbInfo->bindPoint; // opengl loc
 
 		stage->_glSetConstBuffer(ubIndex, bindPoint, glBuf);
 
@@ -87,4 +89,6 @@ void Material_GL::MyPass::onBind(RenderContext* ctx_, const VertexLayout* vertex
 //	_bindRenderState(ctx); TODO
 }
 
-}
+} // namespace sge
+
+#endif // SGE_RENDER_HAS_OPENGL

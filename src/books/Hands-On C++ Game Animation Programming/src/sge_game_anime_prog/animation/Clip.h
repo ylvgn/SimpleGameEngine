@@ -31,7 +31,7 @@ public:
 	{}
 
 	static UPtr<TRACK> s_createTrack(u32 jointId) {
-		UPtr<TRACK> res = eastl::make_unique<TRACK>(); // do not use auto type, use explicit UPtr<TRACK>
+		UPtr<TRACK> res = UPtr_make<TRACK>(); // do not use auto type, use explicit UPtr<TRACK>
 		res->jointId = jointId;
 		return res;
 	}

@@ -33,7 +33,7 @@ int test_main() {
 	return 0;
 }
 
-} // namespace
+} // namespace sge
 
 int main() {
 	return sge::test_main();

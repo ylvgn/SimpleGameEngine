@@ -20,9 +20,8 @@ private:
 
 class AppBase : public NonCopyable {
 public:
-	AppBase() noexcept = default;
-
-	virtual ~AppBase() noexcept = default;
+	AppBase()			noexcept = default;
+	virtual ~AppBase()	noexcept = default;
 
 	void				setCommandArguments(int argc, const char* argv[]);
 	Span<const StrView> commandArguments() const;

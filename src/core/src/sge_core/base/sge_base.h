@@ -67,7 +67,7 @@ inline void* operator new[](size_t size, size_t alignment, size_t alignmentOffse
 }
 #endif
 
-//===============
+//==== EASTL ====
 
 namespace sge {
 
@@ -105,6 +105,9 @@ intptr_t memberOffset(Member Obj::*ptrToMember) {
 }
 
 template<class T> using UPtr = eastl::unique_ptr<T>;
+template <class T, class... Args> inline UPtr<T> UPtr_make(Args&&... args) {
+	return eastl::make_unique<T>(SGE_FORWARD(args)...);
+}
 
 template<class T> using Span = eastl::span<T>;
 using ByteSpan = Span<const u8>;
@@ -148,6 +151,8 @@ public:
 
 	Span<      T> subspan(size_t offset)		{ return subspan(offset, size() - offset); }
 	Span<const T> subspan(size_t offset) const	{ return subspan(offset, size() - offset); }
+
+	bool inBound(int i) const { return i >= 0 && i <= Base::size(); }
 
 	void remove(const T& value) { eastl::remove(begin(), end(), value); }
 };
@@ -237,7 +242,7 @@ inline ByteSpan ByteSpan_make(StrView v) {
 	return ByteSpan(reinterpret_cast<const u8*>(v.data()), v.size());
 }
 
-template<typename SRC> inline
+template<class SRC> inline
 ByteSpan ByteSpan_make(Span<SRC> v) {
 	using DST = typename ByteSpan::element_type;
 	return spanCast<DST>(v);
@@ -257,7 +262,7 @@ struct WCharUtil {
 	wchar_t toWChar(Char    c) { return static_cast<wchar_t>(c); }
 };
 
-template<typename T> inline
+template<class T> inline
 size_t charStrlen(const T* sz) {
 	const auto* p = sz;
 	while (*p) ++p;
@@ -272,7 +277,7 @@ inline StrViewW  StrView_c_str(const wchar_t*	s)	{ return s ? StrViewW (s, wcsle
 //! Source Location
 class SrcLoc {
 public:
-	SGE_INLINE SrcLoc(const char* file_, int line_, const char* func_)
+	SGE_INLINE SrcLoc(const char* file_, int line_, const char* func_) noexcept
 		: file(file_)
 		, func(func_)
 		, line(line_)
@@ -291,10 +296,10 @@ namespace sge {
 
 class NonCopyable {
 public:
-	NonCopyable() = default;
+	NonCopyable() noexcept = default;
 private:
-	NonCopyable(const NonCopyable&) = delete;
-	void operator=(const NonCopyable&) = delete;
+	NonCopyable		(const NonCopyable&) = delete;
+	void operator=	(const NonCopyable&) = delete;
 };
 
 class WeakRefBlock : public NonCopyable {
@@ -314,17 +319,16 @@ template<class T> inline void sge_delete(T* p) noexcept { delete p; }
 template<class T>
 class ScopedValue : public NonCopyable {
 public:
-	ScopedValue() = default;
-	ScopedValue(T* p) : _p(p) { _oldValue = *p; }
-	ScopedValue(T* p, const T& newValue) : ScopedValue(p) { *p = newValue; }
-
-	ScopedValue(ScopedValue && r) {
+	ScopedValue()							noexcept = default;
+	ScopedValue(T* p)						noexcept : _p(p) { _oldValue = *p; }
+	ScopedValue(T* p, const T& newValue)	noexcept : ScopedValue(p) { *p = newValue; }
+	ScopedValue(ScopedValue && r)			noexcept {
 		_p = r._p;
 		_oldValue = r._oldValue;
 		r._p = nullptr;
 	}
 
-	~ScopedValue() { discard(); }
+	~ScopedValue() noexcept { discard(); }
 
 	void discard() {
 		if (_p) {
@@ -333,55 +337,14 @@ public:
 		}
 	}
 
+	explicit operator bool() const { return _p != nullptr; }
+
 private:
 	T* _p = nullptr;
 	T _oldValue;
 };
 
-template<class T> inline ScopedValue<T> makeScopedValue(T* p) { return ScopedValue<T>(p); }
-template<class T> inline ScopedValue<T> makeScopedValue(T* p, const T& newValue) { return ScopedValue<T>(p, newValue); }
-
-template<typename T>
-class RangeMinMaxValue : public NonCopyable {
-public:
-	RangeMinMaxValue() = default;
-
-	RangeMinMaxValue(T min, T max)
-		: _min(min)
-		, _max(max)
-		, _value(min) {}
-
-	RangeMinMaxValue(T min, T max, T value)
-		: _min(min)
-		, _max(max)
-		, _value(value) {}
-
-	void setMinMax(T min, T max) {
-		if (min < max) return;
-		_min = min;
-		_max = max;
-		setValue(_value);
-	}
-
-	void setValue(T value) {
-		_value = Math::clamp(value, _min, _max);
-	}
-
-	T min()		const { return _min;	}
-	T max()		const { return _max;	}
-	T value()	const { return _value;	}
-
-private:
-	T _min;
-	T _max;
-	T _value;
-};
-
-using RangeMinMaxValuei = RangeMinMaxValue<int>;
-using RangeMinMaxValuef = RangeMinMaxValue<float>;
-using RangeMinMaxValued = RangeMinMaxValue<double>;
-
-template<typename T> inline RangeMinMaxValue<T> makeRangeMinMaxValue(T min, T max) { return RangeMinMaxValue<T>(min, max); }
-template<typename T> inline RangeMinMaxValue<T> makeRangeMinMaxValue(T min, T max, T v) { return RangeMinMaxValue<T>(min, max, v); }
+template<class T> inline ScopedValue<T> ScopedValue_make(T* p) { return ScopedValue<T>(p); }
+template<class T> inline ScopedValue<T> ScopedValue_make(T* p, const T& newValue) { return ScopedValue<T>(p, newValue); }
 
 } // namespace sge

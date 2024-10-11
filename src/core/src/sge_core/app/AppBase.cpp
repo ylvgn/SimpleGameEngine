@@ -24,7 +24,7 @@ AppArguments::AppArguments(int argc, const char* argv[]) {
 }
 
 void AppBase::setCommandArguments(int argc, const char* argv[]) {
-	_args = eastl::make_unique<AppArguments>(argc, argv);
+	_args = UPtr_make<AppArguments>(argc, argv);
 }
 
 Span<const StrView> AppBase::commandArguments() const {

@@ -1,6 +1,8 @@
 #include "RenderGpuBuffer_GL.h"
 #include "Renderer_GL.h"
 
+#if SGE_RENDER_HAS_OPENGL
+
 namespace sge {
 
 void RenderGpuBuffer_GL::destroy() {
@@ -50,4 +52,6 @@ void RenderGpuBuffer_GL::onUploadToGpu(ByteSpan data, size_t offset) {
 	Util::throwIfError();
 }
 
-}
+} // namespace sge
+
+#endif // SGE_RENDER_HAS_OPENGL

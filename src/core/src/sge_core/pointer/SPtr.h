@@ -5,17 +5,16 @@ namespace sge {
 template<class T>
 class SPtr : public NonCopyable {
 public:
-	SPtr() noexcept = default;
-
+	SPtr()							noexcept = default;
 	SPtr(T* p)						noexcept { reset(p); }
 	SPtr(SPtr && r)					noexcept { _p = r.detach(); }
 	SPtr(const SPtr& r)				noexcept { reset(r._p); }
 
+	~SPtr()							noexcept { reset(nullptr); }
+
 	void operator=(T* p)			noexcept { reset(p); }
 	void operator=(SPtr && r)		noexcept { reset(nullptr); _p = r.detach(); }
 	void operator=(const SPtr& r)	noexcept { reset(r._p); }
-
-	~SPtr()							noexcept { reset(nullptr); }
 
 		  T* operator->()			noexcept { return _p; }
 	const T* operator->()	const	noexcept { return _p; }
@@ -46,8 +45,12 @@ public:
 	}
 
 	T* detach() noexcept { T* o = _p; _p = nullptr; return o; }
+
 private:
 	T* _p = nullptr;
 };
 
-}
+} // namespace sge
+
+
+template<class T> SGE_INLINE bool operator==(const T* a, const sge::SPtr<T>& b) { return b == a; }

@@ -12,7 +12,7 @@ void* LinearAllocator::allocate(size_t reqSize, size_t align) {
 
 	auto chunkSize = reqSize > _chunkSize ? reqSize : _chunkSize;
 
-	auto newChunk = eastl::make_unique<Chunk>(chunkSize);
+	auto newChunk = UPtr_make<Chunk>(chunkSize);
 	_chunks.emplace_back(eastl::move(newChunk));
 
 	auto* p = _chunks.back()->allocate(reqSize, align);

@@ -11,7 +11,7 @@ void NativeUIWindow_Win32::onCreate(CreateDesc& desc) {
 
 	const wchar_t* clsName = L"NativeUIWindow";
 
-	auto hInstance		= ::GetModuleHandle(nullptr);
+	auto hInstance		= GetModuleHandle(nullptr);
 	WNDCLASSEX wc       = {}; // ZeroMemory
 	wc.cbSize			= sizeof(wc);
 	wc.style			= CS_HREDRAW | CS_VREDRAW; // | CS_DROPSHADOW;
@@ -68,9 +68,9 @@ void NativeUIWindow_Win32::onCreate(CreateDesc& desc) {
 	}
 
 	WNDCLASSEX tmpWc;
-	bool registered = (0 != ::GetClassInfoEx(hInstance, clsName, &tmpWc));
+	bool registered = (0 != GetClassInfoEx(hInstance, clsName, &tmpWc));
 	if (!registered) {
-		if (!::RegisterClassEx(&wc)) {
+		if (!RegisterClassEx(&wc)) {
 			throw SGE_ERROR("error RegisterClassEx");
 		}
 	}
@@ -83,7 +83,7 @@ void NativeUIWindow_Win32::onCreate(CreateDesc& desc) {
 		rect.pos = (screenSize - rect.size) / 2;
 	}
 
-	_hwnd = ::CreateWindowEx(dwExStyle, clsName, clsName, dwStyle,
+	_hwnd = CreateWindowEx(dwExStyle, clsName, clsName, dwStyle,
 							 static_cast<int>(desc.rect.x),
 							 static_cast<int>(desc.rect.y),
 							 static_cast<int>(desc.rect.w),
@@ -115,24 +115,23 @@ void NativeUIWindow_Win32::onCreate(CreateDesc& desc) {
 
 	_pressedKeyCodes.resize(kKeyCodeCount);
 
-	::ShowWindow(_hwnd, SW_SHOW);
+	ShowWindow(_hwnd, SW_SHOW);
 }
 
 void NativeUIWindow_Win32::onSetWindowTitle(StrView title) {
 	if (!_hwnd) return;
 	TempStringW tmp = UtfUtil::toStringW(title);
-	::SetWindowText(_hwnd, tmp.c_str());
+	SetWindowText(_hwnd, tmp.c_str());
 }
-
 
 void NativeUIWindow_Win32::onSetWindowPos(const Vec2f& pos) {
 	Base::onSetWindowPos(pos);
-	::SetWindowPos(_hwnd, HWND_TOP, int(pos.x), int(pos.y), 0, 0, SWP_ASYNCWINDOWPOS | SWP_NOSIZE);
+	SetWindowPos(_hwnd, HWND_TOP, int(pos.x), int(pos.y), 0, 0, SWP_ASYNCWINDOWPOS | SWP_NOSIZE);
 }
 
 void NativeUIWindow_Win32::onSetWindowSize(const Vec2f& size) {
 	Base::onSetWindowPos(size);
-	::SetWindowPos(_hwnd, HWND_TOP, 0, 0, int(size.x), int(size.y), SWP_ASYNCWINDOWPOS | SWP_NOMOVE);
+	SetWindowPos(_hwnd, HWND_TOP, 0, 0, int(size.x), int(size.y), SWP_ASYNCWINDOWPOS | SWP_NOMOVE);
 }
 
 void NativeUIWindow_Win32::onSetCursor(UIMouseCursor type) {
@@ -151,31 +150,31 @@ void NativeUIWindow_Win32::onSetCursor(UIMouseCursor type) {
 		case Cursor::SizeNWSE:	cursor = IDC_SIZENWSE;	break;
 		case Cursor::Hand:		cursor = IDC_HAND;		break;
 		case Cursor::No:		cursor = IDC_NO;		break;
-		case Cursor::None:		::SetCursor(NULL);		return;
+		case Cursor::None:		SetCursor(NULL);		return;
 	}
-	::SetCursor(LoadCursor(0, cursor));
+	SetCursor(LoadCursor(0, cursor));
 }
 
 void NativeUIWindow_Win32::onDrawNeeded() {
-	::InvalidateRect(_hwnd, nullptr, false);
+	InvalidateRect(_hwnd, nullptr, false);
 }
 
 void NativeUIWindow_Win32::onScrollWindow(const Vec2i& delta) {
 	int oldPos;
 	if (delta.x) {
 		_hScrollInfo->getPos(oldPos);
-		int newPos = Math::max(0, oldPos + delta.x); // must be positive!!
+		int newPos = Math::max(0, oldPos + delta.x); // !!<--- must be positive
 		_handleNativeUIScrollBarEvent(_hwnd, WM_HSCROLL, MAKELONG(SB_THUMBTRACK, newPos), 0);
 	}
 	if (delta.y) {
 		_vScrollInfo->getPos(oldPos);
-		int newPos = Math::max(0, oldPos + delta.y); // must be positive!!
+		int newPos = Math::max(0, oldPos + delta.y); // !!<--- must be positive
 		_handleNativeUIScrollBarEvent(_hwnd, WM_VSCROLL, MAKELONG(SB_THUMBTRACK, newPos), 0);
 	}
 }
 
 UPtr<NativeUIScrollInfo_Base> NativeUIWindow_Win32::onCreateScrollBar(NativeUIScrollInfo_Base::CreateDesc& desc) {
-	return eastl::make_unique<NativeUIScrollInfo_Win32>(this, desc);
+	return UPtr_make<NativeUIScrollInfo_Win32>(this, desc);
 }
 
 LRESULT WINAPI NativeUIWindow_Win32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
@@ -184,12 +183,12 @@ LRESULT WINAPI NativeUIWindow_Win32::s_wndProc(HWND hwnd, UINT msg, WPARAM wPara
 			auto cs = reinterpret_cast<CREATESTRUCT*>(lParam);
 			auto* thisObj = static_cast<This*>(cs->lpCreateParams);
 			thisObj->_hwnd = hwnd;
-			::SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(thisObj));
+			SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(thisObj));
 		}break;
 
 		case WM_DESTROY: {
 			if (auto* thisObj = s_getThis(hwnd)) {
-				::SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(nullptr));
+				SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(nullptr));
 				thisObj->_hwnd = nullptr;
 				sge_delete(thisObj);
 			}
@@ -215,7 +214,7 @@ LRESULT WINAPI NativeUIWindow_Win32::s_wndProc(HWND hwnd, UINT msg, WPARAM wPara
 		case WM_SIZE: {
 			if (auto* thisObj = s_getThis(hwnd)) {
 				RECT clientRect;
-				::GetClientRect(hwnd, &clientRect);
+				GetClientRect(hwnd, &clientRect);
 				Rect2f newClientRect = Win32Util::toRect2f(clientRect);
 				if (newClientRect != thisObj->_clientRect) {
 					thisObj->onClientRectChanged(newClientRect);
@@ -241,7 +240,7 @@ LRESULT WINAPI NativeUIWindow_Win32::s_wndProc(HWND hwnd, UINT msg, WPARAM wPara
 			}
 		}break;
 	}
-	return ::DefWindowProc(hwnd, msg, wParam, lParam);
+	return DefWindowProc(hwnd, msg, wParam, lParam);
 }
 
 bool NativeUIWindow_Win32::_handleNativeUIMouseEvent(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
@@ -253,8 +252,8 @@ bool NativeUIWindow_Win32::_handleNativeUIMouseEvent(HWND hwnd, UINT msg, WPARAM
 	using Type   = UIMouseEventType;
 
 	POINT curPos;
-	::GetCursorPos(&curPos);
-	::ScreenToClient(hwnd, &curPos);
+	GetCursorPos(&curPos);
+	ScreenToClient(hwnd, &curPos);
 
 	Win32Util::convert(ev.pos, curPos);
 
@@ -292,8 +291,8 @@ bool NativeUIWindow_Win32::_handleNativeUIMouseEvent(HWND hwnd, UINT msg, WPARAM
 
 	// https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setcapture
 	switch (ev.type) {
-		case Type::Down:	::SetCapture(hwnd); break;
-		case Type::Up:		::ReleaseCapture(); break;
+		case Type::Down:	SetCapture(hwnd); break;
+		case Type::Up:		ReleaseCapture(); break;
 	}
 
 	onUINativeMouseEvent(ev);
@@ -331,12 +330,12 @@ bool NativeUIWindow_Win32::_handleNativeUIKeyboardEvent(HWND hwnd,
 
 #if 0
 	switch (msg) {
-		case WM_SYSKEYDOWN: SGE_LOG("WM_SYSKEYDOWN: wParam=0x{:x}, lParam=0x{:x}, GetKeyState(0x{:x})={}", wParam, lParam, wParam, ::GetKeyState(static_cast<int>(wParam))); break;
-		case WM_SYSCHAR:	SGE_LOG("WM_SYSCHAR: wParam={:c}, lParam=0x{:x}, GetKeyState(0x{:x})={}", wParam, lParam, wParam, ::GetKeyState(static_cast<int>(wParam))); break;
-		case WM_SYSKEYUP:	SGE_LOG("WM_SYSKEYUP: wParam=0x{:x}, lParam=0x{:x}, GetKeyState(0x{:x})={}", wParam, lParam, wParam, ::GetKeyState(static_cast<int>(wParam))); break;
-		case WM_KEYDOWN:	SGE_LOG("WM_KEYDOWN: wParam=0x{:x}, lParam=0x{:x}, GetKeyState(0x{:x})={}", wParam, lParam, wParam, ::GetKeyState(static_cast<int>(wParam))); break;
-		case WM_KEYUP:		SGE_LOG("WM_KEYUP: wParam=0x{:x}, lParam=0x{:x}, GetKeyState(0x{:x})={}", wParam, lParam, wParam, ::GetKeyState(static_cast<int>(wParam))); break;
-		case WM_CHAR:		SGE_LOG("WM_CHAR: wParam={:c}, lParam=0x{:x}, GetKeyState(0x{:x})={}", wParam, lParam, wParam, ::GetKeyState(static_cast<int>(wParam))); break;
+		case WM_SYSKEYDOWN: SGE_LOG("WM_SYSKEYDOWN: wParam=0x{:x}, lParam=0x{:x}, GetKeyState(0x{:x})={}", wParam, lParam, wParam, GetKeyState(static_cast<int>(wParam))); break;
+		case WM_SYSCHAR:	SGE_LOG("WM_SYSCHAR: wParam={:c}, lParam=0x{:x}, GetKeyState(0x{:x})={}", wParam, lParam, wParam, GetKeyState(static_cast<int>(wParam))); break;
+		case WM_SYSKEYUP:	SGE_LOG("WM_SYSKEYUP: wParam=0x{:x}, lParam=0x{:x}, GetKeyState(0x{:x})={}", wParam, lParam, wParam, GetKeyState(static_cast<int>(wParam))); break;
+		case WM_KEYDOWN:	SGE_LOG("WM_KEYDOWN: wParam=0x{:x}, lParam=0x{:x}, GetKeyState(0x{:x})={}", wParam, lParam, wParam, GetKeyState(static_cast<int>(wParam))); break;
+		case WM_KEYUP:		SGE_LOG("WM_KEYUP: wParam=0x{:x}, lParam=0x{:x}, GetKeyState(0x{:x})={}", wParam, lParam, wParam, GetKeyState(static_cast<int>(wParam))); break;
+		case WM_CHAR:		SGE_LOG("WM_CHAR: wParam={:c}, lParam=0x{:x}, GetKeyState(0x{:x})={}", wParam, lParam, wParam, GetKeyState(static_cast<int>(wParam))); break;
 	};
 #endif
 
@@ -613,7 +612,7 @@ bool NativeUIWindow_Win32::_handleNativeUIScrollBarEvent(HWND hwnd, UINT msg, WP
 	}
 
 	if (ev.deltaPos.x || ev.deltaPos.y) {
-		::ScrollWindow(_hwnd, -ev.deltaPos.x, -ev.deltaPos.y, nullptr, nullptr);
+		ScrollWindow(_hwnd, -ev.deltaPos.x, -ev.deltaPos.y, nullptr, nullptr);
 		onUINativeScrollBarEvent(ev);
 	}
 
@@ -624,15 +623,15 @@ LRESULT NativeUIWindow_Win32::_handleNativeEvent(HWND hwnd, UINT msg, WPARAM wPa
 	if (_handleNativeUIMouseEvent(hwnd, msg, wParam, lParam)) return 0;
 	if (_handleNativeUIKeyboardEvent(hwnd, msg, wParam, lParam)) return 0;
 	if (_handleNativeUIScrollBarEvent(hwnd, msg, wParam, lParam)) return 0;
-	return ::DefWindowProc(hwnd, msg, wParam, lParam);
+	return DefWindowProc(hwnd, msg, wParam, lParam);
 }
 
 UIEventModifier NativeUIWindow_Win32::_getWin32Modifier() {
 	auto o = UIEventModifier::None;
-	if (::GetAsyncKeyState(VK_CONTROL)) o |= UIEventModifier::Ctrl;
-	if (::GetAsyncKeyState(VK_SHIFT)) o |= UIEventModifier::Shift;
-	if (::GetAsyncKeyState(VK_MENU)) o |= UIEventModifier::Alt;
-	if (::GetAsyncKeyState(VK_LWIN) || ::GetAsyncKeyState(VK_RWIN)) {
+	if (GetAsyncKeyState(VK_CONTROL))	o |= UIEventModifier::Ctrl;
+	if (GetAsyncKeyState(VK_SHIFT))		o |= UIEventModifier::Shift;
+	if (GetAsyncKeyState(VK_MENU))		o |= UIEventModifier::Alt;
+	if (GetAsyncKeyState(VK_LWIN) || GetAsyncKeyState(VK_RWIN)) {
 		o |= UIEventModifier::Cmd;
 	}
 	return o;
@@ -650,4 +649,4 @@ void NativeUIWindow_Win32::_resetModifiedKeyCodeState(UIKeyCodeEventType& keySta
 
 }
 
-#endif
+#endif // SGE_OS_WINDOWS

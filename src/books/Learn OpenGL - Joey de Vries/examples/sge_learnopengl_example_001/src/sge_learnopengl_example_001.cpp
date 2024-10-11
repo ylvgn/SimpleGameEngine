@@ -35,7 +35,7 @@ class MyApp : public MyGLFWNativeUIApp {
 	using Base = MyGLFWNativeUIApp;
 protected:
 	virtual void onCreate(CreateDesc& desc) override {
-		_mainWin = eastl::make_unique<MainWin>();
+		_mainWin = UPtr_make<MainWin>();
 
 		{
 			MainWin::CreateDesc winDesc;

@@ -3,10 +3,11 @@
 #include "RenderGpuBuffer_GL.h"
 #include "Material_GL.h"
 
+#if SGE_RENDER_HAS_OPENGL
+
 namespace sge {
 
 Renderer_GL::Renderer_GL(CreateDesc& desc) {
-
 }
 
 SPtr<RenderContext> Renderer_GL::onCreateContext(RenderContext_CreateDesc& desc) {
@@ -26,11 +27,15 @@ SPtr<RenderGpuBuffer> Renderer_GL::onCreateGpuBuffer(RenderGpuBuffer_CreateDesc&
 }
 
 SPtr<Shader> Renderer_GL::onCreateShader(StrView filename) {
-	return new Shader_GL(filename);
+	SPtr<Shader> p = new Shader_GL(filename);
+	p->_internal_init();
+	return p;
 }
 
 SPtr<Material> Renderer_GL::onCreateMaterial() {
 	return new Material_GL();
 }
 
-}
+} // namespace sge
+
+#endif // SGE_RENDER_HAS_OPENGL

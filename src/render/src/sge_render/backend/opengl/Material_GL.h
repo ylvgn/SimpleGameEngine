@@ -4,6 +4,8 @@
 #include "Shader_GL.h"
 #include "RenderGpuBuffer_GL.h"
 
+#if SGE_RENDER_HAS_OPENGL
+
 namespace sge {
 
 class Material_GL : public Material {
@@ -83,4 +85,6 @@ class Material_GL : public Material {
 	}
 };
 
-}
+} // namespace sge
+
+#endif // SGE_RENDER_HAS_OPENGL

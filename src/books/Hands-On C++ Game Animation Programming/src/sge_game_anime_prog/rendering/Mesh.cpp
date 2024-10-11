@@ -5,21 +5,21 @@
 namespace sge {
 
 Mesh::Mesh() {
-	_indexBuffer			= eastl::make_unique< IndexBuffer >();
-	_posAttrib				= eastl::make_unique< Attribute<vec3f> >();
-	_normalAttrib			= eastl::make_unique< Attribute<vec3f> >();
-	_uvAttrib				= eastl::make_unique< Attribute<vec2f> >();
-	_jointWeightsAttrib		= eastl::make_unique< Attribute<vec4f> >();
-	_jointInfluencesAttrib	= eastl::make_unique< Attribute<vec4i> >();
+	_indexBuffer			= UPtr_make< IndexBuffer >();
+	_posAttrib				= UPtr_make< Attribute<vec3f> >();
+	_normalAttrib			= UPtr_make< Attribute<vec3f> >();
+	_uvAttrib				= UPtr_make< Attribute<vec2f> >();
+	_jointWeightsAttrib		= UPtr_make< Attribute<vec4f> >();
+	_jointInfluencesAttrib	= UPtr_make< Attribute<vec4i> >();
 }
 
 Mesh::Mesh(const Mesh& r) {
-	_indexBuffer			= eastl::make_unique< IndexBuffer >();
-	_posAttrib				= eastl::make_unique< Attribute<vec3f> >();
-	_normalAttrib			= eastl::make_unique< Attribute<vec3f> >();
-	_uvAttrib				= eastl::make_unique< Attribute<vec2f> >();
-	_jointWeightsAttrib		= eastl::make_unique< Attribute<vec4f> >();
-	_jointInfluencesAttrib	= eastl::make_unique< Attribute<vec4i> >();
+	_indexBuffer			= UPtr_make< IndexBuffer >();
+	_posAttrib				= UPtr_make< Attribute<vec3f> >();
+	_normalAttrib			= UPtr_make< Attribute<vec3f> >();
+	_uvAttrib				= UPtr_make< Attribute<vec2f> >();
+	_jointWeightsAttrib		= UPtr_make< Attribute<vec4f> >();
+	_jointInfluencesAttrib	= UPtr_make< Attribute<vec4i> >();
 
 	*this = r;
 }

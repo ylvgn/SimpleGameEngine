@@ -73,7 +73,7 @@ public:
 	Vec2i		size		() const	{ return _size; }
 
 protected:
-	Texture2D(CreateDesc& desc); // please create from Renderer::createTexture2D()
+	Texture2D(CreateDesc& desc); // please create from 'Renderer::createTexture2D'
 
 	ColorType	_colorType = ColorType::None;
 	int			_mipmapCount = 0;
