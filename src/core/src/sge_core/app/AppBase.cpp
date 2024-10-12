@@ -1,7 +1,9 @@
 #include "AppBase.h"
 
 namespace sge {
-
+#if 0
+#pragma mark ========= AppArguments ============
+#endif
 AppArguments::AppArguments(int argc, const char* argv[]) {
 #if SGE_OS_WINDOWS
 	int argCount = 0;
@@ -23,6 +25,9 @@ AppArguments::AppArguments(int argc, const char* argv[]) {
 	}
 }
 
+#if 0
+#pragma mark ========= AppBase ============
+#endif
 void AppBase::setCommandArguments(int argc, const char* argv[]) {
 	_args = UPtr_make<AppArguments>(argc, argv);
 }
@@ -56,4 +61,4 @@ int AppBase::_run() {
 	return 0;
 }
 
-}
+} // namespace sge

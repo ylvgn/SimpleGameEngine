@@ -13,21 +13,21 @@ struct ShaderStage : public NonCopyable {
 	const ShaderStageInfo* info() const { return &_info; }
 protected:
 	ShaderStageInfo _info;
-};
+}; // ShaderStage
 
 #if 0
 #pragma mark ========= ShaderVertexStage ============
 #endif
 struct ShaderVertexStage : public ShaderStage {
 	static constexpr ShaderStageMask stageMask() { return ShaderStageMask::Vertex; }
-};
+}; // ShaderVertexStage
 
 #if 0
 #pragma mark ========= ShaderPixelStage ============
 #endif
 struct ShaderPixelStage  : public ShaderStage {
 	static constexpr ShaderStageMask stageMask() { return ShaderStageMask::Pixel; }
-};
+}; // ShaderPixelStage
 
 #if 0
 #pragma mark ========= ShaderPass ============
@@ -57,7 +57,7 @@ protected:
 	ShaderPixelStage*   _pixelStage		= nullptr;
 	Shader*				_shader			= nullptr;
 	int					_passIndex		= -1;
-};
+}; // ShaderPass
 
 #if 0
 #pragma mark ========= Shader ============
@@ -89,6 +89,6 @@ protected:
 	String						_filename;
 	ShaderInfo					_info;
 	Vector<UPtr<ShaderPass>, 1> _passes;
-};
+}; // Shader
 
 } // namespace sge

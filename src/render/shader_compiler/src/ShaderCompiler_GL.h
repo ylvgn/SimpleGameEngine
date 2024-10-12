@@ -2,12 +2,12 @@
 
 #include <sge_render/backend/opengl/Render_GL_Common.h>
 
-#include "spirv_cross.hpp"
 #include "spirv_glsl.hpp"
 
 namespace sge {
 
 class ShaderCompiler_GL : public NonCopyable {
+
 	using Util				= GLUtil;
 	using DataType			= RenderDataType;
 
@@ -21,6 +21,7 @@ public:
 
 private:
 	static void _convert(Compiler& comp, DataType& o, const SPIRType& i, u32 memberIndex = 0);
+
 	static void _reflect(StrView outFilename, Compiler& comp, ShaderStageMask shaderStage, StrView profile);
 	static void _reflect_inputs			(ShaderStageInfo& outInfo, Compiler& comp, const ShaderResources& resources);
 	static void _reflect_constBuffers	(ShaderStageInfo& outInfo, Compiler& comp, const ShaderResources& resources);
@@ -34,4 +35,4 @@ private:
 	Vector<String> _vsOutputLocation2VarName;
 };
 
-}
+} // namespace sge

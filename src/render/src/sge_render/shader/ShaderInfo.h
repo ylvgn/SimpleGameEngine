@@ -99,8 +99,8 @@ public:
 		JsonUtil::readFile(filename_, *this);
 	}
 
-	String	filename;
-	String	profile;
+	String			filename;
+	String			profile;
 	ShaderStageMask	stage = ShaderStageMask::None;
 
 	class Param {
@@ -138,7 +138,7 @@ public:
 	class Variable {
 	public:
 		String		name;
-		size_t		offset = 0;
+		size_t		offset   = 0;
 		DataType	dataType = DataType::None;
 		bool		rowMajor = true;
 
@@ -155,7 +155,7 @@ public:
 		String			name;
 		i16				bindPoint = 0;
 		i16				bindCount = 0;
-		size_t			dataSize = 0;
+		size_t			dataSize  = 0;
 		Vector<Variable, 4>	variables;
 
 		template<class SE>
@@ -231,4 +231,4 @@ public:
 	}
 };
 
-} // namespace
+} // namespace sge

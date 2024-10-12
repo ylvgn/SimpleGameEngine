@@ -1,9 +1,9 @@
 #pragma once
 
+#include "RenderContext_GL_Base.h"
+
 #if SGE_OS_WINDOWS
 #if SGE_RENDER_HAS_OPENGL
-
-#include "RenderContext_GL_Base.h"
 
 namespace sge {
 
@@ -16,14 +16,16 @@ public:
 	void onCmd_ClearFrameBuffers(RenderCommand_ClearFrameBuffers&	cmd);
 	void onCmd_SwapBuffers		(RenderCommand_SwapBuffers&			cmd);
 	void onCmd_DrawCall			(RenderCommand_DrawCall&			cmd);
-	void onCmd_SetScissorRect	(RenderCommand_SetScissorRect& cmd) { /*TODO*/ }
+	void onCmd_SetScissorRect	(RenderCommand_SetScissorRect&		cmd) { /*TODO*/ }
 
 protected:
 	Renderer_GL*			_renderer	= nullptr;
 	NativeUIWindow_Win32*	_window		= nullptr;
 
-	virtual void onBeginRender() override;
-	virtual void onEndRender() override;
+	HWND _hwnd = nullptr;
+
+	virtual void onBeginRender()	override;
+	virtual void onEndRender()		override;
 
 	virtual void onSetFrameBufferSize(const Vec2f& newSize) override;
 	virtual void onCommit(RenderCommandBuffer& cmdBuf);
@@ -33,7 +35,6 @@ private:
 
 	void _createBuffers();
 
-	void _destroy();
 	void _destroyBuffers();
 	void _destroyTestScreenFrameBuffer();
 	void _destroyTestShaders();

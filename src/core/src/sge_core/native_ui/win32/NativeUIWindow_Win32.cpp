@@ -21,7 +21,7 @@ void NativeUIWindow_Win32::onCreate(CreateDesc& desc) {
 	wc.hInstance		= hInstance;
 	wc.hIcon			= LoadIcon(hInstance, IDI_APPLICATION);
 	wc.hCursor			= LoadCursor(hInstance, IDC_ARROW);
-	wc.hbrBackground	= nullptr; //(HBRUSH)(COLOR_WINDOW+1); // Modify the window to have no background, leaves the background color untouched
+	wc.hbrBackground	= nullptr; // (HBRUSH)(COLOR_WINDOW+1); // Modify the window to have no background, leaves the background color untouched
 	wc.lpszMenuName		= nullptr;
 	wc.lpszClassName	= clsName;
 	wc.hIconSm			= LoadIcon(hInstance, IDI_APPLICATION);
@@ -84,10 +84,10 @@ void NativeUIWindow_Win32::onCreate(CreateDesc& desc) {
 	}
 
 	_hwnd = CreateWindowEx(dwExStyle, clsName, clsName, dwStyle,
-							 static_cast<int>(desc.rect.x),
-							 static_cast<int>(desc.rect.y),
-							 static_cast<int>(desc.rect.w),
-							 static_cast<int>(desc.rect.h),
+							 int(desc.rect.x),
+							 int(desc.rect.y),
+							 int(desc.rect.w),
+							 int(desc.rect.h),
 							 nullptr, nullptr, hInstance, this);
 
 	if (!_hwnd) {
@@ -115,7 +115,9 @@ void NativeUIWindow_Win32::onCreate(CreateDesc& desc) {
 
 	_pressedKeyCodes.resize(kKeyCodeCount);
 
+	// TODO call 'ShowWindow' when created render context
 	ShowWindow(_hwnd, SW_SHOW);
+	UpdateWindow(_hwnd);
 }
 
 void NativeUIWindow_Win32::onSetWindowTitle(StrView title) {

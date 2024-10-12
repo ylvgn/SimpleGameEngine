@@ -23,13 +23,13 @@ class NativeUIWindow : public NativeUIWindow_Impl {
 
 class NativeUIApp : public NativeUIApp_Impl {
 public:
-	NativeUIApp();
-	~NativeUIApp();
+	NativeUIApp() noexcept;
+	~NativeUIApp() noexcept;
 
 	static NativeUIApp* current();
 private:
 	static NativeUIApp* _current;
-};
+}; // NativeUIApp
 
 } // namespace sge
 

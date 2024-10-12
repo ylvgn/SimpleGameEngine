@@ -3,42 +3,23 @@
 
 namespace sge {
 #if 0
-#pragma mark ========= MyGLFWNativeUIWindow::CreateDesc ============
-#endif
-MyGLFWNativeUIWindow::CreateDesc::CreateDesc()
-	: major(3)
-	, minor(3)
-	, profile(Profile::Core)
-{
-}
-
-#if 0
 #pragma mark ========= MyGLFWNativeUIWindow ============
 #endif
-void MyGLFWNativeUIWindow::destroy() {
-	glfwTerminate();
+MyGLFWNativeUIWindow::~MyGLFWNativeUIWindow() {
+	glfw::terminate();
 }
 
-void MyGLFWNativeUIWindow::update() {
+void MyGLFWNativeUIWindow::update(float dt) {
+	if (_glfwWindowShouldClose()) {
+		return;
+	}
+
 	_handleNativeInputEvent();
 
 	onRender();
 
-	_glfwSwapBuffers();
-	_glfwPollEvents();
-}
-
-void MyGLFWNativeUIWindow::onSetWindowPos(const Vec2f& pos) {
-	glfwSetWindowPos(_glfwWin, int(pos.x), int(pos.y));
-}
-
-void MyGLFWNativeUIWindow::onSetWindowSize(const Vec2f& size) {
-	glfwSetWindowSize(_glfwWin, int(size.x), int(size.y));
-}
-
-void MyGLFWNativeUIWindow::_glfwSetWindowTitle(StrView title) {
-	TempString tmp(title);
-	glfwSetWindowTitle(_glfwWin, tmp.c_str());
+	glfw::swapBuffers(_glfwWin);
+	glfw::pollEvents();
 }
 
 void MyGLFWNativeUIWindow::_handleNativeInputEvent() {
@@ -47,7 +28,7 @@ void MyGLFWNativeUIWindow::_handleNativeInputEvent() {
 
 void MyGLFWNativeUIWindow::_handleNativeUIKeyboardEvent() {
 	UIKeyboardEvent ev(this->_glfwWin);
-	onUINativeKeyboardEvent(ev);
+	onUIKeyboardEvent(ev);
 }
 
 void MyGLFWNativeUIWindow::s_glfwSetFramebufferSizeCallback(GLFWwindow* window, int width, int height) {
@@ -65,17 +46,28 @@ void MyGLFWNativeUIWindow::s_glfwSetWindowPosCallback(GLFWwindow* window, int xp
 void MyGLFWNativeUIWindow::onCreate(CreateDesc& desc) {
 	Base::onCreate(desc);
 
-	static const char* kWindowTitle = "MyGLFWNativeUIWindow";
-	static const int kWindowTitleOffsetY = 50;
+	int platform = glfw::platform();
+	SGE_ASSERT(platform != GLFW_PLATFORM_NULL);
 
-	glfwInit();
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, desc.major);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, desc.minor);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, int(desc.profile));
+	String glfwVersion = glfw::version();
+	SGE_DUMP_VAR(glfwVersion);
+
+	if (GLFW_FALSE == glfw::init())
+		throw SGE_ERROR("glfw initialized failed");
+
+	if (desc.major > 0) {
+		// specific OpenGL version, not set will be default max OpenGL version
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, desc.major);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, desc.minor);
+		glfwWindowHint(GLFW_OPENGL_PROFILE, enumInt(desc.profile));
+	}
 
 #if SGE_OS_MACOSX || SGE_OS_IOS
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
+
+	static const char*	kWindowTitle = "MyGLFWNativeUIWindow";
+	static const int	kWindowTitleOffsetY = 50;
 
 	auto& rect = desc.rect;
 
@@ -91,6 +83,11 @@ void MyGLFWNativeUIWindow::onCreate(CreateDesc& desc) {
 		throw SGE_ERROR("Failed to initialize GLAD");
 	}
 
+	GLint openglMajor, openglMinor;
+	glGetIntegerv(GL_MAJOR_VERSION, &openglMajor);
+	glGetIntegerv(GL_MINOR_VERSION, &openglMinor);
+	SGE_DUMP_VAR(openglMajor, openglMinor);
+
 	glfwSetFramebufferSizeCallback(_glfwWin, s_glfwSetFramebufferSizeCallback);
 	glfwSetWindowPosCallback(_glfwWin, s_glfwSetWindowPosCallback);
 }
@@ -98,8 +95,7 @@ void MyGLFWNativeUIWindow::onCreate(CreateDesc& desc) {
 #if 0
 #pragma mark ========= MyGLFWNativeUIApp ============
 #endif
-void MyGLFWNativeUIApp::onCreate(CreateDesc& desc)
-{
+void MyGLFWNativeUIApp::onCreate(CreateDesc& desc) {
 	{ // set working dir
 		auto exeFilePath = getExecutableFilename();
 		String workingDir = FilePath::dirname(exeFilePath);
@@ -114,19 +110,25 @@ void MyGLFWNativeUIApp::onCreate(CreateDesc& desc)
 }
 
 void MyGLFWNativeUIApp::onRun() {
-	Base::onRun();
 	SGE_ASSERT(_mainWin != nullptr);
 
+	_deltaTime = static_cast<float>(glfw::time());
+
 	while (!_mainWin->_glfwWindowShouldClose()) {
-		_mainWin->update();
+		_deltaTime = static_cast<float>(glfw::time()) - _deltaTime;
+		update(_deltaTime);
 	}
 
 	willQuit();
 }
 
+void MyGLFWNativeUIApp::onUpdate(float dt) {
+	_mainWin->update(dt);
+}
+
 void MyGLFWNativeUIApp::onQuit() {
 	Base::onQuit();
-	if (_mainWin) {
+	if (!_mainWin->_glfwWindowShouldClose()) {
 		_mainWin->_glfwSetWindowShouldClose(true);
 	}
 }

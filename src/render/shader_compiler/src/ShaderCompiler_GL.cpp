@@ -15,6 +15,7 @@ void ShaderCompiler_GL::compile(StrView outPath, ShaderStageMask shaderStage, St
 #else
 	TempString profile = "460";
 #endif
+
 	TempString	spirvOutFilename;
 	TempStringW tmpShaderStage;
 	switch (shaderStage) {

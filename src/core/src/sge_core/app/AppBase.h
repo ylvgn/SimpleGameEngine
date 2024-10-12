@@ -3,7 +3,6 @@
 #include <sge_core/string/UtfUtil.h>
 
 namespace sge {
-
 #if 0
 #pragma mark ========= AppArguments ============
 #endif
@@ -16,8 +15,11 @@ public:
 private:
 	Vector<StrView, 8>	_argsView;
 	Vector<String, 8>	_argsStr;
-};
+}; // AppArguments
 
+#if 0
+#pragma mark ========= AppBase ============
+#endif
 class AppBase : public NonCopyable {
 public:
 	AppBase()			noexcept = default;
@@ -38,6 +40,6 @@ protected:
 private:
 	UPtr<AppArguments>	_args;
 	String				_appName;
-};
+}; // AppBase
 
 } // namespace sge

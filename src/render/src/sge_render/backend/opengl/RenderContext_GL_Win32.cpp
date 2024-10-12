@@ -102,17 +102,40 @@ private:
 RenderContext_GL_Win32::RenderContext_GL_Win32(CreateDesc& desc)
 	: Base(desc)
 	, _renderer(Renderer_GL::current())
+	, _window(static_cast<NativeUIWindow_Win32*>(desc.window))
 {
 	FalseContext falseContext;
 	falseContext.create();
 
 	glewInit();
 
-	_window = static_cast<NativeUIWindow_Win32*>(desc.window);
-	const auto& win32_hwnd = _window->_hwnd;
-	SGE_ASSERT(win32_hwnd != nullptr);
+	if (!_window) {
+		// register window class
+		//WNDCLASSEX wc = {};
+		//bool registered = (0 != ::GetClassInfoEx(hInstance, kClassName, &wc));
+		//if (!registered) {
+		//	wc.cbSize			= sizeof(wc);
+		//	wc.style			= CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
+		//	wc.lpfnWndProc		= s_wndProc;
+		//	wc.cbClsExtra		= 0;
+		//	wc.cbWndExtra		= 0;
+		//	wc.hInstance		= hInstance;
+		//	wc.hIcon			= nullptr;
+		//	wc.hCursor			= LoadCursor(nullptr, IDC_ARROW);
+		//	wc.hbrBackground	= nullptr; // (HBRUSH)(COLOR_WINDOW+1);
+		//	wc.lpszMenuName		= nullptr;
+		//	wc.lpszClassName	= kClassName;
+		//	wc.hIconSm			= nullptr;
+		//	
+		//	if (!RegisterClassEx(&wc)) {
+		//		throw SGE_ERROR("RegisterClassEx");
+		//	}
+		//}
+	}
+	else {
+		_win32_dc = GetDC(_window->_hwnd);
+	}
 
-	_win32_dc = GetDC(win32_hwnd);
 	SGE_ASSERT(_win32_dc != nullptr);
 
 	const int formatAttrs[] = {

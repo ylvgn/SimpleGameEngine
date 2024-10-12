@@ -52,7 +52,7 @@ public:
 		bool		alwaysOnTop		: 1;
 		bool		vScrollBar		: 1;
 		bool		hScrollBar		: 1;
-		bool		ownDC			: 1;
+		bool		ownDC			: 1; // TODO need removed (only need it when init OpenGL)
 	};
 
 	void create			(CreateDesc& desc)		{ onCreate(desc); }
