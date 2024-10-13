@@ -36,7 +36,7 @@ void NativeUIApp_Win32::onRun() {
 void NativeUIApp_Win32::onQuit() {
 	Base::onQuit();
 
-	::PostQuitMessage(_exitCode);
+	PostQuitMessage(_exitCode);
 }
 
 DWORD NativeUIApp_Win32::_getMonitorDisplayFrequency() {
@@ -54,6 +54,6 @@ DWORD NativeUIApp_Win32::_getMonitorDisplayFrequency() {
 	return devMode.dmDisplayFrequency;
 }
 
-}
+} // namespace sge
 
 #endif // SGE_OS_WINDOWS

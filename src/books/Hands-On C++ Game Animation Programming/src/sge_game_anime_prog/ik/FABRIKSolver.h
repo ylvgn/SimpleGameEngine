@@ -48,7 +48,7 @@ private:
 	int		_stepCount	= 15;
 	float	_threshold	= 0.00001f;
 
-	ConstraintsHandler _constraintsHandler = nullptr;
+	ConstraintsHandler _constraintsHandler = nullptr; // TODO better warp function obj
 };
 
 }

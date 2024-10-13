@@ -30,19 +30,22 @@ public:
 		Profile profile = Profile::None;
 	};
 
-	~MyGLFWNativeUIWindow();
+	~MyGLFWNativeUIWindow() noexcept;
+
+	operator GLFWwindow* ()	noexcept { return _glfwWin; }
 
 	void create(CreateDesc& desc) { onCreate(desc); }; // !!<---- function overload
+
 	void update(float dt);
 
-	bool _glfwWindowShouldClose()							{ return glfwWindowShouldClose(_glfwWin); }
-	void _glfwGetFramebufferSize(int& width, int& height)	{ glfwGetFramebufferSize(_glfwWin, &width, &height); }
-	void _glfwGetWindowPos(int& xpos, int& ypos)			{ glfwGetWindowPos(_glfwWin, &xpos, &ypos); }
-	void _glfwSetWindowShouldClose(int isClose)				{ glfwSetWindowShouldClose(_glfwWin, isClose); }
+	Vec2f framebufferSize()						{ Vec2f o; glfw::framebufferSize(_glfwWin, o); return o; }
+	Vec2f windowPos()							{ Vec2f o; glfw::windowPos(_glfwWin, o); return o; }
+
+	bool _glfwWindowShouldClose()				{ return glfw::isWindowShouldClose(_glfwWin); }
+	void _glfwSetWindowShouldClose(int value)	{ glfw::setWindowShouldClose(_glfwWin, value); }
 
 protected:
-	virtual void onCloseButton		()					override { _glfwSetWindowShouldClose(true); }
-	virtual void onSetWindowTitle	(StrView title)		override { _glfwSetWindowTitle(title); }
+	virtual void onSetWindowTitle	(StrView title)		override { glfw::setWindowTitle(_glfwWin, title); }
 	virtual void onSetWindowPos		(const Vec2f& pos)	override { glfw::setWindowPos(_glfwWin, pos); }
 	virtual void onSetWindowSize	(const Vec2f& size) override { glfw::setWindowSize(_glfwWin, size); }
 
@@ -51,19 +54,20 @@ protected:
 
 	virtual void onFramebufferSizeCallback(int width, int height) {}
 	virtual void onWindowPosCallback(int xpos, int ypos) {}
+	virtual void onWindowCloseCallback() {}
 
 	virtual void onRender() {}
 
 private:
 	virtual UPtr<NativeUIScrollInfo_Base> onCreateScrollBar(NativeUIScrollInfo_CreateDesc& desc) { return nullptr; }; // TODO need to removed
 
-	void _glfwSetWindowTitle(StrView title) { glfw::setWindowTitle(_glfwWin, title); }
-
 	void _handleNativeInputEvent();
 	void _handleNativeUIKeyboardEvent();
 
+	static void s_glfwSetErrorCallback(int error_code, const char* description);
 	static void s_glfwSetFramebufferSizeCallback(GLFWwindow* window, int width, int height);
 	static void s_glfwSetWindowPosCallback(GLFWwindow* window, int xpos, int ypos);
+	static void s_glfwSetWindowCloseCallback(GLFWwindow* window);
 
 	SGE_INLINE static This* s_getThis(GLFWwindow* window) {
 		return reinterpret_cast<This*>(glfwGetWindowUserPointer(window));
@@ -87,3 +91,23 @@ protected:
 };
 
 } // namespace sge
+
+
+#define SGE_GLFW_MAIN(T) \
+	class MyLearnOpenGLApp : public MyGLFWNativeUIApp { \
+		using Base = MyGLFWNativeUIApp; \
+	protected: \
+		virtual void onCreate(CreateDesc& desc) override { \
+			Base::onCreate(desc); \
+			{ /*create window*/ \
+				_mainWin = UPtr_make<T>(); \
+				T::CreateDesc winDesc; \
+				winDesc.rect = { 10, 10, 1376, 768 }; \
+				_mainWin->create(winDesc); \
+			} \
+		} \
+	}; \
+	} /*namespace sge*/ \
+	SGE_MAIN(sge::MyLearnOpenGLApp) \
+	namespace sge { \
+// -------

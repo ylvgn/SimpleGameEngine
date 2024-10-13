@@ -6,7 +6,7 @@ namespace sge {
 	* FYI: https://learnopengl.com/Getting-started/Hello-Window
 */
 
-class MainWin : public MyGLFWNativeUIWindow {
+class sge_learnopengl_example_001 : public MyGLFWNativeUIWindow {
 	using Base = MyGLFWNativeUIWindow;
 protected:
 	virtual void onUIKeyboardEvent(UIKeyboardEvent& ev) override {
@@ -31,25 +31,5 @@ protected:
 	}
 };
 
-class MyApp : public MyGLFWNativeUIApp {
-	using Base = MyGLFWNativeUIApp;
-protected:
-	virtual void onCreate(CreateDesc& desc) override {
-		_mainWin = UPtr_make<MainWin>();
-
-		{
-			MainWin::CreateDesc winDesc;
-			winDesc.isMainWindow = true;
-			winDesc.rect = { 10, 10, 1376, 768 };
-			_mainWin->create(winDesc);
-			_mainWin->setWindowTitle("Hello Window");
-		}
-
-		Base::onCreate(desc);
-	}
-};
-
+SGE_GLFW_MAIN(sge::sge_learnopengl_example_001)
 } // namespace sge
-
-
-SGE_MAIN(sge::MyApp)

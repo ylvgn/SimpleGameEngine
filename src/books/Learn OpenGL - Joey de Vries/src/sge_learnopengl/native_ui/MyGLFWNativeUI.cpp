@@ -6,6 +6,10 @@ namespace sge {
 #pragma mark ========= MyGLFWNativeUIWindow ============
 #endif
 MyGLFWNativeUIWindow::~MyGLFWNativeUIWindow() {
+	if (_glfwWin) {
+		glfwDestroyWindow(_glfwWin);
+		_glfwWin = nullptr;
+	}
 	glfw::terminate();
 }
 
@@ -31,6 +35,11 @@ void MyGLFWNativeUIWindow::_handleNativeUIKeyboardEvent() {
 	onUIKeyboardEvent(ev);
 }
 
+void MyGLFWNativeUIWindow::s_glfwSetErrorCallback(int error_code, const char* description) {
+	SGE_LOG("glfw error({}): {}", error_code, description);
+	SGE_ASSERT(false);
+}
+
 void MyGLFWNativeUIWindow::s_glfwSetFramebufferSizeCallback(GLFWwindow* window, int width, int height) {
 	if (auto* win = s_getThis(window)) {
 		win->onFramebufferSizeCallback(width, height);
@@ -43,17 +52,22 @@ void MyGLFWNativeUIWindow::s_glfwSetWindowPosCallback(GLFWwindow* window, int xp
 	}
 }
 
+void MyGLFWNativeUIWindow::s_glfwSetWindowCloseCallback(GLFWwindow* window) {
+	if (auto* win = s_getThis(window)) {
+		win->onWindowCloseCallback();
+	}
+}
+
 void MyGLFWNativeUIWindow::onCreate(CreateDesc& desc) {
 	Base::onCreate(desc);
 
-	int platform = glfw::platform();
-	SGE_ASSERT(platform != GLFW_PLATFORM_NULL);
-
-	String glfwVersion = glfw::version();
-	SGE_DUMP_VAR(glfwVersion);
+	SGE_ASSERT(glfw::platform() != GLFW_PLATFORM_NULL);
+	SGE_DUMP_VAR(glfw::version());
 
 	if (GLFW_FALSE == glfw::init())
 		throw SGE_ERROR("glfw initialized failed");
+
+	glfwSetErrorCallback(s_glfwSetErrorCallback);
 
 	if (desc.major > 0) {
 		// specific OpenGL version, not set will be default max OpenGL version
@@ -69,27 +83,31 @@ void MyGLFWNativeUIWindow::onCreate(CreateDesc& desc) {
 	static const char*	kWindowTitle = "MyGLFWNativeUIWindow";
 	static const int	kWindowTitleOffsetY = 50;
 
-	auto& rect = desc.rect;
+	int in_x		= int(desc.rect.x);
+	int in_y		= int(desc.rect.y);
+	int in_width	= int(desc.rect.size.x);
+	int in_height	= int(desc.rect.size.y);
 
-	_glfwWin = glfwCreateWindow(int(rect.size.x), int(rect.size.y), kWindowTitle, nullptr, nullptr);
+	_glfwWin = glfwCreateWindow(in_width, in_height, kWindowTitle, nullptr, nullptr);
 	if (!_glfwWin)
-		throw SGE_ERROR("Failed to create GLFW window");
+		throw SGE_ERROR("glfwCreateWindow");
+
+	glfwSetFramebufferSizeCallback(_glfwWin, s_glfwSetFramebufferSizeCallback);
+	glfwSetWindowPosCallback(_glfwWin, s_glfwSetWindowPosCallback);
+	glfwSetWindowCloseCallback(_glfwWin, s_glfwSetWindowCloseCallback);
 
 	glfwSetWindowUserPointer(_glfwWin, this);
 	glfwMakeContextCurrent(_glfwWin);
-	glfwSetWindowPos(_glfwWin, int(rect.x), int(rect.y) + kWindowTitleOffsetY);
+	glfwSetWindowPos(_glfwWin, in_x, in_y + kWindowTitleOffsetY);
 
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-		throw SGE_ERROR("Failed to initialize GLAD");
+	if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress))) {
+		throw SGE_ERROR("gladLoadGLLoader");
 	}
 
 	GLint openglMajor, openglMinor;
 	glGetIntegerv(GL_MAJOR_VERSION, &openglMajor);
 	glGetIntegerv(GL_MINOR_VERSION, &openglMinor);
 	SGE_DUMP_VAR(openglMajor, openglMinor);
-
-	glfwSetFramebufferSizeCallback(_glfwWin, s_glfwSetFramebufferSizeCallback);
-	glfwSetWindowPosCallback(_glfwWin, s_glfwSetWindowPosCallback);
 }
 
 #if 0
@@ -112,10 +130,10 @@ void MyGLFWNativeUIApp::onCreate(CreateDesc& desc) {
 void MyGLFWNativeUIApp::onRun() {
 	SGE_ASSERT(_mainWin != nullptr);
 
-	_deltaTime = static_cast<float>(glfw::time());
+	_deltaTime = glfw::time();
 
 	while (!_mainWin->_glfwWindowShouldClose()) {
-		_deltaTime = static_cast<float>(glfw::time()) - _deltaTime;
+		_deltaTime = glfw::time() - _deltaTime;
 		update(_deltaTime);
 	}
 
@@ -128,8 +146,9 @@ void MyGLFWNativeUIApp::onUpdate(float dt) {
 
 void MyGLFWNativeUIApp::onQuit() {
 	Base::onQuit();
+
 	if (!_mainWin->_glfwWindowShouldClose()) {
-		_mainWin->_glfwSetWindowShouldClose(true);
+		_mainWin->_glfwSetWindowShouldClose(_exitCode);
 	}
 }
 
