@@ -2,25 +2,30 @@
 #include "Renderer_GL.h"
 #include "RenderGpuBuffer_GL.h"
 
+#include "Shader_GL.h"
+
 #if SGE_OS_WINDOWS
 #if SGE_RENDER_HAS_OPENGL
 
 namespace sge {
+
+const wchar_t* RenderContext_GL_Win32::kClassName = L"RenderContext_GL_Win32";
+
 #if 0
 #pragma mark ========= RenderContext_GL_Win32::FalseContext ============
 #endif
+// https://www.khronos.org/opengl/wiki/Creating_an_OpenGL_Context_(WGL)#Create_a_False_Context
+// The key problem is this: the function you use to get WGL extensions is, itself, an OpenGL extension
 class RenderContext_GL_Win32::FalseContext : public NonCopyable {
 public:
-	~FalseContext() { destroy(); }
-
 	void FalseContext::create() {
 		destroy();
 
-		static const wchar_t* className = L"FalseContext";
 		auto hInstance = GetModuleHandle(nullptr);
 
 		WNDCLASSEX wc;
-		if (!GetClassInfoEx(hInstance, className, &wc)) {
+		bool isRegistered = (0 != GetClassInfoEx(hInstance, kClassName, &wc));
+		if (!isRegistered) {
 			memset(&wc, 0, sizeof(wc));
 
 			wc.cbSize			= sizeof(wc);
@@ -30,7 +35,7 @@ public:
 			wc.hCursor			= LoadCursor(nullptr, IDC_ARROW);
 			wc.hbrBackground	= nullptr;
 			wc.lpszMenuName		= nullptr;
-			wc.lpszClassName	= className;
+			wc.lpszClassName	= kClassName;
 
 			if (!RegisterClassEx(&wc))
 				throw SGE_ERROR("RegisterClassEx");
@@ -39,8 +44,8 @@ public:
 		DWORD dwExStyle = 0;
 		DWORD dwStyle	= WS_POPUP;
 
-		_hwnd = CreateWindowEx(dwExStyle, className, className, dwStyle,
-							   0, 0, 0, 0,
+		_hwnd = CreateWindowEx(dwExStyle, kClassName, kClassName, dwStyle,
+							   0,0,0,0,
 							   nullptr, nullptr, hInstance, nullptr);
 		if (!_hwnd)
 			throw SGE_ERROR("CreateWindowEx");
@@ -90,6 +95,8 @@ public:
 		}
 	}
 
+	~FalseContext() { destroy(); }
+
 private:
 	HWND	_hwnd	= nullptr;
 	HDC		_dc		= nullptr;
@@ -105,32 +112,13 @@ RenderContext_GL_Win32::RenderContext_GL_Win32(CreateDesc& desc)
 	, _window(static_cast<NativeUIWindow_Win32*>(desc.window))
 {
 	FalseContext falseContext;
-	falseContext.create();
 
+	/*TODO: create more than 1 render context*/
+	falseContext.create();
 	glewInit();
 
 	if (!_window) {
-		// register window class
-		//WNDCLASSEX wc = {};
-		//bool registered = (0 != ::GetClassInfoEx(hInstance, kClassName, &wc));
-		//if (!registered) {
-		//	wc.cbSize			= sizeof(wc);
-		//	wc.style			= CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
-		//	wc.lpfnWndProc		= s_wndProc;
-		//	wc.cbClsExtra		= 0;
-		//	wc.cbWndExtra		= 0;
-		//	wc.hInstance		= hInstance;
-		//	wc.hIcon			= nullptr;
-		//	wc.hCursor			= LoadCursor(nullptr, IDC_ARROW);
-		//	wc.hbrBackground	= nullptr; // (HBRUSH)(COLOR_WINDOW+1);
-		//	wc.lpszMenuName		= nullptr;
-		//	wc.lpszClassName	= kClassName;
-		//	wc.hIconSm			= nullptr;
-		//	
-		//	if (!RegisterClassEx(&wc)) {
-		//		throw SGE_ERROR("RegisterClassEx");
-		//	}
-		//}
+		/*TODO: create more than 1 render context*/
 	}
 	else {
 		_win32_dc = GetDC(_window->_hwnd);
@@ -235,8 +223,7 @@ void RenderContext_GL_Win32::onCmd_DrawCall(RenderCommand_DrawCall& cmd) {
 	{
 		if (auto* pass = cmd.getMaterialPass()) {
 			pass->bind(this, cmd.vertexLayout);
-		}
-		else {
+		} else {
 			_setTestShaders(cmd.vertexLayout);
 		}
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe ON tmp
@@ -276,7 +263,28 @@ void RenderContext_GL_Win32::onCommit(RenderCommandBuffer& cmdBuf) {
 }
 
 void RenderContext_GL_Win32::onSetFrameBufferSize(const Vec2f& newSize) {
-	glViewport(0, 0, static_cast<GLsizei>(newSize.x), static_cast<GLsizei>(newSize.y));
+	int newWidth = int(newSize.x);
+	int newHeight = int(newSize.y);
+
+	// TODO: reset frame buffer size
+	if (_viewFramebuffer) {
+		if (_testScreenQuadTexturebuffer) {
+			glDeleteTextures(1, &_testScreenQuadTexturebuffer);
+		}
+
+		glBindFramebuffer(GL_FRAMEBUFFER, _viewFramebuffer);
+			glGenTextures(1, &_testScreenQuadTexturebuffer);
+			glBindTexture(GL_TEXTURE_2D, _testScreenQuadTexturebuffer);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, newWidth, newHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _testScreenQuadTexturebuffer, 0);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		Util::throwIfError();
+	}
+
+	glViewport(0, 0, newWidth, newHeight);
 	Util::throwIfError();
 }
 
@@ -314,7 +322,7 @@ void RenderContext_GL_Win32::onEndRender() {
 }
 
 void RenderContext_GL_Win32::_setTestFrameBufferScreenShaders() {
-	static const char* s_vs = "#version 330\n"
+	static const char* s_vs_source = "#version 330\n"
 	"layout(location = 0) in vec2 i_positionOS;\n"
 	"layout(location = 1) in vec2 i_uv;\n"
 	"out vec2 uv;\n"
@@ -324,7 +332,7 @@ void RenderContext_GL_Win32::_setTestFrameBufferScreenShaders() {
 		"uv = i_uv;\n"
 	"}";
 
-	static const char* s_ps = "#version 330\n"
+	static const char* s_ps_source = "#version 330\n"
 	"uniform sampler2D _73;\n"
 	"in vec2 uv;\n"
 	"layout(location = 0) out vec4 _entryPointOutput;\n"
@@ -334,58 +342,31 @@ void RenderContext_GL_Win32::_setTestFrameBufferScreenShaders() {
 	"}";
 
 	if (!_testFrameBufferVertexShader) {
-		_testFrameBufferVertexShader = GLUtil::compileShader(GL_VERTEX_SHADER, s_vs);
+		auto& shader = _testFrameBufferVertexShader;
+
+		shader = glCreateShader(GL_VERTEX_SHADER);
+		Util::throwIfError();
+
+		GLint sourceLen = static_cast<GLint>(charStrlen(s_vs_source));
+		glShaderSource(shader, 1, &s_vs_source, &sourceLen);
+		glCompileShader(shader);
+		Util::throwIfError();
 	}
 
 	if (!_testFrameBufferPixelShader) {
-		_testFrameBufferPixelShader = GLUtil::compileShader(GL_FRAGMENT_SHADER, s_ps);
+		auto& shader = _testFrameBufferPixelShader;
+
+		shader = glCreateShader(GL_FRAGMENT_SHADER);
+		Util::throwIfError();
+
+		GLint sourceLen = static_cast<GLint>(charStrlen(s_ps_source));
+		glShaderSource(shader, 1, &s_ps_source, &sourceLen);
+		glCompileShader(shader);
+		Util::throwIfError();
 	}
 
-	//---- link shader program
-	if (!_testFrameBufferShaderProgram) {
-		_testFrameBufferShaderProgram = glCreateProgram();
-		Util::throwIfError();
-
-		if (_testFrameBufferVertexShader) {
-			glAttachShader(_testFrameBufferShaderProgram, _testFrameBufferVertexShader);
-			Util::throwIfError();
-		}
-		if (_testFrameBufferPixelShader) {
-			glAttachShader(_testFrameBufferShaderProgram, _testFrameBufferPixelShader);
-			Util::throwIfError();
-		}
-		
-		glLinkProgram(_testFrameBufferShaderProgram);
-		GLint linked;
-		glGetProgramiv(_testFrameBufferShaderProgram, GL_LINK_STATUS, &linked);
-		if (linked != GL_TRUE) {
-			String errmsg;
-			Util::getProgramInfoLog(_testFrameBufferShaderProgram, errmsg);
-
-			TempString tmp;
-			FmtTo(tmp, "Error link shader: {}", errmsg);
-
-			throw SGE_ERROR("{}", tmp.c_str());
-		}
-		Util::throwIfError();
-
-		//---- validate shader program
-		glValidateProgram(_testFrameBufferShaderProgram);
-		GLint validated;
-		glGetProgramiv(_testFrameBufferShaderProgram, GL_VALIDATE_STATUS, &validated);
-		if (validated != GL_TRUE) {
-			String errmsg;
-			Util::getProgramInfoLog(_testFrameBufferShaderProgram, errmsg);
-
-			TempString tmp;
-			FmtTo(tmp, "Error validate shader {}", errmsg);
-
-			throw SGE_ERROR("{}", tmp.c_str());
-		}
-		Util::throwIfError();
-
-		SGE_ASSERT(glIsProgram(_testFrameBufferShaderProgram) == GL_TRUE);
-	}
+	if (!_testFrameBufferShaderProgram)
+		Util::linkShader(_testFrameBufferShaderProgram, _testFrameBufferVertexShader, _testFrameBufferPixelShader);
 
 //---- use shader program
 	glUseProgram(_testFrameBufferShaderProgram);
@@ -424,67 +405,22 @@ void RenderContext_GL_Win32::_setTestFrameBufferScreenShaders() {
 void RenderContext_GL_Win32::_setTestShaders(const VertexLayout* vertexLayout) {
 	TempString shaderFile("Assets/Shaders/test.hlsl");
 
-//---- compile shader
+	//---- compile shader
 	{
 		if (!_testVertexShader) {
 			TempString tmp(shaderFile + ".spv_vs.vert");
 			Util::compileShader(_testVertexShader, GL_VERTEX_SHADER, tmp.c_str());
-			Util::throwIfError();
 		}
 	}
 	{
 		if (!_testPixelShader) {
 			TempString tmp(shaderFile + ".spv_ps.frag");
 			Util::compileShader(_testPixelShader, GL_FRAGMENT_SHADER, tmp.c_str());
-			Util::throwIfError();
 		}
 	}
 
-//---- link shader program
-	if (!_testShaderProgram) {
-		_testShaderProgram = glCreateProgram();
-		Util::throwIfError();
-
-		if (_testVertexShader) {
-			glAttachShader(_testShaderProgram, _testVertexShader);
-			Util::throwIfError();
-		}
-		if (_testPixelShader) {
-			glAttachShader(_testShaderProgram, _testPixelShader);
-			Util::throwIfError();
-		}
-		
-		glLinkProgram(_testShaderProgram);
-		GLint linked;
-		glGetProgramiv(_testShaderProgram, GL_LINK_STATUS, &linked);
-		if (linked != GL_TRUE) {
-			String errmsg;
-			Util::getProgramInfoLog(_testShaderProgram, errmsg);
-
-			TempString tmp;
-			FmtTo(tmp, "Error link shader filename = {}\n{}", shaderFile, errmsg);
-
-			throw SGE_ERROR("{}", tmp.c_str());
-		}
-		Util::throwIfError();
-
-		//---- validate shader program
-		glValidateProgram(_testShaderProgram);
-		GLint validated;
-		glGetProgramiv(_testShaderProgram, GL_VALIDATE_STATUS, &validated);
-		if (validated != GL_TRUE) {
-			String errmsg;
-			Util::getProgramInfoLog(_testShaderProgram, errmsg);
-
-			TempString tmp;
-			FmtTo(tmp, "Error validate shader filename = {}\n{}", shaderFile, errmsg);
-
-			throw SGE_ERROR("{}", tmp.c_str());
-		}
-		Util::throwIfError();
-
-		SGE_ASSERT(glIsProgram(_testShaderProgram) == GL_TRUE);
-	}
+	if (!_testShaderProgram)
+		Util::linkShader(_testShaderProgram, _testVertexShader, _testPixelShader);
 
 //---- use shader program
 	glUseProgram(_testShaderProgram);
@@ -506,9 +442,9 @@ void RenderContext_GL_Win32::_setTestShaders(const VertexLayout* vertexLayout) {
 }
 
 void RenderContext_GL_Win32::_createBuffers() {
-	_destroyBuffers();
+	if (_viewFramebuffer) return; // TODO
 
-	if (_viewFramebuffer) return;
+	_destroyBuffers();
 
 	GLint width  = GLint(_frameBufferSize.x);
 	GLint height = GLint(_frameBufferSize.y);

@@ -11,6 +11,7 @@ class RenderContext_DX11;
 
 class Shader_DX11 : public Shader {
 	using Base = Shader;
+	sgeShader_InterfaceFunctions(DX11);
 public:
 	using Util = DX11Util;
 
@@ -48,8 +49,10 @@ public:
 		MyVertexStage		_myVertexStage;
 		MyPixelStage		_myPixelStage;
 	};
-protected:
-	virtual UPtr<ShaderPass> onCreateShaderPass(Shader* shader, int passIndex) override;
+
+	using VertexStage	= MyVertexStage;
+	using PixelStage	= MyPixelStage;
+	using Pass			= MyPass;
 
 }; // Shader_DX11
 

@@ -46,6 +46,10 @@ void Material_DX11::_bindStageHelper(RenderContext_DX11* ctx, STAGE* stage) {
 	}
 }
 
+UPtr<Material::Pass> Material_DX11::onCreatePass(ShaderPass* shaderPass) {
+	return UPtr<Pass>(new MyPass(this, shaderPass));
+}
+
 void Material_DX11::MyPass::onBind(RenderContext* ctx_, const VertexLayout* vertexLayout) {
 	auto* ctx = static_cast<RenderContext_DX11*>(ctx_);
 	_myVertexStage.bind(ctx, vertexLayout);

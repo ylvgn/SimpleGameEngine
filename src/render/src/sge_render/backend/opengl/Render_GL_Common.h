@@ -27,8 +27,6 @@
 
 namespace sge {
 
-class Renderer_GL;
-
 #if 0
 #pragma mark ========= GLObject ============
 #endif
@@ -78,52 +76,31 @@ public:
 struct GLUtil {
 	GLUtil() = delete;
 
-	static void reportError(GLenum errCode) {
-		auto* sz = reinterpret_cast<const char*>(gluErrorString(errCode));
-		TempString str = UtfUtil::toString(sz);
-		SGE_LOG("glGetError = (0x{:X}) {}", static_cast<u32>(errCode), str);
-	}
+	static void			reportError(GLenum errCode);
+	static void			throwIfError();
+	static bool			assertIfError();
 
-	static void throwIfError() {
-		auto errCode = glGetError();
-		if (_checkError(errCode)) {
-			reportError(errCode);
-			throw SGE_ERROR("glGetError = (0x{:0X})", errCode);
-		}
-	}
+	static void			compileShader(GLuint& shader, GLenum type, StrView filename);
+	static void			linkShader(GLuint& program, GLuint& vsShader, GLuint& psShader);
+	static void			getShaderInfoLog(GLuint& shader, String& outMsg);
+	static void			getProgramInfoLog(GLuint& program, String& outMsg);
 
-	static bool assertIfError() {
-		auto errCode = glGetError();
-		if (_checkError(errCode)) {
-			reportError(errCode);
-			SGE_ASSERT(false);
-			return false;
-		}
-		return true;
-	}
+	static GLenum		getGlPrimitiveTopology(RenderPrimitiveType v);
+	static GLenum		getGlFormat(RenderDataType v);
+	static GLenum		getGlBaseFormat(RenderDataType v);
+	static GLenum		getGlBufferBindingTarget(RenderGpuBufferType v);
+	static GLenum		getGlShaderType(ShaderStageMask s);
+	static const char*	getGlStageProfile(ShaderStageMask s);
 
-	static GLenum getErrorCode() { return glGetError(); }
+	static const char*	getGlSemanticName(VertexSemanticType v);
+	static int			getComponentCount(RenderDataType v);
 
-	static void compileShader(GLuint& shader, GLenum type, StrView filename);
-	static void compileShader(GLuint& shader, GLenum type, ByteSpan sourceCode, StrView filename = StrView());
-	static GLuint compileShader(GLenum type, StrView source);
-	static void getProgramInfoLog(GLuint program, String& outMsg);
+	static void			convert(VertexSemantic& o, StrView i);
+	static void			convert(String& o, VertexSemantic i);
 
-	static GLenum getGlPrimitiveTopology(RenderPrimitiveType v);
-	static GLenum getGlFormat(RenderDataType v);
-	static GLenum getGlBaseFormat(RenderDataType v);
-	static GLenum getGlBufferBindingTarget(RenderGpuBufferType v);
-	static GLenum getGlShaderType(ShaderStageMask s);
-
-	static const char* getGlSemanticName(VertexSemanticType v);
-	static int getComponentCount(RenderDataType v);
-
-	static void convert(VertexSemantic& o, StrView i);
-	static void convert(String& o, VertexSemantic i);
-
-	static void dumpActiveAttrib(GLint program);
-	static void dumpActiveUniforms(GLint program);
-	static void dumpActiveUniformBlocks(GLint program);
+	static void			dumpActiveAttrib(GLint program);
+	static void			dumpActiveUniforms(GLint program);
+	static void			dumpActiveUniformBlocks(GLint program);
 
 private:
 	static bool _checkError(GLenum errCode) {
@@ -131,7 +108,34 @@ private:
 	}
 };
 
-inline
+SGE_INLINE
+void GLUtil::reportError(GLenum errCode) {
+	auto* sz = reinterpret_cast<const char*>(gluErrorString(errCode));
+	TempString str = UtfUtil::toString(sz);
+	SGE_LOG("glGetError = (0x{:X}) {}", static_cast<u32>(errCode), str);
+}
+
+SGE_INLINE
+void GLUtil::throwIfError() {
+	auto errCode = glGetError();
+	if (_checkError(errCode)) {
+		reportError(errCode);
+		throw SGE_ERROR("glGetError = (0x{:0X})", errCode);
+	}
+}
+
+SGE_INLINE
+bool GLUtil::assertIfError() {
+	auto errCode = glGetError();
+	if (_checkError(errCode)) {
+		reportError(errCode);
+		SGE_ASSERT(false);
+		return false;
+	}
+	return true;
+}
+
+SGE_INLINE
 GLenum GLUtil::getGlPrimitiveTopology(RenderPrimitiveType v) {
 	using SRC = RenderPrimitiveType;
 	switch (v) {
@@ -143,7 +147,7 @@ GLenum GLUtil::getGlPrimitiveTopology(RenderPrimitiveType v) {
 	}
 }
 
-inline
+SGE_INLINE
 GLenum GLUtil::getGlBufferBindingTarget(RenderGpuBufferType v) {
 	using SRC = RenderGpuBufferType;
 	switch (v) {
@@ -155,7 +159,7 @@ GLenum GLUtil::getGlBufferBindingTarget(RenderGpuBufferType v) {
 	}
 }
 
-inline
+SGE_INLINE
 GLenum GLUtil::getGlFormat(RenderDataType v) {
 	using SRC = RenderDataType;
 	switch (v) {
@@ -199,7 +203,7 @@ GLenum GLUtil::getGlFormat(RenderDataType v) {
 	}
 }
 
-inline
+SGE_INLINE
 GLenum GLUtil::getGlBaseFormat(RenderDataType v) {
 	using SRC = RenderDataType;
 	switch (v) {
@@ -242,13 +246,23 @@ GLenum GLUtil::getGlBaseFormat(RenderDataType v) {
 	}
 }
 
-inline
+SGE_INLINE
 GLenum GLUtil::getGlShaderType(ShaderStageMask s) {
 	switch (s) {
 		case ShaderStageMask::Vertex:	return GL_VERTEX_SHADER;
 		case ShaderStageMask::Pixel:	return GL_FRAGMENT_SHADER;
 	//---
 		default: throw SGE_ERROR("unsupported ShaderStageMask");
+	}
+}
+
+SGE_INLINE
+const char* GLUtil::getGlStageProfile(ShaderStageMask s) {
+	switch (s) {
+		case ShaderStageMask::Vertex:	return "330";
+		case ShaderStageMask::Pixel:	return "330";
+	//---
+		default: return "";
 	}
 }
 

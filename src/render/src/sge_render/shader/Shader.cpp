@@ -20,9 +20,7 @@ StrView ShaderPass::shaderFilename() const {
 #if 0
 #pragma mark ========= Shader ============
 #endif
-Shader::Shader(StrView filename)
-	: _filename(filename)
-{
+Shader::Shader(StrView filename) noexcept : _filename(filename) {
 }
 
 void Shader::_internal_init() {
@@ -34,7 +32,7 @@ void Shader::_internal_init() {
 	auto n = passCount();
 	_passes.reserve(n);
 	for (int i = 0; i < n; ++i) {
-		UPtr<ShaderPass> pass = onCreateShaderPass(this, i);
+		UPtr<ShaderPass> pass = onCreateShaderPass(i);
 		pass->onInit();
 		_passes.emplace_back(SGE_MOVE(pass));
 	}

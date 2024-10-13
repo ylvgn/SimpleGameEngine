@@ -104,10 +104,10 @@ void MyGLFWNativeUIWindow::onCreate(CreateDesc& desc) {
 		throw SGE_ERROR("gladLoadGLLoader");
 	}
 
-	GLint openglMajor, openglMinor;
-	glGetIntegerv(GL_MAJOR_VERSION, &openglMajor);
-	glGetIntegerv(GL_MINOR_VERSION, &openglMinor);
-	SGE_DUMP_VAR(openglMajor, openglMinor);
+	GLint major, minor;
+	glGetIntegerv(GL_MAJOR_VERSION, &major);
+	glGetIntegerv(GL_MINOR_VERSION, &minor);
+	SGE_LOG("Version OpenGL {}.{}", major, minor);
 }
 
 #if 0

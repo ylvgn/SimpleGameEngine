@@ -82,9 +82,9 @@ public:
 	Pass*						findPass(int i)			{ return _passes.inBound(i) ? _passes[i].get() : nullptr; }
 
 protected:
-	Shader(StrView filename);  // please create from 'Renderer::createShader'
+	Shader(StrView filename) noexcept;  // please create from 'Renderer::createShader'
 
-	virtual UPtr<ShaderPass> onCreateShaderPass	(Shader* shader, int passIndex) = 0;
+	virtual UPtr<Shader::Pass> onCreateShaderPass(int passIndex) = 0;
 
 	String						_filename;
 	ShaderInfo					_info;
@@ -92,3 +92,12 @@ protected:
 }; // Shader
 
 } // namespace sge
+
+
+#define sgeShader_InterfaceFunctions(T) \
+	virtual UPtr<Shader::Pass> onCreateShaderPass(int passIndex) override; \
+//-----
+
+#define sgeShader_InterfaceFunctions_Impl(T) \
+	UPtr<Shader::Pass> Shader_##T::onCreateShaderPass(int passIndex) { return UPtr_make<Shader_##T::Pass>(this, passIndex); } \
+//-----

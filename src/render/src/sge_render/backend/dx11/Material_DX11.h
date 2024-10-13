@@ -7,10 +7,10 @@
 namespace sge {
 
 class Material_DX11 : public Material {
+	using Base = Material;
 public:
-
-private:
 	using Util = DX11Util;
+private:
 	Shader_DX11* shader() { return static_cast<Shader_DX11*>(_shader.ptr()); }
 
 	template<class STAGE>
@@ -88,9 +88,7 @@ private:
 		ComPtr<DX11_ID3DBlendState>			_blendState;
 	};
 
-	virtual UPtr<Pass> onCreatePass(ShaderPass* shaderPass) override {
-		return UPtr<Pass>(new MyPass(this, shaderPass));
-	}
+	virtual UPtr<Pass> onCreatePass(ShaderPass* shaderPass) override;
 
 }; // Material_DX11
 

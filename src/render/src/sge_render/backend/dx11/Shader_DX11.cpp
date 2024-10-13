@@ -8,13 +8,12 @@ namespace sge {
 #if 0
 #pragma mark ========= Shader_DX11 ============
 #endif
+
+sgeShader_InterfaceFunctions_Impl(DX11)
+
 Shader_DX11::Shader_DX11(StrView filename)
 	: Base(filename)
 {
-}
-
-UPtr<ShaderPass> Shader_DX11::onCreateShaderPass(Shader* shader, int passIndex) {
-	return UPtr_make<MyPass>(static_cast<Shader_DX11*>(shader), passIndex);
 }
 
 void Shader_DX11::_loadStageFile(StrView passPath, ShaderStageMask stageMask, Vector<u8>& outBytecode, ShaderStageInfo& outInfo) {
@@ -35,6 +34,7 @@ void Shader_DX11::MyVertexStage::load(MyPass* pass, StrView passPath, DX11_ID3DD
 	auto hr = dev->CreateVertexShader(_bytecode.data(), _bytecode.size(), nullptr, _shader.ptrForInit());
 	Util::throwIfError(hr);
 }
+
 void Shader_DX11::MyVertexStage::bind(RenderContext_DX11* ctx) {
 	auto* dc = ctx->renderer()->d3dDeviceContext();
 	if (!_shader) throw SGE_ERROR("dx shader is null");

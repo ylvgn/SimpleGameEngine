@@ -61,46 +61,46 @@ struct DX11Util {
 	static bool assertIfError(HRESULT hr);
 	static void reportError(HRESULT hr);
 
-	static UINT castUINT(size_t v) { SGE_ASSERT(v < UINT_MAX); return static_cast<UINT>(v); }
+	static UINT castUINT(size_t v) { SGE_ASSERT(v < UINT_MAX); return UINT(v); }
 
-	static D3D11_PRIMITIVE_TOPOLOGY getDxPrimitiveTopology(RenderPrimitiveType t);
-	static DXGI_FORMAT				getDxFormat(RenderDataType v);
-	static DXGI_FORMAT				getDxColorType(ColorType v);
+	static D3D11_PRIMITIVE_TOPOLOGY		getDxPrimitiveTopology(RenderPrimitiveType t);
+	static DXGI_FORMAT					getDxFormat(RenderDataType v);
+	static DXGI_FORMAT					getDxColorType(ColorType v);
 
-	static D3D11_CULL_MODE			getDxCullMode(RenderState_Cull v);
-	static D3D11_COMPARISON_FUNC	getDxDepthTestOp(RenderState_DepthTestOp v);
-	static D3D11_BLEND_OP			getDxBlendOp(RenderState_BlendOp v);
-	static D3D11_BLEND				getDxBlendFactor(RenderState_BlendFactor v);
+	static D3D11_CULL_MODE				getDxCullMode(RenderState_Cull v);
+	static D3D11_COMPARISON_FUNC		getDxDepthTestOp(RenderState_DepthTestOp v);
+	static D3D11_BLEND_OP				getDxBlendOp(RenderState_BlendOp v);
+	static D3D11_BLEND					getDxBlendFactor(RenderState_BlendFactor v);
 
-	static D3D11_FILTER					getDxTextureFilter	(TextureFilter v);
-	static D3D11_TEXTURE_ADDRESS_MODE	getDxTextureWrap	(TextureWrap v);
+	static D3D11_FILTER					getDxTextureFilter(TextureFilter v);
+	static D3D11_TEXTURE_ADDRESS_MODE	getDxTextureWrap(TextureWrap v);
 
-	static const char*			getDxSemanticName(VertexSemanticType v);
-	static VertexSemanticType	parseDxSemanticName(StrView s);
+	static const char*					getDxSemanticName(VertexSemanticType v);
+	static VertexSemanticType			parseDxSemanticName(StrView s);
 
-	static String		getStrFromHRESULT(HRESULT hr);
+	static String						getStrFromHRESULT(HRESULT hr);
 
-	static const char*	getDxStageProfile(ShaderStageMask s);
+	static const char*					getDxStageProfile(ShaderStageMask s);
 
-	static ByteSpan toSpan(ID3DBlob* blob);
-	static StrView  toStrView(ID3DBlob* blob) { return StrView_make(toSpan(blob)); }
+	static ByteSpan						toSpan(ID3DBlob* blob);
+	static StrView						toStrView(ID3DBlob* blob) { return StrView_make(toSpan(blob)); }
 
-	static void convert(Rect2f& o, const ::D3D11_RECT& i) {
-		o.x = static_cast<float>(i.left);
-		o.y = static_cast<float>(i.top);
-		o.w = static_cast<float>(i.right - i.left);
-		o.h = static_cast<float>(i.bottom - i.top);
+	static void convert(Rect2f& o, const D3D11_RECT& i) {
+		o.x = float(i.left);
+		o.y = float(i.top);
+		o.w = float(i.right - i.left);
+		o.h = float(i.bottom - i.top);
 	}
 
-	static void convert(::D3D11_RECT& o, const Rect2f& i) {
-		o.left   = static_cast<LONG>(i.x);
-		o.top    = static_cast<LONG>(i.y);
-		o.right  = static_cast<LONG>(i.xMax());
-		o.bottom = static_cast<LONG>(i.yMax());
+	static void convert(D3D11_RECT& o, const Rect2f& i) {
+		o.left   = LONG(i.x);
+		o.top    = LONG(i.y);
+		o.right  = LONG(i.xMax());
+		o.bottom = LONG(i.yMax());
 	}
 
-	static Rect2f toRect2f(const ::D3D11_RECT& i)	{ Rect2f o;			convert(o, i);	return o; }
-	static ::D3D11_RECT toD3DRect(const Rect2f& i)	{ ::D3D11_RECT o;	convert(o, i);	return o; }
+	static Rect2f toRect2f(const D3D11_RECT& i)		{ Rect2f o;		convert(o, i);	return o; }
+	static D3D11_RECT toD3DRect(const Rect2f& i)	{ D3D11_RECT o;	convert(o, i);	return o; }
 
 private:
 	static bool _checkError(HRESULT hr) {

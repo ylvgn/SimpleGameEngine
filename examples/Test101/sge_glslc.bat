@@ -10,6 +10,6 @@ set entry=%2
 set outFile=%3
 set inputFile=%4
 
-%comp% -fshader-stage=%stage% -fentry-point=%entry% -o %outFile% -x hlsl %inputFile%
+%comp% -fshader-stage=%stage% -fentry-point=%entry% -o %outFile% -x hlsl %inputFile% -fhlsl-functionality1 -fhlsl-iomap
 
 @rem pause

@@ -7,6 +7,8 @@
 
 namespace sge {
 
+class Renderer_GL;
+
 class RenderContext_GL_Win32 : public RenderContext_GL_Base {
 	using Base = RenderContext_GL_Base;
 public:
@@ -22,7 +24,7 @@ protected:
 	Renderer_GL*			_renderer	= nullptr;
 	NativeUIWindow_Win32*	_window		= nullptr;
 
-	HWND _hwnd = nullptr;
+	HWND					_hwnd		= nullptr;
 
 	virtual void onBeginRender()	override;
 	virtual void onEndRender()		override;
@@ -32,6 +34,7 @@ protected:
 
 private:
 	class FalseContext;
+	static const wchar_t* kClassName;
 
 	void _createBuffers();
 
@@ -45,13 +48,13 @@ private:
 	HDC		_win32_dc = nullptr;
 	HGLRC	_win32_rc = nullptr;
 
-    GLuint	_viewFramebuffer	= 0;
-	GLuint	_viewRenderbuffer	= 0;
-    GLuint	_depthRenderbuffer	= 0;
+    GLuint	_viewFramebuffer				= 0;
+	GLuint	_viewRenderbuffer				= 0;
+    GLuint	_depthRenderbuffer				= 0;
 
-	GLuint	_testShaderProgram	= 0;
-	GLuint	_testVertexShader	= 0;
-	GLuint	_testPixelShader	= 0;
+	GLuint	_testShaderProgram				= 0;
+	GLuint	_testVertexShader				= 0;
+	GLuint	_testPixelShader				= 0;
 
 	GLuint	_testFrameBufferShaderProgram	= 0;
 	GLuint	_testFrameBufferVertexShader	= 0;
@@ -60,7 +63,7 @@ private:
 	GLuint	_testScreenQuadVertexbuffer		= 0;
 	GLuint	_testScreenQuadTexturebuffer	= 0;
 	GLuint	_testScreenQuadRenderbuffer		= 0;
-};
+}; // RenderContext_GL_Win32
 
 } // namespace sge
 

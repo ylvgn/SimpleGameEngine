@@ -5,16 +5,7 @@
 namespace sge {
 
 void ShaderCompiler_GL::compile(StrView outPath, ShaderStageMask shaderStage, StrView srcFilename, StrView entryFunc) {
-#if 0
-	TempString profile;
-	// TODO
-	GLint major, minor;
-	glGetIntegerv(GL_MAJOR_VERSION, &major);
-	glGetIntegerv(GL_MINOR_VERSION, &minor);
-	FmtTo(profile, "{}{}0", major, minor);
-#else
-	TempString profile = "460";
-#endif
+	auto profile = Util::getGlStageProfile(shaderStage);
 
 	TempString	spirvOutFilename;
 	TempStringW tmpShaderStage;

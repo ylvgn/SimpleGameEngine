@@ -61,54 +61,101 @@ void GLIndexBuffer::destroy() {
 void GLUtil::compileShader(GLuint& shader, GLenum type, StrView filename) {
 	MemMapFile mm;
 	mm.open(filename);
-	compileShader(shader, type, mm, filename);
-}
 
-void GLUtil::compileShader(GLuint& shader, GLenum type, ByteSpan sourceCode, StrView filename) {
 	if (!shader) {
 		shader = glCreateShader(type);
 		throwIfError();
 	}
 
-	StrView source		= StrView_make(sourceCode);
+	StrView source		= StrView_make(mm.span());
 	auto* const data	= source.data();
 	GLint dataSize		= static_cast<GLint>(source.size());
 
 	glShaderSource(shader, 1, &data, &dataSize);
-	glCompileShader(shader);
-
-	GLint compiled;
-	glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
-	if (compiled != GL_TRUE) {
-		//String errmsg;
-		//getShaderInfoLog(shader, errmsg);
-
-		//throw SGE_ERROR("Error compile shader: {}\nfilename: {}",
-		//	errmsg.c_str(), filename.empty() ? "Unknown" : filename);
-	}
-}
-
-GLuint GLUtil::compileShader(GLenum type, StrView source) {
-	GLuint shader = glCreateShader(type);
 	throwIfError();
 
-	auto* const data = source.data();
-	GLint dataSize = static_cast<GLint>(source.size());
-
-	glShaderSource(shader, 1, &data, &dataSize);
 	glCompileShader(shader);
+	throwIfError();
 
 	GLint compiled;
 	glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
 	if (compiled != GL_TRUE) {
-		//String errmsg;
-		//getShaderInfoLog(shader, errmsg);
-		//throw SGE_ERROR("Error compile shader: {}", errmsg.c_str());
+		String errmsg;
+		getShaderInfoLog(shader, errmsg);
+
+		throw SGE_ERROR("Error compile shader: {}\nfilename: {}", errmsg.c_str(), filename);
 	}
-	return shader;
 }
 
-void GLUtil::getProgramInfoLog(GLuint program, String& outMsg) {
+void GLUtil::linkShader(GLuint& program, GLuint& vsShader, GLuint& psShader) {
+	if (!vsShader && !psShader) {
+		SGE_ASSERT(false);
+		return;
+	}
+
+	if (!program) {
+		program = glCreateProgram();
+		throwIfError();
+	}
+
+	if (vsShader) {
+		glAttachShader(program, vsShader);
+		throwIfError();
+	}
+	if (psShader) {
+		glAttachShader(program, psShader);
+		throwIfError();
+	}
+
+	glLinkProgram(program);
+	throwIfError();
+
+	GLint linked;
+	glGetProgramiv(program, GL_LINK_STATUS, &linked);
+	if (linked != GL_TRUE) {
+		String errmsg;
+		getProgramInfoLog(program, errmsg);
+
+		TempString tmp;
+		FmtTo(tmp, "Error link shader: {}", errmsg);
+
+		throw SGE_ERROR("{}", tmp.c_str());
+	}
+
+	glValidateProgram(program);
+	throwIfError();
+
+	GLint validated;
+	glGetProgramiv(program, GL_VALIDATE_STATUS, &validated);
+	if (validated != GL_TRUE) {
+		String errmsg;
+		getProgramInfoLog(program, errmsg);
+
+		TempString tmp;
+		FmtTo(tmp, "Error validate shader {}", errmsg);
+
+		throw SGE_ERROR("{}", tmp.c_str());
+	}
+
+	SGE_ASSERT(glIsProgram(program) == GL_TRUE);
+}
+
+void GLUtil::getShaderInfoLog(GLuint& shader, String& outMsg) {
+	outMsg.clear();
+	if (!shader) return;
+
+	GLsizei bufLen = 0;
+
+	glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &bufLen);
+	outMsg.resize(bufLen);
+
+	GLsizei outLen = 0;
+	glGetShaderInfoLog(shader, bufLen, &outLen, outMsg.begin());
+
+	outMsg.resize(outLen);
+}
+
+void GLUtil::getProgramInfoLog(GLuint& program, String& outMsg) {
 	outMsg.clear();
 	if (!program) return;
 

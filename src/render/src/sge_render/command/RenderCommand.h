@@ -22,8 +22,8 @@ SGE_ENUM_CLASS(RenderCommandType, u32)
 #pragma mark ========= RenderCommand ============
 #endif
 class RenderCommand : NonCopyable {
-	using Type = RenderCommandType;
 public:
+	using Type = RenderCommandType;
 
 	RenderCommand(Type type)
 		: _type(type)
@@ -41,7 +41,7 @@ public:
 
 private:
 	Type _type = Type::None;
-};
+}; // RenderCommand
 
 #if 0
 #pragma mark ========= RenderCommand_ClearFrameBuffers ============
@@ -60,10 +60,10 @@ public:
 	This& dontClearDepth()		{ depth.reset();	return *this; }
 	This& dontClearStencil()	{ stencil.reset();	return *this; }
 
-	Opt<Color4f>	color = Color4f(1,1,1,1);
-	Opt<float>		depth = 1;
+	Opt<Color4f>	color	= Color4f(1,1,1,1);
+	Opt<float>		depth	= 1;
 	Opt<u8>			stencil = 0;
-};
+}; // RenderCommand_ClearFrameBuffers
 
 #if 0
 #pragma mark ========= RenderCommand_SwapBuffers ============
@@ -72,7 +72,7 @@ class RenderCommand_SwapBuffers : public RenderCommand {
 	using Base = RenderCommand;
 public:
 	RenderCommand_SwapBuffers() : Base(Type::SwapBuffers) {}
-};
+}; // RenderCommand_SwapBuffers
 
 #if 0
 #pragma mark ========= RenderCommand_DrawCall ============
@@ -82,25 +82,26 @@ class RenderCommand_DrawCall : public RenderCommand {
 public:
 	RenderCommand_DrawCall() : Base(Type::DrawCall) {}
 
-	RenderPrimitiveType	 primitive = RenderPrimitiveType::None;
-	const VertexLayout* vertexLayout = nullptr;
-
-	SPtr<RenderGpuBuffer> vertexBuffer;
-	RenderDataType indexType = RenderDataType::UInt16;
-	SPtr<RenderGpuBuffer> indexBuffer;
-
-	SPtr<Material>			material;
-	size_t					materialPassIndex = 0;
-
 	MaterialPass* getMaterialPass() {
 		return material ? material->getPass(materialPassIndex) : nullptr;
 	}
 
-	size_t indexOffset	= 0;
-	size_t vertexOffset = 0;
-	size_t vertexCount	= 0;
-	size_t indexCount	= 0;
-};
+	RenderPrimitiveType		primitive = RenderPrimitiveType::None;
+
+	const VertexLayout*		vertexLayout = nullptr;
+
+	SPtr<RenderGpuBuffer>	vertexBuffer;
+	RenderDataType			indexType = RenderDataType::UInt16;
+	SPtr<RenderGpuBuffer>	indexBuffer;
+
+	SPtr<Material>			material;
+	size_t					materialPassIndex = 0;
+
+	size_t					indexOffset		= 0;
+	size_t					vertexOffset	= 0;
+	size_t					vertexCount		= 0;
+	size_t					indexCount		= 0;
+}; // RenderCommand_DrawCall
 
 #if 0
 #pragma mark ========= RenderCommand_SetScissorRect ============
@@ -109,8 +110,9 @@ class RenderCommand_SetScissorRect : public RenderCommand {
 	using Base = RenderCommand;
 public:
 	RenderCommand_SetScissorRect() : Base(Type::SetScissorRect) {}
+
 	Rect2f rect;
-};
+}; // RenderCommand_SetScissorRect
 
 #if 0
 #pragma mark ========= RenderCommandBuffer ============
@@ -147,14 +149,14 @@ private:
 	Vector<RenderCommand*, 64>	_commands;
 	LinearAllocator				_allocator;
 	Rect2f						_scissorRect;
-};
+}; // RenderCommandBuffer
 
 #if 0
 #pragma mark ========= RenderScissorRectScope ============
 #endif
 class RenderScissorRectScope : public NonCopyable {
 public:
-	RenderScissorRectScope() = default;
+	RenderScissorRectScope() noexcept = default;
 	RenderScissorRectScope(RenderScissorRectScope && r) noexcept {
 		_cmdBuf = r._cmdBuf;
 		_rect = r._rect;

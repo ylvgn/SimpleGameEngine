@@ -40,4 +40,4 @@ void RenderContext::onUIKeyboardEvent(UIKeyboardEvent& ev) {
 	_imgui.onUIKeyboardEvent(ev);
 }
 
-} // namespace
+} // namespace sge

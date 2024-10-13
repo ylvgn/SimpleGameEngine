@@ -10,52 +10,52 @@ class RenderContext_GL;
 
 class Shader_GL : public Shader {
 	using Base = Shader;
+	sgeShader_InterfaceFunctions(GL);
 public:
-	struct MyPass;
-
 	using Util = GLUtil;
+
+	struct MyPass;
 
 	Shader_GL(StrView filename);
 
+	#if 0
+	#pragma mark ========= Shader_GL::MyVertexStage ============
+	#endif
 	struct MyVertexStage : public ShaderVertexStage {
 		using Pass = MyPass;
-		using Util = GLUtil;
 
-		MyVertexStage() = default;
-		~MyVertexStage();
-
-		void bind(RenderContext_GL* ctx);
+		MyVertexStage() noexcept = default;
+		~MyVertexStage() noexcept;
 
 	friend struct MyPass;
 	private:
 		MyPass*	_pass	= nullptr;
 		GLuint	_shader = 0;
-	};
+	}; // MyVertexStage
 
+	#if 0
+	#pragma mark ========= Shader_GL::MyPixelStage ============
+	#endif
 	struct MyPixelStage : public ShaderPixelStage {
 		using Pass = MyPass;
-		using Util = GLUtil;
 
-		MyPixelStage() = default;
-		~MyPixelStage();
-
-		void bind(RenderContext_GL* ctx);
+		MyPixelStage() noexcept = default;
+		~MyPixelStage() noexcept;
 
 	friend struct MyPass;
 	private:
 		MyPass*	_pass		= nullptr;
 		GLuint	_shader		= 0;
-	};
+	}; // MyPixelStage
 
+	#if 0
+	#pragma mark ========= Shader_GL::MyPass ============
+	#endif
 	struct MyPass : public ShaderPass {
 		using Base = ShaderPass;
-		using Util = GLUtil;
 
 		MyPass(Shader* shader, int passIndex) noexcept;
-		~MyPass();
-
-		static void s_compileStage		(GLuint& shader, GLenum type, StrView filename);
-		static void s_getShaderInfoLog	(GLuint shader, String& outMsg);
+		~MyPass() noexcept;
 
 		void bind();
 		void unbind();
@@ -68,12 +68,12 @@ public:
 		MyVertexStage	_vertexStage;
 		MyPixelStage	_pixelStage;
 		GLuint			_program = 0;
+	}; // MyPass
 
-		void _linkProgram();
-		void _getProgramInfoLog(GLuint program, String& outMsg);
-	};
-protected:
-	virtual UPtr<ShaderPass> onCreateShaderPass(Shader* shader, int passIndex) override;
+	using VertexStage	= MyVertexStage;
+	using PixelStage	= MyPixelStage;
+	using Pass			= MyPass;
+
 }; // Shader_GL
 
 } // namespace sge

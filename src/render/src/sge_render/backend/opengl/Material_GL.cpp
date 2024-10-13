@@ -9,7 +9,6 @@ template<class STAGE>
 void Material_GL::_bindStageHelper(RenderContext_GL* ctx, STAGE* stage) {
 	auto* shaderStage = stage->shaderStage();
 	if (!shaderStage) return;
-	shaderStage->bind(ctx);
 
 	const auto& program = stage->shaderPass()->program();
 
@@ -58,7 +57,10 @@ void Material_GL::MyVertexStage::bindInputLayout(RenderContext_GL* ctx, const Ve
 		GLsizei size = Util::getComponentCount(e->dataType);
 		GLenum	type = Util::getGlBaseFormat(e->dataType);
 
-		glVertexAttribPointer(input.slot, size, type, GL_TRUE, stride, reinterpret_cast<const void*>(e->offset));
+		auto offset = reinterpret_cast<const void*>(e->offset);
+
+		const bool normalized = GL_TRUE;
+		glVertexAttribPointer(input.slot, size, type, normalized, stride, offset);
 		glEnableVertexAttribArray(input.slot);
 	}
 
