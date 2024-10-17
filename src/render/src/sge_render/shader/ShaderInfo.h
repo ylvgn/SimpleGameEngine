@@ -26,6 +26,9 @@ SGE_ENUM_CLASS(ShaderStageMask, u8)
 //----
 SGE_ENUM_CLASS(ShaderPropType, u8)
 
+#if 0
+#pragma mark ========= ShaderPropTypeUtil ============
+#endif
 struct ShaderPropTypeUtil {	
 	ShaderPropTypeUtil() = delete;
 
@@ -39,8 +42,11 @@ struct ShaderPropTypeUtil {
 	template<> static constexpr	Type get<Vec3f>()	{ return Type::Vec3f; }
 	template<> static constexpr	Type get<Vec4f>()	{ return Type::Vec4f; }
 	template<> static constexpr	Type get<Color4f>()	{ return Type::Color4f; }
-};
+}; // ShaderPropTypeUtil
 
+#if 0
+#pragma mark ========= ShaderInfo ============
+#endif
 struct ShaderInfo {
 
 	struct Prop {
@@ -87,9 +93,11 @@ struct ShaderInfo {
 	}
 
 }; // ShaderInfo
-
 SGE_FORMATTER(ShaderInfo)
 
+#if 0
+#pragma mark ========= ShaderStageInfo ============
+#endif
 class ShaderStageInfo {
 public:
 	using DataType = RenderDataType;
@@ -229,6 +237,6 @@ public:
 		SGE_NAMED_IO(se, textures);
 		SGE_NAMED_IO(se, samplers);
 	}
-};
+}; // ShaderStageInfo
 
 } // namespace sge

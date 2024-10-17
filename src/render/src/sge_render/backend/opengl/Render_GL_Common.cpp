@@ -3,60 +3,6 @@
 #if SGE_RENDER_HAS_OPENGL
 
 namespace sge {
-#if 0
-#pragma mark ========= GLVertexBuffer ============
-#endif
-template<class T>
-void GLVertexBuffer::create(Span<T> data) {
-	destroy();
-
-	if (data.empty())
-		return;
-
-	glGenBuffers(1, &_gl);
-	glBindBuffer(GL_ARRAY_BUFFER, _gl);
-	glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(data.size_bytes()), data.data(), GL_DYNAMIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-}
-
-void GLVertexBuffer::destroy() {
-	if (_gl) {
-		glDeleteBuffers(1, &_gl);
-		_gl = 0;
-	}
-}
-
-#if 0
-#pragma mark ========= GLIndexBuffer ============
-#endif
-void GLIndexBuffer::create(const Span<const u16> data) {
-	destroy();
-	if (data.empty())
-		return;
-
-	glGenBuffers(1, &_gl);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _gl);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLsizeiptr>(data.size_bytes()), data.data(), GL_DYNAMIC_DRAW);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-}
-
-void GLIndexBuffer::create(const Span<const u32> data) {
-	destroy();
-	if (data.empty())
-		return;
-
-	glGenBuffers(1, &_gl);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _gl);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLsizeiptr>(data.size_bytes()), data.data(), GL_DYNAMIC_DRAW);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-}
-
-void GLIndexBuffer::destroy() {
-	if (_gl) {
-		glDeleteBuffers(1, &_gl);
-		_gl = 0;
-	}
-}
 
 void GLUtil::compileShader(GLuint& shader, GLenum type, StrView filename) {
 	MemMapFile mm;
@@ -83,7 +29,7 @@ void GLUtil::compileShader(GLuint& shader, GLenum type, StrView filename) {
 		String errmsg;
 		getShaderInfoLog(shader, errmsg);
 
-		throw SGE_ERROR("Error compile shader: {}\nfilename: {}", errmsg.c_str(), filename);
+		throw SGE_ERROR("compile shader error: {}\nfilename: {}", errmsg, filename);
 	}
 }
 
@@ -117,7 +63,7 @@ void GLUtil::linkShader(GLuint& program, GLuint& vsShader, GLuint& psShader) {
 		getProgramInfoLog(program, errmsg);
 
 		TempString tmp;
-		FmtTo(tmp, "Error link shader: {}", errmsg);
+		FmtTo(tmp, "link shader error: {}", errmsg);
 
 		throw SGE_ERROR("{}", tmp.c_str());
 	}
@@ -132,7 +78,7 @@ void GLUtil::linkShader(GLuint& program, GLuint& vsShader, GLuint& psShader) {
 		getProgramInfoLog(program, errmsg);
 
 		TempString tmp;
-		FmtTo(tmp, "Error validate shader {}", errmsg);
+		FmtTo(tmp, "validate shader error: {}", errmsg);
 
 		throw SGE_ERROR("{}", tmp.c_str());
 	}
@@ -204,7 +150,7 @@ void GLUtil::convert(String& o, VertexSemantic i) {
 #undef E
 // -----
 
-	throw SGE_ERROR("unknown input VertexLayout_SemanticType {}", i);
+	throw SGE_ERROR("unknown input VertexLayout_SemanticType '{}'", i);
 }
 
 void GLUtil::convert(VertexSemantic& o, StrView i) {
@@ -246,7 +192,7 @@ void GLUtil::convert(VertexSemantic& o, StrView i) {
 const char* GLUtil::getGlSemanticName(VertexSemanticType v) {
 	const char* s = enumStr(v);
 	if (!s) {
-		throw SGE_ERROR("unknown VertexLayout_SemanticType {}", v);
+		throw SGE_ERROR("unknown VertexLayout_SemanticType '{}'", v);
 	}
 	return s;
 }
@@ -272,7 +218,7 @@ int GLUtil::getComponentCount(RenderDataType v) {
 		case SRC::UNorm8:
 		case SRC::UNorm16:
 		case SRC::UNorm32: return 1;
-// ---
+	// ---
 		case SRC::Int8x2:
 		case SRC::Int16x2:
 		case SRC::Int32x2:
@@ -290,7 +236,7 @@ int GLUtil::getComponentCount(RenderDataType v) {
 		case SRC::UNorm8x2:
 		case SRC::UNorm16x2:
 		case SRC::UNorm32x2: return 2;
-// ---
+	// ---
 		case SRC::Int8x3:
 		case SRC::Int16x3:
 		case SRC::Int32x3:
@@ -308,7 +254,7 @@ int GLUtil::getComponentCount(RenderDataType v) {
 		case SRC::UNorm8x3:
 		case SRC::UNorm16x3:
 		case SRC::UNorm32x3: return 3;
-// ---
+	// ---
 		case SRC::Int8x4:
 		case SRC::Int16x4:
 		case SRC::Int32x4:
@@ -329,7 +275,7 @@ int GLUtil::getComponentCount(RenderDataType v) {
 	// ---
 		case SRC::Float32_4x4: return 16;
 	// ---
-		default: throw SGE_ERROR("unsupported RenderDataType {}", v);
+		default: throw SGE_ERROR("unsupported RenderDataType '{}'", v);
 	}
 }
 

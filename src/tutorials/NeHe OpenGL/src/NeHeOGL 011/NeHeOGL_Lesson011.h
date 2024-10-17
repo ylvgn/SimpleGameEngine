@@ -11,11 +11,11 @@ namespace sge {
 class NeHeOGL_Lesson011 : public NeHeOGL_NativeUIWindow {
 	using Base = NeHeOGL_NativeUIWindow;
 	using This = NeHeOGL_Lesson011;
-
 	using VertexType = NeHeOGL_Vertex_PosUv;
 protected:
 	virtual void onInitedGL() override;
 	virtual void onDraw() override;
+
 private:
 
 	static constexpr int kSize = 45;

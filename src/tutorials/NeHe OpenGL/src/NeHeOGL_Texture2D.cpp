@@ -14,6 +14,8 @@ void NeHeOGL_Texture2D::create(CreateDesc& desc) {
 	OGL::Scoped_glBindTexture scoped(_tex);
 	const auto& colorType = desc.imageToUpload.colorType();
 	if (colorType != ColorType::None) {
+		GLenum elementType = GL_UNSIGNED_BYTE; // TODO
+
 		if (desc.samplerState.maxLOD == 0) {
 			glTexImage2D(
 				GL_TEXTURE_2D,
@@ -22,8 +24,8 @@ void NeHeOGL_Texture2D::create(CreateDesc& desc) {
 				desc.imageToUpload.width(),
 				desc.imageToUpload.height(),
 				0,
-				OGLUtil::getGlColorType(colorType),
-				GL_UNSIGNED_BYTE, // u8
+				OGLUtil::getGlSrcFormat(colorType),
+				elementType,
 				desc.imageToUpload.dataPtr()
 			);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, OGLUtil::getGlTextureFilter(desc.samplerState.filter));
@@ -34,8 +36,8 @@ void NeHeOGL_Texture2D::create(CreateDesc& desc) {
 				static_cast<int>(desc.samplerState.maxLOD),
 				desc.imageToUpload.width(),
 				desc.imageToUpload.height(),
-				OGLUtil::getGlColorType(colorType),
-				GL_UNSIGNED_BYTE, // u8
+				OGLUtil::getGlSrcFormat(colorType),
+				elementType,
 				desc.imageToUpload.dataPtr()
 			);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);

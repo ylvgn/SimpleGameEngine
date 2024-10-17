@@ -23,7 +23,7 @@ public:
 		EditMesh editMesh;
 #if 1
 		WavefrontObjLoader::readFile(editMesh, "Assets/Mesh/test.obj");
-		EditMesh::Util::addColors(editMesh, Color4b(255, 255, 255, 255));
+		EditMeshUtil::addColors(editMesh, Color4b(255, 255, 255, 255));
 #else
 		float d = 0.5f;
 		editMesh.pos.emplace_back( 0, d, 0);
@@ -59,7 +59,6 @@ public:
 		_material->setParam("test_color", Color4f(s, 0, 0, 1));
 
 		_renderContext->setFrameBufferSize(clientRect().size);
-
 		_renderContext->beginRender();
 
 		_cmdBuf.reset(_renderContext);
@@ -87,7 +86,6 @@ public:
 		}
 
 		_cmdBuf.swapBuffers();
-
 		_renderContext->commit(_cmdBuf);
 
 		_renderContext->endRender();

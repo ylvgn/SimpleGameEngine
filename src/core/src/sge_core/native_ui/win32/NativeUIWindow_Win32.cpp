@@ -117,7 +117,7 @@ void NativeUIWindow_Win32::onCreate(CreateDesc& desc) {
 
 	// TODO call 'ShowWindow' when created render context
 	ShowWindow(_hwnd, SW_SHOW);
-	UpdateWindow(_hwnd);
+	//UpdateWindow(_hwnd); // !!<--- do not call UpdateWindow, default OS will call it.
 }
 
 void NativeUIWindow_Win32::onSetWindowTitle(StrView title) {

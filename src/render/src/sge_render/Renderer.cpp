@@ -31,21 +31,10 @@ Renderer* Renderer::create(CreateDesc& desc) {
 			SGE_ASSERT("error: not support render api");
 		}break;
 	}
-
-	{
-		p->stockTextures.white		= p->createSolidColorTexture2D(Color4b(255, 255, 255, 255));
-		p->stockTextures.black		= p->createSolidColorTexture2D(Color4b(0,   0,   0,   255));
-		p->stockTextures.red		= p->createSolidColorTexture2D(Color4b(255, 0,   0,   255));
-		p->stockTextures.green		= p->createSolidColorTexture2D(Color4b(0,   255, 0,   255));
-		p->stockTextures.blue		= p->createSolidColorTexture2D(Color4b(0,   0,   255, 255));
-		p->stockTextures.magenta	= p->createSolidColorTexture2D(Color4b(255, 0,   255, 255));
-		p->stockTextures.error		= p->createSolidColorTexture2D(Color4b(255, 0,   255, 255));
-	}
-
 	return p;
 }
 
-Renderer::Renderer() 
+Renderer::Renderer() noexcept
 	: _vsync(true)
 {
 	SGE_ASSERT(s_instance == nullptr);

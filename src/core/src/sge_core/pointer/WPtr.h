@@ -7,23 +7,24 @@ namespace sge {
 template<class T>
 class WPtr : public NonCopyable {
 public:
-	WPtr() noexcept = default;
+	WPtr()				noexcept = default;
+	WPtr(T* p)			noexcept { reset(p);}
+	WPtr(WPtr && r)		noexcept { _p = r._detach(); _block = SGE_MOVE(r._block); }
+	WPtr(const WPtr& r)	noexcept { reset(r._p); }
 
-	WPtr(T* p)						noexcept { reset(p);}
-	WPtr(WPtr && r)					noexcept { _p = r.detach(); }
-	WPtr(const WPtr& r)				noexcept { reset(r._p); }
+	~WPtr()				noexcept { reset(nullptr); }
 
-	void operator=(T* p)			noexcept { reset(p); }
-	void operator=(WPtr && r)		noexcept { reset(nullptr); _p = r.detach(); }
-	void operator=(const WPtr& r)	noexcept { reset(r._p); }
+	void operator=(T* p)				noexcept { reset(p); }
+	void operator=(WPtr && r)			noexcept { _p = r._detach(); _block = SGE_MOVE(r._block); }
+	void operator=(const WPtr& r)		noexcept { reset(r._p); }
+	void operator=(const SPtr<T>& r)	noexcept { reset(constCast(r.ptr())); }
 
-	~WPtr()							noexcept { reset(nullptr); }
-
-			SPtr<T> toSPtr()		noexcept { return _block ? SPtr<T>(static_cast<T*>(_block->_obj)) : nullptr; }
-	const	SPtr<T> toSPtr() const	noexcept { return _block ? SPtr<T>(static_cast<T*>(_block->_obj)) : nullptr; }
+			SPtr<T> toSPtr()			noexcept { return _block ? SPtr<T>(static_cast<T*>(_block->_obj)) : nullptr; }
+	const	SPtr<T> toSPtr() const		noexcept { return _block ? SPtr<T>(static_cast<T*>(_block->_obj)) : nullptr; }
 
 	void reset(T* p) noexcept {
 		SGE_STATIC_ASSERT(TypeTraits::isBaseOf<RefCountBase, T>::value);
+
 		if (p == _p) return;
 		if (_p) {
 			auto c = --_block->_weakCount;
@@ -41,11 +42,13 @@ public:
 			++_block->_weakCount;
 		}
 	}
+
 private:
-	T* detach() noexcept { T* o = _p; _p = nullptr; return o; }
+
+	T* _detach() noexcept { T* o = _p; _p = nullptr; return o; }
 
 	T*				_p		= nullptr;
 	WeakRefBlock*	_block	= nullptr;
-};
+}; // WPtr
 
-}
+} // namespace sge

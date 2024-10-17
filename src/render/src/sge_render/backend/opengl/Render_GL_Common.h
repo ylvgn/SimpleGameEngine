@@ -27,52 +27,6 @@
 
 namespace sge {
 
-#if 0
-#pragma mark ========= GLObject ============
-#endif
-class GLObject : public NonCopyable {
-public:
-	virtual ~GLObject() noexcept { SGE_ASSERT(_gl == 0); }
-
-	bool isValid() { return _gl != 0; }
-
-protected:
-	GLuint _gl = 0;
-};
-
-#if 0
-#pragma mark ========= GLVertexBuffer ============
-#endif
-class GLVertexBuffer : public GLObject {
-public:
-	~GLVertexBuffer() { destroy(); }
-
-	template<class T> void create(Span<T> data);
-	void destroy();
-
-	void bind	() const { glBindBuffer(GL_ARRAY_BUFFER, _gl); }
-	void unbind	() const { glBindBuffer(GL_ARRAY_BUFFER, 0); }
-};
-
-#if 0
-#pragma mark ========= GLIndexBuffer ============
-#endif
-class GLIndexBuffer : public GLObject {
-public:
-	~GLIndexBuffer() { destroy(); }
-
-	void create(const Span<const u16> data);
-	void create(const Span<const u32> data);
-
-	void destroy();
-
-	void bind	() const { glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _gl); }
-	void unbind	() const { glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); }
-};
-
-#if 0
-#pragma mark ========= GLUtil ============
-#endif
 struct GLUtil {
 	GLUtil() = delete;
 
@@ -103,10 +57,13 @@ struct GLUtil {
 	static void			dumpActiveUniformBlocks(GLint program);
 
 private:
-	static bool _checkError(GLenum errCode) {
-		return errCode != GL_NO_ERROR; // if got error, return true
-	}
+	static bool			_checkError(GLenum errCode);
 };
+
+SGE_INLINE
+bool GLUtil::_checkError(GLenum errCode) {
+	return errCode != GL_NO_ERROR; // if got error, return true
+}
 
 SGE_INLINE
 void GLUtil::reportError(GLenum errCode) {
@@ -155,7 +112,7 @@ GLenum GLUtil::getGlBufferBindingTarget(RenderGpuBufferType v) {
 		case SRC::Index:	return GL_ELEMENT_ARRAY_BUFFER;
 		case SRC::Const:	return GL_UNIFORM_BUFFER;
 	//---
-		default: throw SGE_ERROR("unsupported RenderGpuBufferType");
+		default: throw SGE_ERROR("unsupported RenderGpuBufferType '{}'", v);
 	}
 }
 
@@ -199,7 +156,7 @@ GLenum GLUtil::getGlFormat(RenderDataType v) {
 	//---
 		case SRC::Float32_4x4:	return GL_FLOAT_MAT4;
 	//---
-		default: throw SGE_ERROR("unsupported RenderDataType");
+		default: throw SGE_ERROR("unsupported RenderDataType '{}'", v);
 	}
 }
 
@@ -242,7 +199,7 @@ GLenum GLUtil::getGlBaseFormat(RenderDataType v) {
 	//---
 		case SRC::Float32_4x4:	return GL_FLOAT;
 	//---
-		default: throw SGE_ERROR("unsupported RenderDataType");
+		default: throw SGE_ERROR("unsupported RenderDataType '{}'", v);
 	}
 }
 
@@ -252,7 +209,7 @@ GLenum GLUtil::getGlShaderType(ShaderStageMask s) {
 		case ShaderStageMask::Vertex:	return GL_VERTEX_SHADER;
 		case ShaderStageMask::Pixel:	return GL_FRAGMENT_SHADER;
 	//---
-		default: throw SGE_ERROR("unsupported ShaderStageMask");
+		default: throw SGE_ERROR("unsupported ShaderStageMask '{}'", s);
 	}
 }
 

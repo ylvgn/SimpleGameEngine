@@ -9,19 +9,18 @@ namespace sge {
 #pragma mark ========= RenderContext_GL_Base::VertexArray ============
 #endif
 RenderContext_GL_Base::VertexArray::~VertexArray() {
-	if (_gl) {
-		glDeleteVertexArrays(1, &_gl);
-		_gl = 0;
+	if (_handle) {
+		glDeleteVertexArrays(1, &_handle);
+		_handle = 0;
 	}
 }
 
 void RenderContext_GL_Base::VertexArray::bind() {
-	if (!_gl) {
-		glGenVertexArrays(1, &_gl);
+	if (!_handle) {
+		glGenVertexArrays(1, &_handle);
 		Util::throwIfError();
 	}
-	glBindVertexArray(_gl);
-	Util::throwIfError();
+	glBindVertexArray(_handle);
 }
 
 #if 0
