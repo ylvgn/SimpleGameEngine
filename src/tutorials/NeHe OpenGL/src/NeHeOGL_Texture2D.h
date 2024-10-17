@@ -85,4 +85,4 @@ private:
 	Vec2i		_size{ 0,0 };
 };
 
-}
+} // namespace sge

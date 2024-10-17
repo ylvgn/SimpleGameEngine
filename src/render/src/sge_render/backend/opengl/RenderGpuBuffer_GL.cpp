@@ -5,51 +5,49 @@
 
 namespace sge {
 
-void RenderGpuBuffer_GL::destroy() {
-	if (_p) {
-		glDeleteBuffers(1, &_p);
-		_p = 0;
-	}
-}
-
-void RenderGpuBuffer_GL::glBind() {
-	SGE_ASSERT(_p);
-	glBindBuffer(glBufTarget(), _p);
-}
-
-void RenderGpuBuffer_GL::glUnbind() {
-	glBindBuffer(glBufTarget(), 0);
-}
-
 void RenderGpuBuffer_GL::onCreate(CreateDesc& desc)  {
-	destroy();
+	_destroy();
 
 	if (desc.bufferSize <= 0)	throw SGE_ERROR("buffer size <= 0");
 	if (desc.stride <= 0)		throw SGE_ERROR("stride <= 0");
 
-	auto target = glBufTarget();
-	glGenBuffers(1, &_p);
-	glBindBuffer(target, _p);
-	glBufferData(target, static_cast<GLsizeiptr>(desc.bufferSize), nullptr, GL_DYNAMIC_DRAW);
-//	glBindBuffer(target, 0);
+	_target = Util::getGlBufferBindingTarget(_desc.type);
+
+	glGenBuffers(1, &_handle);
+	bind();
+	GLenum usage = GL_DYNAMIC_DRAW;
+	glBufferData(_target, static_cast<GLsizeiptr>(desc.bufferSize), nullptr, usage);
+	unbind();
 
 	Util::throwIfError();
 }
 
 void RenderGpuBuffer_GL::onUploadToGpu(ByteSpan data, size_t offset) {
-	auto target = glBufTarget();
-	glBindBuffer(target, _p);
+	bind();
 
-#if 1 // use which one is ok
-	u8* dst = reinterpret_cast<u8*>(glMapBuffer(target, GL_WRITE_ONLY));
+#if false // use which one is ok
+	u8* dst = reinterpret_cast<u8*>(glMapBuffer(_target, GL_WRITE_ONLY));
 	memcpy(dst + offset, data.data(), data.size());
-	glUnmapBuffer(target);
+	glUnmapBuffer(_target);
+#elif 1 // GPU side move offset
+	auto* p = glMapBufferRange(_target, offset, data.size_bytes(), GL_MAP_WRITE_BIT);
+	if (!p) throw SGE_ERROR("glMapBufferRange");
+	u8* dst = reinterpret_cast<u8*>(p);
+	memcpy(dst, data.data(), data.size_bytes());
+	glUnmapBuffer(_target);
 #else
-	glBufferSubData(target, static_cast<GLintptr>(offset), static_cast<GLsizeiptr>(data.size()), data.data());
+	glBufferSubData(_target, static_cast<GLintptr>(offset), static_cast<GLsizeiptr>(data.size()), data.data());
 #endif
-//	glBindBuffer(target, 0);
 
+	unbind();
 	Util::throwIfError();
+}
+
+void RenderGpuBuffer_GL::_destroy() {
+	if (_handle) {
+		glDeleteBuffers(1, &_handle);
+		_handle = 0;
+	}
 }
 
 } // namespace sge

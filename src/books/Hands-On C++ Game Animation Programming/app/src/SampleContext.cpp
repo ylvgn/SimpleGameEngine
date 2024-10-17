@@ -1532,7 +1532,7 @@ void SampleContext::test_AdditiveBlending_onDrawUI(Request& req) {
 	if (combo2.selectedIndex() != mAdditiveIndex) {
 		_clips[mAdditiveIndex].setIsLoop(true);
 		mAdditiveIndex = combo2.selectedIndex();
-		mAdditiveBase  = Blending::makeAdditiveBasePose(*_skeleton.ptr(), _clips[mAdditiveIndex]);
+		mAdditiveBase = Blending::makeAdditiveBasePose(*_skeleton.ptr(), _clips[mAdditiveIndex]);
 		_clips[mAdditiveIndex].setIsLoop(true);
 	}
 
@@ -1927,4 +1927,4 @@ void SampleContext::_randomSetCrowdSize(size_t newCrowdCount) {
 	}
 }
 
-} // namespace
+} // namespace sge

@@ -22,4 +22,4 @@ void CMeshRenderer::onRender(RenderRequest& req) {
 	req.drawMesh(SGE_LOC, mesh->mesh, material, tr->worldMatrix());
 }
 
-}
+} // namespace sge

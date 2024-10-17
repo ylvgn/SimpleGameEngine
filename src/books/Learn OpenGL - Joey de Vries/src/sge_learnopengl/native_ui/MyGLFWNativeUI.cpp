@@ -62,7 +62,7 @@ void MyGLFWNativeUIWindow::onCreate(CreateDesc& desc) {
 	Base::onCreate(desc);
 
 	SGE_ASSERT(glfw::platform() != GLFW_PLATFORM_NULL);
-	SGE_DUMP_VAR(glfw::version());
+	SGE_LOG("GLFW Version: {}", glfw::version());
 
 	if (GLFW_FALSE == glfw::init())
 		throw SGE_ERROR("glfw initialized failed");
@@ -107,7 +107,7 @@ void MyGLFWNativeUIWindow::onCreate(CreateDesc& desc) {
 	GLint major, minor;
 	glGetIntegerv(GL_MAJOR_VERSION, &major);
 	glGetIntegerv(GL_MINOR_VERSION, &minor);
-	SGE_LOG("Version OpenGL {}.{}", major, minor);
+	SGE_LOG("OpenGL Version: {}.{}", major, minor);
 }
 
 #if 0

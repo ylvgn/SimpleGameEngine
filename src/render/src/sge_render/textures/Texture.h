@@ -24,6 +24,9 @@ SGE_ENUM_CLASS(TextureFilter, u8)
 //----
 SGE_ENUM_CLASS(TextureWrap, u8)
 
+#if 0
+#pragma mark ========= SamplerState ============
+#endif
 struct SamplerState {
 public:
 	using Filter	= TextureFilter;
@@ -36,15 +39,21 @@ public:
 
 	float	minLOD	= 0;
 	float	maxLOD	= Math::inf<float>();
-};
+}; // SamplerState
 
+#if 0
+#pragma mark ========= Texture_CreateDesc ============
+#endif
 struct Texture_CreateDesc {
 public:
 	String		name;
 	ColorType	colorType = ColorType::RGBAb;
 	int			mipmapCount = 1;
-};
+}; // Texture_CreateDesc
 
+#if 0
+#pragma mark ========= Texture ============
+#endif
 class Texture : public RefCountBase {
 	using CreateDesc = Texture_CreateDesc;
 	using DataType = RenderDataType;
@@ -54,31 +63,39 @@ class Texture : public RefCountBase {
 protected:
 	Texture() = default;
 	DataType _type = DataType::None;
-};
+}; // Texture
 
+#if 0
+#pragma mark ========= Texture2D_CreateDesc ============
+#endif
 struct Texture2D_CreateDesc : public Texture_CreateDesc {
 	Vec2i			size {0,0};
 	SamplerState	samplerState;
 	Image			imageToUpload;
-};
+}; // Texture2D_CreateDesc
 
+#if 0
+#pragma mark ========= Texture2D ============
+#endif
 class Texture2D : public Texture {
 public:
 	using CreateDesc	= Texture2D_CreateDesc;
-	
-	ColorType	colorType	() const	{ return _colorType; }
-	int			mipmapCount	() const	{ return _mipmapCount; }
-	int			width		() const	{ return _size.x; }
-	int			height		() const	{ return _size.y; }
-	Vec2i		size		() const	{ return _size; }
+
+	ColorType		colorType		() const	{ return _colorType; }
+	int				width			() const	{ return _size.x; }
+	int				height			() const	{ return _size.y; }
+	Vec2i			size			() const	{ return _size; }
+	int				mipmapCount		() const	{ return _mipmapCount; }
+	SamplerState	samplerState	() const	{ return _samplerState; }
 
 protected:
 	Texture2D(CreateDesc& desc); // please create from 'Renderer::createTexture2D'
 
-	ColorType	_colorType = ColorType::None;
-	int			_mipmapCount = 0;
-	Vec2i		_size {0,0};
-};
+	SamplerState	_samplerState;
+	Vec2i			_size {0,0};
+	int				_mipmapCount = 0;
+	ColorType		_colorType = ColorType::None;
+}; // Texture2D
 
-} // namespace
+} // namespace sge
 

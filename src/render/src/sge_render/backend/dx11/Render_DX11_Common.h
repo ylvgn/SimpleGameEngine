@@ -61,7 +61,7 @@ struct DX11Util {
 	static bool assertIfError(HRESULT hr);
 	static void reportError(HRESULT hr);
 
-	static UINT castUINT(size_t v) { SGE_ASSERT(v < UINT_MAX); return UINT(v); }
+	static constexpr UINT castUINT(size_t v) { SGE_ASSERT(v < UINT_MAX); return UINT(v); }
 
 	static D3D11_PRIMITIVE_TOPOLOGY		getDxPrimitiveTopology(RenderPrimitiveType t);
 	static DXGI_FORMAT					getDxFormat(RenderDataType v);
@@ -108,14 +108,14 @@ private:
 	}
 };
 
-inline
+SGE_INLINE
 ByteSpan DX11Util::toSpan(ID3DBlob* blob) {
 	if (!blob) return ByteSpan();
 	return ByteSpan(reinterpret_cast<const u8*>(blob->GetBufferPointer()),
 					static_cast<size_t>(blob->GetBufferSize()));
 }
 
-inline
+SGE_INLINE
 void DX11Util::throwIfError(HRESULT hr) {
 	if (_checkError(hr)) {
 		reportError(hr);
@@ -123,7 +123,7 @@ void DX11Util::throwIfError(HRESULT hr) {
 	}
 }
 
-inline
+SGE_INLINE
 bool DX11Util::assertIfError(HRESULT hr) {
 	if (_checkError(hr)) {
 		reportError(hr);
@@ -133,7 +133,7 @@ bool DX11Util::assertIfError(HRESULT hr) {
 	return true;
 }
 
-inline
+SGE_INLINE
 String DX11Util::getStrFromHRESULT(HRESULT hr) {
 	// retrieving-error-messages: https://docs.microsoft.com/en-us/windows/win32/seccrypto/retrieving-error-messages
 
@@ -154,7 +154,7 @@ String DX11Util::getStrFromHRESULT(HRESULT hr) {
 	return str;
 }
 
-inline
+SGE_INLINE
 const char* DX11Util::getDxStageProfile(ShaderStageMask s) {
 	switch (s) {
 		case ShaderStageMask::Vertex:	return "vs_5_0";
@@ -164,7 +164,7 @@ const char* DX11Util::getDxStageProfile(ShaderStageMask s) {
 	}
 }
 
-inline
+SGE_INLINE
 void DX11Util::reportError(HRESULT hr) {
 	if (_checkError(hr)) {
 		auto str = getStrFromHRESULT(hr);
@@ -172,9 +172,10 @@ void DX11Util::reportError(HRESULT hr) {
 	}
 }
 
-// https://docs.microsoft.com/en-us/windows/win32/api/d3dcommon/ne-d3dcommon-d3d_primitive_topology
-inline
+
+SGE_INLINE
 D3D11_PRIMITIVE_TOPOLOGY DX11Util::getDxPrimitiveTopology(RenderPrimitiveType t) {
+	// https://docs.microsoft.com/en-us/windows/win32/api/d3dcommon/ne-d3dcommon-d3d_primitive_topology
 	using SRC = RenderPrimitiveType;
 	switch (t) {
 		case SRC::Points:		return D3D_PRIMITIVE_TOPOLOGY_POINTLIST;
@@ -185,9 +186,9 @@ D3D11_PRIMITIVE_TOPOLOGY DX11Util::getDxPrimitiveTopology(RenderPrimitiveType t)
 	}
 }
 
-// https://docs.microsoft.com/en-us/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format
-inline
+SGE_INLINE
 DXGI_FORMAT DX11Util::getDxFormat(RenderDataType v) {
+	// https://docs.microsoft.com/en-us/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format
 	using SRC = RenderDataType;
 	switch (v) {
 		case SRC::Int8:			return DXGI_FORMAT_R8_SINT;
@@ -265,9 +266,9 @@ DXGI_FORMAT DX11Util::getDxFormat(RenderDataType v) {
 	}
 }
 
-// https://docs.microsoft.com/en-us/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format
-inline
+SGE_INLINE
 DXGI_FORMAT DX11Util::getDxColorType(ColorType v) {
+	// https://docs.microsoft.com/en-us/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format
 	using SRC = ColorType;
 	switch (v) {
 		case SRC::Lb:		return DXGI_FORMAT_R8_UNORM;
@@ -282,13 +283,13 @@ DXGI_FORMAT DX11Util::getDxColorType(ColorType v) {
 		case SRC::RGs:		return DXGI_FORMAT_R16G16_UNORM;
 		case SRC::RGf:		return DXGI_FORMAT_R32G32_FLOAT;
 
-		//case SRC::RGBb:	return DXGI_FORMAT_R8G8B8_UNORM;		// DX Not Support
-		//case SRC::RGBf:	return DXGI_FORMAT_R32G32B32_FLOAT;		// DX Not Support
+//		case SRC::RGBb:		return DXGI_FORMAT_R8G8B8_UNORM;		// DX Not Support
+//		case SRC::RGBf:		return DXGI_FORMAT_R32G32B32_FLOAT;		// DX Not Support
 
 		case SRC::RGBAb:	return DXGI_FORMAT_R8G8B8A8_UNORM;
 		case SRC::RGBAs:	return DXGI_FORMAT_R16G16B16A16_UNORM;
 		case SRC::RGBAf:	return DXGI_FORMAT_R32G32B32A32_FLOAT;
-//
+	//---
 		case SRC::BC1:		return DXGI_FORMAT_BC1_UNORM;
 		case SRC::BC2:		return DXGI_FORMAT_BC2_UNORM;
 		case SRC::BC3:		return DXGI_FORMAT_BC3_UNORM;
@@ -301,9 +302,9 @@ DXGI_FORMAT DX11Util::getDxColorType(ColorType v) {
 	}
 }
 
-// https://docs.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_cull_mode
-inline
+SGE_INLINE
 D3D11_CULL_MODE DX11Util::getDxCullMode(RenderState_Cull v) {
+	// https://docs.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_cull_mode
 	using SRC = RenderState_Cull;
 	switch (v) {
 		case SRC::None:		return D3D11_CULL_NONE;
@@ -314,9 +315,9 @@ D3D11_CULL_MODE DX11Util::getDxCullMode(RenderState_Cull v) {
 	}
 }
 
-// https://docs.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_comparison_func
-inline
+SGE_INLINE
 D3D11_COMPARISON_FUNC DX11Util::getDxDepthTestOp(RenderState_DepthTestOp v) {
+	// https://docs.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_comparison_func
 	using SRC = RenderState_DepthTestOp;
 	switch (v) {
 		case SRC::Always:		return  D3D11_COMPARISON_ALWAYS;
@@ -332,9 +333,9 @@ D3D11_COMPARISON_FUNC DX11Util::getDxDepthTestOp(RenderState_DepthTestOp v) {
 	}
 }
 
-// https://docs.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_blend_op
-inline
+SGE_INLINE
 D3D11_BLEND_OP DX11Util::getDxBlendOp(RenderState_BlendOp v) {
+	// https://docs.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_blend_op
 	using SRC = RenderState_BlendOp;
 	switch (v) {
 		case SRC::Add:		return D3D11_BLEND_OP_ADD;
@@ -347,9 +348,9 @@ D3D11_BLEND_OP DX11Util::getDxBlendOp(RenderState_BlendOp v) {
 	}
 }
 
-// https://docs.microsoft.com/zh-tw/windows/win32/api/d3d11/ne-d3d11-d3d11_blend
-inline
+SGE_INLINE
 D3D11_BLEND DX11Util::getDxBlendFactor(RenderState_BlendFactor v) {
+	// https://docs.microsoft.com/zh-tw/windows/win32/api/d3d11/ne-d3d11-d3d11_blend
 	using SRC = RenderState_BlendFactor;
 	switch (v) {
 		case SRC::Zero:					return D3D11_BLEND_ZERO;
@@ -371,9 +372,9 @@ D3D11_BLEND DX11Util::getDxBlendFactor(RenderState_BlendFactor v) {
 	}
 }
 
-// https://docs.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_filter
-inline
+SGE_INLINE
 D3D11_FILTER DX11Util::getDxTextureFilter(TextureFilter v) {
+	// https://docs.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_filter
 	using SRC = TextureFilter;
 	switch (v) {
 		case SRC::Point:		return D3D11_FILTER_MIN_MAG_MIP_POINT;
@@ -386,9 +387,9 @@ D3D11_FILTER DX11Util::getDxTextureFilter(TextureFilter v) {
 	}
 }
 
-// https://docs.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_texture_address_mode
-inline
+SGE_INLINE
 D3D11_TEXTURE_ADDRESS_MODE DX11Util::getDxTextureWrap(TextureWrap v) {
+	// https://docs.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_texture_address_mode
 	using SRC = TextureWrap;
 	switch (v) {
 		case SRC::Repeat:		return D3D11_TEXTURE_ADDRESS_WRAP;
@@ -400,7 +401,6 @@ D3D11_TEXTURE_ADDRESS_MODE DX11Util::getDxTextureWrap(TextureWrap v) {
 	}
 }
 
-
-} // namespace
+} // namespace sge
 
 #endif // SGE_RENDER_HAS_DX11

@@ -74,7 +74,7 @@ private:
 	}
 
 	GLFWwindow* _glfwWin = nullptr;
-};
+}; // MyGLFWNativeUIWindow
 
 #if 0
 #pragma mark ========= MyGLFWNativeUIApp ============
@@ -87,12 +87,13 @@ protected:
 	virtual void onUpdate(float dt)			override;
 	virtual void onQuit()					override;
 
-	UPtr<MyGLFWNativeUIWindow> _mainWin;
-};
+	UPtr<MyGLFWNativeUIWindow> _mainWin; // instantiate by derived class
+}; // MyGLFWNativeUIApp
 
 } // namespace sge
 
 
+// --------
 #define SGE_GLFW_MAIN(T) \
 	class MyLearnOpenGLApp : public MyGLFWNativeUIApp { \
 		using Base = MyGLFWNativeUIApp; \

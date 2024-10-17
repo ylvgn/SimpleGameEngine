@@ -124,7 +124,7 @@ public:
 		{ // ECS
 			EditMesh editMesh;
 			WavefrontObjLoader::readFile(editMesh, "Assets/Mesh/box.obj");
-			EditMesh::Util::addColors(editMesh, Color4b(255, 255, 255, 255));
+			EditMeshUtil::addColors(editMesh, Color4b(255, 255, 255, 255));
 			
 			_meshAsset = new MeshAsset();
 			_meshAsset->mesh.create(editMesh);

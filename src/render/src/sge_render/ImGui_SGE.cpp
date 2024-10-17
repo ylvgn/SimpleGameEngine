@@ -126,7 +126,7 @@ void ImGui_SGE::onDrawUI(RenderRequest& req) {
 	auto totalVertexDataSize = data->TotalVtxCount * vertexSize;
 	auto totalIndexDataSize = data->TotalIdxCount * indexSize;
 
-	// vertexbuffer
+	// vertex buffer
 	if (!_vertexBuffer || _vertexBuffer->bufferSize() < totalVertexDataSize)
 	{
 		if (_vertexBuffer) {
@@ -138,7 +138,7 @@ void ImGui_SGE::onDrawUI(RenderRequest& req) {
 		_vertexBuffer = renderer->createGpuBuffer(desc);
 	}
 
-	// indexbuffer
+	// index buffer
 	if (!_indexBuffer || _indexBuffer->bufferSize() < totalIndexDataSize)
 	{
 		if (_indexBuffer) {

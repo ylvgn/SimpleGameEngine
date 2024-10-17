@@ -72,6 +72,6 @@ struct SampleRequest : public NonCopyable {
 	bool			bIsCameraFollow			: 1;
 
 	void reset(SampleType sampleType_ = SampleType::None);
-};
+}; // SampleRequest
 
-}
+} // namespace sge

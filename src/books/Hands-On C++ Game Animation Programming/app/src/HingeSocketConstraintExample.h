@@ -6,6 +6,7 @@ namespace sge {
 /*
 	Hinge constraints are often used for elbow or knee joints.
 */
+
 template<class IKSolver>
 struct HingeSocketConstraintExample : public IKExampleTestBase<IKSolver> {
 	using Base = typename IKExampleTestBase<IKSolver>;
@@ -28,4 +29,4 @@ private:
 	Vector< UPtr<DebugDrawPL> >	_jointAxisVisuals;
 };
 
-}
+} // namespace sge

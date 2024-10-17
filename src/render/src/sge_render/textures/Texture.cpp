@@ -7,7 +7,8 @@ Texture2D::Texture2D(CreateDesc& desc) {
 	_colorType		= desc.colorType;
 	_mipmapCount	= desc.mipmapCount;
 	_size			= desc.size;
+	_samplerState	= desc.samplerState;
 }
 
-} // namespace
+} // namespace sge
 

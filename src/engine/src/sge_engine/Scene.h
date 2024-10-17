@@ -19,7 +19,7 @@ public:
 
 	void		_internalOnEntityDestroy(Entity* e);
 
-	Entity*		rootEntity() { return _rootEntity.ptr(); }
+	Entity*		rootEntity() { return _rootEntity; }
 
 private:
 	u64	_nextEntityId = 0;
@@ -35,4 +35,4 @@ inline Entity* Scene::findEntityById(EntityId id) {
 	return it->second;
 }
 
-} // namespace
+} // namespace sge

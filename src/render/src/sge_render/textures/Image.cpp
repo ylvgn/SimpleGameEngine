@@ -74,6 +74,11 @@ void Image::create(ColorType colorType, int width, int height, int strideInBytes
 	_create(colorType, width, height, strideInBytes, mipmapCount, dataSizeInBytes);
 }
 
+void Image::copy(const Image& src) {
+	_info = src._info;
+	_pixelData = src._pixelData;
+}
+
 void Image::_create(ColorType colorType, int width, int height, int strideInBytes, int mipmapCount, size_t dataSizeInBytes) {
 	_info.colorType = colorType;
 	_info.size.set(width, height);
@@ -90,4 +95,4 @@ void Image::_create(ColorType colorType, int width, int height, int strideInByte
 	}
 }
 
-} // namespace
+} // namespace sge

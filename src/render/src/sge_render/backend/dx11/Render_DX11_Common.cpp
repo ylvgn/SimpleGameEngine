@@ -1,5 +1,7 @@
 #include "Render_DX11_Common.h"
 
+#if SGE_RENDER_HAS_DX11
+
 namespace sge {
 
 VertexSemanticType DX11Util::parseDxSemanticName(StrView s) {
@@ -23,4 +25,6 @@ const char* DX11Util::getDxSemanticName(VertexSemanticType v) {
 	return s;
 }
 
-} // namespace
+} // namespace sge
+
+#endif // SGE_RENDER_HAS_DX11

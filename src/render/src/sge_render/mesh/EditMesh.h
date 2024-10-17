@@ -20,8 +20,8 @@ struct EditMeshUtil {
 #pragma mark ========= EditMeshUtil ============
 #endif
 class EditMesh : public NonCopyable {
-public:
 	using Util = EditMeshUtil;
+public:
 
 	static const u8 kUvCountMax = 4;
 

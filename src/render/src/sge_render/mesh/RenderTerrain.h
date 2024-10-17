@@ -43,7 +43,7 @@ public:
 	public:
 		void create(Terrain* terrain, int level, ZoneMask zoneMask);
 
-		RenderGpuBuffer*	indexBuffer() const { return constCast(_indexBuffer.ptr()); }
+		RenderGpuBuffer*	indexBuffer() const { return constCast(_indexBuffer); }
 		size_t				indexCount() const	{ return _indexCount; }
 		RenderDataType		indexType() const	{ return RenderDataTypeUtil::get<VertexIndex>(); }
 
@@ -78,7 +78,7 @@ public:
 			int		patchVerticesPerRow	() const { return patchCellsPerRow() + 1; }
 			int		maxLod				() const { return _maxLod; }
 
-			const	Vec3f&	terrainPos	() const { return _terrainPos; }
+	const	Vec3f&	terrainPos			() const { return _terrainPos; }
 	const	Vec2f&	terrainSize			() const { return _terrainSize; }
 			float	terrainHeight		() const { return _terrainHeight; }
 
@@ -91,28 +91,29 @@ public:
 
 			Patch* patch(int x, int y);
 
-	const VertexLayout* vertexLayout() const	{ return _vertexLayout; }
-	size_t				vertexCount() const		{ return _vertexCount; }
+	const VertexLayout* vertexLayout()	const { return _vertexLayout; }
+	size_t				vertexCount()	const { return _vertexCount; }
 
 	RenderGpuBuffer*	vertexBuffer() { return _vertexBuffer; }
 	Texture2D*		heightMapTexture() { return _heightMapTexture; }
 private:
 
-	Vec3f	_terrainPos  {0, 0, 0};
-	Vec2f	_terrainSize {0, 0};
-	float	_terrainHeight = 0;
-	Vec2i	_heightmapResolution {0, 0};
-	int		_maxLod = 1;
-	Vec2i	_patchCount {0, 0};
-
-	Vector<Patch> _patches;
+	Vector<Patch>				_patches;
 	Vector<PatchLevelIndices>	_patchLevelIndices;
 
-	const VertexLayout*		_vertexLayout	= nullptr;
-	size_t					_vertexCount	= 0;
-	SPtr<RenderGpuBuffer>	_vertexBuffer;
+	Vec3f	_terrainPos{0,0,0};
+	Vec2f	_terrainSize{0,0};
+	Vec2i	_heightmapResolution{0,0};
+	Vec2i	_patchCount{0,0};
 
+	const VertexLayout*		_vertexLayout = nullptr;
+	SPtr<RenderGpuBuffer>	_vertexBuffer;
 	SPtr<Texture2D>			_heightMapTexture;
+
+	size_t	_vertexCount = 0;
+
+	float	_terrainHeight = 0;
+	int		_maxLod = 1;
 };
 
 SGE_INLINE RenderTerrain::PatchIndices* RenderTerrain::patchIndices(int level, ZoneMask zoneMask) {
@@ -138,4 +139,4 @@ SGE_INLINE Vec3f RenderTerrain::Patch::worldCenterPos() {
 	return o;
 }
 
-} // namespace
+} // namespace sge

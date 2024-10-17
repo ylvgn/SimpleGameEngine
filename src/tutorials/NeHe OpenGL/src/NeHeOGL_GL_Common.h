@@ -62,7 +62,7 @@ struct OGLUtil {
 
 	static GLenum getGlPrimitiveTopology(RenderPrimitiveType v);
 	static constexpr GLenum getGlFormat(RenderDataType v);
-	static GLenum getGlColorType(ColorType v);
+	static GLenum getGlSrcFormat(ColorType v);
 
 	static GLenum getGlCullMode(RenderState::Cull v);
 	static GLenum getGlDepthTestOp(RenderState::DepthTestOp v);
@@ -82,7 +82,6 @@ private:
 inline
 void OGLUtil::reportError(GLenum errCode /*= _getErrorCode()*/) {
 	// https://learn.microsoft.com/en-us/windows/win32/opengl/gluerrorstring
-	
 #if 0 && SGE_OS_WINDOWS
 	const CHAR* errStr = gluErrorStringWIN(errCode); // why not work???
 	TempString str;
@@ -140,29 +139,29 @@ GLenum OGLUtil::getGlFormat(RenderDataType v) {
 }
 
 inline
-GLenum OGLUtil::getGlColorType(ColorType v) {
+GLenum OGLUtil::getGlSrcFormat(ColorType v) {
 	using SRC = ColorType;
 
 	switch (v) {
-		case SRC::Lb:		return GL_RED;	// GL_R8;
-		case SRC::Ls:		return GL_RED;	// GL_R16F;
-		case SRC::Lf:		return GL_RED;	// GL_R32F;
+		case SRC::Lb:		return GL_RED;
+		case SRC::Ls:		return GL_RED;
+		case SRC::Lf:		return GL_RED;
 
-		case SRC::Rb:		return GL_RED;	// GL_R8;
-		case SRC::Rs:		return GL_RED;	// GL_R16F;
-		case SRC::Rf:		return GL_RED;	// GL_R32F;
+		case SRC::Rb:		return GL_RED;
+		case SRC::Rs:		return GL_RED;
+		case SRC::Rf:		return GL_RED;
 
-//		case SRC::RGb:		return GL_RG;	// GL_RG;
-//		case SRC::RGs:		return GL_RG;	// GL_RG16F;
-//		case SRC::RGf:		return GL_RG;	// GL_RG32F;
+		case SRC::RGb:		return GL_RG;
+		case SRC::RGs:		return GL_RG;
+		case SRC::RGf:		return GL_RG;
 
-		case SRC::RGBb:		return GL_RGB;	// GL_RGB;
-		case SRC::RGBs:		return GL_RGB;	// GL_RGB16F;
-		case SRC::RGBf:		return GL_RGB;	// GL_RGB32F;
+		case SRC::RGBb:		return GL_RGB;
+		case SRC::RGBs:		return GL_RGB;
+		case SRC::RGBf:		return GL_RGB;
 
-		case SRC::RGBAb:	return GL_RGBA; // GL_RGBA8;
-		case SRC::RGBAs:	return GL_RGBA; // GL_RGBA16F;
-		case SRC::RGBAf:	return GL_RGBA; // GL_RGBA32F;
+		case SRC::RGBAb:	return GL_RGBA;
+		case SRC::RGBAs:	return GL_RGBA;
+		case SRC::RGBAf:	return GL_RGBA;
 
 		default: throw SGE_ERROR("unsupported ColorType");
 	}
@@ -217,28 +216,34 @@ GLenum OGLUtil::getGlTextureWrap(TextureWrap v) {
 
 inline
 GLenum OGLUtil::getGlInternalFormat(ColorType v) {
+	// https://registry.khronos.org/OpenGL-Refpages/gl4/html/glTexImage2D.xhtml
 	switch (v) {
-//		case ColorType::Lb:		return GL_R8;
-//		case ColorType::Ls:		return GL_R16;
-		case ColorType::Lf:		return GL_R;
+		case ColorType::Lb:		return GL_R8;
+		case ColorType::Ls:		return GL_R16;
+		case ColorType::Lh:		return GL_R16F;
+		case ColorType::Lf:		return GL_R32F;
 
-//		case ColorType::Rb:		return GL_R8;
-//		case ColorType::Rs:		return GL_R16;
-		case ColorType::Rf:		return GL_R;
+		case ColorType::Rb:		return GL_R8;
+		case ColorType::Rs:		return GL_R16;
+		case ColorType::Rh:		return GL_R16F;
+		case ColorType::Rf:		return GL_R32F;
 
-//		case ColorType::RGb:	return GL_RG8;
-//		case ColorType::RGs:	return GL_RG16;
-//		case ColorType::RGf:	return GL_RG;
+		case ColorType::RGb:	return GL_RG8;
+		case ColorType::RGs:	return GL_RG16;
+		case ColorType::RGh:	return GL_RG16F;
+		case ColorType::RGf:	return GL_RG32F;
 
 		case ColorType::RGBb:	return GL_RGB8;
 		case ColorType::RGBs:	return GL_RGB16;
-		case ColorType::RGBf:	return GL_RGB;  // GL_RGB32F
+		case ColorType::RGBh:	return GL_RGB16F;
+		case ColorType::RGBf:	return GL_RGB32F;
 
 		case ColorType::RGBAb:	return GL_RGBA8;
 		case ColorType::RGBAs:	return GL_RGBA16;
-		case ColorType::RGBAf:	return GL_RGBA;	// GL_RGBA32F
+		case ColorType::RGBAh:	return GL_RGBA16F;
+		case ColorType::RGBAf:	return GL_RGBA32F;
 
-		default: throw SGE_ERROR("unsupported ColorType");
+		default:				throw SGE_ERROR("unsupported ColorType");
 	}
 }
 
@@ -270,25 +275,25 @@ namespace OGL {
 
 	inline void color4b(const Color4b& c) {
 		constexpr static const float k = 127.f / 255.f; // [0, 255] -> [0, 127]
-		::glColor4b(
+		glColor4b(
 			static_cast<GLbyte>(k * c.r),
 			static_cast<GLbyte>(k * c.g),
 			static_cast<GLbyte>(k * c.b),
 			static_cast<GLbyte>(k * c.a)
 		);
 	}
-	inline void color4f(const Color4f& c)					{ ::glColor4f(c.r, c.g, c.b, c.a); }
-	inline void texCoord2f(const Tuple2f& uv)				{ ::glTexCoord2f(uv.x, uv.y); }
-	inline void vertex3f(const Tuple3f& v)					{ ::glVertex3f(v.x, v.y, v.z); }
-	inline void normal3f(const Tuple3f& nl)					{ ::glNormal3f(nl.x, nl.y, nl.z); }
-	inline void translatef(const Tuple3f& t)				{ ::glTranslatef(t.x, t.y, t.z); }
-	inline void rotatef(float degrees, const Tuple3f& axis)	{ ::glRotatef(degrees, axis.x, axis.y, axis.z); }
-	inline void scalef(const Tuple3f& s)					{ ::glScalef(s.x, s.y, s.z); }
+	inline void color4f(const Color4f& c)					{ glColor4f(c.r, c.g, c.b, c.a); }
+	inline void texCoord2f(const Tuple2f& uv)				{ glTexCoord2f(uv.x, uv.y); }
+	inline void vertex3f(const Tuple3f& v)					{ glVertex3f(v.x, v.y, v.z); }
+	inline void normal3f(const Tuple3f& nl)					{ glNormal3f(nl.x, nl.y, nl.z); }
+	inline void translatef(const Tuple3f& t)				{ glTranslatef(t.x, t.y, t.z); }
+	inline void rotatef(float degrees, const Tuple3f& axis)	{ glRotatef(degrees, axis.x, axis.y, axis.z); }
+	inline void scalef(const Tuple3f& s)					{ glScalef(s.x, s.y, s.z); }
 
-	inline void color4fv(const Color4f* c)		{ ::glColor4fv(c->data); }
-	inline void texCoord2fv(const Tuple2f& uv)	{ ::glTexCoord2fv(uv.data); }
-	inline void vertex3fv(const Tuple3f* v)		{ ::glVertex3fv(v->data); }
-	inline void normal3fv(const Tuple3f* nl)	{ ::glNormal3fv(nl->data); }
+	inline void color4fv(const Color4f* c)		{ glColor4fv(c->data); }
+	inline void texCoord2fv(const Tuple2f& uv)	{ glTexCoord2fv(uv.data); }
+	inline void vertex3fv(const Tuple3f* v)		{ glVertex3fv(v->data); }
+	inline void normal3fv(const Tuple3f* nl)	{ glNormal3fv(nl->data); }
 
 #define SGE_DECLEAR_GLXXXPOINTER(GL_FUNC_NAME, FUNC_NAME, IN_SRC) \
 	inline void FUNC_NAME(const IN_SRC* const p, size_t stride) { \

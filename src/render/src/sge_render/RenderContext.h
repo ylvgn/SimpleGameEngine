@@ -10,7 +10,7 @@ struct RenderContext_CreateDesc {
 	NativeUIWindow* window = nullptr;
 };
 
-struct RenderContext_Statistics { // tmp
+struct RenderContext_Statistics { // TODO tmp
 	int drawCall = 0;
 	u64 verts = 0;
 	u64 tris = 0;
@@ -76,10 +76,9 @@ protected:
 		#undef CMD_CASE
 	}
 
-	Vec2f	_frameBufferSize {0, 0};
-	ImGui_SGE _imgui;
-
-	Statistics _statistics;
+	ImGui_SGE	_imgui;
+	Vec2f		_frameBufferSize {0,0};
+	Statistics	_statistics;
 }; // RenderContext_CreateDesc
 
 } // namespace sge

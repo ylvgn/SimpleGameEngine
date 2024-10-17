@@ -102,11 +102,12 @@ constexpr ColorType ColorType_make(ColorModel model, ColorCompressType compress)
 	E(RGBAh,	= ColorType_make(ColorModel::RGBA,	ColorElementType::Float16)) \
 	E(RGBAf,	= ColorType_make(ColorModel::RGBA,	ColorElementType::Float32)) \
 	\
-	E(BC1,		= ColorType_make(ColorModel::BlockCompression, ColorCompressType::BC1 )) \
-	E(BC2,		= ColorType_make(ColorModel::BlockCompression, ColorCompressType::BC2 )) \
-	E(BC3,		= ColorType_make(ColorModel::BlockCompression, ColorCompressType::BC3 )) \
-	E(BC4,		= ColorType_make(ColorModel::BlockCompression, ColorCompressType::BC4 )) \
-	E(BC5,		= ColorType_make(ColorModel::BlockCompression, ColorCompressType::BC5 )) \
+	/* Texture Block Compression: https://learn.microsoft.com/en-us/windows/win32/direct3d11/texture-block-compression-in-direct3d-11 */ \
+	E(BC1,		= ColorType_make(ColorModel::BlockCompression, ColorCompressType::BC1 )) /* DXT1 */ \
+	E(BC2,		= ColorType_make(ColorModel::BlockCompression, ColorCompressType::BC2 )) /* DXT2 DXT3 */ \
+	E(BC3,		= ColorType_make(ColorModel::BlockCompression, ColorCompressType::BC3 )) /* DXT4 DXT5 */ \
+	E(BC4,		= ColorType_make(ColorModel::BlockCompression, ColorCompressType::BC4 )) /* ATI1 */ \
+	E(BC5,		= ColorType_make(ColorModel::BlockCompression, ColorCompressType::BC5 )) /* ATI2 */ \
 	E(BC6h,		= ColorType_make(ColorModel::BlockCompression, ColorCompressType::BC6h)) \
 	E(BC7,		= ColorType_make(ColorModel::BlockCompression, ColorCompressType::BC7 )) \
 //----

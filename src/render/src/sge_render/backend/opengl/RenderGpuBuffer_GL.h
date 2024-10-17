@@ -10,21 +10,23 @@ class RenderGpuBuffer_GL : public RenderGpuBuffer {
 	using Base = RenderGpuBuffer;
 	using Util = GLUtil;
 public:
-	~RenderGpuBuffer_GL() { destroy(); }
+	~RenderGpuBuffer_GL() { _destroy(); }
 
-	void destroy();
+	void bind()		{ glBindBuffer(_target, _handle); }
+	void unbind()	{ glBindBuffer(_target, 0); }
 
-	GLuint glBuf()			const { return _p; }
-	GLenum glBufTarget()	const { return Util::getGlBufferBindingTarget(_desc.type); }
-
-	void glBind();
-	void glUnbind();
+	bool	isValid()	const { return _handle != 0; }
+	GLuint	handle()	const { return _handle; }
 
 protected:
-	virtual void onCreate(CreateDesc& desc) override;
-	virtual void onUploadToGpu(ByteSpan data, size_t offset) override;
+	virtual void onCreate(CreateDesc& desc) final;
+	virtual void onUploadToGpu(ByteSpan data, size_t offset) final;
+
 private:
-	GLuint _p = 0;
+	void _destroy();
+
+	GLenum _target = 0;
+	GLuint _handle = 0;
 
 }; // RenderGpuBuffer_GL
 

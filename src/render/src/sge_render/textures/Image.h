@@ -1,16 +1,25 @@
 #pragma once
 
 namespace sge {
-
+#if 0
+#pragma mark ========= ImageInfo ============
+#endif
 struct ImageInfo {
 public:
-	Vec2i		size{ 0,0 };
-	int			strideInBytes = 0;
-	int			mipmapCount = 1;
-	int			pixelSizeInBytes() const { return ColorUtil::pixelSizeInBytes(colorType); }
-	ColorType	colorType = ColorType::None;
+	Vec2i		size {0,0};
+	int			strideInBytes	= 0;
+	int			mipmapCount		= 1;
+	ColorType	colorType		= ColorType::None;
+
+	SGE_INLINE int	width()				const { return size.x; }
+	SGE_INLINE int	height()			const { return size.y; }
+	SGE_INLINE int	pixelSizeInBytes()	const { return ColorUtil::pixelSizeInBytes(colorType); }
 };
 
+
+#if 0
+#pragma mark ========= Image ============
+#endif
 //! Image for any color type
 class Image : public NonCopyable {
 public:
@@ -40,8 +49,8 @@ public:
 	SGE_INLINE	const Vec2i&	size			() const { return _info.size; }
 	SGE_INLINE	int				strideInBytes	() const { return _info.strideInBytes; }
 	SGE_INLINE	int				pixelSizeInBytes() const { return _info.pixelSizeInBytes(); }
-	SGE_INLINE	int				width			() const { return _info.size.x; }
-	SGE_INLINE	int				height			() const { return _info.size.y; }
+	SGE_INLINE	int				width			() const { return _info.width(); }
+	SGE_INLINE	int				height			() const { return _info.height(); }
 	SGE_INLINE	ColorType		colorType		() const { return _info.colorType; }
 
 	template<class COLOR> SGE_INLINE	Span<      COLOR>	row(int y)			{ _checkType(COLOR::kColorType); return row_noCheck<COLOR>(y); }
@@ -58,23 +67,31 @@ public:
 	SGE_INLINE	Span<u8>		rowBytes(int y)			{ return Span<      u8>(&_pixelData[y * _info.strideInBytes], _info.size.x * _info.pixelSizeInBytes()); }
 	SGE_INLINE	Span<const u8>	rowBytes(int y) const	{ return Span<const u8>(&_pixelData[y * _info.strideInBytes], _info.size.x * _info.pixelSizeInBytes()); }
 
-	const void* dataPtr() const { return _pixelData.data(); }
-
 	void copyToPixelData(ByteSpan src) { _pixelData.assign(src.begin(), src.end()); }
+	void copy(const Image& src);
 
-	void copy(const Image& src) {
-		_info = src._info;
-		_pixelData = src._pixelData;
-	}
+	const void* dataPtr() const { return _pixelData.data(); }
 
 private:
 	void _create(ColorType colorType, int width, int height, int strideInBytes, int mipmapCount, size_t dataSizeInBytes);
+
 	void _checkType(ColorType colorType) const {
 		if (colorType != _info.colorType) throw SGE_ERROR("Invalid ColorType");
 	}
 
 	Info _info;
 	Vector<u8>	_pixelData;
-};
+}; // Image
 
-} // namespace
+template<class COLOR> inline
+void Image::fill(const COLOR& color) {
+	_checkType(color.kColorType);
+	for (int y = 0; y < width(); ++y) {
+		auto span = row_noCheck<COLOR>(y);
+		for (int x = 0; x < height(); ++x) {
+			span[x].set(color);
+		}
+	}
+}
+
+} // namespace sge

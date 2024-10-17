@@ -1,11 +1,13 @@
 #include "RenderGpuBuffer_DX11.h"
 #include "Renderer_DX11.h"
 
+#if SGE_RENDER_HAS_DX11
+
 namespace sge {
 
 void RenderGpuBuffer_DX11::onCreate(CreateDesc& desc)  {
-	if (desc.bufferSize <= 0) throw SGE_ERROR("buffer size = 0");
-	if (desc.stride <= 0) throw SGE_ERROR("stride == 0");
+	if (desc.bufferSize <= 0)	throw SGE_ERROR("buffer size = 0");
+	if (desc.stride <= 0)		throw SGE_ERROR("stride == 0");
 
 	D3D11_BUFFER_DESC bd = {};
 	bd.ByteWidth = Util::castUINT(Math::alignTo(desc.bufferSize, 16));
@@ -52,4 +54,6 @@ void RenderGpuBuffer_DX11::onUploadToGpu(ByteSpan data, size_t offset) {
 	ctx->Unmap(_d3dBuf, 0);
 }
 
-}
+} // namespace sge
+
+#endif // SGE_RENDER_HAS_DX11
