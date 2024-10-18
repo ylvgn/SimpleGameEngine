@@ -4,31 +4,35 @@
 #include "Shader_DX11.h"
 #include "RenderGpuBuffer_DX11.h"
 
+#if SGE_RENDER_HAS_DX11
+
 namespace sge {
 
 class Material_DX11 : public Material {
 	using Base = Material;
-public:
 	using Util = DX11Util;
-private:
-	Shader_DX11* shader() { return static_cast<Shader_DX11*>(_shader.ptr()); }
+	sgeMaterial_InterfaceFunctions(DX11);
 
-	template<class STAGE>
-	static void _bindStageHelper(RenderContext_DX11* ctx, STAGE* stage);
+	class MyPass;
 
-	struct MyVertexStage : public VertexStage {
-		using Base = VertexStage;
-		using MyShaderStage = Shader_DX11::MyVertexStage;
+	#if 0
+	#pragma mark ========= Material_DX11::MyVertexStage ============
+	#endif
+	class MyVertexStage : public Material::VertexStage {
+		using Base = typename Material::VertexStage;
+	public:
+		using ShaderStage	= Shader_DX11::MyVertexStage;
+		using ShaderPass	= Shader_DX11::MyPass;
+		using Pass			= Material_DX11::MyPass;
 
-		MyVertexStage(MaterialPass* pass, ShaderVertexStage* shaderStage)
+		MyVertexStage(MyPass* pass, ShaderVertexStage* shaderStage) noexcept
 			: Base(pass, shaderStage)
 		{}
 
 		void bind(RenderContext_DX11* ctx, const VertexLayout* vertexLayout);
 		void bindInputLayout(RenderContext_DX11* ctx, const VertexLayout* vertexLayout);
-		MyShaderStage* shaderStage() {
-			return static_cast<MyShaderStage*>(_shaderStage);
-		}
+
+		ShaderStage* shaderStage() { return static_cast<ShaderStage*>(_shaderStage); }
 
 		void _dxSetConstBuffer(DX11_ID3DDeviceContext* dc, UINT bindPoint, DX11_ID3DBuffer* d3dBuf) {
 			dc->VSSetConstantBuffers(bindPoint, 1, &d3dBuf);
@@ -43,20 +47,25 @@ private:
 		}
 
 		VectorMap<const VertexLayout*, ComPtr<DX11_ID3DInputLayout>> _inputLayoutsMap;
-	};
+	}; // MyVertexStage
 
-	struct MyPixelStage : public PixelStage {
-		using Base = PixelStage;
-		using MyShaderStage = Shader_DX11::MyPixelStage;
+	#if 0
+	#pragma mark ========= Material_DX11::MyPixelStage ============
+	#endif
+	class MyPixelStage : public Material::PixelStage {
+		using Base = typename Material::PixelStage;
+	public:
+		using ShaderStage	= Shader_DX11::MyPixelStage;
+		using ShaderPass	= Shader_DX11::MyPass;
+		using Pass			= Material_DX11::MyPass;
 
-		MyPixelStage(MaterialPass* pass, ShaderPixelStage* shaderStage)
+		MyPixelStage(MyPass* pass, ShaderPixelStage* shaderStage) noexcept
 			: Base(pass, shaderStage)
 		{}
 
 		void bind(RenderContext_DX11* ctx, const VertexLayout* vertexLayout);
-		MyShaderStage* shaderStage() {
-			return static_cast<MyShaderStage*>(_shaderStage);
-		}
+
+		ShaderStage* shaderStage() { return static_cast<ShaderStage*>(_shaderStage); }
 
 		void _dxSetConstBuffer(DX11_ID3DDeviceContext* dc, UINT bindPoint, DX11_ID3DBuffer* d3dBuf) {
 			dc->PSSetConstantBuffers(bindPoint, 1, &d3dBuf);
@@ -69,27 +78,45 @@ private:
 		void _dxSetSampler(DX11_ID3DDeviceContext* dc, UINT bindPoint, DX11_ID3DSamplerState* ss) {
 			dc->PSSetSamplers(bindPoint, 1, &ss);
 		}
-
 	};
 
-	struct MyPass : public Pass {
-		using Base = Pass;
-		MyPass(Material* material, ShaderPass* shaderPass);
+	#if 0
+	#pragma mark ========= Material_DX11::MyPass ============
+	#endif
+	class MyPass : public Material::Pass {
+		using Base = typename Material::Pass;
+	public:
 
-		virtual void onBind(RenderContext* ctx, const VertexLayout* vertexLayout) override;
+		MyPass(Material_DX11* material, ShaderPass* shaderPass) noexcept;
+
+		Shader_DX11::Pass* shaderPass() const { return static_cast<Shader_DX11::Pass*>(_shaderPass); }
+
+		virtual void onBind(RenderContext* ctx, const VertexLayout* vertexLayout) final;
 
 		void _bindRenderState(RenderContext_DX11* ctx);
 
-		MyVertexStage _myVertexStage;
-		MyPixelStage  _myPixelStage;
+		MyVertexStage _vertexStage;
+		 MyPixelStage  _pixelStage;
 
 		ComPtr<DX11_ID3DRasterizerState>	_rasterizerState;
 		ComPtr<DX11_ID3DDepthStencilState>	_depthStencilState;
 		ComPtr<DX11_ID3DBlendState>			_blendState;
-	};
+	}; // MyPass
 
-	virtual UPtr<Pass> onCreatePass(ShaderPass* shaderPass) override;
+	#if 0
+	#pragma mark ========= Material_DX11 ============
+	#endif
+	using Pass			= MyPass;
+	using VertexStage	= MyVertexStage;
+	using PixelStage	= MyPixelStage;
+
+	Shader_DX11* shader() { return static_cast<Shader_DX11*>(_shader.ptr()); }
+
+	template<class STAGE>
+	static void _bindStageHelper(RenderContext_DX11* ctx, STAGE* stage);
 
 }; // Material_DX11
 
-} // namespace
+} // namespace sge
+
+#endif // SGE_RENDER_HAS_DX11

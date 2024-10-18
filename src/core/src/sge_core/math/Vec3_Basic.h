@@ -152,6 +152,12 @@ Vec3_Basic<T, DATA> max(const Vec3_Basic<T, DATA>& a, const Vec3_Basic<T, DATA>&
 								Math::max(a.z, b.z));
 }
 
+template<class T, class DATA> SGE_INLINE
+Vec3_Basic<T, DATA> clamp(const Vec3_Basic<T, DATA>& v, const Vec3_Basic<T, DATA>& a, const Vec3_Basic<T, DATA>& b) {
+	return Vec3_Basic<T, DATA>(	Math::clamp(v.x, a.x, b.x),
+								Math::clamp(v.y, a.y, b.y),
+								Math::clamp(v.z, a.z, b.z));
 }
 
-}
+} // namespace Math
+} // namespace sge

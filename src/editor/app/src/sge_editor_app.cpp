@@ -28,7 +28,9 @@ public:
 
 		{ // texture
 			Texture2D_CreateDesc texDesc;
-			auto& image = texDesc.imageToUpload;
+			Texture2D::UploadRequest texUploadRequest;
+			auto& image = texUploadRequest.imageToUpload;
+			texDesc.uploadRequest = &texUploadRequest;
 	#if 1
 			//image.loadFile("Assets/Textures/uvChecker.bmp", ColorType::RGBAb);
 			//image.loadFile("Assets/Textures/uvChecker.png");

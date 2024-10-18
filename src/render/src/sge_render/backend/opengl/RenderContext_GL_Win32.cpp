@@ -219,35 +219,28 @@ void RenderContext_GL_Win32::onCmd_DrawCall(RenderCommand_DrawCall& cmd) {
 		if (!indexBuffer) { SGE_ASSERT(false); return; }
 	}
 
-	vertexBuffer->glBind();
+	vertexBuffer->bind();
 	{
 		if (auto* pass = cmd.getMaterialPass()) {
 			pass->bind(this, cmd.vertexLayout);
 		} else {
 			_setTestShaders(cmd.vertexLayout);
 		}
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe ON tmp
-
 		auto primitive		= Util::getGlPrimitiveTopology(cmd.primitive);
 //		GLsizei stride		= static_cast<GLsizei>(cmd.vertexLayout->stride);
 		GLsizei vertexCount = static_cast<GLsizei>(cmd.vertexCount);
 		GLsizei  indexCount = static_cast<GLsizei>(cmd.indexCount);
 
-		//_renderTarget.bind();
 		if (indexCount > 0) {
-			indexBuffer->glBind();
+			indexBuffer->bind();
 			glDrawElements(primitive, indexCount, Util::getGlFormat(cmd.indexType), nullptr);
-			indexBuffer->glUnbind();
+			indexBuffer->unbind();
 		}
 		else {
 			glDrawArrays(primitive, 0, static_cast<GLsizei>(vertexCount));
 		}
-
-		//_renderTarget.unbind();
-
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // wireframe Off tmp
 	}
-	vertexBuffer->glUnbind();
+	vertexBuffer->unbind();
 
 	Util::throwIfError();
 }
@@ -268,20 +261,7 @@ void RenderContext_GL_Win32::onSetFrameBufferSize(const Vec2f& newSize) {
 
 	// TODO: reset frame buffer size
 	if (_viewFramebuffer) {
-		if (_testScreenQuadTexturebuffer) {
-			glDeleteTextures(1, &_testScreenQuadTexturebuffer);
-		}
-
-		glBindFramebuffer(GL_FRAMEBUFFER, _viewFramebuffer);
-			glGenTextures(1, &_testScreenQuadTexturebuffer);
-			glBindTexture(GL_TEXTURE_2D, _testScreenQuadTexturebuffer);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, newWidth, newHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _testScreenQuadTexturebuffer, 0);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-		Util::throwIfError();
+		_createBuffers();
 	}
 
 	glViewport(0, 0, newWidth, newHeight);
@@ -301,13 +281,20 @@ void RenderContext_GL_Win32::_destroyBuffers() {
 		glDeleteRenderbuffers(1, &_depthRenderbuffer);
 		_depthRenderbuffer = 0;
 	}
+	if (!_testScreenQuadTexturebuffer) { // TODO tmp
+		glDeleteTextures(1, &_testScreenQuadTexturebuffer);
+		_testScreenQuadTexturebuffer = 0;
+	}
 }
 
 void RenderContext_GL_Win32::onBeginRender() {
 	_vao.bind();
-	_createBuffers();
+	if (!_viewFramebuffer)
+		_createBuffers();
+
 	glBindFramebuffer(GL_FRAMEBUFFER, _viewFramebuffer);
 	glEnable(GL_DEPTH_TEST);
+	Util::throwIfError();
 }
 
 void RenderContext_GL_Win32::onEndRender() {
@@ -442,27 +429,37 @@ void RenderContext_GL_Win32::_setTestShaders(const VertexLayout* vertexLayout) {
 }
 
 void RenderContext_GL_Win32::_createBuffers() {
-	if (_viewFramebuffer) return; // TODO
-
 	_destroyBuffers();
 
-	GLint width  = GLint(_frameBufferSize.x);
-	GLint height = GLint(_frameBufferSize.y);
+	GLint width  = Math::max(1, GLint(_frameBufferSize.x)); // 0 is not allow, when minimize Windows!!
+	GLint height = Math::max(1, GLint(_frameBufferSize.y));
 
+	// view render buffer
 	glGenFramebuffers(1, &_viewFramebuffer);
+	//glGenRenderbuffers(1, &_viewRenderbuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, _viewFramebuffer);
+	//glBindRenderbuffer(GL_RENDERBUFFER, _viewRenderbuffer);
+	//glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _viewRenderbuffer);
+	Util::throwIfError();
 
 	glGenTextures(1, &_testScreenQuadTexturebuffer);
 	glBindTexture(GL_TEXTURE_2D, _testScreenQuadTexturebuffer);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _testScreenQuadTexturebuffer, 0);
+	Util::throwIfError();
 
-	glGenRenderbuffers(1, &_testScreenQuadRenderbuffer);
-	glBindRenderbuffer(GL_RENDERBUFFER, _testScreenQuadRenderbuffer);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _testScreenQuadRenderbuffer);
+	// depth/stencil render buffer
+	bool needDepthBuffer = true;
+	if (needDepthBuffer) {
+		glGenRenderbuffers(1, &_depthRenderbuffer);
+		glBindRenderbuffer(GL_RENDERBUFFER, _depthRenderbuffer);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _depthRenderbuffer);
+		Util::throwIfError();
+	}
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
 		throw SGE_ERROR("failed to create frame buffer");
@@ -488,10 +485,6 @@ void RenderContext_GL_Win32::_destroyTestScreenFrameBuffer() {
 	if (!_testScreenQuadVertexbuffer) {
 		glDeleteBuffers(1, &_testScreenQuadVertexbuffer);
 		_testScreenQuadVertexbuffer = 0;
-	}
-	if (!_testScreenQuadTexturebuffer) {
-		glDeleteTextures(1, &_testScreenQuadTexturebuffer);
-		_testScreenQuadTexturebuffer = 0;
 	}
 	if (_testScreenQuadRenderbuffer) {
 		glDeleteRenderbuffers(1, &_testScreenQuadRenderbuffer);

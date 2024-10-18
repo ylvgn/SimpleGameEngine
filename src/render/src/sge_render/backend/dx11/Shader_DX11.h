@@ -11,48 +11,87 @@ class RenderContext_DX11;
 
 class Shader_DX11 : public Shader {
 	using Base = Shader;
+	using Util = DX11Util;
 	sgeShader_InterfaceFunctions(DX11);
 public:
-	using Util = DX11Util;
 
-	Shader_DX11(StrView filename);
+	class MyPass;
 
-	struct MyPass;
+	#if 0
+	#pragma mark ========= Shader_DX11::MyVertexStage ============
+	#endif
+	class MyVertexStage : public Shader::VertexStage {
+		using Base = typename Shader::VertexStage;
+	public:
+		using Pass = MyPass;
 
-	static void _loadStageFile(StrView passPath, ShaderStageMask stageMask, Vector<u8>& outBytecode, ShaderStageInfo& outInfo);
+		MyVertexStage(MyPass* pass) noexcept
+			: Base(pass)
+		{}
 
-	struct MyVertexStage : public ShaderVertexStage {
-		void load(MyPass* pass, StrView passPath, DX11_ID3DDevice* dev);
+		void load(StrView passPath, DX11_ID3DDevice* dev);
 		void bind(RenderContext_DX11* ctx);
+
 		ByteSpan bytecode() const { return _bytecode; }
+
+		MyPass* pass() const { return static_cast<MyPass*>(_pass); }
+
 	private:
 		ComPtr<DX11_ID3DVertexShader>	_shader;
-		Vector<u8> _bytecode;
-	};
+		Vector<u8>						_bytecode;
+	}; // MyVertexStage
 
-	struct MyPixelStage : public ShaderPixelStage {
-		void load(MyPass* pass, StrView passPath, DX11_ID3DDevice* dev);
+	#if 0
+	#pragma mark ========= Shader_DX11::MyPixelStage ============
+	#endif
+	class MyPixelStage : public Shader::PixelStage {
+		using Base = typename Shader::PixelStage;
+	public:
+		using Pass = MyPass;
+
+		MyPixelStage(MyPass* pass) noexcept
+			: Base(pass)
+		{}
+
+		void load(StrView passPath, DX11_ID3DDevice* dev);
 		void bind(RenderContext_DX11* ctx);
+
 		ByteSpan bytecode() const { return _bytecode; }
+
+		MyPass* pass() const { return static_cast<MyPass*>(_pass); }
+
 	private:
 		ComPtr<DX11_ID3DPixelShader>	_shader;
-		Vector<u8> _bytecode;
-	};
+		Vector<u8>						_bytecode;
+	}; // MyPixelStage
 
-	struct MyPass : public ShaderPass {
-		using Base = ShaderPass;
-
+	#if 0
+	#pragma mark ========= Shader_DX11::MyPass ============
+	#endif
+	class MyPass : public Shader::Pass {
+		using Base = typename Shader::Pass;
+	public:
 		MyPass(Shader_DX11* shader, int passIndex) noexcept;
+
+		Shader_DX11* shader() const { return static_cast<Shader_DX11*>(_shader); }
+
 	private:
-		virtual void onInit() override;
+		MyPass(Shader* shader, int passIndex) = delete;
 
-		MyVertexStage		_myVertexStage;
-		MyPixelStage		_myPixelStage;
-	};
+		virtual void onInit() final;
 
+		MyVertexStage	_vertexStage;
+		 MyPixelStage	_pixelStage;
+	}; // MyPass
+
+	#if 0
+	#pragma mark ========= Shader_DX11 ============
+	#endif
 	using VertexStage	= MyVertexStage;
 	using PixelStage	= MyPixelStage;
 	using Pass			= MyPass;
+
+	static void s_loadStageFile(StrView passPath, ShaderStageMask stageMask, Vector<u8>& outBytecode, ShaderStageInfo& outInfo);
 
 }; // Shader_DX11
 

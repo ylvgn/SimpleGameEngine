@@ -5,51 +5,69 @@
 namespace sge {
 
 class Shader;
+class ShaderPass;
 
 #if 0
 #pragma mark ========= ShaderStage ============
 #endif
-struct ShaderStage : public NonCopyable {
+class ShaderStage : public NonCopyable {
+public:
 	const ShaderStageInfo* info() const { return &_info; }
+	ShaderStage() = delete;
+
 protected:
+	ShaderStage(ShaderPass* pass) noexcept;
+
 	ShaderStageInfo _info;
+	ShaderPass*		_pass = nullptr;
 }; // ShaderStage
 
 #if 0
 #pragma mark ========= ShaderVertexStage ============
 #endif
-struct ShaderVertexStage : public ShaderStage {
+class ShaderVertexStage : public ShaderStage {
+	using Base = ShaderStage;
+public:
 	static constexpr ShaderStageMask stageMask() { return ShaderStageMask::Vertex; }
+
+	ShaderVertexStage(ShaderPass* pass) : Base(pass) {}
+
 }; // ShaderVertexStage
 
 #if 0
 #pragma mark ========= ShaderPixelStage ============
 #endif
-struct ShaderPixelStage  : public ShaderStage {
+class ShaderPixelStage  : public ShaderStage {
+	using Base = ShaderStage;
+public:
 	static constexpr ShaderStageMask stageMask() { return ShaderStageMask::Pixel; }
+
+	ShaderPixelStage(ShaderPass* pass) : Base(pass) {}
+
 }; // ShaderPixelStage
 
 #if 0
 #pragma mark ========= ShaderPass ============
 #endif
-struct ShaderPass : public NonCopyable {
+class ShaderPass : public NonCopyable {
+public:
 	using Info = ShaderInfo::Pass;
 
-	ShaderPass(Shader* shader, int passIndex) noexcept;
-
+	ShaderPass() = delete;
 	virtual ~ShaderPass() noexcept = default;
 
-	ShaderVertexStage*	vertexStage()		{ return _vertexStage; }
-	ShaderPixelStage*   pixelStage()		{ return _pixelStage; }
+	const Info* info() const { return _info; }
+	StrView		shaderFilename() const;
 
-	Shader* shader()			{ return _shader; }
-	int		passIndex()			{ return _passIndex; }
+	ShaderVertexStage*	vertexStage() { return _vertexStage; }
+	ShaderPixelStage*   pixelStage()  { return _pixelStage; }
 
-	const Info* info()				const	{ return _info; }
-	StrView		shaderFilename()	const;
+	Shader*	shader()	const { return _shader; }
+	int		passIndex()	const { return _passIndex; }
 
 friend class Shader;
 protected:
+	ShaderPass(Shader* shader, int passIndex) noexcept;
 	virtual void onInit() = 0;
 
 	const Info*			_info			= nullptr;
@@ -71,20 +89,19 @@ public:
 
 	virtual ~Shader();
 
-	void _internal_init();
+	void loadFile(StrView filename);
 
 	const String&				filename()		const	{ return _filename; }
 	const ShaderInfo*			info()			const	{ return &_info; }
 	const ShaderInfo::Pass*		passInfo(int i)	const	{ return _info.passes.inBound(i) ? &_info.passes[i] : nullptr; }
 	size_t						passCount()		const	{ return _info.passes.size(); }
-
+	Pass*						findPass(int i)	const	{ return _passes.inBound(i) ? _passes[i].get() : nullptr; }
 	Span< UPtr<ShaderPass> >	passes()				{ return _passes; }
-	Pass*						findPass(int i)			{ return _passes.inBound(i) ? _passes[i].get() : nullptr; }
 
 protected:
-	Shader(StrView filename) noexcept;  // please create from 'Renderer::createShader'
+	Shader() noexcept = default;  // please create from 'Renderer::createShader'
 
-	virtual UPtr<Shader::Pass> onCreateShaderPass(int passIndex) = 0;
+	virtual UPtr<Shader::Pass> onCreatePass(int passIndex) = 0;
 
 	String						_filename;
 	ShaderInfo					_info;
@@ -95,9 +112,9 @@ protected:
 
 
 #define sgeShader_InterfaceFunctions(T) \
-	virtual UPtr<Shader::Pass> onCreateShaderPass(int passIndex) override; \
+	virtual UPtr<Shader::Pass> onCreatePass(int passIndex) final; \
 //-----
 
 #define sgeShader_InterfaceFunctions_Impl(T) \
-	UPtr<Shader::Pass> Shader_##T::onCreateShaderPass(int passIndex) { return UPtr_make<Shader_##T::Pass>(this, passIndex); } \
+	UPtr<Shader::Pass> Shader_##T::onCreatePass(int passIndex) { return UPtr_make<Shader_##T::Pass>(this, passIndex); } \
 //-----

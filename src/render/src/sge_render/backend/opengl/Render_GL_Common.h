@@ -46,6 +46,10 @@ struct GLUtil {
 	static GLenum		getGlShaderType(ShaderStageMask s);
 	static const char*	getGlStageProfile(ShaderStageMask s);
 
+	static GLenum		getGLTextureMinFilter(TextureFilter v, int mipmapCount = 1);
+	static GLenum		getGLTextureMagFilter(TextureFilter v);
+	static GLenum		getGlTextureWrap(TextureWrap v);
+
 	static const char*	getGlSemanticName(VertexSemanticType v);
 	static int			getComponentCount(RenderDataType v);
 
@@ -220,6 +224,57 @@ const char* GLUtil::getGlStageProfile(ShaderStageMask s) {
 		case ShaderStageMask::Pixel:	return "330";
 	//---
 		default: return "";
+	}
+}
+
+SGE_INLINE
+GLenum GLUtil::getGLTextureMinFilter(TextureFilter v, int mipmapCount /*= 1*/) {
+	bool m = mipmapCount > 1;
+
+	using SRC = TextureFilter;
+	switch (v) {
+		case SRC::Point:		return m ? GL_NEAREST_MIPMAP_NEAREST : GL_NEAREST;
+		case SRC::Linear:		return m ? GL_NEAREST_MIPMAP_LINEAR  : GL_LINEAR;
+		case SRC::Bilinear:		return m ? GL_LINEAR_MIPMAP_NEAREST  : GL_LINEAR;
+		case SRC::Trilinear:	return m ? GL_LINEAR_MIPMAP_LINEAR   : GL_LINEAR;
+#if GL_ARB_texture_filter_anisotropic
+		case SRC::Anisotropic:	return GLEW_ARB_texture_filter_anisotropic;
+#else
+		case SRC::Anisotropic:	return GL_LINEAR;
+#endif
+	//---
+		default: throw SGE_ERROR("unsupported TextureFilter '{}'", v);
+	}
+}
+
+SGE_INLINE
+GLenum GLUtil::getGLTextureMagFilter(TextureFilter v) {
+	using SRC = TextureFilter;
+	switch (v) {
+		case SRC::Point:		return GL_NEAREST;
+		case SRC::Linear:		return GL_LINEAR;
+		case SRC::Bilinear:		return GL_LINEAR;
+		case SRC::Trilinear:	return GL_LINEAR;
+#if GL_ARB_texture_filter_anisotropic
+		case SRC::Anisotropic:	return GLEW_ARB_texture_filter_anisotropic;
+#else
+		case SRC::Anisotropic:	return GL_LINEAR;
+#endif
+	//---
+		default: throw SGE_ERROR("unsupported TextureFilter '{}'", v);
+	}
+}
+
+SGE_INLINE
+GLenum GLUtil::getGlTextureWrap(TextureWrap v) {
+	using SRC = TextureWrap;
+	switch (v) {
+		case SRC::Repeat:		return GL_REPEAT;
+		case SRC::Clamp:		return GL_CLAMP_TO_EDGE;
+		case SRC::Mirror:		return GL_MIRRORED_REPEAT;
+		case SRC::MirrorOnce:	return GL_MIRROR_CLAMP_TO_EDGE;
+	//---
+		default: throw SGE_ERROR("unsupported TextureWrap '{}'", v);
 	}
 }
 

@@ -9,7 +9,6 @@
 namespace sge {
 
 class Renderer_DX11 : public Renderer {
-private:
 	using Base = Renderer;
 	using Util = DX11Util;
 public:
@@ -28,11 +27,7 @@ public:
 	void reportLiveDeviceObjects();
 
 protected:
-	virtual SPtr<RenderContext>		onCreateContext(RenderContext_CreateDesc& desc) override;
-	virtual SPtr<RenderGpuBuffer>	onCreateGpuBuffer(RenderGpuBuffer_CreateDesc& desc) override;
-	virtual SPtr<Texture2D>			onCreateTexture2D(Texture2D_CreateDesc& desc) override;
-	virtual SPtr<Shader>			onCreateShader(StrView filename) override;
-	virtual SPtr<Material>			onCreateMaterial() override;
+	sgeRenderer_InterfaceFunctions(DX11);
 
 	ComPtr<DX11_IDXGIFactory>		_dxgiFactory;
 	ComPtr<DX11_IDXGIDevice>		_dxgiDevice;
@@ -43,6 +38,6 @@ protected:
 	ComPtr<DX11_ID3DDebug>			_d3dDebug;
 }; // Renderer_DX11
 
-} // namespace
+} // namespace sge
 
 #endif // SGE_RENDER_HAS_DX11

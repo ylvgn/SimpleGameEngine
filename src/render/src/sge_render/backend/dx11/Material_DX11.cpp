@@ -2,58 +2,91 @@
 #include "Renderer_DX11.h"
 #include "RenderContext_DX11.h"
 
+#if SGE_RENDER_HAS_DX11
+
 namespace sge {
-
-template<class STAGE>
-void Material_DX11::_bindStageHelper(RenderContext_DX11* ctx, STAGE* stage) {
-	auto* shaderStage = stage->shaderStage();
-	if (!shaderStage) return;
-	shaderStage->bind(ctx);
-
-	auto* dc = ctx->renderer()->d3dDeviceContext();
-
-	for (auto& cb : stage->constBuffers()) {
-		cb.uploadToGpu();
-
-		auto* cbInfo = cb.info();
-		UINT bindPoint = cbInfo->bindPoint;
-
-		auto* gpuBuffer = static_cast<RenderGpuBuffer_DX11*>(cb.gpuBuffer.ptr());
-		if (!gpuBuffer) throw SGE_ERROR("const buffer is null");
-
-		auto* d3dBuf = gpuBuffer->d3dBuf();
-		if (!d3dBuf) throw SGE_ERROR("d3dbuffer is null");
-
-		stage->_dxSetConstBuffer(dc, bindPoint, d3dBuf);
-	}
-
-	for (auto& texParam : stage->texParams()) {
-		auto* tex = texParam.getUpdatedTexture();
-		int bindPoint = texParam.bindPoint();
-
-		switch (texParam.dataType()) {
-			case RenderDataType::Texture2D: {
-				auto* tex2d = static_cast<Texture2D_DX11*>(tex);
-				auto* rv = tex2d->resourceView();
-				auto* ss = tex2d->samplerState();
-
-				stage->_dxSetShaderResource(dc, bindPoint, rv);
-				stage->_dxSetSampler(dc, bindPoint, ss);
-			} break;
-
-			default: throw SGE_ERROR("bind unsupported texture type");
-		}
-	}
+#if 0
+#pragma mark ========= Material_DX11::MyVertexStage ============
+#endif
+void Material_DX11::MyVertexStage::bind(RenderContext_DX11* ctx, const VertexLayout* vertexLayout) {
+	_bindStageHelper(ctx, this);
+	bindInputLayout(ctx, vertexLayout);
 }
 
-UPtr<Material::Pass> Material_DX11::onCreatePass(ShaderPass* shaderPass) {
-	return UPtr<Pass>(new MyPass(this, shaderPass));
+void Material_DX11::MyVertexStage::bindInputLayout(RenderContext_DX11* ctx, const VertexLayout* vertexLayout) {
+	if (!vertexLayout) throw SGE_ERROR("vertexLayout is null");
+
+	auto* dev = ctx->renderer()->d3dDevice();
+	auto* dc  = ctx->renderer()->d3dDeviceContext();
+
+	DX11_ID3DInputLayout* dxLayout = nullptr;
+
+	auto it = _inputLayoutsMap.find(vertexLayout);
+	if (it != _inputLayoutsMap.end()) {
+		dxLayout = it->second;
+	} else {
+		Vector<D3D11_INPUT_ELEMENT_DESC, 32> inputDesc;
+
+		auto* vsInfo = info();
+		for (auto& input : vsInfo->inputs) {
+			auto* e = vertexLayout->find(input.semantic);
+			if (!e) {
+				throw SGE_ERROR("vertex sematic {} not found", input.semantic);
+			}
+
+			auto& desc					= inputDesc.emplace_back();
+			auto semanticType			= VertexSemanticUtil::getType(e->semantic);
+			desc.SemanticName			= Util::getDxSemanticName(semanticType);
+			desc.SemanticIndex			= VertexSemanticUtil::getIndex(e->semantic);
+			desc.Format					= Util::getDxFormat(e->dataType);
+			desc.InputSlot				= 0;
+			desc.AlignedByteOffset		= e->offset;
+			desc.InputSlotClass			= D3D11_INPUT_PER_VERTEX_DATA;
+			desc.InstanceDataStepRate	= 0;
+		}
+
+		ComPtr<DX11_ID3DInputLayout>	outLayout;
+
+		auto* shaderStage = static_cast<Shader_DX11::MyVertexStage*>(_shaderStage);
+		auto bytecode = shaderStage->bytecode();
+
+		auto hr = dev->CreateInputLayout(inputDesc.data()
+										, static_cast<UINT>(inputDesc.size())
+										, bytecode.data()
+										, bytecode.size()
+										, outLayout.ptrForInit());
+		Util::throwIfError(hr);
+
+		dxLayout = outLayout;
+		_inputLayoutsMap[vertexLayout] = std::move(outLayout);
+	}
+
+	dc->IASetInputLayout(dxLayout);
+}
+
+#if 0
+#pragma mark ========= Material_DX11::MyPixelStage ============
+#endif
+void Material_DX11::MyPixelStage::bind(RenderContext_DX11* ctx, const VertexLayout* vertexLayout) {
+	_bindStageHelper(ctx, this);
+}
+
+#if 0
+#pragma mark ========= Material_DX11::MyPass ============
+#endif
+Material_DX11::MyPass::MyPass(Material_DX11* material, ShaderPass* shaderPass) noexcept
+	: Base(material, shaderPass)
+	, _vertexStage(this, shaderPass->vertexStage())
+	,  _pixelStage(this, shaderPass->pixelStage())
+{
+	Base::_vertexStage = &_vertexStage;
+	 Base::_pixelStage = &_pixelStage;
 }
 
 void Material_DX11::MyPass::onBind(RenderContext* ctx_, const VertexLayout* vertexLayout) {
 	auto* ctx = static_cast<RenderContext_DX11*>(ctx_);
-	_myVertexStage.bind(ctx, vertexLayout);
-	_myPixelStage.bind(ctx, vertexLayout);
+	_vertexStage.bind(ctx, vertexLayout);
+	 _pixelStage.bind(ctx, vertexLayout);
 
 	_bindRenderState(ctx);
 }
@@ -160,77 +193,58 @@ void Material_DX11::MyPass::_bindRenderState(RenderContext_DX11* ctx) {
 	dc->RSSetState(_rasterizerState);
 	dc->OMSetDepthStencilState(_depthStencilState, 1);
 
-	Color4f blendColor(1, 1, 1, 1);
+	Color4f blendColor(1,1,1,1);
 	dc->OMSetBlendState(_blendState, blendColor.data, 0xffffffff);
 }
 
-void Material_DX11::MyVertexStage::bind(RenderContext_DX11* ctx, const VertexLayout* vertexLayout) {
-	_bindStageHelper(ctx, this);
-	bindInputLayout(ctx, vertexLayout);
-}
+#if 0
+#pragma mark ========= Material_DX11 ============
+#endif
 
-void Material_DX11::MyVertexStage::bindInputLayout(RenderContext_DX11* ctx, const VertexLayout* vertexLayout) {
-	if (!vertexLayout) throw SGE_ERROR("vertexLayout is null");
+sgeMaterial_InterfaceFunctions_Impl(DX11);
 
-	auto* dev = ctx->renderer()->d3dDevice();
-	auto* dc  = ctx->renderer()->d3dDeviceContext();
+template<class STAGE>
+void Material_DX11::_bindStageHelper(RenderContext_DX11* ctx, STAGE* stage) {
+	auto* shaderStage = stage->shaderStage();
+	if (!shaderStage) return;
+	shaderStage->bind(ctx);
 
-	DX11_ID3DInputLayout* dxLayout = nullptr;
+	auto* dc = ctx->renderer()->d3dDeviceContext();
 
-	auto it = _inputLayoutsMap.find(vertexLayout);
-	if (it != _inputLayoutsMap.end()) {
-		dxLayout = it->second;
-	} else {
-		Vector<D3D11_INPUT_ELEMENT_DESC, 32> inputDesc;
+	for (auto& cb : stage->constBuffers()) {
+		cb.uploadToGpu();
 
-		auto* vsInfo = info();
-		for (auto& input : vsInfo->inputs) {
-			auto* e = vertexLayout->find(input.semantic);
-			if (!e) {
-				throw SGE_ERROR("vertex sematic {} not found", input.semantic);
-			}
+		auto* cbInfo = cb.info();
+		UINT bindPoint = cbInfo->bindPoint;
 
-			auto& desc					= inputDesc.emplace_back();
-			auto semanticType			= VertexSemanticUtil::getType(e->semantic);
-			desc.SemanticName			= Util::getDxSemanticName(semanticType);
-			desc.SemanticIndex			= VertexSemanticUtil::getIndex(e->semantic);
-			desc.Format					= Util::getDxFormat(e->dataType);
-			desc.InputSlot				= 0;
-			desc.AlignedByteOffset		= e->offset;
-			desc.InputSlotClass			= D3D11_INPUT_PER_VERTEX_DATA;
-			desc.InstanceDataStepRate	= 0;
-		}
+		auto* gpuBuffer = static_cast<RenderGpuBuffer_DX11*>(cb.gpuBuffer.ptr());
+		if (!gpuBuffer) throw SGE_ERROR("const buffer is null");
 
-		ComPtr<DX11_ID3DInputLayout>	outLayout;
+		auto* d3dBuf = gpuBuffer->d3dBuf();
+		if (!d3dBuf) throw SGE_ERROR("d3dbuffer is null");
 
-		auto* shaderStage = static_cast<Shader_DX11::MyVertexStage*>(_shaderStage);
-		auto bytecode = shaderStage->bytecode();
-
-		auto hr = dev->CreateInputLayout(inputDesc.data()
-										, static_cast<UINT>(inputDesc.size())
-										, bytecode.data()
-										, bytecode.size()
-										, outLayout.ptrForInit());
-		Util::throwIfError(hr);
-
-		dxLayout = outLayout;
-		_inputLayoutsMap[vertexLayout] = std::move(outLayout);
+		stage->_dxSetConstBuffer(dc, bindPoint, d3dBuf);
 	}
 
-	dc->IASetInputLayout(dxLayout);
+	for (auto& texParam : stage->texParams()) {
+		auto* tex = texParam.getUpdatedTexture();
+		int bindPoint = texParam.bindPoint();
+
+		switch (texParam.dataType()) {
+			case RenderDataType::Texture2D: {
+				auto* tex2d = static_cast<Texture2D_DX11*>(tex);
+				auto* rv = tex2d->resourceView();
+				auto* ss = tex2d->samplerState();
+
+				stage->_dxSetShaderResource(dc, bindPoint, rv);
+				stage->_dxSetSampler(dc, bindPoint, ss);
+			} break;
+
+			default: throw SGE_ERROR("bind unsupported texture type");
+		}
+	}
 }
 
-void Material_DX11::MyPixelStage::bind(RenderContext_DX11* ctx, const VertexLayout* vertexLayout) {
-	_bindStageHelper(ctx, this);
-}
+} // namespace sge
 
-Material_DX11::MyPass::MyPass(Material* material, ShaderPass* shaderPass)
-	: Base(material, shaderPass)
-	, _myVertexStage(this, shaderPass->vertexStage())
-	, _myPixelStage(this, shaderPass->pixelStage())
-{
-	_vertexStage = &_myVertexStage;
-	_pixelStage = &_myPixelStage;
-}
-
-} // namespace
+#endif // SGE_RENDER_HAS_DX11

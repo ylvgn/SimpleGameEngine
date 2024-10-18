@@ -26,6 +26,7 @@ protected:
 		compile("Assets/Shaders/imgui.shader");
 		compile("Assets/Shaders/line.shader");
 		compile("Assets/Shaders/test_constbuffer.shader");
+		compile("Assets/Shaders/test_texture.shader");
 
 		SGE_LOG("---- end ----");
 	}

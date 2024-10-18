@@ -4,12 +4,23 @@
 
 namespace sge {
 #if 0
-#pragma mark ========= Shader_GL ============
+#pragma mark ========= Shader_GL::MyVertexStage ============
 #endif
+Shader_GL::MyVertexStage::~MyVertexStage() noexcept {
+	if (_handle) {
+		glDeleteShader(_handle);
+		_handle = 0;
+	}
+}
 
-sgeShader_InterfaceFunctions_Impl(GL);
-
-Shader_GL::Shader_GL(StrView filename) : Base(filename) {
+#if 0
+#pragma mark ========= Shader_GL::MyPixelStage ============
+#endif
+Shader_GL::MyPixelStage::~MyPixelStage() noexcept {
+	if (_handle) {
+		glDeleteShader(_handle);
+		_handle = 0;
+	}
 }
 
 #if 0
@@ -22,12 +33,11 @@ Shader_GL::MyPass::~MyPass() noexcept {
 	}
 }
 
-Shader_GL::MyPass::MyPass(Shader* shader, int passIndex) noexcept
+Shader_GL::MyPass::MyPass(Shader_GL* shader, int passIndex) noexcept
 	: Base(shader, passIndex)
+	, _vertexStage(this)
+	 , _pixelStage(this)
 {
-	_vertexStage._pass = this;
-	 _pixelStage._pass = this;
-
 	Base::_vertexStage = &_vertexStage;
 	 Base::_pixelStage = &_pixelStage;
 }
@@ -40,7 +50,7 @@ void Shader_GL::MyPass::onInit() {
 	if (!_info->vsFunc.empty()) {
 		TempString tmp;
 		tmp = Fmt("{}/vs_{}.spv.glsl", passPath, Util::getGlStageProfile(ShaderStageMask::Vertex));
-		Util::compileShader(_vertexStage._shader, GL_VERTEX_SHADER, tmp);
+		Util::compileShader(_vertexStage._handle, GL_VERTEX_SHADER, tmp);
 
 		tmp += ".json";
 		JsonUtil::readFile(tmp, _vertexStage._info);
@@ -49,14 +59,14 @@ void Shader_GL::MyPass::onInit() {
 	if (!_info->psFunc.empty()) {
 		TempString tmp;
 		tmp = Fmt("{}/ps_{}.spv.glsl", passPath, Util::getGlStageProfile(ShaderStageMask::Pixel));
-		Util::compileShader(_pixelStage._shader, GL_FRAGMENT_SHADER, tmp);
+		Util::compileShader(_pixelStage._handle, GL_FRAGMENT_SHADER, tmp);
 
 		tmp += ".json";
 		JsonUtil::readFile(tmp, _pixelStage._info);
 	}
 
 	if (!_program)
-		Util::linkShader(_program, _vertexStage._shader, _pixelStage._shader);
+		Util::linkShader(_program, _vertexStage._handle, _pixelStage._handle);
 }
 
 void Shader_GL::MyPass::bind() {
@@ -72,24 +82,10 @@ void Shader_GL::MyPass::unbind() {
 }
 
 #if 0
-#pragma mark ========= Shader_GL::MyPixelStage ============
+#pragma mark ========= Shader_GL ============
 #endif
-Shader_GL::MyPixelStage::~MyPixelStage() noexcept {
-	if (_shader) {
-		glDeleteShader(_shader);
-		_shader = 0;
-	}
-}
 
-#if 0
-#pragma mark ========= Shader_GL::MyVertexStage ============
-#endif
-Shader_GL::MyVertexStage::~MyVertexStage() noexcept {
-	if (_shader) {
-		glDeleteShader(_shader);
-		_shader = 0;
-	}
-}
+sgeShader_InterfaceFunctions_Impl(GL);
 
 } // namespace sge
 

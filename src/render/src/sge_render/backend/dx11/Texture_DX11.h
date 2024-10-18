@@ -11,8 +11,8 @@ class Texture2D_DX11 : public Texture2D {
 public:
 	Texture2D_DX11(CreateDesc& desc);
 
-	DX11_ID3DShaderResourceView*	resourceView() { return _resourceView.ptr(); }
-	DX11_ID3DSamplerState*			samplerState() { return _samplerState.ptr(); }
+	DX11_ID3DShaderResourceView*	resourceView() { return _resourceView; }
+	DX11_ID3DSamplerState*			samplerState() { return _samplerState; }
 
 private:
 	ComPtr<DX11_ID3DTexture2D>			_tex;
@@ -20,4 +20,4 @@ private:
 	ComPtr<DX11_ID3DSamplerState>		_samplerState;
 }; // Texture2D_DX11
 
-} // namespace
+} // namespace sge

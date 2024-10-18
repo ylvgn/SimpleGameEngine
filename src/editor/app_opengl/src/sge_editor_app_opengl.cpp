@@ -16,9 +16,34 @@ public:
 			_renderContext = renderer->createContext(renderContextDesc);
 		}
 
-		auto shader = renderer->createShader("Assets/Shaders/test_constbuffer.shader");
+		{ // texture
+			int w = 256;
+			int h = 256;
+			Texture2D_CreateDesc texDesc;
+			Texture2D::UploadRequest texUploadRequest;
+			texDesc.uploadRequest = &texUploadRequest;
+			auto& image = texUploadRequest.imageToUpload;
+
+			texDesc.size.set(w, h);
+			texDesc.colorType = ColorType::RGBAb;
+			image.create(Color4b::kColorType, w, h);
+
+			for (int y = 0; y < w; y++) {
+				auto span = image.row<Color4b>(y);
+				for (int x = 0; x < h; x++) {
+					span[x] = Color4b(	static_cast<u8>(x),	// r, span[x] means row[x]
+										static_cast<u8>(y),	// g
+										255,				// b
+										255);				// a
+				}
+			}
+			_testTexture = renderer->createTexture2D(texDesc);
+		}
+
+		auto shader = renderer->createShader("Assets/Shaders/test_texture.shader");
 		_material = renderer->createMaterial();
 		_material->setShader(shader);
+		_material->setParam("mainTex", _testTexture);
 
 		EditMesh editMesh;
 #if 1
@@ -56,7 +81,7 @@ public:
 		auto time = ::GetTickCount() * 0.001f;
 		auto s = Math::abs(Math::sin(time * 2));
 		_material->setParam("test_float", s * 0.5f);
-		_material->setParam("test_color", Color4f(s, 0, 0, 1));
+		_material->setParam("test_color", Color4f(s, s, s, 1));
 
 		_renderContext->setFrameBufferSize(clientRect().size);
 		_renderContext->beginRender();
@@ -85,6 +110,8 @@ public:
 			}
 		}
 
+		ImGui::Render(); // TODO _renderContext->drawUI(_renderRequest);
+
 		_cmdBuf.swapBuffers();
 		_renderContext->commit(_cmdBuf);
 
@@ -95,6 +122,8 @@ public:
 	SPtr<RenderContext>	_renderContext;
 	RenderCommandBuffer _cmdBuf;
 	RenderMesh			_renderMesh;
+
+	SPtr<Texture2D>		_testTexture;
 };
 
 class EditorApp : public NativeUIApp {

@@ -50,7 +50,10 @@ void ImGui_SGE::_createFontsTexture() {
 	using Color = ColorRb;
 
 	Texture2D_CreateDesc texDesc;
-	auto& image = texDesc.imageToUpload;
+	Texture2D::UploadRequest texUploadRequest;
+	texDesc.uploadRequest = &texUploadRequest;
+	auto& image = texUploadRequest.imageToUpload;
+
 	texDesc.size.set(w, h);
 	texDesc.colorType = Color::kColorType;
 	texDesc.mipmapCount = 1;

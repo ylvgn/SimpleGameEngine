@@ -9,22 +9,23 @@
 namespace sge {
 
 class Material_GL : public Material {
+	using Base = Material;
 	using Util = GLUtil;
+	sgeMaterial_InterfaceFunctions(GL);
 
-	struct MyPass;
+	class MyPass;
 
-	Shader_GL* shader() { return static_cast<Shader_GL*>(_shader.ptr()); }
-
-	template<class STAGE>
-	static void _bindStageHelper(RenderContext_GL* ctx, STAGE* stage);
-
-	struct MyVertexStage : public VertexStage {
-		using Base			= VertexStage;
+	#if 0
+	#pragma mark ========= Material_GL::MyVertexStage ============
+	#endif
+	class MyVertexStage : public Material::VertexStage {
+		using Base = typename Material::VertexStage;
+	public:
+		using ShaderStage	= Shader_GL::MyVertexStage;
+		using ShaderPass	= Shader_GL::MyPass;
 		using Pass			= Material_GL::MyPass;
-		using MyShaderStage = Shader_GL::MyVertexStage;
-		using MyShaderPass  = Shader_GL::MyPass;
 
-		MyVertexStage(MaterialPass* pass, ShaderVertexStage* shaderStage)
+		MyVertexStage(MyPass* pass, ShaderVertexStage* shaderStage) noexcept
 			: Base(pass, shaderStage)
 		{}
 
@@ -32,32 +33,37 @@ class Material_GL : public Material {
 		void bindInputLayout(RenderContext_GL* ctx, const VertexLayout* vertexLayout);
 
 		Pass*			pass()			const { return static_cast<Pass*>(_pass); }
-		MyShaderStage*	shaderStage()	const { return static_cast<MyShaderStage*>(_shaderStage); }
-		MyShaderPass*	shaderPass()	const { return pass()->shaderPass(); }
+		ShaderStage*	shaderStage()	const { return static_cast<ShaderStage*>(_shaderStage); }
+		ShaderPass*		shaderPass()	const { return pass()->shaderPass(); }
 		GLuint			shaderProgram()	const { return shaderPass()->program(); }
 
-		void _glSetConstBuffer(GLuint ubIndex, GLuint bindPoint, GLuint glBuf) {
-			glBindBufferBase(GL_UNIFORM_BUFFER, bindPoint, glBuf);
-//			glBindBufferRange(GL_UNIFORM_BUFFER, bindPoint, glBuf, cbInfo->variable[j]->offset, cbInfo->variable[j].datasize); TODO
+		void _glSetConstBuffer(GLuint ubIndex, GLuint bindPoint, GLuint glHandle) {
+			glBindBufferBase(GL_UNIFORM_BUFFER, bindPoint, glHandle);
+//			glBindBufferRange(GL_UNIFORM_BUFFER, bindPoint, glHandle, cbInfo->variable[j]->offset, cbInfo->variable[j].datasize); // TODO
 			glUniformBlockBinding(shaderProgram(), ubIndex, bindPoint);
+			Util::throwIfError();
 		}
 	};
 
-	struct MyPixelStage : public PixelStage {
-		using Base			= PixelStage;
+	#if 0
+	#pragma mark ========= Material_GL::MyPixelStage ============
+	#endif
+	class MyPixelStage : public Material::PixelStage {
+		using Base = typename Material::PixelStage;
+	public:
 		using Pass			= Material_GL::MyPass;
-		using MyShaderStage = Shader_GL::MyPixelStage;
-		using MyShaderPass  = Shader_GL::MyPass;
+		using ShaderStage	= Shader_GL::MyPixelStage;
+		using ShaderPass	= Shader_GL::MyPass;
 
-		MyPixelStage(MaterialPass* pass, ShaderPixelStage* shaderStage)
+		MyPixelStage(MyPass* pass, ShaderPixelStage* shaderStage) noexcept
 			: Base(pass, shaderStage)
 		{}
 
 		void bind(RenderContext_GL* ctx, const VertexLayout* vertexLayout);
 
 		Pass*			pass()			const { return static_cast<Pass*>(_pass); }
-		MyShaderStage*	shaderStage()	const { return static_cast<MyShaderStage*>(_shaderStage); }
-		MyShaderPass*	shaderPass()	const { return pass()->shaderPass(); }
+		ShaderStage*	shaderStage()	const { return static_cast<ShaderStage*>(_shaderStage); }
+		ShaderPass*		shaderPass()	const { return pass()->shaderPass(); }
 		GLuint			shaderProgram()	const { return shaderPass()->program(); }
 
 		void _glSetConstBuffer(GLuint ubIndex, GLuint bindPoint, GLuint glBuf) {
@@ -66,23 +72,35 @@ class Material_GL : public Material {
 		}
 	};
 
-	struct MyPass : public Pass {
-		using Base			= Pass;
+	#if 0
+	#pragma mark ========= Material_GL::MyPass ============
+	#endif
+	class MyPass : public Material::Pass {
+		using Base = typename Material::Pass;
+	public:
 		using MyShaderPass	= Shader_GL::MyPass;
 
-		MyPass(Material* material, ShaderPass* shaderPass);
+		MyPass(Material_GL* material, ShaderPass* shaderPass) noexcept;
 
-		virtual void onBind(RenderContext* ctx, const VertexLayout* vertexLayout) override;
+		virtual void onBind(RenderContext* ctx, const VertexLayout* vertexLayout) final;
 
 		MyShaderPass* shaderPass() { return static_cast<MyShaderPass*>(_shaderPass); }
 
-		MyVertexStage _myVertexStage;
-		 MyPixelStage  _myPixelStage;
+		MyVertexStage _vertexStage;
+		 MyPixelStage  _pixelStage;
 	};
 
-	virtual UPtr<Pass> onCreatePass(ShaderPass* shaderPass) override {
-		return UPtr<Pass>(new MyPass(this, shaderPass));
-	}
+	#if 0
+	#pragma mark ========= Material_GL ============
+	#endif
+	using Pass			= MyPass;
+	using VertexStage	= MyVertexStage;
+	using PixelStage	= MyPixelStage;
+
+	Shader_GL* shader() { return static_cast<Shader_GL*>(_shader.ptr()); }
+
+	template<class STAGE>
+	static void s_bindStageHelper(RenderContext_GL* ctx, STAGE* stage);
 };
 
 } // namespace sge

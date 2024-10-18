@@ -13,15 +13,17 @@ class MaterialPass;
 #if 0
 #pragma mark ========= MaterialPass_Stage ============
 #endif
-struct MaterialPass_Stage : public NonCopyable {
+class MaterialPass_Stage : public NonCopyable {
 	using Pass = MaterialPass;
-
-	virtual ~MaterialPass_Stage() = default;
+public:
 
 	MaterialPass_Stage(MaterialPass* pass, ShaderStage* shaderStage);
+	virtual ~MaterialPass_Stage() = default;
 
 friend class MaterialPass;
 protected:
+
+	// const buffer
 	struct ConstBuffer {
 		using DataType	= ShaderStageInfo::DataType;
 		using Info		= ShaderStageInfo::ConstBuffer;
@@ -89,6 +91,7 @@ protected:
 		}
 	}
 
+	// texture
 	struct TexParam {
 		using DataType	= ShaderStageInfo::DataType;
 		using Info		= ShaderStageInfo::Texture;
@@ -126,37 +129,36 @@ protected:
 		}
 	}
 
-	Pass* _pass = nullptr;
-	ShaderStage* _shaderStage = nullptr;
-
 	Vector<ConstBuffer, 4>	_constBuffers;
 	Vector<TexParam, 4>		_texParams;
+	ShaderStage*			_shaderStage	= nullptr;
+	Pass*					_pass			= nullptr;
+
 public:
+
+	const ShaderStageInfo*	info() const { return _shaderStage->info(); }
 
 	Span<ConstBuffer>	constBuffers()	{ return _constBuffers; }
 	Span<TexParam>		texParams()		{ return _texParams; }
 
-	const ShaderStageInfo* info() const { return _shaderStage->info(); }
 }; // MaterialPass_Stage
 
 #if 0
 #pragma mark ========= MaterialPass_VertexStage ============
 #endif
-struct MaterialPass_VertexStage : public MaterialPass_Stage {
+class MaterialPass_VertexStage : public MaterialPass_Stage {
 	using Base = MaterialPass_Stage;
-	MaterialPass_VertexStage(MaterialPass* pass, ShaderVertexStage* shaderStage)
-		: Base(pass, shaderStage)
-	{}
+public:
+	MaterialPass_VertexStage(MaterialPass* pass, ShaderVertexStage* shaderStage);
 }; // MaterialPass_VertexStage
 
 #if 0
 #pragma mark ========= MaterialPass_PixelStage ============
 #endif
-struct MaterialPass_PixelStage : public MaterialPass_Stage {
+class MaterialPass_PixelStage : public MaterialPass_Stage {
 	using Base = MaterialPass_Stage;
-	MaterialPass_PixelStage(MaterialPass* pass, ShaderPixelStage* shaderStage)
-		: Base(pass, shaderStage)
-	{}
+public:
+	MaterialPass_PixelStage(MaterialPass* pass, ShaderPixelStage* shaderStage);
 }; // MaterialPass_PixelStage
 
 #if 0
@@ -164,6 +166,7 @@ struct MaterialPass_PixelStage : public MaterialPass_Stage {
 #endif
 class MaterialPass : public NonCopyable {
 public:
+	MaterialPass() = delete;
 	virtual ~MaterialPass() noexcept = default;
 
 	using Pass			= MaterialPass;
@@ -177,19 +180,18 @@ public:
 
 friend class Material;
 protected:
-	MaterialPass(Material* material, ShaderPass* shaderPass)
-		: _material(material)
-		, _shaderPass(shaderPass)
-	{}
+	MaterialPass(Material* material, ShaderPass* shaderPass) noexcept;
 
 	virtual void onBind(RenderContext* ctx, const VertexLayout* vertexLayout) = 0;
 
-	template<class V> void _setParam(StrView name, const V& v) {
+	template<class V>
+	void _setParam(StrView name, const V& v) {
 		if (_vertexStage) _vertexStage->_setParam(name, v);
 		 if (_pixelStage)  _pixelStage->_setParam(name, v);
 	}
 
-	template<class V> void _setTexParam(StrView name, const V& v) {
+	template<class V>
+	void _setTexParam(StrView name, const V& v) {
 		if (_vertexStage) _vertexStage->_setTexParam(name, v);
 		 if (_pixelStage)  _pixelStage->_setTexParam(name, v);
 	}
@@ -227,7 +229,7 @@ public:
 	void setShader(Shader* shader);
 	Span< UPtr<Pass> >	passes() { return _passes; }
 
-	Pass* getPass(size_t index) {
+	Pass* getPass(size_t index) const {
 		if (index >= _passes.size()) {
 			SGE_ASSERT(false);
 			return nullptr;
@@ -251,10 +253,19 @@ protected:
 
 	virtual void onSetShader() {}
 	virtual UPtr<Pass> onCreatePass(ShaderPass* shaderPass) = 0;
-	
-	SPtr<Shader> _shader;
+
+	SPtr<Shader>			_shader;
 	Vector<UPtr<Pass>, 2>	_passes;
 
 }; // Material
 
 } // namespace sge
+
+
+#define sgeMaterial_InterfaceFunctions(T) \
+	virtual UPtr<Material::Pass> onCreatePass(Shader::Pass* shaderPass) final;
+//-----
+
+#define sgeMaterial_InterfaceFunctions_Impl(T) \
+	UPtr<Material::Pass> Material_##T::onCreatePass(Shader::Pass* shaderPass) { return UPtr_make<Material_##T::Pass>(this, shaderPass); } \
+//-----

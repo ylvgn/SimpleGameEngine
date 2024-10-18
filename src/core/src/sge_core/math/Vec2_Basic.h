@@ -129,7 +129,11 @@ Vec2_Basic<T, DATA> max(const Vec2_Basic<T, DATA>& a, const Vec2_Basic<T, DATA>&
 								Math::max(a.y, b.y));
 }
 
+template<class T, class DATA> SGE_INLINE
+Vec2_Basic<T, DATA> clamp(const Vec2_Basic<T, DATA>& v, const Vec2_Basic<T, DATA>& a, const Vec2_Basic<T, DATA>& b) {
+	return Vec2_Basic<T, DATA>(	Math::clamp(v.x, a.x, b.x),
+								Math::clamp(v.y, a.y, b.y));
 }
 
-
-}
+} // namespace Math
+} // namespace sge

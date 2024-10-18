@@ -37,8 +37,9 @@ public:
 	Wrap	wrapV	= Wrap::Repeat;
 	Wrap	wrapW	= Wrap::Repeat;
 
-	float	minLOD	= 0;
-	float	maxLOD	= Math::inf<float>();
+	float	minLOD			= 0;
+	float	maxLOD			= Math::inf<float>();
+	float	maxAnisotrory	= 1.f;
 }; // SamplerState
 
 #if 0
@@ -66,12 +67,23 @@ protected:
 }; // Texture
 
 #if 0
+#pragma mark ========= Texture2D_UploadRequest ============
+#endif
+class Texture2D_UploadRequest : public NonCopyable {
+public:
+	Vec2i	offset{0,0};
+	Image	imageToUpload;
+}; // Texture2D_UploadRequest
+
+#if 0
 #pragma mark ========= Texture2D_CreateDesc ============
 #endif
 struct Texture2D_CreateDesc : public Texture_CreateDesc {
+	using UploadRequest = Texture2D_UploadRequest;
+
 	Vec2i			size {0,0};
 	SamplerState	samplerState;
-	Image			imageToUpload;
+	UploadRequest*  uploadRequest = nullptr;
 }; // Texture2D_CreateDesc
 
 #if 0
@@ -80,6 +92,7 @@ struct Texture2D_CreateDesc : public Texture_CreateDesc {
 class Texture2D : public Texture {
 public:
 	using CreateDesc	= Texture2D_CreateDesc;
+	using UploadRequest = Texture2D_UploadRequest;
 
 	ColorType		colorType		() const	{ return _colorType; }
 	int				width			() const	{ return _size.x; }
@@ -98,4 +111,3 @@ protected:
 }; // Texture2D
 
 } // namespace sge
-

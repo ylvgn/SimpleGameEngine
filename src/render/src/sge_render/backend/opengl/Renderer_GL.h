@@ -16,13 +16,8 @@ public:
 	static Renderer_GL* current() { return static_cast<Renderer_GL*>(s_instance); }
 
 protected:
-	virtual SPtr<RenderContext>		onCreateContext(RenderContext_CreateDesc& desc) override;
-	virtual SPtr<RenderGpuBuffer>	onCreateGpuBuffer(RenderGpuBuffer_CreateDesc& desc) override;
-	virtual SPtr<Shader>			onCreateShader(StrView filename) override;
-	virtual SPtr<Material>			onCreateMaterial() override;
-
-	virtual SPtr<Texture2D>			onCreateTexture2D(Texture2D_CreateDesc& desc) { return nullptr; } // TODO
-};
+	sgeRenderer_InterfaceFunctions(GL);
+}; // Renderer_GL
 
 } // namespace sge
 

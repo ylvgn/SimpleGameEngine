@@ -67,11 +67,15 @@ SPtr<Texture2D> Renderer::createSolidColorTexture2D(const Color4b& color) {
 	int w = 4;
 	int h = 4;
 	Texture2D_CreateDesc texDesc;
+	Texture2D::UploadRequest texUploadRequest;
+	texDesc.uploadRequest = &texUploadRequest;
+
+	auto& image = texUploadRequest.imageToUpload;
+
 	texDesc.colorType = ColorType::RGBAb;
 	texDesc.mipmapCount = 1;
 	texDesc.size.set(w, h);
 
-	auto& image = texDesc.imageToUpload;
 	image.create(Color4b::kColorType, w, h);
 
 	for (int y = 0; y < w; y++) {

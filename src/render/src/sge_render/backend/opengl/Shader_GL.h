@@ -10,69 +10,84 @@ class RenderContext_GL;
 
 class Shader_GL : public Shader {
 	using Base = Shader;
+	using Util = GLUtil;
 	sgeShader_InterfaceFunctions(GL);
 public:
-	using Util = GLUtil;
 
-	struct MyPass;
-
-	Shader_GL(StrView filename);
+	class MyPass;
 
 	#if 0
 	#pragma mark ========= Shader_GL::MyVertexStage ============
 	#endif
-	struct MyVertexStage : public ShaderVertexStage {
+	class MyVertexStage : public Shader::VertexStage {
+		using Base = typename Shader::VertexStage;
+	public:
 		using Pass = MyPass;
 
-		MyVertexStage() noexcept = default;
+		MyVertexStage(MyPass* pass) noexcept
+			: Base(pass)
+		{}
+
 		~MyVertexStage() noexcept;
 
-	friend struct MyPass;
+		MyPass* pass() const { return static_cast<MyPass*>(_pass); }
+
+	friend class MyPass;
 	private:
-		MyPass*	_pass	= nullptr;
-		GLuint	_shader = 0;
+		GLuint _handle = 0;
 	}; // MyVertexStage
 
 	#if 0
 	#pragma mark ========= Shader_GL::MyPixelStage ============
 	#endif
-	struct MyPixelStage : public ShaderPixelStage {
+	class MyPixelStage : public Shader::PixelStage {
+		using Base = typename Shader::PixelStage;
+	public:
 		using Pass = MyPass;
 
-		MyPixelStage() noexcept = default;
+		MyPixelStage(MyPass* pass) noexcept
+			: Base(pass)
+		{}
+
 		~MyPixelStage() noexcept;
 
-	friend struct MyPass;
+		MyPass* pass() const { return static_cast<MyPass*>(_pass); }
+
+	friend class MyPass;
 	private:
-		MyPass*	_pass		= nullptr;
-		GLuint	_shader		= 0;
+		GLuint _handle = 0;
 	}; // MyPixelStage
 
 	#if 0
 	#pragma mark ========= Shader_GL::MyPass ============
 	#endif
-	struct MyPass : public ShaderPass {
-		using Base = ShaderPass;
+	class MyPass : public Shader::Pass {
+		using Base = typename Shader::Pass;
+	public:
 
-		MyPass(Shader* shader, int passIndex) noexcept;
+		MyPass(Shader_GL* shader, int passIndex) noexcept;
 		~MyPass() noexcept;
 
 		void bind();
 		void unbind();
 
+		Shader_GL* shader() const { return static_cast<Shader_GL*>(_shader); }
 		GLuint program() const { return _program; }
 
 	private:
-		virtual void onInit() override;
+		virtual void onInit() final;
 
 		MyVertexStage	_vertexStage;
 		MyPixelStage	_pixelStage;
 		GLuint			_program = 0;
 	}; // MyPass
 
+	#if 0
+	#pragma mark ========= Shader_GL ============
+	#endif
+	using Pass			= MyPass;
 	using VertexStage	= MyVertexStage;
 	using PixelStage	= MyPixelStage;
-	using Pass			= MyPass;
 
 }; // Shader_GL
 

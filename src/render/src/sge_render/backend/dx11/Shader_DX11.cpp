@@ -5,32 +5,8 @@
 #if SGE_RENDER_HAS_DX11
 
 namespace sge {
-#if 0
-#pragma mark ========= Shader_DX11 ============
-#endif
-
-sgeShader_InterfaceFunctions_Impl(DX11)
-
-Shader_DX11::Shader_DX11(StrView filename)
-	: Base(filename)
-{
-}
-
-void Shader_DX11::_loadStageFile(StrView passPath, ShaderStageMask stageMask, Vector<u8>& outBytecode, ShaderStageInfo& outInfo) {
-	auto* profile = Util::getDxStageProfile(stageMask);
-
-	auto filename = Fmt("{}/{}.bin", passPath, profile);
-	File::readFile(filename, outBytecode);
-
-	filename += ".json";
-	JsonUtil::readFile(filename, outInfo);
-}
-
-#if 0
-#pragma mark ========= Shader_DX11::MyVertexStage ============
-#endif
-void Shader_DX11::MyVertexStage::load(MyPass* pass, StrView passPath, DX11_ID3DDevice* dev) {
-	_loadStageFile(passPath, stageMask(), _bytecode, _info);
+void Shader_DX11::MyVertexStage::load(StrView passPath, DX11_ID3DDevice* dev) {
+	s_loadStageFile(passPath, stageMask(), _bytecode, _info);
 	auto hr = dev->CreateVertexShader(_bytecode.data(), _bytecode.size(), nullptr, _shader.ptrForInit());
 	Util::throwIfError(hr);
 }
@@ -44,8 +20,8 @@ void Shader_DX11::MyVertexStage::bind(RenderContext_DX11* ctx) {
 #if 0
 #pragma mark ========= Shader_DX11::MyPixelStage ============
 #endif
-void Shader_DX11::MyPixelStage::load(MyPass* pass, StrView passPath, DX11_ID3DDevice* dev) {
-	_loadStageFile(passPath, stageMask(), _bytecode, _info);
+void Shader_DX11::MyPixelStage::load(StrView passPath, DX11_ID3DDevice* dev) {
+	s_loadStageFile(passPath, stageMask(), _bytecode, _info);
 	auto hr = dev->CreatePixelShader(_bytecode.data(), _bytecode.size(), nullptr, _shader.ptrForInit());
 	Util::throwIfError(hr);
 }
@@ -61,9 +37,11 @@ void Shader_DX11::MyPixelStage::bind(RenderContext_DX11* ctx) {
 #endif
 Shader_DX11::MyPass::MyPass(Shader_DX11* shader, int passIndex) noexcept
 	: Base(shader, passIndex)
+	, _vertexStage(this)
+	, _pixelStage(this)
 {
-	_vertexStage = &_myVertexStage;
-	 _pixelStage  = &_myPixelStage;
+	Base::_vertexStage = &_vertexStage;
+	 Base::_pixelStage  = &_pixelStage;
 }
 
 void Shader_DX11::MyPass::onInit() {
@@ -74,8 +52,24 @@ void Shader_DX11::MyPass::onInit() {
 	TempString passPath;
 	FmtTo(passPath, "{}/{}/dx11/pass{}", proj->importedPath(), shaderFilename(), _passIndex);
 
-	if (_info->vsFunc.size()) { _myVertexStage.load(this, passPath, dev); }
-	if (_info->psFunc.size()) {  _myPixelStage.load(this, passPath, dev); }
+	if (_info->vsFunc.size()) { _vertexStage.load(passPath, dev); }
+	if (_info->psFunc.size()) {  _pixelStage.load(passPath, dev); }
+}
+
+#if 0
+#pragma mark ========= Shader_DX11 ============
+#endif
+
+sgeShader_InterfaceFunctions_Impl(DX11)
+
+void Shader_DX11::s_loadStageFile(StrView passPath, ShaderStageMask stageMask, Vector<u8>& outBytecode, ShaderStageInfo& outInfo) {
+	auto* profile = Util::getDxStageProfile(stageMask);
+
+	auto filename = Fmt("{}/{}.bin", passPath, profile);
+	File::readFile(filename, outBytecode);
+
+	filename += ".json";
+	JsonUtil::readFile(filename, outInfo);
 }
 
 } // namespace sge

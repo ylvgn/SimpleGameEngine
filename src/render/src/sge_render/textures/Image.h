@@ -70,7 +70,7 @@ public:
 	void copyToPixelData(ByteSpan src) { _pixelData.assign(src.begin(), src.end()); }
 	void copy(const Image& src);
 
-	const void* dataPtr() const { return _pixelData.data(); }
+	ByteSpan pixelData() const { return _pixelData.span(); }
 
 private:
 	void _create(ColorType colorType, int width, int height, int strideInBytes, int mipmapCount, size_t dataSizeInBytes);
