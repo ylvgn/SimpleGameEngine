@@ -78,7 +78,7 @@ class Material_DX11 : public Material {
 		void _dxSetSampler(DX11_ID3DDeviceContext* dc, UINT bindPoint, DX11_ID3DSamplerState* ss) {
 			dc->PSSetSamplers(bindPoint, 1, &ss);
 		}
-	};
+	}; // MyPixelStage
 
 	#if 0
 	#pragma mark ========= Material_DX11::MyPass ============

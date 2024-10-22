@@ -25,12 +25,13 @@ class RenderCommand : NonCopyable {
 public:
 	using Type = RenderCommandType;
 
-	RenderCommand(Type type)
+	RenderCommand(Type type) noexcept
 		: _type(type)
 #if _DEBUG
 		, debugLoc(SGE_LOC)
 #endif
 	{}
+
 	virtual ~RenderCommand() noexcept = default;
 
 	Type type() const { return _type; }
@@ -50,7 +51,9 @@ class RenderCommand_ClearFrameBuffers : public RenderCommand {
 	using Base = RenderCommand;
 	using This = RenderCommand_ClearFrameBuffers;
 public:
-	RenderCommand_ClearFrameBuffers() : Base(Type::ClearFrameBuffers) {}
+	RenderCommand_ClearFrameBuffers() noexcept
+		: Base(Type::ClearFrameBuffers)
+	{}
 
 	This& setColor(const Color4f& color_)	{ color		= color_;	return *this; }
 	This& setDepth(float depth_)			{ depth		= depth_;	return *this; }
@@ -71,7 +74,10 @@ public:
 class RenderCommand_SwapBuffers : public RenderCommand {
 	using Base = RenderCommand;
 public:
-	RenderCommand_SwapBuffers() : Base(Type::SwapBuffers) {}
+	RenderCommand_SwapBuffers() noexcept
+		: Base(Type::SwapBuffers)
+	{}
+
 }; // RenderCommand_SwapBuffers
 
 #if 0
@@ -80,7 +86,9 @@ public:
 class RenderCommand_DrawCall : public RenderCommand {
 	using Base = RenderCommand;
 public:
-	RenderCommand_DrawCall() : Base(Type::DrawCall) {}
+	RenderCommand_DrawCall() noexcept
+		: Base(Type::DrawCall)
+	{}
 
 	MaterialPass* getMaterialPass() {
 		return material ? material->getPass(materialPassIndex) : nullptr;
@@ -109,9 +117,11 @@ public:
 class RenderCommand_SetScissorRect : public RenderCommand {
 	using Base = RenderCommand;
 public:
-	RenderCommand_SetScissorRect() : Base(Type::SetScissorRect) {}
+	RenderCommand_SetScissorRect() noexcept
+		: Base(Type::SetScissorRect)
+	{}
 
-	Rect2f rect;
+	Rect2f rect{0,0,0,0};
 }; // RenderCommand_SetScissorRect
 
 #if 0
@@ -122,7 +132,7 @@ public:
 
 	void reset(RenderContext* ctx);
 
-	Span<RenderCommand*>	commands() { return _commands; }
+	Span<RenderCommand*> commands() { return _commands; }
 
 	const Rect2f& scissorRect() const { return _scissorRect; }
 
@@ -179,7 +189,7 @@ public:
 
 private:
 	RenderCommandBuffer* _cmdBuf = nullptr;
-	Rect2f	_rect;
+	Rect2f	_rect{0,0,0,0};
 }; // RenderScissorRectScope
 
 } // namespace

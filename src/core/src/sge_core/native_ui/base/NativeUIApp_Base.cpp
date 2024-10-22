@@ -3,11 +3,9 @@
 
 namespace sge {
 
-int NativeUIApp_Base::run(CreateDesc& desc) {
+void NativeUIApp_Base::run(CreateDesc& desc) {
 	onCreate(desc);
 	onRun();
-
-	return _exitCode;
 }
 
 void NativeUIApp_Base::update(float dt) {

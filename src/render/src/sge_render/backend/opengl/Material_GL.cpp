@@ -57,7 +57,7 @@ Material_GL::MyPass::MyPass(Material_GL* material, ShaderPass* shaderPass) noexc
 void Material_GL::MyPass::onBind(RenderContext* ctx_, const VertexLayout* vertexLayout) {
 	auto* ctx = static_cast<RenderContext_GL*>(ctx_);
 
-	shaderPass()->bind(); // use shader program
+	shaderPass()->bind();
 
 	_vertexStage.bind(ctx, vertexLayout);
 	 _pixelStage.bind(ctx, vertexLayout);
@@ -94,7 +94,7 @@ void Material_GL::s_bindStageHelper(RenderContext_GL* ctx, STAGE* stage) {
 			if (ubIndex == GL_INVALID_INDEX)
 				throw SGE_ERROR("shader program not found uniform block '{}'", cbInfo->name);
 
-			GLuint bindPoint = cbInfo->bindPoint; // opengl loc
+			GLuint bindPoint = cbInfo->bindPoint; // glsl uniform loc
 
 			stage->_glSetConstBuffer(ubIndex, bindPoint, handler);
 
@@ -106,7 +106,7 @@ void Material_GL::s_bindStageHelper(RenderContext_GL* ctx, STAGE* stage) {
 		GLuint texUnit = 0;
 		for (auto& texParam : stage->texParams()) {
 			auto* tex = texParam.getUpdatedTexture();
-			int bindPoint = texParam.bindPoint(); // uniform loc
+			int bindPoint = texParam.bindPoint(); // glsl uniform loc
 
 			glActiveTexture(GL_TEXTURE0 + texUnit);
 			glUniform1i(bindPoint, texUnit);
@@ -118,10 +118,10 @@ void Material_GL::s_bindStageHelper(RenderContext_GL* ctx, STAGE* stage) {
 					if (!tex2d) throw SGE_ERROR("");
 
 					const auto& samplerState = tex2d->samplerState();
-					GLenum wrapS = Util::getGlTextureWrap(samplerState.wrapU);
-					GLenum wrapT = Util::getGlTextureWrap(samplerState.wrapV);
-					GLenum minFilter = Util::getGLTextureMinFilter(samplerState.filter, tex2d->mipmapCount());
-					GLenum magFilter = Util::getGLTextureMagFilter(samplerState.filter);
+					GLenum wrapS		= Util::getGlTextureWrap(samplerState.wrapU);
+					GLenum wrapT		= Util::getGlTextureWrap(samplerState.wrapV);
+					GLenum minFilter	= Util::getGLTextureMinFilter(samplerState.filter, tex2d->mipmapCount());
+					GLenum magFilter	= Util::getGLTextureMagFilter(samplerState.filter);
 
 					tex2d->bind();
 
@@ -138,7 +138,6 @@ void Material_GL::s_bindStageHelper(RenderContext_GL* ctx, STAGE* stage) {
 						GLfloat maxAnisotrory = Math::clamp(samplerState.maxAnisotrory, 1.f, mamaximumAnisotropyx);
 						glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, maxAnisotrory);
 					#endif
-					Util::throwIfError();
 				} break;
 
 				default: throw SGE_ERROR("bind unsupported texture type '{}'", texParam.dataType());
@@ -149,7 +148,6 @@ void Material_GL::s_bindStageHelper(RenderContext_GL* ctx, STAGE* stage) {
 		glActiveTexture(GL_TEXTURE0 /* + 0*/);
 		Util::throwIfError();
 	}
-
 }
 
 } // namespace sge

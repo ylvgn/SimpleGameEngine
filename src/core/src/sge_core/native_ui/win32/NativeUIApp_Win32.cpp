@@ -13,8 +13,6 @@ void NativeUIApp_Win32::onCreate(CreateDesc& desc) {
 }
 
 void NativeUIApp_Win32::onRun() {
-	Base::onRun();
-
 	_tickCount			= GetTickCount64();
 	_win32_msg.message	= static_cast<UINT>(~WM_QUIT);
 

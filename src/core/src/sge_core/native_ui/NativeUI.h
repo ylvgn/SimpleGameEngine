@@ -40,8 +40,9 @@ struct sgeMain {
 	sgeMain() = delete;
 
 	static int run(T& app) {
-		SGE_STATIC_ASSERT(sge::TypeTraits::isBaseOf<sge::AppBase, T>::value);
-		return app._run();
+		SGE_STATIC_ASSERT(sge::TypeTraits::isBaseOf<sge::ConsoleApp, T>::value);
+		app.onRun();
+		return app.exitCode();
 	}
 };
 

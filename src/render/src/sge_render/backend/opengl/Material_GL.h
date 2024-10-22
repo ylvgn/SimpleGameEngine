@@ -43,7 +43,7 @@ class Material_GL : public Material {
 			glUniformBlockBinding(shaderProgram(), ubIndex, bindPoint);
 			Util::throwIfError();
 		}
-	};
+	}; // MyVertexStage
 
 	#if 0
 	#pragma mark ========= Material_GL::MyPixelStage ============
@@ -70,7 +70,7 @@ class Material_GL : public Material {
 			glBindBufferBase(GL_UNIFORM_BUFFER, bindPoint, glBuf);
 			glUniformBlockBinding(shaderProgram(), ubIndex, bindPoint);
 		}
-	};
+	}; // MyPixelStage
 
 	#if 0
 	#pragma mark ========= Material_GL::MyPass ============
@@ -88,7 +88,7 @@ class Material_GL : public Material {
 
 		MyVertexStage _vertexStage;
 		 MyPixelStage  _pixelStage;
-	};
+	}; // MyPass
 
 	#if 0
 	#pragma mark ========= Material_GL ============

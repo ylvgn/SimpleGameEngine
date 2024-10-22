@@ -138,8 +138,8 @@ public:
 
 	const ShaderStageInfo*	info() const { return _shaderStage->info(); }
 
-	Span<ConstBuffer>	constBuffers()	{ return _constBuffers; }
-	Span<TexParam>		texParams()		{ return _texParams; }
+	Span<ConstBuffer>	constBuffers()	 { return _constBuffers; }
+	Span<TexParam>		texParams()		 { return _texParams; }
 
 }; // MaterialPass_Stage
 
@@ -239,13 +239,15 @@ public:
 
 protected:
 
-	template<class V> void _setParam(StrView name, const V& v) {
+	template<class V>
+	void _setParam(StrView name, const V& v) {
 		for (auto& pass : _passes) {
 			if (pass) pass->_setParam(name, v);
 		}
 	}
 
-	template<class V> void _setTexParam(StrView name, const V& v) {
+	template<class V>
+	void _setTexParam(StrView name, const V& v) {
 		for (auto& pass : _passes) {
 			if (pass) pass->_setTexParam(name, v);
 		}

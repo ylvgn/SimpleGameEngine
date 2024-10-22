@@ -7,7 +7,6 @@ namespace sge {
 class ShaderCompiler : public ConsoleApp {
 public:
 
-protected:
 	virtual void onRun() override {
 		{
 			String file = getExecutableFilename();
@@ -31,6 +30,7 @@ protected:
 		SGE_LOG("---- end ----");
 	}
 
+private:
 	void compile(StrView shaderFilename) {
 		ShaderInfo info;
 

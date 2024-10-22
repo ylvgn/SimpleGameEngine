@@ -1,4 +1,5 @@
 #pragma once
+
 #include <sge_core/app/ConsoleApp.h>
 
 namespace sge {
@@ -9,7 +10,7 @@ public:
 	struct CreateDesc {
 	};
 
-			int  run(CreateDesc& desc);
+			void run(CreateDesc& desc);
 			void update(float dt);
 			void quit(int returnCode);
 	virtual void willQuit() {}
@@ -18,11 +19,9 @@ public:
 
 	int		fps()			const { return _fps; }
 	u64		frameCount()	const { return _frameCount; }
-	int		exitCode()		const { return _exitCode; }
 
 protected:
 	virtual void onCreate(CreateDesc& desc) {}
-	virtual void onRun() {}
 	virtual void onUpdate(float dt) {};
 	virtual	void onQuit() {}
 
@@ -37,8 +36,6 @@ protected:
 	float	_targetFrequency	= 1.f / _fps;
 	float	_fastForwardMinSec	= _targetFrequency * 20 + kFastForwardFrequency;
 	float	_acceptableMaxSec	= _targetFrequency * 0.2f;
-
-	int		_exitCode			= 0;
 };
 
 } // namespace sge

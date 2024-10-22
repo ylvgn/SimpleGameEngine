@@ -19,7 +19,10 @@ namespace sge {
 class RenderContext_GL : public RenderContext_GL_Impl {
 	using Base = RenderContext_GL_Impl;
 public:
-	RenderContext_GL(CreateDesc& desc) : Base(desc) {}
+	RenderContext_GL(CreateDesc& desc)
+		: Base(desc)
+	{}
+
 }; // RenderContext_GL
 
 } // namespace sge

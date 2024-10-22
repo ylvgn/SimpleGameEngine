@@ -31,12 +31,10 @@ public:
 	void	setAppName(StrView s) { _appName = s; }
 	StrView	appName();
 
-	String getExecutableFilename();
+	String	getExecutableFilename();
 
-	int _run();
-
-protected:
 	virtual void onRun() = 0;
+
 private:
 	UPtr<AppArguments>	_args;
 	String				_appName;

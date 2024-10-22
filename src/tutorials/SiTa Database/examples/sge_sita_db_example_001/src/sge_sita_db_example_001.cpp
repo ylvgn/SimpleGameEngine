@@ -14,7 +14,7 @@ struct Row {
 };
 
 class SiTaDBExample001 : public ConsoleApp {
-protected:
+public:
 	virtual void onRun() override {
 
 		{ // set working dir
@@ -33,7 +33,6 @@ protected:
 		_fetchData();
 	}
 private:
-
 	void _writeData() {
 		{
 			_conn->directExec("INSERT INTO `test_db`.`test_table` (`name`, `count`, `weight`) VALUES ('aa', '111', '1.11');");

@@ -14,7 +14,7 @@ struct Row {
 };
 
 class SiTaDBExample002 : public ConsoleApp {
-protected:
+public:
 	virtual void onRun() override {
 
 		{ // set working dir

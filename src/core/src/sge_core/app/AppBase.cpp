@@ -43,8 +43,11 @@ StrView AppBase::appName() {
 	return _appName;
 }
 
-String AppBase::getExecutableFilename() {
+#if 0
+#pragma mark ========= Windows ============
+#endif
 #if SGE_OS_WINDOWS
+String AppBase::getExecutableFilename() {
 	wchar_t tmp[MAX_PATH + 1];
 	if (!GetModuleFileName(nullptr, tmp, MAX_PATH))
 		throw SGE_ERROR("");
@@ -53,12 +56,7 @@ String AppBase::getExecutableFilename() {
 
 	String o = UtfUtil::toString(tmp);
 	return o;
+}
 #endif
-}
-
-int AppBase::_run() {
-	onRun();
-	return 0;
-}
 
 } // namespace sge

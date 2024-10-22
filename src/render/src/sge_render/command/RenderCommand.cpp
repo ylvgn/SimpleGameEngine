@@ -10,7 +10,7 @@ void RenderCommandBuffer::reset(RenderContext* ctx) {
 	_allocator.clear();
 	_commands.clear();
 
-	_scissorRect = Rect2f(Vec2f(0, 0), ctx->frameBufferSize());
+	_scissorRect = Rect2f(Vec2f::s_zero(), ctx->frameBufferSize());
 }
 
-} // namespace
+} // namespace sge
