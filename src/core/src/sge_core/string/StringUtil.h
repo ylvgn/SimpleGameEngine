@@ -9,12 +9,9 @@ namespace sge {
 struct StringUtil {
 	StringUtil() = delete;
 
-	static void binToHex(String& result, Span<u8> data) {
-		result.clear();
-		appendBinToHex(result, data);
-	}
+	static void binToHex(String& out, Span<u8> data);
 
-	static void appendBinToHex(String& result, ByteSpan data);
+	static void appendBinToHex(String& out, ByteSpan data);
 	
 	static bool hasChar(StrView view, char ch) { return StrView::npos != view.find(ch); }
 
@@ -27,7 +24,8 @@ struct StringUtil {
 	static const char* findCharFromEnd	(StrView view, StrView charList, bool ignoreCase);
 
 	static int  ignoreCaseCompare(StrView a, StrView b);
-	static int  ignoreCaseCompare(char a, char b) { return tolower(a) - tolower(b); }
+	static int  ignoreCaseCompare(char a, char b)		{ return tolower(a) - tolower(b); }
+	static int  ignoreCaseCompare(wchar_t a, wchar_t b) { return towlower(a) - towlower(b); }
 
 	static bool tryParse(StrView view, i8 & outValue);
 	static bool tryParse(StrView view, i16& outValue);
@@ -73,6 +71,7 @@ StrView StringUtil::trimChar(StrView view, StrView charList) {
 }
 
 } // namespace sge
+
 
 inline
 std::ostream& operator<<(std::ostream& s, const sge::StrView& v) {

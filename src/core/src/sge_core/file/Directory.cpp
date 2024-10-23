@@ -6,10 +6,11 @@
 namespace sge {
 
 void Directory::create(StrView path) {
-	if (exists(path)) return;
+	if (exists(path))
+		return;
 
 	auto parent = FilePath::dirname(path);
-	if (parent.size()) {
+	if (!parent.empty()) {
 		create(parent); // create recursively
 	}
 
@@ -21,7 +22,6 @@ void Directory::create(StrView path) {
 #if 0
 #pragma mark ================= Windows ====================
 #endif
-
 void Directory::setCurrent(StrView dir) {
 	TempStringW tmp = UtfUtil::toStringW(dir);
 	::SetCurrentDirectory(tmp.c_str());
@@ -39,18 +39,19 @@ void Directory::_create(StrView path) {
 	TempStringW pathW;
 	UtfUtil::convert(pathW, path);
 	auto ret = ::CreateDirectory(pathW.c_str(), nullptr);
-	if (!ret) throw SGE_ERROR("create directory {}", path);
+	if (!ret)
+		throw SGE_ERROR("::CreateDirectory {}", path);
 }
 
 bool Directory::exists(StrView path) {
 	TempStringW pathW;
 	UtfUtil::convert(pathW, path);
 
-	DWORD dwAttrib = ::GetFileAttributes(pathW.c_str());
+	::DWORD dwAttrib = ::GetFileAttributes(pathW.c_str());
 	return (dwAttrib != INVALID_FILE_ATTRIBUTES && (dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 }
 
-#else
+#else // Windows
 
 #if 0
 #pragma mark ================= Unix ====================
@@ -72,6 +73,6 @@ bool Directory::exists(StrView path ) {
 	return ( s.st_mode & S_IFDIR ) != 0;
 }
 
-#endif
+#endif // Unix
 
-}
+} // namespace sge

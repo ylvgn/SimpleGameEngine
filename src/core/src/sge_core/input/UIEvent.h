@@ -134,7 +134,7 @@ struct UIKeyboardEvent {
 	bool isUp(KeyCode k)	const { return pressedKeyCodes[enumInt(k)] == Type::Up; }
 	bool isDown(KeyCode k)	const { return pressedKeyCodes[enumInt(k)] == Type::Down; }
 
-	StrView data()		const { return charCodeStr; }
+	StrView data()		const { return charCodeStr.view(); }
 
 	Type				type		= Type::None;
 	KeyCode				keyCode		= KeyCode::None;

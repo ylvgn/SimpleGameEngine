@@ -2,20 +2,24 @@
 %~d0
 cd %~dp0
 
+set triplets=x64-windows
+
 git clone https://github.com/microsoft/vcpkg.git externals\vcpkg
 
 call externals\vcpkg\bootstrap-vcpkg.bat
 
-externals\vcpkg\vcpkg install fmt:x64-windows --recurse
-externals\vcpkg\vcpkg install eastl:x64-windows --recurse
-externals\vcpkg\vcpkg install glew:x64-windows-static --recurse
-externals\vcpkg\vcpkg install nlohmann-json:x64-windows --recurse
-externals\vcpkg\vcpkg install libpng:x64-windows --recurse
-externals\vcpkg\vcpkg install imgui:x64-windows --recurse
-externals\vcpkg\vcpkg install glad[gl-api-33]:x64-windows --recurse
-@REM externals\vcpkg\vcpkg install nuklear:x64-windows --recurse
-externals\vcpkg\vcpkg install spirv-cross:x64-windows --recurse
-externals\vcpkg\vcpkg install glm:x64-windows --recurse
-externals\vcpkg\vcpkg install glfw3:x64-windows --recurse
+externals\vcpkg\vcpkg install vcpkg-tool-ninja:%triplets% --recurse
+externals\vcpkg\vcpkg install fmt:%triplets% --recurse
+externals\vcpkg\vcpkg install eastl:%triplets% --recurse
+externals\vcpkg\vcpkg install glew:%triplets%-static --recurse
+externals\vcpkg\vcpkg install nlohmann-json:%triplets% --recurse
+externals\vcpkg\vcpkg install libpng:%triplets% --recurse
+externals\vcpkg\vcpkg install imgui:%triplets% --recurse
+externals\vcpkg\vcpkg install glad[gl-api-33]:%triplets% --recurse
+@REM externals\vcpkg\vcpkg install nuklear:%triplets% --recurse
+externals\vcpkg\vcpkg install spirv-cross:%triplets% --recurse
+externals\vcpkg\vcpkg install shaderc:%triplets% --recurse
+externals\vcpkg\vcpkg install glm:%triplets% --recurse
+externals\vcpkg\vcpkg install glfw3:%triplets% --recurse
 
 @pause

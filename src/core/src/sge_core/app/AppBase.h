@@ -22,10 +22,10 @@ private:
 #endif
 class AppBase : public NonCopyable {
 public:
-	AppBase()			noexcept = default;
-	virtual ~AppBase()	noexcept = default;
+	AppBase() = default;
+	virtual ~AppBase() = default;
 
-	void				setCommandArguments(int argc, const char* argv[]);
+	void setCommandArguments(int argc, const char* argv[]);
 	Span<const StrView> commandArguments() const;
 
 	void	setAppName(StrView s) { _appName = s; }

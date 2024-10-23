@@ -104,6 +104,13 @@ intptr_t memberOffset(Member Obj::*ptrToMember) {
 	return reinterpret_cast<intptr_t>(m);
 }
 
+template<class T> inline
+size_t charStrlen(const T* sz) {
+	const auto* p = sz;
+	while (*p) ++p;
+	return static_cast<size_t>(p - sz);
+}
+
 template<class T> using UPtr = eastl::unique_ptr<T>;
 template <class T, class... Args> inline UPtr<T> UPtr_make(Args&&... args) {
 	return eastl::make_unique<T>(SGE_FORWARD(args)...);
@@ -165,7 +172,40 @@ template<class KEY> using Set = eastl::set<KEY>;
 
 template<class T> using Opt = eastl::optional<T>;
 
-template<class T> using StrViewT = eastl::basic_string_view<T>;
+template<class T, size_t N, bool bEnableOverflow = true> class StringT; //!!<-- forward declare
+template<class T> using StrViewT_Base = eastl::basic_string_view<T>;	// typedef
+
+template<class T>
+class StrViewT : public StrViewT_Base<T> {
+	using Base = typename StrViewT_Base<T>;
+	using size_type = typename Base::size_type;
+public:
+	StrViewT() = default;
+	StrViewT(const StrViewT& other)			: Base(other) {}
+	StrViewT(const T* s, size_type count)	: Base(s, count) {}
+	StrViewT(const T* s)					: Base(s) {}
+	StrViewT(const Base& s)					: Base(s.data(), s.size()) {}
+
+	template<size_t N>
+	StrViewT(const StringT<T, N>& s)		: Base(s.data(), s.size()) {}
+
+	StrViewT& operator=(const StrViewT& view) = default;
+
+	StrViewT<T> extractFromPrefix(StrViewT prefix) const {
+		return starts_with(prefix) ? sliceFrom(prefix.size()) : StrViewT();
+	}
+
+	StrViewT<T> sliceFrom(int offset) const { return slice(offset, mnCount - offset); }
+
+	StrViewT<T> slice(int offset, int size) const {
+		if (offset < 0 || size < 0 || offset + size > mnCount)
+			throw std::out_of_range("StrViewT::slice -- out of range");
+		return StrViewT(begin() + offset, size);
+	}
+
+	explicit operator bool() const { return !empty(); }
+};
+
 using StrViewA  = StrViewT<char>;
 using StrViewW  = StrViewT<wchar_t>;
 
@@ -187,13 +227,29 @@ template<class T, size_t N, bool bEnableOverflow = true> // using FixedStringT =
 class StringT : public StringT_Base<T, N, bEnableOverflow>::Type {
 	using Base = typename StringT_Base<T, N, bEnableOverflow>::Type;
 public:
+	using Base::npos;
+	using Base::mPair;
+	using Base::append;
+	using Base::resize;
+	using Base::clear;
+	using Base::capacity;
+	using Base::size;
+	using Base::sprintf_va_list;
+	using Base::DoAllocate;
+	using Base::DoFree;
+	using Base::internalLayout;
+	using Base::get_allocator;
+
 	StringT() = default;
-	StringT(const T* begin, const T* end)				: Base(begin, end) {}
-	StringT(StrViewT<T> view)							: Base(view.data(), view.size()) {}
-	StringT(StringT&& str)								: Base(std::move(str)) {}
-	StringT(const T* sz)								: Base(sz) {}
-	StringT(const StringT& s)							: Base(s.data(), s.size()) {}
-	template<size_t M> StringT(const StringT<T, M>& s)	: Base(s.data(), s.size()) {}
+	StringT(const T* begin, const T* end)	: Base(begin, end) {}
+	StringT(StrViewT<T> view)				: Base(view.data(), view.size()) {}
+	StringT(StringT&& str)					: Base(std::move(str)) {}
+	StringT(const T* sz)					: Base(sz) {}
+	StringT(const StringT& s)				: Base(s.data(), s.size()) {}
+	StringT(const Base& s)					: Base(s.data(), s.size()) {}
+
+	template<size_t M>
+	StringT(const StringT<T, M>& s)			: Base(s.data(), s.size()) {}
 
 						void operator=(const StringT& s)		{ Base::assign(s.data(), s.size()); }
 	template<size_t N>	void operator=(const StringT<T, N>& r)	{ Base::assign(s.data(), s.size()); }
@@ -203,7 +259,20 @@ public:
 	template<size_t N>	void operator+=(const StringT<T, N>& v) { Base::append(v.begin(), v.end()); }
 	template<class R>	void operator+=(const R& r)				{ Base::operator+=(r); }
 
+	void append(const StrViewT<T>& s)	{ Base::append(s.data(), s.size()); }
+
+	template<size_t M>
+	void append(const StringT<T, M>& s)	{ Base::append(s.data(), s.size()); }
+
 	StrViewT<T>	view() const { return StrViewT<T>(data(), size()); }
+
+	void replaceChars(T from, T to) {
+		auto* s = data();
+		auto* e = s + size();
+		for ( ; s < e; ++ s) {
+			if (*s == from) *s = to;
+		}
+	}
 };
 
 template<size_t N, bool bEnableOverflow = true> using StringA_ = StringT<char,    N, bEnableOverflow>;
@@ -234,6 +303,26 @@ template<class T, size_t N> inline bool operator!=(StrViewT<T> lhs, const String
 template<class T> inline bool operator==(StrViewT<T> lhs, const T* rhs) { return lhs.compare(rhs) == 0; }
 template<class T> inline bool operator!=(StrViewT<T> lhs, const T* rhs) { return lhs.compare(rhs) != 0; }
 
+template<class T, size_t N> inline
+StringT<T, N> operator+(const StringT<T, N>& a, StrViewT<T> b) {
+	StringT<T, N> o;
+	o.reserve(a.size() + b.size());
+	o.append(a.begin(), a.end());
+	o.append(b.begin(), b.end());
+	return o;
+}
+
+template<class T, size_t N, size_t M> inline
+StringT<T, N> operator+(const StringT<T, N>& a, const StringT<T, M>& b) {
+	return a + b.view();
+}
+
+template<class T, size_t N> inline
+StringT<T, N> operator+(const StringT<T, N>& a, const T* b) {
+	StrViewT<T> view(b, charStrlen(b));
+	return a + view;
+}
+
 inline StrView StrView_make(ByteSpan s) {
 	return StrView(reinterpret_cast<const char*>(s.data()), s.size());
 }
@@ -261,13 +350,6 @@ struct WCharUtil {
 	Char    toChar (wchar_t c) { return static_cast<Char>(c); }
 	wchar_t toWChar(Char    c) { return static_cast<wchar_t>(c); }
 };
-
-template<class T> inline
-size_t charStrlen(const T* sz) {
-	const auto* p = sz;
-	while (*p) ++p;
-	return static_cast<size_t>(p - sz);
-}
 
 inline StrView   StrView_c_str(const char*		s)	{ return s ? StrView  (s, strlen(s))	 : StrView (); } // char8_t: require c++20
 inline StrView16 StrView_c_str(const char16_t*	s)	{ return s ? StrView16(s, charStrlen(s)) : StrView16(); }

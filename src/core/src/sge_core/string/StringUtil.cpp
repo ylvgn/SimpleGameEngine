@@ -1,10 +1,15 @@
 #include "StringUtil.h"
 #include "UtfUtil.h"
-#include "../math/Math.h"
+#include <sge_core/math/Math.h>
 
 namespace sge {
 
-void StringUtil::appendBinToHex(String& result, ByteSpan data) {	
+void StringUtil::binToHex(String& out, Span<u8> data) {
+	out.clear();
+	appendBinToHex(out, data);
+}
+
+void StringUtil::appendBinToHex(String& out, ByteSpan data) {
 	const char* hex = "0123456789ABCDEF";
 	size_t lineCount = (data.size() + 15) / 16;
 
@@ -15,15 +20,16 @@ void StringUtil::appendBinToHex(String& result, ByteSpan data) {
 
 			if (index < data.size()) {
 				u8 v = data[index];
-				result.push_back(hex[v >> 4]);
-				result.push_back(hex[v & 0xF]);
-			} else {
-				result.append("  ");
+				out.push_back(hex[v >> 4]);
+				out.push_back(hex[v & 0xF]);
 			}
-			result.push_back(' ');
+			else {
+				out.append("  ");
+			}
+			out.push_back(' ');
 		}
 
-		result.append("    ");
+		out.append("    ");
 
 		for (size_t i = 0; i < 16; i++) {
 			size_t index = lineStart + i;
@@ -31,17 +37,18 @@ void StringUtil::appendBinToHex(String& result, ByteSpan data) {
 			if (index < data.size()) {
 				u8 v = data[index];
 				if (v < 32) {
-					result.push_back(' '); // non-printable character
-				} else {
-					result.push_back(v);
+					out.push_back(' '); // non-printable character
 				}
-			} else {
-				result.push_back(' ');
+				else {
+					out.push_back(v);
+				}
 			}
-//			result.push_back(' ');
+			else {
+				out.push_back(' ');
+			}
+//			out.push_back(' ');
 		}
-
-		result.push_back('\n');
+		out.push_back('\n');
 	}
 }
 
@@ -52,7 +59,7 @@ const char* StringUtil::findChar(StrView view, StrView charList, bool ignoreCase
 
 	if (ignoreCase) {
 		for ( ; p < end; p++ ) {
-			for (auto& ch : charList) {
+			for (const auto& ch : charList) {
 				if (ignoreCaseCompare(*p, ch) == 0) {
 					return p;
 				}
@@ -60,7 +67,7 @@ const char* StringUtil::findChar(StrView view, StrView charList, bool ignoreCase
 		}
 	} else {
 		for ( ; p < end; p++ ) {
-			for (auto& ch : charList) {
+			for (const auto& ch : charList) {
 				if (*p == ch) {
 					return p;
 				}
@@ -98,6 +105,8 @@ const char* StringUtil::findCharFromEnd(StrView view, StrView charList, bool ign
 }
 
 struct StringUtil_ParseHelper {
+	StringUtil_ParseHelper() = delete;
+
 	template<class T> SGE_INLINE
 	static bool tryParseInt(StrView view, T& outValue) {
 		SGE_STATIC_ASSERT(TypeTraits::isSigned<T>::value);
@@ -163,4 +172,4 @@ bool StringUtil::tryParse(StrView view, u64& outValue) { return StringUtil_Parse
 bool StringUtil::tryParse(StrView view, f32& outValue) { return StringUtil_ParseHelper::tryParseFloat(view, outValue); }
 bool StringUtil::tryParse(StrView view, f64& outValue) { return StringUtil_ParseHelper::tryParseFloat(view, outValue); }
 
-} // namespace
+} // namespace sge
