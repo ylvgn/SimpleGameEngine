@@ -260,7 +260,7 @@ void RenderContext_GL_Win32::onSetFrameBufferSize(const Vec2f& newSize) {
 	int newHeight = int(newSize.y);
 
 	// TODO: reset frame buffer size
-	if (_viewFramebuffer) {
+	if (_viewFramebuffer && newWidth > 0 && newHeight > 0) {
 		_createBuffers();
 	}
 
@@ -431,8 +431,8 @@ void RenderContext_GL_Win32::_setTestShaders(const VertexLayout* vertexLayout) {
 void RenderContext_GL_Win32::_createBuffers() {
 	_destroyBuffers();
 
-	GLint width  = Math::max(1, GLint(_frameBufferSize.x)); // 0 is not allow, when minimize Windows!!
-	GLint height = Math::max(1, GLint(_frameBufferSize.y));
+	GLint width  = GLint(_frameBufferSize.x);
+	GLint height = GLint(_frameBufferSize.y);
 
 	// view render buffer
 	glGenFramebuffers(1, &_viewFramebuffer);
@@ -442,6 +442,7 @@ void RenderContext_GL_Win32::_createBuffers() {
 	//glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _viewRenderbuffer);
 	Util::throwIfError();
 
+	SGE_ASSERT(width > 0 && height > 0);
 	glGenTextures(1, &_testScreenQuadTexturebuffer);
 	glBindTexture(GL_TEXTURE_2D, _testScreenQuadTexturebuffer);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
