@@ -6,12 +6,12 @@ namespace sge {
 void Cmd::exec(Param* params, size_t n) {
 	SGE_ASSERT(!_execFileName.empty());
 
-	auto curDir = Directory::getCurrent();
+	auto oldDir = Directory::current();
 	bool hasChangeDir = !_workingDir.empty();
 
 	if (hasChangeDir) Directory::setCurrent(_workingDir);
 	onExec(params, n);
-	if (hasChangeDir) Directory::setCurrent(curDir);
+	if (hasChangeDir) Directory::setCurrent(oldDir);
 }
 
 }

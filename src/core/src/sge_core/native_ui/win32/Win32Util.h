@@ -11,6 +11,12 @@ struct Win32Util {
 
 	using KeyCode = UIKeyboardEventKeyCode;
 
+	static void errorTo(String& out, ::DWORD in_errorcode = ::WSAGetLastError());
+	static void errorTo(String& out, ::HRESULT hr) { errorTo(out, static_cast<::DWORD>(hr)); }
+
+	static String error(::DWORD in_errorcode = ::WSAGetLastError()) { String o; errorTo(o, in_errorcode); return o; }
+	static String error(::HRESULT hr) { return error(static_cast<::DWORD>(hr)); }
+
 	static void convert(Rect2f& o, const ::RECT& i) {
 		o.x = static_cast<float>(i.left);
 		o.y = static_cast<float>(i.top);
@@ -86,7 +92,7 @@ struct Win32Util {
 
 }; // Win32Util
 
-} // namespace
+} // namespace sge
 
 
 template<>

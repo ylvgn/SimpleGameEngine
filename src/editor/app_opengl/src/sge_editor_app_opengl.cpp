@@ -136,8 +136,7 @@ public:
 			workingDir.append("/../../../../../../examples/Test101");
 
 			Directory::setCurrent(workingDir);
-			auto curDir = Directory::getCurrent();
-			SGE_LOG("current dir={}", curDir);
+			SGE_DUMP_VAR(Directory::current());
 		}
 
 		// compile shaders

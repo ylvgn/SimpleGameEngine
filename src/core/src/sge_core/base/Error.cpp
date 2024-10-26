@@ -10,4 +10,4 @@ Error::Error(const SrcLoc& loc, StrView msg)
 	SGE_ASSERT(false);
 }
 
-} // namespace
+} // namespace sge

@@ -3,21 +3,18 @@
 #include "CommandLine.h"
 
 namespace sge {
-
+#if SGE_OS_WINDOWS
 #if 0
 #pragma mark ========= Windows ============
 #endif
-#if SGE_OS_WINDOWS
+
 void ShellCmd::onExec(Param* params, size_t n) {
 	TempStringW tmpExecFileName;
 	UtfUtil::convert(tmpExecFileName, _execFileName);
 
-	TempStringW tmpParamAssignment = _paramAssignment == ParamAssignment::Space
-									? L" "
-									: L"=";
-
 	TempStringW tmpParams;
 	TempStringW tmpW;
+	TempStringW tmpParamAssignment;
 
 	for (int i = 0; i < n; ++i) {
 		const auto& param = params[i];
@@ -26,12 +23,11 @@ void ShellCmd::onExec(Param* params, size_t n) {
 		if (!tmpParams.empty())
 			tmpParams.append(L" ");
 
-		param.opNameW(tmpW);
-		tmpParams.append(tmpW);
+		param.opNameW(tmpW); tmpParams.append(tmpW);
 
 		param.opValueW(tmpW);
 		if (!tmpW.empty()) {
-			tmpParams.append(tmpParamAssignment);
+			param.opAssignmentW(tmpParamAssignment); tmpParams.append(tmpParamAssignment);
 			tmpParams.append(tmpW);
 		}
 	}
@@ -56,4 +52,4 @@ void ShellCmd::onExec(Param* params, size_t n) {
 }
 #endif // SGE_OS_WINDOWS
 
-}
+} // namespace sge

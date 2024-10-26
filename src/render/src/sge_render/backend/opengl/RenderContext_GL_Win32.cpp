@@ -396,13 +396,13 @@ void RenderContext_GL_Win32::_setTestShaders(const VertexLayout* vertexLayout) {
 	{
 		if (!_testVertexShader) {
 			TempString tmp(shaderFile + ".spv_vs.vert");
-			Util::compileShader(_testVertexShader, GL_VERTEX_SHADER, tmp.c_str());
+			Util::compileShader(_testVertexShader, Util::getGlShaderType(ShaderStageMask::Vertex), tmp);
 		}
 	}
 	{
 		if (!_testPixelShader) {
 			TempString tmp(shaderFile + ".spv_ps.frag");
-			Util::compileShader(_testPixelShader, GL_FRAGMENT_SHADER, tmp.c_str());
+			Util::compileShader(_testPixelShader, Util::getGlShaderType(ShaderStageMask::Pixel), tmp);
 		}
 	}
 

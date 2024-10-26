@@ -10,7 +10,7 @@ namespace sge {
 
 void File::writeBytes(StrView filename, ByteSpan buf) {
 	FileStream s;
-	s.openWrite(filename, true );
+	s.openWrite(filename, true);
 	s.writeBytes(buf);
 }
 
@@ -38,7 +38,7 @@ char File::writeFile(StrView filename, ByteSpan data, bool createDir, bool logRe
 
 	if (createDir) {
 		auto dir = FilePath::dirname(realPath);
-		if (dir.size()) {
+		if (!dir.empty()) {
 			Directory::create(dir);
 		}
 	}
@@ -58,10 +58,10 @@ char File::writeFileIfChanged(StrView filename, ByteSpan data, bool createDir, b
 	auto realPath = FilePath::realpath(filename);
 
 	if (exists(realPath)) {
-		MemMapFile map;		
-		map.open(realPath);
+		MemMapFile mm;
+		mm.open(realPath);
 
-		if (map.span() == data) {
+		if (mm.span() == data) {
 			op = '=';
 		}else{
 			op = 'U';
@@ -78,16 +78,19 @@ char File::writeFileIfChanged(StrView filename, ByteSpan data, bool createDir, b
 	return writeFile(realPath, data, createDir, false);
 }
 
+void File::touch(StrView filename) {
+	FileStream s;
+	s.openWrite(filename, false);
+}
 
 #if SGE_OS_WINDOWS
 #if 0
 #pragma mark ================= Windows ====================
 #endif
-
 bool File::exists(StrView filename) {
-	TempStringW filenameW;
-	UtfUtil::convert(filenameW, filename);
-	DWORD dwAttrib = ::GetFileAttributes(filenameW.c_str());
+	TempStringW pathW;
+	UtfUtil::convert(pathW, filename);
+	::DWORD dwAttrib = ::GetFileAttributes(pathW.c_str());
 	return (dwAttrib != INVALID_FILE_ATTRIBUTES && !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 }
 
@@ -96,21 +99,28 @@ void File::rename(StrView src, StrView dst) {
 	UtfUtil::convert(srcW, src);
 	UtfUtil::convert(dstW, dst);
 
-	if( 0 != ::_wrename(srcW.c_str(), dstW.c_str() ) ) {
-		throw SGE_ERROR("rename file {}->{}", src, dst);
+	if ( 0 != ::_wrename(srcW.c_str(), dstW.c_str() ) ) {
+		throw SGE_ERROR("::_wrename {}->{} error", src, dst);
 	}
+}
+
+void File::remove(StrView filename) {
+	TempStringW pathW;
+	UtfUtil::convert(pathW, filename);
+	int ret = ::DeleteFile(pathW.c_str());
+	if (!ret)
+		throw SGE_ERROR("::DeleteFile({}) error: {}", filename, ::WSAGetLastError());
 }
 
 #else
 #if 0
 #pragma mark ================= UNIX ====================
 #endif
-
-bool File::exists(StrView filename ) {
-	TempStringA filenameA;
-	UtfUtil::convert(filenameA, filename);
+bool File::exists(StrView filename) {
+	TempStringA pathA;
+	UtfUtil::convert(pathA, filename);
 	struct stat s;
-	if( 0 != ::stat( filenameA.c_str(), &s ) ) return false;
+	if ( 0 != ::stat(pathA.c_str(), &s) ) return false;
 	return ( s.st_mode & S_IFDIR ) == 0;
 }
 
@@ -120,11 +130,11 @@ void File::rename(StrView src, StrView dst) {
 	UtfUtil::convert(dstA, dst);
 
 	auto ret = ::rename(srcA.c_str(), dstA.c_str() );
-	if( ret != 0 ) {
+	if ( ret != 0 ) {
 		throw SGE_ERROR("rename file {}->{}", src, dst);
 	}
 }
 
 #endif
 
-}
+} // namespace sge

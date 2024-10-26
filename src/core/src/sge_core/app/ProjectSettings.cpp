@@ -13,7 +13,7 @@ void ProjectSettings::setProjectRoot(StrView path) {
 
 	_projectRoot = path;
 
-	//auto dir = Directory::getCurrent();
+	//auto dir = Directory::current();
 	//SGE_LOG("projectRoot = {}", dir);
 }
 

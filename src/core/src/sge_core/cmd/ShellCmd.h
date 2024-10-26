@@ -12,4 +12,4 @@ protected:
 	virtual void onExec(Param* params, size_t n) override;
 };
 
-}
+} // namespace sge

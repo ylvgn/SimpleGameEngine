@@ -26,6 +26,10 @@ public:
 	virtual ~AppBase() = default;
 
 	void setCommandArguments(int argc, const char* argv[]);
+
+	template<size_t N>
+	void setCommandArguments(const char* (&argv)[N]) { if(N) setCommandArguments(static_cast<int>(N), argv); }
+
 	Span<const StrView> commandArguments() const;
 
 	void	setAppName(StrView s) { _appName = s; }

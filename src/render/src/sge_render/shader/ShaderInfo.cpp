@@ -10,7 +10,7 @@ void ShaderInfo::clear() {
 
 void ShaderInfo::onFormat(fmt::format_context& ctx) const {
 	TempString tmp;
-	tmp += "------------------- props ------------------\n";
+	tmp += "------------------- props(attr) ------------------\n";
 	for (auto& prop : props) {
 		if (prop.displayName.size()) {
 			FmtTo(tmp, "[[displayName:{}]]", prop.displayName);

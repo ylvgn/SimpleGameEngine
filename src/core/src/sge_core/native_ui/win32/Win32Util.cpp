@@ -4,6 +4,53 @@
 
 namespace sge {
 
+void Win32Util::errorTo(String& out, ::DWORD in_errorcode /*= ::WSAGetLastError()*/) {
+	// retrieving-error-messages: https://docs.microsoft.com/en-us/windows/win32/seccrypto/retrieving-error-messages
+
+	out.clear();
+
+	TempStringW tmp;
+	tmp.resizeToLocalBufSize();
+	auto dwChars = ::FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+								   NULL,
+								   in_errorcode,
+								   MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // NULL
+								   tmp.data(),
+								   static_cast<::DWORD>(tmp.size()),
+								   NULL);
+
+#if 0 // TODO maybe no need ???
+	if (0 == dwChars)
+	{
+		// The error code did not exist in the system errors.
+		// Try Ntdsbmsg.dll for the error code.
+
+		::HINSTANCE hInst = ::LoadLibrary(L"Ntdsbmsg.dll");
+		if (NULL == hInst)
+		{
+			SGE_LOG("[Warning] cannot load Ntdsbmsg.dll\n");
+			out = Fmt("[{}]", in_errorcode);
+			return;
+		}
+
+		tmp.clear();
+		tmp.resizeToLocalBufSize();
+		dwChars = ::FormatMessage(FORMAT_MESSAGE_FROM_HMODULE |
+								  FORMAT_MESSAGE_IGNORE_INSERTS,
+								  hInst,
+								  in_errorcode,
+								  0,
+								  tmp.data(),
+								  static_cast<::DWORD>(tmp.size()),
+								  NULL);
+
+		::FreeLibrary(hInst);
+	}
+#endif
+
+	out = dwChars ? UtfUtil::toString(tmp) : Fmt("[{}]", in_errorcode);
+}
+
 int Win32Util::toVKKey(const KeyCode& i) {
 
 #define CASE_E(SGE_T, WIN32_VK_T) case KeyCode::SGE_T: return WIN32_VK_T;

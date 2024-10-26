@@ -23,8 +23,7 @@ public:
 			workingDir.append("/../../../../../../../../examples/Test105");
 
 			Directory::setCurrent(workingDir);
-			auto curDir = Directory::getCurrent();
-			SGE_LOG("current dir={}", curDir);
+			SGE_DUMP_VAR(Directory::current());
 		}
 
 		_conn = std::move(connectMySQL("localhost", "test_db", "test_user", "1234"));

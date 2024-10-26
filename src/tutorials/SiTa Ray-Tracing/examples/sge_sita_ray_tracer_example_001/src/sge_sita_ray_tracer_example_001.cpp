@@ -67,8 +67,7 @@ protected:
 			workingDir.append("/../../../../../../../../examples/Test106");
 
 			Directory::setCurrent(workingDir);
-			auto curDir = Directory::getCurrent();
-			SGE_LOG("current dir={}", curDir);
+			SGE_DUMP_VAR(Directory::current());
 		}
 
 		Base::onCreate(desc);

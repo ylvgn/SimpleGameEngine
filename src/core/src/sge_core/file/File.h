@@ -31,6 +31,9 @@ struct File {
 	static bool exists(StrView filename);
 	static void rename(StrView src, StrView dst);
 
+	static void touch(StrView filename);
+	static void remove(StrView filename);
+
 	static void	writeBytes(StrView filename, ByteSpan buf);
 	static void writeText (StrView filename, StrView text);
 

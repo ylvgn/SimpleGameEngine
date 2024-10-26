@@ -7,7 +7,7 @@ namespace sge {
 class ShaderParser : public Lexer {
 public:
 	static void readFile(ShaderInfo& outInfo, StrView filename);
-	static void readMem(ShaderInfo& outInfo, ByteSpan data, StrView filename);
+	static void readMem (ShaderInfo& outInfo, ByteSpan data, StrView filename);
 
 private:
 	void _readMem(ShaderInfo& outInfo, ByteSpan data, StrView filename);
@@ -20,8 +20,8 @@ private:
 	void _readBlendFunc(RenderState::BlendFunc& v);
 
 	ShaderInfo* _outInfo = nullptr;
-	MemMapFile _memMapFile;
+	MemMapFile  _memMapFile;
 
 }; // ShaderParser
 
-} // namespace
+} // namespace sge

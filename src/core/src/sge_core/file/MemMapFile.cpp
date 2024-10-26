@@ -2,8 +2,11 @@
 
 namespace sge {
 
+#if 0
+#pragma mark ========= Windows ============
+#endif
 #if SGE_OS_WINDOWS
-	
+
 void MemMapFile::open(StrView filename) {
 	close();
 	_fs.openRead(filename);
@@ -19,12 +22,12 @@ void MemMapFile::open(StrView filename) {
 
 	_mapping = ::CreateFileMapping(_fs.nativeFd(), nullptr, PAGE_READONLY, 0, 0, nullptr);
 	if (!_mapping) {
-		throw SGE_ERROR("memmap");
+		throw SGE_ERROR("::CreateFileMapping error");
 	}
 
 	auto* data = reinterpret_cast<u8*>(::MapViewOfFile(_mapping, FILE_MAP_READ, 0, 0, 0));
 	if (!data) {
-		throw SGE_ERROR("memmap");
+		throw SGE_ERROR("::MapViewOfFile error");
 	}
 
 	_span = ByteSpan(data, size);

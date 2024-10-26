@@ -5,7 +5,7 @@ namespace sge {
 #pragma mark ========= AppArguments ============
 #endif
 AppArguments::AppArguments(int argc, const char* argv[]) {
-#if SGE_OS_WINDOWS
+#if !_DEBUG && SGE_OS_WINDOWS // for immutable command line params
 	int argCount = 0;
 	auto* arr = CommandLineToArgvW(GetCommandLineW(), &argCount);
 	_argsStr.resize(argCount);
@@ -57,6 +57,6 @@ String AppBase::getExecutableFilename() {
 	String o = UtfUtil::toString(tmp);
 	return o;
 }
-#endif
+#endif // SGE_OS_WINDOWS
 
 } // namespace sge

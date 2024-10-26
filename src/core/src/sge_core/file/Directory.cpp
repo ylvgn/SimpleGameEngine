@@ -18,21 +18,36 @@ void Directory::create(StrView path) {
 }
 
 
+void Directory::remove(StrView path) {
+	if (!exists(path))
+		return;
+
+	_remove(path);
+}
+
 #if SGE_OS_WINDOWS
+
 #if 0
 #pragma mark ================= Windows ====================
 #endif
+
 void Directory::setCurrent(StrView dir) {
-	TempStringW tmp = UtfUtil::toStringW(dir);
-	::SetCurrentDirectory(tmp.c_str());
+	TempStringW pathW = UtfUtil::toStringW(dir);
+	int ret = ::SetCurrentDirectory(pathW.c_str());
+	if (!ret)
+		throw SGE_ERROR("::SetCurrentDirectory({}) error: {}", dir, ::WSAGetLastError()); // TODO WSAGetLastError -> Win32Util::error()
 }
 
-String Directory::getCurrent() {
-	wchar_t tmp[MAX_PATH+1];
-	if (!::GetCurrentDirectory(MAX_PATH, tmp))
-		throw SGE_ERROR("GetCurrentDirectory");
-	String o = UtfUtil::toString(tmp);
-	return o;
+void Directory::currentTo(String& out) {
+	out.clear();
+	StringW_<MAX_PATH> pathW;
+	pathW.resizeToLocalBufSize();
+	auto requiredSize = ::GetCurrentDirectory(MAX_PATH, pathW.data());
+	if (!requiredSize)
+		throw SGE_ERROR("::GetCurrentDirectory error: {}", ::WSAGetLastError());
+	pathW.resize(requiredSize);
+	UtfUtil::convert(out, pathW);
+	out.replaceChars('\\', '/');
 }
 
 void Directory::_create(StrView path) {
@@ -40,7 +55,22 @@ void Directory::_create(StrView path) {
 	UtfUtil::convert(pathW, path);
 	auto ret = ::CreateDirectory(pathW.c_str(), nullptr);
 	if (!ret)
-		throw SGE_ERROR("::CreateDirectory {}", path);
+		throw SGE_ERROR("::CreateDirectory({}) error: {}", path, ::WSAGetLastError());
+}
+
+void Directory::_remove(StrView path) {
+	TempStringW pathW = UtfUtil::toStringW(path);
+	pathW += 0;
+
+	// https://learn.microsoft.com/en-us/windows/win32/api/shellapi/ns-shellapi-shfileopstructa
+	::SHFILEOPSTRUCTW op	= {};
+	op.hwnd					= NULL;
+	op.wFunc				= FO_DELETE;
+	op.pFrom				= pathW.c_str(); // This string must be double-null terminated.
+	op.pTo					= NULL;
+	op.fFlags				= FOF_ALLOWUNDO | FOF_NO_UI;
+
+	::SHFileOperationW(&op);
 }
 
 bool Directory::exists(StrView path) {
@@ -51,7 +81,7 @@ bool Directory::exists(StrView path) {
 	return (dwAttrib != INVALID_FILE_ATTRIBUTES && (dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 }
 
-#else // Windows
+#else
 
 #if 0
 #pragma mark ================= Unix ====================
@@ -61,10 +91,11 @@ Directory::_create(StrView path) {
 	TempStringA pathA;
 	UtfUtil::convert(pathA, path);
 	auto ret = ::mkdir(pathA.c_str(), 0755);
-	if (ret != 0) throw SGE_ERROR("create directory {}", pathA);
+	if (ret != 0)
+		throw SGE_ERROR("::mkdir({}) error", pathA.c_str());
 }
 
-bool Directory::exists(StrView path ) {
+bool Directory::exists(StrView path) {
 	TempStringA pathA;
 	UtfUtil::convert(pathA, path);
 

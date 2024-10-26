@@ -48,4 +48,4 @@ private:
 	NativeFd _fd = kInvalid;
 };
 
-}
+} // namespace sge

@@ -288,8 +288,7 @@ public:
 			workingDir.append("/../../../../../../examples/Test101");
 
 			Directory::setCurrent(workingDir);
-			auto curDir = Directory::getCurrent();
-			SGE_LOG("current dir={}", curDir);
+			SGE_DUMP_VAR(Directory::current());
 		}
 #if SGE_OS_WINDOWS
 	#if 1 // for quick testing (but not work for RenderDoc !!)
