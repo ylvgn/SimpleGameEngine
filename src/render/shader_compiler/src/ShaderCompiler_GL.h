@@ -7,9 +7,9 @@
 namespace sge {
 
 class ShaderCompiler_GL : public NonCopyable {
-
 	using Util				= GLUtil;
 	using DataType			= RenderDataType;
+	using Profile			= ShaderStageProfile;
 
 	using Compiler			= spirv_cross::CompilerGLSL;
 	using CompilerOptions	= spirv_cross::CompilerGLSL::Options;
@@ -17,7 +17,7 @@ class ShaderCompiler_GL : public NonCopyable {
 	using SPIRType			= spirv_cross::SPIRType;
 
 public:
-	void compile(StrView outPath, ShaderStageMask shaderStage, StrView srcFilename, StrView entryFunc);
+	void compile(StrView outFilename, ShaderStageMask shaderStage, StrView profile, StrView srcFilename, StrView entryFunc);
 
 private:
 	static void _convert(Compiler& comp, DataType& o, const SPIRType& i, u32 memberIndex = 0);
@@ -30,9 +30,8 @@ private:
 
 	static StrView _findLastNameWithoutUnderscore(StrView s);
 
-	void _beforeGLSLCompile(Compiler& comp, ShaderStageMask shaderStage, StrView profile);
+	void _beforeCompileSPIRVToGLSL(Compiler& comp, ShaderStageMask shaderStage, StrView profile);
 
-	Vector<String> _vsOutputLocation2VarName;
-};
+}; // ShaderCompiler_GL
 
 } // namespace sge

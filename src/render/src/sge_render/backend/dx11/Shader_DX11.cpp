@@ -5,8 +5,11 @@
 #if SGE_RENDER_HAS_DX11
 
 namespace sge {
+#if 0
+#pragma mark ========= Shader_DX11::MyVertexStage ============
+#endif
 void Shader_DX11::MyVertexStage::load(StrView passPath, DX11_ID3DDevice* dev) {
-	s_loadStageFile(passPath, stageMask(), _bytecode, _info);
+	s_loadStageFile(passPath, Profile::DX11_VS, _bytecode, _info);
 	auto hr = dev->CreateVertexShader(_bytecode.data(), _bytecode.size(), nullptr, _shader.ptrForInit());
 	Util::throwIfError(hr);
 }
@@ -21,7 +24,7 @@ void Shader_DX11::MyVertexStage::bind(RenderContext_DX11* ctx) {
 #pragma mark ========= Shader_DX11::MyPixelStage ============
 #endif
 void Shader_DX11::MyPixelStage::load(StrView passPath, DX11_ID3DDevice* dev) {
-	s_loadStageFile(passPath, stageMask(), _bytecode, _info);
+	s_loadStageFile(passPath, Profile::DX11_PS, _bytecode, _info);
 	auto hr = dev->CreatePixelShader(_bytecode.data(), _bytecode.size(), nullptr, _shader.ptrForInit());
 	Util::throwIfError(hr);
 }
@@ -52,8 +55,8 @@ void Shader_DX11::MyPass::onInit() {
 	TempString passPath;
 	FmtTo(passPath, "{}/{}/dx11/pass{}", proj->importedPath(), shaderFilename(), _passIndex);
 
-	if (_info->vsFunc.size()) { _vertexStage.load(passPath, dev); }
-	if (_info->psFunc.size()) {  _pixelStage.load(passPath, dev); }
+	if (!_info->vsFunc.empty()) { _vertexStage.load(passPath, dev); }
+	if (!_info->psFunc.empty()) {  _pixelStage.load(passPath, dev); }
 }
 
 #if 0
@@ -62,9 +65,7 @@ void Shader_DX11::MyPass::onInit() {
 
 sgeShader_InterfaceFunctions_Impl(DX11)
 
-void Shader_DX11::s_loadStageFile(StrView passPath, ShaderStageMask stageMask, Vector<u8>& outBytecode, ShaderStageInfo& outInfo) {
-	auto* profile = Util::getDxStageProfile(stageMask);
-
+void Shader_DX11::s_loadStageFile(StrView passPath, StrView profile, Vector<u8>& outBytecode, ShaderStageInfo& outInfo) {
 	auto filename = Fmt("{}/{}.bin", passPath, profile);
 	File::readFile(filename, outBytecode);
 

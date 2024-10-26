@@ -15,6 +15,8 @@
 #include <sge_render/shader/Shader.h>
 #include <sge_render/textures/Texture.h>
 
+#include <sge_core/native_ui/win32/Win32Util.h>
+
 namespace sge {
 
 class Renderer_DX11;
@@ -57,9 +59,9 @@ using DX11_ID3DShaderReflection		= ID3D11ShaderReflection;
 struct DX11Util {
 	DX11Util() = delete;
 
-	static void throwIfError(HRESULT hr);
-	static bool assertIfError(HRESULT hr);
-	static void reportError(HRESULT hr);
+	static void throwIfError(::HRESULT hr);
+	static bool assertIfError(::HRESULT hr);
+	static void reportError(::HRESULT hr);
 
 	static constexpr UINT castUINT(size_t v) { SGE_ASSERT(v < UINT_MAX); return UINT(v); }
 
@@ -78,45 +80,43 @@ struct DX11Util {
 	static const char*					getDxSemanticName(VertexSemanticType v);
 	static VertexSemanticType			parseDxSemanticName(StrView s);
 
-	static String						getStrFromHRESULT(HRESULT hr);
-
 	static const char*					getDxStageProfile(ShaderStageMask s);
 
-	static ByteSpan						toSpan(ID3DBlob* blob);
-	static StrView						toStrView(ID3DBlob* blob) { return StrView_make(toSpan(blob)); }
+	static ByteSpan						toSpan(DX11_ID3DBlob* blob);
+	static StrView						toStrView(DX11_ID3DBlob* blob) { return StrView_make(toSpan(blob)); }
 
-	static void convert(Rect2f& o, const D3D11_RECT& i) {
+	static void convert(Rect2f& o, const ::D3D11_RECT& i) {
 		o.x = float(i.left);
 		o.y = float(i.top);
 		o.w = float(i.right - i.left);
 		o.h = float(i.bottom - i.top);
 	}
 
-	static void convert(D3D11_RECT& o, const Rect2f& i) {
+	static void convert(::D3D11_RECT& o, const Rect2f& i) {
 		o.left   = LONG(i.x);
 		o.top    = LONG(i.y);
 		o.right  = LONG(i.xMax());
 		o.bottom = LONG(i.yMax());
 	}
 
-	static Rect2f toRect2f(const D3D11_RECT& i)		{ Rect2f o;		convert(o, i);	return o; }
-	static D3D11_RECT toD3DRect(const Rect2f& i)	{ D3D11_RECT o;	convert(o, i);	return o; }
+	static Rect2f toRect2f(const ::D3D11_RECT& i)	{ Rect2f o;			convert(o, i);	return o; }
+	static ::D3D11_RECT toD3DRect(const Rect2f& i)	{ ::D3D11_RECT o;	convert(o, i);	return o; }
 
 private:
-	static bool _checkError(HRESULT hr) {
+	static bool _checkError(::HRESULT hr) {
 		return FAILED(hr); // if got error, return true
 	}
 };
 
 SGE_INLINE
-ByteSpan DX11Util::toSpan(ID3DBlob* blob) {
+ByteSpan DX11Util::toSpan(DX11_ID3DBlob* blob) {
 	if (!blob) return ByteSpan();
 	return ByteSpan(reinterpret_cast<const u8*>(blob->GetBufferPointer()),
 					static_cast<size_t>(blob->GetBufferSize()));
 }
 
 SGE_INLINE
-void DX11Util::throwIfError(HRESULT hr) {
+void DX11Util::throwIfError(::HRESULT hr) {
 	if (_checkError(hr)) {
 		reportError(hr);
 		throw SGE_ERROR("HRESULT = {}", hr);
@@ -134,31 +134,11 @@ bool DX11Util::assertIfError(HRESULT hr) {
 }
 
 SGE_INLINE
-String DX11Util::getStrFromHRESULT(HRESULT hr) {
-	// retrieving-error-messages: https://docs.microsoft.com/en-us/windows/win32/seccrypto/retrieving-error-messages
-
-	const int bufSize = 4096;
-	wchar_t buf[bufSize + 1];
-
-	auto dwChars = FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-								nullptr,
-								hr,
-								0,
-								buf,
-								bufSize,
-								nullptr);
-
-	buf[bufSize] = 0; // ensure terminate with 0
-
-	auto str = dwChars ? UtfUtil::toString(buf) : String("Error message not found.");
-	return str;
-}
-
-SGE_INLINE
 const char* DX11Util::getDxStageProfile(ShaderStageMask s) {
+	using SRC = ShaderStageMask;
 	switch (s) {
-		case ShaderStageMask::Vertex:	return "vs_5_0";
-		case ShaderStageMask::Pixel:	return "ps_5_0";
+		case SRC::Vertex:	return ShaderStageProfile::DX11_VS;
+		case SRC::Pixel:	return ShaderStageProfile::DX11_PS;
 	//---
 		default: return "";
 	}
@@ -167,11 +147,10 @@ const char* DX11Util::getDxStageProfile(ShaderStageMask s) {
 SGE_INLINE
 void DX11Util::reportError(HRESULT hr) {
 	if (_checkError(hr)) {
-		auto str = getStrFromHRESULT(hr);
+		auto str = Win32Util::error(hr);
 		SGE_LOG("HRESULT(0x{:0X}) {}", static_cast<u32>(hr), str);
 	}
 }
-
 
 SGE_INLINE
 D3D11_PRIMITIVE_TOPOLOGY DX11Util::getDxPrimitiveTopology(RenderPrimitiveType t) {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Render_GL_Common.h"
+#include <sge_render/shader/Shader.h>
 
 #if SGE_RENDER_HAS_OPENGL
 
@@ -9,8 +10,9 @@ namespace sge {
 class RenderContext_GL;
 
 class Shader_GL : public Shader {
-	using Base = Shader;
-	using Util = GLUtil;
+	using Base		= Shader;
+	using Util		= GLUtil;
+	using Profile	= ShaderStageProfile;
 	sgeShader_InterfaceFunctions(GL);
 public:
 
@@ -30,7 +32,10 @@ public:
 
 		~MyVertexStage() noexcept;
 
-		MyPass* pass() const { return static_cast<MyPass*>(_pass); }
+		void load(StrView passPath);
+
+		GLenum	shaderStageType()	const { return Util::getGlShaderType(stageMask()); }
+		MyPass* pass()				const { return static_cast<MyPass*>(_pass); }
 
 	friend class MyPass;
 	private:
@@ -51,7 +56,10 @@ public:
 
 		~MyPixelStage() noexcept;
 
-		MyPass* pass() const { return static_cast<MyPass*>(_pass); }
+		void load(StrView passPath);
+
+		GLenum	shaderStageType()	const { return Util::getGlShaderType(stageMask()); }
+		MyPass* pass()				const { return static_cast<MyPass*>(_pass); }
 
 	friend class MyPass;
 	private:
@@ -88,6 +96,8 @@ public:
 	using Pass			= MyPass;
 	using VertexStage	= MyVertexStage;
 	using PixelStage	= MyPixelStage;
+
+	static void s_loadStageFile(StrView passPath, StrView profile, GLenum shaderStageType, GLuint& handle, ShaderStageInfo& outInfo);
 
 }; // Shader_GL
 

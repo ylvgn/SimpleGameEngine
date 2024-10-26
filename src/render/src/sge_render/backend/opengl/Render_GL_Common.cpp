@@ -4,12 +4,12 @@
 
 namespace sge {
 
-void GLUtil::compileShader(GLuint& shader, GLenum type, StrView filename) {
+void GLUtil::compileShader(GLuint& shader, GLenum shaderStageType, StrView filename) {
 	MemMapFile mm;
 	mm.open(filename);
 
 	if (!shader) {
-		shader = glCreateShader(type);
+		shader = glCreateShader(shaderStageType);
 		throwIfError();
 	}
 

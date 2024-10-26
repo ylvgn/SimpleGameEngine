@@ -10,7 +10,6 @@
 #pragma comment(lib, "d3dcompiler.lib")
 
 namespace sge {
-
 #if 0
 #pragma mark ========= ShaderCompiler_DX11_ID3DInclude ============
 #endif
@@ -132,7 +131,7 @@ private:
 #if 0
 #pragma mark ========= ShaderCompiler_DX11 ============
 #endif
-void ShaderCompiler_DX11::compile(StrView outPath, ShaderStageMask shaderStage, StrView srcFilename, StrView entryFunc) {
+void ShaderCompiler_DX11::compile(StrView outFilename, ShaderStageMask shaderStage, StrView profile, StrView srcFilename, StrView entryFunc) {
 	TempStringA entryPoint = entryFunc;
 
 	MemMapFile memmap;
@@ -150,8 +149,8 @@ void ShaderCompiler_DX11::compile(StrView outPath, ShaderStageMask shaderStage, 
 	ComPtr<ID3DBlob>	bytecode;
 	ComPtr<ID3DBlob>	errorMsg;
 
+	// TODO
 	D3D_SHADER_MACRO macros[] = {
-
 #if SGE_OS_WINDOWS
 		"SGE_OS_WINDOWS", "1",
 #elif SGE_OS_MACOSX
@@ -163,37 +162,30 @@ void ShaderCompiler_DX11::compile(StrView outPath, ShaderStageMask shaderStage, 
 	ShaderCompiler_DX11_ID3DInclude include;
 	include.setFileName(srcFilename);
 
-	auto profile = Util::getDxStageProfile(shaderStage);
-
-	auto hr = D3DCompile2(
-				hlsl.data(), hlsl.size(), memmap.filename().c_str(),
-				macros, &include,
-				entryPoint.c_str(),
-				profile,
-				flags1, flags2, 0, nullptr, 0,
-				bytecode.ptrForInit(),
-				errorMsg.ptrForInit());
+	TempString profileA = profile;
+	::HRESULT hr = ::D3DCompile2(hlsl.data(), hlsl.size(), memmap.filename().c_str(),
+								 macros, &include,
+								 entryPoint.c_str(),
+								 profileA.c_str(),
+								 flags1, flags2, 0, nullptr, 0,
+								 bytecode.ptrForInit(),
+								 errorMsg.ptrForInit());
 
 	if (FAILED(hr)) {
 		throw SGE_ERROR("HRESULT={}\n Error Message: {}", hr, Util::toStrView(errorMsg));
 	}
 
-	Directory::create(outPath);
-
 	auto bytecodeSpan = Util::toSpan(bytecode);
-
-	auto outFilename = Fmt("{}/{}.bin", outPath, profile);
-	File::writeFileIfChanged(outFilename, bytecodeSpan, false);
-
+	File::writeFileIfChanged(outFilename, bytecodeSpan, true);
 	_reflect(outFilename, bytecodeSpan, shaderStage, profile);
 }
 
 void ShaderCompiler_DX11::_reflect(StrView outFilename, ByteSpan bytecode, ShaderStageMask stage, StrView profile) {
 	ComPtr<ID3D11ShaderReflection>	reflect;
-	auto hr = D3DReflect(bytecode.data(), bytecode.size(), IID_PPV_ARGS(reflect.ptrForInit()));
+	auto hr = ::D3DReflect(bytecode.data(), bytecode.size(), IID_PPV_ARGS(reflect.ptrForInit()));
 	Util::throwIfError(hr);
 
-	D3D11_SHADER_DESC desc;
+	::D3D11_SHADER_DESC desc;
 	hr = reflect->GetDesc(&desc);
 	Util::throwIfError(hr);
 
@@ -219,7 +211,7 @@ void ShaderCompiler_DX11::_reflect_inputs(ShaderStageInfo& outInfo, ID3D11Shader
 
 	outInfo.inputs.reserve(desc.InputParameters);
 
-	for (UINT i=0; i<desc.InputParameters; i++) {
+	for (UINT i = 0; i < desc.InputParameters; ++i) {
 		auto& dst = outInfo.inputs.emplace_back();
 
 		D3D11_SIGNATURE_PARAMETER_DESC paramDesc;
@@ -265,7 +257,7 @@ void ShaderCompiler_DX11::_reflect_constBuffers(ShaderStageInfo& outInfo, ID3D11
 
 	outInfo.constBuffers.reserve(desc.BoundResources);
 
-	for (UINT i=0; i<desc.BoundResources; i++) {
+	for (UINT i = 0; i < desc.BoundResources; ++i) {
 		D3D11_SHADER_INPUT_BIND_DESC resDesc;
 		hr = reflect->GetResourceBindingDesc(i, &resDesc);
 		Util::throwIfError(hr);
@@ -346,7 +338,7 @@ void ShaderCompiler_DX11::_reflect_textures(ShaderStageInfo& outInfo, ID3D11Shad
 	HRESULT hr;
 
 	outInfo.textures.reserve(desc.BoundResources);
-	for (UINT i=0; i<desc.BoundResources; i++) {
+	for (UINT i = 0; i < desc.BoundResources; ++i) {
 		D3D11_SHADER_INPUT_BIND_DESC resDesc;
 		hr = reflect->GetResourceBindingDesc(i, &resDesc);
 		Util::throwIfError(hr);
@@ -376,7 +368,7 @@ void ShaderCompiler_DX11::_reflect_textures(ShaderStageInfo& outInfo, ID3D11Shad
 void ShaderCompiler_DX11::_reflect_samplers(ShaderStageInfo& outInfo, ID3D11ShaderReflection* reflect, D3D11_SHADER_DESC& desc) {
 	HRESULT hr;
 	outInfo.samplers.reserve(desc.BoundResources);
-	for (UINT i=0; i<desc.BoundResources; i++) {
+	for (UINT i = 0; i < desc.BoundResources; ++i) {
 		D3D11_SHADER_INPUT_BIND_DESC resDesc;
 		hr = reflect->GetResourceBindingDesc(i, &resDesc);
 		Util::throwIfError(hr);
@@ -388,7 +380,6 @@ void ShaderCompiler_DX11::_reflect_samplers(ShaderStageInfo& outInfo, ID3D11Shad
 		outSampler.bindPoint	= static_cast<i16>(resDesc.BindPoint);
 		outSampler.bindCount	= static_cast<i16>(resDesc.BindCount);
 	}
-
 }
 
-}
+} // namespace sge

@@ -27,6 +27,10 @@ struct StringUtil {
 	static int  ignoreCaseCompare(char a, char b)		{ return tolower(a) - tolower(b); }
 	static int  ignoreCaseCompare(wchar_t a, wchar_t b) { return towlower(a) - towlower(b); }
 
+	constexpr static const char* extractFromPrefix(const char* src, const char* prefix);
+
+	static void getTokens(StrView view, Vector<StrView>& outList, char separator);
+
 	static bool tryParse(StrView view, i8 & outValue);
 	static bool tryParse(StrView view, i16& outValue);
 	static bool tryParse(StrView view, i32& outValue);
@@ -68,6 +72,22 @@ StrView StringUtil::trimChar(StrView view, StrView charList) {
 		if (!hasChar(charList, *p)) break;
 	}
 	return StrView(p, e-p);
+}
+
+constexpr
+const char* StringUtil::extractFromPrefix(const char* src, const char* prefix) {
+	if (!src || !prefix) return "";
+	auto srcLen = charStrlen(src);
+	auto prefixLen = charStrlen(prefix);
+	if (srcLen < prefixLen) return "";
+	auto* p = src;
+	auto* q = prefix;
+	auto* qed = prefix + prefixLen;
+	while (q < qed) {
+		if (*q != *p) return "";
+		++p; ++q;
+	}
+	return p;
 }
 
 } // namespace sge

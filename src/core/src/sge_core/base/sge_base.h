@@ -97,6 +97,8 @@ using f32	= float;
 using f64	= double;
 using f128	= long double;
 
+using StrLiteral = const char*;
+
 template< class Obj, class Member > constexpr
 intptr_t memberOffset(Member Obj::*ptrToMember) {
 	Obj* c = nullptr;
@@ -104,7 +106,7 @@ intptr_t memberOffset(Member Obj::*ptrToMember) {
 	return reinterpret_cast<intptr_t>(m);
 }
 
-template<class T> inline
+template<class T> constexpr
 size_t charStrlen(const T* sz) {
 	const auto* p = sz;
 	while (*p) ++p;
@@ -273,6 +275,8 @@ public:
 			if (*s == from) *s = to;
 		}
 	}
+
+	void resizeToLocalBufSize() { Base::resize(N); }
 };
 
 template<size_t N, bool bEnableOverflow = true> using StringA_ = StringT<char,    N, bEnableOverflow>;

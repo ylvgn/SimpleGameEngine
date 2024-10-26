@@ -13,6 +13,10 @@ Shader_GL::MyVertexStage::~MyVertexStage() noexcept {
 	}
 }
 
+void Shader_GL::MyVertexStage::load(StrView passPath) {
+	s_loadStageFile(passPath, Profile::GLSL_VS, shaderStageType(), _handle, _info);
+}
+
 #if 0
 #pragma mark ========= Shader_GL::MyPixelStage ============
 #endif
@@ -21,6 +25,10 @@ Shader_GL::MyPixelStage::~MyPixelStage() noexcept {
 		glDeleteShader(_handle);
 		_handle = 0;
 	}
+}
+
+void Shader_GL::MyPixelStage::load(StrView passPath) {
+	s_loadStageFile(passPath, Profile::GLSL_PS, shaderStageType(), _handle, _info);
 }
 
 #if 0
@@ -44,26 +52,12 @@ Shader_GL::MyPass::MyPass(Shader_GL* shader, int passIndex) noexcept
 
 void Shader_GL::MyPass::onInit() {
 	auto* proj = ProjectSettings::instance();
+
 	TempString passPath;
 	FmtTo(passPath, "{}/{}/glsl/pass{}", proj->importedPath(), shaderFilename(), _passIndex);
 
-	if (!_info->vsFunc.empty()) {
-		TempString tmp;
-		tmp = Fmt("{}/vs_{}.spv.glsl", passPath, Util::getGlStageProfile(ShaderStageMask::Vertex));
-		Util::compileShader(_vertexStage._handle, GL_VERTEX_SHADER, tmp);
-
-		tmp += ".json";
-		JsonUtil::readFile(tmp, _vertexStage._info);
-	}
-
-	if (!_info->psFunc.empty()) {
-		TempString tmp;
-		tmp = Fmt("{}/ps_{}.spv.glsl", passPath, Util::getGlStageProfile(ShaderStageMask::Pixel));
-		Util::compileShader(_pixelStage._handle, GL_FRAGMENT_SHADER, tmp);
-
-		tmp += ".json";
-		JsonUtil::readFile(tmp, _pixelStage._info);
-	}
+	if (!_info->vsFunc.empty()) { _vertexStage.load(passPath); }
+	if (!_info->psFunc.empty()) {  _pixelStage.load(passPath); }
 
 	if (!_program)
 		Util::linkShader(_program, _vertexStage._handle, _pixelStage._handle);
@@ -86,6 +80,14 @@ void Shader_GL::MyPass::unbind() {
 #endif
 
 sgeShader_InterfaceFunctions_Impl(GL);
+
+void Shader_GL::s_loadStageFile(StrView passPath, StrView profile, GLenum shaderStageType, GLuint& handle, ShaderStageInfo& outInfo) {
+	TempString tmp = Fmt("{}/{}.glsl", passPath, profile);
+	Util::compileShader(handle, shaderStageType, tmp);
+
+	tmp += ".json";
+	JsonUtil::readFile(tmp, outInfo);
+}
 
 } // namespace sge
 

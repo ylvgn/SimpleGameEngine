@@ -159,6 +159,16 @@ int StringUtil::ignoreCaseCompare(StrView a, StrView b) {
 	return 0;
 }
 
+void StringUtil::getTokens(StrView view, Vector<StrView>& outList, char separator) {
+	outList.clear();
+	auto tmp = view;
+	while (tmp) {
+		auto pair = StringUtil::splitByChar(tmp, separator);
+		outList.push_back(pair.first);
+		tmp = pair.second;
+	}
+}
+
 bool StringUtil::tryParse(StrView view, i8&  outValue) { return StringUtil_ParseHelper::tryParseInt(view, outValue); }
 bool StringUtil::tryParse(StrView view, i16& outValue) { return StringUtil_ParseHelper::tryParseInt(view, outValue); }
 bool StringUtil::tryParse(StrView view, i32& outValue) { return StringUtil_ParseHelper::tryParseInt(view, outValue); }

@@ -44,6 +44,7 @@ struct ShaderPropTypeUtil {
 	template<> static constexpr	Type get<Color4f>()	{ return Type::Color4f; }
 }; // ShaderPropTypeUtil
 
+
 #if 0
 #pragma mark ========= ShaderInfo ============
 #endif
@@ -94,6 +95,23 @@ struct ShaderInfo {
 
 }; // ShaderInfo
 SGE_FORMATTER(ShaderInfo)
+
+#if 0
+#pragma mark ========= ShaderInfo ============
+#endif
+struct ShaderStageProfile {
+	constexpr static StrLiteral DX11_VS = "vs_5_0";
+	constexpr static StrLiteral DX11_PS = "ps_5_0";
+	constexpr static StrLiteral DX11_CS = "cs_5_0";
+
+	constexpr static StrLiteral GLSL_VS = "vs_330";
+	constexpr static StrLiteral GLSL_PS = "ps_330";
+	constexpr static StrLiteral GLSL_CS = "cs_430";
+
+	constexpr static StrLiteral SPIRV_VS = "vs_1_1";
+	constexpr static StrLiteral SPIRV_PS = "ps_1_1";
+	constexpr static StrLiteral SPIRV_CS = "cs_1_1";
+};
 
 #if 0
 #pragma mark ========= ShaderStageInfo ============

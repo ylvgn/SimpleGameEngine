@@ -4,97 +4,91 @@
 
 namespace sge {
 
-void ShaderCompiler_GL::compile(StrView outPath, ShaderStageMask shaderStage, StrView srcFilename, StrView entryFunc) {
-	auto profile = Util::getGlStageProfile(shaderStage);
+struct ShaderCompiler_GL_Helper {
+	ShaderCompiler_GL_Helper() = delete;
 
-	TempString	spirvOutFilename;
-	TempStringW tmpShaderStage;
-	switch (shaderStage) {
-		case ShaderStageMask::Vertex:
-			spirvOutFilename	= Fmt("{}/vs_{}.spv", outPath, profile);
-			tmpShaderStage		= L"vertex";
-			break;
-		case ShaderStageMask::Pixel:
-			spirvOutFilename	= Fmt("{}/ps_{}.spv", outPath, profile);
-			tmpShaderStage		= L"fragment";
-			break;
-		default: throw SGE_ERROR("");
+	using Resource = spirv_cross::Resource;
+
+	static void remameTo(String& out, const Resource& res) {
+		out.clear();
+		auto& name = res.name;
+		StrView view(name.data(), name.size());
+		auto* p = StringUtil::findCharFromEnd(view, "_.", false);
+		if (!p)
+			throw SGE_ERROR("unexpected attr name error: {}", name.c_str());
+		++p; // ignore "-."
+
+		out.assign(p, view.end() - p);
 	}
 
-	TempString outFilename = Fmt("{}.glsl", spirvOutFilename);
+	static String rename(const Resource& res) { String o; remameTo(o, res); return o; }
 
-	Directory::create(outPath);
+}; // ShaderCompiler_GL_Helper
+
+void ShaderCompiler_GL::compile(StrView outFilename, ShaderStageMask shaderStage, StrView profile, StrView srcFilename, StrView entryFunc) {
+	if (profile.empty()) {
+		profile = Util::getGlStageProfile(shaderStage);
+	}
+
+	TempString spirvOutFilename = Fmt("{}.spv", outFilename);
 
 	{ // HLSL -> SPIRV
-#if SGE_OS_WINDOWS
-		TempStringW tmpEntryPoint;
-		UtfUtil::convert(tmpEntryPoint, entryFunc);
+		if (!File::exists(spirvOutFilename)) {
+			TempStringW tmpShaderStage;
+			switch (shaderStage) {
+				case ShaderStageMask::Vertex: tmpShaderStage = L"vertex"; break;
+				case ShaderStageMask::Pixel: tmpShaderStage = L"fragment"; break;
+				default: throw SGE_ERROR("unsupported ShaderStageMask '{}'", shaderStage);
+			}
 
-		TempStringW tmpOutput;
-		UtfUtil::convert(tmpOutput, spirvOutFilename);
+			auto outPath = FilePath::dirname(spirvOutFilename);
+			Directory::create(outPath);
 
-		TempStringW tmpSrcFilename;
-		UtfUtil::convert(tmpSrcFilename, srcFilename);
-#if 0
-		TempStringW tmpCmdParams;
-		fmt::format_to(std::back_inserter(tmpCmdParams),
-			L"-fshader-stage={} -fentry-point={} -o {} -x hlsl {}"
-			, tmpShaderStage.c_str()
-			, tmpEntryPoint.c_str()
-			, tmpOutput.c_str()
-			, tmpSrcFilename.c_str());
+			{
+				using Param = CommandLine::Param;
+				using Param_Assignment = Param::Assignment;
 
-		wprintf(L"HLSL->SPIRV : glslc.exe %ls\n\n", tmpCmdParams.c_str());
+				Vector<Param, 6> params;
+				params.emplace_back(Param("-fhlsl-functionality1"));
+				params.emplace_back(Param("-fhlsl-iomap"));
 
-		SHELLEXECUTEINFO ShExecInfo = {};
-		ShExecInfo.cbSize			= sizeof(SHELLEXECUTEINFO);
-		ShExecInfo.fMask			= SEE_MASK_NOCLOSEPROCESS;
-		ShExecInfo.hwnd				= NULL;
-		ShExecInfo.lpVerb			= L"open";
-		ShExecInfo.lpFile			= L"glslc.exe";
-		ShExecInfo.lpParameters		= tmpCmdParams.c_str();
-		ShExecInfo.lpDirectory		= NULL;
-		ShExecInfo.nShow			= SW_HIDE; // SW_SHOW
-		ShExecInfo.hInstApp			= NULL;
-		ShellExecuteEx(&ShExecInfo);
-		WaitForSingleObject(ShExecInfo.hProcess, INFINITE);
-		CloseHandle(ShExecInfo.hProcess);
-#else
-		using Param = CommandLine::Param;
-		Vector<Param, 4> params;
-		params.emplace_back(Param(tmpShaderStage));
-		params.emplace_back(Param(tmpEntryPoint));
-		params.emplace_back(Param(tmpOutput));
-		params.emplace_back(Param(tmpSrcFilename));
-		CommandLine::runShell("sge_glslc.bat", params);
-#endif
+				auto fshader_stage = Param("-fshader-stage", tmpShaderStage);
+				fshader_stage.opAssignment = Param_Assignment::Equals;
+				params.emplace_back(fshader_stage);
 
-#endif
+				auto fentry_point = Param("-fentry-point", entryFunc);
+				fentry_point.opAssignment = Param_Assignment::Equals;
+				params.emplace_back(fentry_point);
+
+				params.emplace_back(Param("-o", spirvOutFilename));
+				params.emplace_back(Param("-x hlsl", srcFilename));
+				CommandLine::runShell("glslc", params); // glslc already export to _ENV variable by GNUMakefile // TODO
+			}
+		}
 	}
 
-	{ // SPIRV -> GLSL source text
+	{ // SPIRV -> GLSL
 		MemMapFile mm;
 		mm.open(spirvOutFilename);
 
 		Span<const u32> bytecode = spanCast<const u32>(mm.span());
 		Compiler comp(bytecode.data(), bytecode.size());
 
-		_beforeGLSLCompile(comp, shaderStage, profile);
+		_beforeCompileSPIRVToGLSL(comp, shaderStage, profile);
 
 		CompilerOptions options;
-		options.es = false;
-		options.enable_420pack_extension = false;
-
-		if (!StringUtil::tryParse(profile, options.version)) {
-			throw SGE_ERROR("tryParse error");
+		options.es = false;										// --no-es
+		options.enable_420pack_extension = false;				// --no-420pack-extension
+		if (!StringUtil::tryParse(profile, options.version)) {	// --version <glsl_profile>
+			throw SGE_ERROR("invalid GLSL profile error: {}", profile);
 		}
+
 		comp.build_combined_image_samplers();
 		comp.set_common_options(options);
 
-		std::string GLSLSource = comp.compile();
+		auto GLSLSource = comp.compile();
 		StrView source(GLSLSource.c_str(), GLSLSource.size());
-		File::writeFileIfChanged(outFilename, source, false);
-
+		File::writeFileIfChanged(outFilename, source, false);	// --output <glsl filename>
 		_reflect(outFilename, comp, shaderStage, profile);
 	}
 }
@@ -187,41 +181,6 @@ void ShaderCompiler_GL::_reflect(StrView outFilename, Compiler& comp, ShaderStag
 		auto active = comp.get_active_interface_variables();
 		ShaderResources resources = comp.get_shader_resources(active);
 		comp.set_enabled_interface_variables(move(active));
-
-#if 0
-		for (const auto& resource : resources.stage_inputs) {
-			printf("Input '%s':\tlayout set = %u\tlayout binding = %u\tlayout location= %u\n",
-				resource.name.c_str(),
-				comp.get_decoration(resource.id, spv::DecorationDescriptorSet),
-				comp.get_decoration(resource.id, spv::DecorationBinding),
-				comp.get_decoration(resource.id, spv::DecorationLocation));
-		}
-
-		for (const auto& resource : resources.stage_outputs) {
-			printf("Output '%s':\tlayout set = %u\tlayout binding = %u\tlayout location= %u\n",
-				resource.name.c_str(),
-				comp.get_decoration(resource.id, spv::DecorationDescriptorSet),
-				comp.get_decoration(resource.id, spv::DecorationBinding),
-				comp.get_decoration(resource.id, spv::DecorationLocation));
-		}
-
-		for (const auto& resource : resources.uniform_buffers) {
-			auto& uniform_type = comp.get_type(resource.base_type_id);
-
-			int i = 0;
-			for (const auto& member_type_id : uniform_type.member_types) {
-				auto& member_type = comp.get_type(member_type_id);
-				printf("uniform_member_name=%s\tvecsize=%u\tcolumns=%u\tmemberSize=%zu\tstartOffset=%u\n",
-						comp.get_member_name(uniform_type.self, i).c_str(),
-						member_type.vecsize,
-						member_type.columns,
-						comp.get_declared_struct_member_size(uniform_type, i),
-						comp.type_struct_member_offset(uniform_type, i)
-				);
-				++i;
-			}
-		}
-#endif
 
 		_reflect_inputs			(outInfo, comp, resources);
 		_reflect_constBuffers	(outInfo, comp, resources);
@@ -354,7 +313,7 @@ void ShaderCompiler_GL::_reflect_samplers(ShaderStageInfo& outInfo, Compiler& co
 	}
 }
 
-StrView ShaderCompiler_GL::_findLastNameWithoutUnderscore(StrView s) {
+StrView ShaderCompiler_GL::_findLastNameWithoutUnderscore(StrView s) { // TODO need removed
 	auto pair = StringUtil::splitByChar(s, '_');
 	while (!pair.second.empty()) {
 		pair = StringUtil::splitByChar(pair.second, '_');
@@ -362,51 +321,41 @@ StrView ShaderCompiler_GL::_findLastNameWithoutUnderscore(StrView s) {
 	return pair.first;
 }
 
-void ShaderCompiler_GL::_beforeGLSLCompile(Compiler& comp, ShaderStageMask shaderStage, StrView profile) {
+void ShaderCompiler_GL::_beforeCompileSPIRVToGLSL(Compiler& comp, ShaderStageMask shaderStage, StrView profile) {
+	using Helper = ShaderCompiler_GL_Helper;
+
 	ShaderResources resources = comp.get_shader_resources();
-	
+
+// $(spirv-cross) --rename-interface-variable <in|out> <location> <new_variable_name>
 	switch (shaderStage) {
 		case ShaderStageMask::Vertex: {
-			_vsOutputLocation2VarName.resize(resources.stage_outputs.size());
-
 			for (auto& resource : resources.stage_outputs) {
 				const auto resId	= resource.id;
 				const auto loc		= comp.get_decoration(resId, spv::DecorationLocation);
 
-				auto& resName		= resource.name;
-				auto& attribName	= _vsOutputLocation2VarName[loc];
-				
-				StrView view(resName.data(), resName.size());
-				auto* p = StringUtil::findCharFromEnd(view, "_.", false);
-				if (!p)
-					throw SGE_ERROR("unexpected attrib name {}", resName.c_str());
-				++p; // ignore "-."
+				TempString attrName = Helper::rename(resource);
+//				SGE_LOG("[M] VA: (location = {}) {} -> {}", loc, resource.name.c_str(), attrName.c_str());
+				SGE_UNUSED(loc);
 
-				attribName.assign(p, view.end() - p);
-
-//				SGE_LOG("[M] VA: (location = {}) {} -> {}", loc, resName.c_str(), attribName.c_str());
-
-				resName.assign(attribName.data(), attribName.size());
-				comp.set_name(resId, resName);
+				resource.name.assign(attrName.data(), attrName.size());
+				comp.set_name(resId, resource.name); // --rename-interface-variable in <loc> <new_variable_name>
 			}
 		} break;
 		case ShaderStageMask::Pixel: {
 			for (auto& resource : resources.stage_inputs) {
 				const auto resId	= resource.id;
 				const auto loc		= comp.get_decoration(resId, spv::DecorationLocation);
-				auto& resName		= resource.name;
 
-				SGE_ASSERT(_vsOutputLocation2VarName.size() > loc);
-				auto& attribName = _vsOutputLocation2VarName[loc];
+				TempString attrName = Helper::rename(resource);
+//				SGE_LOG("[M] PA: (location = {}) {} -> {}", loc, resource.name.c_str(), attrName.c_str());
+				SGE_UNUSED(loc);
 
-//				SGE_LOG("[M] PA: (location = {}) {} -> {}", loc, resName.c_str(), attribName.c_str());
-
-				resName.assign(attribName.data(), attribName.size());
-				comp.set_name(resId, resName);
+				resource.name.assign(attrName.data(), attrName.size());
+				comp.set_name(resId, resource.name); // --rename-interface-variable out <loc> <new_variable_name>
 			}
 		} break;
-		default: throw SGE_ERROR("unexpeted");
+		default: throw SGE_ERROR("unsupported ShaderStageMask '{}'", shaderStage);
 	}
 }
 
-}
+} // namespace sge

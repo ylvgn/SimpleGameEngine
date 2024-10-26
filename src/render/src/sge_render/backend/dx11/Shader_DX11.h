@@ -10,8 +10,9 @@ namespace sge {
 class RenderContext_DX11;
 
 class Shader_DX11 : public Shader {
-	using Base = Shader;
-	using Util = DX11Util;
+	using Base		= Shader;
+	using Util		= DX11Util;
+	using Profile	= ShaderStageProfile;
 	sgeShader_InterfaceFunctions(DX11);
 public:
 
@@ -32,9 +33,8 @@ public:
 		void load(StrView passPath, DX11_ID3DDevice* dev);
 		void bind(RenderContext_DX11* ctx);
 
-		ByteSpan bytecode() const { return _bytecode; }
-
-		MyPass* pass() const { return static_cast<MyPass*>(_pass); }
+		ByteSpan	bytecode()	const { return _bytecode; }
+		MyPass*		pass()		const { return static_cast<MyPass*>(_pass); }
 
 	private:
 		ComPtr<DX11_ID3DVertexShader>	_shader;
@@ -56,9 +56,8 @@ public:
 		void load(StrView passPath, DX11_ID3DDevice* dev);
 		void bind(RenderContext_DX11* ctx);
 
-		ByteSpan bytecode() const { return _bytecode; }
-
-		MyPass* pass() const { return static_cast<MyPass*>(_pass); }
+		ByteSpan	bytecode()	const { return _bytecode; }
+		MyPass*		pass()		const { return static_cast<MyPass*>(_pass); }
 
 	private:
 		ComPtr<DX11_ID3DPixelShader>	_shader;
@@ -91,7 +90,7 @@ public:
 	using PixelStage	= MyPixelStage;
 	using Pass			= MyPass;
 
-	static void s_loadStageFile(StrView passPath, ShaderStageMask stageMask, Vector<u8>& outBytecode, ShaderStageInfo& outInfo);
+	static void s_loadStageFile(StrView passPath, StrView profile, Vector<u8>& outBytecode, ShaderStageInfo& outInfo);
 
 }; // Shader_DX11
 

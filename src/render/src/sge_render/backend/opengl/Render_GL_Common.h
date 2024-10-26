@@ -34,7 +34,7 @@ struct GLUtil {
 	static void			throwIfError();
 	static bool			assertIfError();
 
-	static void			compileShader(GLuint& shader, GLenum type, StrView filename);
+	static void			compileShader(GLuint& shader, GLenum shaderStageType, StrView filename);
 	static void			linkShader(GLuint& program, GLuint& vsShader, GLuint& psShader);
 	static void			getShaderInfoLog(GLuint& shader, String& outMsg);
 	static void			getProgramInfoLog(GLuint& program, String& outMsg);
@@ -209,9 +209,10 @@ GLenum GLUtil::getGlBaseFormat(RenderDataType v) {
 
 SGE_INLINE
 GLenum GLUtil::getGlShaderType(ShaderStageMask s) {
+	using SRC = ShaderStageMask;
 	switch (s) {
-		case ShaderStageMask::Vertex:	return GL_VERTEX_SHADER;
-		case ShaderStageMask::Pixel:	return GL_FRAGMENT_SHADER;
+		case SRC::Vertex:	return GL_VERTEX_SHADER;
+		case SRC::Pixel:	return GL_FRAGMENT_SHADER;
 	//---
 		default: throw SGE_ERROR("unsupported ShaderStageMask '{}'", s);
 	}
@@ -219,9 +220,16 @@ GLenum GLUtil::getGlShaderType(ShaderStageMask s) {
 
 SGE_INLINE
 const char* GLUtil::getGlStageProfile(ShaderStageMask s) {
+	using SRC		= ShaderStageMask;
+	using Profile	= ShaderStageProfile;
+
+	static constexpr const char* vs = StringUtil::extractFromPrefix(Profile::GLSL_VS, "vs_");
+	static constexpr const char* ps = StringUtil::extractFromPrefix(Profile::GLSL_PS, "ps_");
+//	static constexpr const char* cs = StringUtil::extractFromPrefix(Profile::GLSL_CS, "cs_");
+
 	switch (s) {
-		case ShaderStageMask::Vertex:	return "330";
-		case ShaderStageMask::Pixel:	return "330";
+		case SRC::Vertex:	return vs;
+		case SRC::Pixel:	return ps;
 	//---
 		default: return "";
 	}
