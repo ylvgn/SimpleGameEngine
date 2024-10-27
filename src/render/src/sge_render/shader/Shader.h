@@ -12,8 +12,9 @@ class ShaderPass;
 #endif
 class ShaderStage : public NonCopyable {
 public:
-	const ShaderStageInfo* info() const { return &_info; }
 	ShaderStage() = delete;
+
+	const ShaderStageInfo* info() const { return &_info; }
 
 protected:
 	ShaderStage(ShaderPass* pass) noexcept;
@@ -28,9 +29,9 @@ protected:
 class ShaderVertexStage : public ShaderStage {
 	using Base = ShaderStage;
 public:
-	static constexpr ShaderStageMask stageMask() { return ShaderStageMask::Vertex; }
-
 	ShaderVertexStage(ShaderPass* pass) : Base(pass) {}
+
+	static constexpr ShaderStageMask stageMask() { return ShaderStageMask::Vertex; }
 
 }; // ShaderVertexStage
 
@@ -40,9 +41,9 @@ public:
 class ShaderPixelStage  : public ShaderStage {
 	using Base = ShaderStage;
 public:
-	static constexpr ShaderStageMask stageMask() { return ShaderStageMask::Pixel; }
-
 	ShaderPixelStage(ShaderPass* pass) : Base(pass) {}
+
+	static constexpr ShaderStageMask stageMask() { return ShaderStageMask::Pixel; }
 
 }; // ShaderPixelStage
 
@@ -51,13 +52,15 @@ public:
 #endif
 class ShaderPass : public NonCopyable {
 public:
+	ShaderPass() = delete;
+
 	using Info = ShaderInfo::Pass;
 
-	ShaderPass() = delete;
-	virtual ~ShaderPass() noexcept = default;
+	virtual ~ShaderPass() = default;
 
 	const Info* info() const { return _info; }
-	StrView		shaderFilename() const;
+
+	StrView	shaderFilename() const;
 
 	ShaderVertexStage*	vertexStage() { return _vertexStage; }
 	ShaderPixelStage*   pixelStage()  { return _pixelStage; }
@@ -68,6 +71,7 @@ public:
 friend class Shader;
 protected:
 	ShaderPass(Shader* shader, int passIndex) noexcept;
+
 	virtual void onInit() = 0;
 
 	const Info*			_info			= nullptr;
@@ -99,7 +103,7 @@ public:
 	Span< UPtr<ShaderPass> >	passes()				{ return _passes; }
 
 protected:
-	Shader() noexcept = default;  // please create from 'Renderer::createShader'
+	Shader() = default; // please create from 'Renderer::createShader'
 
 	virtual UPtr<Shader::Pass> onCreatePass(int passIndex) = 0;
 

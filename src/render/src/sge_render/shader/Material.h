@@ -167,7 +167,7 @@ public:
 class MaterialPass : public NonCopyable {
 public:
 	MaterialPass() = delete;
-	virtual ~MaterialPass() noexcept = default;
+	virtual ~MaterialPass() = default;
 
 	using Pass			= MaterialPass;
 	using Stage			= MaterialPass_Stage;
@@ -207,7 +207,7 @@ protected:
 #endif
 class Material : public RefCountBase {
 public:
-	virtual ~Material() noexcept = default;
+	virtual ~Material() = default;
 
 	using Pass			= MaterialPass;
 	using Stage			= MaterialPass_Stage;

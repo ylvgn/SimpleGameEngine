@@ -143,6 +143,7 @@ namespace sge {
 SGE_ENUM_DECLARE(GLFWKeyCode, i32)
 SGE_ENUM_ALL_OPERATOR(GLFWKeyCode)
 
+
 #if 0
 #pragma mark ========= MyGLFWUIKeyboardEvent ============
 #endif
@@ -162,6 +163,6 @@ private:
 	bool	_isState(int glfwKey, int expectedState) const;
 
 	GLFWwindow* _win = nullptr;
-};
-	
+}; // MyGLFWUIKeyboardEvent
+
 } // namespace sge

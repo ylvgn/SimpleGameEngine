@@ -31,7 +31,7 @@ else
 endif
 
 ifeq ($(SGE_PLATFORM_OS), Windows)
-	sge_tools_bin = $(realpath ../../../../externals/tools)
+	sge_tools_bin = $(realpath ../../../../externals/_tools)
 	sge_build_bin = $(realpath ../../../../build/SimpleGameEngine-x64-windows)
 
 	exe_suffix=.exe

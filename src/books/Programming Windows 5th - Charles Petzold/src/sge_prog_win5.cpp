@@ -37,14 +37,7 @@ class ProgWin5App : public NativeUIApp {
 	using ProgWin5MainWin = PW5_MySysMets3;
 protected:
 	virtual void onCreate(CreateDesc& desc) override {
-		{ // set working dir
-			auto exeFilePath = getExecutableFilename();
-			String workingDir = FilePath::dirname(exeFilePath);
-			workingDir.append("/../../../../../../../examples/Test103");
-
-			Directory::setCurrent(workingDir);
-			SGE_DUMP_VAR(Directory::current());
-		}
+		setCurDirRelativeToExecutable("/../../../../../../examples/Test103");
 
 		Base::onCreate(desc);
 

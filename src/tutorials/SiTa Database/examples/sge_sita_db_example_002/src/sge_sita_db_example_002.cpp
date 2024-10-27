@@ -16,15 +16,7 @@ struct Row {
 class SiTaDBExample002 : public ConsoleApp {
 public:
 	virtual void onRun() override {
-
-		{ // set working dir
-			auto exeFilePath = getExecutableFilename();
-			String workingDir = FilePath::dirname(exeFilePath);
-			workingDir.append("/../../../../../../../../examples/Test105");
-
-			Directory::setCurrent(workingDir);
-			SGE_DUMP_VAR(Directory::current());
-		}
+		setCurDirRelativeToExecutable("/../../../../../../../../examples/Test105");
 
 		_conn = std::move(connectSQLite3("test_db.sqlite3"));
 

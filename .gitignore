@@ -5,4 +5,5 @@
 
 /build
 /externals/vcpkg
-/externals/tools
+/externals/_tools
+

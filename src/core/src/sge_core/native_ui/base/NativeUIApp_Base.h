@@ -36,6 +36,6 @@ protected:
 	float	_targetFrequency	= 1.f / _fps;
 	float	_fastForwardMinSec	= _targetFrequency * 20 + kFastForwardFrequency;
 	float	_acceptableMaxSec	= _targetFrequency * 0.2f;
-};
+}; // NativeUIApp_Base
 
 } // namespace sge

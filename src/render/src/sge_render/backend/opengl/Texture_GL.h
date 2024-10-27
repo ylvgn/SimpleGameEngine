@@ -18,9 +18,8 @@ public:
 	void unbind()	{ glBindTexture(GL_TEXTURE_2D, 0); }
 
 private:
-
 	struct Format {
-		Format() noexcept = default;
+		Format() = default;
 		Format(ColorType colorType) { set(colorType); }
 		void set(ColorType colorType);
 

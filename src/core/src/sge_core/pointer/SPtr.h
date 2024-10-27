@@ -5,7 +5,7 @@ namespace sge {
 template<class T>
 class SPtr : public NonCopyable {
 public:
-	SPtr()				noexcept = default;
+	SPtr() = default;
 	SPtr(T* p)			noexcept { reset(p); }
 	SPtr(SPtr&& r)		noexcept { _p = r.detach(); }
 	SPtr(const SPtr& r)	noexcept { reset(r._p); }

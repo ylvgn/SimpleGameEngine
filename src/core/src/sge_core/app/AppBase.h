@@ -28,14 +28,22 @@ public:
 	void setCommandArguments(int argc, const char* argv[]);
 
 	template<size_t N>
-	void setCommandArguments(const char* (&argv)[N]) { if(N) setCommandArguments(static_cast<int>(N), argv); }
+	void setCommandArguments(const char* (&argv)[N]) {
+		if(N) setCommandArguments(static_cast<int>(N), argv);
+	}
 
 	Span<const StrView> commandArguments() const;
 
 	void	setAppName(StrView s) { _appName = s; }
 	StrView	appName();
 
-	String	getExecutableFilename();
+	void	executableFilenameTo(String& out);
+	String	executableFilename() { String o; executableFilenameTo(o); return o; }
+
+	void	executableDirPathTo(String& out);
+	String	executableDirPath() { String o; executableDirPathTo(o); return o; }
+
+	void	setCurDirRelativeToExecutable(StrView relativePath);
 
 	virtual void onRun() = 0;
 

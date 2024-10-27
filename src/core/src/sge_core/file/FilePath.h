@@ -36,17 +36,24 @@ struct FilePath {
 
 
 template<class... Args> SGE_INLINE
-void FilePath::combineTo(String& src_path, Args&&... paths) {
+void FilePath::combineTo(String& src_path, Args&&... paths) {	
+	StrView views[] { SGE_FORWARD(paths)... };
+	size_t n = sizeof...(paths);
+	if (!n) return;
+
 	auto sv = src_path.view();
 	bool needSlash = !sv.empty() && !sv.ends_with('/') && !sv.ends_with('\\');
-	
-	StrView views[] { paths... };
-	size_t n = sizeof...(paths);
 
-	if (needSlash) src_path.append("/");
+	bool validFirst = true;
 	for (size_t i = 0; i < n; ++i) {
 		const auto& v = views[i];
-		src_path.append(v.data(), v.size());
+		if (!v) continue;
+		if (validFirst) {
+			if (v[0] == '/' || v[0] == '\\') needSlash = false;
+			if (needSlash) src_path.append("/");
+			validFirst = false;
+		}
+		src_path.append(v);
 		if (i + 1 < n) src_path.append("/");
 	}
 }

@@ -291,7 +291,8 @@ MySQL_Conn::MySQL_Conn(StrView host, StrView db, StrView user, StrView password)
 	TempString password_(password);
 
 	if (nullptr == mysql_real_connect(_conn, host_.c_str(), user_.c_str(), password_.c_str(), db_.c_str(), 0, nullptr, 0)) {
-		throw SGE_ERROR(mysql_error(_conn));
+		TempString e = Fmt("{}\n\thost={}\n\tdb={}\n\tuser={}\n\tpw={}", mysql_error(_conn), host_, db_, user_, password_);
+		throw SGE_ERROR(e);
 	}
 }
 

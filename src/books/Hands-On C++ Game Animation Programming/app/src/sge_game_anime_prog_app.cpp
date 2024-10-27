@@ -561,15 +561,7 @@ class GameAnimeProgApp : public NativeUIApp {
 	using Base = NativeUIApp;
 protected:
 	virtual void onCreate(CreateDesc& desc) override {
-		{ // set working dir
-			auto exeFilePath = getExecutableFilename();
-			String workingDir = FilePath::dirname(exeFilePath);
-			workingDir.append("/../../../../../../../examples/Test102");
-
-			Directory::setCurrent(workingDir);
-			SGE_DUMP_VAR(Directory::current());
-		}
-
+		setCurDirRelativeToExecutable("/../../../../../../../examples/Test102");
 		Base::onCreate(desc);
 
 		{ // create window

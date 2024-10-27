@@ -5,7 +5,7 @@ namespace sge {
 template<class T>
 class ComPtr : public NonCopyable {
 public:
-	ComPtr()				noexcept = default;
+	ComPtr() = default;
 	ComPtr(const ComPtr& r)	noexcept { reset(r._p); }
 	ComPtr(ComPtr && r)		noexcept { _p = r.detach(); }
 
@@ -15,7 +15,7 @@ public:
 	void operator=(ComPtr&& r)		noexcept { reset(nullptr); _p = r.detach(); }
 
 		  T* operator->()			noexcept	{ return _p; }
-	const T* operator->() const		noexcept	{ return _p; }
+	const T* operator->()	const	noexcept	{ return _p; }
 
 	operator       T*()				noexcept	{ return _p; }
 	operator const T*()		const	noexcept	{ return _p; }
@@ -40,6 +40,6 @@ public:
 
 private:
 	T* _p = nullptr;
-};
+}; // ComPtr
 
 } // namespace sge

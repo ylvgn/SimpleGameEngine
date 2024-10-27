@@ -225,10 +225,11 @@ struct StringT_Base<T, 0, true> {
 	using Type = typename eastl::basic_string<T>;
 };
 
-template<class T, size_t N, bool bEnableOverflow = true> // using FixedStringT = eastl::fixed_string<T, N, bEnableOverflow>;
+template<class T, size_t N, bool bEnableOverflow = true>
 class StringT : public StringT_Base<T, N, bEnableOverflow>::Type {
 	using Base = typename StringT_Base<T, N, bEnableOverflow>::Type;
 public:
+
 	using Base::npos;
 	using Base::mPair;
 	using Base::append;
@@ -242,16 +243,15 @@ public:
 	using Base::internalLayout;
 	using Base::get_allocator;
 
-	StringT() = default;
-	StringT(const T* begin, const T* end)	: Base(begin, end) {}
-	StringT(StrViewT<T> view)				: Base(view.data(), view.size()) {}
-	StringT(StringT&& str)					: Base(std::move(str)) {}
-	StringT(const T* sz)					: Base(sz) {}
-	StringT(const StringT& s)				: Base(s.data(), s.size()) {}
-	StringT(const Base& s)					: Base(s.data(), s.size()) {}
+						StringT() = default;
+						StringT(const T* begin, const T* end)	: Base(begin, end) {}
+						StringT(StrViewT<T> view)				: Base(view.data(), view.size()) {}
+						StringT(StringT&& str)					: Base(std::move(str)) {}
+						StringT(const T* sz)					: Base(sz) {}
+						StringT(const StringT& s)				: Base(s.data(), s.size()) {}
+						StringT(const Base& s)					: Base(s.data(), s.size()) {}
 
-	template<size_t M>
-	StringT(const StringT<T, M>& s)			: Base(s.data(), s.size()) {}
+	template<size_t M>	StringT(const StringT<T, M>& s)			: Base(s.data(), s.size()) {}
 
 						void operator=(const StringT& s)		{ Base::assign(s.data(), s.size()); }
 	template<size_t N>	void operator=(const StringT<T, N>& r)	{ Base::assign(s.data(), s.size()); }
@@ -261,16 +261,15 @@ public:
 	template<size_t N>	void operator+=(const StringT<T, N>& v) { Base::append(v.begin(), v.end()); }
 	template<class R>	void operator+=(const R& r)				{ Base::operator+=(r); }
 
-	void append(const StrViewT<T>& s)	{ Base::append(s.data(), s.size()); }
-
-	template<size_t M>
-	void append(const StringT<T, M>& s)	{ Base::append(s.data(), s.size()); }
+						void append(const StrViewT<T>& s)		{ Base::append(s.data(), s.size()); }
+						void append(const StringT& s)			{ Base::append(s.data(), s.size()); }
+	template<size_t M>	void append(const StringT<T, M>& s)		{ Base::append(s.data(), s.size()); }
 
 	StrViewT<T>	view() const { return StrViewT<T>(data(), size()); }
 
 	void replaceChars(T from, T to) {
-		auto* s = data();
-		auto* e = s + size();
+		auto* s = begin();
+		auto* e = end();
 		for ( ; s < e; ++ s) {
 			if (*s == from) *s = to;
 		}
@@ -382,7 +381,7 @@ namespace sge {
 
 class NonCopyable {
 public:
-	NonCopyable() noexcept = default;
+	NonCopyable() = default;
 private:
 	NonCopyable		(const NonCopyable&) = delete;
 	void operator=	(const NonCopyable&) = delete;
@@ -405,7 +404,7 @@ template<class T> inline void sge_delete(T* p) noexcept { delete p; }
 template<class T>
 class ScopedValue : public NonCopyable {
 public:
-	ScopedValue()							noexcept = default;
+	ScopedValue() = default;
 	ScopedValue(T* p)						noexcept : _p(p) { _oldValue = *p; }
 	ScopedValue(T* p, const T& newValue)	noexcept : ScopedValue(p) { *p = newValue; }
 	ScopedValue(ScopedValue && r)			noexcept {

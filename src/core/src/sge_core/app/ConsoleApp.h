@@ -10,6 +10,6 @@ public:
 
 protected:
 	int	_exitCode = 0;
-};
+}; // ConsoleApp
 
 } // namespace sge

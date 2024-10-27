@@ -1,13 +1,28 @@
 cmake_minimum_required(VERSION 3.18)
 
-set(CMAKE_TOOLCHAIN_FILE "./externals/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
+set(SGE_CMAKE_EXTERNALS_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/externals")
+set(SGE_CMAKE_EXTERNALS_VCPKG "${SGE_CMAKE_EXTERNALS_ROOT}/vcpkg")
+set(SGE_CMAKE_EXTERNALS_TOOLS "${SGE_CMAKE_EXTERNALS_ROOT}/_tools")
+
+message("SGE_CMAKE_EXTERNALS_ROOT       = ${SGE_CMAKE_EXTERNALS_ROOT}")
+message("SGE_CMAKE_EXTERNALS_VCPKG      = ${SGE_CMAKE_EXTERNALS_VCPKG}")
+message("SGE_CMAKE_EXTERNALS_TOOLS      = ${SGE_CMAKE_EXTERNALS_TOOLS}")
+
+set(CMAKE_TOOLCHAIN_FILE "${SGE_CMAKE_EXTERNALS_VCPKG}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
 set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 #set(CMAKE_BUILD_TYPE Debug)
 
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+#add_compile_definitions(SGE_CMAKE_EXTERNALS_ROOT=\"${SGE_CMAKE_EXTERNALS_ROOT}\")
+#add_compile_definitions(SGE_CMAKE_EXTERNALS_VCPKG=\"${SGE_CMAKE_EXTERNALS_VCPKG}\")
+add_compile_definitions(SGE_CMAKE_EXTERNALS_TOOLS=\"${SGE_CMAKE_EXTERNALS_TOOLS}\")
 
-project(gyh-SimpleGameEngine)
+include(src/sge_common.cmake)
+
+set(PROJECT_NAME gyh-SimpleGameEngine)
+project(${PROJECT_NAME})
+message("==== ${PROJECT_NAME} ====")
 
 find_package(fmt CONFIG REQUIRED)
 find_package(GLEW CONFIG REQUIRED)
@@ -22,74 +37,8 @@ find_package(spirv_cross_glsl CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 
-function(sge_source_group src_path src_files)
-	foreach(FILE ${src_files}) 
-		get_filename_component(PARENT_DIR "${FILE}" PATH)
-		file(RELATIVE_PATH PARENT_DIR ${src_path} ${PARENT_DIR})
-		string(REPLACE "/" "\\" GROUP "${PARENT_DIR}")
-		set(GROUP "${GROUP}")
-		source_group("${GROUP}" FILES "${FILE}")	
-	endforeach()
-endfunction()
-
-function(sge_set_target_warning_level target_name)
-	if(MSVC)
-	  target_compile_options(${target_name} PRIVATE /WX)     #warning treated as error
-	  target_compile_options(${target_name} PRIVATE /W4)     #warning level 4
-	  target_compile_options(${target_name} PRIVATE /wd4100) #warning C4100: unreferenced formal parameter in function
-	  target_compile_options(${target_name} PRIVATE /wd4201) #warning C4201: nonstandard extension used: nameless struct/union
-	  target_compile_options(${target_name} PRIVATE /wd4127) #warning C4127: conditional expression is constant
-	  target_compile_options(${target_name} PRIVATE /wd4275) #warning C4275: non dll-interface class 'std::runtime_error' used as base for dll-interface class 'fmt::v10::format_error'
-	else()
-	  target_compile_options(${target_name} PRIVATE -Wall -Wextra -Wpedantic -Werror)
-	endif()
-endfunction()
-
-function(sge_set_target_unity_build_mode target_name)
-	set_target_properties(${target_name} PROPERTIES
-							UNITY_BUILD ON
-							UNITY_BUILD_MODE BATCH
-							UNITY_BUILD_BATCH_SIZE 16
-							)
-endfunction()
-
-function(sge_add_library target_name src_path)
-	file(GLOB_RECURSE src_files
-		"${src_path}/src/*.*"
-	)	
-	sge_source_group(${src_path} "${src_files}")
-	
-	add_library(${target_name} ${src_files})	
-	target_precompile_headers(${target_name} PUBLIC src/${target_name}-pch.h)
-	target_include_directories(${target_name} PUBLIC src)
-	sge_set_target_warning_level(${target_name})
-	sge_set_target_unity_build_mode(${target_name})
-endfunction()
-
-function(sge_add_dynamic_library target_name src_path)
-	file(GLOB_RECURSE src_files
-		"${src_path}/src/*.*"
-	)	
-	sge_source_group(${src_path} "${src_files}")
-	
-	add_library(${target_name} SHARED ${src_files})	
-	target_precompile_headers(${target_name} PUBLIC src/${target_name}-pch.h)
-	target_include_directories(${target_name} PUBLIC src)
-	sge_set_target_warning_level(${target_name})
-	sge_set_target_unity_build_mode(${target_name})
-endfunction()
-
-function(sge_add_executable target_name src_path)
-	file(GLOB_RECURSE src_files
-		"${src_path}/src/*.*"
-	)
-	sge_source_group(${src_path} "${src_files}")
-
-	add_executable(${target_name} ${src_files})
-	target_precompile_headers(${target_name} PUBLIC src/${target_name}-pch.h)
-	sge_set_target_warning_level(${target_name})
-	sge_set_target_unity_build_mode(${target_name})
-endfunction()
+#-- externals ---
+add_subdirectory(externals)
 
 #-- core ---
 add_subdirectory(src/core)
@@ -110,7 +59,7 @@ add_subdirectory(src/editor/app_opengl) # just for test
 #-- tools ---
 add_subdirectory(src/tools/file_cmd)
 
-set_property (DIRECTORY PROPERTY VS_STARTUP_PROJECT sge_editor_app)
+set_property (DIRECTORY PROPERTY VS_STARTUP_PROJECT sge_editor_app) # Set as Startup Project
 
 #--- inessential ---
 #-- Hands-On C++ Game Animation Programming ---

@@ -6,7 +6,7 @@ namespace sge {
 
 void Win32Util::errorTo(String& out, ::DWORD in_errorcode /*= ::WSAGetLastError()*/) {
 	// retrieving-error-messages: https://docs.microsoft.com/en-us/windows/win32/seccrypto/retrieving-error-messages
-
+	// system error code lookup: https://learn.microsoft.com/en-us/windows/win32/debug/system-error-codes
 	out.clear();
 
 	TempStringW tmp;

@@ -30,7 +30,7 @@ enum class DBDataType {
 
 class Stmt : public NonCopyable {
 public:
-	virtual ~Stmt() noexcept = default;
+	virtual ~Stmt() = default;
 
 	virtual void reset() { onReset(); }
 
@@ -118,7 +118,7 @@ protected:
 
 class Conn : public RefCountBase {
 public:
-	virtual ~Conn() noexcept = default;
+	virtual ~Conn() = default;
 
 	virtual void directExec(StrView sql) = 0;
 	virtual void destroy() = 0;
@@ -132,4 +132,4 @@ protected:
 MyDB_API SPtr<Conn> connectMySQL(StrView host, StrView db, StrView user, StrView password);
 MyDB_API SPtr<Conn> connectSQLite3(StrView filename);
 
-}
+} // namespace sge

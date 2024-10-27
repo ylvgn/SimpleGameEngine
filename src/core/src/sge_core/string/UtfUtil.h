@@ -155,7 +155,7 @@ void UtfUtil::_encodeUtf(String16_<N>& dst, uint32_t v) {
 template<size_t N> SGE_INLINE
 void UtfUtil::_encodeUtf(String32_<N>& dst, uint32_t v) {
 	using C = char32_t;
-	dst += C(v);
+	dst += static_cast<C>(v);
 }
 
 template<class DST, class SRC> SGE_INLINE

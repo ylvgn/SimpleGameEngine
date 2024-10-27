@@ -34,14 +34,14 @@ public:
 #if 1
 		_args = commandArguments();
 #else
-		String exeFilename = getExecutableFilename();
-		String exeDirname = FilePath::dirname(exeFilename);
+		auto exeFilePath = appName();;
+		String exeDirname = FilePath::dirname();
 		Directory::setCurrent(exeDirname);
 
 		Vector<String> _argsStr;
 		Vector<StrView> args;
 
-		_argsStr.push_back(exeFilename);
+		_argsStr.push_back(exeFilePath);
 		_argsStr.push_back(String("-touch")); _argsStr.push_back(String("aaa.txt"));
 		_argsStr.push_back(String("-mkdir")); _argsStr.push_back(String("a/b/c"));
 		_argsStr.push_back(String("-rmdir")); _argsStr.push_back(String("a"));

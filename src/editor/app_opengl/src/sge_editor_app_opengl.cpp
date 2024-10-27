@@ -130,18 +130,10 @@ class EditorApp : public NativeUIApp {
 	using Base = NativeUIApp;
 public:
 	virtual void onCreate(CreateDesc& desc) override {
-		{ // set working dir
-			auto exeFilePath = getExecutableFilename();
-			String workingDir = FilePath::dirname(exeFilePath);
-			workingDir.append("/../../../../../../examples/Test101");
-
-			Directory::setCurrent(workingDir);
-			SGE_DUMP_VAR(Directory::current());
-		}
-
-		// compile shaders
+		setCurDirRelativeToExecutable("/../../../../../../examples/Test101");
+#if 1
 		CommandLine::runShell("compile_shaders.bat");
-
+#endif
 		Base::onCreate(desc);
 
 		{ // create renderer

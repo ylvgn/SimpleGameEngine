@@ -37,8 +37,7 @@ char File::writeFile(StrView filename, ByteSpan data, bool createDir, bool logRe
 	}
 
 	if (createDir) {
-		auto dir = FilePath::dirname(realPath);
-		if (!dir.empty()) {
+		if (auto dir = FilePath::dirname(realPath)) {
 			Directory::create(dir);
 		}
 	}

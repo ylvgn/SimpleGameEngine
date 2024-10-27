@@ -32,7 +32,7 @@ public:
 #endif
 	{}
 
-	virtual ~RenderCommand() noexcept = default;
+	virtual ~RenderCommand() = default;
 
 	Type type() const { return _type; }
 
@@ -166,7 +166,8 @@ private:
 #endif
 class RenderScissorRectScope : public NonCopyable {
 public:
-	RenderScissorRectScope() noexcept = default;
+	RenderScissorRectScope() = default;
+
 	RenderScissorRectScope(RenderScissorRectScope && r) noexcept {
 		_cmdBuf = r._cmdBuf;
 		_rect = r._rect;
@@ -189,7 +190,7 @@ public:
 
 private:
 	RenderCommandBuffer* _cmdBuf = nullptr;
-	Rect2f	_rect{0,0,0,0};
+	Rect2f				_rect{0,0,0,0};
 }; // RenderScissorRectScope
 
 } // namespace

@@ -114,15 +114,7 @@ void MyGLFWNativeUIWindow::onCreate(CreateDesc& desc) {
 #pragma mark ========= MyGLFWNativeUIApp ============
 #endif
 void MyGLFWNativeUIApp::onCreate(CreateDesc& desc) {
-	{ // set working dir
-		auto exeFilePath = getExecutableFilename();
-		String workingDir = FilePath::dirname(exeFilePath);
-		workingDir.append("/../../../../../../../../examples/Test108");
-
-		Directory::setCurrent(workingDir);
-		SGE_DUMP_VAR(Directory::current());
-	}
-
+	setCurDirRelativeToExecutable("/../../../../../../../../examples/Test108");
 	Base::onCreate(desc);
 }
 

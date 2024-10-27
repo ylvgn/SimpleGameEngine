@@ -10,9 +10,11 @@ struct MyLine3 {
 	using ElementType = T;
 	using MyVec3 = MyVec3<T>;
 
-	constexpr MyLine3() noexcept = default;
+	constexpr MyLine3() = default;
 	constexpr MyLine3(const MyVec3& start_, const MyVec3& end_) noexcept
-		: start(start_), end(end_) {}
+		: start(start_)
+		, end(end_)
+	{}
 
 	MyVec3 start;
 	MyVec3 end;
@@ -23,9 +25,12 @@ struct MyTriangle3 {
 	using ElementType = T;
 	using MyVec3 = MyVec3<T>;
 
-	constexpr MyTriangle3() noexcept = default;
+	constexpr MyTriangle3() = default;
 	constexpr MyTriangle3(const MyVec3& v0_, const MyVec3& v1_, const MyVec3& v2_) noexcept
-		: v0(v0_), v1(v1_), v2(v2_) {}
+		: v0(v0_)
+		, v1(v1_)
+		, v2(v2_)
+	{}
 
 	MyVec3 calcNormal() const {
 		return (v1-v0).cross(v2-v0).normalize();
@@ -71,12 +76,16 @@ private:
 public:
 	using ElementType = T;
 
-	constexpr MyPlane3() noexcept = default;
+	constexpr MyPlane3() = default;
 	constexpr MyPlane3(const MyVec3& normal_, const T& distance_) noexcept
-		: normal(normal_), distance(distance_) {}
+		: normal(normal_)
+		, distance(distance_)
+	{}
 
 	constexpr MyPlane3(const MyVec3& normal_, const MyVec3& pos) noexcept
-		: normal(normal_), distance(normal_.dot(pos)) {}
+		: normal(normal_)
+		, distance(normal_.dot(pos))
+	{}
 
 	constexpr MyPlane3(const MyTriangle3& tri) noexcept {
 		normal = tri.calcNormal();
@@ -146,9 +155,11 @@ struct MySphere3 {
 	using ElementType = T;
 	using MyVec3 = MyVec3<T>;
 
-	constexpr MySphere3() noexcept = default;
+	constexpr MySphere3() = default;
 	constexpr MySphere3(const MyVec3& center_, const T& radius_) noexcept
-		: center(center_), radius(radius_) {}
+		: center(center_)
+		, radius(radius_)
+	{}
 
 	void draw(int subAxis = 16, int subHeight = 16);
 
@@ -290,7 +301,8 @@ struct MyAABB3 {
 
 	constexpr MyAABB3(const MyVec3& minPt_, const MyVec3& maxPt_) noexcept
 		: minPt(minPt_)
-		, maxPt(maxPt_) {}
+		, maxPt(maxPt_)
+	{}
 
 	template<typename DST, typename SRC>
 	static MyAABB3<DST> s_cast(const MyAABB3<SRC>& v) {

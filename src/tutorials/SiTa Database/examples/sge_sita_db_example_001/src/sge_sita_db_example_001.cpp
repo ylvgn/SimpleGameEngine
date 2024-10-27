@@ -16,15 +16,7 @@ struct Row {
 class SiTaDBExample001 : public ConsoleApp {
 public:
 	virtual void onRun() override {
-
-		{ // set working dir
-			auto exeFilePath = getExecutableFilename();
-			String workingDir = FilePath::dirname(exeFilePath);
-			workingDir.append("/../../../../../../../../examples/Test105");
-
-			Directory::setCurrent(workingDir);
-			SGE_DUMP_VAR(Directory::current());
-		}
+		setCurDirRelativeToExecutable("/../../../../../../../../examples/Test105");
 
 		_conn = std::move(connectMySQL("localhost", "test_db", "test_user", "1234"));
 

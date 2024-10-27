@@ -10,15 +10,11 @@ ProjectSettings* ProjectSettings::instance() {
 
 void ProjectSettings::setProjectRoot(StrView path) {
 	Directory::setCurrent(path);
-
-	_projectRoot = path;
-
-	//auto dir = Directory::current();
-	//SGE_LOG("projectRoot = {}", dir);
+	_projectRoot = Directory::current();
 }
 
 StrView ProjectSettings::importedPath() const {
 	return "LocalTemp/Imported";
 }
 
-}
+} // namespace sge

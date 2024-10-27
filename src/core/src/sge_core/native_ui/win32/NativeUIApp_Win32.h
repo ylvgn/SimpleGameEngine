@@ -19,7 +19,7 @@ protected:
 
 private:
 	DWORD _getMonitorDisplayFrequency();
-};
+}; // NativeUIApp_Win32
 
 } // namespace sge
 

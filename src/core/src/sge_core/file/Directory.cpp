@@ -34,8 +34,16 @@ void Directory::remove(StrView path) {
 void Directory::setCurrent(StrView dir) {
 	TempStringW pathW = UtfUtil::toStringW(dir);
 	int ret = ::SetCurrentDirectory(pathW.c_str());
-	if (!ret)
-		throw SGE_ERROR("::SetCurrentDirectory({}) error: {}", dir, ::WSAGetLastError()); // TODO WSAGetLastError -> Win32Util::error()
+	if (!ret) {
+		auto errorCode = ::WSAGetLastError();
+		switch (errorCode) {
+			case ERROR_FILE_NOT_FOUND:
+			case ERROR_PATH_NOT_FOUND:
+				SGE_LOG("The system cannot find the file specified: {}", dir); break;
+			default: throw SGE_ERROR("::SetCurrentDirectory({}) error: {}", dir, errorCode); // TODO WSAGetLastError -> Win32Util::error()
+		}
+	}
+	SGE_DUMP_VAR(Directory::current());
 }
 
 void Directory::currentTo(String& out) {

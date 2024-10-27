@@ -1,4 +1,6 @@
 #include "AppBase.h"
+#include <sge_core/file/FilePath.h>
+#include <sge_core/file/Directory.h>
 
 namespace sge {
 #if 0
@@ -38,7 +40,7 @@ Span<const StrView> AppBase::commandArguments() const {
 
 StrView AppBase::appName() {
 	if (_appName.empty()) {
-		_appName = getExecutableFilename();
+		executableFilenameTo(_appName);
 	}
 	return _appName;
 }
@@ -47,16 +49,31 @@ StrView AppBase::appName() {
 #pragma mark ========= Windows ============
 #endif
 #if SGE_OS_WINDOWS
-String AppBase::getExecutableFilename() {
-	wchar_t tmp[MAX_PATH + 1];
-	if (!GetModuleFileName(nullptr, tmp, MAX_PATH))
-		throw SGE_ERROR("");
 
-	tmp[MAX_PATH] = L'\0';
-
-	String o = UtfUtil::toString(tmp);
-	return o;
+void AppBase::executableFilenameTo(String& out) {
+	StringW_<MAX_PATH> pathW;
+	pathW.resizeToLocalBufSize();
+	auto requiredSize = ::GetModuleFileName(nullptr, pathW.data(), MAX_PATH);
+	if (!requiredSize)
+		throw SGE_ERROR("::GetModuleFileName error: {}", ::WSAGetLastError());
+	pathW.resize(requiredSize);
+	UtfUtil::convert(out, pathW);
+	out.replaceChars('\\', '/');
 }
+
+void AppBase::executableDirPathTo(String& out) {
+	executableFilenameTo(out);
+	auto dir = FilePath::dirname(out.view());
+	out.resize(dir.size());
+}
+
+void AppBase::setCurDirRelativeToExecutable(StrView relativePath) {
+	String exeDirPath;
+	executableDirPathTo(exeDirPath);
+	FilePath::combineTo(exeDirPath, relativePath);
+	Directory::setCurrent(exeDirPath);
+}
+
 #endif // SGE_OS_WINDOWS
 
 } // namespace sge

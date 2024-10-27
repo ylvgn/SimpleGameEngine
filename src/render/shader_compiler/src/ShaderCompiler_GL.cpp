@@ -34,10 +34,10 @@ void ShaderCompiler_GL::compile(StrView outFilename, ShaderStageMask shaderStage
 
 	{ // HLSL -> SPIRV
 		if (!File::exists(spirvOutFilename)) {
-			TempStringW tmpShaderStage;
+			TempString tmpShaderStage;
 			switch (shaderStage) {
-				case ShaderStageMask::Vertex: tmpShaderStage = L"vertex"; break;
-				case ShaderStageMask::Pixel: tmpShaderStage = L"fragment"; break;
+				case ShaderStageMask::Vertex: tmpShaderStage = "vertex"; break;
+				case ShaderStageMask::Pixel:  tmpShaderStage = "fragment"; break;
 				default: throw SGE_ERROR("unsupported ShaderStageMask '{}'", shaderStage);
 			}
 
@@ -62,7 +62,9 @@ void ShaderCompiler_GL::compile(StrView outFilename, ShaderStageMask shaderStage
 
 				params.emplace_back(Param("-o", spirvOutFilename));
 				params.emplace_back(Param("-x hlsl", srcFilename));
-				CommandLine::runShell("glslc", params); // glslc already export to _ENV variable by GNUMakefile // TODO
+
+				TempString glslc = FilePath::combine(ProjectSettings::instance()->externalsToolsRoot(), "glslc");
+				CommandLine::runShell(glslc, params);
 			}
 		}
 	}

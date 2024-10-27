@@ -50,7 +50,7 @@ public:
 	void scrollPageBackward()			{ onScrollPageBackward(); }
 
 protected:
-	NativeUIScrollInfo_Base() noexcept = default; // block constructor
+	NativeUIScrollInfo_Base() = default; // block constructor
 
 	virtual void onGetAxis			(Axis& o) {}
 	virtual void onGetPos			(int& o)  {}

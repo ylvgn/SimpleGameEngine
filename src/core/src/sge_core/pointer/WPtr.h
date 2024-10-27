@@ -7,7 +7,7 @@ namespace sge {
 template<class T>
 class WPtr : public NonCopyable {
 public:
-	WPtr()				noexcept = default;
+	WPtr() = default;
 	WPtr(T* p)			noexcept { reset(p);}
 	WPtr(WPtr && r)		noexcept { _p = r._detach(); _block = SGE_MOVE(r._block); }
 	WPtr(const WPtr& r)	noexcept { reset(r._p); }
@@ -20,7 +20,7 @@ public:
 	void operator=(const SPtr<T>& r)	noexcept { reset(constCast(r.ptr())); }
 
 			SPtr<T> toSPtr()			noexcept { return _block ? SPtr<T>(static_cast<T*>(_block->_obj)) : nullptr; }
-	const	SPtr<T> toSPtr() const		noexcept { return _block ? SPtr<T>(static_cast<T*>(_block->_obj)) : nullptr; }
+	const	SPtr<T> toSPtr()	const	noexcept { return _block ? SPtr<T>(static_cast<T*>(_block->_obj)) : nullptr; }
 
 	void reset(T* p) noexcept {
 		SGE_STATIC_ASSERT(TypeTraits::isBaseOf<RefCountBase, T>::value);
@@ -44,7 +44,6 @@ public:
 	}
 
 private:
-
 	T* _detach() noexcept { T* o = _p; _p = nullptr; return o; }
 
 	T*				_p		= nullptr;

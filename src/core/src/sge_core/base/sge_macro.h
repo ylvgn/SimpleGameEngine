@@ -43,11 +43,7 @@
 #define SGE_STATIC_ASSERT_MSG	static_assert
 #define SGE_STATIC_ASSERT(...)	SGE_STATIC_ASSERT_MSG(__VA_ARGS__, #__VA_ARGS__)
 
-#if _DEBUG
-	#define SGE_LOC	SrcLoc(__FILE__, __LINE__, SGE_FUNC_NAME_SZ)
-#else
-	#define SGE_LOC	SrcLoc()
-#endif
+#define SGE_LOC	SrcLoc(__FILE__, __LINE__, SGE_FUNC_NAME_SZ)
 
 #define SGE_ENUM_BITWISE_OPERATOR(T) \
 	constexpr T operator~ (T  a)      { return static_cast<T>(~enumInt(a)); } \

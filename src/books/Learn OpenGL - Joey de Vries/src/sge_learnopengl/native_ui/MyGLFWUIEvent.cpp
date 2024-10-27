@@ -1,7 +1,6 @@
 #include "MyGLFWUIEvent.h"
 
 namespace sge {
-	
 #if 0
 #pragma mark ========= MyGLFWUIKeyboardEvent ============
 #endif

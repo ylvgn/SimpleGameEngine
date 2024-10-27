@@ -18,15 +18,7 @@ class NeHeOGLApp : public NativeUIApp {
 	using NeHeOGLMainWin = NeHeOGL_Lesson012;
 protected:
 	virtual void onCreate(CreateDesc& desc) override {
-		{ // set working dir
-			auto exeFilePath = getExecutableFilename();
-			String workingDir = FilePath::dirname(exeFilePath);
-			workingDir.append("/../../../../../../examples/Test104");
-
-			Directory::setCurrent(workingDir);
-			SGE_DUMP_VAR(Directory::current());
-		}
-
+		setCurDirRelativeToExecutable("/../../../../../../examples/Test104");
 		Base::onCreate(desc);
 
 		{ // create window

@@ -109,13 +109,11 @@ public:
 	}
 
 	void debugCompileManually() {
-		String file = getExecutableFilename();
-		String path = FilePath::dirname(file);
-		path.append("/../../../../../../examples/Test101");
-		Directory::setCurrent(path);
+		setCurDirRelativeToExecutable("/../../../../../../examples/Test101");
+
+		SGE_DUMP_VAR(ProjectSettings::instance()->externalsToolsRoot());
 
 		compile("Assets/Shaders/test.shader");
-//		compile("Assets/Shaders/test.hlsl");
 		compile("Assets/Shaders/terrain.shader");
 		compile("Assets/Shaders/terrain_test.shader");
 		compile("Assets/Shaders/imgui.shader");
@@ -123,7 +121,9 @@ public:
 		compile("Assets/Shaders/test_constbuffer.shader");
 		compile("Assets/Shaders/test_texture.shader");
 
-		SGE_LOG("---- end ----");
+		compile("Assets/Shaders/test.hlsl");
+
+		SGE_LOG("\n---- end ----\n");
 	}
 
 	void debugBatchMode() {
@@ -131,7 +131,7 @@ public:
 		String workingDir = FilePath::dirname(file);
 
 		TempString RelativeTest101 = "/../../../../../../examples/Test101";
-		String RelativeTest101Imported = FilePath::combine(RelativeTest101, "LocalTemp/Imported");
+		String RelativeTest101Imported = FilePath::combine(RelativeTest101, ProjectSettings::instance()->importedPath());
 
 #if 1 // debug genMakefile
 		workingDir.append(RelativeTest101);
@@ -371,7 +371,7 @@ private:
 	void _compileGLSL() {
 		ShaderStageProfileParser profileParser;
 		if (!profileParser.tryParse_GLSL(opt.profile)) {
-			SGE_LOG("invalid HLSL profile error: {}", opt.profile);
+			SGE_LOG("invalid GLSL profile error: {}", opt.profile);
 			_exitCode = -1;
 			return;
 		}
@@ -379,10 +379,10 @@ private:
 		c.compile(opt.out, profileParser.stage, profileParser.profile, opt.file, opt.entry);
 	}
 
-	void compile(StrView shaderFilename) { // TODO
+	void compile(StrView shaderFilename) {
 		ShaderInfo info;
 
-		String outdir = Fmt("LocalTemp/Imported/{}", shaderFilename);
+		String outdir = Fmt("{}/{}", ProjectSettings::instance()->importedPath(), shaderFilename);
 		Directory::create(outdir);
 
 		{ // shader parser
@@ -393,42 +393,34 @@ private:
 			JsonUtil::writeFile(jsonFilename, info, false);
 		}
 
-		{ // DX11
-			size_t passIndex = 0;
-			for (auto& pass : info.passes) {
-				auto passOutPath = Fmt("{}/dx11/pass{}", outdir, passIndex);
-
-				if (!pass.vsFunc.empty()) {
+		size_t passIndex = 0;
+		for (auto& pass : info.passes) {
+			if (!pass.vsFunc.empty()) {
+				{ // DX11
 					ShaderCompiler_DX11 c;
-					c.compile(passOutPath, ShaderStageMask::Vertex, DX11Util::getDxStageProfile(ShaderStageMask::Vertex), shaderFilename, pass.vsFunc);
+					TempString outFilename = Fmt("{}/dx11/pass{}/{}.bin", outdir, passIndex, Profile::DX11_VS);
+					c.compile(outFilename, ShaderStageMask::Vertex, DX11Util::getDxStageProfile(ShaderStageMask::Vertex), shaderFilename, pass.vsFunc);
 				}
-
-				if (!pass.psFunc.empty()) {
+				{ // GLSL
+					ShaderCompiler_GL c;
+					TempString outFilename = Fmt("{}/glsl/pass{}/{}.glsl", outdir, passIndex, Profile::GLSL_VS);
+					c.compile(outFilename, ShaderStageMask::Vertex, GLUtil::getGlStageProfile(ShaderStageMask::Vertex), shaderFilename, pass.vsFunc);
+				}
+			}
+			if (!pass.psFunc.empty()) {
+				{ // DX11
 					ShaderCompiler_DX11 c;
-					c.compile(passOutPath, ShaderStageMask::Pixel, DX11Util::getDxStageProfile(ShaderStageMask::Pixel), shaderFilename, pass.psFunc);
+					TempString outFilename = Fmt("{}/dx11/pass{}/{}.bin", outdir, passIndex, Profile::DX11_PS);
+					c.compile(outFilename, ShaderStageMask::Pixel, DX11Util::getDxStageProfile(ShaderStageMask::Pixel), shaderFilename, pass.psFunc);
 				}
-
-				++passIndex;
-			}
-		}
-
-		{ // GLSL
-			size_t passIndex = 0;
-			for (auto& pass : info.passes) {
-				auto passOutPath = Fmt("{}/glsl/pass{}", outdir, passIndex);
-
-				if (!pass.vsFunc.empty()) {
+				{ // GLSL
 					ShaderCompiler_GL c;
-					c.compile(passOutPath, ShaderStageMask::Vertex, GLUtil::getGlStageProfile(ShaderStageMask::Vertex), shaderFilename, pass.vsFunc);
+					TempString outFilename = Fmt("{}/glsl/pass{}/{}.glsl", outdir, passIndex, Profile::GLSL_PS);
+					c.compile(outFilename, ShaderStageMask::Pixel, GLUtil::getGlStageProfile(ShaderStageMask::Pixel), shaderFilename, pass.psFunc);
 				}
-
-				if (!pass.psFunc.empty()) {
-					ShaderCompiler_GL c;
-					c.compile(passOutPath, ShaderStageMask::Pixel, GLUtil::getGlStageProfile(ShaderStageMask::Pixel), shaderFilename, pass.psFunc);
-				}
-
-				++passIndex;
 			}
+
+			++passIndex;
 		}
 	}
 }; // ShaderCompiler

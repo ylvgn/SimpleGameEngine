@@ -173,15 +173,7 @@ class MyApp : public NativeUIApp {
 	using Base = NativeUIApp;
 protected:
 	virtual void onCreate(CreateDesc& desc) override {
-		{ // set working dir
-			auto exeFilePath = getExecutableFilename();
-			String workingDir = FilePath::dirname(exeFilePath);
-			workingDir.append("/../../../../../../../../examples/Test107");
-
-			Directory::setCurrent(workingDir);
-			SGE_DUMP_VAR(Directory::current());
-		}
-
+		setCurDirRelativeToExecutable("/../../../../../../../../examples/Test107");
 		Base::onCreate(desc);
 
 		{ // create window
