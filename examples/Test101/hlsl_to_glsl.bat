@@ -34,9 +34,9 @@
 
 @REM #helper function ===================================
 :HLSL2SPIRV
-	%glslc% -fshader-stage=vertex   -fentry-point=vs_main -o %1.spv_vs -x hlsl %1
+	%glslc% -fshader-stage=vertex   -fentry-point=vs_main -I".." -I"Assets/" -I"." -I"Assets/Shaders" -o %1.spv_vs -x hlsl %1
 	@echo off && call :ABORT_IF_ERROR
-	%glslc% -fshader-stage=fragment -fentry-point=ps_main -o %1.spv_ps -x hlsl %1
+	%glslc% -fshader-stage=fragment -fentry-point=ps_main -I".." -I"Assets/" -I"." -I"Assets/Shaders" -o %1.spv_ps -x hlsl %1
 	@echo off && call :ABORT_IF_ERROR
 @goto :eof
 
@@ -49,7 +49,7 @@
 
 :HLSL2GLSLC
 	@call :HLSL2SPIRV %1
-	@call :SPIRV2GLSL %1
+	@REM @call :SPIRV2GLSL %1
 @goto :eof
 
 :ABORT_IF_ERROR:

@@ -4,7 +4,7 @@
 
 namespace sge {
 
-struct ShaderCompiler_GL_Helper {
+struct ShaderCompiler_GL_Helper { // TODO need removed!!
 	ShaderCompiler_GL_Helper() = delete;
 
 	using Resource = spirv_cross::Resource;
@@ -25,7 +25,7 @@ struct ShaderCompiler_GL_Helper {
 
 }; // ShaderCompiler_GL_Helper
 
-void ShaderCompiler_GL::compile(StrView outFilename, ShaderStageMask shaderStage, StrView profile, StrView srcFilename, StrView entryFunc) {
+void ShaderCompiler_GL::compile(StrView outFilename, ShaderStageMask shaderStage, StrView profile, StrView srcFilename, StrView entryFunc, Vector<String>& include_dirs) {
 	if (profile.empty()) {
 		profile = Util::getGlStageProfile(shaderStage);
 	}
@@ -36,8 +36,8 @@ void ShaderCompiler_GL::compile(StrView outFilename, ShaderStageMask shaderStage
 		if (!File::exists(spirvOutFilename)) {
 			TempString tmpShaderStage;
 			switch (shaderStage) {
-				case ShaderStageMask::Vertex: tmpShaderStage = "vertex"; break;
-				case ShaderStageMask::Pixel:  tmpShaderStage = "fragment"; break;
+				case ShaderStageMask::Vertex: tmpShaderStage = "vertex";	break;
+				case ShaderStageMask::Pixel:  tmpShaderStage = "fragment";	break;
 				default: throw SGE_ERROR("unsupported ShaderStageMask '{}'", shaderStage);
 			}
 
@@ -59,6 +59,11 @@ void ShaderCompiler_GL::compile(StrView outFilename, ShaderStageMask shaderStage
 				auto fentry_point = Param("-fentry-point", entryFunc);
 				fentry_point.opAssignment = Param_Assignment::Equals;
 				params.emplace_back(fentry_point);
+
+				for (const auto& inc : include_dirs) {
+					TempString tmpIncludeDir = Fmt("-I\"{}\"", inc);
+					params.emplace_back(tmpIncludeDir);
+				}
 
 				params.emplace_back(Param("-o", spirvOutFilename));
 				params.emplace_back(Param("-x hlsl", srcFilename));

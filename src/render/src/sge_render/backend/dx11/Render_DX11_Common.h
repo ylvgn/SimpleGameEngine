@@ -55,6 +55,8 @@ using DX11_ID3DBlendState			= ID3D11BlendState;
 
 // render reflect -------------
 using DX11_ID3DShaderReflection		= ID3D11ShaderReflection;
+using DX11_ShaderDesc				= D3D11_SHADER_DESC;
+using DX11_ShaderInputBindDesc		= D3D11_SHADER_INPUT_BIND_DESC;
 
 struct DX11Util {
 	DX11Util() = delete;

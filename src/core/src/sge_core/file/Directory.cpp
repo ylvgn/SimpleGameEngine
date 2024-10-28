@@ -5,24 +5,23 @@
 
 namespace sge {
 
-void Directory::create(StrView path) {
-	if (exists(path))
+void Directory::create(StrView dir) {
+	if (exists(dir))
 		return;
 
-	auto parent = FilePath::dirname(path);
+	auto parent = FilePath::dirname(dir);
 	if (!parent.empty()) {
 		create(parent); // create recursively
 	}
 
-	_create(path);
+	_create(dir);
 }
 
-
-void Directory::remove(StrView path) {
-	if (!exists(path))
+void Directory::remove(StrView dir) {
+	if (!exists(dir))
 		return;
 
-	_remove(path);
+	_remove(dir);
 }
 
 #if SGE_OS_WINDOWS
@@ -39,7 +38,7 @@ void Directory::setCurrent(StrView dir) {
 		switch (errorCode) {
 			case ERROR_FILE_NOT_FOUND:
 			case ERROR_PATH_NOT_FOUND:
-				SGE_LOG("The system cannot find the file specified: {}", dir); break;
+				SGE_LOG("[Warning] The system cannot find the file specified: {}", dir); break;
 			default: throw SGE_ERROR("::SetCurrentDirectory({}) error: {}", dir, errorCode); // TODO WSAGetLastError -> Win32Util::error()
 		}
 	}
@@ -48,44 +47,49 @@ void Directory::setCurrent(StrView dir) {
 
 void Directory::currentTo(String& out) {
 	out.clear();
-	StringW_<MAX_PATH> pathW;
-	pathW.resizeToLocalBufSize();
-	auto requiredSize = ::GetCurrentDirectory(MAX_PATH, pathW.data());
+	StringW_<MAX_PATH> dirW;
+	dirW.resizeToLocalBufSize();
+	auto requiredSize = ::GetCurrentDirectory(MAX_PATH, dirW.data());
 	if (!requiredSize)
 		throw SGE_ERROR("::GetCurrentDirectory error: {}", ::WSAGetLastError());
-	pathW.resize(requiredSize);
-	UtfUtil::convert(out, pathW);
+	dirW.resize(requiredSize);
+	UtfUtil::convert(out, dirW);
 	out.replaceChars('\\', '/');
 }
 
-void Directory::_create(StrView path) {
-	TempStringW pathW;
-	UtfUtil::convert(pathW, path);
-	auto ret = ::CreateDirectory(pathW.c_str(), nullptr);
-	if (!ret)
-		throw SGE_ERROR("::CreateDirectory({}) error: {}", path, ::WSAGetLastError());
+void Directory::_create(StrView dir) {
+	TempStringW dirW;
+	UtfUtil::convert(dirW, dir);
+	auto ret = ::CreateDirectory(dirW.c_str(), nullptr);
+	if (!ret) {
+		auto errorCode = ::WSAGetLastError();
+		switch (errorCode) {
+			case ERROR_ALREADY_EXISTS: SGE_LOG("[Warning] Cannot create a file when that file already exists: {}", dir); break; // TODO incase error from makefile, but why???
+			default: throw SGE_ERROR("::CreateDirectory({}) error: {}", dir, errorCode);
+		}
+	}
 }
 
-void Directory::_remove(StrView path) {
-	TempStringW pathW = UtfUtil::toStringW(path);
-	pathW += 0;
+void Directory::_remove(StrView dir) {
+	TempStringW dirW = UtfUtil::toStringW(dir);
+	dirW += 0;
 
 	// https://learn.microsoft.com/en-us/windows/win32/api/shellapi/ns-shellapi-shfileopstructa
 	::SHFILEOPSTRUCTW op	= {};
 	op.hwnd					= NULL;
 	op.wFunc				= FO_DELETE;
-	op.pFrom				= pathW.c_str(); // This string must be double-null terminated.
+	op.pFrom				= dirW.c_str(); // This string must be double-null terminated.
 	op.pTo					= NULL;
 	op.fFlags				= FOF_ALLOWUNDO | FOF_NO_UI;
 
 	::SHFileOperationW(&op);
 }
 
-bool Directory::exists(StrView path) {
-	TempStringW pathW;
-	UtfUtil::convert(pathW, path);
+bool Directory::exists(StrView dir) {
+	TempStringW dirW;
+	UtfUtil::convert(dirW, dir);
 
-	::DWORD dwAttrib = ::GetFileAttributes(pathW.c_str());
+	::DWORD dwAttrib = ::GetFileAttributes(dirW.c_str());
 	return (dwAttrib != INVALID_FILE_ATTRIBUTES && (dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 }
 
@@ -95,20 +99,20 @@ bool Directory::exists(StrView path) {
 #pragma mark ================= Unix ====================
 #endif
 
-Directory::_create(StrView path) {
-	TempStringA pathA;
-	UtfUtil::convert(pathA, path);
-	auto ret = ::mkdir(pathA.c_str(), 0755);
+Directory::_create(StrView dir) {
+	TempStringA dirA;
+	UtfUtil::convert(dirA, dir);
+	auto ret = ::mkdir(dirA.c_str(), 0755);
 	if (ret != 0)
-		throw SGE_ERROR("::mkdir({}) error", pathA.c_str());
+		throw SGE_ERROR("::mkdir({}) error", dirA.c_str());
 }
 
-bool Directory::exists(StrView path) {
-	TempStringA pathA;
-	UtfUtil::convert(pathA, path);
+bool Directory::exists(StrView dir) {
+	TempStringA dirA;
+	UtfUtil::convert(dirA, dir);
 
 	struct stat s;
-	if( 0 != ::stat( pathA.c_str(), &s ) ) return false;
+	if( 0 != ::stat( dirA.c_str(), &s ) ) return false;
 	return ( s.st_mode & S_IFDIR ) != 0;
 }
 

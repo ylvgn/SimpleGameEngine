@@ -8,4 +8,6 @@ input_files :=\
 	test_texture.shader \
 #-------------
 
--include GNUmakefile_impl
+#input_files := test.shader # just single test
+
+include ../../../../src/sge_shader_compiler.GNUmakefile

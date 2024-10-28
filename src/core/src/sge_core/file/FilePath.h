@@ -27,17 +27,21 @@ struct FilePath {
 	static void		windowsPathTo(String& out_path, StrView in_path);
 	static String	windowsPath(StrView path) { String o; windowsPathTo(o, path); return o; }
 
-	template<class... Args>
-	static void		combineTo(String& src_path, Args&&... paths);
+	template<class STR, class... Args>
+	static void		combineTo(STR& src_path, Args&&... paths);
 
 	template<class... Args>
 	static String	combine(Args&&... paths) { String o; combineTo(o, SGE_FORWARD(paths)...); return o; }
+
+private:
 }; // FilePath
 
 
-template<class... Args> SGE_INLINE
-void FilePath::combineTo(String& src_path, Args&&... paths) {	
-	StrView views[] { SGE_FORWARD(paths)... };
+template<class STR, class... Args> SGE_INLINE
+void FilePath::combineTo(STR& src_path, Args&&... paths) {
+	using View = STR::StrViewT;
+
+	View views[] { SGE_FORWARD(paths)... };
 	size_t n = sizeof...(paths);
 	if (!n) return;
 

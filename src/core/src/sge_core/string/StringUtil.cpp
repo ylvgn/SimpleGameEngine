@@ -150,7 +150,7 @@ struct StringUtil_ParseHelper {
 
 int StringUtil::ignoreCaseCompare(StrView a, StrView b) {
 	size_t n = Math::min(a.size(), b.size());
-	for (size_t i = 0; i < n; i++) {
+	for (int i = 0; i < n; i++) {
 		int c = ignoreCaseCompare(a[i], b[i]);
 		if (c != 0) return c;
 	}

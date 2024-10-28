@@ -17,7 +17,12 @@ class ShaderCompiler_GL : public NonCopyable {
 	using SPIRType			= spirv_cross::SPIRType;
 
 public:
-	void compile(StrView outFilename, ShaderStageMask shaderStage, StrView profile, StrView srcFilename, StrView entryFunc);
+	void compile(StrView outFilename
+				, ShaderStageMask shaderStage
+				, StrView profile
+				, StrView srcFilename
+				, StrView entryFunc
+				, Vector<String>& include_dirs);
 
 private:
 	static void _convert(Compiler& comp, DataType& o, const SPIRType& i, u32 memberIndex = 0);

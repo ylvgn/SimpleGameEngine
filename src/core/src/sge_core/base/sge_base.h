@@ -161,7 +161,7 @@ public:
 	Span<      T> subspan(size_t offset)		{ return subspan(offset, size() - offset); }
 	Span<const T> subspan(size_t offset) const	{ return subspan(offset, size() - offset); }
 
-	bool inBound(int i) const { return i >= 0 && i <= Base::size(); }
+	bool inBound(int i) const { return i >= 0 && i < Base::size(); }
 
 	void remove(const T& value) { eastl::remove(begin(), end(), value); }
 };
@@ -178,7 +178,7 @@ template<class T, size_t N, bool bEnableOverflow = true> class StringT; // forwa
 
 template<class T> using StrViewT_Base = eastl::basic_string_view<T>;
 template<class T>
-class StrViewT : public StrViewT_Base<T> {
+class StrViewT : public StrViewT_Base<T> { // immutable string view
 	using Base = typename StrViewT_Base<T>;
 	using size_type = typename Base::size_type;
 public:
@@ -191,13 +191,25 @@ public:
 	template<size_t N>
 	StrViewT(const StringT<T, N>& s)		: Base(s.data(), s.size()) {}
 
+	explicit operator bool() const { return !empty(); }
+
 	StrViewT& operator=(const StrViewT& view) = default;
+
+	const	T&	operator[]	(int i)		const	{ return at(i); }
+	const	T&	at(int i)				const	{ _checkBound(i); return mpBegin[i]; }
+	const	T&	unsafe_at(int i)		const	{ return mpBegin[i]; }
+	const	T&	back(int i = 0)			const	{ return at(mnCount - i - 1); }
+	const	T&	unsafe_back(int i = 0)	const	{ unsafe_at(mnCount - i - 1); }
+
+			bool inBound(int i)			const	{ return i >= 0 && i < mnCount; }
 
 	StrViewT<T> extractFromPrefix(StrViewT prefix) const {
 		return starts_with(prefix) ? sliceFrom(prefix.size()) : StrViewT();
 	}
 
-	StrViewT<T> sliceFrom(int offset) const { return slice(offset, mnCount - offset); }
+	StrViewT<T> sliceFrom(int offset)			const { return slice(offset, mnCount - offset); }
+	StrViewT<T> sliceBack(int offset)			const { return slice(mnCount - offset, offset); }
+	StrViewT<T> sliceFromAndBack(int offset)	const { return slice(offset, mnCount - offset - offset); }
 
 	StrViewT<T> slice(int offset, int size) const {
 		if (offset < 0 || size < 0 || offset + size > mnCount)
@@ -205,7 +217,11 @@ public:
 		return StrViewT(begin() + offset, size);
 	}
 
-	explicit operator bool() const { return !empty(); }
+private:
+	void _checkBound(int i) const {
+		if (!inBound(i))
+			throw std::out_of_range("StrViewT::_checkBound -- out of range");
+	}
 };
 
 using StrViewA  = StrViewT<char>;
@@ -243,9 +259,12 @@ public:
 	using Base::internalLayout;
 	using Base::get_allocator;
 
+	using view_type = typename eastl::basic_string_view<T>;
+	using StrViewT	= typename StrViewT<T>;
+
 						StringT() = default;
 						StringT(const T* begin, const T* end)	: Base(begin, end) {}
-						StringT(StrViewT<T> view)				: Base(view.data(), view.size()) {}
+						StringT(StrViewT view)					: Base(view.data(), view.size()) {}
 						StringT(StringT&& str)					: Base(std::move(str)) {}
 						StringT(const T* sz)					: Base(sz) {}
 						StringT(const StringT& s)				: Base(s.data(), s.size()) {}
@@ -257,15 +276,15 @@ public:
 	template<size_t N>	void operator=(const StringT<T, N>& r)	{ Base::assign(s.data(), s.size()); }
 	template<class R>	void operator=(R&& r)					{ Base::operator=(SGE_FORWARD(r)); }
 
-						void operator+=(StrViewT<T> v)			{ Base::append(v.begin(), v.end()); }
+						void operator+=(StrViewT v)				{ Base::append(v.begin(), v.end()); }
 	template<size_t N>	void operator+=(const StringT<T, N>& v) { Base::append(v.begin(), v.end()); }
 	template<class R>	void operator+=(const R& r)				{ Base::operator+=(r); }
 
-						void append(const StrViewT<T>& s)		{ Base::append(s.data(), s.size()); }
+						void append(const StrViewT& s)			{ Base::append(s.data(), s.size()); }
 						void append(const StringT& s)			{ Base::append(s.data(), s.size()); }
 	template<size_t M>	void append(const StringT<T, M>& s)		{ Base::append(s.data(), s.size()); }
 
-	StrViewT<T>	view() const { return StrViewT<T>(data(), size()); }
+	StrViewT	view() const { return StrViewT(data(), size()); }
 
 	void replaceChars(T from, T to) {
 		auto* s = begin();

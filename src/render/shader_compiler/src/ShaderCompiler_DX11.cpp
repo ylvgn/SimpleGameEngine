@@ -18,7 +18,9 @@ class ShaderCompiler_DX11_ID3DInclude : public ID3DInclude {
 
 	class Chunk : public NonCopyable {
 	public:
-		Chunk(StrView filename) : _filename(filename) {
+		Chunk(StrView filename)
+			: _filename(filename)
+		{
 			MemMapFile mm;
 			mm.open(filename);
 
@@ -45,8 +47,8 @@ class ShaderCompiler_DX11_ID3DInclude : public ID3DInclude {
 			return S_OK;
 		}
 
-				ByteSpan	span() const { return ByteSpan(_buf, _bufSize); }
-		const	String& filename() const { return _filename; }
+		ByteSpan	span() const { return ByteSpan(_buf, _bufSize); }
+		StrView filename() const { return _filename; }
 
 	private:
 		u8*		_buf = nullptr;
@@ -55,10 +57,16 @@ class ShaderCompiler_DX11_ID3DInclude : public ID3DInclude {
 	};
 
 public:
+	ShaderCompiler_DX11_ID3DInclude(StrView srcFilename, Vector<String>& include_dirs)
+		: _filename(srcFilename)
+		, _include_dirs(include_dirs)
+	{}
+
 	~ShaderCompiler_DX11_ID3DInclude() {
 		_chunks.clear();
 	}
 
+	/*HRESULT*/
 	STDMETHOD(Open) (THIS_ D3D_INCLUDE_TYPE IncludeType,
 					 LPCSTR					pFileName,
 					 LPCVOID				pParentData,
@@ -66,36 +74,57 @@ public:
 					 UINT*					pBytes) override
 	{
 		TempString tmpName;
+		StrView filename(pFileName);
+		StrView dirname;
+
+		if (!pParentData) {
+			dirname = FilePath::dirname(_filename);
+		} else {
+			auto* chunk = find(pParentData);
+			if (!chunk) {
+				return HRESULT_FROM_WIN32(ERROR_INVALID_ACCESS);
+			}
+			dirname = FilePath::dirname(chunk->filename());
+		}
 
 		switch (IncludeType) {
 			case D3D_INCLUDE_LOCAL: {
-				if (!_workingDir.empty()) {
-					tmpName.assign(_workingDir.data(), _workingDir.size());
-					tmpName += '/';
+				FilePath::combineTo(tmpName, dirname, filename);
+			} break;
+			case D3D_INCLUDE_SYSTEM: {
+				for (auto& d : _include_dirs) {
+					FilePath::combineTo(tmpName, d, filename);
+					if (File::exists(tmpName)) {
+						break;
+					}
+					SGE_DUMP_VAR(FilePath::realpath(tmpName));
+					tmpName.clear();
+				}
+				if (tmpName.empty()) {
+					return HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND);
 				}
 			} break;
-			case D3D_INCLUDE_SYSTEM: { /*do nothing*/ } break;
 			default: return E_NOTIMPL;
 		}
-		tmpName += pFileName;
 
-		if (_filename == tmpName)
+		if (_filename == tmpName) {
+			SGE_LOG("cycle include file error: {}", filename);
 			return E_INVALIDARG;
+		}
 
 		auto it = _chunks.find(tmpName.c_str());
 		if (it != _chunks.end()) {
 			auto& chunk = it->second;
 			for (auto& c : _stack) {
-				if (c->filename() == tmpName)
-					return E_INVALIDARG; // cycle include file
+				if (c->filename() == tmpName) {
+					SGE_LOG("cycle include file error: {}", filename);
+					return E_INVALIDARG;
+				}
 			}
 			_stack.emplace_back(chunk.get());
 			return chunk->map(ppData, pBytes);
 		}
 
-		if (!File::exists(tmpName))
-			return E_ACCESSDENIED;
-		
 		auto newChunk = UPtr_make<Chunk>(tmpName);
 		_chunks[tmpName.c_str()] = eastl::move(newChunk);
 
@@ -115,23 +144,47 @@ public:
 		return S_OK;
 	}
 
-	void setFileName(StrView srcFilename) {
-		_filename.assign(srcFilename.data(), srcFilename.size());
-		_workingDir = FilePath::dirname(_filename);
+	void writeDepFile(StrView outBinFilename) {
+		TempString outDepFilename = Fmt("{}.dep", outBinFilename);
+
+		String o;
+		o.append(outBinFilename);
+		o.append(":\\");
+
+		for (const auto& chunk : _chunks) {
+			o.append("\n\t");
+			o.append(chunk.first);
+			o.append("\\");
+		}
+		o.append("\n#-----\n");
+
+		File::writeFileIfChanged(outDepFilename, o, false);
+	}
+
+	const Chunk* find(LPCVOID pData) const {
+		for (auto* chunk : _stack) {
+			auto span = chunk->span();
+			if (span.data() == pData)
+				return chunk;
+		}
+		return nullptr;
 	}
 
 private:
-	StringMap<UPtr<Chunk>>		_chunks;
+	StringMap< UPtr<Chunk> >	_chunks;
 	Vector<const Chunk*, 64>	_stack;
 
-	String	_workingDir;
-	String	_filename;
-};
+	Vector<String>& _include_dirs;
+	String			_filename;
+}; // ShaderCompiler_DX11_ID3DInclude
 
 #if 0
 #pragma mark ========= ShaderCompiler_DX11 ============
 #endif
-void ShaderCompiler_DX11::compile(StrView outFilename, ShaderStageMask shaderStage, StrView profile, StrView srcFilename, StrView entryFunc) {
+void ShaderCompiler_DX11::compile(StrView outFilename, ShaderStageMask shaderStage, StrView profile, StrView srcFilename, StrView entryFunc, Vector<String>& include_dirs) {
+	auto outPath = FilePath::dirname(outFilename);
+	Directory::create(outPath);
+
 	TempStringA entryPoint = entryFunc;
 
 	MemMapFile memmap;
@@ -146,10 +199,10 @@ void ShaderCompiler_DX11::compile(StrView outFilename, ShaderStageMask shaderSta
 	flags1 |= D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
 #endif
 
-	ComPtr<ID3DBlob>	bytecode;
-	ComPtr<ID3DBlob>	errorMsg;
+	ComPtr<DX11_ID3DBlob>	bytecode;
+	ComPtr<DX11_ID3DBlob>	errorMsg;
 
-	// TODO
+	// TODO not use now
 	D3D_SHADER_MACRO macros[] = {
 #if SGE_OS_WINDOWS
 		"SGE_OS_WINDOWS", "1",
@@ -159,8 +212,7 @@ void ShaderCompiler_DX11::compile(StrView outFilename, ShaderStageMask shaderSta
 		NULL, NULL
 	};
 
-	ShaderCompiler_DX11_ID3DInclude include;
-	include.setFileName(srcFilename);
+	ShaderCompiler_DX11_ID3DInclude include(srcFilename, include_dirs);
 
 	TempString profileA = profile;
 	::HRESULT hr = ::D3DCompile2(hlsl.data(), hlsl.size(), memmap.filename().c_str(),
@@ -175,17 +227,19 @@ void ShaderCompiler_DX11::compile(StrView outFilename, ShaderStageMask shaderSta
 		throw SGE_ERROR("HRESULT={}\n Error Message: {}", hr, Util::toStrView(errorMsg));
 	}
 
+	include.writeDepFile(outFilename);
+
 	auto bytecodeSpan = Util::toSpan(bytecode);
-	File::writeFileIfChanged(outFilename, bytecodeSpan, true);
+	File::writeFileIfChanged(outFilename, bytecodeSpan, false);
 	_reflect(outFilename, bytecodeSpan, shaderStage, profile);
 }
 
 void ShaderCompiler_DX11::_reflect(StrView outFilename, ByteSpan bytecode, ShaderStageMask stage, StrView profile) {
-	ComPtr<ID3D11ShaderReflection>	reflect;
+	ComPtr<DX11_ID3DShaderReflection>	reflect;
 	auto hr = ::D3DReflect(bytecode.data(), bytecode.size(), IID_PPV_ARGS(reflect.ptrForInit()));
 	Util::throwIfError(hr);
 
-	::D3D11_SHADER_DESC desc;
+	DX11_ShaderDesc desc;
 	hr = reflect->GetDesc(&desc);
 	Util::throwIfError(hr);
 
@@ -206,7 +260,7 @@ void ShaderCompiler_DX11::_reflect(StrView outFilename, ByteSpan bytecode, Shade
 	}
 }
 
-void ShaderCompiler_DX11::_reflect_inputs(ShaderStageInfo& outInfo, ID3D11ShaderReflection* reflect, D3D11_SHADER_DESC& desc) {
+void ShaderCompiler_DX11::_reflect_inputs(ShaderStageInfo& outInfo, DX11_ID3DShaderReflection* reflect, DX11_ShaderDesc& desc) {
 	HRESULT hr;
 
 	outInfo.inputs.reserve(desc.InputParameters);
@@ -252,13 +306,13 @@ void ShaderCompiler_DX11::_reflect_inputs(ShaderStageInfo& outInfo, ID3D11Shader
 	}
 }
 
-void ShaderCompiler_DX11::_reflect_constBuffers(ShaderStageInfo& outInfo, ID3D11ShaderReflection* reflect, D3D11_SHADER_DESC& desc) {
+void ShaderCompiler_DX11::_reflect_constBuffers(ShaderStageInfo& outInfo, DX11_ID3DShaderReflection* reflect, DX11_ShaderDesc& desc) {
 	HRESULT hr;
 
 	outInfo.constBuffers.reserve(desc.BoundResources);
 
 	for (UINT i = 0; i < desc.BoundResources; ++i) {
-		D3D11_SHADER_INPUT_BIND_DESC resDesc;
+		DX11_ShaderInputBindDesc resDesc;
 		hr = reflect->GetResourceBindingDesc(i, &resDesc);
 		Util::throwIfError(hr);
 
@@ -302,6 +356,7 @@ void ShaderCompiler_DX11::_reflect_constBuffers(ShaderStageInfo& outInfo, ID3D11
 					case D3D_SVT_UINT8:	dataType.append("UInt8");	break;
 					case D3D_SVT_FLOAT: dataType.append("Float32");	break;
 					case D3D_SVT_DOUBLE:dataType.append("Float64");	break;
+				//----
 					default: throw SGE_ERROR("unsupported type {}", static_cast<int>(varType.Type));
 				}
 
@@ -318,6 +373,7 @@ void ShaderCompiler_DX11::_reflect_constBuffers(ShaderStageInfo& outInfo, ID3D11
 						FmtTo(dataType, "_{}x{}", varType.Rows, varType.Columns); // ex: ${dataType}_4x4
 						outVar.rowMajor = true;
 						break;
+				//----
 					default: throw SGE_ERROR("unsupported Class {}", static_cast<int>(varType.Class));
 				}
 
@@ -334,12 +390,12 @@ void ShaderCompiler_DX11::_reflect_constBuffers(ShaderStageInfo& outInfo, ID3D11
 
 }
 
-void ShaderCompiler_DX11::_reflect_textures(ShaderStageInfo& outInfo, ID3D11ShaderReflection* reflect, D3D11_SHADER_DESC& desc) {
+void ShaderCompiler_DX11::_reflect_textures(ShaderStageInfo& outInfo, DX11_ID3DShaderReflection* reflect, DX11_ShaderDesc& desc) {
 	HRESULT hr;
 
 	outInfo.textures.reserve(desc.BoundResources);
 	for (UINT i = 0; i < desc.BoundResources; ++i) {
-		D3D11_SHADER_INPUT_BIND_DESC resDesc;
+		DX11_ShaderInputBindDesc resDesc;
 		hr = reflect->GetResourceBindingDesc(i, &resDesc);
 		Util::throwIfError(hr);
 
@@ -365,11 +421,11 @@ void ShaderCompiler_DX11::_reflect_textures(ShaderStageInfo& outInfo, ID3D11Shad
 	}
 }
 
-void ShaderCompiler_DX11::_reflect_samplers(ShaderStageInfo& outInfo, ID3D11ShaderReflection* reflect, D3D11_SHADER_DESC& desc) {
+void ShaderCompiler_DX11::_reflect_samplers(ShaderStageInfo& outInfo, DX11_ID3DShaderReflection* reflect, DX11_ShaderDesc& desc) {
 	HRESULT hr;
 	outInfo.samplers.reserve(desc.BoundResources);
 	for (UINT i = 0; i < desc.BoundResources; ++i) {
-		D3D11_SHADER_INPUT_BIND_DESC resDesc;
+		DX11_ShaderInputBindDesc resDesc;
 		hr = reflect->GetResourceBindingDesc(i, &resDesc);
 		Util::throwIfError(hr);
 
