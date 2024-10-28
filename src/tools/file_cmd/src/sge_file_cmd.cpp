@@ -86,7 +86,10 @@ public:
 	}
 
 private:
-	bool _isEOF() const { return _args.empty() || _argIndex >= _args.size(); }
+
+	bool _isEOF() const {
+		return _args.empty() || _argIndex >= _args.size();
+	}
 
 	void _resetOp() {
 		_curOp = Option::None;
@@ -146,8 +149,7 @@ private:
 			case SRC::rmdir: {
 				if (Directory::exists(a)) {
 					Directory::remove(a);
-				}
-				else {
+				} else {
 					SGE_LOG("\n[Warning] remove dir failed, dir not found: '{}'", a);
 				}
 				return true;

@@ -174,9 +174,9 @@ template<class KEY> using Set = eastl::set<KEY>;
 
 template<class T> using Opt = eastl::optional<T>;
 
-template<class T, size_t N, bool bEnableOverflow = true> class StringT; //!!<-- forward declare
-template<class T> using StrViewT_Base = eastl::basic_string_view<T>;	// typedef
+template<class T, size_t N, bool bEnableOverflow = true> class StringT; // forward declare
 
+template<class T> using StrViewT_Base = eastl::basic_string_view<T>;
 template<class T>
 class StrViewT : public StrViewT_Base<T> {
 	using Base = typename StrViewT_Base<T>;

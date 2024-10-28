@@ -131,9 +131,11 @@ class EditorApp : public NativeUIApp {
 public:
 	virtual void onCreate(CreateDesc& desc) override {
 		setCurDirRelativeToExecutable("/../../../../../../examples/Test101");
-#if 1
-		CommandLine::runShell("compile_shaders.bat");
+
+#if 1 // for quick testing (but not work for RenderDoc !!)
+		CommandLine::runShell("Assets/Shaders/make.bat");
 #endif
+
 		Base::onCreate(desc);
 
 		{ // create renderer

@@ -284,11 +284,10 @@ public:
 	virtual void onCreate(CreateDesc& desc) override {
 		setCurDirRelativeToExecutable("/../../../../../../examples/Test101");
 
-#if SGE_OS_WINDOWS
-	#if 1 // for quick testing (but not work for RenderDoc !!)
-		CommandLine::runShell("compile_shaders.bat");
-	#endif
+#if 1 // for quick testing (but not work for RenderDoc !!)
+		CommandLine::runShell("Assets/Shaders/make.bat");
 #endif
+
 		Base::onCreate(desc);
 
 		{ // create renderer

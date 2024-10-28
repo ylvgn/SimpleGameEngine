@@ -43,7 +43,7 @@ void Directory::setCurrent(StrView dir) {
 			default: throw SGE_ERROR("::SetCurrentDirectory({}) error: {}", dir, errorCode); // TODO WSAGetLastError -> Win32Util::error()
 		}
 	}
-	SGE_DUMP_VAR(Directory::current());
+//	SGE_DUMP_VAR(Directory::current());
 }
 
 void Directory::currentTo(String& out) {

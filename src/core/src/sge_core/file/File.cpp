@@ -83,9 +83,11 @@ void File::touch(StrView filename) {
 }
 
 #if SGE_OS_WINDOWS
+
 #if 0
 #pragma mark ================= Windows ====================
 #endif
+
 bool File::exists(StrView filename) {
 	TempStringW pathW;
 	UtfUtil::convert(pathW, filename);
@@ -112,9 +114,11 @@ void File::remove(StrView filename) {
 }
 
 #else
+
 #if 0
 #pragma mark ================= UNIX ====================
 #endif
+
 bool File::exists(StrView filename) {
 	TempStringA pathA;
 	UtfUtil::convert(pathA, filename);
