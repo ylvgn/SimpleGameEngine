@@ -16,6 +16,13 @@ void Texture2D_GL::Format::set(ColorType colorType) {
 		case ColorType::Rb:			{ internalFormat = GL_R8;		sourceFormat = GL_RED;		elementType = GL_UNSIGNED_BYTE;	} break;
 		case ColorType::Lb:			{ internalFormat = GL_R8;		sourceFormat = GL_RED;		elementType = GL_UNSIGNED_BYTE;	} break;
 	//---
+		case ColorType::RGBAs:		{ internalFormat = GL_RGBA16;	sourceFormat = GL_RGBA;		elementType = GL_UNSIGNED_SHORT; } break;
+		case ColorType::RGBs:		{ internalFormat = GL_RGB16;	sourceFormat = GL_RGB;		elementType = GL_UNSIGNED_SHORT; } break;
+		case ColorType::RGs:		{ internalFormat = GL_RG16;		sourceFormat = GL_RG;		elementType = GL_UNSIGNED_SHORT; } break;
+		case ColorType::LAs:		{ internalFormat = GL_RG16;		sourceFormat = GL_RG;		elementType = GL_UNSIGNED_SHORT; } break;
+		case ColorType::Rs:			{ internalFormat = GL_R16;		sourceFormat = GL_RED;		elementType = GL_UNSIGNED_SHORT; } break;
+		case ColorType::Ls:			{ internalFormat = GL_R16;		sourceFormat = GL_RED;		elementType = GL_UNSIGNED_SHORT; } break;
+	//---
 		case ColorType::BC1:		{ internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;	sourceFormat = 0; elementType = 0;	} break;
 		case ColorType::BC2:		{ internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;	sourceFormat = 0; elementType = 0;	} break;
 		case ColorType::BC3:		{ internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;	sourceFormat = 0; elementType = 0;	} break;
@@ -44,7 +51,7 @@ Texture2D_GL::Texture2D_GL(CreateDesc& desc)
 	_format.set(desc.colorType);
 
 	bind();
-	
+
 	GLsizei w = desc.size.x;
 	GLsizei h = desc.size.y;
 
@@ -65,19 +72,24 @@ Texture2D_GL::Texture2D_GL(CreateDesc& desc)
 		}
 		SGE_ASSERT(desc.uploadRequest->offset == Vec2i::s_zero()); // TODO: upload texture with glCompressedTexSubImage2D/glTexSubImage2D
 
-		int pixelSizeInBytes = image.pixelSizeInBytes();
+		if (!ColorUtil::isCompressedType(desc.colorType)) { // TODO BlockCompress texture is not allow check ???
+			int pixelSizeInBytes = image.pixelSizeInBytes();
 
-		size_t expectedDataSize = image.strideInBytes() * image.height();
-		if (pixelData.size() < expectedDataSize) {
-			throw SGE_ERROR("out of texture area");
+			size_t expectedDataSize = image.strideInBytes() * image.height();
+			if (pixelData.size() < expectedDataSize) {
+				throw SGE_ERROR("out of texture area");
+			}
+
+			if (pixelSizeInBytes % 4) unpackAlignment = 1;
 		}
-
-		if (pixelSizeInBytes % 4) unpackAlignment = 1;
 
 		pixelDataPtr = pixelData.data();
 	}
 
-	if (unpackAlignment != 4) glPixelStorei(GL_UNPACK_ALIGNMENT, unpackAlignment);
+	if (unpackAlignment != 4) {
+		glPixelStorei(GL_UNPACK_ALIGNMENT, unpackAlignment);
+		Util::throwIfError();
+	}
 
 	if (ColorUtil::isCompressedType(desc.colorType)) {
 		GLsizei imageSize = ColorUtil::bytesPerPixelBlockImageSize(w, h, desc.colorType);
@@ -85,10 +97,15 @@ Texture2D_GL::Texture2D_GL(CreateDesc& desc)
 	} else {
 		glTexImage2D(GL_TEXTURE_2D, 0, _format.internalFormat, w, h, 0, _format.sourceFormat, _format.elementType, pixelDataPtr);
 	}
+	Util::throwIfError();
 
-	if (unpackAlignment != 4) glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+	if (unpackAlignment != 4) {
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+		Util::throwIfError();
+	}
 
 	unbind();
+	Util::throwIfError();
 }
 
 } // namespace sge

@@ -16,28 +16,30 @@ public:
 			_renderContext = renderer->createContext(renderContextDesc);
 		}
 
+		{ // setup camera
 #if 1
 		_camera.setPos(0, 10, 10);
-		//_camera.setPos(0, 1200, 10);	// debug terrain
+//		_camera.setPos(0, 1200, 10); // debug terrain
 		_camera.setAim(0, 0, 0);
 #else
 		// just for test 5x5 terrain 
 		_camera.setPos(58.932793f, 38.021767f, 3.6692433f);
 		_camera.setAim(0.79875153f, 0.8193707f, 1.8785787f);
 #endif
+		}
 
-		{ // texture
+		{ // create texture
 			Texture2D_CreateDesc texDesc;
 			Texture2D::UploadRequest texUploadRequest;
 			auto& image = texUploadRequest.imageToUpload;
 			texDesc.uploadRequest = &texUploadRequest;
 	#if 1
-			//image.loadFile("Assets/Textures/uvChecker.bmp", ColorType::RGBAb);
+			image.loadFile("Assets/Textures/uvChecker.bmp", ColorType::RGBAb);
 			//image.loadFile("Assets/Textures/uvChecker.png");
 			//image.loadFile("Assets/Textures/uvChecker_BC1.dds");
 			//image.loadFile("Assets/Textures/uvChecker_BC2.dds");
 			//image.loadFile("Assets/Textures/uvChecker_BC3.dds");
-			image.loadFile("Assets/Textures/uvChecker_BC7.dds");
+			//image.loadFile("Assets/Textures/uvChecker_BC7.dds"); // TODO opengl not work BlockCompress texture
 
 			texDesc.size = image.size();
 			texDesc.colorType = image.colorType();
@@ -47,16 +49,15 @@ public:
 
 			texDesc.size.set(w, h);
 			texDesc.colorType = ColorType::RGBAb;
-
 			image.create(Color4b::kColorType, w, h);
 
 			for (int y = 0; y < w; y++) {
 				auto span = image.row<Color4b>(y);
 				for (int x = 0; x < h; x++) {
 					span[x] = Color4b(static_cast<u8>(x),	// r, span[x] means row[x]
-						static_cast<u8>(y),					// g
-						0,									// b
-						255);								// a
+									  static_cast<u8>(y),	// g
+									  0,					// b
+									  255);					// a
 				}
 			}
 	#endif
@@ -69,20 +70,20 @@ public:
 			_lineMaterial->setShader(lineShader);
 		}
 
-		{ // material
+		{ // test material
 			_shader = renderer->createShader("Assets/Shaders/test.shader");
 
 			_material = renderer->createMaterial();
 			_material->setShader(_shader);
 			_material->setParam("mainTex", _testTexture);
+		}
 
+		{ // create mesh
 			EditMesh editMesh;
 #if 1
 			WavefrontObjLoader::readFile(editMesh, "Assets/Mesh/test.obj");
 			// the current shader need color
-			for (size_t i = editMesh.color.size(); i < editMesh.pos.size(); i++) {
-				editMesh.color.emplace_back(255, 255, 255, 255);
-			}
+			EditMeshUtil::addColors(editMesh, Color4b(255, 255, 255, 255));
 #else
 			// triangle mesh
 			editMesh.pos.emplace_back(0.0f, 0.5f, 0.0f);
@@ -109,21 +110,20 @@ public:
 			_renderMesh.create(editMesh);
 		}
 
-		{ // terrain
-			float size = 2048;
-			float pos = size / -2;
-			float y = -100;
-			float height = 200;
-			int maxLod = 6;
-			_terrain.createFromHeightMapFile(
-				Vec3f(pos, y, pos),
-				Vec2f(size, size),
-				height,
-				maxLod,
-				"Assets/Terrain/TerrainTest/TerrainHeight_Small.png");
+		{ // create terrain
+			float size		= 2048;
+			float pos		= size / -2.f;
+			float y			= -100;
+			float height	= 200;
+			int maxLod		= 6;
+			_terrain.createFromHeightMapFile(Vec3f(pos, y, pos),
+											 Vec2f(size, size),
+											 height,
+											 maxLod,
+											 "Assets/Terrain/TerrainTest/TerrainHeight_Small.png");
 		}
 
-		{ // ECS
+		{ // create ECS
 			EditMesh editMesh;
 			WavefrontObjLoader::readFile(editMesh, "Assets/Mesh/box.obj");
 			EditMeshUtil::addColors(editMesh, Color4b(255, 255, 255, 255));
@@ -208,43 +208,40 @@ public:
 
 		_renderContext->setFrameBufferSize(clientRect().size);
 		_renderContext->beginRender();
-
 		_renderRequest.reset(_renderContext, _camera);
 
-		{// debug culling
+		{ // set camera culling frustum
 			auto fov = _camera.fov();
-			_camera.setFov(fov / 2);
+			_camera.setFov(fov / 2); // just for debug camera culling
 			_renderRequest.cameraFrustum = _camera.frustum();
 			_camera.setFov(fov);
 		}
 
-		_renderRequest.debug.drawBoundingBox = true;
-
+		_renderRequest.debug.drawBoundingBox = true; // TODO not work in opengl
 		_renderRequest.lineMaterial = _lineMaterial;
 //		_renderRequest.matrix_model = Mat4f::s_identity();
 
 		_renderRequest.clearFrameBuffers()->setColor({ 0, 0, 0.2f, 1 });
 
 //-----
-//		auto time = GetTickCount() * 0.001f;
-//		auto s = abs(sin(time * 2));
+//		auto time = ::GetTickCount() * 0.001f;
+//		auto s = Math::abs(Math::sin(time * 2));
 		auto s = 1.0f;
 		_material->setParam("test_float", s * 0.5f);
 		_material->setParam("test_color", Color4f(s, s, s, 1));
 //-----
 
 		_renderRequest.drawFrustum(_renderRequest.cameraFrustum, Color4b(100, 255, 100, 255));
-
 		_renderRequest.drawMesh(SGE_LOC, _renderMesh, _material);
-		//_terrain.render(_renderRequest);
-
-		ImGui::ShowDemoWindow(nullptr);
+//		_terrain.render(_renderRequest);
 
 		CRendererSystem::instance()->render(_renderRequest);
 
-		_hierarchyWindow.draw(_scene, _renderRequest);
-		_inspectorWindow.draw(_scene, _renderRequest);
-		_statisticsWindow.draw(_scene, _renderRequest);
+//		TODO opengl not work Imgui
+//		ImGui::ShowDemoWindow(nullptr);
+//		_hierarchyWindow.draw(_scene, _renderRequest);
+//		_inspectorWindow.draw(_scene, _renderRequest);
+//		_statisticsWindow.draw(_scene, _renderRequest);
 
 		_renderContext->drawUI(_renderRequest);
 		_renderRequest.swapBuffers();
@@ -254,24 +251,24 @@ public:
 		drawNeeded();
 	}
 
-	SPtr<Shader>		_shader;
+	SPtr<Shader>				_shader;
 
-	SPtr<Material>		_lineMaterial;
+	SPtr<Material>				_lineMaterial;
 
-	SPtr<Material>		_material;
-	SPtr<Texture2D>		_testTexture;
+	SPtr<Material>				_material;
+	SPtr<Texture2D>				_testTexture;
 
-	SPtr<RenderContext>	_renderContext;
-	RenderMesh			_renderMesh;
+	SPtr<RenderContext>			_renderContext;
+	RenderMesh					_renderMesh;
 
-	SPtr<MeshAsset>		_meshAsset;
+	SPtr<MeshAsset>				_meshAsset;
 
-	RenderTerrain		_terrain;
+	RenderTerrain				_terrain;
 
-	Math::Camera3f		_camera;
-	Scene				_scene;
+	Math::Camera3f				_camera;
+	Scene						_scene;
 
-	RenderRequest		_renderRequest;
+	RenderRequest				_renderRequest;
 
 	EditorHierarchyWindow		_hierarchyWindow;
 	EditorInspectorWindow		_inspectorWindow;
@@ -292,7 +289,7 @@ public:
 
 		{ // create renderer
 			Renderer::CreateDesc renderDesc;
-			//renderDesc.apiType = OpenGL;
+			renderDesc.apiType = Renderer::ApiType::OpenGL;
 			Renderer::create(renderDesc);
 		}
 

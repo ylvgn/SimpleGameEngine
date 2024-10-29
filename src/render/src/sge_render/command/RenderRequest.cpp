@@ -66,7 +66,7 @@ void RenderRequest::drawSubMesh(const SrcLoc& debugLoc, const RenderSubMesh& sub
 	for (size_t i = 0; i < passes.size(); i++) {
 		auto* cmd = commandBuffer.addDrawCall();
 		#if _DEBUG
-			cmd->debugLoc = debugLoc;
+			cmd->debugLoc		= debugLoc;
 		#endif
 
 		cmd->material			= material;

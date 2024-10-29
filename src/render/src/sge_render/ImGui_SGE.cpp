@@ -136,9 +136,9 @@ void ImGui_SGE::onDrawUI(RenderRequest& req) {
 			_vertexBuffer.reset(nullptr);
 		}
 		RenderGpuBuffer::CreateDesc desc;
-		desc.type = RenderGpuBufferType::Vertex;
+		desc.type		= RenderGpuBufferType::Vertex;
 		desc.bufferSize = totalVertexDataSize;
-		_vertexBuffer = renderer->createGpuBuffer(desc);
+		_vertexBuffer	= renderer->createGpuBuffer(desc);
 	}
 
 	// index buffer
@@ -148,9 +148,9 @@ void ImGui_SGE::onDrawUI(RenderRequest& req) {
 			_indexBuffer.reset(nullptr);
 		}
 		RenderGpuBuffer::CreateDesc desc;
-		desc.type = RenderGpuBufferType::Index;
+		desc.type		= RenderGpuBufferType::Index;
 		desc.bufferSize = totalIndexDataSize;
-		_indexBuffer = renderer->createGpuBuffer(desc);
+		_indexBuffer	= renderer->createGpuBuffer(desc);
 	}
 
 	{
@@ -188,22 +188,20 @@ void ImGui_SGE::onDrawUI(RenderRequest& req) {
 
 				//ctx->DrawIndexed(srcBuf->ElemCount, srcBuf->IdxOffset + global_idx_offset, srcBuf->VtxOffset + global_vtx_offset);
 				auto* cmd = req.addDrawCall();
-	#if _DEBUG
+		#if _DEBUG
 				cmd->debugLoc = SGE_LOC;
-	#endif
-				cmd->material = _material;
-				cmd->materialPassIndex = 0;
-				cmd->primitive = RenderPrimitiveType::Triangles;
-
-				cmd->vertexLayout = _vertexLayout;
-				cmd->vertexBuffer = _vertexBuffer;
-				cmd->vertexOffset = (global_vtx_offset + srcBuf->VtxOffset) * vertexSize; 
-				cmd->vertexCount = 0;
-
-				cmd->indexType = RenderDataTypeUtil::get<ImDrawIdx>();
-				cmd->indexBuffer = _indexBuffer;
-				cmd->indexOffset = (global_idx_offset + srcBuf->IdxOffset) * indexSize;
-				cmd->indexCount = srcBuf->ElemCount;
+		#endif
+				cmd->material			= _material;
+				cmd->materialPassIndex	= 0;
+				cmd->primitive			= RenderPrimitiveType::Triangles;
+				cmd->vertexLayout		= _vertexLayout;
+				cmd->vertexBuffer		= _vertexBuffer;
+				cmd->vertexOffset		= (global_vtx_offset + srcBuf->VtxOffset) * vertexSize; 
+				cmd->vertexCount		= 0;
+				cmd->indexType			= RenderDataTypeUtil::get<ImDrawIdx>();
+				cmd->indexBuffer		= _indexBuffer;
+				cmd->indexOffset		= (global_idx_offset + srcBuf->IdxOffset) * indexSize;
+				cmd->indexCount			= srcBuf->ElemCount;
 			}
 			global_idx_offset += srcCmd->IdxBuffer.Size;
 			global_vtx_offset += srcCmd->VtxBuffer.Size;

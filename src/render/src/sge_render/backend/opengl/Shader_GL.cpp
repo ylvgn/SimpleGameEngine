@@ -56,8 +56,12 @@ void Shader_GL::MyPass::onInit() {
 	TempString passPath;
 	FmtTo(passPath, "{}/{}/glsl/pass{}", proj->importedPath(), shaderFilename(), _passIndex);
 
+//	Util::throwIfError();
+
 	if (!_info->vsFunc.empty()) { _vertexStage.load(passPath); }
 	if (!_info->psFunc.empty()) {  _pixelStage.load(passPath); }
+
+//	Util::throwIfError();
 
 	if (!_program)
 		Util::linkShader(_program, _vertexStage._handle, _pixelStage._handle);

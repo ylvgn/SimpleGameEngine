@@ -54,14 +54,14 @@ add_subdirectory(src/engine)
 #-- editor ---
 add_subdirectory(src/editor)
 add_subdirectory(src/editor/app)
-add_subdirectory(src/editor/app_opengl) # just for test
 
 #-- tools ---
 add_subdirectory(src/tools/file_cmd)
 
 set_property (DIRECTORY PROPERTY VS_STARTUP_PROJECT sge_editor_app) # Set as Startup Project
 
-#--- inessential ---
+
+#-- inessential ---
 #-- Hands-On C++ Game Animation Programming ---
 add_subdirectory(src/books/Hands-On\ C++\ Game\ Animation\ Programming)
 add_subdirectory(src/books/Hands-On\ C++\ Game\ Animation\ Programming/app)
@@ -88,9 +88,9 @@ add_subdirectory(src/tutorials/SiTa\ Ray-Tracing/examples/sge_sita_ray_tracer_ex
 add_subdirectory(src/tutorials/SiTa\ Ray-Tracing/examples/sge_sita_ray_tracer_example_002)
 add_subdirectory(src/tutorials/SiTa\ Ray-Tracing/examples/sge_sita_ray_tracer_example_003)
 
-#-- SiTa Advance OpenGL---
+#-- SiTa Advance OpenGL ---
 add_subdirectory(src/tutorials/SiTa\ Advance\ OpenGL)
 
-#-- Learn OpenGL - Joey de Vries
+#-- Learn OpenGL - Joey de Vries ---
 add_subdirectory(src/books/Learn\ OpenGL\ -\ Joey\ de\ Vries)
 add_subdirectory(src/books/Learn\ OpenGL\ -\ Joey\ de\ Vries/examples/sge_learnopengl_example_001)

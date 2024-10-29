@@ -235,14 +235,18 @@ void RenderContext_GL_Win32::onCmd_DrawCall(RenderCommand_DrawCall& cmd) {
 			indexBuffer->bind();
 			glDrawElements(primitive, indexCount, Util::getGlFormat(cmd.indexType), nullptr);
 			indexBuffer->unbind();
-		}
-		else {
+		} else {
 			glDrawArrays(primitive, 0, static_cast<GLsizei>(vertexCount));
 		}
 	}
 	vertexBuffer->unbind();
 
 	Util::throwIfError();
+}
+
+void RenderContext_GL_Win32::onCmd_SetScissorRect(RenderCommand_SetScissorRect& cmd) {
+	auto rc = cmd.rect;
+	glScissor(GLint(rc.x), GLint(rc.y), GLsizei(rc.w), GLsizei(rc.h));
 }
 
 void RenderContext_GL_Win32::onCmd_SwapBuffers(RenderCommand_SwapBuffers& cmd) {

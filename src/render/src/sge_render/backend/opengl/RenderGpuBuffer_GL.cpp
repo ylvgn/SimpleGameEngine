@@ -14,12 +14,15 @@ void RenderGpuBuffer_GL::onCreate(CreateDesc& desc)  {
 	_target = Util::getGlBufferBindingTarget(_desc.type);
 
 	glGenBuffers(1, &_handle);
+	Util::throwIfError();
+
 	bind();
+
 	GLenum usage = GL_DYNAMIC_DRAW;
 	glBufferData(_target, static_cast<GLsizeiptr>(desc.bufferSize), nullptr, usage);
-	unbind();
-
 	Util::throwIfError();
+
+	unbind();
 }
 
 void RenderGpuBuffer_GL::onUploadToGpu(ByteSpan data, size_t offset) {
