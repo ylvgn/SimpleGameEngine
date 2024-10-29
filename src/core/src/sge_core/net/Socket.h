@@ -19,7 +19,7 @@ public:
 	static const NativeHandle kInvalidHandle = -1;
 #endif
 	Socket() = default;
-	Socket(Socket && r) noexcept { operator=(std::move(r)); }
+	Socket(Socket && r) noexcept { operator=(SGE_MOVE(r)); }
 	void operator=(Socket && r) noexcept {
 		close();
 		_sock = r._sock;

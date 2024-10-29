@@ -3,7 +3,10 @@
 #include <sge_core/file/MemMapFile.h>
 
 namespace sge {
-Shader::Shader() : _handle(glCreateProgram()) {};
+
+Shader::Shader()
+	: _handle(glCreateProgram())
+{}
 
 Shader::Shader(StrView vertex, StrView fragment)
 	: _handle(glCreateProgram())
@@ -261,4 +264,4 @@ void Shader::dumpActiveAttrib() {
 	}
 }
 
-}
+} // namespace sge

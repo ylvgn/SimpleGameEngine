@@ -176,7 +176,7 @@ public:
 
 	void bind(RenderContext* ctx, const VertexLayout* vertexLayout) { onBind(ctx, vertexLayout); }
 
-	const ShaderInfo::Pass*	info() { return _shaderPass ? _shaderPass->info() : nullptr; }
+	const ShaderInfo::Pass*	info() const { return _shaderPass ? _shaderPass->info() : nullptr; }
 
 friend class Material;
 protected:

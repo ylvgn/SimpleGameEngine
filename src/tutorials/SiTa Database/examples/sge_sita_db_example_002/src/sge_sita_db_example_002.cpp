@@ -18,7 +18,7 @@ public:
 	virtual void onRun() override {
 		setCurDirRelativeToExecutable("/../../../../../../../../examples/Test105");
 
-		_conn = std::move(connectSQLite3("test_db.sqlite3"));
+		_conn = SGE_MOVE(connectSQLite3("test_db.sqlite3"));
 
 //		_writeData();
 		_fetchData();

@@ -18,7 +18,7 @@ public:
 	virtual void onRun() override {
 		setCurDirRelativeToExecutable("/../../../../../../../../examples/Test105");
 
-		_conn = std::move(connectMySQL("localhost", "test_db", "test_user", "1234"));
+		_conn = SGE_MOVE(connectMySQL("localhost", "test_db", "test_user", "1234"));
 
 //		_writeData();
 		_fetchData();

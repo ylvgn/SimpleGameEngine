@@ -24,4 +24,4 @@ private:
 
 }; // VertexLayoutManager
 
-} // namespace
+} // namespace sge

@@ -55,21 +55,21 @@ void Test_WPtr_MyWindow::onFormat(fmt::format_context& ctx) const {
 inline
 void Test_WPtr_MyButton::onFormat(fmt::format_context& ctx) const {
 	String otherName;
-	if (auto b = other.toSPtr()) {
+	if (auto& b = other.toSPtr()) {
 		FmtTo(otherName, "{}({:p})", b->name, fmt::ptr(b.ptr()));
 	} else {
 		otherName.assign("other(nullptr)");
 	}
 
 	otherName.append("\n\t\t");
-	if (auto b = other2.toSPtr()) {
+	if (auto& b = other2.toSPtr()) {
 		FmtTo(otherName, "{}({:p})", b->name, fmt::ptr(b.ptr()));
 	} else {
 		otherName.append("other2(nullptr)");
 	}
 
 	otherName.append("\n\t\t");
-	if (auto w = otherWin.toSPtr()) {
+	if (auto& w = otherWin.toSPtr()) {
 		FmtTo(otherName, "{}({:p})", w->name, fmt::ptr(w.ptr()));
 	} else {
 		otherName.append("otherWin(nullptr)");
@@ -113,8 +113,8 @@ public:
 	void test_2() {
 		SGE_LOG("test2 ============== Start"); // UPtr(EASTL) and WPtr (not allow)
 		{
-			auto aBtn = UPtr<MyButton>(new MyButton("ButtonA"));
-			auto bBtn = UPtr<MyButton>(new MyButton("ButtonB"));
+			auto aBtn = UPtr_make<MyButton>("ButtonA");
+			auto bBtn = UPtr_make<MyButton>("ButtonB");
 			SGE_LOG("aBtn:{:p}\nbBtn:{:p}\n", fmt::ptr(aBtn.get()), fmt::ptr(bBtn.get()));
 
 			aBtn->other = aBtn.get();
@@ -129,7 +129,7 @@ public:
 	void test_3() {
 		SGE_LOG("test3 ============== Start"); // SPtr and WPtr
 		{
-			auto aBtn = SPtr<MyButton>(new MyButton("ButtonA"));
+			auto aBtn = SPtr_make(new MyButton("ButtonA"));
 			SGE_LOG("aBtn:{:p}\n", fmt::ptr(aBtn.ptr()));
 			aBtn->other = aBtn.ptr();
 			aBtn->other2 = aBtn.ptr();
@@ -145,8 +145,8 @@ public:
 	void test_4() {
 		SGE_LOG("test4 ============== Start"); // SPtr and WPtr
 		{
-			auto aBtn = SPtr<MyButton>(new MyButton("ButtonA"));
-			auto bBtn = SPtr<MyButton>(new MyButton("ButtonB"));
+			auto aBtn = SPtr_make(new MyButton("ButtonA"));
+			auto bBtn = SPtr_make(new MyButton("ButtonB"));
 			SGE_LOG("aBtn:{:p}\nbBtn:{:p}\n", fmt::ptr(aBtn.ptr()), fmt::ptr(bBtn.ptr()));
 
 			aBtn->other = aBtn.ptr();
@@ -164,8 +164,8 @@ public:
 	void test_5() {
 		SGE_LOG("test5 ============== Start"); // SPtr and WPtr
 		{
-			auto aBtn = SPtr<MyButton>(new MyButton("ButtonA"));
-			auto bBtn = SPtr<MyButton>(new MyButton("ButtonB"));
+			auto aBtn = SPtr_make(new MyButton("ButtonA"));
+			auto bBtn = SPtr_make(new MyButton("ButtonB"));
 			SGE_LOG("aBtn:{:p}\nbBtn:{:p}\n", fmt::ptr(aBtn.ptr()), fmt::ptr(bBtn.ptr()));
 
 			aBtn->other = bBtn.ptr();
@@ -179,10 +179,10 @@ public:
 
 	void test_6() {
 		SGE_LOG("test6 ============== Start");
-		auto other = SPtr<MyWindow>(new MyWindow("test_6-other-MyWindow"));
+		auto other = SPtr_make(new MyWindow("test_6-other-MyWindow"));
 
 		{
-			SPtr<MyWindow> win = new MyWindow("test_6-MyWindow");
+			auto win = SPtr_make(new MyWindow("test_6-MyWindow"));
 			WPtr<MyWindow> weakWin(win);
 
 			win->aBtn = new MyButton("ButtonA");
@@ -200,7 +200,7 @@ public:
 	}
 };
 
-} // namespace 
+} // namespace sge
 
 void test_WPtr() {
 	using namespace sge;

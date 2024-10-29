@@ -42,7 +42,7 @@ private:
 	void _populateUniforms();
 
 	// OpenGL shader program handle (GPU resource)
-	u32 _handle;
+	GLuint _handle;
 
 	// a key(the name of the attribute or uniform) and unsigned int for a value(the index of the uniform or attribute)
 	StringMap<u32> _attributes;
@@ -67,4 +67,4 @@ inline u32 Shader::findUniformByName(StrView name) const {
 	return it->second;
 }
 
-}
+} // namespace sge

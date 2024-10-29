@@ -12,6 +12,8 @@ public:
 
 	~SPtr()				noexcept { reset(nullptr); }
 
+	static SPtr<T> s_make(T* p) noexcept { return SPtr(p); }
+
 	void operator=(T* p)			noexcept { reset(p); }
 	void operator=(SPtr&& r)		noexcept { reset(nullptr); _p = r.detach(); }
 	void operator=(const SPtr& r)	noexcept { reset(r._p); }
@@ -68,5 +70,10 @@ template<class T> SGE_INLINE bool operator==(const SPtr<T>& l, const std::nullpt
 template<class T> SGE_INLINE bool operator==(const std::nullptr_t&, const SPtr<T>& r)	noexcept { return r.ptr() == nullptr; }
 template<class T> SGE_INLINE bool operator!=(const SPtr<T>& l, const std::nullptr_t&)	noexcept { return l.ptr() != nullptr; }
 template<class T> SGE_INLINE bool operator!=(const std::nullptr_t&, const SPtr<T>& r)	noexcept { return r.ptr() != nullptr; }
+
+template <class T> SGE_INLINE
+SPtr<T> SPtr_make(T* p) {
+	return SPtr<T>::s_make(p);
+}
 
 } // namespace sge

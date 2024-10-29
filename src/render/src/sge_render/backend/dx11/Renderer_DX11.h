@@ -1,10 +1,10 @@
 #pragma once
 
-#if SGE_RENDER_HAS_DX11
-
 #include "Render_DX11_Common.h"
 #include <sge_render/Renderer.h>
 #include <sge_core/pointer/ComPtr.h>
+
+#if SGE_RENDER_HAS_DX11
 
 namespace sge {
 

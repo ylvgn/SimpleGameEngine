@@ -27,4 +27,4 @@ private:
 	ByteSpan _span;
 };
 
-}
+} // namespace sge

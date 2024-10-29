@@ -48,7 +48,7 @@ void Shader::loadFile(StrView filename) {
 	for (int i = 0; i < n; ++i) {
 		UPtr<ShaderPass> pass = onCreatePass(i);
 		pass->onInit();
-		_passes.emplace_back(SGE_MOVE(pass));
+		_passes.emplace_back(eastl::move(pass));
 	}
 }
 

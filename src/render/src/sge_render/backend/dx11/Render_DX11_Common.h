@@ -1,5 +1,7 @@
 #pragma once
 
+#include <sge_render/Render_Common.h>
+
 #if SGE_RENDER_HAS_DX11
 
 #include <d3d11.h>
@@ -10,7 +12,6 @@
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "d3dcompiler.lib")
 
-#include <sge_render/Render_Common.h>
 #include <sge_render/vertex/Vertex.h>
 #include <sge_render/shader/Shader.h>
 #include <sge_render/textures/Texture.h>
@@ -55,8 +56,6 @@ using DX11_ID3DBlendState			= ID3D11BlendState;
 
 // render reflect -------------
 using DX11_ID3DShaderReflection		= ID3D11ShaderReflection;
-using DX11_ShaderDesc				= D3D11_SHADER_DESC;
-using DX11_ShaderInputBindDesc		= D3D11_SHADER_INPUT_BIND_DESC;
 
 struct DX11Util {
 	DX11Util() = delete;
@@ -68,10 +67,10 @@ struct DX11Util {
 	static constexpr UINT castUINT(size_t v) { SGE_ASSERT(v < UINT_MAX); return UINT(v); }
 
 	static D3D11_PRIMITIVE_TOPOLOGY		getDxPrimitiveTopology(RenderPrimitiveType t);
-	static DXGI_FORMAT					getDxFormat(RenderDataType v);
-	static DXGI_FORMAT					getDxColorType(ColorType v);
+	static DXGI_FORMAT					getDxFormat(RenderDataType t);
+	static DXGI_FORMAT					getDxColorType(ColorType t);
 
-	static D3D11_CULL_MODE				getDxCullMode(RenderState_Cull v);
+	static D3D11_CULL_MODE				getDxCullMode(RenderState_Cull c);
 	static D3D11_COMPARISON_FUNC		getDxDepthTestOp(RenderState_DepthTestOp v);
 	static D3D11_BLEND_OP				getDxBlendOp(RenderState_BlendOp v);
 	static D3D11_BLEND					getDxBlendFactor(RenderState_BlendFactor v);
@@ -126,7 +125,7 @@ void DX11Util::throwIfError(::HRESULT hr) {
 }
 
 SGE_INLINE
-bool DX11Util::assertIfError(HRESULT hr) {
+bool DX11Util::assertIfError(::HRESULT hr) {
 	if (_checkError(hr)) {
 		reportError(hr);
 		SGE_ASSERT(false);
@@ -147,7 +146,7 @@ const char* DX11Util::getDxStageProfile(ShaderStageMask s) {
 }
 
 SGE_INLINE
-void DX11Util::reportError(HRESULT hr) {
+void DX11Util::reportError(::HRESULT hr) {
 	if (_checkError(hr)) {
 		auto str = Win32Util::error(hr);
 		SGE_LOG("HRESULT(0x{:0X}) {}", static_cast<u32>(hr), str);
@@ -168,10 +167,10 @@ D3D11_PRIMITIVE_TOPOLOGY DX11Util::getDxPrimitiveTopology(RenderPrimitiveType t)
 }
 
 SGE_INLINE
-DXGI_FORMAT DX11Util::getDxFormat(RenderDataType v) {
+DXGI_FORMAT DX11Util::getDxFormat(RenderDataType t) {
 	// https://docs.microsoft.com/en-us/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format
 	using SRC = RenderDataType;
-	switch (v) {
+	switch (t) {
 		case SRC::Int8:			return DXGI_FORMAT_R8_SINT;
 		case SRC::Int8x2:		return DXGI_FORMAT_R8G8_SINT;
 //		case SRC::Int8x3:		return DXGI_FORMAT_R8G8B8_SINT; //does not support in DX11
@@ -243,15 +242,15 @@ DXGI_FORMAT DX11Util::getDxFormat(RenderDataType v) {
 		case SRC::Float32x3:	return DXGI_FORMAT_R32G32B32_FLOAT;
 		case SRC::Float32x4:	return DXGI_FORMAT_R32G32B32A32_FLOAT;
 	//---
-		default: throw SGE_ERROR("unsupported RenderDataType");
+		default: throw SGE_ERROR("unsupported RenderDataType '{}'", t);
 	}
 }
 
 SGE_INLINE
-DXGI_FORMAT DX11Util::getDxColorType(ColorType v) {
+DXGI_FORMAT DX11Util::getDxColorType(ColorType t) {
 	// https://docs.microsoft.com/en-us/windows/win32/api/dxgiformat/ne-dxgiformat-dxgi_format
 	using SRC = ColorType;
-	switch (v) {
+	switch (t) {
 		case SRC::Lb:		return DXGI_FORMAT_R8_UNORM;
 		case SRC::Ls:		return DXGI_FORMAT_R16_UNORM;
 		case SRC::Lf:		return DXGI_FORMAT_R32_FLOAT;
@@ -279,28 +278,28 @@ DXGI_FORMAT DX11Util::getDxColorType(ColorType v) {
 		case SRC::BC6h:		return DXGI_FORMAT_BC6H_UF16;
 		case SRC::BC7:		return DXGI_FORMAT_BC7_UNORM;
 	//---
-		default:			throw SGE_ERROR("unsupported ColorType");
+		default:			throw SGE_ERROR("unsupported ColorType '{}'", t);
 	}
 }
 
 SGE_INLINE
-D3D11_CULL_MODE DX11Util::getDxCullMode(RenderState_Cull v) {
+D3D11_CULL_MODE DX11Util::getDxCullMode(RenderState_Cull c) {
 	// https://docs.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_cull_mode
 	using SRC = RenderState_Cull;
-	switch (v) {
+	switch (c) {
 		case SRC::None:		return D3D11_CULL_NONE;
 		case SRC::Back:		return D3D11_CULL_BACK;
 		case SRC::Front:	return D3D11_CULL_FRONT;
 	//---
-		default: throw SGE_ERROR("unsupported CullMode");
+		default: throw SGE_ERROR("unsupported RenderState CullMode '{}'", c);
 	}
 }
 
 SGE_INLINE
-D3D11_COMPARISON_FUNC DX11Util::getDxDepthTestOp(RenderState_DepthTestOp v) {
+D3D11_COMPARISON_FUNC DX11Util::getDxDepthTestOp(RenderState_DepthTestOp d) {
 	// https://docs.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_comparison_func
 	using SRC = RenderState_DepthTestOp;
-	switch (v) {
+	switch (d) {
 		case SRC::Always:		return  D3D11_COMPARISON_ALWAYS;
 		case SRC::Less:			return  D3D11_COMPARISON_LESS;
 		case SRC::Equal:		return  D3D11_COMPARISON_EQUAL;
@@ -310,30 +309,30 @@ D3D11_COMPARISON_FUNC DX11Util::getDxDepthTestOp(RenderState_DepthTestOp v) {
 		case SRC::NotEqual:		return  D3D11_COMPARISON_NOT_EQUAL;
 		case SRC::Never:		return  D3D11_COMPARISON_NEVER;
 	//---
-		default: throw SGE_ERROR("unsupported DepthTestOp");
+		default: throw SGE_ERROR("unsupported RenderState DepthTestOp '{}'", d);
 	}
 }
 
 SGE_INLINE
-D3D11_BLEND_OP DX11Util::getDxBlendOp(RenderState_BlendOp v) {
+D3D11_BLEND_OP DX11Util::getDxBlendOp(RenderState_BlendOp b) {
 	// https://docs.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_blend_op
 	using SRC = RenderState_BlendOp;
-	switch (v) {
+	switch (b) {
 		case SRC::Add:		return D3D11_BLEND_OP_ADD;
 		case SRC::Min:		return D3D11_BLEND_OP_MIN;
 		case SRC::Max:		return D3D11_BLEND_OP_MAX;
 		case SRC::Sub:		return D3D11_BLEND_OP_SUBTRACT;
 		case SRC::RevSub:	return D3D11_BLEND_OP_REV_SUBTRACT;
 	//---
-		default: throw SGE_ERROR("unsupported BlendOp");
+		default: throw SGE_ERROR("unsupported RenderState BlendOp '{}'", b);
 	}
 }
 
 SGE_INLINE
-D3D11_BLEND DX11Util::getDxBlendFactor(RenderState_BlendFactor v) {
+D3D11_BLEND DX11Util::getDxBlendFactor(RenderState_BlendFactor b) {
 	// https://docs.microsoft.com/zh-tw/windows/win32/api/d3d11/ne-d3d11-d3d11_blend
 	using SRC = RenderState_BlendFactor;
-	switch (v) {
+	switch (b) {
 		case SRC::Zero:					return D3D11_BLEND_ZERO;
 		case SRC::One:					return D3D11_BLEND_ONE;
 		case SRC::SrcAlpha:				return D3D11_BLEND_SRC_ALPHA;
@@ -349,36 +348,36 @@ D3D11_BLEND DX11Util::getDxBlendFactor(RenderState_BlendFactor v) {
 		case SRC::OneMinusConstColor:	return D3D11_BLEND_INV_BLEND_FACTOR;
 //		case SRC::OneMinusConstAlpha:	return 
 		case SRC::SrcAlphaSaturate:		return D3D11_BLEND_SRC_ALPHA_SAT;
-		default: throw SGE_ERROR("unsupported BlendFactor");
+		default: throw SGE_ERROR("unsupported RenderState BlendFactor '{}'", b);
 	}
 }
 
 SGE_INLINE
-D3D11_FILTER DX11Util::getDxTextureFilter(TextureFilter v) {
+D3D11_FILTER DX11Util::getDxTextureFilter(TextureFilter t) {
 	// https://docs.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_filter
 	using SRC = TextureFilter;
-	switch (v) {
+	switch (t) {
 		case SRC::Point:		return D3D11_FILTER_MIN_MAG_MIP_POINT;
 		case SRC::Linear:		return D3D11_FILTER_MIN_MAG_POINT_MIP_LINEAR;
 		case SRC::Bilinear:		return D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT;
 		case SRC::Trilinear:	return D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 		case SRC::Anisotropic:	return D3D11_FILTER_ANISOTROPIC;
 	//---
-		default: throw SGE_ERROR("unsupported TextureFilter");
+		default: throw SGE_ERROR("unsupported TextureFilter '{}'", t);
 	}
 }
 
 SGE_INLINE
-D3D11_TEXTURE_ADDRESS_MODE DX11Util::getDxTextureWrap(TextureWrap v) {
+D3D11_TEXTURE_ADDRESS_MODE DX11Util::getDxTextureWrap(TextureWrap t) {
 	// https://docs.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_texture_address_mode
 	using SRC = TextureWrap;
-	switch (v) {
+	switch (t) {
 		case SRC::Repeat:		return D3D11_TEXTURE_ADDRESS_WRAP;
 		case SRC::Clamp:		return D3D11_TEXTURE_ADDRESS_CLAMP;
 		case SRC::Mirror:		return D3D11_TEXTURE_ADDRESS_MIRROR;
 		case SRC::MirrorOnce:	return D3D11_TEXTURE_ADDRESS_MIRROR_ONCE;
 	//---
-		default: throw SGE_ERROR("unsupported TextureWrap");
+		default: throw SGE_ERROR("unsupported TextureWrap '{}'", t);
 	}
 }
 

@@ -106,7 +106,7 @@ void Material::setShader(Shader* shader) {
 	_passes.reserve(shader->passes().size());
 	for (auto& shaderPass : shader->passes()) {
 		UPtr<Pass> pass = onCreatePass(shaderPass.get());
-		_passes.emplace_back(std::move(pass));
+		_passes.emplace_back(eastl::move(pass));
 	}
 
 	onSetShader();

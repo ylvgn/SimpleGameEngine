@@ -60,7 +60,8 @@ void CrossFadeController::fadeTo(const Clip* target, float fadeDuration) {
 	}
 
 	SGE_ASSERT(_curSkeleton != nullptr);
-	_fadingTargets.emplace_back(new MyTarget(target, _curSkeleton->restPose(), fadeDuration));
+	auto fadingTarget = UPtr_make<MyTarget>(target, _curSkeleton->restPose(), fadeDuration);
+	_fadingTargets.emplace_back(eastl::move(fadingTarget));
 }
 
 void CrossFadeController::update(float dt) {

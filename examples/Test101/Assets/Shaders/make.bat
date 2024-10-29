@@ -8,7 +8,7 @@ set gmake_exe="C:\Program Files (x86)\GnuWin32\bin\make.exe"
 
 %gmake_exe% -j %*
 
-if %ERRORLEVEL% NEQ 0 (
+@if %ERRORLEVEL% NEQ 0 (
 	@pause
 )
 

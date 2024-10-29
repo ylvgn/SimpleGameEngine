@@ -62,7 +62,7 @@ public:
 	}
 
 	void reserve(size_t newTrackCount)			{ _tracks.reserve(newTrackCount); }
-	void appendTrack(UPtr<TRACK> && t)			{ _tracks.emplace_back(std::move(t)); }
+	void appendTrack(UPtr<TRACK> && t)			{ _tracks.emplace_back(eastl::move(t)); }
 
 	void	recalculateDuration();
 	TRACK&	getOrCreateTrackByJointId(u32 jointId);

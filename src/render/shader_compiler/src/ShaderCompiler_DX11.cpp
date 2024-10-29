@@ -57,7 +57,7 @@ class ShaderCompiler_DX11_ID3DInclude : public ID3DInclude {
 	};
 
 public:
-	ShaderCompiler_DX11_ID3DInclude(StrView srcFilename, Vector<String>& include_dirs)
+	ShaderCompiler_DX11_ID3DInclude(StrView srcFilename, Vector<String>& include_dirs) noexcept
 		: _filename(srcFilename)
 		, _include_dirs(include_dirs)
 	{}
@@ -133,6 +133,7 @@ public:
 		return chunk->map(ppData, pBytes);
 	}
 
+	/*HRESULT*/
 	STDMETHOD(Close)(THIS_ LPCVOID pData) override {
 		if (!_stack.empty()) {
 			auto& chunk = _stack.back();
@@ -171,17 +172,20 @@ public:
 	}
 
 private:
-	StringMap< UPtr<Chunk> >	_chunks;
-	Vector<const Chunk*, 64>	_stack;
-
-	Vector<String>& _include_dirs;
-	String			_filename;
+	StringMap< UPtr<Chunk> > _chunks;
+	Vector<const Chunk*, 64> _stack;
+	Vector<String>&			 _include_dirs;
+	String					 _filename;
 }; // ShaderCompiler_DX11_ID3DInclude
 
 #if 0
 #pragma mark ========= ShaderCompiler_DX11 ============
 #endif
 void ShaderCompiler_DX11::compile(StrView outFilename, ShaderStageMask shaderStage, StrView profile, StrView srcFilename, StrView entryFunc, Vector<String>& include_dirs) {
+	if (profile.empty()) {
+		profile = Util::getDxStageProfile(shaderStage);
+	}
+
 	auto outPath = FilePath::dirname(outFilename);
 	Directory::create(outPath);
 
@@ -215,7 +219,7 @@ void ShaderCompiler_DX11::compile(StrView outFilename, ShaderStageMask shaderSta
 	ShaderCompiler_DX11_ID3DInclude include(srcFilename, include_dirs);
 
 	TempString profileA = profile;
-	::HRESULT hr = ::D3DCompile2(hlsl.data(), hlsl.size(), memmap.filename().c_str(),
+	auto hr = ::D3DCompile2(hlsl.data(), hlsl.size(), memmap.filename().c_str(),
 								 macros, &include,
 								 entryPoint.c_str(),
 								 profileA.c_str(),
@@ -235,11 +239,11 @@ void ShaderCompiler_DX11::compile(StrView outFilename, ShaderStageMask shaderSta
 }
 
 void ShaderCompiler_DX11::_reflect(StrView outFilename, ByteSpan bytecode, ShaderStageMask stage, StrView profile) {
-	ComPtr<DX11_ID3DShaderReflection>	reflect;
+	ComPtr<DX11_ID3DShaderReflection> reflect;
 	auto hr = ::D3DReflect(bytecode.data(), bytecode.size(), IID_PPV_ARGS(reflect.ptrForInit()));
 	Util::throwIfError(hr);
 
-	DX11_ShaderDesc desc;
+	D3D11_SHADER_DESC desc;
 	hr = reflect->GetDesc(&desc);
 	Util::throwIfError(hr);
 
@@ -260,11 +264,10 @@ void ShaderCompiler_DX11::_reflect(StrView outFilename, ByteSpan bytecode, Shade
 	}
 }
 
-void ShaderCompiler_DX11::_reflect_inputs(ShaderStageInfo& outInfo, DX11_ID3DShaderReflection* reflect, DX11_ShaderDesc& desc) {
+void ShaderCompiler_DX11::_reflect_inputs(ShaderStageInfo& outInfo, DX11_ID3DShaderReflection* reflect, D3D11_SHADER_DESC& desc) {
 	HRESULT hr;
 
 	outInfo.inputs.reserve(desc.InputParameters);
-
 	for (UINT i = 0; i < desc.InputParameters; ++i) {
 		auto& dst = outInfo.inputs.emplace_back();
 
@@ -306,13 +309,12 @@ void ShaderCompiler_DX11::_reflect_inputs(ShaderStageInfo& outInfo, DX11_ID3DSha
 	}
 }
 
-void ShaderCompiler_DX11::_reflect_constBuffers(ShaderStageInfo& outInfo, DX11_ID3DShaderReflection* reflect, DX11_ShaderDesc& desc) {
+void ShaderCompiler_DX11::_reflect_constBuffers(ShaderStageInfo& outInfo, DX11_ID3DShaderReflection* reflect, D3D11_SHADER_DESC& desc) {
 	HRESULT hr;
 
 	outInfo.constBuffers.reserve(desc.BoundResources);
-
 	for (UINT i = 0; i < desc.BoundResources; ++i) {
-		DX11_ShaderInputBindDesc resDesc;
+		D3D11_SHADER_INPUT_BIND_DESC resDesc;
 		hr = reflect->GetResourceBindingDesc(i, &resDesc);
 		Util::throwIfError(hr);
 
@@ -361,16 +363,16 @@ void ShaderCompiler_DX11::_reflect_constBuffers(ShaderStageInfo& outInfo, DX11_I
 				}
 
 				switch (varType.Class) {
-					case D3D_SVC_SCALAR: break; // ex: ${dataType}
+					case D3D_SVC_SCALAR: break; // e.g. ${dataType}
 					case D3D_SVC_VECTOR:
-						FmtTo(dataType, "x{}",	varType.Columns); // ex: ${dataType}x4
+						FmtTo(dataType, "x{}",	varType.Columns); // e.g. ${dataType}x4
 						break;
 					case D3D_SVC_MATRIX_COLUMNS:
-						FmtTo(dataType, "_{}x{}", varType.Rows, varType.Columns); // ex: ${dataType}_4x4
+						FmtTo(dataType, "_{}x{}", varType.Rows, varType.Columns); // e.g. ${dataType}_4x4
 						outVar.rowMajor = false;
 						break;
 					case D3D_SVC_MATRIX_ROWS:
-						FmtTo(dataType, "_{}x{}", varType.Rows, varType.Columns); // ex: ${dataType}_4x4
+						FmtTo(dataType, "_{}x{}", varType.Rows, varType.Columns); // e.g. ${dataType}_4x4
 						outVar.rowMajor = true;
 						break;
 				//----
@@ -390,12 +392,12 @@ void ShaderCompiler_DX11::_reflect_constBuffers(ShaderStageInfo& outInfo, DX11_I
 
 }
 
-void ShaderCompiler_DX11::_reflect_textures(ShaderStageInfo& outInfo, DX11_ID3DShaderReflection* reflect, DX11_ShaderDesc& desc) {
+void ShaderCompiler_DX11::_reflect_textures(ShaderStageInfo& outInfo, DX11_ID3DShaderReflection* reflect, D3D11_SHADER_DESC& desc) {
 	HRESULT hr;
 
 	outInfo.textures.reserve(desc.BoundResources);
 	for (UINT i = 0; i < desc.BoundResources; ++i) {
-		DX11_ShaderInputBindDesc resDesc;
+		D3D11_SHADER_INPUT_BIND_DESC resDesc;
 		hr = reflect->GetResourceBindingDesc(i, &resDesc);
 		Util::throwIfError(hr);
 
@@ -421,11 +423,12 @@ void ShaderCompiler_DX11::_reflect_textures(ShaderStageInfo& outInfo, DX11_ID3DS
 	}
 }
 
-void ShaderCompiler_DX11::_reflect_samplers(ShaderStageInfo& outInfo, DX11_ID3DShaderReflection* reflect, DX11_ShaderDesc& desc) {
+void ShaderCompiler_DX11::_reflect_samplers(ShaderStageInfo& outInfo, DX11_ID3DShaderReflection* reflect, D3D11_SHADER_DESC& desc) {
 	HRESULT hr;
+
 	outInfo.samplers.reserve(desc.BoundResources);
 	for (UINT i = 0; i < desc.BoundResources; ++i) {
-		DX11_ShaderInputBindDesc resDesc;
+		D3D11_SHADER_INPUT_BIND_DESC resDesc;
 		hr = reflect->GetResourceBindingDesc(i, &resDesc);
 		Util::throwIfError(hr);
 

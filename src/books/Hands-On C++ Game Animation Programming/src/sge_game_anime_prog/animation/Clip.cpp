@@ -95,7 +95,7 @@ TRACK& ClipT<TRACK>::getOrCreateTrackByJointId(u32 jointId) {
 
 	UPtr<TRACK> newTransformTrack = s_createTrack(jointId);
 	_tracks.reserve(_tracks.size() + 1);
-	_tracks.emplace_back(std::move(newTransformTrack));
+	_tracks.emplace_back(eastl::move(newTransformTrack));
 	auto& res = _tracks.back();
 	return *res.get();
 }
@@ -112,8 +112,8 @@ FastClip ClipUtil::optimizeClip(const Clip& src) {
 
 	for (int i = 0; i < src.getTrackCount(); i++) {
 		auto* p = src.getTrack_noCheck(i);
-		UPtr<FastTransformTrack> newTransformTrack = TransformTrackUtil::optimizeTransformTrack(*p);
-		res.appendTrack(std::move(newTransformTrack));
+		auto optimizedTrack = TransformTrackUtil::optimizeTransformTrack(*p);
+		res.appendTrack(eastl::move(optimizedTrack));
 	}
 
 	res.setName(src.name());

@@ -60,4 +60,4 @@ VertexLayout* VertexLayoutManager::_createLayout(VertexType type) {
 	return &_table[type];
 }
 
-} // namespace
+} // namespace sge

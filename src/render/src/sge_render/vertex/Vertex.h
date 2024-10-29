@@ -178,6 +178,10 @@ struct VertexSemanticUtil {
 //-----
 SGE_ENUM_CLASS(VertexSemantic, u16)
 
+
+#if 0
+#pragma mark ========= VertexLayout ============
+#endif
 struct VertexLayout : public NonCopyable {
 	using Semantic = VertexSemantic;
 	using DataType = RenderDataType;
@@ -223,6 +227,9 @@ private:
 	}
 }; // VertexLayout
 
+#if 0
+#pragma mark ========= VertexBase ============
+#endif
 struct VertexBase {
 	using Semantic = VertexSemantic;
 
@@ -247,6 +254,9 @@ struct VertexBase {
 
 }; // VertexBase
 
+#if 0
+#pragma mark ========= VertexT_Pos ============
+#endif
 template<class POS_TYPE> /* VertexT_Pos<Tuple3f> */
 struct VertexT_Pos : public VertexBase
 {
@@ -264,8 +274,11 @@ struct VertexT_Pos : public VertexBase
 	static void onRegister(VertexLayout* layout) {
 		layout->addElement(Semantic::POSITION, &VertexT_Pos::pos);
 	}
-};
+}; // VertexT_Pos
 
+#if 0
+#pragma mark ========= VertexT_Color ============
+#endif
 template<class COLOR_TYPE, u8 COLOR_COUNT, class BASE> /* VertexT_Color<Color4f, 1, VertexT_Pos> */
 struct VertexT_Color : public BASE
 {
@@ -285,8 +298,11 @@ struct VertexT_Color : public BASE
 		BASE::onRegister(layout);
 		layout->addElement(Semantic::COLOR0, &VertexT_Color::color);
 	}
-};
+}; // VertexT_Color
 
+#if 0
+#pragma mark ========= VertexT_Uv ============
+#endif
 template<class UV_TYPE, u8 UV_COUNT, class BASE> /* VertexT_Uv<Tuple2f, 1, VertexT_Color> */
 struct VertexT_Uv : public BASE
 {
@@ -306,8 +322,11 @@ struct VertexT_Uv : public BASE
 		BASE::onRegister(layout);
 		layout->addElement(Semantic::TEXCOORD0, &VertexT_Uv::uv);
 	}
-};
+}; // VertexT_Uv
 
+#if 0
+#pragma mark ========= VertexT_Normal ============
+#endif
 template<class NORMAL_TYPE, u8 NORMAL_COUNT, class BASE> /* VertexT_Normal<Tuple3f, 1, VertexT_Pos> */
 struct VertexT_Normal : public BASE
 {
@@ -327,8 +346,11 @@ struct VertexT_Normal : public BASE
 		BASE::onRegister(layout);
 		layout->addElement(Semantic::NORMAL, &VertexT_Normal::normal);
 	}
-};
+}; // VertexT_Normal
 
+#if 0
+#pragma mark ========= VertexT_Tangent ============
+#endif
 template<class TANGENT_TYPE, u8 TANGENT_COUNT, class BASE> /* VertexT_Tangent<Tuple3f, 1, VertexT_Normal> */
 struct VertexT_Tangent : public BASE
 {
@@ -350,8 +372,11 @@ struct VertexT_Tangent : public BASE
 		BASE::onRegister(layout);
 		layout->addElement(Semantic::TANGENT, &VertexT_Tangent::tangent);
 	}
-};
+}; // VertexT_Tangent
 
+#if 0
+#pragma mark ========= VertexT_Binormal ============
+#endif
 template<class BINORMAL_TYPE, u8 BINORMAL_COUNT, class BASE> /* VertexT_Binormal<Tuple3f, 1, VertexT_Tangent> */
 struct VertexT_Binormal : public BASE
 {
@@ -373,8 +398,11 @@ struct VertexT_Binormal : public BASE
 		BASE::onRegister(layout);
 		layout->addElement(Semantic::BINORMAL, &VertexT_Binormal::binormal);
 	}
-};
+}; // VertexT_Binormal
 
+#if 0
+#pragma mark ========= VertexT_VertexId ============
+#endif
 template<class BASE>
 struct VertexT_VertexId : public BASE {
 	u32 vertexId;
@@ -389,7 +417,8 @@ struct VertexT_VertexId : public BASE {
 	static void onRegister(VertexLayout* layout) {
 		layout->addElement(Semantic::SV_VertexID, &VertexT_VertexId::vertexId);
 	}
-};
+}; // VertexT_VertexId
+
 
 using Vertex_Pos2f			= VertexT_Pos<Tuple2f>;
 
@@ -415,4 +444,4 @@ using Vertex_ImGui = VertexT_Color<Color4b, 1, VertexT_Uv<Tuple2f, 1, Vertex_Pos
 
 using Vertex_VertexId = VertexT_VertexId<VertexBase>;
 
-} // namespace
+} // namespace sge

@@ -75,4 +75,4 @@ void MemMapFile::close() {
 
 #endif
 
-}
+} // namespace sge

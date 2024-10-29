@@ -293,7 +293,7 @@ void MySQLite3_Conn::directExec(StrView sql) {
 }
 
 UPtr<Stmt> MySQLite3_Conn::onCreateStmt(StrView sql) {
-	return UPtr<MySQLite3_Stmt>(new MySQLite3_Stmt(this, sql));
+	return UPtr_make<MySQLite3_Stmt>(this, sql);
 }
 
-}
+} // namespace sge

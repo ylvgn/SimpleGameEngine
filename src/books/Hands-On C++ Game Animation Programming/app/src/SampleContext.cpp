@@ -1769,8 +1769,8 @@ void SampleContext::_loadExampleAsset_DualQuaterionMeshSkinning() {
 	_skeleton = new Skeleton();
 	_skeleton->create(info);
 	_clips.reserve(info.animationClips.size());
-	_clips = std::move(info.animationClips);
-	_clipNames = std::move(info.animationClipNames);
+	_clips = SGE_MOVE(info.animationClips);
+	_clipNames = SGE_MOVE(info.animationClipNames);
 
 	_cpuMeshes.reserve(info.skinMeshes.size());
 	_cpuMeshes.appendRange(info.skinMeshes);
@@ -1923,7 +1923,7 @@ void SampleContext::_randomSetCrowdSize(size_t newCrowdCount) {
 			_crowds[i].release();
 			_crowds[i] = nullptr;
 		}
-		_crowds[i] = std::move(c);
+		_crowds[i] = eastl::move(c);
 	}
 }
 

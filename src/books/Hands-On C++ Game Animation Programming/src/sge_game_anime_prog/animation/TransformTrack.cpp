@@ -89,7 +89,7 @@ template TransformTrackT<FastVectorTrack, FastQuaternionTrack>;
 #pragma mark ================= TransformTrackUtil ====================
 #endif
 UPtr<FastTransformTrack> TransformTrackUtil::optimizeTransformTrack(const TransformTrack& src) {
-	UPtr<FastTransformTrack> res(new FastTransformTrack());
+	auto res = UPtr_make<FastTransformTrack>();
 
 	res->jointId	= src.jointId;
 	res->position	= TrackUtil::optimizeTrack(src.position);

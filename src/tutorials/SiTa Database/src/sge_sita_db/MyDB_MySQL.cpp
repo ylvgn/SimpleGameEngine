@@ -277,7 +277,7 @@ public:
 }; // MySQL_Stmt
 
 UPtr<Stmt> MySQL_Conn::onCreateStmt(StrView sql) {
-	return UPtr<MySQL_Stmt>(new MySQL_Stmt(this, sql));
+	return UPtr_make<MySQL_Stmt>(this, sql);
 }
 
 MySQL_Conn::MySQL_Conn(StrView host, StrView db, StrView user, StrView password) {
@@ -313,4 +313,4 @@ void MySQL_Conn::directExec(StrView sql) {
 	}
 }
 
-}
+} // namespace sge

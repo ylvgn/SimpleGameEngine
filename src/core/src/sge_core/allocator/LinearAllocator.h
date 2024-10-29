@@ -17,7 +17,7 @@ private:
 		Chunk(size_t n);
 
 		void* allocate(size_t reqSize, size_t align);
-		void clear();
+		void  clear();
 
 	private:
 		Vector<u8> _buffer;

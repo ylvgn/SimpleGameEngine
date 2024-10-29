@@ -1,4 +1,5 @@
 #pragma once
+
 #include "Render_DX11_Common.h"
 #include <sge_render/buffer/RenderGpuBuffer.h>
 
