@@ -34,7 +34,10 @@ void RenderGpuBuffer_GL::onUploadToGpu(ByteSpan data, size_t offset) {
 	glUnmapBuffer(_target);
 #elif 1 // GPU side move offset
 	auto* p = glMapBufferRange(_target, offset, data.size_bytes(), GL_MAP_WRITE_BIT);
-	if (!p) throw SGE_ERROR("glMapBufferRange");
+	if (!p) {
+		Util::throwIfError();
+		return;
+	}
 	u8* dst = reinterpret_cast<u8*>(p);
 	memcpy(dst, data.data(), data.size_bytes());
 	glUnmapBuffer(_target);

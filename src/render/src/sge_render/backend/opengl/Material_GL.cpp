@@ -8,12 +8,13 @@ namespace sge {
 #if 0
 #pragma mark ========= Material_GL::MyVertexStage ============
 #endif
-void Material_GL::MyVertexStage::bind(RenderContext_GL* ctx, const VertexLayout* vertexLayout) {
-	bindInputLayout(ctx, vertexLayout);
+void Material_GL::MyVertexStage::bind(RenderContext_GL* ctx, RenderCommand_DrawCall& drawCall) {
+	bindInputLayout(ctx, drawCall);
 	s_bindStageHelper(ctx, this);
 }
 
-void Material_GL::MyVertexStage::bindInputLayout(RenderContext_GL* ctx, const VertexLayout* vertexLayout) {
+void Material_GL::MyVertexStage::bindInputLayout(RenderContext_GL* ctx, RenderCommand_DrawCall& drawCall) {
+	auto* vertexLayout = drawCall.vertexLayout;
 	GLsizei stride = static_cast<GLsizei>(vertexLayout->stride);
 	
 	auto* vsInfo = info();
@@ -25,7 +26,7 @@ void Material_GL::MyVertexStage::bindInputLayout(RenderContext_GL* ctx, const Ve
 		GLsizei size = Util::getComponentCount(e->dataType);
 		GLenum	type = Util::getGlBaseFormat(e->dataType);
 
-		auto offset = reinterpret_cast<const void*>(e->offset);
+		auto offset = reinterpret_cast<const void*>(e->offset + drawCall.vertexOffset);
 
 		glEnableVertexAttribArray(input.slot);
 		Util::throwIfError();
@@ -57,13 +58,13 @@ Material_GL::MyPass::MyPass(Material_GL* material, ShaderPass* shaderPass) noexc
 	 Base::_pixelStage = &_pixelStage;
 }
 
-void Material_GL::MyPass::onBind(RenderContext* ctx_, const VertexLayout* vertexLayout) {
+void Material_GL::MyPass::onBind(RenderContext* ctx_, RenderCommand_DrawCall& drawCall) {
 	auto* ctx = static_cast<RenderContext_GL*>(ctx_);
 
 	shaderPass()->bind();
 
-	_vertexStage.bind(ctx, vertexLayout);
-	 _pixelStage.bind(ctx, vertexLayout);
+	_vertexStage.bind(ctx, drawCall);
+	 _pixelStage.bind(ctx, drawCall.vertexLayout);
 
 	_bindRenderState(ctx);
 }

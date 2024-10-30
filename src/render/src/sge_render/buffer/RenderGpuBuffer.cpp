@@ -14,4 +14,4 @@ void RenderGpuBuffer::uploadToGpu(ByteSpan data, size_t offset) {
 	onUploadToGpu(data, offset);
 }
 
-} // namespace
+} // namespace sge

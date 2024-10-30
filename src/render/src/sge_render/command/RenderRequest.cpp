@@ -109,7 +109,7 @@ void RenderRequest::drawLines(Span<Vertex_PosColor> points, Span<u16> indices) {
 void RenderRequest::drawFrustum(const Math::Frustum3f& frustum, const Color4b& color) {
 	Vertex_PosColor pt[8];
 
-	for (size_t i = 0; i < 8; i++) {
+	for (size_t i = 0; i < 8; ++i) {
 		pt[i].pos = frustum.points[i];
 		pt[i].color[0] = color;
 	}
@@ -127,16 +127,17 @@ void RenderRequest::drawFrustum(const Math::Frustum3f& frustum, const Color4b& c
 						0,4,
 						1,5,
 						2,6,
-						3,7};
+						3,7
+	};
 
 	drawLines(pt, indices);
 }
 
-void RenderRequest::drawBoundingBox(const BBox3f& bbox, const Color4b& color, const Mat4f& mat) {
+void RenderRequest::drawBoundingBox(const BBox3f& bbox, const Color4b& color, const Mat4f& matrix) {
 	if (!bbox.isValid()) return;
 
 	Vec3f pt[8];
-	bbox.getPoints(pt, mat);
+	bbox.getPoints(pt, matrix);
 
 	Vertex_PosColor vertices[8];
 	for (size_t i = 0; i < 8; i++) {
@@ -154,23 +155,24 @@ void RenderRequest::drawBoundingBox(const BBox3f& bbox, const Color4b& color, co
 						5,6,
 						6,7,
 						7,4,
-					
+
 						0,4,
 						1,5,
 						2,6,
-						3,7};
+						3,7,
+	};
 
 	drawLines(vertices, indices);
 }
 
-void RenderRequest::drawBoundingBox(const RenderMesh& mesh, const Color4b& color, const Mat4f& mat) {
+void RenderRequest::drawBoundingBox(const RenderMesh& mesh, const Color4b& color, const Mat4f& matrix) {
 	for (auto& sm : mesh.subMeshes()) {
-		drawBoundingBox(sm, color, mat);
+		drawBoundingBox(sm, color, matrix);
 	}
 }
 
-void RenderRequest::drawBoundingBox(const RenderSubMesh& mesh, const Color4b& color, const Mat4f& mat) {
-	drawBoundingBox(mesh.boundingBox(), color, mat);
+void RenderRequest::drawBoundingBox(const RenderSubMesh& mesh, const Color4b& color, const Mat4f& matrix) {
+	drawBoundingBox(mesh.boundingBox(), color, matrix);
 }
 
 void RenderRequest::commit() {
@@ -203,7 +205,7 @@ void RenderRequest::InlineDraw::reset() {
 
 void RenderRequest::InlineDraw::uploadToGpu() {
 	_uploadToGpu(vertexBuffer, vertexData);
-	_uploadToGpu(indexBuffer, indexData);
+	 _uploadToGpu(indexBuffer, indexData);
 }
 
 void RenderRequest::InlineDraw::_uploadToGpu(SPtr<RenderGpuBuffer>& buf, const Vector<u8>& data) {
@@ -220,5 +222,4 @@ void RenderRequest::InlineDraw::_uploadToGpu(SPtr<RenderGpuBuffer>& buf, const V
 	buf->uploadToGpu(data);
 }
 
-
-} // namespace
+} // namespace sge

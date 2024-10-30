@@ -94,7 +94,7 @@ class Material_DX11 : public Material {
 
 		MyShaderPass* shaderPass() const { return static_cast<MyShaderPass*>(_shaderPass); }
 
-		virtual void onBind(RenderContext* ctx, const VertexLayout* vertexLayout) final;
+		virtual void onBind(RenderContext* ctx, RenderCommand_DrawCall& drawCall) final;
 
 		void _bindRenderState(RenderContext_DX11* ctx);
 

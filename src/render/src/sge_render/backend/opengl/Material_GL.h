@@ -8,6 +8,8 @@
 
 namespace sge {
 
+class RenderCommand_DrawCall;
+
 class Material_GL : public Material {
 	using Base = Material;
 	using Util = GLUtil;
@@ -29,8 +31,8 @@ class Material_GL : public Material {
 			: Base(pass, shaderStage)
 		{}
 
-		void bind(RenderContext_GL* ctx, const VertexLayout* vertexLayout);
-		void bindInputLayout(RenderContext_GL* ctx, const VertexLayout* vertexLayout);
+		void bind(RenderContext_GL* ctx, RenderCommand_DrawCall& drawCall);
+		void bindInputLayout(RenderContext_GL* ctx, RenderCommand_DrawCall& drawCall);
 
 		Pass*			pass()			const { return static_cast<Pass*>(_pass); }
 		ShaderStage*	shaderStage()	const { return static_cast<ShaderStage*>(_shaderStage); }
@@ -84,7 +86,7 @@ class Material_GL : public Material {
 
 		MyShaderPass* shaderPass() const { return static_cast<MyShaderPass*>(_shaderPass); }
 
-		virtual void onBind(RenderContext* ctx, const VertexLayout* vertexLayout) final;
+		virtual void onBind(RenderContext* ctx, RenderCommand_DrawCall& drawCall) final;
 
 		void _bindRenderState(RenderContext_GL* ctx);
 

@@ -26,6 +26,9 @@ public:
 	using CreateDesc = RenderContext_CreateDesc;
 	using Statistics = RenderContext_Statistics;
 
+	RenderContext(CreateDesc& desc);
+	virtual ~RenderContext() = default;
+
 	void beginRender();
 	void endRender();
 
@@ -35,9 +38,6 @@ public:
 	const Statistics& statistics() const { return _statistics; }
 
 	void commit(RenderCommandBuffer& cmdBuf) { _statistics.clean(); onCommit(cmdBuf); }
-
-	RenderContext(CreateDesc& desc);
-	virtual ~RenderContext() = default;
 
 	void onPostCreate();
 	void drawUI(RenderRequest& req);

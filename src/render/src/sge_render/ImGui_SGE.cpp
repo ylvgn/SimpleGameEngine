@@ -22,9 +22,10 @@ void ImGui_SGE::create() {
 	io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;
 	io.ConfigFlags  |= ImGuiConfigFlags_NavEnableKeyboard;
 
-	auto* renderer = Renderer::instance();
-	auto shader = Renderer::instance()->createShader("Assets/Shaders/imgui.shader");
-	_material	= renderer->createMaterial();
+	auto* renderer	= Renderer::instance();
+	auto shader		= Renderer::instance()->createShader("Assets/Shaders/imgui.shader");
+	_material		= renderer->createMaterial();
+
 	_material->setShader(shader);
 }
 
@@ -40,33 +41,31 @@ void ImGui_SGE::destroy() {
 }
 
 void ImGui_SGE::_createFontsTexture() {
+	using Color = ColorRb;
+
 	auto* renderer = Renderer::instance();
 
-	ImGuiIO& io = ImGui::GetIO();
 	unsigned char* pixels;
 	int w, h;
-	io.Fonts->GetTexDataAsAlpha8(&pixels, &w, &h);
 
-	using Color = ColorRb;
+	ImGuiIO& io = ImGui::GetIO();
+	io.Fonts->GetTexDataAsAlpha8(&pixels, &w, &h);
 
 	Texture2D_CreateDesc texDesc;
 	Texture2D::UploadRequest texUploadRequest;
 	texDesc.uploadRequest = &texUploadRequest;
-	auto& image = texUploadRequest.imageToUpload;
-
 	texDesc.size.set(w, h);
 	texDesc.colorType = Color::kColorType;
 	texDesc.mipmapCount = 1;
-	image.create(Color::kColorType, w, h);
+	auto& image = texUploadRequest.imageToUpload;
+	image.create(texDesc.colorType, w, h);
 	image.copyToPixelData(ByteSpan(pixels, w * h));
 
 	_fontsTexture = renderer->createTexture2D(texDesc);
 }
 
 void ImGui_SGE::onBeginRender(RenderContext* renderContext) {
-#if _DEBUG
 	if (!_ctx) return;
-#endif
 	ImGuiIO& io = ImGui::GetIO();
 	auto s = renderContext->frameBufferSize();
 	io.DisplaySize = ImVec2(s.x, s.y);
@@ -80,9 +79,7 @@ void ImGui_SGE::onBeginRender(RenderContext* renderContext) {
 }
 
 void ImGui_SGE::onEndRender(RenderContext* renderContext) {
-#if _DEBUG
 	if (!_ctx) return;
-#endif
 }
 
 void ImGui_SGE::onDrawUI(RenderRequest& req) {

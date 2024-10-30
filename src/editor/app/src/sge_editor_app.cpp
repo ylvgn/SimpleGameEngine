@@ -217,7 +217,7 @@ public:
 			_camera.setFov(fov);
 		}
 
-		_renderRequest.debug.drawBoundingBox = true; // TODO not work in opengl
+		_renderRequest.debug.drawBoundingBox = true;
 		_renderRequest.lineMaterial = _lineMaterial;
 //		_renderRequest.matrix_model = Mat4f::s_identity();
 
@@ -237,11 +237,10 @@ public:
 
 		CRendererSystem::instance()->render(_renderRequest);
 
-//		TODO opengl not work Imgui
-//		ImGui::ShowDemoWindow(nullptr);
-//		_hierarchyWindow.draw(_scene, _renderRequest);
-//		_inspectorWindow.draw(_scene, _renderRequest);
-//		_statisticsWindow.draw(_scene, _renderRequest);
+		ImGui::ShowDemoWindow(nullptr);
+		_hierarchyWindow.draw(_scene, _renderRequest);
+		_inspectorWindow.draw(_scene, _renderRequest);
+		_statisticsWindow.draw(_scene, _renderRequest);
 
 		_renderContext->drawUI(_renderRequest);
 		_renderRequest.swapBuffers();

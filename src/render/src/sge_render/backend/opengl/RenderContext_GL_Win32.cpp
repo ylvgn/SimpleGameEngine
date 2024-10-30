@@ -222,27 +222,31 @@ void RenderContext_GL_Win32::onCmd_DrawCall(RenderCommand_DrawCall& cmd) {
 
 	vertexBuffer->bind();
 	{
+		auto	primitive	 = Util::getGlPrimitiveTopology(cmd.primitive);
+		GLsizei stride		 = static_cast<GLsizei>(cmd.vertexLayout->stride); SGE_UNUSED(stride);
+		GLsizei vertexCount  = static_cast<GLsizei>(cmd.vertexCount);
+		GLsizei indexCount   = static_cast<GLsizei>(cmd.indexCount);
+
+		GLsizei vertexOffset = static_cast<GLsizei>(cmd.vertexOffset);
+		SGE_UNUSED(vertexOffset);
+
 		if (auto* pass = cmd.getMaterialPass()) {
-			pass->bind(this, cmd.vertexLayout);
+			pass->bind(this, cmd);
 		} else {
 			_setTestShaders(cmd.vertexLayout);
 		}
-		auto	primitive	= Util::getGlPrimitiveTopology(cmd.primitive);
-		GLsizei stride		= static_cast<GLsizei>(cmd.vertexLayout->stride); SGE_UNUSED(stride);
-		GLsizei vertexCount = static_cast<GLsizei>(cmd.vertexCount);
-		GLsizei  indexCount = static_cast<GLsizei>(cmd.indexCount);
 
 		if (indexCount > 0) {
 			indexBuffer->bind();
-			glDrawElements(primitive, indexCount, Util::getGlFormat(cmd.indexType), nullptr);
+			glDrawElements(primitive, indexCount, Util::getGlFormat(cmd.indexType), reinterpret_cast<const void*>(cmd.indexOffset));
 			indexBuffer->unbind();
+			Util::throwIfError();
 		} else {
 			glDrawArrays(primitive, 0, static_cast<GLsizei>(vertexCount));
+			Util::throwIfError();
 		}
 	}
 	vertexBuffer->unbind();
-
-	Util::throwIfError();
 }
 
 void RenderContext_GL_Win32::onCmd_SetScissorRect(RenderCommand_SetScissorRect& cmd) {

@@ -84,10 +84,10 @@ Material_DX11::MyPass::MyPass(Material_DX11* material, ShaderPass* shaderPass) n
 	 Base::_pixelStage = &_pixelStage;
 }
 
-void Material_DX11::MyPass::onBind(RenderContext* ctx_, const VertexLayout* vertexLayout) {
+void Material_DX11::MyPass::onBind(RenderContext* ctx_, RenderCommand_DrawCall& drawCall) {
 	auto* ctx = static_cast<RenderContext_DX11*>(ctx_);
-	_vertexStage.bind(ctx, vertexLayout);
-	 _pixelStage.bind(ctx, vertexLayout);
+	_vertexStage.bind(ctx, drawCall.vertexLayout);
+	 _pixelStage.bind(ctx, drawCall.vertexLayout);
 
 	_bindRenderState(ctx);
 }

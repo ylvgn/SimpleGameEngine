@@ -10,6 +10,8 @@ class RenderContext;
 class Material;
 class MaterialPass;
 
+class RenderCommand_DrawCall;
+
 #if 0
 #pragma mark ========= MaterialPass_Stage ============
 #endif
@@ -179,13 +181,13 @@ public:
 	const ShaderPassInfo*	info()			const { return _shaderPass->info(); }
 	const RenderState&		renderState()	const { return info()->renderState; }
 
-	void bind(RenderContext* ctx, const VertexLayout* vertexLayout) { onBind(ctx, vertexLayout); }
+	void bind(RenderContext* ctx, RenderCommand_DrawCall& drawCall) { onBind(ctx, drawCall); }
 
 friend class Material;
 protected:
 	MaterialPass(Material* material, ShaderPass* shaderPass) noexcept;
 
-	virtual void onBind(RenderContext* ctx, const VertexLayout* vertexLayout) = 0;
+	virtual void onBind(RenderContext* ctx, RenderCommand_DrawCall& drawCall) = 0;
 
 	template<class V>
 	void _setParam(StrView name, const V& v) {

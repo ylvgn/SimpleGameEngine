@@ -486,7 +486,7 @@ void RenderTerrain::PatchIndices::create(Terrain* terrain, int level, ZoneMask z
 			helper.work(tmp, maxLod - 1, indexData);
 		}
 
-		{ // soutch
+		{ // south
 			Vec2i startXY{ terrain->patchVerticesPerRow() - 1, terrain->patchVerticesPerRow() - 1 };
 			Vector<int, 4> localDir = { 2, 3, 0, 1 };
 			bool isTjoint = enumHas(zoneMask, ZoneMask::South);
