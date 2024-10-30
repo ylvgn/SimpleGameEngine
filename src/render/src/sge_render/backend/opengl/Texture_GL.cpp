@@ -57,6 +57,7 @@ Texture2D_GL::Texture2D_GL(CreateDesc& desc)
 
 	// TODO: upload texture with glCompressedTexSubImage2D/glTexSubImage2D
 	GLint unpackAlignment = 4;
+
 	const void* pixelDataPtr = nullptr;
 	if (desc.uploadRequest) {
 		auto& image = desc.uploadRequest->imageToUpload;
@@ -86,22 +87,19 @@ Texture2D_GL::Texture2D_GL(CreateDesc& desc)
 		pixelDataPtr = pixelData.data();
 	}
 
-	if (unpackAlignment != 4) {
-		glPixelStorei(GL_UNPACK_ALIGNMENT, unpackAlignment);
-		Util::throwIfError();
-	}
-
 	if (ColorUtil::isCompressedType(desc.colorType)) {
 		GLsizei imageSize = ColorUtil::bytesPerPixelBlockImageSize(w, h, desc.colorType);
 		glCompressedTexImage2D(GL_TEXTURE_2D, 0, _format.internalFormat, w, h, 0, imageSize, pixelDataPtr);
-	} else {
-		glTexImage2D(GL_TEXTURE_2D, 0, _format.internalFormat, w, h, 0, _format.sourceFormat, _format.elementType, pixelDataPtr);
-	}
-	Util::throwIfError();
-
-	if (unpackAlignment != 4) {
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 		Util::throwIfError();
+	} else {
+		if (unpackAlignment != 4)
+			glPixelStorei(GL_UNPACK_ALIGNMENT, unpackAlignment);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, _format.internalFormat, w, h, 0, _format.sourceFormat, _format.elementType, pixelDataPtr);
+		Util::throwIfError();
+
+		if (unpackAlignment != 4)
+			glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 	}
 
 	unbind();

@@ -133,34 +133,27 @@ void Material_GL::MyPass::_bindRenderState(RenderContext_GL* ctx) {
 // -----
 	auto& blend = rs.blend;
 	if (blend.isEnable()) {
-		glEnablei(GL_BLEND, 0); //glEnable(GL_BLEND);
+		glEnable(GL_BLEND);
 
 		auto rgbSrcFactor	= Util::getGlBlendFactor(blend.rgb.srcFactor);
 		auto rgbDstFactor	= Util::getGlBlendFactor(blend.rgb.dstFactor);
 		auto alphaSrcFactor = Util::getGlBlendFactor(blend.alpha.srcFactor);
 		auto alphaDstFactor = Util::getGlBlendFactor(blend.alpha.dstFactor);
 
-		if (blend.rgb.op == BlendOp::Disable) { // only alpha blending, how ???
-			glBlendFunc(rgbSrcFactor, rgbDstFactor);
-			SGE_ASSERT(false); // TODO
-		}
-		else if (blend.alpha.op == BlendOp::Disable) { // only color blending
-			auto rgbOp = Util::getGlBlendOp(blend.rgb.op);
-			glBlendEquation(rgbOp);
-			glBlendFunc(rgbSrcFactor, rgbDstFactor);
-		}
-		else {
-			auto rgbOp	 = Util::getGlBlendOp(blend.rgb.op);
-			auto alphaOp = Util::getGlBlendOp(blend.alpha.op);
+		GLenum rgbOp = blend.rgb.op == BlendOp::Disable
+						? GL_FUNC_ADD
+						: Util::getGlBlendOp(blend.alpha.op);
 
-			glBlendEquationSeparate(rgbOp, alphaOp);
-			Util::throwIfError();
-		}
+		GLenum alphaOp = blend.alpha.op == BlendOp::Disable
+						? GL_FUNC_ADD
+						: Util::getGlBlendOp(blend.rgb.op);
+
+		glBlendEquationSeparate(rgbOp, alphaOp);
 		glBlendFuncSeparate(rgbSrcFactor, rgbDstFactor, alphaSrcFactor, alphaDstFactor);
 		Util::throwIfError();
 	}
 	else {
-		glDisablei(GL_BLEND, 0); //glDisable(GL_BLEND);
+		glDisable(GL_BLEND);
 	}
 
 	glBlendColor(blend.constColor.r

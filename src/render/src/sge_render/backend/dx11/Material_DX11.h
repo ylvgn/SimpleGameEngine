@@ -30,10 +30,10 @@ class Material_DX11 : public Material {
 			: Base(pass, shaderStage)
 		{}
 
+		ShaderStage* shaderStage() { return static_cast<ShaderStage*>(_shaderStage); }
+
 		void bind(RenderContext_DX11* ctx, const VertexLayout* vertexLayout);
 		void bindInputLayout(RenderContext_DX11* ctx, const VertexLayout* vertexLayout);
-
-		ShaderStage* shaderStage() { return static_cast<ShaderStage*>(_shaderStage); }
 
 		void _dxSetConstBuffer(DX11_ID3DDeviceContext* dc, UINT bindPoint, DX11_ID3DBuffer* d3dBuf) {
 			dc->VSSetConstantBuffers(bindPoint, 1, &d3dBuf);
@@ -64,9 +64,9 @@ class Material_DX11 : public Material {
 			: Base(pass, shaderStage)
 		{}
 
-		void bind(RenderContext_DX11* ctx, const VertexLayout* vertexLayout);
-
 		ShaderStage* shaderStage() { return static_cast<ShaderStage*>(_shaderStage); }
+
+		void bind(RenderContext_DX11* ctx, const VertexLayout* vertexLayout);
 
 		void _dxSetConstBuffer(DX11_ID3DDeviceContext* dc, UINT bindPoint, DX11_ID3DBuffer* d3dBuf) {
 			dc->PSSetConstantBuffers(bindPoint, 1, &d3dBuf);
@@ -81,16 +81,18 @@ class Material_DX11 : public Material {
 		}
 	}; // MyPixelStage
 
+
 	#if 0
 	#pragma mark ========= Material_DX11::MyPass ============
 	#endif
 	class MyPass : public Material::Pass {
 		using Base = typename Material::Pass;
 	public:
+		using MyShaderPass = typename Shader_DX11::MyPass;
 
 		MyPass(Material_DX11* material, ShaderPass* shaderPass) noexcept;
 
-		Shader_DX11::Pass* shaderPass() const { return static_cast<Shader_DX11::Pass*>(_shaderPass); }
+		MyShaderPass* shaderPass() const { return static_cast<MyShaderPass*>(_shaderPass); }
 
 		virtual void onBind(RenderContext* ctx, const VertexLayout* vertexLayout) final;
 

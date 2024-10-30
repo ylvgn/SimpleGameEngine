@@ -174,9 +174,12 @@ public:
 	using VertexStage	= MaterialPass_VertexStage;
 	using PixelStage	= MaterialPass_PixelStage;
 
-	void bind(RenderContext* ctx, const VertexLayout* vertexLayout) { onBind(ctx, vertexLayout); }
+	using ShaderPassInfo = ShaderInfo::Pass;
 
-	const ShaderInfo::Pass*	info() const { return _shaderPass ? _shaderPass->info() : nullptr; }
+	const ShaderPassInfo*	info()			const { return _shaderPass->info(); }
+	const RenderState&		renderState()	const { return info()->renderState; }
+
+	void bind(RenderContext* ctx, const VertexLayout* vertexLayout) { onBind(ctx, vertexLayout); }
 
 friend class Material;
 protected:

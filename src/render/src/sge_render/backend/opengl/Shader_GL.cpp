@@ -17,6 +17,7 @@ void Shader_GL::MyVertexStage::load(StrView passPath) {
 	s_loadStageFile(passPath, Profile::GLSL_VS, shaderStageType(), _handle, _info);
 }
 
+
 #if 0
 #pragma mark ========= Shader_GL::MyPixelStage ============
 #endif
@@ -30,6 +31,7 @@ Shader_GL::MyPixelStage::~MyPixelStage() noexcept {
 void Shader_GL::MyPixelStage::load(StrView passPath) {
 	s_loadStageFile(passPath, Profile::GLSL_PS, shaderStageType(), _handle, _info);
 }
+
 
 #if 0
 #pragma mark ========= Shader_GL::MyPass ============
@@ -56,12 +58,8 @@ void Shader_GL::MyPass::onInit() {
 	TempString passPath;
 	FmtTo(passPath, "{}/{}/glsl/pass{}", proj->importedPath(), shaderFilename(), _passIndex);
 
-//	Util::throwIfError();
-
 	if (!_info->vsFunc.empty()) { _vertexStage.load(passPath); }
 	if (!_info->psFunc.empty()) {  _pixelStage.load(passPath); }
-
-//	Util::throwIfError();
 
 	if (!_program)
 		Util::linkShader(_program, _vertexStage._handle, _pixelStage._handle);

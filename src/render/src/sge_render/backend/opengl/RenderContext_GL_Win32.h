@@ -5,6 +5,8 @@
 #if SGE_OS_WINDOWS
 #if SGE_RENDER_HAS_OPENGL
 
+#define MY_TEST_FRAMEBUFFER 0
+
 namespace sge {
 
 class Renderer_GL;

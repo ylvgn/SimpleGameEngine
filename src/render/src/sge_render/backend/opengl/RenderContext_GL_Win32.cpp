@@ -1,11 +1,11 @@
 #include "RenderContext_GL_Win32.h"
-#include "Renderer_GL.h"
-#include "RenderGpuBuffer_GL.h"
-
-#include "Shader_GL.h"
 
 #if SGE_OS_WINDOWS
 #if SGE_RENDER_HAS_OPENGL
+
+#include "Renderer_GL.h"
+#include "RenderGpuBuffer_GL.h"
+#include "Shader_GL.h"
 
 namespace sge {
 
@@ -174,8 +174,9 @@ RenderContext_GL_Win32::RenderContext_GL_Win32(CreateDesc& desc)
 
 RenderContext_GL_Win32::~RenderContext_GL_Win32() {
 	_destroyTestShaders();
+#if MY_TEST_FRAMEBUFFER
 	_destroyTestScreenFrameBuffer();
-
+#endif
 	if (_win32_rc) {
 		wglDeleteContext(_win32_rc);
 		_win32_rc = nullptr;
@@ -226,8 +227,8 @@ void RenderContext_GL_Win32::onCmd_DrawCall(RenderCommand_DrawCall& cmd) {
 		} else {
 			_setTestShaders(cmd.vertexLayout);
 		}
-		auto primitive		= Util::getGlPrimitiveTopology(cmd.primitive);
-//		GLsizei stride		= static_cast<GLsizei>(cmd.vertexLayout->stride);
+		auto	primitive	= Util::getGlPrimitiveTopology(cmd.primitive);
+		GLsizei stride		= static_cast<GLsizei>(cmd.vertexLayout->stride); SGE_UNUSED(stride);
 		GLsizei vertexCount = static_cast<GLsizei>(cmd.vertexCount);
 		GLsizei  indexCount = static_cast<GLsizei>(cmd.indexCount);
 
@@ -245,7 +246,7 @@ void RenderContext_GL_Win32::onCmd_DrawCall(RenderCommand_DrawCall& cmd) {
 }
 
 void RenderContext_GL_Win32::onCmd_SetScissorRect(RenderCommand_SetScissorRect& cmd) {
-	auto rc = cmd.rect;
+	auto rc = cmd.rect; // TODO some bug, cuz glScissor is global space, but how to fix it ???
 	glScissor(GLint(rc.x), GLint(rc.y), GLsizei(rc.w), GLsizei(rc.h));
 }
 
@@ -262,12 +263,12 @@ void RenderContext_GL_Win32::onCommit(RenderCommandBuffer& cmdBuf) {
 void RenderContext_GL_Win32::onSetFrameBufferSize(const Vec2f& newSize) {
 	int newWidth = int(newSize.x);
 	int newHeight = int(newSize.y);
-
+#if MY_TEST_FRAMEBUFFER
 	// TODO: reset frame buffer size
 	if (_viewFramebuffer && newWidth > 0 && newHeight > 0) {
 		_createBuffers();
 	}
-
+#endif
 	glViewport(0, 0, newWidth, newHeight);
 	Util::throwIfError();
 }
@@ -293,44 +294,56 @@ void RenderContext_GL_Win32::_destroyBuffers() {
 
 void RenderContext_GL_Win32::onBeginRender() {
 	_vao.bind();
+#if MY_TEST_FRAMEBUFFER
 	if (!_viewFramebuffer)
 		_createBuffers();
-
 	glBindFramebuffer(GL_FRAMEBUFFER, _viewFramebuffer);
-	glEnable(GL_DEPTH_TEST);
 	Util::throwIfError();
+#endif
 }
 
 void RenderContext_GL_Win32::onEndRender() {
+#if MY_TEST_FRAMEBUFFER
 	_setTestFrameBufferScreenShaders();
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDisable(GL_DEPTH_TEST);
 	glClear(GL_COLOR_BUFFER_BIT);
-
 	glBindTexture(GL_TEXTURE_2D, _testScreenQuadTexturebuffer);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
+#endif
 }
 
 void RenderContext_GL_Win32::_setTestFrameBufferScreenShaders() {
 	static const char* s_vs_source = "#version 330\n"
-	"layout(location = 0) in vec2 i_positionOS;\n"
-	"layout(location = 1) in vec2 i_uv;\n"
-	"out vec2 uv;\n"
-	"void main()\n"
-	"{\n"
-		"gl_Position = vec4(i_positionOS.xy, 0.0, 1.0);\n"
-		"uv = i_uv;\n"
-	"}";
+		"layout(location = 0) in vec2 i_positionOS;\n"
+		"layout(location = 1) in vec2 i_uv;\n"
+		"out vec2 uv;\n"
+		"void main()\n"
+		"{\n"
+			"gl_Position = vec4(i_positionOS.xy, 0.0, 1.0);\n"
+			"uv = i_uv;\n"
+		"}";
 
 	static const char* s_ps_source = "#version 330\n"
-	"uniform sampler2D _73;\n"
-	"in vec2 uv;\n"
-	"layout(location = 0) out vec4 _entryPointOutput;\n"
-	"void main()\n"
-	"{\n"
-		"_entryPointOutput = vec4(texture(_73, uv).xyz, 1.0);\n"
-	"}";
+		"uniform sampler2D _73;\n"
+		"in vec2 uv;\n"
+		"layout(location = 0) out vec4 _entryPointOutput;\n"
+		"void main()\n"
+		"{\n"
+			"_entryPointOutput = vec4(texture(_73, uv).xyz, 1.0);\n"
+		"}";
+
+	static float s_quadVertices[] = {
+		// pos(xy)     // uv
+		-1.0f,  1.0f,  0.0f, 1.0f,
+		-1.0f, -1.0f,  0.0f, 0.0f,
+		 1.0f, -1.0f,  1.0f, 0.0f,
+
+		-1.0f,  1.0f,  0.0f, 1.0f,
+		 1.0f, -1.0f,  1.0f, 0.0f,
+		 1.0f,  1.0f,  1.0f, 1.0f
+	};
 
 	if (!_testFrameBufferVertexShader) {
 		auto& shader = _testFrameBufferVertexShader;
@@ -362,18 +375,6 @@ void RenderContext_GL_Win32::_setTestFrameBufferScreenShaders() {
 //---- use shader program
 	glUseProgram(_testFrameBufferShaderProgram);
 	Util::throwIfError();
-
-	// screen quad vertex buffer
-	static float s_quadVertices[] = {
-		// positions   // texCoords
-		-1.0f,  1.0f,  0.0f, 1.0f,
-		-1.0f, -1.0f,  0.0f, 0.0f,
-		 1.0f, -1.0f,  1.0f, 0.0f,
-
-		-1.0f,  1.0f,  0.0f, 1.0f,
-		 1.0f, -1.0f,  1.0f, 0.0f,
-		 1.0f,  1.0f,  1.0f, 1.0f
-	};
 
 	if (!_testScreenQuadVertexbuffer) {
 		glGenBuffers(1, &_testScreenQuadVertexbuffer);
@@ -438,6 +439,7 @@ void RenderContext_GL_Win32::_createBuffers() {
 	GLint width  = GLint(_frameBufferSize.x);
 	GLint height = GLint(_frameBufferSize.y);
 
+	// TODO
 	// view render buffer
 	glGenFramebuffers(1, &_viewFramebuffer);
 	//glGenRenderbuffers(1, &_viewRenderbuffer);
@@ -499,5 +501,5 @@ void RenderContext_GL_Win32::_destroyTestScreenFrameBuffer() {
 
 } // namespace sge
 
-#endif // SGE_OS_WINDOWS
 #endif // SGE_RENDER_HAS_OPENGL
+#endif // SGE_OS_WINDOWS

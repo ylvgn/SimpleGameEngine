@@ -17,9 +17,10 @@ struct ColorUtil {
 	static constexpr bool isCompressedType(ColorType v) { return colorModel(v) == ColorModel::BlockCompression; }
 
 	static constexpr bool hasAlpha(ColorType v);
-};
+}; // ColorUtil
 
-constexpr bool ColorUtil::hasAlpha(ColorType v) {
+constexpr
+bool ColorUtil::hasAlpha(ColorType v) {
 	auto model = colorModel(v);
 	switch (model) {
 		case ColorModel::RGBA: return true;
@@ -27,7 +28,8 @@ constexpr bool ColorUtil::hasAlpha(ColorType v) {
 	return false;
 }
 
-constexpr int ColorUtil::pixelSizeInBytes(ColorType v) {
+constexpr
+int ColorUtil::pixelSizeInBytes(ColorType v) {
 	switch (v) {
 		case ColorType::RGBb:	return sizeof(ColorRGB<u8> );
 		case ColorType::RGBs:	return sizeof(ColorRGB<u16>);
@@ -50,7 +52,8 @@ constexpr int ColorUtil::pixelSizeInBytes(ColorType v) {
 	return 0;
 }
 
-constexpr int ColorUtil::bytesPerPixelBlock(ColorType type) {
+constexpr
+int ColorUtil::bytesPerPixelBlock(ColorType type) {
 	switch (type) {
 		#define E(T) \
 			case ColorType::T: return Color##T::kBytesPerPixelBlock;
@@ -67,11 +70,12 @@ constexpr int ColorUtil::bytesPerPixelBlock(ColorType type) {
 	return 0;
 }
 
-constexpr int ColorUtil::bytesPerPixelBlockImageSize(int width, int height, ColorType type) {
+constexpr
+int ColorUtil::bytesPerPixelBlockImageSize(int width, int height, ColorType type) {
 	// e.g. BC7 2592x1080 px -> ((2592+3)/4) * ((1080+3)/4) * 16(bytes) / 1024 / 1024 = 2.6696 MB
 
 	auto blockSize = bytesPerPixelBlock(type);
-	return ((width+3)/4 * (height+3)/4) * blockSize;
+	return ((width+3)/4) * ((height+3)/4) * blockSize;
 }
 
 } // namespace sge

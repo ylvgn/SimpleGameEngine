@@ -1,5 +1,7 @@
 #pragma once
 
+#include <sge_render/Render_Common.h>
+
 #if SGE_RENDER_HAS_OPENGL
 
 // GLEW --------
@@ -19,7 +21,6 @@
 	#pragma comment(lib, "GLu32.lib")
 #endif
 
-#include <sge_render/Render_Common.h>
 #include <sge_render/RenderDataType.h>
 #include <sge_render/buffer/RenderGpuBuffer.h>
 #include <sge_render/shader/Shader.h>
@@ -45,6 +46,12 @@ struct GLUtil {
 	static GLenum		getGlBufferBindingTarget(RenderGpuBufferType v);
 	static GLenum		getGlShaderType(ShaderStageMask s);
 	static const char*	getGlStageProfile(ShaderStageMask s);
+
+	static GLenum		getGlCullMode(RenderState_Cull c);
+	static GLenum		getGlDepthTestOp(RenderState_DepthTestOp o);
+	static GLenum		getGlStencilTestOp(RenderState_StencilTestOp o);
+	static GLenum		getGlBlendOp(RenderState_BlendOp o);
+	static GLenum		getGlBlendFactor(RenderState_BlendFactor f);
 
 	static GLenum		getGLTextureMinFilter(TextureFilter v, int mipmapCount = 1);
 	static GLenum		getGLTextureMagFilter(TextureFilter v);
@@ -225,13 +232,98 @@ const char* GLUtil::getGlStageProfile(ShaderStageMask s) {
 
 	static constexpr const char* vs = StringUtil::extractFromPrefix(Profile::GLSL_VS, "vs_");
 	static constexpr const char* ps = StringUtil::extractFromPrefix(Profile::GLSL_PS, "ps_");
-//	static constexpr const char* cs = StringUtil::extractFromPrefix(Profile::GLSL_CS, "cs_");
+	static constexpr const char* cs = StringUtil::extractFromPrefix(Profile::GLSL_CS, "cs_"); SGE_UNUSED(cs);
 
 	switch (s) {
 		case SRC::Vertex:	return vs;
 		case SRC::Pixel:	return ps;
 	//---
 		default: return "";
+	}
+}
+
+SGE_INLINE
+GLenum GLUtil::getGlCullMode(RenderState_Cull c) {
+	using SRC = RenderState_Cull;
+	switch (c) {
+		case SRC::None:	 return GL_FRONT_AND_BACK;
+		case SRC::Back:	 return GL_BACK;
+		case SRC::Front: return GL_FRONT;
+	//---
+		default:		 throw  SGE_ERROR("unsupported RenderState_Cull '{}'", c);
+	}
+}
+
+SGE_INLINE
+GLenum GLUtil::getGlDepthTestOp(RenderState_DepthTestOp o) {
+	using SRC = RenderState_DepthTestOp;
+	switch (o) {
+		case SRC::Less:			return GL_LESS;
+		case SRC::LessEqual:	return GL_LEQUAL;
+		case SRC::Equal:		return GL_EQUAL;
+		case SRC::Greater:		return GL_GREATER;
+		case SRC::GreaterEqual:	return GL_GEQUAL;
+		case SRC::NotEqual:		return GL_NOTEQUAL;
+		case SRC::Always:		return GL_ALWAYS;
+		case SRC::Never:		return GL_NEVER;
+	//---
+		default:				throw  SGE_ERROR("unsupported RenderState DepthTestOp '{}'", o);
+	}
+}
+
+SGE_INLINE
+GLenum GLUtil::getGlStencilTestOp(RenderState_StencilTestOp o) {
+	using SRC = RenderState_StencilTestOp;
+	switch (o) {
+		case SRC::Zero:				return GL_ZERO;
+		case SRC::Keep:				return GL_KEEP;
+		case SRC::Replace:			return GL_REPLACE;
+		case SRC::Increment:		return GL_INCR;
+		case SRC::IncrementWrap:	return GL_INCR_WRAP;
+		case SRC::Decrement:		return GL_DECR;
+		case SRC::DecrementWrap:	return GL_DECR_WRAP;
+		case SRC::Invert:			return GL_INVERT;
+	//---
+		default:					throw  SGE_ERROR("unsupported RenderState StencilTestOp '{}'", o);
+	}
+}
+
+SGE_INLINE
+GLenum GLUtil::getGlBlendOp(RenderState_BlendOp o) {
+	// https://registry.khronos.org/OpenGL-Refpages/gl4/html/glBlendEquation.xhtml
+	// https://learnopengl.com/Advanced-OpenGL/Blending
+	using SRC = RenderState_BlendOp;
+	switch (o) {
+		case SRC::Add:		return GL_FUNC_ADD;
+		case SRC::Min:		return GL_MIN;
+		case SRC::Max:		return GL_MAX;
+		case SRC::Sub:		return GL_FUNC_SUBTRACT;
+		case SRC::RevSub:	return GL_FUNC_REVERSE_SUBTRACT;
+	//---
+		default: throw SGE_ERROR("unsupported RenderState BlendOp '{}'", o);
+	}
+}
+
+SGE_INLINE
+GLenum GLUtil::getGlBlendFactor(RenderState_BlendFactor f) {
+	using SRC = RenderState_BlendFactor;
+	switch (f) {
+		case SRC::Zero:					return GL_ZERO;
+		case SRC::One:					return GL_ONE;
+		case SRC::SrcAlpha:				return GL_SRC_ALPHA;
+		case SRC::DstAlpha:				return GL_DST_ALPHA;
+		case SRC::SrcColor:				return GL_SRC_COLOR;
+		case SRC::DstColor:				return GL_DST_COLOR;
+		case SRC::ConstColor:			return GL_CONSTANT_COLOR;
+//		case SRC::ConstAlpha:			return GL_CONSTANT_ALPHA;
+		case SRC::OneMinusSrcAlpha:		return GL_ONE_MINUS_SRC_ALPHA;
+		case SRC::OneMinusSrcColor:		return GL_ONE_MINUS_SRC_COLOR;
+		case SRC::OneMinusDstAlpha:		return GL_ONE_MINUS_DST_ALPHA;
+		case SRC::OneMinusDstColor:		return GL_ONE_MINUS_DST_COLOR;
+		case SRC::OneMinusConstColor:	return GL_ONE_MINUS_CONSTANT_COLOR;
+//		case SRC::OneMinusConstAlpha:	return GL_ONE_MINUS_CONSTANT_ALPHA;
+	//---
+		default: throw SGE_ERROR("unsupported RenderState BlendFactor '{}'", f);
 	}
 }
 

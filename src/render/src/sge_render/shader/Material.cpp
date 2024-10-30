@@ -85,6 +85,7 @@ Texture* MaterialPass_Stage::TexParam::getUpdatedTexture() {
 	return _tex;
 }
 
+
 #if 0
 #pragma mark ========= MaterialPass ============
 #endif
@@ -92,7 +93,10 @@ MaterialPass::MaterialPass(Material* material, ShaderPass* shaderPass) noexcept
 	: _material(material)
 	, _shaderPass(shaderPass)
 {
+	SGE_ASSERT(material != nullptr);
+	SGE_ASSERT(shaderPass != nullptr);
 }
+
 
 #if 0
 #pragma mark ========= Material ============
