@@ -157,7 +157,7 @@ void ShaderParser::_readPass() {
 		if (_token.isIdentifier("DepthWrite")) { nextToken(); readBool(o.renderState.depthTest.writeMask); continue; }
 
 		if (_token.isIdentifier("BlendRGB")  ) { nextToken(); _readBlendFunc(o.renderState.blend.rgb); continue; }
-		if (_token.isIdentifier("BlendAlpha")) { nextToken(); _readBlendFunc(o.renderState.blend.rgb); continue; }
+		if (_token.isIdentifier("BlendAlpha")) { nextToken(); _readBlendFunc(o.renderState.blend.alpha); continue; }
 
 		if (_token.isIdentifier("Wireframe")) { nextToken(); readBool(o.renderState.wireframe); continue; }
 

@@ -67,5 +67,5 @@ private:
 
 } // namespace sge
 
-#endif // SGE_OS_WINDOWS
 #endif // SGE_RENDER_HAS_OPENGL
+#endif // SGE_OS_WINDOWS

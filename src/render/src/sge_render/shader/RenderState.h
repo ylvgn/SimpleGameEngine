@@ -3,7 +3,7 @@
 namespace sge {
 
 #define RenderState_Cull_ENUM_LIST(E) \
-	E(None,) \
+	E(None,) /* FrontAndBack*/ \
 	E(Back,) \
 	E(Front,) \
 //----
@@ -20,7 +20,7 @@ SGE_ENUM_CLASS(RenderState_Cull, u8)
 	E(Never,) \
 	E(_END,) \
 //-----
-SGE_ENUM_CLASS(RenderState_DepthTestOp, u8)
+SGE_ENUM_CLASS(RenderState_DepthTestOp, u8) /* depth & stencil */
 
 #define RenderState_BlendOp_ENUM_LIST(E) \
 	E(Disable,) \
@@ -53,10 +53,23 @@ SGE_ENUM_CLASS(RenderState_BlendOp, u8)
 //-----
 SGE_ENUM_CLASS(RenderState_BlendFactor, u8)
 
+#define RenderState_StencilTestOp_ENUM_LIST(E) \
+	E(Keep,) \
+	E(Zero,) \
+	E(Replace,) \
+	E(Increment,) \
+	E(IncrementWrap,) \
+	E(Decrement,) \
+	E(DecrementWrap,) \
+	E(Invert,) \
+	E(_END,) \
+//-----
+SGE_ENUM_CLASS(RenderState_StencilTestOp, u8)
 
 struct RenderState {
 	using Cull			= RenderState_Cull;
 	using DepthTestOp	= RenderState_DepthTestOp;
+	using StencilTestOp = RenderState_StencilTestOp;
 	using BlendOp		= RenderState_BlendOp;
 	using BlendFactor	= RenderState_BlendFactor;
 
@@ -81,8 +94,33 @@ struct RenderState {
 	};
 	DepthTest	depthTest;
 
+	struct StencilTest {
+		Cull			cull = Cull::None;
+
+		DepthTestOp		op = DepthTestOp::Always;
+		u8				ref	 = 0;
+		u8				mask = 0xff;
+
+		StencilTestOp	sfail = StencilTestOp::Keep;
+		StencilTestOp	dfail = StencilTestOp::Keep;
+		StencilTestOp	bfail = StencilTestOp::Keep;
+
+		bool isEnable() const { return op != DepthTestOp::Always; }
+
+		template<class SE>
+		void onJson(SE& se) {
+			SGE_NAMED_IO(se, cull);
+			SGE_NAMED_IO(se, ref);
+			SGE_NAMED_IO(se, mask);
+			SGE_NAMED_IO(se, sfail);
+			SGE_NAMED_IO(se, dfail);
+			SGE_NAMED_IO(se, bfail);
+		}
+	};
+	StencilTest stencilTest;
+
 	struct BlendFunc {
-		BlendOp		op = BlendOp::Disable;
+		BlendOp		op		  = BlendOp::Disable;
 		BlendFactor	srcFactor = BlendFactor::SrcAlpha;
 		BlendFactor	dstFactor = BlendFactor::OneMinusSrcAlpha;
 
@@ -103,11 +141,7 @@ struct RenderState {
 	struct Blend {
 		BlendFunc	rgb;
 		BlendFunc	alpha;
-		Color4f		constColor;
-
-		Blend() 
-			: constColor(1,1,1,1) 
-		{}
+		Color4f		constColor{1,1,1,1};
 
 		bool isEnable() const { return rgb.op != BlendOp::Disable || alpha.op != BlendOp::Disable; }
 
@@ -125,8 +159,9 @@ struct RenderState {
 		SGE_NAMED_IO(se, wireframe);
 		SGE_NAMED_IO(se, cull);
 		SGE_NAMED_IO(se, depthTest);
+		SGE_NAMED_IO(se, stencilTest);
 		SGE_NAMED_IO(se, blend);
 	}
 };
 
-} // namespace
+} // namespace sge

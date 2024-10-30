@@ -78,13 +78,15 @@ class Material_GL : public Material {
 	class MyPass : public Material::Pass {
 		using Base = typename Material::Pass;
 	public:
-		using MyShaderPass	= Shader_GL::MyPass;
+		using MyShaderPass = typename Shader_GL::MyPass;
 
 		MyPass(Material_GL* material, ShaderPass* shaderPass) noexcept;
 
+		MyShaderPass* shaderPass() const { return static_cast<MyShaderPass*>(_shaderPass); }
+
 		virtual void onBind(RenderContext* ctx, const VertexLayout* vertexLayout) final;
 
-		MyShaderPass* shaderPass() { return static_cast<MyShaderPass*>(_shaderPass); }
+		void _bindRenderState(RenderContext_GL* ctx);
 
 		MyVertexStage _vertexStage;
 		 MyPixelStage  _pixelStage;

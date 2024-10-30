@@ -27,13 +27,15 @@ void Material_GL::MyVertexStage::bindInputLayout(RenderContext_GL* ctx, const Ve
 
 		auto offset = reinterpret_cast<const void*>(e->offset);
 
+		glEnableVertexAttribArray(input.slot);
+		Util::throwIfError();
+
 		const bool normalized = GL_TRUE;
 		glVertexAttribPointer(input.slot, size, type, normalized, stride, offset);
-		glEnableVertexAttribArray(input.slot);
+		Util::throwIfError();
 	}
-
-	Util::throwIfError();
 }
+
 
 #if 0
 #pragma mark ========= Material_GL::MyPixelStage ============
@@ -41,6 +43,7 @@ void Material_GL::MyVertexStage::bindInputLayout(RenderContext_GL* ctx, const Ve
 void Material_GL::MyPixelStage::bind(RenderContext_GL* ctx, const VertexLayout* vertexLayout) {
 	s_bindStageHelper(ctx, this);
 }
+
 
 #if 0
 #pragma mark ========= Material_GL::MyPass ============
@@ -62,7 +65,120 @@ void Material_GL::MyPass::onBind(RenderContext* ctx_, const VertexLayout* vertex
 	_vertexStage.bind(ctx, vertexLayout);
 	 _pixelStage.bind(ctx, vertexLayout);
 
-//	_bindRenderState(ctx); TODO
+	_bindRenderState(ctx);
+}
+
+void Material_GL::MyPass::_bindRenderState(RenderContext_GL* ctx) {
+	using Cull		= RenderState_Cull;
+	using BlendOp	= RenderState_BlendOp;
+
+	const auto& rs = renderState();
+// -----
+	glPolygonMode(GL_FRONT_AND_BACK, rs.wireframe ? GL_LINE : GL_FILL);
+
+// -----
+	if (rs.cull != Cull::None) {
+		glEnable(GL_CULL_FACE);
+
+		glFrontFace(GL_CCW); // Initially
+		glCullFace(Util::getGlCullMode(rs.cull));
+		Util::throwIfError();
+	} else {
+		glDisable(GL_CULL_FACE);
+	}
+
+// -----
+	auto& depthTest = rs.depthTest;
+	if (depthTest.isEnable()) {
+		glEnable(GL_DEPTH_TEST);
+		glDepthMask(depthTest.writeMask ? GL_TRUE : GL_FALSE);
+		
+		auto depthOp = Util::getGlDepthTestOp(depthTest.op);
+		glDepthFunc(depthOp);
+		// glDepthRange(0, 1); TODO
+		Util::throwIfError();
+	}
+	else {
+		glDisable(GL_DEPTH_TEST);
+	}
+
+// -----
+	auto stencilTest = rs.stencilTest;
+	if (stencilTest.isEnable()) {
+		glEnable(GL_STENCIL_TEST);
+
+		auto stencilFace			 = Util::getGlCullMode(stencilTest.cull);
+		auto stencilOp				 = Util::getGlDepthTestOp(stencilTest.op);
+
+		auto stencilTestFail		 = Util::getGlStencilTestOp(stencilTest.sfail);
+		auto depthTestFail			 = Util::getGlStencilTestOp(stencilTest.dfail);
+		auto stencilAndDepthTestFail = Util::getGlStencilTestOp(stencilTest.bfail);
+
+		auto stencilRef				 = GLint(stencilTest.ref);
+		auto stencilMask			 = GLuint(stencilTest.mask);
+
+		glStencilFuncSeparate(stencilFace, stencilOp, stencilRef, stencilMask); //glStencilFunc(stencilOp, stencilRef, stencilMask);
+		Util::throwIfError();
+
+		glStencilOpSeparate(stencilFace, stencilTestFail, depthTestFail, stencilAndDepthTestFail); //glStencilOp(stencilTestFail, depthTestFail, stencilAndDepthTestFail);
+		Util::throwIfError();
+
+		glStencilMaskSeparate(stencilFace, stencilMask); //glStencilMask(stencilMask);
+		Util::throwIfError();
+	}
+	else {
+		glDisable(GL_STENCIL_TEST);
+	}
+
+// -----
+	auto& blend = rs.blend;
+	if (blend.isEnable()) {
+		glEnablei(GL_BLEND, 0); //glEnable(GL_BLEND);
+
+		auto rgbSrcFactor	= Util::getGlBlendFactor(blend.rgb.srcFactor);
+		auto rgbDstFactor	= Util::getGlBlendFactor(blend.rgb.dstFactor);
+		auto alphaSrcFactor = Util::getGlBlendFactor(blend.alpha.srcFactor);
+		auto alphaDstFactor = Util::getGlBlendFactor(blend.alpha.dstFactor);
+
+		if (blend.rgb.op == BlendOp::Disable) { // only alpha blending, how ???
+			glBlendFunc(rgbSrcFactor, rgbDstFactor);
+			SGE_ASSERT(false); // TODO
+		}
+		else if (blend.alpha.op == BlendOp::Disable) { // only color blending
+			auto rgbOp = Util::getGlBlendOp(blend.rgb.op);
+			glBlendEquation(rgbOp);
+			glBlendFunc(rgbSrcFactor, rgbDstFactor);
+		}
+		else {
+			auto rgbOp	 = Util::getGlBlendOp(blend.rgb.op);
+			auto alphaOp = Util::getGlBlendOp(blend.alpha.op);
+
+			glBlendEquationSeparate(rgbOp, alphaOp);
+			Util::throwIfError();
+		}
+		glBlendFuncSeparate(rgbSrcFactor, rgbDstFactor, alphaSrcFactor, alphaDstFactor);
+		Util::throwIfError();
+	}
+	else {
+		glDisablei(GL_BLEND, 0); //glDisable(GL_BLEND);
+	}
+
+	glBlendColor(blend.constColor.r
+				, blend.constColor.g
+				, blend.constColor.b
+				, blend.constColor.a);
+
+	Util::throwIfError();
+
+// TODO
+//	glDisable(GL_POLYGON_OFFSET_FILL);
+//	glPolygonOffset(-1.f, 0.001f);
+// 
+//	glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE);
+//	glDisable(GL_SAMPLE_COVERAGE);
+//	glDisable(GL_SCISSOR_TEST); //!!<-- always enable scissor test
+//	glDisable(GL_MULTISAMPLE);
+//	glDisable(GL_DITHER);
 }
 
 #if 0
