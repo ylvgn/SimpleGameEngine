@@ -1,9 +1,10 @@
 #pragma once
 
+#include "Render_GL_Common.h"
+
 #if SGE_RENDER_HAS_OPENGL
 
 #include <sge_render/Renderer.h>
-#include "Render_GL_Common.h"
 
 namespace sge {
 

@@ -119,6 +119,7 @@ GLenum OGLUtil::getGlPrimitiveTopology(RenderPrimitiveType v) {
 		case SRC::Points:		return GL_POINTS;
 		case SRC::Lines:		return GL_LINES;
 		case SRC::Triangles:	return GL_TRIANGLES;
+	//---
 		default: throw SGE_ERROR("unsupported RenderPrimitiveType");
 	}
 }
@@ -134,6 +135,7 @@ GLenum OGLUtil::getGlFormat(RenderDataType v) {
 		case SRC::Int32:		return GL_INT;
 		case SRC::UInt32:		return GL_UNSIGNED_INT;
 		case SRC::Float32:		return GL_FLOAT;
+	//---
 		default:				throw  SGE_ERROR("unsupported RenderDataType");
 	}
 }
@@ -162,7 +164,7 @@ GLenum OGLUtil::getGlSrcFormat(ColorType v) {
 		case SRC::RGBAb:	return GL_RGBA;
 		case SRC::RGBAs:	return GL_RGBA;
 		case SRC::RGBAf:	return GL_RGBA;
-
+	//---
 		default: throw SGE_ERROR("unsupported ColorType");
 	}
 }
@@ -174,6 +176,7 @@ GLenum OGLUtil::getGlCullMode(RenderState::Cull v) {
 		case SRC::None:			return GL_FRONT_AND_BACK;
 		case SRC::Back:			return GL_BACK;
 		case SRC::Front:		return GL_FRONT;
+	//---
 		default:				throw  SGE_ERROR("unsupported RenderState::Cull");
 	}
 }
@@ -185,11 +188,12 @@ GLenum OGLUtil::getGlDepthTestOp(RenderState::DepthTestOp v) {
 		case SRC::Less:			return GL_LESS;
 		case SRC::LessEqual:	return GL_LEQUAL;
 		case SRC::Equal:		return GL_EQUAL;
-		case SRC::Grater:		return GL_GREATER;
-		case SRC::GraterEqual:	return GL_GEQUAL;
+		case SRC::Greater:		return GL_GREATER;
+		case SRC::GreaterEqual:	return GL_GEQUAL;
 		case SRC::NotEqual:		return GL_NOTEQUAL;
 		case SRC::Always:		return GL_ALWAYS;
 		case SRC::Never:		return GL_NEVER;
+	//---
 		default:				throw  SGE_ERROR("unsupported RenderState::DepthTestOp");
 	}
 }
@@ -210,6 +214,7 @@ GLenum OGLUtil::getGlTextureWrap(TextureWrap v) {
 	switch (v) {
 		case SRC::Repeat:	return GL_REPEAT;
 		case SRC::Clamp:	return GL_CLAMP;
+	//---
 		default:			throw  SGE_ERROR("unsupported NeHeOGL_TextureWrap");
 	}
 }
@@ -242,7 +247,7 @@ GLenum OGLUtil::getGlInternalFormat(ColorType v) {
 		case ColorType::RGBAs:	return GL_RGBA16;
 		case ColorType::RGBAh:	return GL_RGBA16F;
 		case ColorType::RGBAf:	return GL_RGBA32F;
-
+	//---
 		default:				throw SGE_ERROR("unsupported ColorType");
 	}
 }

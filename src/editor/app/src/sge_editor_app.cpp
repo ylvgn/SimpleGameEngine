@@ -82,7 +82,6 @@ public:
 			EditMesh editMesh;
 #if 1
 			WavefrontObjLoader::readFile(editMesh, "Assets/Mesh/test.obj");
-			// the current shader need color
 			EditMeshUtil::addColors(editMesh, Color4b(255, 255, 255, 255));
 #else
 			// triangle mesh
@@ -180,16 +179,21 @@ public:
 		if (ev.isDragging()) {
 			using Button = UIMouseEventButton;
 			switch (ev.pressedButtons) {
+				case Button::Left: {
+					auto d = ev.deltaPos * 0.005f;
+					_camera.pan(-d.x, d.y);
+				}break;
 				case Button::Middle: {
 					auto d = ev.deltaPos * 0.05f;
 					_camera.move(d.x, d.y, 0);
 				}break;
 				case Button::Right: {
-					auto d = ev.deltaPos * 0.01f;
+					auto d = ev.deltaPos * 0.005f;
 					_camera.orbit(d.x, d.y);
 				}break;
 			}
 		}
+
 		if (ev.isScroll()) {
 			auto d = ev.scroll * -0.005f;
 			_camera.dolly(d.y);
@@ -280,7 +284,7 @@ public:
 	virtual void onCreate(CreateDesc& desc) override {
 		setCurDirRelativeToExecutable("/../../../../../../examples/Test101");
 
-#if 1 // for quick testing (but not work for RenderDoc !!)
+#if 1 // just for debug (quick testing)
 		CommandLine::runShell("Assets/Shaders/make.bat");
 #endif
 

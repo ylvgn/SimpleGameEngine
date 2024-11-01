@@ -47,7 +47,7 @@ public:
 	RenderCommand_DrawCall*				addDrawCall()		{ return commandBuffer.addDrawCall(); }
 
 	SGE_NODISCARD	RenderScissorRectScope	scissorRectScope()	{ return RenderScissorRectScope(&commandBuffer); }
-	SGE_INLINE		void setScissorRect(const Rect2f& rect) { commandBuffer.setScissorRect(rect); }
+	SGE_INLINE		void setScissorRect(const Rect2f& rect)		{ commandBuffer.setScissorRect(rect); }
 
 	void commit();
 

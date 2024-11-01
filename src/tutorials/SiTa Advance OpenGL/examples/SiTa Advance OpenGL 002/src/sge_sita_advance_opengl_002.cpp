@@ -59,7 +59,6 @@ public:
 				//-----
 					_simpleColorCgShader->reload();
 					_simpleLightingCgShader->reload();
-
 				}break;
 				case Button::Left: {
 					_wireframe = !_wireframe;

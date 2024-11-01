@@ -148,8 +148,8 @@ public:
 	class Input {
 	public:
 		String			name;
-		i16				slot = 0;
-		VertexSemantic	semantic = VertexSemantic::None;
+		i16				slot = 0; // OpenGL location
+		VertexSemantic	semantic = VertexSemantic::None; // DirectX
 		RenderDataType	dataType = RenderDataType::None;
 
 		template<class SE>

@@ -4,6 +4,14 @@
 
 namespace sge {
 
+#define RenderPrimitiveType_ENUM_LIST(E) \
+	E(None,) \
+	E(Points,) \
+	E(Lines,) \
+	E(Triangles,) \
+//----
+SGE_ENUM_CLASS(RenderPrimitiveType, u8)
+
 struct RenderAdapterInfo {
 	String	adapterName;
 	i64		memorySize = 0;
@@ -12,13 +20,6 @@ struct RenderAdapterInfo {
 	bool	hasComputeShader = false;
 	bool	shaderHasFloat64 = false;
 	int		minThreadGroupSize = 1;
-};
-
-enum class RenderPrimitiveType {
-	None,
-	Points,
-	Lines,
-	Triangles,
 };
 
 } // namespace sge

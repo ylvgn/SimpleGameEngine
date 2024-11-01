@@ -103,6 +103,7 @@ private:
 	HGLRC	_rc		= nullptr;
 };
 
+
 #if 0
 #pragma mark ========= RenderContext_GL_Win32 ============
 #endif

@@ -193,18 +193,18 @@ protected:
 
 		if (ev.isDragging()) {
 			switch (ev.pressedButtons) {
-			case Button::Left: {
-				auto d = ev.deltaPos * 0.005f;
-				_camera.pan(-d.x, d.y);
-			}break;
-			case Button::Middle: {
-				auto d = ev.deltaPos * 0.05f;
-				_camera.move(d.x, d.y, 0);
-			}break;
-			case Button::Right: {
-				auto d = ev.deltaPos * 0.005f;
-				_camera.orbit(d.x, d.y);
-			}break;
+				case Button::Left: {
+					auto d = ev.deltaPos * 0.005f;
+					_camera.pan(-d.x, d.y);
+				}break;
+				case Button::Middle: {
+					auto d = ev.deltaPos * 0.05f;
+					_camera.move(d.x, d.y, 0);
+				}break;
+				case Button::Right: {
+					auto d = ev.deltaPos * 0.005f;
+					_camera.orbit(d.x, d.y);
+				}break;
 			}
 		}
 		if (ev.isScroll()) {

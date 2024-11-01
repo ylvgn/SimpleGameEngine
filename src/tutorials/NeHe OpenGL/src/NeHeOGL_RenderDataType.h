@@ -45,4 +45,4 @@ struct NeHeOGL_RenderDataTypeUtil {
 	template<> static constexpr Type get<f64>() { return Type::Float64; }
 };
 
-}
+} // namespace sge

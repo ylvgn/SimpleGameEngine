@@ -8,9 +8,9 @@ namespace sge {
 #if 0
 #pragma mark ========= Material_DX11::MyVertexStage ============
 #endif
-void Material_DX11::MyVertexStage::bind(RenderContext_DX11* ctx, const VertexLayout* vertexLayout) {
-	_bindStageHelper(ctx, this);
-	bindInputLayout(ctx, vertexLayout);
+void Material_DX11::MyVertexStage::bind(RenderContext_DX11* ctx, RenderCommand_DrawCall& drawCall) {
+	s_bindStageHelper(ctx, this);
+	bindInputLayout(ctx, drawCall.vertexLayout);
 }
 
 void Material_DX11::MyVertexStage::bindInputLayout(RenderContext_DX11* ctx, const VertexLayout* vertexLayout) {
@@ -32,7 +32,7 @@ void Material_DX11::MyVertexStage::bindInputLayout(RenderContext_DX11* ctx, cons
 		for (auto& input : vsInfo->inputs) {
 			auto* e = vertexLayout->find(input.semantic);
 			if (!e) {
-				throw SGE_ERROR("vertex sematic {} not found", input.semantic);
+				throw SGE_ERROR("vertex semantic not found '{}'", input.semantic);
 			}
 
 			auto& desc					= inputDesc.emplace_back();
@@ -65,12 +65,14 @@ void Material_DX11::MyVertexStage::bindInputLayout(RenderContext_DX11* ctx, cons
 	dc->IASetInputLayout(dxLayout);
 }
 
+
 #if 0
 #pragma mark ========= Material_DX11::MyPixelStage ============
 #endif
-void Material_DX11::MyPixelStage::bind(RenderContext_DX11* ctx, const VertexLayout* vertexLayout) {
-	_bindStageHelper(ctx, this);
+void Material_DX11::MyPixelStage::bind(RenderContext_DX11* ctx, RenderCommand_DrawCall& drawCall) {
+	s_bindStageHelper(ctx, this);
 }
+
 
 #if 0
 #pragma mark ========= Material_DX11::MyPass ============
@@ -78,16 +80,16 @@ void Material_DX11::MyPixelStage::bind(RenderContext_DX11* ctx, const VertexLayo
 Material_DX11::MyPass::MyPass(Material_DX11* material, ShaderPass* shaderPass) noexcept
 	: Base(material, shaderPass)
 	, _vertexStage(this, shaderPass->vertexStage())
-	,  _pixelStage(this, shaderPass->pixelStage())
+	, _pixelStage (this, shaderPass->pixelStage())
 {
 	Base::_vertexStage = &_vertexStage;
-	 Base::_pixelStage = &_pixelStage;
+	Base::_pixelStage  = &_pixelStage;
 }
 
 void Material_DX11::MyPass::onBind(RenderContext* ctx_, RenderCommand_DrawCall& drawCall) {
 	auto* ctx = static_cast<RenderContext_DX11*>(ctx_);
-	_vertexStage.bind(ctx, drawCall.vertexLayout);
-	 _pixelStage.bind(ctx, drawCall.vertexLayout);
+	_vertexStage.bind(ctx, drawCall);
+	_pixelStage.bind (ctx, drawCall);
 
 	_bindRenderState(ctx);
 }
@@ -97,7 +99,7 @@ void Material_DX11::MyPass::_bindRenderState(RenderContext_DX11* ctx) {
 	if (!_rasterizerState) {
 		HRESULT hr;
 		auto* dev = ctx->renderer()->d3dDevice();
-		auto& rs = info()->renderState;
+		auto& rs = renderState();
 
 		D3D11_RASTERIZER_DESC rasterDesc	= {};
 		rasterDesc.AntialiasedLineEnable	= true;
@@ -106,7 +108,6 @@ void Material_DX11::MyPass::_bindRenderState(RenderContext_DX11* ctx) {
 		rasterDesc.DepthBiasClamp			= 0.0f;
 		rasterDesc.DepthClipEnable			= true;
 		rasterDesc.FillMode					= rs.wireframe ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID;
-//		rasterDesc.FillMode					= D3D11_FILL_WIREFRAME; // test terrain
 		rasterDesc.FrontCounterClockwise	= true;
 		rasterDesc.MultisampleEnable		= false;
 		rasterDesc.ScissorEnable			= true;
@@ -119,7 +120,7 @@ void Material_DX11::MyPass::_bindRenderState(RenderContext_DX11* ctx) {
 	if (!_depthStencilState) {
 		HRESULT hr;
 		auto* dev = ctx->renderer()->d3dDevice();
-		auto& rs = info()->renderState;
+		auto& rs = renderState();
 
 		D3D11_DEPTH_STENCIL_DESC depthStencilDesc = {};
 
@@ -143,7 +144,7 @@ void Material_DX11::MyPass::_bindRenderState(RenderContext_DX11* ctx) {
 	if (!_blendState) {
 		HRESULT hr;
 		auto* dev = ctx->renderer()->d3dDevice();
-		auto& rs = info()->renderState;
+		auto& rs = renderState();
 
 		D3D11_BLEND_DESC blendStateDesc			= {};
 		blendStateDesc.AlphaToCoverageEnable	= false;
@@ -153,9 +154,8 @@ void Material_DX11::MyPass::_bindRenderState(RenderContext_DX11* ctx) {
 		rtDesc.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 		bool blendEnable = rs.blend.isEnable();
 		if (blendEnable) {
-			rtDesc.BlendEnable		= true;
+			rtDesc.BlendEnable			= true;
 
-			// color(rgb)
 			if (rs.blend.rgb.op == RenderState_BlendOp::Disable) {
 				rtDesc.BlendOp			= D3D11_BLEND_OP_ADD;
 				rtDesc.SrcBlend			= D3D11_BLEND_ONE;
@@ -166,7 +166,6 @@ void Material_DX11::MyPass::_bindRenderState(RenderContext_DX11* ctx) {
 				rtDesc.DestBlend		= Util::getDxBlendFactor(rs.blend.rgb.dstFactor);
 			}
 
-			// alpha
 			if (rs.blend.alpha.op == RenderState_BlendOp::Disable) {
 				rtDesc.BlendOpAlpha		= D3D11_BLEND_OP_ADD;
 				rtDesc.SrcBlendAlpha	= D3D11_BLEND_ONE;
@@ -176,8 +175,7 @@ void Material_DX11::MyPass::_bindRenderState(RenderContext_DX11* ctx) {
 				rtDesc.SrcBlendAlpha	= Util::getDxBlendFactor(rs.blend.alpha.srcFactor);
 				rtDesc.DestBlendAlpha	= Util::getDxBlendFactor(rs.blend.alpha.dstFactor);
 			}
-		}
-		else {
+		} else {
 			rtDesc.BlendEnable = false;
 		}
 
@@ -189,8 +187,9 @@ void Material_DX11::MyPass::_bindRenderState(RenderContext_DX11* ctx) {
 	dc->RSSetState(_rasterizerState);
 	dc->OMSetDepthStencilState(_depthStencilState, 1);
 
-	Color4f blendColor(1,1,1,1);
-	dc->OMSetBlendState(_blendState, blendColor.data, 0xffffffff);
+	Color4f blendFactor(1,1,1,1);
+	UINT sampleMask = 0xffffffff;
+	dc->OMSetBlendState(_blendState, blendFactor.data, sampleMask);
 }
 
 #if 0
@@ -200,7 +199,7 @@ void Material_DX11::MyPass::_bindRenderState(RenderContext_DX11* ctx) {
 sgeMaterial_InterfaceFunctions_Impl(DX11);
 
 template<class STAGE>
-void Material_DX11::_bindStageHelper(RenderContext_DX11* ctx, STAGE* stage) {
+void Material_DX11::s_bindStageHelper(RenderContext_DX11* ctx, STAGE* stage) {
 	auto* shaderStage = stage->shaderStage();
 	if (!shaderStage) return;
 	shaderStage->bind(ctx);

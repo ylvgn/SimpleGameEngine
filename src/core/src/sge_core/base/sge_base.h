@@ -3,7 +3,7 @@
 #include "sge_core-config.h"
 
 #ifndef _CRT_SECURE_NO_WARNINGS
-#define _CRT_SECURE_NO_WARNINGS 1
+	#define _CRT_SECURE_NO_WARNINGS 1 // Enable getenv
 #endif
 
 #include "../detect_platform/sge_detect_platform.h"
@@ -41,6 +41,8 @@
 #include <EASTL/vector_map.h>
 #include <EASTL/string_map.h>
 #include <EASTL/set.h>
+#include <EASTL/bitset.h>
+#include <EASTL/any.h>
 #include <EASTL/unique_ptr.h>
 #include <EASTL/shared_ptr.h>
 #include <EASTL/weak_ptr.h>
@@ -166,13 +168,13 @@ public:
 	void remove(const T& value) { eastl::remove(begin(), end(), value); }
 };
 
-template<class KEY, class VALUE> using Map = eastl::map<KEY, VALUE>;
-template<class KEY, class VALUE> using VectorMap = eastl::vector_map<KEY, VALUE>;
-template<class VALUE> using StringMap = eastl::string_map<VALUE>;
-
-template<class KEY> using Set = eastl::set<KEY>;
-
-template<class T> using Opt = eastl::optional<T>;
+									using Any		= eastl::any;
+template<class KEY, class VALUE>	using Map		= eastl::map<KEY, VALUE>;
+template<class KEY, class VALUE>	using VectorMap	= eastl::vector_map<KEY, VALUE>;
+template<class VALUE>				using StringMap	= eastl::string_map<VALUE>;
+template<class KEY>					using Set		= eastl::set<KEY>;
+template<size_t N>					using Bitset	= eastl::bitset<N>;
+template<class T>					using Opt		= eastl::optional<T>;
 
 template<class T, size_t N, bool bEnableOverflow = true> class StringT; // forward declare
 

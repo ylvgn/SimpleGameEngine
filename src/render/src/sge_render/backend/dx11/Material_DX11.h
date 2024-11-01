@@ -32,7 +32,7 @@ class Material_DX11 : public Material {
 
 		ShaderStage* shaderStage() { return static_cast<ShaderStage*>(_shaderStage); }
 
-		void bind(RenderContext_DX11* ctx, const VertexLayout* vertexLayout);
+		void bind(RenderContext_DX11* ctx, RenderCommand_DrawCall& drawCall);
 		void bindInputLayout(RenderContext_DX11* ctx, const VertexLayout* vertexLayout);
 
 		void _dxSetConstBuffer(DX11_ID3DDeviceContext* dc, UINT bindPoint, DX11_ID3DBuffer* d3dBuf) {
@@ -66,7 +66,7 @@ class Material_DX11 : public Material {
 
 		ShaderStage* shaderStage() { return static_cast<ShaderStage*>(_shaderStage); }
 
-		void bind(RenderContext_DX11* ctx, const VertexLayout* vertexLayout);
+		void bind(RenderContext_DX11* ctx, RenderCommand_DrawCall& drawCall);
 
 		void _dxSetConstBuffer(DX11_ID3DDeviceContext* dc, UINT bindPoint, DX11_ID3DBuffer* d3dBuf) {
 			dc->PSSetConstantBuffers(bindPoint, 1, &d3dBuf);
@@ -116,7 +116,7 @@ class Material_DX11 : public Material {
 	Shader_DX11* shader() { return static_cast<Shader_DX11*>(_shader.ptr()); }
 
 	template<class STAGE>
-	static void _bindStageHelper(RenderContext_DX11* ctx, STAGE* stage);
+	static void s_bindStageHelper(RenderContext_DX11* ctx, STAGE* stage);
 
 }; // Material_DX11
 

@@ -1,9 +1,9 @@
 #pragma once
 
-#if SGE_RENDER_HAS_OPENGL
-
 #include <sge_render/RenderContext.h>
 #include "Render_GL_Common.h"
+
+#if SGE_RENDER_HAS_OPENGL
 
 namespace sge {
 #if 0
@@ -11,11 +11,13 @@ namespace sge {
 #endif
 class GLObject : public NonCopyable {
 public:
-	virtual ~GLObject() noexcept { SGE_ASSERT(_handle == 0); }
+	virtual ~GLObject() { SGE_ASSERT(_handle == 0); }
+
 	bool isValid() const { return _handle != 0; }
 protected:
 	GLuint _handle = 0;
 }; // GLObject
+
 
 #if 0
 #pragma mark ========= RenderContext_GL_Base ============
@@ -23,19 +25,20 @@ protected:
 class RenderContext_GL_Base : public RenderContext {
 	using Base = RenderContext;
 public:
-	RenderContext_GL_Base(CreateDesc& desc);
-
-protected:
 	using Util = GLUtil;
 
+	RenderContext_GL_Base(Base::CreateDesc& desc);
+
+protected:
 	class VertexArray : public GLObject {
 	public:
 		~VertexArray();
 		void bind();
-		void unbind() { glBindVertexArray(0); }
+		void unbind();
 	};
 
 	VertexArray	_vao;
+
 }; // RenderContext_GL_Base
 
 } // namespace sge

@@ -13,8 +13,8 @@ SGE_ENUM_CLASS(NeHeOGL_RenderState_Cull, u8)
 	E(Less,)		\
 	E(LessEqual,)	\
 	E(Equal,)		\
-	E(Grater,)		\
-	E(GraterEqual,)	\
+	E(Greater,)		\
+	E(GreaterEqual,)\
 	E(NotEqual,)	\
 	E(Always,)		\
 	E(Never,)		\

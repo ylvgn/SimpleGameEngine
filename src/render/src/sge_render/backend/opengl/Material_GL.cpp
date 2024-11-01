@@ -41,7 +41,7 @@ void Material_GL::MyVertexStage::bindInputLayout(RenderContext_GL* ctx, RenderCo
 #if 0
 #pragma mark ========= Material_GL::MyPixelStage ============
 #endif
-void Material_GL::MyPixelStage::bind(RenderContext_GL* ctx, const VertexLayout* vertexLayout) {
+void Material_GL::MyPixelStage::bind(RenderContext_GL* ctx, RenderCommand_DrawCall& drawCall) {
 	s_bindStageHelper(ctx, this);
 }
 
@@ -52,10 +52,10 @@ void Material_GL::MyPixelStage::bind(RenderContext_GL* ctx, const VertexLayout* 
 Material_GL::MyPass::MyPass(Material_GL* material, ShaderPass* shaderPass) noexcept
 	: Base(material, shaderPass)
 	, _vertexStage(this, shaderPass->vertexStage())
-	,  _pixelStage(this, shaderPass->pixelStage())
+	, _pixelStage (this, shaderPass->pixelStage())
 {
 	Base::_vertexStage = &_vertexStage;
-	 Base::_pixelStage = &_pixelStage;
+	Base::_pixelStage  = &_pixelStage;
 }
 
 void Material_GL::MyPass::onBind(RenderContext* ctx_, RenderCommand_DrawCall& drawCall) {
@@ -64,7 +64,7 @@ void Material_GL::MyPass::onBind(RenderContext* ctx_, RenderCommand_DrawCall& dr
 	shaderPass()->bind();
 
 	_vertexStage.bind(ctx, drawCall);
-	 _pixelStage.bind(ctx, drawCall.vertexLayout);
+	_pixelStage.bind(ctx, drawCall.vertexLayout);
 
 	_bindRenderState(ctx);
 }
