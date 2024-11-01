@@ -64,7 +64,7 @@ void Material_GL::MyPass::onBind(RenderContext* ctx_, RenderCommand_DrawCall& dr
 	shaderPass()->bind();
 
 	_vertexStage.bind(ctx, drawCall);
-	_pixelStage.bind(ctx, drawCall.vertexLayout);
+	_pixelStage.bind(ctx, drawCall);
 
 	_bindRenderState(ctx);
 }
