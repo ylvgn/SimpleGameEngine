@@ -62,6 +62,4 @@ TempString Fmt(ARGS&&... args) {
 	return o;
 }
 
-}
-
-
+} // namespace sge

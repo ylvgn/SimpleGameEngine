@@ -43,6 +43,14 @@ namespace sge { namespace Math {
 		return x + 1;
 	}
 
+	constexpr u64 nextPow16(u64 x) {
+		x = nextPow2(x);
+		while (x % 16 != 0) {
+			x *= 2;
+		}
+		return x;
+	}
+
 	constexpr bool isPow2(i64 v) {
 		return !(v & (v - 1)) && v;
 	}

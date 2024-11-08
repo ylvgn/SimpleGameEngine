@@ -26,7 +26,7 @@ struct Track_SampleRequest {
 #endif
 template<typename T, size_t N>
 struct Track {
-public:
+
 	using SampleRequest = Track_SampleRequest;
 	using Type			= Interpolation;
 
@@ -68,8 +68,8 @@ protected:
 	T _sampleLinear  (const SampleRequest& sr) const;
 	T _sampleCubic   (const SampleRequest& sr) const;
 
-	Interpolation			_type = Interpolation::Linear;
 	Vector< Frame<N>, 220 > _frames;
+	Interpolation _type = Interpolation::Linear;
 };
 
 using ScalarTrack		= Track<float, 1>;
@@ -99,11 +99,12 @@ private:
 	}
 
 	Vector<int> _sampled2FrameIndex;
-};
+}; // FastTrack
 
 using FastScalarTrack		= FastTrack<float, 1>;
 using FastVectorTrack		= FastTrack<vec3f,  vec3f::kElementCount>;
 using FastQuaternionTrack	= FastTrack<quat4f, quat4f::kElementCount>;
+
 
 #if 0
 #pragma mark ------------------- TrackUtil -------------------
@@ -117,20 +118,20 @@ struct TrackUtil {
 	static Track<T, N> createTrack(Type type, size_t frameCount, ...);
 
 	template<class... Args>
-	static ScalarTrack createScalarTrack(Type type, size_t frameCount, Args&&... args);
+	static ScalarTrack createScalarTrack(Type type, size_t frameCount, const Args &... args);
 
 	template<class... Args>
-	static VectorTrack createVectorTrack(Type type, size_t frameCount, Args&&... args);
+	static VectorTrack createVectorTrack(Type type, size_t frameCount, const Args &... args);
 
 	template<class... Args>
-	static QuaternionTrack createQuaternionTrack(Type type, size_t frameCount, Args&&... args);
+	static QuaternionTrack createQuaternionTrack(Type type, size_t frameCount, const Args &... args);
 
 	template<typename T>
 	static T hermite(float t, const T& p1, const T& s1, const T& p2, const T& s2);
 
 	template<typename T, size_t N>
 	static FastTrack<T, N> optimizeTrack(const Track<T, N>& src);
-};
+}; // TrackUtil
 
 template<typename T, size_t N> inline
 static Track<T, N> TrackUtil::createTrack(Type type, size_t frameCount, ...) {
@@ -151,18 +152,18 @@ static Track<T, N> TrackUtil::createTrack(Type type, size_t frameCount, ...) {
 }
 
 template<class... Args> inline
-static ScalarTrack TrackUtil::createScalarTrack(Type type, size_t frameCount, Args&&... args) {
-	return TrackUtil::createTrack<float, 1>(type, frameCount, SGE_FORWARD(args)...);
+static ScalarTrack TrackUtil::createScalarTrack(Type type, size_t frameCount, const Args &... args) {
+	return TrackUtil::createTrack<float, 1>(type, frameCount, args...);
 }
 
 template<class... Args> inline
-static VectorTrack TrackUtil::createVectorTrack(Type type, size_t frameCount, Args&&... args) {
-	return TrackUtil::createTrack<vec3f, 3>(type, frameCount, SGE_FORWARD(args)...);
+static VectorTrack TrackUtil::createVectorTrack(Type type, size_t frameCount, const Args &... args) {
+	return TrackUtil::createTrack<vec3f, 3>(type, frameCount, args...);
 }
 
 template<class... Args> inline
-static QuaternionTrack TrackUtil::createQuaternionTrack(Type type, size_t frameCount, Args&&... args) {
-	return TrackUtil::createTrack<quat4f, 4>(type, frameCount, SGE_FORWARD(args)...);
+static QuaternionTrack TrackUtil::createQuaternionTrack(Type type, size_t frameCount, const Args &... args) {
+	return TrackUtil::createTrack<quat4f, 4>(type, frameCount, args...);
 }
 
-}
+} // namespace sge

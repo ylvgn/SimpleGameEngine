@@ -76,4 +76,9 @@ SPtr<T> SPtr_make(T* p) {
 	return SPtr<T>::s_make(p);
 }
 
+template <class T, class... ARGS> SGE_INLINE
+SPtr<T> SPtr_make(ARGS&&... args) {
+	return SPtr<T>::s_make(new T(SGE_FORWARD(args)...));
+}
+
 } // namespace sge

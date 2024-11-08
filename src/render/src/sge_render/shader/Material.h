@@ -123,6 +123,7 @@ protected:
 	template<class V>
 	void _setTexParam(StrView name, V* texture) {
 		if (!texture) { SGE_ASSERT(false); return; }
+
 		for (auto& p : _texParams) {
 			if (0 == p.name().compare(name)) {
 				p.setTexParam(texture);
@@ -145,6 +146,7 @@ public:
 
 }; // MaterialPass_Stage
 
+
 #if 0
 #pragma mark ========= MaterialPass_VertexStage ============
 #endif
@@ -154,6 +156,7 @@ public:
 	MaterialPass_VertexStage(MaterialPass* pass, ShaderVertexStage* shaderStage);
 }; // MaterialPass_VertexStage
 
+
 #if 0
 #pragma mark ========= MaterialPass_PixelStage ============
 #endif
@@ -162,6 +165,7 @@ class MaterialPass_PixelStage : public MaterialPass_Stage {
 public:
 	MaterialPass_PixelStage(MaterialPass* pass, ShaderPixelStage* shaderStage);
 }; // MaterialPass_PixelStage
+
 
 #if 0
 #pragma mark ========= MaterialPass ============
@@ -206,6 +210,7 @@ protected:
 	VertexStage* _vertexStage	= nullptr;
 	PixelStage*  _pixelStage	= nullptr;
 }; // MaterialPass
+
 
 #if 0
 #pragma mark ========= Material ============

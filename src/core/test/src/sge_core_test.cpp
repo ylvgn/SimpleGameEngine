@@ -13,7 +13,7 @@
 namespace sge {
 
 void run_temp_test() {
-	RUN_TEST(test_WPtr);
+	RUN_TEST(test_Math);
 }
 
 void run_all_test() {
@@ -24,6 +24,7 @@ void run_all_test() {
 	RUN_TEST(test_MemMapFile);
 
 // math
+	RUN_TEST(test_Math);
 	RUN_TEST(test_Vec2);
 	RUN_TEST(test_Vec3);
 	RUN_TEST(test_Vec4);

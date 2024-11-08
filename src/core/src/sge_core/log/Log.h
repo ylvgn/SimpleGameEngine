@@ -10,15 +10,17 @@
 
 namespace sge {
 
+#define Log_Level_ENUM_LIST(E) \
+	E(Unknown,)	\
+	E(Info,)	\
+	E(Warning,)	\
+	E(Error,)	\
+//----
+SGE_ENUM_CLASS(Log_Level, u8)
+
 class Log : public NonCopyable {
 public:
-
-	enum class Level {
-		Unknown,
-		Info,
-		Warning,
-		Error,
-	};
+	using Level = Log_Level;
 
 	template<class... Args>
 	void write(Level lv, Args&&... args) {
@@ -32,6 +34,6 @@ public:
 
 extern Log g_log;
 
-} //namespace
+//SGE_ENUM_STR(Log::Level)
 
-
+} //namespace sge

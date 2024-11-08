@@ -26,23 +26,20 @@ public:
 	using Type = RenderCommandType;
 
 	RenderCommand(Type type) noexcept
-		: _type(type)
-#if _DEBUG
-		, debugLoc(SGE_LOC)
-#endif
+		: debugLoc(SGE_LOC)
+		, _type(type)
 	{}
 
 	virtual ~RenderCommand() = default;
 
-	Type type() const { return _type; }
+	SrcLoc debugLoc;
 
-#if _DEBUG
-	SrcLoc	debugLoc;
-#endif
+	Type type() const { return _type; }
 
 private:
 	Type _type = Type::None;
 }; // RenderCommand
+
 
 #if 0
 #pragma mark ========= RenderCommand_ClearFrameBuffers ============
@@ -68,6 +65,7 @@ public:
 	Opt<u8>			stencil = 0;
 }; // RenderCommand_ClearFrameBuffers
 
+
 #if 0
 #pragma mark ========= RenderCommand_SwapBuffers ============
 #endif
@@ -79,6 +77,7 @@ public:
 	{}
 
 }; // RenderCommand_SwapBuffers
+
 
 #if 0
 #pragma mark ========= RenderCommand_DrawCall ============
@@ -111,6 +110,7 @@ public:
 	size_t					indexCount		= 0;
 }; // RenderCommand_DrawCall
 
+
 #if 0
 #pragma mark ========= RenderCommand_SetScissorRect ============
 #endif
@@ -123,6 +123,7 @@ public:
 
 	Rect2f rect{0,0,0,0};
 }; // RenderCommand_SetScissorRect
+
 
 #if 0
 #pragma mark ========= RenderCommandBuffer ============
@@ -193,5 +194,5 @@ private:
 	Rect2f				_rect{0,0,0,0};
 }; // RenderScissorRectScope
 
-} // namespace
+} // namespace sge
 

@@ -13,8 +13,8 @@ protected:
 	virtual void onCreate(CreateDesc& desc) override;
 private:
 	static LRESULT CALLBACK s_wndProc(HWND, UINT, WPARAM, LPARAM);
-};
+}; // PW5_MyDrawText
 
-}
+} // namespace sge
 
 #endif // SGE_OS_WINDOWS

@@ -34,6 +34,4 @@ public:
 void test_Mat4() {
 	using namespace sge;
  	SGE_TEST_MAT4_CASE(operator_test1());
-
-	return;
 }

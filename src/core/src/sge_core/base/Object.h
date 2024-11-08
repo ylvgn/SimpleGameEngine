@@ -13,4 +13,4 @@ public:
 	virtual const TypeInfo* getType() const { return TypeOf<Object>(); }
 };
 
-} // namespace
+} // namespace sge

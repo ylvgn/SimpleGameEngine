@@ -38,14 +38,13 @@ public:
 	}
 
 private:
-
 	uint64_t getTick() { 
 		return GetTickCount64();
 	}
 
 	uint64_t m_start;
 };
-#endif
+#endif // SGE_OS_WINDOWS
 
 inline
 const char* my_gettoken(String& outToken, StrView src, char delimiter = ' ') {
@@ -95,28 +94,28 @@ const char* my_getline(String& outLine, StrView src) {
 
 class Scoped_glPushMatrix : public NonCopyable {
 public:
-	Scoped_glPushMatrix() { glPushMatrix(); }
-	~Scoped_glPushMatrix() { glPopMatrix(); }
+	Scoped_glPushMatrix() noexcept { glPushMatrix(); }
+	~Scoped_glPushMatrix() noexcept { glPopMatrix(); }
 };
 
 class Scoped_glBegin : public NonCopyable {
 public:
-	Scoped_glBegin(GLenum mode) { glBegin(mode); }
-	~Scoped_glBegin() { glEnd(); }
+	Scoped_glBegin(GLenum mode) noexcept { glBegin(mode); }
+	~Scoped_glBegin() noexcept { glEnd(); }
 };
 
 class Scoped_glEnable : public NonCopyable {
 public:
-	Scoped_glEnable(GLenum v) : _v(v) { glEnable(_v); }
-	~Scoped_glEnable() { glDisable(_v); }
+	Scoped_glEnable(GLenum v) noexcept : _v(v) { glEnable(_v); }
+	~Scoped_glEnable() noexcept { glDisable(_v); }
 private:
 	GLenum _v;
 };
 
 class Scoped_glDisable : public NonCopyable {
 public:
-	Scoped_glDisable(GLenum v) : _v(v) { glDisable(_v); }
-	~Scoped_glDisable() { glEnable(_v); }
+	Scoped_glDisable(GLenum v) noexcept : _v(v) { glDisable(_v); }
+	~Scoped_glDisable() noexcept { glEnable(_v); }
 private:
 	GLenum _v;
 };

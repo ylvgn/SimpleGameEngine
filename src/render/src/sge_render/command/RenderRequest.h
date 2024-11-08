@@ -76,4 +76,4 @@ private:
 	RenderContext* _renderContext = nullptr;
 };
 
-} // namespace
+} // namespace sge

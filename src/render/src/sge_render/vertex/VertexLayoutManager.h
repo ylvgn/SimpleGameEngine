@@ -14,7 +14,12 @@ public:
 	void registerLayout() {
 		VertexLayout* layout = _createLayout(VERTEX::kType);
 		layout->type = VERTEX::kType;
+#if 0 // ImGui_SGE not support now, but how ???
+		layout->stride = Math::nextPow16(sizeof(VERTEX));
+		SGE_ASSERT(layout->stride % 16 == 0);
+#else
 		layout->stride = sizeof(VERTEX);
+#endif
 		VERTEX::onRegister(layout);
 	}
 

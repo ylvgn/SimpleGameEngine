@@ -60,12 +60,12 @@ public:
 	auto textOut(const Vec2i& pt, StrView str)	const { return GDI::textOut(_hdc, pt, str); }
 
 	template<class... Args>
-	auto Fmt_textOut(int x, int y, Args&&... args) const {
-		return GDI::Fmt_textOut(_hdc, x, y, SGE_FORWARD(args)...);
+	auto Fmt_textOut(int x, int y, const Args &... args) const {
+		return GDI::Fmt_textOut(_hdc, x, y, args...);
 	}
 	template<class... Args>
-	auto Fmt_textOut(const Vec2f& pt, Args&&... args) const {
-		return GDI::Fmt_textOut(_hdc, static_cast<int>(pt.x), static_cast<int>(pt.y), SGE_FORWARD(args)...);
+	auto Fmt_textOut(const Vec2f& pt, const Args& ... args) const {
+		return GDI::Fmt_textOut(_hdc, static_cast<int>(pt.x), static_cast<int>(pt.y), args...);
 	}
 #if 1
 	// ambiguous call to overloaded function, why???

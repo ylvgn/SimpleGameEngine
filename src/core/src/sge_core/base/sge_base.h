@@ -28,6 +28,7 @@
 #include <cstdlib>
 #include <cstdint>
 #include <atomic>
+#include <functional>
 
 #include <EASTL/vector.h>
 #include <EASTL/fixed_vector.h>
@@ -167,14 +168,18 @@ public:
 
 	void remove(const T& value) { eastl::remove(begin(), end(), value); }
 };
-
-									using Any		= eastl::any;
+			
 template<class KEY, class VALUE>	using Map		= eastl::map<KEY, VALUE>;
 template<class KEY, class VALUE>	using VectorMap	= eastl::vector_map<KEY, VALUE>;
 template<class VALUE>				using StringMap	= eastl::string_map<VALUE>;
 template<class KEY>					using Set		= eastl::set<KEY>;
 template<size_t N>					using Bitset	= eastl::bitset<N>;
 template<class T>					using Opt		= eastl::optional<T>;
+
+using Any = eastl::any;
+template <class T, class... Args> inline Any Any_make(Args&&... args) {
+	return eastl::make_any<T>(SGE_FORWARD(args)...);
+}
 
 template<class T, size_t N, bool bEnableOverflow = true> class StringT; // forward declare
 
@@ -266,6 +271,7 @@ public:
 
 						StringT() = default;
 						StringT(const T* begin, const T* end)	: Base(begin, end) {}
+						StringT(const T* p, size_t n)			: Base(p, n) {}
 						StringT(StrViewT view)					: Base(view.data(), view.size()) {}
 						StringT(StringT&& str)					: Base(std::move(str)) {}
 						StringT(const T* sz)					: Base(sz) {}
@@ -452,5 +458,16 @@ private:
 
 template<class T> inline ScopedValue<T> ScopedValue_make(T* p) { return ScopedValue<T>(p); }
 template<class T> inline ScopedValue<T> ScopedValue_make(T* p, const T& newValue) { return ScopedValue<T>(p, newValue); }
+
+template<class First, class Second>
+struct Pair {
+	Pair(const First& first_, const Second& second_)	: first(first_), second(second_) {}
+	Pair(First&& first_, Second&& second_)				: first(SGE_MOVE(first_)), second(SGE_MOVE(second_)) {}
+
+	First	first;
+	Second	second;
+};
+
+template<class First, class Second> inline Pair<First, Second> Pair_make(const First& first, Second& second) { return Pair<First, Second>(first, second); }
 
 } // namespace sge

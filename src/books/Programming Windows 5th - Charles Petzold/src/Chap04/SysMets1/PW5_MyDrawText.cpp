@@ -8,8 +8,8 @@ namespace sge {
 static MyTextMetrics s_textMetrics;
 
 template<class... Args>
-inline void Fmt_drawText(::HDC hdc, int x, int y, Args&&... args) {
-	auto s = Fmt(SGE_FORWARD(args)...);
+inline void Fmt_drawText(::HDC hdc, int x, int y, const Args &... args) {
+	auto s = Fmt(args...);
 	const auto& tm = s_textMetrics;
 	GDI::drawText(hdc, x, y, x + static_cast<int>(s.size() * tm.maxCharWidth), y + tm.aveCharHeight, s.view(), 0);
 }

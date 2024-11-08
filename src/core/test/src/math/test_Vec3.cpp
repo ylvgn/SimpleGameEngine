@@ -52,5 +52,4 @@ public:
 void test_Vec3() {
 	using namespace sge;
  	SGE_TEST_VEC3_CASE(operator_test1());
-	return;
 }

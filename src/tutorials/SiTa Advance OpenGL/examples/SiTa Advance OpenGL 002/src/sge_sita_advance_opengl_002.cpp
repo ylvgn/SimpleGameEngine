@@ -10,11 +10,11 @@ public:
 
 		_wireframe = true;
 
-		_simpleColorShader = new MyShader();
-		_simpleLightingShader = new MyShader();
+		_simpleColorShader = SPtr_make<MyShader>();
+		_simpleLightingShader = SPtr_make<MyShader>();
 	//-----
-		_simpleColorCgShader = new MyShader();
-		_simpleLightingCgShader = new MyShader();
+		_simpleColorCgShader = SPtr_make<MyShader>();
+		_simpleLightingCgShader = SPtr_make<MyShader>();
 
 		{
 			MyEditMesh editMesh;

@@ -48,7 +48,7 @@ Renderer::~Renderer() {
 }
 
 SPtr<Shader> Renderer::createShader(StrView filename) {
-	TempString tmpName = filename;
+	TempString tmpName(filename);
 	auto it = _shaders.find(tmpName.c_str());
 	if (it != _shaders.end()) {
 		return it->second;

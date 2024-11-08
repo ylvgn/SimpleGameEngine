@@ -93,8 +93,8 @@ namespace GDI {
 	}
 
 	template<class... Args>
-	inline bool Fmt_textOut(const ::HDC& hdc, int x, int y, Args&&... args) {
-		auto tmpStr = Fmt(SGE_FORWARD(args)...);
+	inline bool Fmt_textOut(const ::HDC& hdc, int x, int y, const Args&... args) {
+		auto tmpStr = Fmt(args...);
 		auto s = UtfUtil::toStringW(tmpStr);
 		return ::TextOut(hdc, x, y, s.c_str(), static_cast<int>(s.size()));
 	}

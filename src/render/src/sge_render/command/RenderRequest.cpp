@@ -63,11 +63,11 @@ void RenderRequest::drawSubMesh(const SrcLoc& debugLoc, const RenderSubMesh& sub
 
 	auto passes = material->passes();
 
-	for (size_t i = 0; i < passes.size(); i++) {
+	for (size_t i = 0; i < passes.size(); ++i) {
 		auto* cmd = commandBuffer.addDrawCall();
-		#if _DEBUG
-			cmd->debugLoc		= debugLoc;
-		#endif
+#if _DEBUG
+		cmd->debugLoc			= debugLoc;
+#endif
 
 		cmd->material			= material;
 		cmd->materialPassIndex	= i;

@@ -61,7 +61,7 @@ public:
 	};
 
 	template<class... Args>
-	void exec(Args&&... args) {
+	void exec(Args&& ... args) {
 		reset();
 		ExecParam p[] = { args... };
 		size_t n = sizeof...(args);
@@ -100,7 +100,7 @@ public:
 
 	template<class... Args>
 	bool fetch(Args&&... args) {
-		ResultField fields[] {args...};
+		ResultField fields[] { args... };
 		size_t n = sizeof...(args);
 		return onFetch(fields, n);
 	}
