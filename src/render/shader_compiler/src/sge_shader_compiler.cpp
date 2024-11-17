@@ -8,18 +8,19 @@ namespace sge {
 
 class ShaderCompiler : public ConsoleApp {
 public:
-
 	using Profile = ShaderStageProfile;
 
 	struct Option {
 		struct Marco {
-
+			// TODO not impl
 		};
 
-		Option()
+		Option() noexcept
 			: genMakefile(false)
+			, genNinja(false)
 			, hlsl(false)
 			, glsl(false)
+			, genNinjaConfigure(false)
 		{}
 
 		Vector<String>	include_dirs;
@@ -29,61 +30,33 @@ public:
 		String			profile;
 		String			entry;
 
-		void log() {
-			if (hlsl) {
-				SGE_LOG("======== Option ========"
-					"\nstatic const char* argvs[] = {{"
-					"\n\tfile.c_str(),"
-					"\n\t-hlsl"
-					"\n\t-file={0},"
-					"\n\t-out={1},"
-					"\n\t-profile={2},"
-					"\n\t-entry={3},"
-					"\n\t-I=.,"
-					"\n\t-I=..,"
-					"\n}}"
-					, file, out, profile, entry
-				);
-			}
-			else if (glsl) {
-				SGE_LOG("======== Option ========"
-					"\nstatic const char* argvs[] = {{"
-					"\n\tfile.c_str(),"
-					"\n\t-glsl"
-					"\n\t-file={0},"
-					"\n\t-out={1},"
-					"\n\t-profile={2},"
-					"\n\t-entry={3},"
-					"\n\t-I=.,"
-					"\n\t-I=..,"
-					"\n}}"
-					, file, out, profile, entry
-				);
-			} else if (genMakefile) {
-				SGE_LOG("======== Option ========"
-					"\nstatic const char* argvs[] = {{"
-					"\n\tfile.c_str(),"
-					"\n\t-genMakefile"
-					"\n\t-file={0},"
-					"\n\t-out={1},"
-					"\n\t-I=.,"
-					"\n\t-I=..,"
-					"\n}}"
-					, file, out
-				);
-			}
-			else {
-				SGE_ASSERT(false);
-			}
-		}
+		bool genMakefile		: 1;
+		bool genNinja			: 1;
+		bool hlsl				: 1;
+		bool glsl				: 1;
+		bool genNinjaConfigure	: 1;
 
-		void addIncDirPath(StrView v) {
-			if (!v) return;
-			if (v.size() > 2 && v.starts_with('"') && v.ends_with('"')) {
-				include_dirs.emplace_back(v.sliceFromAndBack(1));
-			} else {
-				include_dirs.emplace_back(v);
-			}
+		void onFormat(fmt::format_context& ctx) const {
+			TempString tmp ="======== Option ========"
+				   "\nstatic const char* argvs[] = {"
+				   "\n\t\"sge_shader_compiler\"";
+
+			if (genMakefile) tmp += "\n\t, \"-genMakefile\"";
+			if (genNinja) tmp += "\n\t, \"-genNinja\"";
+			if (hlsl) tmp += "\n\t, \"-hlsl\"";
+			if (glsl) tmp += "\n\t, \"-glsl\"";
+			if (genNinjaConfigure) tmp += "\n\t, \"-genNinjaConfigure\"";
+
+			if (!file.empty())		FmtTo(tmp, "\n\t, \"-file={}\"", file);
+			if (!out.empty())		FmtTo(tmp, "\n\t, \"-out={}\"", out);
+			if (!profile.empty())	FmtTo(tmp, "\n\t, \"-profile={}\"", profile);
+			if (!entry.empty())		FmtTo(tmp, "\n\t, \"-entry={}\"", entry);
+
+			for (auto& ic : include_dirs) FmtTo(tmp, "\n\t, \"-I={}\"", ic);
+
+			tmp += "\n};";
+
+			fmt::format_to(ctx.out(), "{}", tmp);
 		}
 
 		void include_dirsTo(TempString& o, StrView syntax = "-I") {
@@ -107,11 +80,8 @@ public:
 				}
 			}
 		}
-
-		bool genMakefile	: 1;
-		bool hlsl			: 1;
-		bool glsl			: 1;
 	};
+	Option opt;
 
 	struct ShaderStageProfileParser {
 
@@ -169,20 +139,18 @@ public:
 		int	minor = 0;
 	};
 
-	Option opt;
-
 	void showHelp() {
 		SGE_LOG("==== sge_shader_compiler Help: ===="
-			"\n\tsge_shader_compiler -genMakefile -file=<filename> -I=<dirpath1> -I=<dirpath2> out=<filename>"
-			"\n\tsge_shader_compiler -hlsl -file=<filename> -out=<filename> -profile=vs_5_0|ps_5_0 -entry=<entry-point>"
-			"\n\tsge_shader_compiler -glsl -file=<filename> -out=<filename> -profile=vs_330|ps_330 -entry=<entry-point>"
+			"\n\tsge_shader_compiler -genMakefile -file=<filename> -I=<dirpath1> -I=<dirpath2> -out=<outdir>"
+			"\n\tsge_shader_compiler -genNinja -file=<filename> -I=<dirpath1> -I=<dirpath2> -out=<outdir>"
+			"\n\tsge_shader_compiler -hlsl -file=<filename> -out=<filename> -profile=vs_5_0|ps_5_0 -entry=<entry-point> -I=<dirpath1> -I=<dirpath2>"
+			"\n\tsge_shader_compiler -glsl -file=<filename> -out=<filename> -profile=vs_330|ps_330 -entry=<entry-point> -I=<dirpath1> -I=<dirpath2>"
+			"\n\tsge_shader_compiler -genNinjaConfigure -file=<outfilename> -out=<outdir> -I=<dirpath1> -I=<dirpath2>"
 		);
 	}
 
 	void debugCompileManually() {
-		setCurDirRelativeToExecutable("/../../../../../../examples/Test101");
-
-		SGE_DUMP_VAR(ProjectSettings::instance()->externalsToolsRoot());
+		setCurDirRelativeToExecutable("/../../../Test101");
 
 		Vector<String> include_dirs;
 		include_dirs.emplace_back(".");
@@ -209,10 +177,10 @@ public:
 		TempString file = appName();
 		String workingDir = FilePath::dirname(file);
 
-		TempString RelativeTest101 = "/../../../../../../examples/Test101";
+		TempString RelativeTest101 = "/../../../Test101";
 		String RelativeTest101Imported = FilePath::combine(RelativeTest101, ProjectSettings::instance()->importedPath());
 
-#if 1 // debug genMakefile
+#if 0 // debug genMakefile
 		workingDir.append(RelativeTest101);
 		workingDir.append("/Assets/Shaders");
 		Directory::setCurrent(workingDir);
@@ -224,6 +192,33 @@ public:
 			"-out=../../LocalTemp/Imported/Assets/Shaders/test.shader",
 			"-I=.",
 //			"-I..",
+		};
+#endif
+
+#if 0 // debug genNinja
+		workingDir.append(RelativeTest101);
+		workingDir.append("/Assets/Shaders");
+		Directory::setCurrent(workingDir);
+
+		static const char* argvs[] = {
+			file.c_str(),
+			"-genNinja",
+			"-file=test.shader",
+			"-out=../../LocalTemp/Imported/Assets/Shaders/test.shader",
+		};
+#endif
+
+#if 1 // debug genNinjaConfigure
+		workingDir.append(RelativeTest101);
+		workingDir.append("/Assets/Shaders");
+		Directory::setCurrent(workingDir);
+
+		static const char* argvs[] = {
+			file.c_str(),
+			"-genNinjaConfigure",
+			"-file=build.ninja",
+			"-out=../../LocalTemp/Imported/Assets/Shaders",
+			"-I=.",
 		};
 #endif
 
@@ -248,6 +243,12 @@ public:
 		setCommandArguments(argvs);
 	}
 
+	void trimQuote(StrView& v) {
+		if (v.size() > 2 && v.starts_with('"') && v.ends_with('"')) {
+			v = v.sliceFromAndBack(1);
+		}
+	}
+
 	virtual void onRun() override {
 #if 0 && _DEBUG // just for test
 		debugBatchMode();
@@ -261,12 +262,15 @@ public:
 			return;
 		}
 #endif
-
 		for (int i = 1; i < args.size(); ++i) {
 			auto& a = args[i];
 			
 			if (a == "-genMakefile") {
 				opt.genMakefile = true;
+				continue;
+			}
+			if (a == "-genNinja") {
+				opt.genNinja = true;
 				continue;
 			}
 			if (a == "-hlsl") {
@@ -277,28 +281,38 @@ public:
 				opt.glsl = true;
 				continue;
 			}
+			if (a == "-genNinjaConfigure") {
+				opt.genNinjaConfigure = true;
+				continue;
+			}
 			if (auto v = a.extractFromPrefix("-file=")) {
+				trimQuote(v);
 				FilePath::unixPathTo(opt.file, v);
 				continue;
 			}
 			if (auto v = a.extractFromPrefix("-out=")) {
+				trimQuote(v);
 				FilePath::unixPathTo(opt.out, v);
 				continue;
 			}
 			if (auto v = a.extractFromPrefix("-entry=")) {
+				trimQuote(v);
 				opt.entry = v;
 				continue;
 			}
 			if (auto v = a.extractFromPrefix("-profile=")) {
+				trimQuote(v);
 				opt.profile = v;
 				continue;
 			}
 			if (auto v = a.extractFromPrefix("-I=")) {
-				opt.addIncDirPath(v);
+				trimQuote(v);
+				opt.include_dirs.emplace_back(v);
 				continue;
 			}
 			if (auto v = a.extractFromPrefix("-I")) { // -I without "=" is allow
-				opt.addIncDirPath(v);
+				trimQuote(v);
+				opt.include_dirs.emplace_back(v);
 				continue;
 			}
 
@@ -315,20 +329,22 @@ public:
 			return;
 		}
 
-		if (!File::exists(opt.file)) {
-			_exitCode = -1;
-			SGE_LOG("file not found error: {}", opt.file);
-			return;
-		}
-
-//		opt.log();
+//		SGE_LOG("{}", opt);
 
 		if (opt.genMakefile) {
+			_throwIfNotExists(opt.file, -1);
 			_genMakefile();
+		} else if (opt.genNinja) {
+			_throwIfNotExists(opt.file, -1);
+			_genNinja();
 		} else if (opt.hlsl) {
+			_throwIfNotExists(opt.file, -1);
 			_compileHLSL();
 		} else if (opt.glsl) {
+			_throwIfNotExists(opt.file, -1);
 			_compileGLSL();
+		} else if (opt.genNinjaConfigure) {
+			_genNinjaConfigure();
 		} else {
 			_exitCode = -1;
 			showHelp();
@@ -336,41 +352,49 @@ public:
 	}
 
 private:
-	void _genMakefile() {
+	void _throwIfNotExists(StrView path, int exitCode = 0) {
+		if (!File::exists(path)) {
+			_exitCode = exitCode;
+			throw SGE_ERROR("path not found error: path={}", path);
+		}
+	}
+
+	static constexpr const char* kShaderInfoJsonfile = "info.json";
+
+	void _parseShader(ShaderInfo& out) {
 		if (opt.out.empty()) {
 			opt.out = Directory::current();
 		}
 
-		Directory::create(opt.out);
+		ShaderParser parser;
+
+		MemMapFile mm;
+		mm.open(opt.file);
+		parser.readMem(out, mm, opt.file);
+
+		TempString outFilename = Fmt("{}/{}", opt.out, kShaderInfoJsonfile);
+		JsonUtil::writeFile(outFilename, out, true);
+	}
+
+	void _genMakefile() {
+		if (opt.out.empty()) {
+			opt.out = ".";
+		}
 
 		ShaderInfo shaderInfo;
-		{ // shader parser
-			ShaderParser parser;
-
-			MemMapFile mm;
-			mm.open(opt.file);
-			parser.readMem(shaderInfo, mm, opt.file);
-
-			// does it need copy shader source file ??? so maybe no use include_dir
-			//TempString shaderSrcFilenameCopy = Fmt("{}/srouce.shader", opt.out);
-			//File::writeFileIfChanged(opt.out, mm, false);
-
-			TempString shaderInfoFilename = Fmt("{}/info.json", opt.out);
-			JsonUtil::writeFile(shaderInfoFilename, shaderInfo, false);
-		}
+		_parseShader(shaderInfo);
 
 		String relativeShaderSrcFilename;
 		FilePath::relativeTo(relativeShaderSrcFilename, opt.file, opt.out);
 		StrView relativeShaderSrcDir = FilePath::dirname(relativeShaderSrcFilename);
+		opt.include_dirs.emplace_back(relativeShaderSrcDir);
 
 		String makefile;
 		makefile.append(".PHONY: all\n");
 		makefile.append("\nall:\n");
 		makefile.append("\nCURRENT_MAKEFILE := $(lastword $(MAKEFILE_LIST))\n");
 		makefile.append(Fmt("\nsge_src_shader = {}\n", relativeShaderSrcFilename));
-		makefile.append("\n$(sge_src_shader): info.json\n");
-
-		opt.include_dirs.emplace_back(relativeShaderSrcDir);
+		makefile.append(Fmt("\n$(sge_src_shader): {}\n", kShaderInfoJsonfile));
 
 		int passIndex = 0;
 		for (const auto& pass : shaderInfo.passes)
@@ -386,8 +410,6 @@ private:
 	}
 
 	void _genMakefile_DX11(String& makefile, int passIndex, const ShaderInfo::Pass& pass) {
-		using Util = DX11Util;
-
 		makefile.append("\nifeq ($(BUILD_DX11), true)\n");
 		
 		TempString fmt = "\nall: dx11/pass{0}/{1}.bin"
@@ -429,8 +451,6 @@ private:
 	}
 
 	void _genMakefile_GLSL(String& makefile, int passIndex, const ShaderInfo::Pass& pass) {
-		using Util = GLUtil;
-
 		makefile.append("\nifeq ($(BUILD_GLSL), true)\n");
 
 		TempString fmt = "\nall: glsl/pass{0}/{1}.glsl"
@@ -452,6 +472,155 @@ private:
 		makefile.append(Fmt(fmt, passIndex, Profile::GLSL_PS, "fragment", pass.psFunc, include_dirs));
 
 		makefile.append("\nendif # BUILD_GLSL\n");
+	}
+
+	void _genNinja() {
+		if (opt.out.empty()) {
+			opt.out = ".";
+		}
+
+		ShaderInfo shaderInfo;
+		_parseShader(shaderInfo);
+
+		String relativeShaderSrcFilename;
+		FilePath::relativeTo(relativeShaderSrcFilename, opt.file, opt.out);
+		StrView relativeShaderSrcDir = FilePath::dirname(relativeShaderSrcFilename);
+		opt.include_dirs.emplace_back(relativeShaderSrcDir);
+
+		String ninja;
+		ninja.append(Fmt("# !!! Generated by {}\n", appName()));
+		ninja.append("\nninja_required_version = 1.3\n");
+		ninja.append("\nbuilddir = _ninja\n");
+		ninja.append(Fmt("\nsge_src_shader = {}\n", relativeShaderSrcFilename));
+
+#if SGE_OS_WINDOWS
+		ninja.append("\nexe_suffix = .exe");
+		ninja.append("\nmulti_command_prefix = cmd /c ");
+#else
+		ninja.append("\nexe_suffix = ");
+		ninja.append("\nmulti_command_prefix = ");
+#endif
+
+		TempString sge_tools_bin;
+		executableDirPathTo(sge_tools_bin);
+
+		static constexpr StrLiteral sgeFileCmd			= "sge_file_cmd";
+		static constexpr StrLiteral sgeShaderCompiler	= "sge_shader_compiler";
+
+		{
+			ninja.append("\n\n#------");
+			ninja.append(Fmt("\nsge_tools_bin = {}", sge_tools_bin));
+			ninja.append(Fmt("\nsgeFileCmd = ${{sge_tools_bin}}/{}${{exe_suffix}}", sgeFileCmd));
+			ninja.append(Fmt("\nsgeShaderCompiler = ${{sge_tools_bin}}/{}${{exe_suffix}}", sgeShaderCompiler));
+			ninja.append("\nninja = ${sge_tools_bin}/ninja${exe_suffix}"
+							"\nglslc = ${sge_tools_bin}/glslc${exe_suffix}"
+							"\nspirv_cross = ${sge_tools_bin}/spirv-cross${exe_suffix}"
+							"\n\n#------"
+							"\nrule sgeFileCmd"
+							"\n  command = ${sgeFileCmd} ${sge_cmd_args}"
+							"\n\nrule touch"
+							"\n  command = ${sgeFileCmd} -touch ${out}"
+							"\n\nrule mkdir"
+							"\n  command = ${sgeFileCmd} -mkdir ${out}"
+							"\n\nrule ninja"
+							"\n  command = ${ninja} -C ${in} --quiet"
+							"\n\nrule BUILD_DX11"
+							"\n  command = ${sgeShaderCompiler} -hlsl -file=${file} -out=${out} -profile=${profile} -entry=${entry} ${include_dirs}"
+							"\n\nrule BUILD_SPIRV"
+							"\n  command = ${glslc} -fshader-stage=${fshader_stage} -fentry-point=${entry} -fhlsl-functionality1 -fhlsl-iomap -o ${out} -x hlsl ${file} ${include_dirs}"
+							"\n\nrule BUILD_GLSL"
+							"\n  command = ${sgeShaderCompiler} -glsl -file=${file} -out=${out} -profile=${profile} -entry=${entry} ${include_dirs}"
+			);
+		}
+
+		{
+			ninja.append("\n\n#------");
+			ninja.append("\nrule echo"
+				"\n  command = echo ${in}"
+				"\n  description = [SGE_LOG]$: \"in=${in}\", \"out=${out}\""
+				"\n\nrule start"
+				"\n  command = ${multi_command_prefix}echo ========================== $"
+				"\n  && echo sge_tools_bin=${sge_tools_bin} $"
+				"\n  && echo sge_build_bin=${sge_build_bin} $"
+				"\n  && echo sgeFileCmd=${sgeFileCmd} $"
+				"\n  && echo sgeShaderCompiler=${sgeShaderCompiler} $"
+				"\n  && echo ninja=${ninja} $"
+				"\n  && echo glslc=${glslc} $"
+				"\n  && echo spirv_cross=${spirv_cross} $"
+				"\n  && echo ========================== $"
+				"\n  && echo"
+			);
+			ninja.append("\n\n#------");
+			ninja.append("\nbuild start: start");
+		}
+
+		int passIndex = 0;
+		for (const auto& pass : shaderInfo.passes)
+		{
+			_genNinja_DX11(ninja, passIndex, pass);
+			_genNinja_SPIRV(ninja, passIndex, pass);
+			_genNinja_GLSL(ninja, passIndex, pass);
+			++passIndex;
+		}
+
+		TempString outFilename = FilePath::combine(opt.out, "build.ninja");
+		File::writeFileIfChanged(outFilename, ninja, false);
+	}
+
+	void _genNinja_DX11(String& ninja, int passIndex, const ShaderInfo::Pass& pass) {
+		ninja.append("\n\n#------ BUILD_DX11");
+
+		TempString fmt = "\nbuild dx11/pass{0}/${{profile}}.bin: BUILD_DX11"
+			"\n  file         = ${{sge_src_shader}}"
+			"\n  profile      = {1}"
+			"\n  entry        = {2}"
+			"\n  include_dirs ={3}"
+			"\n"
+		;
+
+		TempString include_dirs;
+		opt.include_dirsTo(include_dirs, "-I=");
+
+		ninja.append(Fmt(fmt, passIndex, Profile::DX11_VS, pass.vsFunc, include_dirs));
+		ninja.append(Fmt(fmt, passIndex, Profile::DX11_PS, pass.psFunc, include_dirs));
+	}
+
+	void _genNinja_SPIRV(String& ninja, int passIndex, const ShaderInfo::Pass& pass) {
+		ninja.append("\n\n#------ BUILD_SPIRV");
+
+		TempString fmt = "\nbuild spirv/pass{0}/${{profile}}.bin: BUILD_SPIRV"
+			"\n  file          = ${{sge_src_shader}}"
+			"\n  profile       = {1}"
+			"\n  fshader_stage = {2}"
+			"\n  entry         = {3}"
+			"\n  include_dirs  ={4}"
+			"\n"
+		;
+
+		TempString include_dirs;
+		opt.include_dirsTo(include_dirs);
+
+		// TODO fshader-stage
+		ninja.append(Fmt(fmt, passIndex, Profile::GLSL_VS, "vertex", pass.vsFunc, include_dirs));
+		ninja.append(Fmt(fmt, passIndex, Profile::GLSL_PS, "fragment", pass.psFunc, include_dirs));
+	}
+
+	void _genNinja_GLSL(String& ninja, int passIndex, const ShaderInfo::Pass& pass) {
+		ninja.append("\n\n#------ BUILD_GLSL");
+
+		TempString fmt = "\nbuild glsl/pass{0}/${{profile}}.glsl: BUILD_GLSL"
+			"\n  file         = ${{sge_src_shader}}"
+			"\n  profile      = {1}"
+			"\n  entry        = {2}"
+			"\n  include_dirs ={3}"
+			"\n"
+		;
+
+		TempString include_dirs;
+		opt.include_dirsTo(include_dirs, "-I=");
+
+		ninja.append(Fmt(fmt, passIndex, Profile::GLSL_VS, pass.vsFunc, include_dirs));
+		ninja.append(Fmt(fmt, passIndex, Profile::GLSL_PS, pass.psFunc, include_dirs));
 	}
 
 	void _compileHLSL() {
@@ -476,6 +645,84 @@ private:
 		c.compile(opt.out, profileParser.stage, profileParser.profile, opt.file, opt.entry, opt.include_dirs);
 	}
 
+	void _genNinjaConfigure() {
+		if (opt.include_dirs.empty()) {
+			SGE_LOG("please specific -I=<dirpath1> -I=<dirpath2>");
+			_exitCode = -1;
+			return;
+		}
+
+		if (opt.file.empty()) opt.file = "build.ninja";
+		if (opt.out.empty()) opt.out = ".";
+
+		String fileA;
+		FilePath::realpathTo(fileA, opt.file);
+		auto outdir = FilePath::dirname(fileA);
+		Directory::create(outdir);
+
+		String ninja;
+		ninja.append(Fmt("# !!! Generated by {}\n", appName()));
+		ninja.append("\nninja_required_version = 1.3\n");
+		ninja.append("\nbuilddir = _ninja\n");
+
+		String sge_tools_bin;
+		executableDirPathTo(sge_tools_bin);
+
+		String sgeShaderCompiler = "${sge_tools_bin}/sge_shader_compiler${exe_suffix}";
+
+#if SGE_OS_WINDOWS
+		ninja.append("\nexe_suffix = .exe");
+		ninja.append("\nmulti_command_prefix = cmd /c ");
+		FilePath::toWindowsPath(sge_tools_bin);
+		FilePath::toWindowsPath(sgeShaderCompiler);
+#else
+		ninja.append("\nexe_suffix = ");
+		ninja.append("\nmulti_command_prefix = ");
+#endif
+
+		{
+			ninja.append("\n\n#------");
+			ninja.append(Fmt("\nsge_tools_bin = {}", sge_tools_bin));
+			ninja.append(Fmt("\nsgeShaderCompiler = {}", sgeShaderCompiler));
+			ninja.append("\nninja = ${sge_tools_bin}/ninja${exe_suffix}"
+						 "\n\n#------"
+						 "\nrule sc"
+						 "\n  command = ${multi_command_prefix}${sgeShaderCompiler} -genNinja -file=${file} -out=${out} $"
+						 "\n  && ${ninja} -C ${out} --quiet"
+			);
+		}
+
+		for (const auto& ic : opt.include_dirs) {
+			_genNinjaConfigure(ninja, ic, outdir);
+		}
+
+		File::writeFileIfChanged(opt.file, ninja, false);
+	}
+
+	void _genNinjaConfigure(String& ninja, StrView include_dir, StrView outdir) {
+		ninja.append(Fmt("\n\n#------ {}", include_dir));
+
+		using Entry = Directory::Entry;
+
+		Vector< Entry > out_files;
+		Directory::getFileSystemEntries(out_files, include_dir, true, [&](Entry& entry) {
+			if (entry.hidden || entry.isDir) return false;
+			auto sv = entry.name.view();
+			return sv.ends_with(".shader");
+		});
+
+		TempString fmt = "\nbuild {0}/{1}: sc"
+			"\n  file = {2}"
+			"\n"
+		;
+
+		String relativeBuildNinja;
+		for (const auto& entry : out_files) {
+			FilePath::relativeTo(relativeBuildNinja, entry.path, outdir);
+			ninja.append(Fmt(fmt, opt.out, entry.name, relativeBuildNinja));
+		}
+	}
+
 	void _compile(StrView shaderFilename, Vector<String>& include_dirs) {
 		ShaderInfo info;
 
@@ -492,28 +739,34 @@ private:
 
 		size_t passIndex = 0;
 		for (auto& pass : info.passes) {
+
 			if (!pass.vsFunc.empty()) {
 				{ // DX11
 					ShaderCompiler_DX11 c;
 					TempString outFilename = Fmt("{}/dx11/pass{}/{}.bin", outdir, passIndex, Profile::DX11_VS);
-					c.compile(outFilename, ShaderStageMask::Vertex, DX11Util::getDxStageProfile(ShaderStageMask::Vertex), shaderFilename, pass.vsFunc, include_dirs);
+					TempString profile = DX11Util::getDxStageProfile(ShaderStageMask::Vertex);
+					c.compile(outFilename, ShaderStageMask::Vertex, profile, shaderFilename, pass.vsFunc, include_dirs);
 				}
 				{ // GLSL
 					ShaderCompiler_GL c;
 					TempString outFilename = Fmt("{}/glsl/pass{}/{}.glsl", outdir, passIndex, Profile::GLSL_VS);
-					c.compile(outFilename, ShaderStageMask::Vertex, GLUtil::getGlStageProfile(ShaderStageMask::Vertex), shaderFilename, pass.vsFunc, include_dirs);
+					TempString profile = GLUtil::getGlStageProfile(ShaderStageMask::Vertex);
+					c.compile(outFilename, ShaderStageMask::Vertex, profile, shaderFilename, pass.vsFunc, include_dirs);
 				}
 			}
+
 			if (!pass.psFunc.empty()) {
 				{ // DX11
 					ShaderCompiler_DX11 c;
 					TempString outFilename = Fmt("{}/dx11/pass{}/{}.bin", outdir, passIndex, Profile::DX11_PS);
-					c.compile(outFilename, ShaderStageMask::Pixel, DX11Util::getDxStageProfile(ShaderStageMask::Pixel), shaderFilename, pass.psFunc, include_dirs);
+					TempString profile = DX11Util::getDxStageProfile(ShaderStageMask::Pixel);
+					c.compile(outFilename, ShaderStageMask::Pixel, profile, shaderFilename, pass.psFunc, include_dirs);
 				}
 				{ // GLSL
 					ShaderCompiler_GL c;
 					TempString outFilename = Fmt("{}/glsl/pass{}/{}.glsl", outdir, passIndex, Profile::GLSL_PS);
-					c.compile(outFilename, ShaderStageMask::Pixel, GLUtil::getGlStageProfile(ShaderStageMask::Pixel), shaderFilename, pass.psFunc, include_dirs);
+					TempString profile = GLUtil::getGlStageProfile(ShaderStageMask::Pixel);
+					c.compile(outFilename, ShaderStageMask::Pixel, profile, shaderFilename, pass.psFunc, include_dirs);
 				}
 			}
 
@@ -521,6 +774,8 @@ private:
 		}
 	}
 }; // ShaderCompiler
+
+SGE_FORMATTER(ShaderCompiler::Option)
 
 } // namespace sge
 

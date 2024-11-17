@@ -7,9 +7,10 @@ set_target_properties (${PROJECT_NAME} PROPERTIES FOLDER sge/tutorials/sge_sita_
 target_link_libraries(${PROJECT_NAME} PUBLIC sge_sita_db)
 
 if(WIN32)
-	sge_copy_post_build(${PROJECT_NAME}
-		"${CMAKE_CURRENT_BINARY_DIR}/../..//$<CONFIG>/sge_sita_db.dll"
+	sge_copy_files_post_build(${PROJECT_NAME}
+#		"${CMAKE_CURRENT_BINARY_DIR}/../../$<CONFIG>/sge_sita_db.dll" no need now
 		"${CMAKE_CURRENT_SOURCE_DIR}/../../externals/MySQL Connector C 6.1/${CMAKE_VS_PLATFORM_NAME}/libmysql.dll"
+	#-------
 		$<TARGET_FILE_DIR:${PROJECT_NAME}>
 	)
 else()

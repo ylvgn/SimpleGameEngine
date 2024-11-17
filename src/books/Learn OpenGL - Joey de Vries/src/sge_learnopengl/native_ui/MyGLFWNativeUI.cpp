@@ -114,7 +114,7 @@ void MyGLFWNativeUIWindow::onCreate(CreateDesc& desc) {
 #pragma mark ========= MyGLFWNativeUIApp ============
 #endif
 void MyGLFWNativeUIApp::onCreate(CreateDesc& desc) {
-	setCurDirRelativeToExecutable("/../../../../../../../../examples/Test108");
+	setCurDirRelativeToExecutable("/../../../../../Test108");
 	Base::onCreate(desc);
 }
 

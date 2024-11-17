@@ -37,7 +37,7 @@ class ProgWin5App : public NativeUIApp {
 	using ProgWin5MainWin = PW5_MySysMets3;
 protected:
 	virtual void onCreate(CreateDesc& desc) override {
-		setCurDirRelativeToExecutable("/../../../../../../examples/Test103");
+		setCurDirRelativeToExecutable("/../../../Test103");
 
 		Base::onCreate(desc);
 

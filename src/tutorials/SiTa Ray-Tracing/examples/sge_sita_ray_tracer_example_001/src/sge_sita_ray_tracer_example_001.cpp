@@ -61,8 +61,7 @@ class MyApp : public NativeUIApp {
 	using Base = NativeUIApp;
 protected:
 	virtual void onCreate(CreateDesc& desc) override {
-		setCurDirRelativeToExecutable("/../../../../../../../../examples/Test106");
-
+		setCurDirRelativeToExecutable("/../../../Test106");
 		Base::onCreate(desc);
 
 		{

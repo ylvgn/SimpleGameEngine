@@ -13,8 +13,6 @@ struct ProjectSettings : public NonCopyable {
 
 	StrView		importedPath() const;
 
-	StrLiteral	externalsToolsRoot() const { return SGE_CMAKE_EXTERNALS_TOOLS; }
-
 private:
 	String _projectRoot;
 };

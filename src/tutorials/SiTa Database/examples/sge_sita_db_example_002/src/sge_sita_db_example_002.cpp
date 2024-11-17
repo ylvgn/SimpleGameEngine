@@ -16,7 +16,7 @@ struct Row {
 class SiTaDBExample002 : public ConsoleApp {
 public:
 	virtual void onRun() override {
-		setCurDirRelativeToExecutable("/../../../../../../../../examples/Test105");
+		setCurDirRelativeToExecutable("/../../../Test105");
 
 		_conn = SGE_MOVE(connectSQLite3("test_db.sqlite3"));
 

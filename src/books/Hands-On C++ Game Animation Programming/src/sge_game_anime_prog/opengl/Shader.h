@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../MyCommon.h"
+
 namespace sge {
 
 class Shader : public RefCountBase {

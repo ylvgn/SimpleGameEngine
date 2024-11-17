@@ -1,2 +1,5 @@
 /LocalTemp
 /imgui.ini
+
+# Generater by sge_shader_compiler.cpp
+/Assets/Shaders/build.ninja

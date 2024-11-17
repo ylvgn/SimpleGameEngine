@@ -282,11 +282,15 @@ class EditorApp : public NativeUIApp {
 	using Base = NativeUIApp;
 public:
 	virtual void onCreate(CreateDesc& desc) override {
-		setCurDirRelativeToExecutable("/../../../../../../examples/Test101");
+		setCurDirRelativeToExecutable("/../../../Test101");
 
-#if 1 // just for debug (quick testing)
-		CommandLine::runShell("Assets/Shaders/make.bat");
-#endif
+		{ // just for quick debug
+	#if 0
+		CommandLine::runShell("Assets/Shaders/sge_gnu_make.bat");
+	#else
+		CommandLine::runShell("Assets/Shaders/sge_ninja.bat");
+	#endif
+		}
 
 		Base::onCreate(desc);
 

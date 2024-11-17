@@ -18,7 +18,7 @@ class NeHeOGLApp : public NativeUIApp {
 	using NeHeOGLMainWin = NeHeOGL_Lesson012;
 protected:
 	virtual void onCreate(CreateDesc& desc) override {
-		setCurDirRelativeToExecutable("/../../../../../../examples/Test104");
+		setCurDirRelativeToExecutable("/../../../Test104");
 		Base::onCreate(desc);
 
 		{ // create window

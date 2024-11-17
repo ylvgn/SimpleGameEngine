@@ -68,8 +68,7 @@ void ShaderCompiler_GL::compile(StrView outFilename, ShaderStageMask shaderStage
 				params.emplace_back(Param("-o", spirvOutFilename));
 				params.emplace_back(Param("-x hlsl", srcFilename));
 
-				TempString glslc = FilePath::combine(ProjectSettings::instance()->externalsToolsRoot(), "glslc");
-				CommandLine::runShell(glslc, params);
+				CommandLine::runShell("glslc", params); // glslc supposed in executable folder
 			}
 		}
 	}

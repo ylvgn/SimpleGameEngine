@@ -1,6 +1,4 @@
 #include "AppBase.h"
-#include <sge_core/file/FilePath.h>
-#include <sge_core/file/Directory.h>
 
 namespace sge {
 #if 0
@@ -50,25 +48,8 @@ StrView AppBase::appName() {
 #endif
 #if SGE_OS_WINDOWS
 
-void AppBase::executableFilenameTo(String& out) {
-	StringW_<MAX_PATH> pathW;
-	pathW.resizeToLocalBufSize();
-	auto requiredSize = ::GetModuleFileName(nullptr, pathW.data(), MAX_PATH);
-	if (!requiredSize)
-		throw SGE_ERROR("::GetModuleFileName error: {}", ::WSAGetLastError());
-	pathW.resize(requiredSize);
-	UtfUtil::convert(out, pathW);
-	out.replaceChars('\\', '/');
-}
-
-void AppBase::executableDirPathTo(String& out) {
-	executableFilenameTo(out);
-	auto dir = FilePath::dirname(out.view());
-	out.resize(dir.size());
-}
-
 void AppBase::setCurDirRelativeToExecutable(StrView relativePath) {
-	String exeDirPath;
+	TempString exeDirPath;
 	executableDirPathTo(exeDirPath);
 	FilePath::combineTo(exeDirPath, relativePath);
 	Directory::setCurrent(exeDirPath);

@@ -6,10 +6,12 @@ all:
 
 outdir ?= ../../LocalTemp/Imported/Assets/Shaders
 input_files ?= test.shader
+CMAKE_BUILD_TYPE ?= Debug
 
-ifeq ($(OS), Windows_NT) # is Windows_NT on XP, 2000, 7, Vista, 10...
+ifeq ($(OS), Windows_NT) # is Windows_NT on XP, 2000, 7, Vista, 10, 11...
     SGE_PLATFORM_OS := Windows
-
+	VCPKG_TARGET_TRIPLET := x64-windows
+	CMAKE_RUNTIME_OUTPUT_DIRECTORY := $(realpath ../../../../examples/_bin)/$(VCPKG_TARGET_TRIPLET)/$(CMAKE_BUILD_TYPE)
 else ifeq ($(shell uname), Darwin)
 	SGE_PLATFORM_OS := MacOSX
 
@@ -20,8 +22,7 @@ else
 endif
 
 ifeq ($(SGE_PLATFORM_OS), Windows)
-	sge_tools_bin = $(realpath ../../../../externals/_tools)
-	sge_build_bin = $(realpath ../../../../build/SimpleGameEngine-x64-windows)
+	sge_tools_bin = $(CMAKE_RUNTIME_OUTPUT_DIRECTORY)
 
 	exe_suffix=.exe
 	export exe_suffix
@@ -42,13 +43,13 @@ export BUILD_GLSL
 
 output_targets=$(addprefix $(outdir)/, $(addsuffix /info.json, $(input_files)))
 
-sgeFileCmd=$(sge_build_bin)/src/tools/file_cmd/Debug/sge_file_cmd$(exe_suffix)
+sgeFileCmd=$(sge_tools_bin)/sge_file_cmd$(exe_suffix)
 export sgeFileCmd
 
 SGE_PLATFORM_OS := $(shell $(sgeFileCmd) -platform_os)
 export SGE_PLATFORM_OS
 
-sgeShaderCompiler=$(sge_build_bin)/src/render/shader_compiler/Debug/sge_shader_compiler$(exe_suffix)
+sgeShaderCompiler=$(sge_tools_bin)/sge_shader_compiler$(exe_suffix)
 export sgeShaderCompiler
 
 #ninja=$(realpath ../../../../externals/vcpkg/installed/x64-windows/tools/ninja/ninja.exe)
@@ -73,7 +74,6 @@ all: start $(output_targets)
 start:
 	@echo ==========================
 	@echo sge_tools_bin=$(sge_tools_bin)
-	@echo sge_build_bin=$(sge_build_bin)
 	@echo SGE_PLATFORM_OS=$(SGE_PLATFORM_OS)
 	@echo sgeFileCmd=$(sgeFileCmd)
 	@echo sgeShaderCompiler=$(sgeShaderCompiler)

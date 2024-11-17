@@ -23,5 +23,6 @@ call %VCPKG_ROOT%\bootstrap-vcpkg.bat
 %vcpkg% install shaderc:%triplets% --recurse
 %vcpkg% install glm:%triplets% --recurse
 %vcpkg% install glfw3:%triplets% --recurse
+@REM %vcpkg% install python3:%triplets% --recurse
 
 @pause

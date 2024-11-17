@@ -1,9 +1,7 @@
 *.blend1
-
-# User Preference
 *.vs
 
-/build
+_build
+examples/_bin
+_ninja
 /externals/vcpkg
-/externals/_tools
-

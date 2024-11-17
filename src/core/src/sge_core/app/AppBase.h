@@ -1,6 +1,8 @@
 #pragma once
 
 #include <sge_core/string/UtfUtil.h>
+#include <sge_core/file/FilePath.h>
+#include <sge_core/file/Directory.h>
 
 namespace sge {
 #if 0
@@ -37,10 +39,10 @@ public:
 	void	setAppName(StrView s) { _appName = s; }
 	StrView	appName();
 
-	void	executableFilenameTo(String& out);
+	template<class STR> void executableFilenameTo(STR& out);
 	String	executableFilename() { String o; executableFilenameTo(o); return o; }
 
-	void	executableDirPathTo(String& out);
+	template<class STR> void executableDirPathTo(STR& out);
 	String	executableDirPath() { String o; executableDirPathTo(o); return o; }
 
 	void	setCurDirRelativeToExecutable(StrView relativePath);
@@ -51,5 +53,30 @@ private:
 	UPtr<AppArguments>	_args;
 	String				_appName;
 }; // AppBase
+
+#if 0
+#pragma mark ========= Windows ============
+#endif
+#if SGE_OS_WINDOWS
+
+template<class STR> inline
+void AppBase::executableFilenameTo(STR& out) {
+	StringW_<MAX_PATH> pathW;
+	pathW.resizeToLocalBufSize();
+	auto requiredSize = ::GetModuleFileName(nullptr, pathW.data(), MAX_PATH);
+	if (!requiredSize)
+		throw SGE_ERROR("::GetModuleFileName error: {}", ::WSAGetLastError());
+	pathW.resize(requiredSize);
+	UtfUtil::convert(out, pathW);
+	out.replaceChars('\\', '/');
+}
+
+template<class STR> inline
+void AppBase::executableDirPathTo(STR& out) {
+	executableFilenameTo(out);
+	auto dir = FilePath::dirname(out.view());
+	out.resize(dir.size());
+}
+#endif  // SGE_OS_WINDOWS
 
 } // namespace sge

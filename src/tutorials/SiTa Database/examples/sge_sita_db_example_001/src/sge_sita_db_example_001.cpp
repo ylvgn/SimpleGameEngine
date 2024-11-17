@@ -16,7 +16,7 @@ struct Row {
 class SiTaDBExample001 : public ConsoleApp {
 public:
 	virtual void onRun() override {
-		setCurDirRelativeToExecutable("/../../../../../../../../examples/Test105");
+		setCurDirRelativeToExecutable("/../../../Test105");
 
 		_conn = SGE_MOVE(connectMySQL("localhost", "test_db", "test_user", "1234"));
 

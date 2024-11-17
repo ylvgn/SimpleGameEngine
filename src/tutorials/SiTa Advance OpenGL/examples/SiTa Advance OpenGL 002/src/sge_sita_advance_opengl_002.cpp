@@ -172,7 +172,7 @@ class MyApp : public NativeUIApp {
 	using Base = NativeUIApp;
 protected:
 	virtual void onCreate(CreateDesc& desc) override {
-		setCurDirRelativeToExecutable("/../../../../../../../../examples/Test107");
+		setCurDirRelativeToExecutable("/../../../Test107");
 		Base::onCreate(desc);
 
 		{ // create window

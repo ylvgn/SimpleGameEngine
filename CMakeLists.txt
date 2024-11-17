@@ -1,28 +1,27 @@
 cmake_minimum_required(VERSION 3.18)
 
-set(SGE_CMAKE_EXTERNALS_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/externals")
-set(SGE_CMAKE_EXTERNALS_VCPKG "${SGE_CMAKE_EXTERNALS_ROOT}/vcpkg")
-set(SGE_CMAKE_EXTERNALS_TOOLS "${SGE_CMAKE_EXTERNALS_ROOT}/_tools")
-
-message("SGE_CMAKE_EXTERNALS_ROOT       = ${SGE_CMAKE_EXTERNALS_ROOT}")
-message("SGE_CMAKE_EXTERNALS_VCPKG      = ${SGE_CMAKE_EXTERNALS_VCPKG}")
-message("SGE_CMAKE_EXTERNALS_TOOLS      = ${SGE_CMAKE_EXTERNALS_TOOLS}")
-
-set(CMAKE_TOOLCHAIN_FILE "${SGE_CMAKE_EXTERNALS_VCPKG}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
+set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/externals/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
 #set(CMAKE_BUILD_TYPE Debug)
-
-#add_compile_definitions(SGE_CMAKE_EXTERNALS_ROOT=\"${SGE_CMAKE_EXTERNALS_ROOT}\")
-#add_compile_definitions(SGE_CMAKE_EXTERNALS_VCPKG=\"${SGE_CMAKE_EXTERNALS_VCPKG}\")
-add_compile_definitions(SGE_CMAKE_EXTERNALS_TOOLS=\"${SGE_CMAKE_EXTERNALS_TOOLS}\")
 
 include(src/sge_common.cmake)
 
 set(PROJECT_NAME gyh-SimpleGameEngine)
 project(${PROJECT_NAME})
 message("==== ${PROJECT_NAME} ====")
+#sge_dump_var(VCPKG_TARGET_TRIPLET)
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/examples/_bin/${VCPKG_TARGET_TRIPLET}")
+#sge_dump_var(CMAKE_RUNTIME_OUTPUT_DIRECTORY)
+
+if (CMAKE_CONFIGURATION_TYPES)
+    set(SGE_RUNTIME_OUTPUT_DIRECTORY_CONFIGURATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIG>)
+else()
+    set(SGE_RUNTIME_OUTPUT_DIRECTORY_CONFIGURATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+endif()
+
+#sge_dump_cmake_variables()
 
 find_package(fmt CONFIG REQUIRED)
 find_package(GLEW CONFIG REQUIRED)
@@ -32,7 +31,7 @@ find_package(nlohmann_json CONFIG REQUIRED)
 find_package(PNG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
 find_package(glad CONFIG REQUIRED)
-find_package(spirv_cross_core)
+find_package(spirv_cross_core CONFIG REQUIRED)
 find_package(spirv_cross_glsl CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
