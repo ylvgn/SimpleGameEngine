@@ -1,8 +1,10 @@
 #pragma once
-#include "Render_GL_Common.h"
+
 #include <sge_render/buffer/RenderGpuBuffer.h>
 
 #if SGE_RENDER_HAS_OPENGL
+
+#include "Render_GL_Common.h"
 
 namespace sge {
 

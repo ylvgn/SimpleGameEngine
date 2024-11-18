@@ -5,6 +5,7 @@ namespace sge {
 template<class T>
 struct Tuple3 {
 	using ElementType = T;
+
 	static const size_t kElementCount = 3;
 
 	union {
@@ -12,18 +13,19 @@ struct Tuple3 {
 		T data[kElementCount];
 	};
 
-	SGE_INLINE			T& operator[](int i)		{ return data[i]; }
-	SGE_INLINE	const	T& operator[](int i) const	{ return data[i]; }
+	Tuple3() = default;
+	constexpr Tuple3(const T& x_, const T& y_, const T& z_)
+		: x(x_), y(y_), z(z_) {}
 
-	SGE_INLINE Tuple3() = default;
-	constexpr Tuple3(const T& x_, const T& y_, const T& z_) : x(x_), y(y_), z(z_) {}
-
-	SGE_INLINE void set(const Tuple3<T>& v) { *this = v; }
-	SGE_INLINE void set(const T& x_, const T& y_, const T& z_) {
+	constexpr void set(const Tuple3<T>& v) { *this = v; }
+	constexpr void set(const T& x_, const T& y_, const T& z_) {
 		x = x_; y = y_; z = z_;
 	}
 
-	SGE_INLINE bool setAll(const T& v) { set(v,v,v); }
+	constexpr bool setAll(const T& v) { set(v,v,v); }
+
+	SGE_INLINE			T& operator[](int i)		{ return data[i]; }
+	SGE_INLINE	const	T& operator[](int i) const	{ return data[i]; }
 };
 
 using Tuple3i = Tuple3<i32>;

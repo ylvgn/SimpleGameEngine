@@ -1,10 +1,12 @@
 #include "Material_GL.h"
-#include "RenderContext_GL.h"
-#include "Texture_GL.h"
 
 #if SGE_RENDER_HAS_OPENGL
 
+#include "RenderContext_GL.h"
+#include "Texture_GL.h"
+
 namespace sge {
+
 #if 0
 #pragma mark ========= Material_GL::MyVertexStage ============
 #endif
@@ -174,6 +176,7 @@ void Material_GL::MyPass::_bindRenderState(RenderContext_GL* ctx) {
 //	glDisable(GL_MULTISAMPLE);
 //	glDisable(GL_DITHER);
 }
+
 
 #if 0
 #pragma mark ========= Material_GL ============

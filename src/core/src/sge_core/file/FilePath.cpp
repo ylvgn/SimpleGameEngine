@@ -90,7 +90,6 @@ void FilePath::realpathTo(String& out_path, StrView in_path) {
 				out_path.clear(); // no more parent folder
 				return;
 			}
-
 			out_path.resize(parent - out_path.data());
 		}
 		else {
@@ -108,7 +107,7 @@ void FilePath::relativeTo(String& out_path, StrView in_path, StrView in_relative
 	out_path.clear();
 
 	String from = realpath(in_path);
-	String to = realpath(in_relativePath);
+	String to	= realpath(in_relativePath);
 
 	auto fv = from.view();
 	auto tv = to.view();

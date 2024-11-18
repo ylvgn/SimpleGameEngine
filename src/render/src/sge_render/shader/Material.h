@@ -18,7 +18,6 @@ class RenderCommand_DrawCall;
 class MaterialPass_Stage : public NonCopyable {
 	using Pass = MaterialPass;
 public:
-
 	MaterialPass_Stage(MaterialPass* pass, ShaderStage* shaderStage);
 	virtual ~MaterialPass_Stage() = default;
 
@@ -138,7 +137,6 @@ protected:
 	Pass*					_pass			= nullptr;
 
 public:
-
 	const ShaderStageInfo*	info() const { return _shaderStage->info(); }
 
 	Span<ConstBuffer>	constBuffers()	 { return _constBuffers; }
@@ -248,7 +246,6 @@ public:
 	}
 
 protected:
-
 	template<class V>
 	void _setParam(StrView name, const V& v) {
 		for (auto& pass : _passes) {

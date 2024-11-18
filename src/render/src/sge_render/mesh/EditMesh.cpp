@@ -77,4 +77,4 @@ void EditMesh::onFormat(fmt::format_context& ctx) const {
 	fmt::format_to(ctx.out(), "{}", tmp);
 }
 
-}
+} // namespace sge

@@ -4,8 +4,7 @@
 #include "Ray3.h"
 #include "Frustum3.h"
 
-namespace sge {
-namespace Math {
+namespace sge { namespace Math {
 
 enum class CameraProjectionType : u8 {
 	Perspective,
@@ -82,5 +81,4 @@ private:
 using Camera3f = Camera3<float>;
 using Camera3d = Camera3<double>;
 
-} // namespace Math
-} // namespace sge
+}} // namespace sge/Math

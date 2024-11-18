@@ -1,10 +1,11 @@
 #pragma once
 
 #include <sge_render/shader/Material.h>
-#include "Shader_GL.h"
-#include "RenderGpuBuffer_GL.h"
 
 #if SGE_RENDER_HAS_OPENGL
+
+#include "Shader_GL.h"
+#include "RenderGpuBuffer_GL.h"
 
 namespace sge {
 

@@ -23,7 +23,7 @@ public:
 	};
 
 	struct CreateDesc {
-		CreateDesc();
+		CreateDesc() noexcept;
 
 		ApiType apiType;
 		bool	multithread : 1;

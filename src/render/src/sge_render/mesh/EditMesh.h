@@ -14,7 +14,8 @@ struct EditMeshUtil {
 
 	static Span<const u32> subIndices(const EditMesh& src, size_t count, size_t offset = 0);
 	static Span<const Tuple3f> subPos(const EditMesh& src, size_t count, size_t offset = 0);
-};
+}; // EditMeshUtil
+
 
 #if 0
 #pragma mark ========= EditMeshUtil ============
@@ -39,8 +40,8 @@ public:
 	void clear();
 
 	void onFormat(fmt::format_context& ctx) const;
-};
+}; // EditMesh
 
 SGE_FORMATTER(EditMesh)
 
-}
+} // namespace sge

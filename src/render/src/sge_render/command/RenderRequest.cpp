@@ -87,7 +87,7 @@ void RenderRequest::drawSubMesh(const SrcLoc& debugLoc, const RenderSubMesh& sub
 }
 
 void RenderRequest::drawLines(Span<Vertex_PosColor> points, Span<u16> indices) {
-	if (indices.size() <= 0) return;
+	if (indices.empty()) return;
 
 	auto* cmd = addDrawCall();
 	cmd->vertexOffset = _inlineDraw.vertexData.size();

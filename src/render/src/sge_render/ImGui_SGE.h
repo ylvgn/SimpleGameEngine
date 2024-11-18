@@ -29,13 +29,13 @@ private:
 	RenderDataType			indexType() const { return sizeof(ImDrawIdx) == 2 ? RenderDataTypeUtil::get<u16>() : RenderDataTypeUtil::get<u32>(); }
 	SPtr<RenderGpuBuffer>	_indexBuffer;
 
-	Vector<u8>	_vertexData;
-	Vector<u8>	_indexData;
+	Vector<u8>				_vertexData;
+	Vector<u8>				_indexData;
 
-	void _createFontsTexture();
+	void		_createFontsTexture();
 
-	int _mouseButton(UIMouseEventButton v);
-	ImGuiKey _keyCode(UIKeyboardEventKeyCode v);
+	int			_mouseButton(UIMouseEventButton v);
+	ImGuiKey	_keyCode(UIKeyboardEventKeyCode v);
 
 	void _onAddKeyEventByUIKeyboardEvent(ImGuiIO& io, UIKeyboardEvent& ev, UIKeyboardEventKeyCode v);
 
@@ -45,4 +45,4 @@ private:
 inline Vec2f Vec2f_make(const ImVec2& v) { return Vec2f(v.x, v.y); }
 inline Vec4f Vec4f_make(const ImVec4& v) { return Vec4f(v.x, v.y, v.z, v.w); }
 
-} // namespace
+} // namespace sge

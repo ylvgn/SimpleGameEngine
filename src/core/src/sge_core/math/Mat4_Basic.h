@@ -6,43 +6,45 @@
 
 namespace sge {
 
-template<class ELEMENT>
+template<class T>
 struct Mat4_Basic_Data {
-	using Vec4 = Vec4<ELEMENT>;
+	using Vec4			= Vec4<T>;
+	using ElementType	= T;
 
-	using ElementType = ELEMENT;
 	static const size_t kElementCount = 16;
 
 	union {
-		struct{ Vec4 cx, cy, cz, cw; };
-		Vec4 _columns[4];
-		ELEMENT _elements[kElementCount];
+		struct { Vec4 cx, cy, cz, cw; };
+		Vec4	_columns[4];
+		T		_elements[kElementCount];
 	};
 
-	SGE_INLINE Mat4_Basic_Data() = default;
-	SGE_INLINE Mat4_Basic_Data(const Vec4& cx_, const Vec4& cy_, const Vec4& cz_, const Vec4& cw_) { set(cx_, cy_, cz_, cw_); }
-
-	SGE_INLINE void set(const Vec4& cx_, const Vec4& cy_, const Vec4& cz_, const Vec4& cw_) {
-		cx = cx_; cy = cy_; cz = cz_; cw = cw_;
+	Mat4_Basic_Data() = default;
+	constexpr Mat4_Basic_Data(const Vec4& cx_, const Vec4& cy_, const Vec4& cz_, const Vec4& cw_) {
+		set(cx_, cy_, cz_, cw_);
 	}
 
-};
+	constexpr void set(const Vec4& cx_, const Vec4& cy_, const Vec4& cz_, const Vec4& cw_) {
+		cx = cx_; cy = cy_; cz = cz_; cw = cw_;
+	}
+}; // Mat4_Basic_Data
 
 template<class T, class DATA = Mat4_Basic_Data<T> >
 struct Mat4_Basic : public DATA {
-	using Mat4 = Mat4_Basic;
+	using Mat4	= Mat4_Basic;
+	using Vec4	= typename DATA::Vec4;
+	using Vec3	= sge::Vec3<T>;
+	using Rect2	= sge::Rect2<T>;
+	using Quat4	= sge::Quat4<T>;
 
-	using ElementType = T;
-	using Scalar = ElementType;
-	using Vec4   = sge::Vec4<T>;
-	using Vec3   = sge::Vec3<T>;
-	using Rect2  = sge::Rect2<T>;
-	using Quat4  = sge::Quat4<T>;
+	using ElementType	= typename DATA::ElementType;
+	using Scalar		= T;
 
 	using DATA::cx;
 	using DATA::cy;
 	using DATA::cz;
 	using DATA::cw;
+	using DATA::kElementCount;
 
 	static SGE_INLINE const Mat4&	s_identity();
 	
@@ -64,9 +66,10 @@ struct Mat4_Basic : public DATA {
 	static SGE_INLINE		Mat4	s_ortho			(T left, T right, T bottom, T top, T zNear, T zFar);
 	static SGE_INLINE		Mat4	s_lookAt		(const Vec3 & eye, const Vec3 & aim, const Vec3 & up);
 
-	SGE_INLINE Mat4_Basic() = default;
-	SGE_INLINE Mat4_Basic(const Vec4& cx_, const Vec4& cy_, const Vec4& cz_, const Vec4& cw_) 
-		: DATA(cx_, cy_, cz_, cw_) {}
+	Mat4() = default;
+	constexpr Mat4(const Vec4& cx_, const Vec4& cy_, const Vec4& cz_, const Vec4& cw_)
+		: DATA(cx_, cy_, cz_, cw_)
+	{}
 
 	SGE_INLINE			Vec4& operator[](int i)			{ return _columns[i]; }
 	SGE_INLINE const	Vec4& operator[](int i) const	{ return _columns[i]; }
@@ -81,9 +84,9 @@ struct Mat4_Basic : public DATA {
 
 	T determinant3x3() const;
 
-	Mat4 inverse			() const;
-	Mat4 inverse3x3			() const;
-	Mat4 inverse3x3Transpose() const;
+	Mat4 inverse			 () const;
+	Mat4 inverse3x3			 () const;
+	Mat4 inverse3x3Transpose () const;
 
 	SGE_INLINE Mat4 operator*(const Mat4& r) const;
 
@@ -134,20 +137,19 @@ SGE_FORMATTER_T( SGE_ARGS(class T, class DATA), Mat4_Basic< SGE_ARGS(T, DATA) >)
 
 template<class T, class DATA> SGE_INLINE
 const Mat4_Basic<T, DATA> & Mat4_Basic<T, DATA>::s_identity() {
-	static Mat4 s(	{1, 0, 0, 0},
-					{0, 1, 0, 0},
-					{0, 0, 1, 0},
-					{0, 0, 0, 1});
+	static Mat4 s({1, 0, 0, 0},
+				  {0, 1, 0, 0},
+				  {0, 0, 1, 0},
+				  {0, 0, 0, 1});
 	return s;
 }
 
-
 template<class T, class DATA> SGE_INLINE
 Mat4_Basic<T, DATA> Mat4_Basic<T, DATA>::s_translate(const Vec3& t) {
-	return Mat4( {1,   0,   0,   0},
-				 {0,   1,   0,   0},
-				 {0,   0,   1,   0},
-				 {t.x, t.y, t.z, 1});
+	return Mat4({1,   0,   0,   0},
+				{0,   1,   0,   0},
+				{0,   0,   1,   0},
+				{t.x, t.y, t.z, 1});
 }
 
 template<class T, class DATA> SGE_INLINE
@@ -163,8 +165,7 @@ Mat4_Basic<T, DATA> Mat4_Basic<T, DATA>::s_rotate(const Vec3& rad) {
 		{(c.y*c.z), (s.x*s.y*c.z - c.x*s.z), (s.x*s.z + c.x*s.y*c.z), 0},
 		{(c.y*s.z), (c.x*c.z + s.x*s.y*s.z), (c.x*s.y*s.z - s.x*c.z), 0},
 		{(-s.y),    (s.x*c.y),               (c.x*c.y),               0},
-		{0,         0,                        0,                      1}
-	);
+		{0,         0,                        0,                      1});
 }
 
 template<class T, class DATA> SGE_INLINE
@@ -179,12 +180,12 @@ Mat4_Basic<T, DATA> Mat4_Basic<T, DATA>::s_quat(const Quat4& q) {
 	T qwy(q.w * q.y);
 	T qwz(q.w * q.z);
 
-	return Mat4({T(1)-T(2)*(qyy+qzz), T(2)*(qxy+qwz),      T(2)*(qxz-qwy),      T(0)},
-				{T(2)*(qxy-qwz),      T(1)-T(2)*(qxx+qzz), T(2)*(qyz+qwx),      T(0)},
-				{T(2)*(qxz+qwy),      T(2)*(qyz-qwx),      T(1)-T(2)*(qxx+qyy), T(0)},
-				{T(0),                T(0),                T(0),                T(1)});
+	return Mat4(
+		{T(1)-T(2)*(qyy+qzz), T(2)*(qxy+qwz),      T(2)*(qxz-qwy),      T(0)},
+		{T(2)*(qxy-qwz),      T(1)-T(2)*(qxx+qzz), T(2)*(qyz+qwx),      T(0)},
+		{T(2)*(qxz+qwy),      T(2)*(qyz-qwx),      T(1)-T(2)*(qxx+qyy), T(0)},
+		{T(0),                T(0),                T(0),                T(1)});
 }
-
 
 template<class T, class DATA> SGE_INLINE
 Mat4_Basic<T, DATA> Mat4_Basic<T, DATA>::s_rotateX(const T& rad) {
@@ -230,7 +231,6 @@ Mat4_Basic<T, DATA> Mat4_Basic<T, DATA>::s_scale(const Vec3& s) {
 				{0,   0,   0,   1});
 }
 
-
 template<class T, class DATA> SGE_INLINE
 Mat4_Basic<T, DATA> Mat4_Basic<T, DATA>::s_shear(const Vec3& v) {
 	return Mat4( {  1,   0,  0,  0},
@@ -253,7 +253,6 @@ Mat4_Basic<T, DATA> Mat4_Basic<T, DATA>::s_TRS(const Vec3& translate, const Vec3
 		{translate.x,						translate.y,						translate.z,			1});
 }
 
-
 template<class T, class DATA> SGE_INLINE
 Mat4_Basic<T, DATA> Mat4_Basic<T, DATA>::s_TRS(const Vec3& translate, const Quat4& rotate, const Vec3& scale) {
 	return s_translate(translate) * s_quat(rotate) * s_scale(scale);
@@ -266,7 +265,6 @@ Mat4_Basic<T, DATA> Mat4_Basic<T, DATA>::s_TS(const Vec3& translate, const Vec3&
 				{0, 0, scale.z, 0},
 				{translate.x, translate.y, translate.z, 1});
 }
-
 
 template<class T, class DATA> SGE_INLINE
 Mat4_Basic<T, DATA> Mat4_Basic<T, DATA>::s_perspective(T fovy_rad, T aspect, T zNear, T zFar) {
@@ -492,4 +490,4 @@ Vec3<T> sge::Mat4_Basic<T, DATA>::unprojectPointFromInv(const Vec3& screenPos, c
 	return obj.toVec3();
 }
 
-}
+} // namespace sge

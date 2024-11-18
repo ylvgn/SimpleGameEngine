@@ -16,7 +16,7 @@
 	} /* namespace sge */ \
 	template<TEMPLATE_ARGS> \
 	struct fmt::formatter<sge::CLASS> { \
-		auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); } \
+		static auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); } \
 		static auto format(const sge::CLASS& v, fmt::format_context& ctx) { \
 			v.onFormat(ctx); \
 			return ctx.out(); \

@@ -80,7 +80,7 @@ public:
 				}
 			}
 		}
-	};
+	}; // Option
 	Option opt;
 
 	struct ShaderStageProfileParser {
@@ -137,12 +137,12 @@ public:
 
 		int	major = 0;
 		int	minor = 0;
-	};
+	}; // ShaderStageProfileParser
 
 	void showHelp() {
 		SGE_LOG("==== sge_shader_compiler Help: ===="
-			"\n\tsge_shader_compiler -genMakefile -file=<filename> -I=<dirpath1> -I=<dirpath2> -out=<outdir>"
-			"\n\tsge_shader_compiler -genNinja -file=<filename> -I=<dirpath1> -I=<dirpath2> -out=<outdir>"
+			"\n\tsge_shader_compiler -genMakefile -file=<filename> -out=<outdir> -I=<dirpath1> -I=<dirpath2>"
+			"\n\tsge_shader_compiler -genNinja -file=<filename> -out=<outdir> -I=<dirpath1> -I=<dirpath2>"
 			"\n\tsge_shader_compiler -hlsl -file=<filename> -out=<filename> -profile=vs_5_0|ps_5_0 -entry=<entry-point> -I=<dirpath1> -I=<dirpath2>"
 			"\n\tsge_shader_compiler -glsl -file=<filename> -out=<filename> -profile=vs_330|ps_330 -entry=<entry-point> -I=<dirpath1> -I=<dirpath2>"
 			"\n\tsge_shader_compiler -genNinjaConfigure -file=<outfilename> -out=<outdir> -I=<dirpath1> -I=<dirpath2>"
@@ -243,12 +243,6 @@ public:
 		setCommandArguments(argvs);
 	}
 
-	void trimQuote(StrView& v) {
-		if (v.size() > 2 && v.starts_with('"') && v.ends_with('"')) {
-			v = v.sliceFromAndBack(1);
-		}
-	}
-
 	virtual void onRun() override {
 #if 0 && _DEBUG // just for test
 		debugBatchMode();
@@ -262,6 +256,7 @@ public:
 			return;
 		}
 #endif
+
 		for (int i = 1; i < args.size(); ++i) {
 			auto& a = args[i];
 			
@@ -286,32 +281,32 @@ public:
 				continue;
 			}
 			if (auto v = a.extractFromPrefix("-file=")) {
-				trimQuote(v);
+				_trimQuote(v);
 				FilePath::unixPathTo(opt.file, v);
 				continue;
 			}
 			if (auto v = a.extractFromPrefix("-out=")) {
-				trimQuote(v);
+				_trimQuote(v);
 				FilePath::unixPathTo(opt.out, v);
 				continue;
 			}
 			if (auto v = a.extractFromPrefix("-entry=")) {
-				trimQuote(v);
+				_trimQuote(v);
 				opt.entry = v;
 				continue;
 			}
 			if (auto v = a.extractFromPrefix("-profile=")) {
-				trimQuote(v);
+				_trimQuote(v);
 				opt.profile = v;
 				continue;
 			}
 			if (auto v = a.extractFromPrefix("-I=")) {
-				trimQuote(v);
+				_trimQuote(v);
 				opt.include_dirs.emplace_back(v);
 				continue;
 			}
 			if (auto v = a.extractFromPrefix("-I")) { // -I without "=" is allow
-				trimQuote(v);
+				_trimQuote(v);
 				opt.include_dirs.emplace_back(v);
 				continue;
 			}
@@ -352,6 +347,8 @@ public:
 	}
 
 private:
+	static constexpr const char* kShaderInfoJsonfile = "info.json";
+
 	void _throwIfNotExists(StrView path, int exitCode = 0) {
 		if (!File::exists(path)) {
 			_exitCode = exitCode;
@@ -359,7 +356,11 @@ private:
 		}
 	}
 
-	static constexpr const char* kShaderInfoJsonfile = "info.json";
+	void _trimQuote(StrView& v) {
+		if (v.size() > 2 && v.starts_with('"') && v.ends_with('"')) {
+			v = v.sliceFromAndBack(1);
+		}
+	}
 
 	void _parseShader(ShaderInfo& out) {
 		if (opt.out.empty()) {
@@ -704,7 +705,7 @@ private:
 
 		using Entry = Directory::Entry;
 
-		Vector< Entry > out_files;
+		Vector<Entry> out_files;
 		Directory::getFileSystemEntries(out_files, include_dir, true, [&](Entry& entry) {
 			if (entry.hidden || entry.isDir) return false;
 			auto sv = entry.name.view();

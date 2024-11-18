@@ -1,7 +1,8 @@
 #include "RenderGpuBuffer_GL.h"
-#include "Renderer_GL.h"
 
 #if SGE_RENDER_HAS_OPENGL
+
+#include "Renderer_GL.h"
 
 namespace sge {
 

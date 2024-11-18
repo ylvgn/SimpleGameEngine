@@ -2,10 +2,10 @@
 
 #include <sge_render/shader/Material.h>
 
+#if SGE_RENDER_HAS_DX11
+
 #include "Shader_DX11.h"
 #include "RenderGpuBuffer_DX11.h"
-
-#if SGE_RENDER_HAS_DX11
 
 namespace sge {
 

@@ -89,9 +89,9 @@ void File::touch(StrView filename) {
 #endif
 
 bool File::exists(StrView filename) {
-	TempStringW pathW;
-	UtfUtil::convert(pathW, filename);
-	::DWORD dwAttrib = ::GetFileAttributes(pathW.c_str());
+	TempStringW filenameW;
+	UtfUtil::convert(filenameW, filename);
+	::DWORD dwAttrib = ::GetFileAttributes(filenameW.c_str());
 	return (dwAttrib != INVALID_FILE_ATTRIBUTES && !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 }
 

@@ -1,4 +1,7 @@
 #include "Renderer_DX11.h"
+
+#if SGE_RENDER_HAS_DX11
+
 #include "RenderContext_DX11.h"
 #include "RenderGpuBuffer_DX11.h"
 
@@ -357,4 +360,6 @@ DX11_ID3DInputLayout* RenderContext_DX11::_getTestInputLayout(const VertexLayout
 	return outLayout;
 }
 
-}
+} // namespace sge
+
+#endif // SGE_RENDER_HAS_DX11

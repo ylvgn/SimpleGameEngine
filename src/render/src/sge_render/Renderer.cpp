@@ -6,7 +6,7 @@ namespace sge {
 
 Renderer* Renderer::s_instance = nullptr;
 
-Renderer::CreateDesc::CreateDesc() 
+Renderer::CreateDesc::CreateDesc() noexcept
 	: multithread(false)
 {
 #if SGE_OS_WINDOWS
@@ -27,9 +27,7 @@ Renderer* Renderer::create(CreateDesc& desc) {
 		case Renderer::ApiType::OpenGL: {
 			p = new Renderer_GL(desc);
 		}break;
-		default: {
-			SGE_ASSERT("error: not support render api");
-		}break;
+		default: throw SGE_ERROR("unsupported renderer api");
 	}
 	return p;
 }

@@ -518,4 +518,4 @@ void RenderTerrain::PatchIndices::create(Terrain* terrain, int level, ZoneMask z
 	}
 }
 
-} // namespace
+} // namespace sge

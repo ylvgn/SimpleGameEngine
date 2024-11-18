@@ -14,7 +14,7 @@ Ray3<T> Ray3<T>::s_unprojectFromInvMatrix(const Vec2& screenPos, const Mat4& inv
 
 	Ray3 o;
 	o.origin = v0;
-	o.dir = (v1 - v0).normalize();
+	o.dir	 = (v1 - v0).normalize();
 	return o;
 }
 
@@ -36,9 +36,9 @@ bool Ray3<T>::getClosestPoint(Vec3& outPoint, const Line3& line, T minOnLine, T 
 	if (ab.equals0())
 		return false;
 
-	auto s = dc.cross(db).dot( da.cross(db) ) / ab.sqrLength();
-	s = Math::clamp<T>(s, minOnLine, maxOnLine);
-	outPoint = line.start + da * s;
+	auto s		= dc.cross(db).dot( da.cross(db) ) / ab.sqrLength();
+	s			= Math::clamp<T>(s, minOnLine, maxOnLine);
+	outPoint	= line.start + da * s;
 	return true;
 }
 

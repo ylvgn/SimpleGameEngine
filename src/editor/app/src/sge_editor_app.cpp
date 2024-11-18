@@ -319,7 +319,7 @@ public:
 	}
 
 private:
-	MainWin		_mainWin;
+	MainWin	_mainWin;
 };
 
 } // namespace sge

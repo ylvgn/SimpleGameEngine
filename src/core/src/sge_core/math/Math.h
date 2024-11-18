@@ -1,6 +1,7 @@
 #pragma once
 
 namespace sge { namespace Math {
+
 	template<class T> constexpr T max(const T& a, const T& b) { return a > b ? a : b; }
 	template<class T> constexpr T min(const T& a, const T& b) { return a < b ? a : b; }
 
@@ -114,7 +115,6 @@ namespace sge { namespace Math {
 	template<class T> SGE_INLINE T	radians	(T deg) { return deg * (PI<T>() / static_cast<T>(180)); }
 	template<class T> SGE_INLINE T	degrees	(T rad) { return rad * (static_cast<T>(180) / PI<T>()); }
 
-
 	SGE_INLINE float  sin(float  rad) { return ::sinf(rad); }
 	SGE_INLINE double sin(double rad) { return ::sin (rad); }
 
@@ -210,7 +210,7 @@ namespace sge { namespace Math {
 	#endif
 	}
 
-	inline double rsqrt_fast(double n) {
+	SGE_INLINE double rsqrt_fast(double n) {
 		uint64_t i;
 		double x2, y;
 		const float threehalfs = 1.5;
@@ -225,7 +225,7 @@ namespace sge { namespace Math {
 		return y;
 	}
 
-	inline int rsqrt_fast(int n) {
+	SGE_INLINE int rsqrt_fast(int n) {
 		double d = static_cast<double>(n);
 		return roundToInt(rsqrt_fast(d));
 	}

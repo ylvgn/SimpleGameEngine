@@ -14,14 +14,14 @@ public:
 	using Vec3 = Vec3_Basic;
 	using Vec2 = Vec2<T>;
 
-	static const size_t kElementCount = 3;
+	using ElementType	= typename DATA::ElementType;
+	using Scalar		= T;
 
-	using ElementType = typename DATA::ElementType;
 	using DATA::x; // require this on gcc/clang, otherwise the fullname `Base::x` is needed instead of `x`
 	using DATA::y;
 	using DATA::z;
-
 	using DATA::data;
+	using DATA::kElementCount;
 
 	SGE_INLINE static Vec3 s_zero()		{ return Vec3(0,0,0); }
 	SGE_INLINE static Vec3 s_one()		{ return Vec3(1,1,1); }
@@ -35,10 +35,10 @@ public:
 
 	SGE_INLINE static Vec3 s_inf()		{ auto f = Math::inf<T>(); return Vec3(f,f,f); }
 
-	SGE_INLINE Vec3() = default;
-	SGE_INLINE Vec3(const Tuple3<T> & v) { set(v); }
-	SGE_INLINE Vec3(const T& x_, const T& y_, const T& z_) { set(x_, y_, z_); }
-	SGE_INLINE Vec3(const Vec2& v, const T& z_) { set(v.x, v.y, z_); }
+	Vec3() = default;
+	constexpr Vec3(const Tuple3<T> & v) { set(v); }
+	constexpr Vec3(const T& x_, const T& y_, const T& z_) { set(x_, y_, z_); }
+	constexpr Vec3(const Vec2& v, const T& z_) { set(v.x, v.y, z_); }
 
 	SGE_INLINE void set(const Tuple3<T> & v) { DATA::set(v); }
 	SGE_INLINE void set(const T& x_, const T& y_, const T& z_) { set(Tuple3<T>(x_, y_, z_)); }
@@ -56,20 +56,20 @@ public:
 	SGE_INLINE Vec3 operator*(const Vec3& r) const { return Vec3(x * r.x, y * r.y, z * r.z); }
 	SGE_INLINE Vec3 operator/(const Vec3& r) const { return Vec3(x / r.x, y / r.y, z / r.z); }
 
-	SGE_INLINE Vec3 operator+(const T& s) const { return Vec3(x + s, y + s, z + s); }
-	SGE_INLINE Vec3 operator-(const T& s) const { return Vec3(x - s, y - s, z - s); }
-	SGE_INLINE Vec3 operator*(const T& s) const { return Vec3(x * s, y * s, z * s); }
-	SGE_INLINE Vec3 operator/(const T& s) const { return Vec3(x / s, y / s, z / s); }
+	SGE_INLINE Vec3 operator+(const Scalar& s) const { return Vec3(x + s, y + s, z + s); }
+	SGE_INLINE Vec3 operator-(const Scalar& s) const { return Vec3(x - s, y - s, z - s); }
+	SGE_INLINE Vec3 operator*(const Scalar& s) const { return Vec3(x * s, y * s, z * s); }
+	SGE_INLINE Vec3 operator/(const Scalar& s) const { return Vec3(x / s, y / s, z / s); }
 
 	SGE_INLINE void operator+=(const Vec3& r) { x += r.x; y += r.y; z += r.z; }
 	SGE_INLINE void operator-=(const Vec3& r) { x -= r.x; y -= r.y; z -= r.z; }
 	SGE_INLINE void operator*=(const Vec3& r) { x *= r.x; y *= r.y; z *= r.z; }
 	SGE_INLINE void operator/=(const Vec3& r) { x /= r.x; y /= r.y; z /= r.z; }
 
-	SGE_INLINE void operator+=(const T& s) { x += s; y += s; z += s; }
-	SGE_INLINE void operator-=(const T& s) { x -= s; y -= s; z -= s; }
-	SGE_INLINE void operator*=(const T& s) { x *= s; y *= s; z *= s; }
-	SGE_INLINE void operator/=(const T& s) { x /= s; y /= s; z /= s; }
+	SGE_INLINE void operator+=(const Scalar& s) { x += s; y += s; z += s; }
+	SGE_INLINE void operator-=(const Scalar& s) { x -= s; y -= s; z -= s; }
+	SGE_INLINE void operator*=(const Scalar& s) { x *= s; y *= s; z *= s; }
+	SGE_INLINE void operator/=(const Scalar& s) { x /= s; y /= s; z /= s; }
 
 	SGE_INLINE bool operator==(const Vec3& r) const { return x == r.x && y == r.y && z == r.z; }
 	SGE_INLINE bool operator!=(const Vec3& r) const { return x != r.x || y != r.y || z != r.z; }
@@ -159,5 +159,4 @@ Vec3_Basic<T, DATA> clamp(const Vec3_Basic<T, DATA>& v, const Vec3_Basic<T, DATA
 								Math::clamp(v.z, a.z, b.z));
 }
 
-} // namespace Math
-} // namespace sge
+}} // namespace sge/Math

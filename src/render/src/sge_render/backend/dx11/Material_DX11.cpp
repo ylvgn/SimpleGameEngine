@@ -1,10 +1,12 @@
 #include "Material_DX11.h"
-#include "Renderer_DX11.h"
-#include "RenderContext_DX11.h"
 
 #if SGE_RENDER_HAS_DX11
 
+#include "Renderer_DX11.h"
+#include "RenderContext_DX11.h"
+
 namespace sge {
+
 #if 0
 #pragma mark ========= Material_DX11::MyVertexStage ============
 #endif
@@ -191,6 +193,7 @@ void Material_DX11::MyPass::_bindRenderState(RenderContext_DX11* ctx) {
 	UINT sampleMask = 0xffffffff;
 	dc->OMSetBlendState(_blendState, blendFactor.data, sampleMask);
 }
+
 
 #if 0
 #pragma mark ========= Material_DX11 ============

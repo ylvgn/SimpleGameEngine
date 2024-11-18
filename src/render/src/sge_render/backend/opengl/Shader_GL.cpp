@@ -3,6 +3,7 @@
 #if SGE_RENDER_HAS_OPENGL
 
 namespace sge {
+
 #if 0
 #pragma mark ========= Shader_GL::MyVertexStage ============
 #endif
@@ -76,6 +77,7 @@ void Shader_GL::MyPass::bind() {
 void Shader_GL::MyPass::unbind() {
 	glUseProgram(0);
 }
+
 
 #if 0
 #pragma mark ========= Shader_GL ============
