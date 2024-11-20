@@ -436,9 +436,9 @@ private:
 
 void RenderTerrain::PatchIndices::create(Terrain* terrain, int level, ZoneMask zoneMask) {
 	Vector<VertexIndex>	indexData;
-	int verticesPerRow = terrain->patchVerticesPerRow();
-	int cellsPerRow = terrain->patchCellsPerRow();
-	int maxLod = terrain->maxLod();
+	int verticesPerRow	= terrain->patchVerticesPerRow();
+	int cellsPerRow		= terrain->patchCellsPerRow();
+	int maxLod			= terrain->maxLod();
 
 	int tmp = (maxLod - 1) - level;
 

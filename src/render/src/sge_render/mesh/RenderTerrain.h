@@ -1,12 +1,11 @@
 #pragma once
 
-#include "RenderMesh.h"
 #include "../command/RenderRequest.h"
 
 namespace sge {
 
 #define RenderTerrain3_ZoneMask_ENUM_LIST(E) \
-	E(None, = 0) \
+	E(None,  = 0) \
 	E(North, = 1 << 0)  \
 	E(East,  = 1 << 1)  \
 	E(South, = 1 << 2)  \
@@ -50,7 +49,6 @@ public:
 	private:
 		SPtr<RenderGpuBuffer> _indexBuffer;
 		size_t _indexCount = 0;
-
 	}; // PatchIndices
 
 	class PatchLevelIndices {
@@ -96,8 +94,8 @@ public:
 
 	RenderGpuBuffer*	vertexBuffer() { return _vertexBuffer; }
 	Texture2D*		heightMapTexture() { return _heightMapTexture; }
-private:
 
+private:
 	Vector<Patch>				_patches;
 	Vector<PatchLevelIndices>	_patchLevelIndices;
 
@@ -116,7 +114,8 @@ private:
 	int		_maxLod = 1;
 };
 
-SGE_INLINE RenderTerrain::PatchIndices* RenderTerrain::patchIndices(int level, ZoneMask zoneMask) {
+SGE_INLINE
+RenderTerrain::PatchIndices* RenderTerrain::patchIndices(int level, ZoneMask zoneMask) {
 	if (level < 0 || level >= _patchLevelIndices.size()) {
 		SGE_ASSERT(false);
 		return nullptr;
@@ -126,13 +125,15 @@ SGE_INLINE RenderTerrain::PatchIndices* RenderTerrain::patchIndices(int level, Z
 	return lv.patchIndices(zoneMask);
 }
 
-SGE_INLINE RenderTerrain::Patch* RenderTerrain::patch(int x, int y) {
+SGE_INLINE
+RenderTerrain::Patch* RenderTerrain::patch(int x, int y) {
 	if (x < 0 || y < 0 || x >= _patchCount.x || y >= _patchCount.y)
 		return nullptr;
 	return &_patches[y * _patchCount.x + x];
 }
 
-SGE_INLINE Vec3f RenderTerrain::Patch::worldCenterPos() {
+SGE_INLINE
+Vec3f RenderTerrain::Patch::worldCenterPos() {
 	auto s = _terrain->patchSize();
 	auto pos = (Vec2f::s_cast(_index) + 0.5f) * s;
 	auto o = _terrain->terrainPos() + Vec3f(pos.x, 0, pos.y);

@@ -85,15 +85,17 @@ template<class T> SGE_INLINE T& constCast(const T& v) { return const_cast<T&>(v)
 
 template<class T> SGE_INLINE void swap(T& a, T& b) { T tmp = SGE_MOVE(a); a = SGE_MOVE(b); b = SGE_MOVE(tmp); }
 
-using u8  = uint8_t;
-using u16 = uint16_t;
-using u32 = uint32_t;
-using u64 = uint64_t;
+using u8   = uint8_t;
+using u16  = uint16_t;
+using u32  = uint32_t;
+using u64  = uint64_t;
+using u128 = uint128_t;
 
-using i8  = int8_t;
-using i16 = int16_t;
-using i32 = int32_t;
-using i64 = int64_t;
+using i8   = int8_t;
+using i16  = int16_t;
+using i32  = int32_t;
+using i64  = int64_t;
+using i128 = int128_t;
 
 //using f16 = half;
 using f32	= float;
@@ -186,21 +188,23 @@ template<class T, size_t N, bool bEnableOverflow = true> class StringT; // forwa
 template<class T> using StrViewT_Base = eastl::basic_string_view<T>;
 template<class T>
 class StrViewT : public StrViewT_Base<T> { // immutable string view
-	using Base = typename StrViewT_Base<T>;
-	using size_type = typename Base::size_type;
-public:
-	StrViewT() = default;
-	StrViewT(const StrViewT& other)			: Base(other) {}
-	StrViewT(const T* s, size_type count)	: Base(s, count) {}
-	StrViewT(const T* s)					: Base(s) {}
-	StrViewT(const Base& s)					: Base(s.data(), s.size()) {}
+	using Base			= typename StrViewT_Base<T>;
+	using size_type		= typename Base::size_type;
+	using const_pointer = typename Base::const_pointer;
 
-	template<size_t N>
-	StrViewT(const StringT<T, N>& s)		: Base(s.data(), s.size()) {}
+	using Base::mnCount;
+	using Base::mpBegin;
+public:
+
+									 StrViewT() = default;
+						EA_CONSTEXPR StrViewT(const StrViewT& other)				EA_NOEXCEPT : Base(other) {}
+						EA_CONSTEXPR StrViewT(const T* s)							EA_NOEXCEPT : Base(s) {}
+						EA_CONSTEXPR explicit StrViewT(const T* s, size_type count)	EA_NOEXCEPT : Base(s, count) {}
+						EA_CONSTEXPR explicit StrViewT(T& ch)						EA_NOEXCEPT : Base(&ch, 1) {}
+						EA_CONSTEXPR StrViewT(const Base& s)						EA_NOEXCEPT : Base(s.data(), s.size()) {}
+	template<size_t N>	EA_CONSTEXPR StrViewT(const StringT<T, N>& s)				EA_NOEXCEPT : Base(s.data(), s.size()) {}
 
 	explicit operator bool() const { return !empty(); }
-
-	StrViewT& operator=(const StrViewT& view) = default;
 
 	const	T&	operator[]	(int i)		const	{ return at(i); }
 	const	T&	at(int i)				const	{ _checkBound(i); return mpBegin[i]; }
@@ -252,33 +256,21 @@ template<class T, size_t N, bool bEnableOverflow = true>
 class StringT : public StringT_Base<T, N, bEnableOverflow>::Type {
 	using Base = typename StringT_Base<T, N, bEnableOverflow>::Type;
 public:
-
-	using Base::npos;
-	using Base::mPair;
-	using Base::append;
-	using Base::resize;
-	using Base::clear;
-	using Base::capacity;
-	using Base::size;
-	using Base::sprintf_va_list;
-	using Base::DoAllocate;
-	using Base::DoFree;
-	using Base::internalLayout;
-	using Base::get_allocator;
-
 	using view_type = typename eastl::basic_string_view<T>;
 	using StrViewT	= typename StrViewT<T>;
 
-						StringT() = default;
-						StringT(const T* begin, const T* end)	: Base(begin, end) {}
-						StringT(const T* p, size_t n)			: Base(p, n) {}
-						StringT(StrViewT view)					: Base(view.data(), view.size()) {}
-						StringT(StringT&& str)					: Base(std::move(str)) {}
-						StringT(const T* sz)					: Base(sz) {}
-						StringT(const StringT& s)				: Base(s.data(), s.size()) {}
-						StringT(const Base& s)					: Base(s.data(), s.size()) {}
+	using Base::npos;
+	using Base::append;
 
-	template<size_t M>	StringT(const StringT<T, M>& s)			: Base(s.data(), s.size()) {}
+						StringT() = default;
+						StringT(const T* begin, const T* end)	EA_NOEXCEPT : Base(begin, end) {}
+						StringT(const T* p, size_t n)			EA_NOEXCEPT : Base(p, n) {}
+						StringT(StrViewT view)					EA_NOEXCEPT : Base(view.data(), view.size()) {}
+						StringT(StringT&& str)					EA_NOEXCEPT : Base(std::move(str)) {}
+						StringT(const T* sz)					EA_NOEXCEPT : Base(sz) {}
+						StringT(const StringT& s)				EA_NOEXCEPT : Base(s.data(), s.size()) {}
+						StringT(const Base& s)					EA_NOEXCEPT : Base(s.data(), s.size()) {}
+	template<size_t M>	StringT(const StringT<T, M>& s)			EA_NOEXCEPT : Base(s.data(), s.size()) {}
 
 						void operator=(const StringT& s)		{ Base::assign(s.data(), s.size()); }
 	template<size_t N>	void operator=(const StringT<T, N>& r)	{ Base::assign(s.data(), s.size()); }
@@ -289,6 +281,7 @@ public:
 	template<class R>	void operator+=(const R& r)				{ Base::operator+=(r); }
 
 						void append(const StrViewT& s)			{ Base::append(s.data(), s.size()); }
+						void append(T& ch)						{ Base::append(StrViewT(ch)); }
 						void append(const StringT& s)			{ Base::append(s.data(), s.size()); }
 	template<size_t M>	void append(const StringT<T, M>& s)		{ Base::append(s.data(), s.size()); }
 
@@ -428,6 +421,7 @@ public:
 
 template<class T> inline void sge_delete(T* p) noexcept { delete p; }
 
+
 template<class T>
 class ScopedValue : public NonCopyable {
 public:
@@ -459,15 +453,22 @@ private:
 template<class T> inline ScopedValue<T> ScopedValue_make(T* p) { return ScopedValue<T>(p); }
 template<class T> inline ScopedValue<T> ScopedValue_make(T* p, const T& newValue) { return ScopedValue<T>(p, newValue); }
 
+
 template<class First, class Second>
 struct Pair {
-	Pair(const First& first_, const Second& second_)	: first(first_), second(second_) {}
-	Pair(First&& first_, Second&& second_)				: first(SGE_MOVE(first_)), second(SGE_MOVE(second_)) {}
+	Pair() = delete;
+
+	constexpr Pair(const First& first_, const Second& second_) noexcept : first(first_), second(second_) {}
+	constexpr Pair(First&& first_, Second&& second_)		   noexcept : first(SGE_MOVE(first_)), second(SGE_MOVE(second_)) {}
 
 	First	first;
 	Second	second;
 };
 
-template<class First, class Second> inline Pair<First, Second> Pair_make(const First& first, Second& second) { return Pair<First, Second>(first, second); }
+template<class First, class Second> inline
+Pair<First, Second> Pair_make(const First& first, const Second& second) { return Pair<First, Second>(first, second); }
+
+template<class First, class Second = typename First> inline
+Pair<First, Second> Pair_make() { return Pair<First, Second>(First(), Second()); }
 
 } // namespace sge

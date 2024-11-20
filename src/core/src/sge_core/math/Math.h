@@ -26,7 +26,7 @@ namespace sge { namespace Math {
 	constexpr size_t alignTo(size_t n, size_t a) { return _Helper::alignTo_uint(n, a); }
 
 //--------
-	template< class T > constexpr T		NaN		() { return std::numeric_limits<T>::quiet_NaN(); }
+	template< class T > constexpr T		NaN		()				{ return std::numeric_limits<T>::quiet_NaN(); }
 	template< class T > constexpr bool	isNaN	( const T& v )	{ return std::isnan(v); }
 	
 	template < class T > constexpr T	inf		()				{ return std::numeric_limits<T>::infinity(); }

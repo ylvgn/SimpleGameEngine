@@ -3,6 +3,9 @@
 
 namespace sge {
 
+#if 0
+#pragma mark ========= WavefrontObjLoader_Info ============
+#endif
 struct WavefrontObjLoader_Info {
 	Vector< Tuple3f > v;
 	Vector< Tuple3f > vt;
@@ -11,6 +14,10 @@ struct WavefrontObjLoader_Info {
 	void clear();
 };
 
+
+#if 0
+#pragma mark ========= WavefrontObjLoader ============
+#endif
 class WavefrontObjLoader : public Lexer {
 	using Base = Lexer;
 	using Info = WavefrontObjLoader_Info;
@@ -32,14 +39,13 @@ private:
 	StrView	_tmpCurrentLine;
 	StrView	_tmpLineRemain;
 
-	Vector<int, 64> _face_v;
-	Vector<int, 64> _face_vt;
-	Vector<int, 64> _face_vn;
+	Vector<int, 64> _tmpFace_v;
+	Vector<int, 64> _tmpFace_vt;
+	Vector<int, 64> _tmpFace_vn;
 
 	EditMesh*	_outInfo = nullptr;
 
 	Info		_info;
 };
 
-}
-
+} // namespace sge

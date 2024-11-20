@@ -230,11 +230,12 @@ bool Lexer::_nextToken() {
 	}
 }
 
-std::pair<StrView, StrView> Lexer::_nextLine() {
+Pair<StrView, StrView> Lexer::_nextLine() {
 	if (_cur == nullptr || _cur >= _source.end()) {
-		return { StrView(), StrView() };
+		return Pair_make<StrView>();
 	}
-	auto pair = StringUtil::splitByChar(_cur, "\n");
+
+	auto pair = StringUtil::getLine(_cur);
 	_ch = *pair.first.end();
 	_cur = pair.second.begin();
 	if (_cur) {

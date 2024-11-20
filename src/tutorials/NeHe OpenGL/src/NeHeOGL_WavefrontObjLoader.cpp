@@ -38,7 +38,7 @@ void NeHeOGL_WavefrontObjLoader::_loadMem(Mesh& outInfo, ByteSpan data, StrView 
 }
 
 void NeHeOGL_WavefrontObjLoader::_nextLine() {
-	auto pair		= StringUtil::splitByChar(_sourceRemain, "\n");
+	auto pair		= StringUtil::getLine(_sourceRemain);
 	_currentLine	= pair.first;
 	_sourceRemain	= pair.second;
 	_lineRemain		= _currentLine;

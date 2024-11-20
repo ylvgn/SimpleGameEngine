@@ -160,9 +160,10 @@ void NeHeOGL_Lesson010::WorldLoader::_readMem(SECTOR& outInfo, ByteSpan bytes, S
 }
 
 void NeHeOGL_Lesson010::WorldLoader::_nextLine() {
-	auto pair = StringUtil::splitByChar(_sourceRemain, "\n");
-	_currentLine = pair.first;
-	_sourceRemain = pair.second;
+	auto pair		= StringUtil::getLine(_sourceRemain);
+	_currentLine	= pair.first;
+	_sourceRemain	= pair.second;
+
 	_lineNumber++;
 }
 
@@ -180,8 +181,8 @@ void NeHeOGL_Lesson010::WorldLoader::_nextToken() {
 			_lineRemain = StrView(p, e - p - 1);
 	}
 
-	auto pair = StringUtil::splitByChar(_lineRemain, " \t\r");
-	_token = StringUtil::trimChar(pair.first, " \t\r");
+	auto pair	= StringUtil::splitByChar(_lineRemain, " \t\r");
+	_token		= StringUtil::trimChar(pair.first, " \t\r");
 	_lineRemain = StringUtil::trimChar(pair.second, " \t\r");
 }
 

@@ -2,12 +2,19 @@
 
 namespace sge {
 
-void WavefrontObjLoader::Info::clear() {
+#if 0
+#pragma mark ========= WavefrontObjLoader_Info ============
+#endif
+void WavefrontObjLoader_Info::clear() {
 	v.clear();
 	vt.clear();
 	vn.clear();
 }
 
+
+#if 0
+#pragma mark ========= WavefrontObjLoader ============
+#endif
 void WavefrontObjLoader::readFile(EditMesh& outInfo, StrView filename) {
 	MemMapFile mm;
 	mm.open(filename);
@@ -107,9 +114,9 @@ void WavefrontObjLoader::_parseLine_vn() {
 }
 
 void WavefrontObjLoader::_parseLine_f() {
-	_face_v.clear();
-	_face_vt.clear();
-	_face_vn.clear();
+	_tmpFace_v.clear();
+	_tmpFace_vt.clear();
+	_tmpFace_vn.clear();
 
 	_nextTmpLine();
 
@@ -145,45 +152,45 @@ void WavefrontObjLoader::_parseLine_f() {
 		if (v != 0) {
 			if (v > 0) { --v; }
 			else { v = static_cast<int>(_info.v.size()) + v; }
-			_face_v.emplace_back(v);
+			_tmpFace_v.emplace_back(v);
 		}
 
 		if (vt != 0) {
 			if (vt > 0) { --vt; }
 			else { vt = static_cast<int>(_info.vt.size()) + vt; }
-			_face_vt.emplace_back(vt);
+			_tmpFace_vt.emplace_back(vt);
 		}
 
 		if (vn != 0) {
 			if (vn > 0) { --vn; }
 			else { vn = static_cast<int>(_info.vn.size()) + vn; }
-			_face_vn.emplace_back(vn);
+			_tmpFace_vn.emplace_back(vn);
 		}
 	}
 
-	size_t newAddVertexCount = _face_v.size();
+	size_t newAddVertexCount = _tmpFace_v.size();
 	if (newAddVertexCount < 3)
 		error("_parseLine_f vertex count < 3, invalid triangle\ncur source line: {}", _tmpCurrentLine);
 
 	size_t startVertexIndex = _outInfo->pos.size();
 
-	bool isExist_vt = _face_vt.size() == newAddVertexCount;
-	bool isExist_vn = _face_vn.size() == newAddVertexCount;
-	if (!isExist_vt && _face_vt.size() > 0)
+	bool isExist_vt = _tmpFace_vt.size() == newAddVertexCount;
+	bool isExist_vn = _tmpFace_vn.size() == newAddVertexCount;
+	if (!isExist_vt && _tmpFace_vt.size() > 0)
 		error("_parseLine_f invalid vt:\ncur source line: {}", _tmpCurrentLine);
-	if (!isExist_vn && _face_vn.size() > 0)
+	if (!isExist_vn && _tmpFace_vn.size() > 0)
 		error("_parseLine_f invalid vn:\ncur source line: {}", _tmpCurrentLine);
 
 #if 0 // flip face front/back
-	eastl::reverse(_face_v.begin(), _face_v.end());
-	eastl::reverse(_face_vt.begin(), _face_vt.end());
-	eastl::reverse(_face_vn.begin(), _face_vn.end());
+	eastl::reverse(_tmpFace_v.begin(), _tmpFace_v.end());
+	eastl::reverse(_tmpFace_vt.begin(), _tmpFace_vt.end());
+	eastl::reverse(_tmpFace_vn.begin(), _tmpFace_vn.end());
 #endif
 
 	for (size_t i = 0; i < newAddVertexCount; ++i) {
 		{ // face_v
 			auto& arr = _info.v;
-			auto vi	  = _face_v[i];
+			auto vi	  = _tmpFace_v[i];
 
 			if (vi < 0 || vi >= arr.size())
 				_error("out of range: invalid face v");
@@ -195,7 +202,7 @@ void WavefrontObjLoader::_parseLine_f() {
 			if (!isExist_vt) {
 				_outInfo->uv[0].emplace_back(0,0);
 			} else {
-				auto vti = _face_vt[i];
+				auto vti = _tmpFace_vt[i];
 
 				if (vti < 0 || vti >= arr.size())
 					_error("out of range: invalid face vt");
@@ -209,7 +216,7 @@ void WavefrontObjLoader::_parseLine_f() {
 			if (!isExist_vn) {
 				_outInfo->normal.emplace_back(0,0,0);
 			} else {
-				auto vni = _face_vn[i];
+				auto vni = _tmpFace_vn[i];
 
 				if (vni < 0 || vni >= arr.size())
 					_error("out of range: invalid face vn");
@@ -219,12 +226,12 @@ void WavefrontObjLoader::_parseLine_f() {
 		}
 	}
 
-	// ------
+// ------
 	using IndexType = decltype(_outInfo->indices)::value_type;
 
 	for (size_t i = 0; i < newAddVertexCount; ++i) {
 		if (i >= 3) {
-			_outInfo->indices.emplace_back(static_cast<IndexType>(startVertexIndex /*+ 0*/));
+			_outInfo->indices.emplace_back(static_cast<IndexType>(startVertexIndex /*+0*/));
 			_outInfo->indices.emplace_back(static_cast<IndexType>(startVertexIndex + i - 1));
 		}
 
@@ -237,4 +244,4 @@ void WavefrontObjLoader::_parseLine_f() {
 	}
 }
 
-}
+} // namespace sge

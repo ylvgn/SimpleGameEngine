@@ -1,10 +1,9 @@
 #include "Frustum3.h"
 
-namespace sge {
-namespace Math {
+namespace sge { namespace Math {
 
 template<class T>
-void Frustum3<T>::updatePlanesFromPoints() {
+void Frustum3<T>::_updatePlanesFromPoints() {
 	  nearPlane().setByTriangle(points[0], points[1], points[2]);
 	   farPlane().setByTriangle(points[4], points[6], points[5]);
 
@@ -17,23 +16,21 @@ void Frustum3<T>::updatePlanesFromPoints() {
 
 template<class T>
 bool Frustum3<T>::isOverlapped(const Frustum3& f) const {
-	for (size_t i = 0; i < 6; i++) {
+	for (size_t i = 0; i < 6; ++i) {
 		if (_outsideOfPlane(planes[i], f.points))
 			return false;
 	}
-
-	for (size_t i = 0; i < 6; i++) {
+	for (size_t i = 0; i < 6; ++i) {
 		if (_outsideOfPlane(f.planes[i], points))
 			return false;
 	}
-
 	return true;
 }
 
 template<class T>
 void Frustum3<T>::setByBBox(const BBox3& bbox, const Mat4& matrix) {
 	bbox.getPoints(points, matrix);
-	updatePlanesFromPoints();
+	_updatePlanesFromPoints();
 }
 
 template<class T>
@@ -48,12 +45,11 @@ void Frustum3<T>::setByInvViewProjMatrix(const Mat4& invMatrix) {
 	points[6] = invMatrix.mulPoint(Vec4( 1, 1, 1, 1)).toVec3();
 	points[7] = invMatrix.mulPoint(Vec4(-1, 1, 1, 1)).toVec3();
 
-	updatePlanesFromPoints();
+	_updatePlanesFromPoints();
 }
 
 
 template struct Frustum3<float>;
 template struct Frustum3<double>;
 
-} // namespace Math
-} // namespace sge
+}} // namespace sge/Math

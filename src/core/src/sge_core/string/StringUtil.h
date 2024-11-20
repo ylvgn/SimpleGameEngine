@@ -15,8 +15,9 @@ struct StringUtil {
 	
 	static bool hasChar(StrView view, char ch) { return StrView::npos != view.find(ch); }
 
-	static std::pair<StrView, StrView> splitByChar	(StrView view, StrView seperators);
-	static std::pair<StrView, StrView> splitByChar	(StrView view, char seperator);
+	static Pair<StrView, StrView> splitByChar	(StrView view, StrView seperators);
+	static Pair<StrView, StrView> splitByChar	(StrView view, char seperator);
+	static Pair<StrView, StrView> getLine		(StrView view);
 
 	static StrView	trimChar(StrView view, StrView seperators);
 
@@ -46,30 +47,36 @@ struct StringUtil {
 };
 
 inline
-std::pair<StrView, StrView> StringUtil::splitByChar(StrView view, StrView seperators) {
+Pair<StrView, StrView> StringUtil::splitByChar(StrView view, StrView seperators) {
 	auto* s = view.begin();
 	auto* e = view.end();
-	for (auto* p = s; p < e; p++) {
+	for (auto* p = s; p < e; ++p) {
 		if (hasChar(seperators, *p)) {
 			auto r0 = StrView(s,   p-s);
 			auto r1 = StrView(p+1, e-p-1);
 			return {r0, r1};
 		}
 	}
-	return {view, StrView()};
+	return { view, StrView() };
 }
 
 inline
-std::pair<sge::StrView, sge::StrView> StringUtil::splitByChar(StrView view, char seperator) {
-	return splitByChar(view, StrView(&seperator, 1));
+Pair<StrView, StrView> StringUtil::splitByChar(StrView view, char seperator) {
+	return splitByChar(view, StrView(seperator));
+}
+
+inline
+Pair<StrView, StrView> StringUtil::getLine(StrView view) {
+	return splitByChar(view, "\n");
 }
 
 inline
 StrView StringUtil::trimChar(StrView view, StrView charList) {
 	auto* p = view.begin();
 	auto* e = view.end();
-	for (; p < e; p++) {
-		if (!hasChar(charList, *p)) break;
+	for ( ; p < e; ++p) {
+		if (!hasChar(charList, *p))
+			break;
 	}
 	return StrView(p, e-p);
 }

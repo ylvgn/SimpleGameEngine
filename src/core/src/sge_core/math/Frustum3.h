@@ -2,8 +2,7 @@
 #include "MathGeometry.h"
 #include "BBox3.h"
 
-namespace sge {
-namespace Math {
+namespace sge { namespace Math {
 
 template<class T>
 struct Frustum3 {
@@ -13,19 +12,26 @@ struct Frustum3 {
 	using Plane3 = Plane3<T>;
 	using BBox3  = BBox3<T>;
 public:
-	enum Side
-	{
-		Side_Near,
-		Side_Far,
-		Side_Left,
-		Side_Right,
-		Side_Top,
-		Side_Bottom,
-		Side__COUNT
-	}; 
+	enum class Side : u8 {
+		Near,
+		Far,
+		Left,
+		Right,
+		Top,
+		Bottom,
+		_END
+	};
+
+	constexpr static const int kSideNear   = enumInt(Side::Near  );
+	constexpr static const int kSideFar    = enumInt(Side::Far   );
+	constexpr static const int kSideLeft   = enumInt(Side::Left  );
+	constexpr static const int kSideRight  = enumInt(Side::Right );
+	constexpr static const int kSideTop    = enumInt(Side::Top   );
+	constexpr static const int kSideBottom = enumInt(Side::Bottom);
+	constexpr static const int kSideCount  = enumInt(Side::_END  );
 
 	Vec3	points[8];
-	Plane3	planes[Side__COUNT];
+	Plane3	planes[kSideCount];
 
 	void setByViewProjMatrix(const Mat4& matrix) { setByInvViewProjMatrix(matrix.inverse()); }
 	void setByInvViewProjMatrix(const Mat4& invMatrix);
@@ -35,23 +41,23 @@ public:
 	bool isOverlapped(const BBox3& bbox, const Mat4& matrix) const;
 	bool isOverlapped(const Frustum3& f) const;
 
-	Plane3&	nearPlane	()	{ return planes[Side_Near  ]; }
-	Plane3&	farPlane	()	{ return planes[Side_Far   ]; }
-	Plane3&	leftPlane	()	{ return planes[Side_Left  ]; }
-	Plane3&	rightPlane	()	{ return planes[Side_Right ]; }
-	Plane3&	topPlane	()	{ return planes[Side_Top   ]; }
-	Plane3&	bottomPlane	()	{ return planes[Side_Bottom]; }
+	Plane3&	nearPlane	()	{ return planes[kSideNear  ]; }
+	Plane3&	farPlane	()	{ return planes[kSideFar   ]; }
+	Plane3&	leftPlane	()	{ return planes[kSideLeft  ]; }
+	Plane3&	rightPlane	()	{ return planes[kSideRight ]; }
+	Plane3&	topPlane	()	{ return planes[kSideTop   ]; }
+	Plane3&	bottomPlane	()	{ return planes[kSideBottom]; }
 
-	const Plane3&	nearPlane	() const { return planes[Side_Near  ]; }
-	const Plane3&	farPlane	() const { return planes[Side_Far   ]; }
-	const Plane3&	leftPlane	() const { return planes[Side_Left  ]; }
-	const Plane3&	rightPlane	() const { return planes[Side_Right ]; }
-	const Plane3&	topPlane	() const { return planes[Side_Top   ]; }
-	const Plane3&	bottomPlane	() const { return planes[Side_Bottom]; }
+	const Plane3&	nearPlane	() const { return planes[kSideNear  ]; }
+	const Plane3&	farPlane	() const { return planes[kSideFar   ]; }
+	const Plane3&	leftPlane	() const { return planes[kSideLeft  ]; }
+	const Plane3&	rightPlane	() const { return planes[kSideRight ]; }
+	const Plane3&	topPlane	() const { return planes[kSideTop   ]; }
+	const Plane3&	bottomPlane	() const { return planes[kSideBottom]; }
 
 private:
-	void updatePlanesFromPoints();
 	static bool _outsideOfPlane(const Plane3& p, const Vec3 points[8]);
+	void _updatePlanesFromPoints();
 };
 
 template<class T> inline
@@ -73,5 +79,4 @@ bool Frustum3<T>::isOverlapped(const BBox3& bbox, const Mat4& matrix) const {
 using Frustum3f = Frustum3<float>;
 using Frustum3d = Frustum3<double>;
 
-} // namespace Math
-} // namespace sge
+}} // namespace sge/Math

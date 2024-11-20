@@ -4,6 +4,8 @@
 
 namespace sge {
 
+class EditMesh;
+
 #if 0
 #pragma mark ========= EditMeshUtil ============
 #endif

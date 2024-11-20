@@ -92,7 +92,7 @@ protected:
 	void _error(StrView msg);
 
 	bool _nextToken();
-	std::pair<StrView, StrView> _nextLine();
+	Pair<StrView, StrView> _nextLine();
 
 	void _parseCommentSingleLine();
 	void _parseNewline();

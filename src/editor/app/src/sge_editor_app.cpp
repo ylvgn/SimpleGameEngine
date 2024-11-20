@@ -80,32 +80,10 @@ public:
 
 		{ // create mesh
 			EditMesh editMesh;
-#if 1
+
 			WavefrontObjLoader::readFile(editMesh, "Assets/Mesh/test.obj");
 			EditMeshUtil::addColors(editMesh, Color4b(255, 255, 255, 255));
-#else
-			// triangle mesh
-			editMesh.pos.emplace_back(0.0f, 0.5f, 0.0f);
-			editMesh.pos.emplace_back(0.5f, -0.5f, 0.0f);
-			editMesh.pos.emplace_back(-0.5f, -0.5f, 0.0f);
 
-			editMesh.color.emplace_back(255, 0, 0, 255);
-			editMesh.color.emplace_back(0, 255, 0, 255);
-			editMesh.color.emplace_back(0, 0, 255, 255);
-
-			editMesh.uv[0].emplace_back(0, 1);
-			editMesh.uv[0].emplace_back(1, 1);
-			editMesh.uv[0].emplace_back(1, 0);
-
-			editMesh.normal.emplace_back(0, 0, 0);
-			editMesh.normal.emplace_back(0, 0, 0);
-			editMesh.normal.emplace_back(0, 0, 0);
-
-			// because CullMode = D3D11_CULL_BACK; 2->1->0
-			editMesh.indices.emplace_back(2);
-			editMesh.indices.emplace_back(1);
-			editMesh.indices.emplace_back(0);
-#endif
 			_renderMesh.create(editMesh);
 		}
 
@@ -297,6 +275,7 @@ public:
 		{ // create renderer
 			Renderer::CreateDesc renderDesc;
 			renderDesc.apiType = Renderer::ApiType::OpenGL;
+//			renderDesc.apiType = Renderer::ApiType::DX11;
 			Renderer::create(renderDesc);
 		}
 

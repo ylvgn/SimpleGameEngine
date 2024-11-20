@@ -8,17 +8,17 @@ class RenderContext;
 
 class RenderRequest : public Object {
 public:
-//	Mat4f		matrix_model;
-	Mat4f		matrix_view;
-	Mat4f		matrix_proj;
+//	Mat4f			matrix_model;
+	Mat4f			matrix_view;
+	Mat4f			matrix_proj;
 
 	Vec3f			cameraPos;
 	Math::Frustum3f cameraFrustum;
 
-	Vec3f		light_pos;
-	Vec3f		light_dir;
-	float		light_power;
-	Vec3f		light_color;
+	Vec3f			light_pos;
+	Vec3f			light_dir;
+	float			light_power;
+	Vec3f			light_color;
 
 	RenderCommandBuffer	commandBuffer;
 

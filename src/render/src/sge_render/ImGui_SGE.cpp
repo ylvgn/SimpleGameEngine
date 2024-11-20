@@ -12,7 +12,8 @@ void ImGui_SGE::create() {
 	if (!IMGUI_CHECKVERSION())
 		throw SGE_ERROR("ImGui version error");
 	_ctx = ImGui::CreateContext();
-	if (!_ctx) throw SGE_ERROR("ImGui error create context");
+	if (!_ctx)
+		throw SGE_ERROR("ImGui error create context");
 
 	_vertexLayout = Vertex::s_layout();
 
@@ -32,9 +33,9 @@ void ImGui_SGE::create() {
 void ImGui_SGE::destroy() {
 	if (!_ctx) return;
 
-	ImGuiIO& io = ImGui::GetIO();
-	io.BackendRendererUserData = nullptr;
-	io.BackendRendererName = nullptr;
+	ImGuiIO& io					= ImGui::GetIO();
+	io.BackendRendererUserData	= nullptr;
+	io.BackendRendererName		= nullptr;
 
 	ImGui::DestroyContext(_ctx);
 	_ctx = nullptr;
@@ -55,9 +56,9 @@ void ImGui_SGE::_createFontsTexture() {
 	Texture2D::UploadRequest texUploadRequest;
 	texDesc.uploadRequest = &texUploadRequest;
 	texDesc.size.set(w, h);
-	texDesc.colorType = Color::kColorType;
+	texDesc.colorType	= Color::kColorType;
 	texDesc.mipmapCount = 1;
-	auto& image = texUploadRequest.imageToUpload;
+	auto& image			= texUploadRequest.imageToUpload;
 	image.create(texDesc.colorType, w, h);
 	image.copyToPixelData(ByteSpan(pixels, w * h));
 
@@ -80,6 +81,7 @@ void ImGui_SGE::onBeginRender(RenderContext* renderContext) {
 
 void ImGui_SGE::onEndRender(RenderContext* renderContext) {
 	if (!_ctx) return;
+
 }
 
 void ImGui_SGE::onDrawUI(RenderRequest& req) {

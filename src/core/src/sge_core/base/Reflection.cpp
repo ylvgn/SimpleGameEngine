@@ -39,4 +39,4 @@ void TypeInfo::onFormat(fmt::format_context& ctx) const {
 	if (!_fields.empty()) fmt::format_to(ctx.out(), " {}", '}');
 }
 
-} // namespace
+} // namespace sge
