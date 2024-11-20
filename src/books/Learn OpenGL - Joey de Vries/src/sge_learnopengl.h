@@ -1,7 +1,6 @@
 #pragma once
 
-#include <sge_core.h>
+#include <sge_editor.h>
 
-#include <sge_learnopengl/MyCommon.h>
-#include <sge_learnopengl/native_ui/MyGLFWUIEvent.h>
-#include <sge_learnopengl/native_ui/MyGLFWNativeUI.h>
+#include <sge_learnopengl/JoeyOGL_Common.h>
+#include <sge_learnopengl/JoeyOGL_NativeUI.h>

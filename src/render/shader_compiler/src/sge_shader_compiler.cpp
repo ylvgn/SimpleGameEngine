@@ -514,42 +514,42 @@ private:
 			ninja.append(Fmt("\nsgeFileCmd = ${{sge_tools_bin}}/{}${{exe_suffix}}", sgeFileCmd));
 			ninja.append(Fmt("\nsgeShaderCompiler = ${{sge_tools_bin}}/{}${{exe_suffix}}", sgeShaderCompiler));
 			ninja.append("\nninja = ${sge_tools_bin}/ninja${exe_suffix}"
-							"\nglslc = ${sge_tools_bin}/glslc${exe_suffix}"
-							"\nspirv_cross = ${sge_tools_bin}/spirv-cross${exe_suffix}"
-							"\n\n#------"
-							"\nrule sgeFileCmd"
-							"\n  command = ${sgeFileCmd} ${sge_cmd_args}"
-							"\n\nrule touch"
-							"\n  command = ${sgeFileCmd} -touch ${out}"
-							"\n\nrule mkdir"
-							"\n  command = ${sgeFileCmd} -mkdir ${out}"
-							"\n\nrule ninja"
-							"\n  command = ${ninja} -C ${in} --quiet"
-							"\n\nrule BUILD_DX11"
-							"\n  command = ${sgeShaderCompiler} -hlsl -file=${file} -out=${out} -profile=${profile} -entry=${entry} ${include_dirs}"
-							"\n\nrule BUILD_SPIRV"
-							"\n  command = ${glslc} -fshader-stage=${fshader_stage} -fentry-point=${entry} -fhlsl-functionality1 -fhlsl-iomap -o ${out} -x hlsl ${file} ${include_dirs}"
-							"\n\nrule BUILD_GLSL"
-							"\n  command = ${sgeShaderCompiler} -glsl -file=${file} -out=${out} -profile=${profile} -entry=${entry} ${include_dirs}"
+						 "\nglslc = ${sge_tools_bin}/glslc${exe_suffix}"
+						 "\nspirv_cross = ${sge_tools_bin}/spirv-cross${exe_suffix}"
+						 "\n\n#------"
+						 "\nrule sgeFileCmd"
+						 "\n  command = ${sgeFileCmd} ${sge_cmd_args}"
+						 "\n\nrule touch"
+						 "\n  command = ${sgeFileCmd} -touch ${out}"
+						 "\n\nrule mkdir"
+						 "\n  command = ${sgeFileCmd} -mkdir ${out}"
+						 "\n\nrule ninja"
+						 "\n  command = ${ninja} -C ${in} --quiet"
+						 "\n\nrule BUILD_DX11"
+						 "\n  command = ${sgeShaderCompiler} -hlsl -file=${file} -out=${out} -profile=${profile} -entry=${entry} ${include_dirs}"
+						 "\n\nrule BUILD_SPIRV"
+						 "\n  command = ${glslc} -fshader-stage=${fshader_stage} -fentry-point=${entry} -fhlsl-functionality1 -fhlsl-iomap -o ${out} -x hlsl ${file} ${include_dirs}"
+						 "\n\nrule BUILD_GLSL"
+						 "\n  command = ${sgeShaderCompiler} -glsl -file=${file} -out=${out} -profile=${profile} -entry=${entry} ${include_dirs}"
 			);
 		}
 
 		{
 			ninja.append("\n\n#------");
 			ninja.append("\nrule echo"
-				"\n  command = echo ${in}"
-				"\n  description = [SGE_LOG]$: \"in=${in}\", \"out=${out}\""
-				"\n\nrule start"
-				"\n  command = ${multi_command_prefix}echo ========================== $"
-				"\n  && echo sge_tools_bin=${sge_tools_bin} $"
-				"\n  && echo sge_build_bin=${sge_build_bin} $"
-				"\n  && echo sgeFileCmd=${sgeFileCmd} $"
-				"\n  && echo sgeShaderCompiler=${sgeShaderCompiler} $"
-				"\n  && echo ninja=${ninja} $"
-				"\n  && echo glslc=${glslc} $"
-				"\n  && echo spirv_cross=${spirv_cross} $"
-				"\n  && echo ========================== $"
-				"\n  && echo"
+						 "\n  command = echo ${in}"
+						 "\n  description = [SGE_LOG]$: \"in=${in}\", \"out=${out}\""
+						 "\n\nrule start"
+						 "\n  command = ${multi_command_prefix}echo ========================== $"
+						 "\n  && echo sge_tools_bin=${sge_tools_bin} $"
+						 "\n  && echo sge_build_bin=${sge_build_bin} $"
+						 "\n  && echo sgeFileCmd=${sgeFileCmd} $"
+						 "\n  && echo sgeShaderCompiler=${sgeShaderCompiler} $"
+						 "\n  && echo ninja=${ninja} $"
+						 "\n  && echo glslc=${glslc} $"
+						 "\n  && echo spirv_cross=${spirv_cross} $"
+						 "\n  && echo ========================== $"
+						 "\n  && echo"
 			);
 			ninja.append("\n\n#------");
 			ninja.append("\nbuild start: start");
@@ -572,11 +572,11 @@ private:
 		ninja.append("\n\n#------ BUILD_DX11");
 
 		TempString fmt = "\nbuild dx11/pass{0}/${{profile}}.bin: BUILD_DX11"
-			"\n  file         = ${{sge_src_shader}}"
-			"\n  profile      = {1}"
-			"\n  entry        = {2}"
-			"\n  include_dirs ={3}"
-			"\n"
+						 "\n  file         = ${{sge_src_shader}}"
+						 "\n  profile      = {1}"
+						 "\n  entry        = {2}"
+						 "\n  include_dirs ={3}"
+						 "\n"
 		;
 
 		TempString include_dirs;
@@ -590,12 +590,12 @@ private:
 		ninja.append("\n\n#------ BUILD_SPIRV");
 
 		TempString fmt = "\nbuild spirv/pass{0}/${{profile}}.bin: BUILD_SPIRV"
-			"\n  file          = ${{sge_src_shader}}"
-			"\n  profile       = {1}"
-			"\n  fshader_stage = {2}"
-			"\n  entry         = {3}"
-			"\n  include_dirs  ={4}"
-			"\n"
+						 "\n  file          = ${{sge_src_shader}}"
+						 "\n  profile       = {1}"
+						 "\n  fshader_stage = {2}"
+						 "\n  entry         = {3}"
+						 "\n  include_dirs  ={4}"
+						 "\n"
 		;
 
 		TempString include_dirs;
@@ -610,11 +610,11 @@ private:
 		ninja.append("\n\n#------ BUILD_GLSL");
 
 		TempString fmt = "\nbuild glsl/pass{0}/${{profile}}.glsl: BUILD_GLSL"
-			"\n  file         = ${{sge_src_shader}}"
-			"\n  profile      = {1}"
-			"\n  entry        = {2}"
-			"\n  include_dirs ={3}"
-			"\n"
+						 "\n  file         = ${{sge_src_shader}}"
+						 "\n  profile      = {1}"
+						 "\n  entry        = {2}"
+						 "\n  include_dirs ={3}"
+						 "\n"
 		;
 
 		TempString include_dirs;
@@ -690,6 +690,7 @@ private:
 						 "\nrule sc"
 						 "\n  command = ${multi_command_prefix}${sgeShaderCompiler} -genNinja -file=${file} -out=${out} $"
 						 "\n  && ${ninja} -C ${out} --quiet"
+						 "\nbuild force : phony"
 			);
 		}
 
@@ -712,9 +713,9 @@ private:
 			return sv.ends_with(".shader");
 		});
 
-		TempString fmt = "\nbuild {0}/{1}: sc"
-			"\n  file = {2}"
-			"\n"
+		TempString fmt = "\nbuild {0}/{1}: sc | force"
+						 "\n  file = {2}"
+						 "\n"
 		;
 
 		String relativeBuildNinja;

@@ -36,9 +36,6 @@ find_package(spirv_cross_glsl CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 
-#-- externals ---
-add_subdirectory(externals)
-
 #-- core ---
 add_subdirectory(src/core)
 add_subdirectory(src/core/test)
@@ -56,6 +53,9 @@ add_subdirectory(src/editor/app)
 
 #-- tools ---
 add_subdirectory(src/tools/file_cmd)
+
+#-- externals ---
+add_subdirectory(externals)
 
 set_property (DIRECTORY PROPERTY VS_STARTUP_PROJECT sge_editor_app) # Set as Startup Project
 
