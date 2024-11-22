@@ -33,14 +33,14 @@ struct PixelIn {
 	PA_UV(float2);
 };
 
-float4x4 ProjectionMatrix; 
+float4x4 sge_matrix_proj; 
 
 Texture2D    texture0;
 SamplerState sampler0;
 
 PixelIn vs_main(VertexIn i) {
 	PixelIn o;
-	o.positionHCS = mul(ProjectionMatrix, float4(i.positionOS.xy, 0.f, 1.f));
+	o.positionHCS = mul(sge_matrix_proj, float4(i.positionOS.xy, 0.f, 1.f));
 	o.color = i.color;
 	o.uv  = i.uv;
 	return o;

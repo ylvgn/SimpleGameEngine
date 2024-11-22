@@ -18,7 +18,8 @@ void RenderContext::onPostCreate() {
 		p->stockTextures.error		= p->createSolidColorTexture2D(Color4b(255, 0,   255, 255));
 	}
 
-	_imgui.create();
+	ImGui_SGE::CreateDesc desc;
+	_imgui.create(desc);
 }
 
 void RenderContext::beginRender() {

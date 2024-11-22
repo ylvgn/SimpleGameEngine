@@ -17,8 +17,9 @@ public:
 
 	void	setFps(int fps);
 
-	int		fps()			const { return _fps; }
-	u64		frameCount()	const { return _frameCount; }
+	int		fps()				const { return _fps; }
+	u64		frameCount()		const { return _frameCount; }
+	float	targetFrequency()	const { return _targetFrequency; }
 
 protected:
 	virtual void onCreate(CreateDesc& desc) {}
