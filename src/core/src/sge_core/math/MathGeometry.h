@@ -18,7 +18,9 @@ public:
 		, radius(radius_)
 	{}
 
-	void onFormat(fmt::format_context& ctx) const;
+	void onFormat(fmt::format_context& ctx) const {
+		fmt::format_to(ctx.out(), "Sphere3(c={}, r={})", center, radius);
+	}
 
 	Vec3	center;
 	T		radius;
@@ -39,7 +41,9 @@ public:
 		, v2(v2_)
 	{}
 
-	void onFormat(fmt::format_context& ctx) const;
+	void onFormat(fmt::format_context& ctx) const {
+		fmt::format_to(ctx.out(), "Triangle3(v0={}, v1={}, v2={})", v0, v1, v2);
+	}
 
 	Vec3 v0, v1, v2;
 }; // Triangle3
@@ -81,7 +85,9 @@ public:
 
 	T dot(const Vec3& point) const { return normal.dot(point) - distance; }
 
-	void onFormat(fmt::format_context& ctx) const;
+	void onFormat(fmt::format_context& ctx) const {
+		fmt::format_to(ctx.out(), "Plane3(nl={}, dist={})", normal, distance);
+	}
 
 	Vec3	normal;
 	T		distance; // distance from origin
@@ -102,7 +108,9 @@ public:
 		, radius(radius_)
 	{}
 
-	void onFormat(fmt::format_context& ctx) const;
+	void onFormat(fmt::format_context& ctx) const {
+		fmt::format_to(ctx.out(), "Cylinder3(st={}, ed={}, r={})", start, end, radius);
+	}
 
 	Vec3	start;
 	Vec3	end;
@@ -124,7 +132,9 @@ public:
 		, radius(radius_)
 	{}
 
-	void onFormat(fmt::format_context& ctx) const;
+	void onFormat(fmt::format_context& ctx) const {
+		fmt::format_to(ctx.out(), "Capsule3(st={}, ed={}, r={})", start, end, radius);
+	}
 
 	Vec3	start;
 	Vec3	end;
@@ -138,6 +148,7 @@ public:
 template<class T>
 struct Line2 {
 	using Vec2 = Vec2<T>;
+	using Vec3 = Vec3<T>;
 public:
 	Line2() = default;
 	Line2(const Vec2& start_, const Vec2& end_)
@@ -145,10 +156,12 @@ public:
 		, end(end_)
 	{}
 
-//	bool getClosestPoint(Vec2& outPoint, const Vec2& inPoint) const; TODO
-//	T	 distanceToPoint(const Vec2& pt) const; TODO
+	bool getClosestPoint(Vec2& outPoint, const Vec2& inPoint) const;
+	T	 distanceToPoint(const Vec2& pt) const;
 
-	void onFormat(fmt::format_context& ctx) const;
+	void onFormat(fmt::format_context& ctx) const {
+		fmt::format_to(ctx.out(), "Line2(st={}, ed={})", start, end);
+	}
 
 	Vec2	start;
 	Vec2	end;
@@ -168,10 +181,12 @@ public:
 		, end(end_)
 	{}
 
-//	bool getClosestPoint(Vec3& outPoint, const Vec3& inPoint) const; TODO
-//	T	 distanceToPoint(const Vec3& pt) const;						 TODO
+	bool getClosestPoint(Vec3& outPoint, const Vec3& inPoint) const;
+	T	 distanceToPoint(const Vec3& pt) const;
 
-	void onFormat(fmt::format_context& ctx) const;
+	void onFormat(fmt::format_context& ctx) const {
+		fmt::format_to(ctx.out(), "Line3(st={}, ed={})", start, end);
+	}
 
 	Vec3	start;
 	Vec3	end;
@@ -196,7 +211,6 @@ using Line2d		= Line2<double>;
 
 using Line3f		= Line3<float>;
 using Line3d		= Line3<double>;
-
 }} // namespace sge/Math
 
 

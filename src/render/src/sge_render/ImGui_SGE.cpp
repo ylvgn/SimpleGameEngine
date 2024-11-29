@@ -11,6 +11,7 @@ ImGui_SGE::~ImGui_SGE() {
 void ImGui_SGE::create(CreateDesc& desc) {
 	if (!IMGUI_CHECKVERSION())
 		throw SGE_ERROR("ImGui version error");
+
 	_ctx = ImGui::CreateContext();
 	if (!_ctx)
 		throw SGE_ERROR("ImGui error create context");
@@ -23,18 +24,18 @@ void ImGui_SGE::create(CreateDesc& desc) {
 	io.BackendRendererName = "ImGui_SGE";
 	io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;
 	io.ConfigFlags  |= ImGuiConfigFlags_NavEnableKeyboard;
+	io.ConfigFlags  |= ImGuiConfigFlags_DockingEnable;	// docking: require imgui[docking-experimental]
+	io.ConfigFlags  |= ImGuiConfigFlags_ViewportsEnable; // multiViewport: require imgui[docking-experimental]
 	io.IniSavingRate = desc.iniSavingRate;
-
-	if (desc.docking)		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-	if (desc.multiViewport) io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
 	setStyle(desc.style);
 
-	auto* renderer	= Renderer::instance();
-	auto shader		= Renderer::instance()->createShader("Assets/Shaders/imgui.shader");
-	_material		= renderer->createMaterial();
-
-	_material->setShader(shader);
+	{
+		auto* renderer = Renderer::instance();
+		auto shader	= Renderer::instance()->createShader("Assets/Shaders/imgui.shader");
+		_material = renderer->createMaterial();
+		_material->setShader(shader);
+	}
 }
 
 void ImGui_SGE::destroy() {
@@ -61,9 +62,9 @@ void ImGui_SGE::setStyle(ImGui_SGE__Style s) {
 	}
 
 	if (s == SRC::DuneDark) {
-		style->WindowPadding		= ImVec2(15, 15);
+		style->WindowPadding		= ImVec2(15,15);
 		style->WindowRounding		= 5.0f;
-		style->FramePadding			= ImVec2(5, 5);
+		style->FramePadding			= ImVec2(5,5);
 		style->FrameRounding		= 4.0f;
 		style->ItemSpacing			= ImVec2(12, 8);
 		style->ItemInnerSpacing		= ImVec2(8, 6);
@@ -130,62 +131,61 @@ void ImGui_SGE::setStyle(ImGui_SGE__Style s) {
         style->TabRounding			= 0.0f;
         style->ChildRounding		= 0.0f;
         style->PopupRounding		= 0.0f;
-
-        style->WindowBorderSize = 1.0f;
-        style->FrameBorderSize = 0.0f;
-        style->PopupBorderSize = 1.0f;
+        style->WindowBorderSize		= 1.0f;
+        style->FrameBorderSize		= 0.0f;
+        style->PopupBorderSize		= 1.0f;
 
         ImVec4* colors = ImGui::GetStyle().Colors;
-        colors[ImGuiCol_Text] = ImVec4(0.96f, 0.96f, 0.99f, 1.00f);
-        colors[ImGuiCol_TextDisabled] = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
-        colors[ImGuiCol_WindowBg] = ImVec4(0.09f, 0.09f, 0.10f, 1.00f);
-        colors[ImGuiCol_ChildBg] = ImVec4(0.09f, 0.09f, 0.10f, 1.00f);
-        colors[ImGuiCol_PopupBg] = ImVec4(0.06f, 0.06f, 0.07f, 1.00f);
-        colors[ImGuiCol_Border] = ImVec4(0.12f, 0.12f, 0.14f, 1.00f);
-        colors[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
-        colors[ImGuiCol_FrameBg] = ImVec4(0.12f, 0.12f, 0.13f, 1.00f);
-        colors[ImGuiCol_FrameBgHovered] = ImVec4(0.20f, 0.20f, 0.22f, 1.00f);
-        colors[ImGuiCol_FrameBgActive] = ImVec4(0.27f, 0.27f, 0.29f, 1.00f);
-        colors[ImGuiCol_TitleBg] = ImVec4(0.07f, 0.07f, 0.07f, 1.00f);
-        colors[ImGuiCol_TitleBgActive] = ImVec4(0.07f, 0.07f, 0.07f, 1.00f);
-        colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.07f, 0.07f, 0.07f, 1.00f);
-        colors[ImGuiCol_MenuBarBg] = ImVec4(0.07f, 0.07f, 0.07f, 1.00f);
-        colors[ImGuiCol_ScrollbarBg] = ImVec4(0.07f, 0.07f, 0.07f, 1.00f);
-        colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.31f, 0.31f, 0.32f, 1.00f);
-        colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.41f, 0.41f, 0.42f, 1.00f);
-        colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.51f, 0.51f, 0.53f, 1.00f);
-        colors[ImGuiCol_CheckMark] = ImVec4(0.44f, 0.44f, 0.47f, 1.00f);
-        colors[ImGuiCol_SliderGrab] = ImVec4(0.44f, 0.44f, 0.47f, 1.00f);
-        colors[ImGuiCol_SliderGrabActive] = ImVec4(0.59f, 0.59f, 0.61f, 1.00f);
-        colors[ImGuiCol_Button] = ImVec4(0.20f, 0.20f, 0.22f, 1.00f);
-        colors[ImGuiCol_ButtonHovered] = ImVec4(0.44f, 0.44f, 0.47f, 1.00f);
-        colors[ImGuiCol_ButtonActive] = ImVec4(0.59f, 0.59f, 0.61f, 1.00f);
-        colors[ImGuiCol_Header] = ImVec4(0.20f, 0.20f, 0.22f, 1.00f);
-        colors[ImGuiCol_HeaderHovered] = ImVec4(0.44f, 0.44f, 0.47f, 1.00f);
-        colors[ImGuiCol_HeaderActive] = ImVec4(0.59f, 0.59f, 0.61f, 1.00f);
-        colors[ImGuiCol_Separator] = ImVec4(1.00f, 1.00f, 1.00f, 0.20f);
-        colors[ImGuiCol_SeparatorHovered] = ImVec4(0.44f, 0.44f, 0.47f, 0.39f);
-        colors[ImGuiCol_SeparatorActive] = ImVec4(0.44f, 0.44f, 0.47f, 0.59f);
-        colors[ImGuiCol_ResizeGrip] = ImVec4(0.26f, 0.59f, 0.98f, 0.00f);
-        colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.00f);
-        colors[ImGuiCol_ResizeGripActive] = ImVec4(0.26f, 0.59f, 0.98f, 0.00f);
-        colors[ImGuiCol_Tab] = ImVec4(0.20f, 0.20f, 0.22f, 1.00f);
-        colors[ImGuiCol_TabHovered] = ImVec4(0.44f, 0.44f, 0.47f, 1.00f);
-        colors[ImGuiCol_TabActive] = ImVec4(0.44f, 0.44f, 0.47f, 1.00f);
-        colors[ImGuiCol_TabUnfocused] = ImVec4(0.20f, 0.20f, 0.22f, 0.39f);
-        colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.44f, 0.44f, 0.47f, 0.39f);
-        colors[ImGuiCol_DockingPreview] = ImVec4(0.91f, 0.62f, 0.00f, 0.78f);
-        colors[ImGuiCol_DockingEmptyBg] = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
-        colors[ImGuiCol_PlotLines] = ImVec4(0.96f, 0.96f, 0.99f, 1.00f);
-        colors[ImGuiCol_PlotLinesHovered] = ImVec4(0.12f, 1.00f, 0.12f, 1.00f);
-        colors[ImGuiCol_PlotHistogram] = ImVec4(0.96f, 0.96f, 0.99f, 1.00f);
-        colors[ImGuiCol_PlotHistogramHovered] = ImVec4(0.12f, 1.00f, 0.12f, 1.00f);
-        colors[ImGuiCol_TextSelectedBg] = ImVec4(0.26f, 0.59f, 0.98f, 0.35f);
-        colors[ImGuiCol_DragDropTarget] = ImVec4(0.91f, 0.62f, 0.00f, 1.00f);
-        colors[ImGuiCol_NavHighlight] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
-        colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
-        colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
-        colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
+        colors[ImGuiCol_Text]					= ImVec4(0.96f, 0.96f, 0.99f, 1.00f);
+        colors[ImGuiCol_TextDisabled]			= ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
+        colors[ImGuiCol_WindowBg]				= ImVec4(0.09f, 0.09f, 0.10f, 1.00f);
+        colors[ImGuiCol_ChildBg]				= ImVec4(0.09f, 0.09f, 0.10f, 1.00f);
+        colors[ImGuiCol_PopupBg]				= ImVec4(0.06f, 0.06f, 0.07f, 1.00f);
+        colors[ImGuiCol_Border]					= ImVec4(0.12f, 0.12f, 0.14f, 1.00f);
+        colors[ImGuiCol_BorderShadow]			= ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+        colors[ImGuiCol_FrameBg]				= ImVec4(0.12f, 0.12f, 0.13f, 1.00f);
+        colors[ImGuiCol_FrameBgHovered]			= ImVec4(0.20f, 0.20f, 0.22f, 1.00f);
+        colors[ImGuiCol_FrameBgActive]			= ImVec4(0.27f, 0.27f, 0.29f, 1.00f);
+        colors[ImGuiCol_TitleBg]				= ImVec4(0.07f, 0.07f, 0.07f, 1.00f);
+        colors[ImGuiCol_TitleBgActive]			= ImVec4(0.07f, 0.07f, 0.07f, 1.00f);
+        colors[ImGuiCol_TitleBgCollapsed]		= ImVec4(0.07f, 0.07f, 0.07f, 1.00f);
+        colors[ImGuiCol_MenuBarBg]				= ImVec4(0.07f, 0.07f, 0.07f, 1.00f);
+        colors[ImGuiCol_ScrollbarBg]			= ImVec4(0.07f, 0.07f, 0.07f, 1.00f);
+        colors[ImGuiCol_ScrollbarGrab]			= ImVec4(0.31f, 0.31f, 0.32f, 1.00f);
+        colors[ImGuiCol_ScrollbarGrabHovered]	= ImVec4(0.41f, 0.41f, 0.42f, 1.00f);
+        colors[ImGuiCol_ScrollbarGrabActive]	= ImVec4(0.51f, 0.51f, 0.53f, 1.00f);
+        colors[ImGuiCol_CheckMark]				= ImVec4(0.44f, 0.44f, 0.47f, 1.00f);
+        colors[ImGuiCol_SliderGrab]				= ImVec4(0.44f, 0.44f, 0.47f, 1.00f);
+        colors[ImGuiCol_SliderGrabActive]		= ImVec4(0.59f, 0.59f, 0.61f, 1.00f);
+        colors[ImGuiCol_Button]					= ImVec4(0.20f, 0.20f, 0.22f, 1.00f);
+        colors[ImGuiCol_ButtonHovered]			= ImVec4(0.44f, 0.44f, 0.47f, 1.00f);
+        colors[ImGuiCol_ButtonActive]			= ImVec4(0.59f, 0.59f, 0.61f, 1.00f);
+        colors[ImGuiCol_Header]					= ImVec4(0.20f, 0.20f, 0.22f, 1.00f);
+        colors[ImGuiCol_HeaderHovered]			= ImVec4(0.44f, 0.44f, 0.47f, 1.00f);
+        colors[ImGuiCol_HeaderActive]			= ImVec4(0.59f, 0.59f, 0.61f, 1.00f);
+        colors[ImGuiCol_Separator]				= ImVec4(1.00f, 1.00f, 1.00f, 0.20f);
+        colors[ImGuiCol_SeparatorHovered]		= ImVec4(0.44f, 0.44f, 0.47f, 0.39f);
+        colors[ImGuiCol_SeparatorActive]		= ImVec4(0.44f, 0.44f, 0.47f, 0.59f);
+        colors[ImGuiCol_ResizeGrip]				= ImVec4(0.26f, 0.59f, 0.98f, 0.00f);
+        colors[ImGuiCol_ResizeGripHovered]		= ImVec4(0.26f, 0.59f, 0.98f, 0.00f);
+        colors[ImGuiCol_ResizeGripActive]		= ImVec4(0.26f, 0.59f, 0.98f, 0.00f);
+        colors[ImGuiCol_Tab]					= ImVec4(0.20f, 0.20f, 0.22f, 1.00f);
+        colors[ImGuiCol_TabHovered]				= ImVec4(0.44f, 0.44f, 0.47f, 1.00f);
+        colors[ImGuiCol_TabActive]				= ImVec4(0.44f, 0.44f, 0.47f, 1.00f);
+        colors[ImGuiCol_TabUnfocused]			= ImVec4(0.20f, 0.20f, 0.22f, 0.39f);
+        colors[ImGuiCol_TabUnfocusedActive]		= ImVec4(0.44f, 0.44f, 0.47f, 0.39f);
+        colors[ImGuiCol_DockingPreview]			= ImVec4(0.91f, 0.62f, 0.00f, 0.78f);
+        colors[ImGuiCol_DockingEmptyBg]			= ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
+        colors[ImGuiCol_PlotLines]				= ImVec4(0.96f, 0.96f, 0.99f, 1.00f);
+        colors[ImGuiCol_PlotLinesHovered]		= ImVec4(0.12f, 1.00f, 0.12f, 1.00f);
+        colors[ImGuiCol_PlotHistogram]			= ImVec4(0.96f, 0.96f, 0.99f, 1.00f);
+        colors[ImGuiCol_PlotHistogramHovered]	= ImVec4(0.12f, 1.00f, 0.12f, 1.00f);
+        colors[ImGuiCol_TextSelectedBg]			= ImVec4(0.26f, 0.59f, 0.98f, 0.35f);
+        colors[ImGuiCol_DragDropTarget]			= ImVec4(0.91f, 0.62f, 0.00f, 1.00f);
+        colors[ImGuiCol_NavHighlight]			= ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
+        colors[ImGuiCol_NavWindowingHighlight]	= ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
+        colors[ImGuiCol_NavWindowingDimBg]		= ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
+        colors[ImGuiCol_ModalWindowDimBg]		= ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
     }
 
 // ----
@@ -196,10 +196,6 @@ void ImGui_SGE::setStyle(ImGui_SGE__Style s) {
 }
 
 void ImGui_SGE::_createFontsTexture() {
-	using Color = ColorRb;
-
-	auto* renderer = Renderer::instance();
-
 	unsigned char* pixels;
 	int w, h;
 
@@ -210,17 +206,20 @@ void ImGui_SGE::_createFontsTexture() {
 	Texture2D::UploadRequest texUploadRequest;
 	texDesc.uploadRequest = &texUploadRequest;
 	texDesc.size.set(w, h);
-	texDesc.colorType	= Color::kColorType;
+	texDesc.colorType = ColorRb::kColorType;
 	texDesc.mipmapCount = 1;
 	auto& image	= texUploadRequest.imageToUpload;
 	image.create(texDesc.colorType, w, h);
 	image.copyToPixelData(ByteSpan(pixels, w * h));
 
+	auto* renderer = Renderer::instance();
 	_fontsTexture = renderer->createTexture2D(texDesc);
 }
 
 void ImGui_SGE::setDockingEnable(bool isEnable) {
-	return isEnable ? _setConfigFlag(ImGuiConfigFlags_DockingEnable) : _unsetConfigFlag(ImGuiConfigFlags_DockingEnable);
+	return isEnable
+		? _setConfigFlag(ImGuiConfigFlags_DockingEnable)
+		: _unsetConfigFlag(ImGuiConfigFlags_DockingEnable);
 }
 
 bool ImGui_SGE::isMultiViewportEnabled() {
@@ -273,12 +272,10 @@ void ImGui_SGE::onDrawUI(RenderRequest& req) {
 		float T = data->DisplayPos.y;
 		float B = data->DisplayPos.y + data->DisplaySize.y;
 
-		Mat4f sge_matrix_proj (
-			{ 2.0f/(R-L),   0.0f,           0.0f,       0.0f },
-			{ 0.0f,         2.0f/(T-B),     0.0f,       0.0f },
-			{ 0.0f,         0.0f,           0.5f,       0.0f },
-			{ (R+L)/(L-R),  (T+B)/(B-T),    0.5f,       1.0f }
-		);
+		Mat4f sge_matrix_proj ({ 2.0f/(R-L),  0.0f,        0.0f, 0.0f },
+							   { 0.0f,        2.0f/(T-B),  0.0f, 0.0f },
+							   { 0.0f,        0.0f,        0.5f, 0.0f },
+							   { (R+L)/(L-R), (T+B)/(B-T), 0.5f, 1.0f });
 		_material->setParam("sge_matrix_proj", sge_matrix_proj);
 		_material->setParam("texture0", _fontsTexture);
 	}
@@ -290,7 +287,7 @@ void ImGui_SGE::onDrawUI(RenderRequest& req) {
 	SGE_ASSERT(indexSize == sizeof(u16));
 
 	auto totalVertexDataSize = data->TotalVtxCount * vertexSize;
-	auto totalIndexDataSize = data->TotalIdxCount * indexSize;
+	auto totalIndexDataSize  = data->TotalIdxCount * indexSize;
 
 	// vertex buffer
 	if (!_vertexBuffer || _vertexBuffer->bufferSize() < totalVertexDataSize)
@@ -419,7 +416,7 @@ void ImGui_SGE::onUIKeyboardEvent(UIKeyboardEvent& ev) {
 	using Type		= UIKeyCodeEventType;
 	using KeyCode	= UIKeyboardEvent::KeyCode;
 
-	ImGuiIO& io		= ImGui::GetIO();
+	ImGuiIO& io	= ImGui::GetIO();
 
 	if (ev.charCode > 0) {
 		io.AddInputCharacter(ev.charCode);
@@ -441,116 +438,115 @@ void ImGui_SGE::onUIKeyboardEvent(UIKeyboardEvent& ev) {
 }
 
 ImGuiKey ImGui_SGE::_keyCode(UIKeyboardEventKeyCode v) {
-
-	using KeyCode = UIKeyboardEventKeyCode;
+	using SRC = UIKeyboardEventKeyCode;
 
 	switch (v) {
-		case KeyCode::Tab:				return ImGuiKey_Tab;
-		case KeyCode::LeftArrow:		return ImGuiKey_LeftArrow;
-		case KeyCode::RightArrow:		return ImGuiKey_RightArrow;
-		case KeyCode::UpArrow:			return ImGuiKey_UpArrow;
-		case KeyCode::DownArrow:		return ImGuiKey_DownArrow;
-		case KeyCode::PageUp:			return ImGuiKey_PageUp;
-		case KeyCode::PageDown:			return ImGuiKey_PageDown;
-		case KeyCode::Home:				return ImGuiKey_Home;
-		case KeyCode::End:				return ImGuiKey_End;
-		case KeyCode::Insert:			return ImGuiKey_Insert;
-		case KeyCode::Delete:			return ImGuiKey_Delete;
-		case KeyCode::Backspace:		return ImGuiKey_Backspace;
-		case KeyCode::Space:			return ImGuiKey_Space;
-		case KeyCode::Enter:			return ImGuiKey_Enter;
-		case KeyCode::Escape:			return ImGuiKey_Escape;
-		case KeyCode::Quote:			return ImGuiKey_Apostrophe;
-		case KeyCode::Comma:			return ImGuiKey_Comma;
-		case KeyCode::Hyphen:			return ImGuiKey_Minus;
-		case KeyCode::Period:			return ImGuiKey_Period;
-		case KeyCode::Slash:			return ImGuiKey_Slash;
-		case KeyCode::Semicolon:		return ImGuiKey_Semicolon;
-		case KeyCode::Equals:			return ImGuiKey_Equal;
-		case KeyCode::LeftBracket:		return ImGuiKey_LeftBracket;
-		case KeyCode::Backslash:		return ImGuiKey_Backslash;
-		case KeyCode::RightBracket:		return ImGuiKey_RightBracket;
-		case KeyCode::BackQuote:		return ImGuiKey_GraveAccent;
-		case KeyCode::CapsLock:			return ImGuiKey_CapsLock;
-		case KeyCode::ScrollLock:		return ImGuiKey_ScrollLock;
-		case KeyCode::NumLock:			return ImGuiKey_NumLock;
-		case KeyCode::PrintScreen:		return ImGuiKey_PrintScreen;
-		case KeyCode::Pause:			return ImGuiKey_Pause;
-		case KeyCode::Keypad0:			return ImGuiKey_Keypad0;
-		case KeyCode::Keypad1:			return ImGuiKey_Keypad1;
-		case KeyCode::Keypad2:			return ImGuiKey_Keypad2;
-		case KeyCode::Keypad3:			return ImGuiKey_Keypad3;
-		case KeyCode::Keypad4:			return ImGuiKey_Keypad4;
-		case KeyCode::Keypad5:			return ImGuiKey_Keypad5;
-		case KeyCode::Keypad6:			return ImGuiKey_Keypad6;
-		case KeyCode::Keypad7:			return ImGuiKey_Keypad7;
-		case KeyCode::Keypad8:			return ImGuiKey_Keypad8;
-		case KeyCode::Keypad9:			return ImGuiKey_Keypad9;
-		case KeyCode::KeypadPeriod:		return ImGuiKey_KeypadDecimal;
-		case KeyCode::KeypadDivide:	 	return ImGuiKey_KeypadDivide;
-		case KeyCode::KeypadMultiply:	return ImGuiKey_KeypadMultiply;
-		case KeyCode::KeypadMinus:		return ImGuiKey_KeypadSubtract;
-		case KeyCode::KeypadPlus:	 	return ImGuiKey_KeypadAdd;
-		case KeyCode::Ctrl:				return ImGuiKey_ModCtrl;
-		case KeyCode::Shift:			return ImGuiKey_ModShift;
-		case KeyCode::Alt:				return ImGuiKey_ModAlt;
-		case KeyCode::LShift:			return ImGuiKey_LeftShift;
-		case KeyCode::LCtrl:			return ImGuiKey_LeftCtrl;
-		case KeyCode::LAlt:				return ImGuiKey_LeftAlt;
-		case KeyCode::LCmd: 			return ImGuiKey_LeftSuper;
-		case KeyCode::RShift:  			return ImGuiKey_RightShift;
-		case KeyCode::RCtrl:   			return ImGuiKey_RightCtrl;
-		case KeyCode::RAlt:	   			return ImGuiKey_RightAlt;
-		case KeyCode::RCmd:				return ImGuiKey_RightSuper;
-		case KeyCode::Cmd:				return ImGuiKey_Menu;
-		case KeyCode::Alpha0:			return ImGuiKey_0;
-		case KeyCode::Alpha1:			return ImGuiKey_1;
-		case KeyCode::Alpha2:			return ImGuiKey_2;
-		case KeyCode::Alpha3:			return ImGuiKey_3;
-		case KeyCode::Alpha4:			return ImGuiKey_4;
-		case KeyCode::Alpha5:			return ImGuiKey_5;
-		case KeyCode::Alpha6:			return ImGuiKey_6;
-		case KeyCode::Alpha7:			return ImGuiKey_7;
-		case KeyCode::Alpha8:			return ImGuiKey_8;
-		case KeyCode::Alpha9:			return ImGuiKey_9;
-		case KeyCode::A:				return ImGuiKey_A;
-		case KeyCode::B:				return ImGuiKey_B;
-		case KeyCode::C:				return ImGuiKey_C;
-		case KeyCode::D:				return ImGuiKey_D;
-		case KeyCode::E:				return ImGuiKey_E;
-		case KeyCode::F:				return ImGuiKey_F;
-		case KeyCode::G:				return ImGuiKey_G;
-		case KeyCode::H:				return ImGuiKey_H;
-		case KeyCode::I:				return ImGuiKey_I;
-		case KeyCode::J:				return ImGuiKey_J;
-		case KeyCode::K:				return ImGuiKey_K;
-		case KeyCode::L:				return ImGuiKey_L;
-		case KeyCode::M:				return ImGuiKey_M;
-		case KeyCode::N:				return ImGuiKey_N;
-		case KeyCode::O:				return ImGuiKey_O;
-		case KeyCode::P:				return ImGuiKey_P;
-		case KeyCode::Q:				return ImGuiKey_Q;
-		case KeyCode::R:				return ImGuiKey_R;
-		case KeyCode::S:				return ImGuiKey_S;
-		case KeyCode::T:				return ImGuiKey_T;
-		case KeyCode::U:				return ImGuiKey_U;
-		case KeyCode::V:				return ImGuiKey_V;
-		case KeyCode::W:				return ImGuiKey_W;
-		case KeyCode::X:				return ImGuiKey_X;
-		case KeyCode::Y:				return ImGuiKey_Y;
-		case KeyCode::Z:				return ImGuiKey_Z;
-		case KeyCode::F1:				return ImGuiKey_F1;
-		case KeyCode::F2:				return ImGuiKey_F2;
-		case KeyCode::F3:				return ImGuiKey_F3;
-		case KeyCode::F4:				return ImGuiKey_F4;
-		case KeyCode::F5:				return ImGuiKey_F5;
-		case KeyCode::F6:				return ImGuiKey_F6;
-		case KeyCode::F7:				return ImGuiKey_F7;
-		case KeyCode::F8:				return ImGuiKey_F8;
-		case KeyCode::F9:				return ImGuiKey_F9;
-		case KeyCode::F10:				return ImGuiKey_F10;
-		case KeyCode::F11:				return ImGuiKey_F11;
-		case KeyCode::F12:				return ImGuiKey_F12;
+		case SRC::Tab:				return ImGuiKey_Tab;
+		case SRC::LeftArrow:		return ImGuiKey_LeftArrow;
+		case SRC::RightArrow:		return ImGuiKey_RightArrow;
+		case SRC::UpArrow:			return ImGuiKey_UpArrow;
+		case SRC::DownArrow:		return ImGuiKey_DownArrow;
+		case SRC::PageUp:			return ImGuiKey_PageUp;
+		case SRC::PageDown:			return ImGuiKey_PageDown;
+		case SRC::Home:				return ImGuiKey_Home;
+		case SRC::End:				return ImGuiKey_End;
+		case SRC::Insert:			return ImGuiKey_Insert;
+		case SRC::Delete:			return ImGuiKey_Delete;
+		case SRC::Backspace:		return ImGuiKey_Backspace;
+		case SRC::Space:			return ImGuiKey_Space;
+		case SRC::Enter:			return ImGuiKey_Enter;
+		case SRC::Escape:			return ImGuiKey_Escape;
+		case SRC::Quote:			return ImGuiKey_Apostrophe;
+		case SRC::Comma:			return ImGuiKey_Comma;
+		case SRC::Hyphen:			return ImGuiKey_Minus;
+		case SRC::Period:			return ImGuiKey_Period;
+		case SRC::Slash:			return ImGuiKey_Slash;
+		case SRC::Semicolon:		return ImGuiKey_Semicolon;
+		case SRC::Equals:			return ImGuiKey_Equal;
+		case SRC::LeftBracket:		return ImGuiKey_LeftBracket;
+		case SRC::Backslash:		return ImGuiKey_Backslash;
+		case SRC::RightBracket:		return ImGuiKey_RightBracket;
+		case SRC::BackQuote:		return ImGuiKey_GraveAccent;
+		case SRC::CapsLock:			return ImGuiKey_CapsLock;
+		case SRC::ScrollLock:		return ImGuiKey_ScrollLock;
+		case SRC::NumLock:			return ImGuiKey_NumLock;
+		case SRC::PrintScreen:		return ImGuiKey_PrintScreen;
+		case SRC::Pause:			return ImGuiKey_Pause;
+		case SRC::Keypad0:			return ImGuiKey_Keypad0;
+		case SRC::Keypad1:			return ImGuiKey_Keypad1;
+		case SRC::Keypad2:			return ImGuiKey_Keypad2;
+		case SRC::Keypad3:			return ImGuiKey_Keypad3;
+		case SRC::Keypad4:			return ImGuiKey_Keypad4;
+		case SRC::Keypad5:			return ImGuiKey_Keypad5;
+		case SRC::Keypad6:			return ImGuiKey_Keypad6;
+		case SRC::Keypad7:			return ImGuiKey_Keypad7;
+		case SRC::Keypad8:			return ImGuiKey_Keypad8;
+		case SRC::Keypad9:			return ImGuiKey_Keypad9;
+		case SRC::KeypadPeriod:		return ImGuiKey_KeypadDecimal;
+		case SRC::KeypadDivide:	 	return ImGuiKey_KeypadDivide;
+		case SRC::KeypadMultiply:	return ImGuiKey_KeypadMultiply;
+		case SRC::KeypadMinus:		return ImGuiKey_KeypadSubtract;
+		case SRC::KeypadPlus:	 	return ImGuiKey_KeypadAdd;
+		case SRC::Ctrl:				return ImGuiKey_ModCtrl;
+		case SRC::Shift:			return ImGuiKey_ModShift;
+		case SRC::Alt:				return ImGuiKey_ModAlt;
+		case SRC::LShift:			return ImGuiKey_LeftShift;
+		case SRC::LCtrl:			return ImGuiKey_LeftCtrl;
+		case SRC::LAlt:				return ImGuiKey_LeftAlt;
+		case SRC::LCmd: 			return ImGuiKey_LeftSuper;
+		case SRC::RShift:  			return ImGuiKey_RightShift;
+		case SRC::RCtrl:   			return ImGuiKey_RightCtrl;
+		case SRC::RAlt:	   			return ImGuiKey_RightAlt;
+		case SRC::RCmd:				return ImGuiKey_RightSuper;
+		case SRC::Cmd:				return ImGuiKey_Menu;
+		case SRC::Alpha0:			return ImGuiKey_0;
+		case SRC::Alpha1:			return ImGuiKey_1;
+		case SRC::Alpha2:			return ImGuiKey_2;
+		case SRC::Alpha3:			return ImGuiKey_3;
+		case SRC::Alpha4:			return ImGuiKey_4;
+		case SRC::Alpha5:			return ImGuiKey_5;
+		case SRC::Alpha6:			return ImGuiKey_6;
+		case SRC::Alpha7:			return ImGuiKey_7;
+		case SRC::Alpha8:			return ImGuiKey_8;
+		case SRC::Alpha9:			return ImGuiKey_9;
+		case SRC::A:				return ImGuiKey_A;
+		case SRC::B:				return ImGuiKey_B;
+		case SRC::C:				return ImGuiKey_C;
+		case SRC::D:				return ImGuiKey_D;
+		case SRC::E:				return ImGuiKey_E;
+		case SRC::F:				return ImGuiKey_F;
+		case SRC::G:				return ImGuiKey_G;
+		case SRC::H:				return ImGuiKey_H;
+		case SRC::I:				return ImGuiKey_I;
+		case SRC::J:				return ImGuiKey_J;
+		case SRC::K:				return ImGuiKey_K;
+		case SRC::L:				return ImGuiKey_L;
+		case SRC::M:				return ImGuiKey_M;
+		case SRC::N:				return ImGuiKey_N;
+		case SRC::O:				return ImGuiKey_O;
+		case SRC::P:				return ImGuiKey_P;
+		case SRC::Q:				return ImGuiKey_Q;
+		case SRC::R:				return ImGuiKey_R;
+		case SRC::S:				return ImGuiKey_S;
+		case SRC::T:				return ImGuiKey_T;
+		case SRC::U:				return ImGuiKey_U;
+		case SRC::V:				return ImGuiKey_V;
+		case SRC::W:				return ImGuiKey_W;
+		case SRC::X:				return ImGuiKey_X;
+		case SRC::Y:				return ImGuiKey_Y;
+		case SRC::Z:				return ImGuiKey_Z;
+		case SRC::F1:				return ImGuiKey_F1;
+		case SRC::F2:				return ImGuiKey_F2;
+		case SRC::F3:				return ImGuiKey_F3;
+		case SRC::F4:				return ImGuiKey_F4;
+		case SRC::F5:				return ImGuiKey_F5;
+		case SRC::F6:				return ImGuiKey_F6;
+		case SRC::F7:				return ImGuiKey_F7;
+		case SRC::F8:				return ImGuiKey_F8;
+		case SRC::F9:				return ImGuiKey_F9;
+		case SRC::F10:				return ImGuiKey_F10;
+		case SRC::F11:				return ImGuiKey_F11;
+		case SRC::F12:				return ImGuiKey_F12;
 	}
 	return ImGuiKey_None;
 }
@@ -604,4 +600,4 @@ void ImGui_SGE::onUIMouseCursor(UIMouseEvent& ev) {
 }
 #endif
 
-} // namespace
+} // namespace sge

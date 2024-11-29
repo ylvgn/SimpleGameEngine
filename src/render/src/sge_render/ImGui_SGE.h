@@ -38,16 +38,10 @@ public:
 		CreateDesc()
 			: iniSavingRate(60.f)
 			, style(Style::DuneDark)
-			, docking(true)
-			, multiViewport(true)
 		{}
 
 		float iniSavingRate;
-
 		Style style;
-
-		bool docking		: 1;
-		bool multiViewport	: 1;
 	};
 
 	~ImGui_SGE();
@@ -85,10 +79,10 @@ private:
 
 	int			_mouseButton(UIMouseEventButton v);
 	ImGuiKey	_keyCode(UIKeyboardEventKeyCode v);
-	
-	void		_setConfigFlag(ImGuiConfigFlags_ flag);
-	void		_unsetConfigFlag(ImGuiConfigFlags_ flag);
-	bool		_hasAnyConfigFlag(ImGuiConfigFlags_ flag);
+
+	void _setConfigFlag		(ImGuiConfigFlags_ flag);
+	void _unsetConfigFlag	(ImGuiConfigFlags_ flag);
+	bool _hasAnyConfigFlag	(ImGuiConfigFlags_ flag);
 
 	void _onAddKeyEventByUIKeyboardEvent(ImGuiIO& io, UIKeyboardEvent& ev, UIKeyboardEventKeyCode v);
 

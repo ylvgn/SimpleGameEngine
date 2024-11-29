@@ -3,38 +3,51 @@
 namespace sge { namespace Math {
 
 template<class T>
-void Sphere3<T>::onFormat(fmt::format_context& ctx) const {
-	fmt::format_to(ctx.out(), "Sphere3(c={}, r={})", center, radius);
+bool Line2<T>::getClosestPoint(Vec2& outPoint, const Vec2& inPoint) const {
+	Line3<T> line3(Vec3::s_xy0(start), Vec3::s_xy0(end));
+	Vec3 closestPt;
+	if (!line3.getClosestPoint(closestPt, Vec3::s_xy0(inPoint)))
+		return false;
+
+	outPoint = closestPt.xy();
+	return true;
 }
 
 template<class T>
-void Triangle3<T>::onFormat(fmt::format_context& ctx) const {
-	fmt::format_to(ctx.out(), "Triangle3(v0={}, v1={}, v2={})", v0, v1, v2);
+T Line2<T>::distanceToPoint(const Vec2& pt) const {
+	Vec2 closestPt;
+	if (getClosestPoint(closestPt, pt)) {
+		return closestPt.distance(pt);
+	}
+	return Math::inf<T>();
 }
 
 template<class T>
-void Plane3<T>::onFormat(fmt::format_context& ctx) const {
-	fmt::format_to(ctx.out(), "Plane3(nl={}, dist={})", normal, distance);
+bool Line3<T>::getClosestPoint(Vec3& outPoint, const Vec3& inPoint) const {
+	auto line = end - start;
+	auto sqrLength = line.sqrLength();
+
+	if (Math::equals0(sqrLength))
+		return false;
+
+	auto length = Math::sqrt(sqrLength);
+	auto u = line / length; // normalized line
+	auto v = inPoint - start;
+
+	auto w = u.dot(v);
+	w = Math::clamp(w, T(0), length);
+
+	outPoint = start + u * w;
+	return true;
 }
 
 template<class T>
-void Cylinder3<T>::onFormat(fmt::format_context& ctx) const {
-	fmt::format_to(ctx.out(), "Cylinder3(st={}, ed={}, r={})", start, end, radius);
-}
-
-template<class T>
-void Capsule3<T>::onFormat(fmt::format_context& ctx) const {
-	fmt::format_to(ctx.out(), "Capsule3(st={}, ed={}, r={})", start, end, radius);
-}
-
-template<class T>
-void Line2<T>::onFormat(fmt::format_context& ctx) const {
-	fmt::format_to(ctx.out(), "Line2(st={}, ed={})", start, end);
-}
-
-template<class T>
-void Line3<T>::onFormat(fmt::format_context& ctx) const {
-	fmt::format_to(ctx.out(), "Line3(st={}, ed={})", start, end);
+T Line3<T>::distanceToPoint(const Vec3& pt) const {
+	Vec3 closestPt;
+	if (getClosestPoint(closestPt, pt)) {
+		return closestPt.distance(pt);
+	}
+	return Math::inf<T>();
 }
 
 #define	E(T) \
@@ -44,7 +57,7 @@ void Line3<T>::onFormat(fmt::format_context& ctx) const {
 	template struct Sphere3<T>; \
 	template struct Cylinder3<T>; \
 	template struct Capsule3<T>; \
-//-------------
+//----
 	E(float)
 	E(double)
 #undef E

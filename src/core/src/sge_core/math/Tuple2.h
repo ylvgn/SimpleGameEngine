@@ -1,6 +1,9 @@
 #pragma once
 
+#include <sge_core/base/Error.h>
+#include <sge_core/log/Log.h>
 #include <sge_core/base/Reflection.h>
+#include "Math.h"
 
 namespace sge {
 
@@ -33,4 +36,4 @@ using Tuple2i = Tuple2<i32>;
 using Tuple2f = Tuple2<float>;
 using Tuple2d = Tuple2<double>;
 
-}
+} // namespace sge

@@ -24,10 +24,13 @@ public:
 	using DATA::data;
 	using DATA::kElementCount;
 
-	SGE_INLINE static Vec4 s_zero()		{ return Vec4(0,0,0,0); }
-	SGE_INLINE static Vec4 s_one()		{ return Vec4(1,1,1,1); }
+	SGE_INLINE static constexpr Vec4 s_zero()	{ return Vec4(0,0,0,0); }
+	SGE_INLINE static constexpr Vec4 s_one()	{ return Vec4(1,1,1,1); }
 
-	SGE_INLINE static Vec4 s_inf()		{ auto f = Math::inf<T>(); return Vec4(f,f,f,f); }
+	SGE_INLINE static constexpr Vec4 s_inf()	{ auto f = Math::inf<T>(); return Vec4(f,f,f,f); }
+
+	SGE_INLINE static constexpr Vec4 s_xy01(const Vec2& v) { return Vec4(v.x, v.y, T(0), T(1)); }
+	SGE_INLINE static constexpr Vec4 s_xyz1(const Vec3& v) { return Vec4(v.x, v.y, v.z, T(1)); }
 
 	Vec4() = default;
 	constexpr Vec4(const Tuple4<T>& v) { set(v); }
@@ -71,13 +74,13 @@ public:
 			T& operator[](int i)		{ return data[i]; }
 	const	T& operator[](int i) const	{ return data[i]; }
 
-	Vec2 xy		() const { return Vec2(x,y); }
-	Vec2 xz		() const { return Vec2(x,z); }
-	Vec2 yz		() const { return Vec2(y,z); }
+	SGE_INLINE constexpr Vec2 xy()  const { return Vec2(x, y); }
+	SGE_INLINE constexpr Vec2 xz()  const { return Vec2(x, z); }
+	SGE_INLINE constexpr Vec2 yz()  const { return Vec2(y,z); }
 
-	Vec3 xyz	() const { return Vec3(x,y,z); }
-	Vec3 xy0	() const { return Vec3(x,y,0); }
-	Vec3 x0z	() const { return Vec3(x,0,z); }
+	SGE_INLINE constexpr Vec3 xyz() const { return Vec3(x, y, z); }
+	SGE_INLINE constexpr Vec3 xy0() const { return Vec3(x, y, 0); }
+	SGE_INLINE constexpr Vec3 x0z() const { return Vec3(x,0,z); }
 
 	Vec3 toVec3	() const { return (*this / w).xyz(); };
 
@@ -88,12 +91,9 @@ public:
 		fmt::format_to(ctx.out(), "({}, {}, {}, {})", x, y, z, w);
 	}
 
-	template<class R, class R_DATA>
-	static Vec4 s_cast(const Vec4_Basic<R, R_DATA>& r) {
-		return Vec4(static_cast<T>(r.x),
-					static_cast<T>(r.y),
-					static_cast<T>(r.z),
-					static_cast<T>(r.w));
+	template<class R, class DATA> constexpr
+	static Vec4 s_cast(const Vec4_Basic<R, DATA>& r) {
+		return Vec4(static_cast<T>(r.x), static_cast<T>(r.y), static_cast<T>(r.z), static_cast<T>(r.w));
 	}
 };
 

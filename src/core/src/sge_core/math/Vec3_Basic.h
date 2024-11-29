@@ -23,17 +23,22 @@ public:
 	using DATA::data;
 	using DATA::kElementCount;
 
-	SGE_INLINE static Vec3 s_zero()		{ return Vec3(0,0,0); }
-	SGE_INLINE static Vec3 s_one()		{ return Vec3(1,1,1); }
+	SGE_INLINE static constexpr Vec3 s_zero()		{ return Vec3(0,0,0); }
+	SGE_INLINE static constexpr Vec3 s_one()		{ return Vec3(1,1,1); }
 
-	SGE_INLINE static Vec3 s_forward()	{ return Vec3( 0, 0, 1); }
-	SGE_INLINE static Vec3 s_back()		{ return Vec3( 0, 0,-1); }
-	SGE_INLINE static Vec3 s_up()		{ return Vec3( 0, 1, 0); }
-	SGE_INLINE static Vec3 s_down()		{ return Vec3( 0,-1, 0); }
-	SGE_INLINE static Vec3 s_right()	{ return Vec3( 1 ,0, 0); }
-	SGE_INLINE static Vec3 s_left()		{ return Vec3(-1 ,0, 0); }
+	SGE_INLINE static constexpr Vec3 s_forward()	{ return Vec3( 0, 0, 1); }
+	SGE_INLINE static constexpr Vec3 s_back()		{ return Vec3( 0, 0,-1); }
+	SGE_INLINE static constexpr Vec3 s_up()			{ return Vec3( 0, 1, 0); }
+	SGE_INLINE static constexpr Vec3 s_down()		{ return Vec3( 0,-1, 0); }
+	SGE_INLINE static constexpr Vec3 s_right()		{ return Vec3( 1 ,0, 0); }
+	SGE_INLINE static constexpr Vec3 s_left()		{ return Vec3(-1 ,0, 0); }
 
-	SGE_INLINE static Vec3 s_inf()		{ auto f = Math::inf<T>(); return Vec3(f,f,f); }
+	SGE_INLINE static constexpr Vec3 s_inf()		{ auto f = Math::inf<T>(); return Vec3(f,f,f); }
+
+	SGE_INLINE static constexpr Vec3 s_xy0(const Vec2& v) { return Vec3(v.x, v.y, T(0)); }
+	SGE_INLINE static constexpr Vec3 s_xy1(const Vec2& v) { return Vec3(v.x, v.y, T(1)); }
+	SGE_INLINE static constexpr Vec3 s_x0y(const Vec2& v) { return Vec3(v.x, T(0), v.y); }
+	SGE_INLINE static constexpr Vec3 s_x1y(const Vec2& v) { return Vec3(v.x, T(1), v.y); }
 
 	Vec3() = default;
 	constexpr Vec3(const Tuple3<T> & v) { set(v); }
@@ -91,8 +96,8 @@ public:
 
 	SGE_NODISCARD Vec3 normalize() const { T m = magnitude(); return Math::equals0(m) ? s_zero() : (*this / m); }
 
-	SGE_INLINE	Vec2	xy() const { return Vec2(x,y); }
-	SGE_INLINE	Vec2	xz() const { return Vec2(x,z); }
+	SGE_INLINE constexpr Vec2 xy() const { return Vec2(x,y); }
+	SGE_INLINE constexpr Vec2 xz() const { return Vec2(x,z); }
 
 	Tuple3<T> toTuple() const { return Tuple3<T>(x,y,z); }
 	operator Tuple3<T>() const { return toTuple(); }
@@ -101,8 +106,10 @@ public:
 		fmt::format_to(ctx.out(), "({}, {}, {})", x, y, z);
 	}
 
-	template<class R>
-	static Vec3 s_cast(const Vec3_Basic<R>& r) { return Vec3(static_cast<T>(r.x), static_cast<T>(r.y), static_cast<T>(r.z)); }
+	template<class R, class DATA> constexpr
+	static Vec3 s_cast(const Vec3_Basic<R, DATA>& r) {
+		return Vec3(static_cast<T>(r.x), static_cast<T>(r.y), static_cast<T>(r.z));
+	}
 };
 
 using Vec3f_Basic = Vec3_Basic<float>;
@@ -128,6 +135,7 @@ bool Vec3_Basic<T, DATA>::equals0(const T& epsilon) const {
 		&& Math::equals0(y, epsilon)
 		&& Math::equals0(z, epsilon);
 }
+
 
 namespace Math {
 
