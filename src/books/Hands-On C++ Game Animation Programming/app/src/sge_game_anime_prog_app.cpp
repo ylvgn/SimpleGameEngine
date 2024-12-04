@@ -465,7 +465,7 @@ private:
 #if SGE_OS_WINDOWS
 			_timingInfo.cpu->beginImGuiUpdate();
 #endif
-			auto scopedWireFrame = ScopedValue_make(&_bWireFrame, false); SGE_UNUSED(scopedWireFrame);
+			auto scopedWireFrame = ScopedValue_make(_bWireFrame, false); SGE_UNUSED(scopedWireFrame);
 			_uploadWireFrameMode();
 
 			if (_sampleContext)

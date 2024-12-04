@@ -3,13 +3,11 @@
 
 namespace sge {
 
-Texture2D_DX11::Texture2D_DX11(CreateDesc& desc)
-	: Base(desc)
-{
+Texture2D_DX11::Texture2D_DX11(CreateDesc& desc) : Base(desc) {
 	auto* renderer = Renderer_DX11::instance();
 	auto* dev = renderer->d3dDevice();
 
-	D3D11_TEXTURE2D_DESC dxDesc = {};
+	::D3D11_TEXTURE2D_DESC dxDesc = {};
 	dxDesc.Width				= desc.size.x;
 	dxDesc.Height				= desc.size.y;
 	dxDesc.MipLevels			= desc.mipmapCount;
@@ -22,17 +20,17 @@ Texture2D_DX11::Texture2D_DX11(CreateDesc& desc)
 	dxDesc.CPUAccessFlags		= 0; // D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE
 	dxDesc.MiscFlags			= 0; // D3D11_RESOURCE_MISC_GENERATE_MIPS
 
-	const D3D11_SUBRESOURCE_DATA* pInitialData = nullptr;
-	D3D11_SUBRESOURCE_DATA subReourceData = {};
+	const ::D3D11_SUBRESOURCE_DATA* pInitialData = nullptr;
+	::D3D11_SUBRESOURCE_DATA subReourceData = {};
 	if (desc.uploadRequest) {
-		auto& image = desc.uploadRequest->imageToUpload;
-		auto pixelData = image.pixelData();
-		if (image.colorType() == ColorType::None) {
+		const auto& info		= desc.uploadRequest->imageInfo;
+		const auto& pixelData	= desc.uploadRequest->pixelData;
+		if (info.colorType == ColorType::None) {
 			throw SGE_ERROR("");
 		}
 
 		subReourceData.pSysMem			= pixelData.data();
-		subReourceData.SysMemPitch		= image.strideInBytes();
+		subReourceData.SysMemPitch		= info.strideInBytes;
 		subReourceData.SysMemSlicePitch	= 0;
 
 		pInitialData = &subReourceData;
@@ -41,28 +39,28 @@ Texture2D_DX11::Texture2D_DX11(CreateDesc& desc)
 	auto hr = dev->CreateTexture2D(&dxDesc, pInitialData, _tex.ptrForInit());
 	Util::throwIfError(hr);
 
-//---------
-	D3D11_SAMPLER_DESC samplerDesc	= {};
-	samplerDesc.Filter				= Util::getDxTextureFilter(desc.samplerState.filter);
-	samplerDesc.AddressU			= Util::getDxTextureWrap(desc.samplerState.wrapU);
-	samplerDesc.AddressV			= Util::getDxTextureWrap(desc.samplerState.wrapV);
-	samplerDesc.AddressW			= Util::getDxTextureWrap(desc.samplerState.wrapW);
-	samplerDesc.ComparisonFunc		= D3D11_COMPARISON_NEVER;
-	samplerDesc.MinLOD				= desc.samplerState.minLOD;
-	samplerDesc.MaxLOD				= desc.samplerState.maxLOD;
+//----
+	::D3D11_SAMPLER_DESC samplerDesc = {};
+	samplerDesc.Filter				 = Util::getDxTextureFilter(desc.samplerState.filter);
+	samplerDesc.AddressU			 = Util::getDxTextureWrap(desc.samplerState.wrapU);
+	samplerDesc.AddressV			 = Util::getDxTextureWrap(desc.samplerState.wrapV);
+	samplerDesc.AddressW			 = Util::getDxTextureWrap(desc.samplerState.wrapW);
+	samplerDesc.ComparisonFunc		 = D3D11_COMPARISON_NEVER;
+	samplerDesc.MinLOD				 = desc.samplerState.minLOD;
+	samplerDesc.MaxLOD				 = desc.samplerState.maxLOD;
 
 	hr = dev->CreateSamplerState(&samplerDesc, _samplerState.ptrForInit());
 	Util::throwIfError(hr);
 
-//---------
-	D3D11_SHADER_RESOURCE_VIEW_DESC rvDesc	= {};
-	rvDesc.Format							= dxDesc.Format;
-	rvDesc.ViewDimension					= D3D11_SRV_DIMENSION_TEXTURE2D;
-	rvDesc.Texture2D.MipLevels				= dxDesc.MipLevels ? dxDesc.MipLevels : -1;
-	rvDesc.Texture2D.MostDetailedMip		= 0;
+//----
+	::D3D11_SHADER_RESOURCE_VIEW_DESC rvDesc = {};
+	rvDesc.Format							 = dxDesc.Format;
+	rvDesc.ViewDimension					 = D3D11_SRV_DIMENSION_TEXTURE2D;
+	rvDesc.Texture2D.MipLevels				 = dxDesc.MipLevels ? dxDesc.MipLevels : -1;
+	rvDesc.Texture2D.MostDetailedMip		 = 0;
 
 	hr = dev->CreateShaderResourceView(_tex, &rvDesc, _resourceView.ptrForInit());
 	Util::throwIfError(hr);
 }
 
-} // namespace
+} // namespace sge

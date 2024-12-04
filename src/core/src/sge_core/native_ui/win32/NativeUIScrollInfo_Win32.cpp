@@ -154,10 +154,10 @@ void NativeUIScrollInfo_Win32::_refreshScrollMaxPos() {
 
 void NativeUIScrollInfo_Win32::_retrieve(int flag /*= SIF_ALL*/, bool redraw /*= true*/) {
 	refresh(redraw);
-	ScopedValue<UINT> v(&_si.fMask, flag);
+	ScopedValue<UINT> v(_si.fMask, flag);
 	::GetScrollInfo(_window->_hwnd, _win32_axis, &_si);
 }
 
-}
+} // namespace sge
 
 #endif // SGE_OS_WINDOWS

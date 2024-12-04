@@ -18,7 +18,20 @@ template<class T> struct isSigned {
 	static constexpr bool value = std::is_signed<T>::value;
 };
 
-//--------
+template<class T> struct removeRef					{ using Type = T; };
+template<class T> struct removeRef<T&&>				{ using Type = T; };
+template<class T> struct removeRef<T&>				{ using Type = T; };
+
+template<class T> struct removeConst				{ using Type = T; };
+template<class T> struct removeConst<const T>		{ using Type = T; };
+
+template<class T> struct removeConstRef				{ using Type = T; };
+template<class T> struct removeConstRef<T&>			{ using Type = T; };
+template<class T> struct removeConstRef<T&&>		{ using Type = T; };
+template<class T> struct removeConstRef<const T>	{ using Type = T; };
+template<class T> struct removeConstRef<const T&>	{ using Type = T; };
+
+//----
 template<size_t N> struct typeBySize;
 
 template<>

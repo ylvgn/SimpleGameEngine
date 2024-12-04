@@ -13,14 +13,7 @@ public:
 		_shader = renderer->createShader("Assets/Shaders/test.shader");
 
 		{ // create texture
-			Texture2D_CreateDesc texDesc;
-			Texture2D::UploadRequest texUploadRequest;
-			auto& image = texUploadRequest.imageToUpload;
-			texDesc.uploadRequest = &texUploadRequest;
-			image.loadFile("Assets/Textures/uvChecker_BC7.dds");
-			texDesc.size = image.size();
-			texDesc.colorType = image.colorType();
-			_testTexture = renderer->createTexture2D(texDesc);
+			_testTexture = renderer->createTexture2DFromFile("Assets/Textures/uvChecker_BC7.dds");
 		}
 
 		{ // create entity

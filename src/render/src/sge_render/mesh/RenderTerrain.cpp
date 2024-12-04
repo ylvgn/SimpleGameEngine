@@ -141,19 +141,11 @@ void RenderTerrain::createFromHeightMap(const Vec3f& terrainPos, const Vec2f& te
 	}
 
 	{ // hight map
-		Texture2D_CreateDesc texDesc;
-		Texture2D::UploadRequest texUploadRequest;
-		auto& image = texUploadRequest.imageToUpload;
-		auto& samplerState = texDesc.samplerState;
-
-		texDesc.size = heightMap.size();
-		texDesc.colorType = heightMap.colorType();
-		image.copy(heightMap);
+		SamplerState samplerState;
 		samplerState.filter = TextureFilter::Point;
 		samplerState.wrapU = TextureWrap::Clamp;
 		samplerState.wrapV = TextureWrap::Clamp;
-
-		_heightMapTexture = renderer->createTexture2D(texDesc);
+		_heightMapTexture = renderer->createTexture2D(heightMap, samplerState);
 	}
 }
 

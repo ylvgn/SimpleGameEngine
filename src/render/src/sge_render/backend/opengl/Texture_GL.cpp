@@ -4,6 +4,7 @@
 #if SGE_RENDER_HAS_OPENGL
 
 namespace sge {
+
 #if 0
 #pragma mark ========= Texture2D_GL::Format ============
 #endif
@@ -31,6 +32,7 @@ void Texture2D_GL::Format::set(ColorType colorType) {
 		default: throw SGE_ERROR("unsupported ColorType '{}'", colorType);
 	}
 }
+
 
 #if 0
 #pragma mark ========= Texture2D_GL ============
@@ -60,23 +62,24 @@ Texture2D_GL::Texture2D_GL(CreateDesc& desc)
 
 	const void* pixelDataPtr = nullptr;
 	if (desc.uploadRequest) {
-		auto& image = desc.uploadRequest->imageToUpload;
-		auto pixelData = image.pixelData();
+		const auto& info = desc.uploadRequest->imageInfo;
+		const auto& pixelData = desc.uploadRequest->pixelData;
 
-		if (image.colorType() == ColorType::None) {
+		if (info.colorType == ColorType::None) {
 			throw SGE_ERROR("");
 		}
 
-		auto s = Math::clamp(image.size(), Vec2i::s_zero(), size() - desc.uploadRequest->offset);
-		if (s != image.size()) {
+		auto s = Math::clamp(info.size, Vec2i::s_zero(), size() - desc.uploadRequest->offset);
+		if (s != info.size) {
 			throw SGE_ERROR("out of texture area");
 		}
+
 		SGE_ASSERT(desc.uploadRequest->offset == Vec2i::s_zero()); // TODO: upload texture with glCompressedTexSubImage2D/glTexSubImage2D
 
 		if (!ColorUtil::isCompressedType(desc.colorType)) { // TODO BlockCompress texture is not allow check ???
-			int pixelSizeInBytes = image.pixelSizeInBytes();
+			int pixelSizeInBytes = info.pixelSizeInBytes();
 
-			size_t expectedDataSize = image.strideInBytes() * image.height();
+			size_t expectedDataSize = info.strideInBytes * info.height();
 			if (pixelData.size() < expectedDataSize) {
 				throw SGE_ERROR("out of texture area");
 			}

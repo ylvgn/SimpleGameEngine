@@ -2,7 +2,7 @@
 
 namespace sge {
 
-void EditorHierarchyWindow::drawEntity(DrawRequest dr, CTransform* tran) {
+void EditorHierarchyWindow::_drawEntity(DrawRequest dr, CTransform* tran) {
 	const static ImGuiTreeNodeFlags s_flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
 
 	auto* entity = tran->entity();
@@ -40,17 +40,17 @@ void EditorHierarchyWindow::drawEntity(DrawRequest dr, CTransform* tran) {
 	if (!node.isOpen()) {
 		return;
 	}
-	drawEntityChildren(dr, tran);
+	_drawEntityChildren(dr, tran);
 }
 
-void EditorHierarchyWindow::drawEntityChildren(DrawRequest& dr, CTransform* tran) {
+void EditorHierarchyWindow::_drawEntityChildren(DrawRequest& dr, CTransform* tran) {
 	for (auto& child : tran->children()) {
 		if (!child) continue;
-		drawEntity(dr, child);
+		_drawEntity(dr, child);
 	}
 }
 
-void EditorHierarchyWindow::draw(Scene& scene, RenderRequest& req) {
+void EditorHierarchyWindow::onDraw(Scene& scene, RenderRequest& req) {
 	EditorUI::Window win("Hierarchy", &_active, ImGuiWindowFlags_MenuBar);
 
 	auto* ed = EditorContext::instance();
@@ -59,7 +59,7 @@ void EditorHierarchyWindow::draw(Scene& scene, RenderRequest& req) {
 	DrawRequest dr{ req, sel, scene };
 	auto* root = scene.rootEntity();
 	if (root) {
-		drawEntityChildren(dr, root->transform());
+		_drawEntityChildren(dr, root->transform());
 	}
 }
 

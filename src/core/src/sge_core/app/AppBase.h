@@ -5,6 +5,7 @@
 #include <sge_core/file/Directory.h>
 
 namespace sge {
+
 #if 0
 #pragma mark ========= AppArguments ============
 #endif
@@ -16,8 +17,9 @@ public:
 
 private:
 	Vector<StrView, 8>	_argsView;
-	Vector<String, 8>	_argsStr;
+	Vector<String,  8>	_argsStr;
 }; // AppArguments
+
 
 #if 0
 #pragma mark ========= AppBase ============
@@ -53,6 +55,7 @@ private:
 	UPtr<AppArguments>	_args;
 	String				_appName;
 }; // AppBase
+
 
 #if 0
 #pragma mark ========= Windows ============

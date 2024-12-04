@@ -5,10 +5,8 @@
 namespace sge {
 
 class EditorHierarchyWindow : public EditorWindow {
-public:
-	void draw(Scene& scene, RenderRequest& req);
-
 private:
+	static constexpr const char* kDragDropEntityFlag = "DRAG_DROP_ENTITY";
 
 	struct DrawRequest {
 		RenderRequest&		req;
@@ -16,12 +14,12 @@ private:
 		Scene&				scene;
 	};
 
-	static constexpr const char* kDragDropEntityFlag = "DRAG_DROP_ENTITY";
+	virtual void onDraw(Scene& scene, RenderRequest& req) final;
 
-	void drawEntity(DrawRequest dr, CTransform* tran);
-	void drawEntityChildren(DrawRequest& dr, CTransform* tran);
+	void _drawEntity(DrawRequest dr, CTransform* tran);
+	void _drawEntityChildren(DrawRequest& dr, CTransform* tran);
 
 	bool _active = true;
-};
+}; // EditorHierarchyWindow
 
-}
+} // namespace sge

@@ -285,6 +285,17 @@ public:
 						void append(const StringT& s)			{ Base::append(s.data(), s.size()); }
 	template<size_t M>	void append(const StringT<T, M>& s)		{ Base::append(s.data(), s.size()); }
 
+	template<class... ARGS>	void append(ARGS&&... args) {
+		StrViewT views[]{ SGE_FORWARD(args)... };
+		size_t n = sizeof...(args);
+		if (!n) return;
+		for (size_t i = 0; i < n; ++i) {
+			const auto& sv = views[i];
+			if (sv) append(sv);
+		}
+	}
+	template<class... ARGS> void set(ARGS&&... args) 			{ Base::clear(); append(SGE_FORWARD(args)...); }
+
 	StrViewT	view() const { return StrViewT(data(), size()); }
 
 	void replaceChars(T from, T to) {
@@ -421,14 +432,13 @@ public:
 
 template<class T> inline void sge_delete(T* p) noexcept { delete p; }
 
-
 template<class T>
 class ScopedValue : public NonCopyable {
 public:
-	ScopedValue() = default;
-	ScopedValue(T* p)						noexcept : _p(p) { _oldValue = *p; }
-	ScopedValue(T* p, const T& newValue)	noexcept : ScopedValue(p) { *p = newValue; }
-	ScopedValue(ScopedValue && r)			noexcept {
+	explicit ScopedValue(T& p)						noexcept : _p(&p) { _oldValue = p; }
+	explicit ScopedValue(T& p, const T& newValue)	noexcept : ScopedValue(p) { p = newValue; }
+
+	ScopedValue(ScopedValue && r) noexcept {
 		_p = r._p;
 		_oldValue = r._oldValue;
 		r._p = nullptr;
@@ -436,7 +446,7 @@ public:
 
 	~ScopedValue() noexcept { discard(); }
 
-	void discard() {
+	void discard() noexcept {
 		if (_p) {
 			*_p = _oldValue;
 			_p = nullptr;
@@ -445,13 +455,18 @@ public:
 
 	explicit operator bool() const { return _p != nullptr; }
 
+	T* ptr()		{ return _p; }
+	T& value()		{ return *_p; }
+
+	T* operator->() { return _p; }
+
 private:
 	T* _p = nullptr;
 	T _oldValue;
 };
 
-template<class T> inline ScopedValue<T> ScopedValue_make(T* p) { return ScopedValue<T>(p); }
-template<class T> inline ScopedValue<T> ScopedValue_make(T* p, const T& newValue) { return ScopedValue<T>(p, newValue); }
+template<class T> inline ScopedValue<T> ScopedValue_make(T& p) { return ScopedValue<T>(p); }
+template<class T> inline ScopedValue<T> ScopedValue_make(T& p, const T& newValue) { return ScopedValue<T>(p, newValue); }
 
 
 template<class First, class Second>

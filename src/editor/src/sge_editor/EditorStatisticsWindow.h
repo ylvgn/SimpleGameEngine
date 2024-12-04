@@ -5,12 +5,12 @@
 namespace sge {
 
 class EditorStatisticsWindow : public EditorWindow {
-public:
-	void draw(Scene& scene, RenderRequest& req);
 private:
+	virtual void onDraw(Scene& scene, RenderRequest& req) final;
+	String _getNumberDesc(u64 n);
+
 	bool _active = true;
 
-	String _getNumberDesc(u64 n);
-};
+}; // EditorStatisticsWindow
 
 } // namespace sge

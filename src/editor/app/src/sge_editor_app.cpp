@@ -17,40 +17,37 @@ public:
 		}
 
 		{ // setup camera
-#if 1
-		_camera.setPos(0, 10, 10);
-//		_camera.setPos(0, 1200, 10); // debug terrain
-		_camera.setAim(0, 0, 0);
-#else
-		// just for test 5x5 terrain 
-		_camera.setPos(58.932793f, 38.021767f, 3.6692433f);
-		_camera.setAim(0.79875153f, 0.8193707f, 1.8785787f);
-#endif
+		#if 1
+			_camera.setPos(0, 10, 10);
+//			_camera.setPos(0, 1200, 10); // debug terrain
+			_camera.setAim(0, 0, 0);
+		#else
+			// just for test 5x5 terrain 
+			_camera.setPos(58.932793f, 38.021767f, 3.6692433f);
+			_camera.setAim(0.79875153f, 0.8193707f, 1.8785787f);
+		#endif
 		}
 
 		{ // create texture
+		#if 1
+//			_testTexture = renderer->createTexture2DFromFile("Assets/Textures/uvChecker.bmp");
+//			_testTexture = renderer->createTexture2DFromFile("Assets/Textures/uvChecker.png");
+//			_testTexture = renderer->createTexture2DFromFile("Assets/Textures/uvChecker_BC1.dds");
+//			_testTexture = renderer->createTexture2DFromFile("Assets/Textures/uvChecker_BC2.dds");
+//			_testTexture = renderer->createTexture2DFromFile("Assets/Textures/uvChecker_BC3.dds");
+			_testTexture = renderer->createTexture2DFromFile("Assets/Textures/uvChecker_BC7.dds");
+		#else
 			Texture2D_CreateDesc texDesc;
 			Texture2D::UploadRequest texUploadRequest;
-			auto& image = texUploadRequest.imageToUpload;
 			texDesc.uploadRequest = &texUploadRequest;
-	#if 1
-			//image.loadFile("Assets/Textures/uvChecker.bmp", ColorType::RGBAb);
-			//image.loadFile("Assets/Textures/uvChecker.png");
-			//image.loadFile("Assets/Textures/uvChecker_BC1.dds");
-			//image.loadFile("Assets/Textures/uvChecker_BC2.dds");
-			//image.loadFile("Assets/Textures/uvChecker_BC3.dds");
-			image.loadFile("Assets/Textures/uvChecker_BC7.dds");
 
-			texDesc.size = image.size();
-			texDesc.colorType = image.colorType();
-	#else
 			int w = 256;
 			int h = 256;
-
 			texDesc.size.set(w, h);
 			texDesc.colorType = ColorType::RGBAb;
-			image.create(Color4b::kColorType, w, h);
 
+			Image image;
+			image.create(Color4b::kColorType, w, h);
 			for (int y = 0; y < w; y++) {
 				auto span = image.row<Color4b>(y);
 				for (int x = 0; x < h; x++) {
@@ -60,8 +57,9 @@ public:
 									  255);					// a
 				}
 			}
-	#endif
+			texUploadRequest.assign(image);
 			_testTexture = renderer->createTexture2D(texDesc);
+		#endif
 		}
 
 		{ // line material
@@ -263,11 +261,11 @@ public:
 		setCurDirRelativeToExecutable("/../../../Test101");
 
 		{ // just for quick debug
-	#if 0
-		CommandLine::runShell("Assets/Shaders/sge_gnu_make.bat");
-	#else
-		CommandLine::runShell("Assets/Shaders/sge_ninja.bat");
-	#endif
+		#if 0
+			CommandLine::runShell("Assets/Shaders/sge_gnu_make.bat");
+		#else
+			CommandLine::runShell("Assets/Shaders/sge_ninja.bat");
+		#endif
 		}
 
 		Base::onCreate(desc);

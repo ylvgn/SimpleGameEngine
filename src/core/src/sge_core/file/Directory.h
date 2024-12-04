@@ -24,9 +24,9 @@ struct Directory {
 	static void		remove(StrView dir);
 	static bool		exists(StrView dir);
 
-	static	void	getFileSystemEntries(Vector<Entry>& result, StrView path, bool subDir, FilterFunc filter);
-	static	void	getFiles(Vector<Entry>& result, StrView path, bool subDir, bool includeHiddenFile);
-	static	void	getDirectories(Vector<Entry>& result, StrView path, bool subDir, bool includeHiddenFile);
+	static void		getFileSystemEntries(Vector<Entry>& result, StrView path, bool subDir, FilterFunc filter);
+	static void		getFiles(Vector<Entry>& result, StrView path, bool subDir, bool includeHiddenFile);
+	static void		getDirectories(Vector<Entry>& result, StrView path, bool subDir, bool includeHiddenFile);
 
 private:
 	static void		_create(StrView dir);

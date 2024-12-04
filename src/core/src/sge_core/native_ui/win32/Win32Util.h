@@ -99,7 +99,7 @@ template<>
 struct fmt::formatter<::RECT> {
 	static auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }
 	static auto format(const ::RECT& v, fmt::format_context& ctx) {
-		return fmt::format_to(ctx.out(), "({}, {}, {}, {})", v.left, v.top, v.right, v.bottom);
+		return fmt::format_to(ctx.out(), "(left={}, top={}, right={}, bottom={})", v.left, v.top, v.right, v.bottom);
 	}
 };
 

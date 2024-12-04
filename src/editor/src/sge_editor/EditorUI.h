@@ -2,12 +2,11 @@
 
 #include "EditorContext.h"
 
-namespace sge {
+namespace sge { namespace EditorUI {
 
-namespace EditorUI {
-	static const char* mixedValueFormat = "--";
-	static const char* floatFormat = "%0.3f";
-	static bool showMixedValue = false;
+	static const char*	mixedValueFormat = "--";
+	static const char*	floatFormat = "%0.3f";
+	static bool			showMixedValue = false;
 
 	inline bool DragInt (
 		const char* label,
@@ -75,7 +74,8 @@ namespace EditorUI {
 	}
 
 	inline float InputFloat(const char* label, float* v) {
-		return ImGui::InputFloat(label, v, 0, 0,
+		return ImGui::InputFloat(label, v,
+			0, 0,
 			showMixedValue ? mixedValueFormat : floatFormat,
 			ImGuiInputTextFlags_EnterReturnsTrue);
 	}
@@ -98,6 +98,7 @@ namespace EditorUI {
 			ImGuiInputTextFlags_EnterReturnsTrue);
 	}
 
+//----
 	class Window : public NonCopyable {
 	public:
 		Window(StrView name, bool* p_open = nullptr, ImGuiWindowFlags flags = ImGuiWindowFlags_MenuBar) {
@@ -173,7 +174,7 @@ namespace EditorUI {
 		~PushID() { ImGui::PopID(); }
 	};
 
-
+//----
 	inline bool IsItemToggledOpen() { return ImGui::IsItemToggledOpen(); }
 	inline bool IsItemClicked()		{ return ImGui::IsItemClicked(); }
 	inline bool IsItemActive()		{ return ImGui::IsItemActive(); }
@@ -184,6 +185,4 @@ namespace EditorUI {
 	inline bool IsKeyAlt()			{ return ImGui::GetIO().KeyAlt; }
 	inline bool IsKeyCtrl()			{ return ImGui::GetIO().KeyCtrl; }
 
-} // EditorUI
-
-} // sge
+}} // namespace sge/EditorUI

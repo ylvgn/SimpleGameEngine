@@ -32,10 +32,7 @@ struct FilePath {
 
 	template<class... Args>
 	static String	combine(Args&&... paths) { String o; combineTo(o, SGE_FORWARD(paths)...); return o; }
-
-private:
 }; // FilePath
-
 
 template<class STR, class... Args> SGE_INLINE
 void FilePath::combineTo(STR& src_path, Args&&... paths) {

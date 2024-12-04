@@ -63,36 +63,37 @@ public:
 	void onUIKeyboardEvent(UIKeyboardEvent& ev);
 
 private:
+	void			_createFontsTexture();
+
+	int				_mouseButton(UIMouseEventButton v);
+	ImGuiKey		_keyCode(UIKeyboardEventKeyCode v);
+
+	void			_setConfigFlag		(ImGuiConfigFlags_ flag);
+	void			_unsetConfigFlag	(ImGuiConfigFlags_ flag);
+	bool			_hasAnyConfigFlag	(ImGuiConfigFlags_ flag);
+
+	void			_onAddKeyEventByUIKeyboardEvent(ImGuiIO& io, UIKeyboardEvent& ev, UIKeyboardEventKeyCode v);
+
+	RenderDataType	_indexType() const { return RenderDataTypeUtil::get<ImDrawIdx>(); }
+
 	SPtr<Material>			_material;
 	SPtr<Texture2D>			_fontsTexture;
 
 	const VertexLayout*		_vertexLayout = nullptr;
 	SPtr<RenderGpuBuffer>	_vertexBuffer;
 
-	RenderDataType			indexType() const { return sizeof(ImDrawIdx) == 2 ? RenderDataTypeUtil::get<u16>() : RenderDataTypeUtil::get<u32>(); }
 	SPtr<RenderGpuBuffer>	_indexBuffer;
 
 	Vector<u8>				_vertexData;
 	Vector<u8>				_indexData;
 
-	void		_createFontsTexture();
-
-	int			_mouseButton(UIMouseEventButton v);
-	ImGuiKey	_keyCode(UIKeyboardEventKeyCode v);
-
-	void _setConfigFlag		(ImGuiConfigFlags_ flag);
-	void _unsetConfigFlag	(ImGuiConfigFlags_ flag);
-	bool _hasAnyConfigFlag	(ImGuiConfigFlags_ flag);
-
-	void _onAddKeyEventByUIKeyboardEvent(ImGuiIO& io, UIKeyboardEvent& ev, UIKeyboardEventKeyCode v);
-
-	ImGuiContext* _ctx = nullptr;
+	ImGuiContext*			_ctx = nullptr;
 }; // ImGui_SGE
 
-inline Vec2f	Vec2f_make(const ImVec2& v)							{ return Vec2f(v.x, v.y); }
-inline Vec4f	Vec4f_make(const ImVec4& v)							{ return Vec4f(v.x, v.y, v.z, v.w); }
+inline Vec2f	Vec2f_make	(const ImVec2& v)						{ return Vec2f(v.x, v.y); }
+inline Vec4f	Vec4f_make	(const ImVec4& v)						{ return Vec4f(v.x, v.y, v.z, v.w); }
 inline Color4f	Color4f_make(const ImVec4& v)						{ return Color4f(v.x, v.y, v.z, v.w); }
 inline Color4f	Color4f_make(const ImColor& v)						{ return Color4f_make(v.Value); }
-inline Rect2f	Rect2f_make(const ImVec2& pos, const ImVec2& size)	{ return Rect2f(pos.x, pos.y, size.x, size.y); }
+inline Rect2f	Rect2f_make	(const ImVec2& pos, const ImVec2& size)	{ return Rect2f(pos.x, pos.y, size.x, size.y); }
 
 } // namespace sge

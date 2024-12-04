@@ -13,8 +13,11 @@ struct RenderContext_CreateDesc;
 class RenderGpuBuffer;
 struct RenderGpuBuffer_CreateDesc;
 
+class RenderBuiltInAssets;
+
 class Renderer : public NonCopyable {
 public:
+	using BuiltInAssets = RenderBuiltInAssets;
 
 	enum class ApiType {
 		None = 0,
@@ -42,25 +45,18 @@ public:
 
 	SPtr<RenderContext>		createContext		(RenderContext_CreateDesc& desc)	{ return onCreateContext(desc); }
 	SPtr<RenderGpuBuffer>	createGpuBuffer		(RenderGpuBuffer_CreateDesc& desc)	{ return onCreateGpuBuffer(desc); }
-	SPtr<Texture2D>			createTexture2D		(Texture2D_CreateDesc& desc)		{ return onCreateTexture2D(desc); }
+
+	SPtr<Texture2D>			createTexture2D				(Texture2D_CreateDesc& desc)	{ return onCreateTexture2D(desc); }
+	SPtr<Texture2D>			createTexture2D				(const Image& img, const SamplerState& samplerState = SamplerState());
+	SPtr<Texture2D>			createTexture2DFromFile		(StrView filename, const SamplerState& samplerState = SamplerState());
+	SPtr<Texture2D>			createSolidColorTexture2D	(const Color4b& color);
+
 	SPtr<Shader>			createShader		(StrView filename);
 	SPtr<Material>			createMaterial		()									{ return onCreateMaterial(); };
 
 	void onShaderDestory(Shader* shader);
 
-	struct StockTextures {
-		SPtr<Texture2D>	white;
-		SPtr<Texture2D>	black;
-		SPtr<Texture2D>	red;
-		SPtr<Texture2D>	green;
-		SPtr<Texture2D>	blue;
-		SPtr<Texture2D>	magenta;
-		SPtr<Texture2D>	error;
-	};
-
-	StockTextures stockTextures;
-
-	SPtr<Texture2D>	createSolidColorTexture2D(const Color4b& color);
+	BuiltInAssets* builtInAssets() { return _builtInAssets; }
 
 protected:
 	virtual SPtr<RenderContext>		onCreateContext		(RenderContext_CreateDesc& desc) = 0;
@@ -69,10 +65,12 @@ protected:
 	virtual SPtr<Material>			onCreateMaterial	() = 0;
 	virtual SPtr<Texture2D>			onCreateTexture2D	(Texture2D_CreateDesc& desc) = 0;
 
-	static Renderer* s_instance;
+	static Renderer*		s_instance;
 
-	StringMap<Shader*>	_shaders;
-	RenderAdapterInfo	_adapterInfo;
+	StringMap< Shader* >	_shaders;
+	RenderAdapterInfo		_adapterInfo;
+	BuiltInAssets*			_builtInAssets = nullptr;
+
 	bool _vsync : 1;
 }; // Renderer
 

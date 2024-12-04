@@ -1,6 +1,7 @@
 #include "Renderer.h"
 #include "backend/dx11/Renderer_DX11.h"
 #include "backend/opengl/Renderer_GL.h"
+#include "RenderBuiltInAssets.h"
 
 namespace sge {
 
@@ -37,12 +38,57 @@ Renderer::Renderer() noexcept
 {
 	SGE_ASSERT(s_instance == nullptr);
 	s_instance = this;
+
+	_builtInAssets = new BuiltInAssets();
 }
 
 Renderer::~Renderer() {
 	SGE_ASSERT(_shaders.size() == 0);
 	SGE_ASSERT(s_instance == this);
+
+	if (_builtInAssets) {
+		sge_delete(_builtInAssets);
+		_builtInAssets = nullptr;
+	}
+
 	s_instance = nullptr;
+}
+
+SPtr<Texture2D> Renderer::createTexture2D(const Image& image, const SamplerState& samplerState) {
+	Texture2D_CreateDesc texDesc;
+	texDesc.samplerState = samplerState;
+	texDesc.colorType	 = image.colorType();
+	texDesc.size		 = image.size();
+
+	Texture2D::UploadRequest uploadRequest;
+	texDesc.uploadRequest = &uploadRequest;
+	uploadRequest.assign(image);
+
+	return createTexture2D(texDesc);
+}
+
+SPtr<Texture2D> Renderer::createTexture2DFromFile(StrView filename, const SamplerState& samplerState) {
+	Image image;
+	image.loadFile(filename);
+	return createTexture2D(image, samplerState);
+}
+
+SPtr<Texture2D> Renderer::createSolidColorTexture2D(const Color4b& color) {
+	using SRC = TypeTraits::removeConstRef<decltype(color)>::Type;
+
+	int w = 4;
+	int h = 4;
+
+	Image image;
+	image.create(color.kColorType, w, h);
+
+	for (int y = 0; y < w; y++) {
+		auto row = image.row_noCheck<SRC>(y);
+		for (int x = 0; x < h; x++) {
+			row[x] = color;
+		}
+	}
+	return createTexture2D(image);
 }
 
 SPtr<Shader> Renderer::createShader(StrView filename) {
@@ -59,30 +105,6 @@ SPtr<Shader> Renderer::createShader(StrView filename) {
 
 void Renderer::onShaderDestory(Shader* shader) {
 	_shaders.erase(shader->filename().c_str());
-}
-
-SPtr<Texture2D> Renderer::createSolidColorTexture2D(const Color4b& color) {
-	int w = 4;
-	int h = 4;
-	Texture2D_CreateDesc texDesc;
-	Texture2D::UploadRequest texUploadRequest;
-	texDesc.uploadRequest = &texUploadRequest;
-
-	auto& image = texUploadRequest.imageToUpload;
-
-	texDesc.colorType = ColorType::RGBAb;
-	texDesc.mipmapCount = 1;
-	texDesc.size.set(w, h);
-
-	image.create(Color4b::kColorType, w, h);
-
-	for (int y = 0; y < w; y++) {
-		auto row = image.row<Color4b>(y);
-		for (int x = 0; x < h; x++) {
-			row[x] = color;
-		}
-	}
-	return createTexture2D(texDesc);
 }
 
 } // namespace sge

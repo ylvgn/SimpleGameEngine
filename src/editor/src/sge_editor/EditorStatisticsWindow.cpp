@@ -3,11 +3,12 @@
 namespace sge {
 
 String EditorStatisticsWindow::_getNumberDesc(u64 n) {
-	String s;
 
 	static constexpr u64 K = 1024;
 	static constexpr u64 M = 1024 * 1024;
 	static constexpr u64 G = 1024 * 1024 * 1024;
+
+	String s;
 	if (n >= G) {
 		FmtTo(s, "{} G", Math::byteToG(n));
 	} else if (n >= M) {
@@ -20,8 +21,7 @@ String EditorStatisticsWindow::_getNumberDesc(u64 n) {
 	return s;
 }
 
-void EditorStatisticsWindow::draw(Scene& scene, RenderRequest& req)
-{
+void EditorStatisticsWindow::onDraw(Scene& scene, RenderRequest& req) {
 	static int corner = 1; // right top
 	ImGuiWindowFlags window_flags = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
 	if (corner != -1)
@@ -51,7 +51,7 @@ void EditorStatisticsWindow::draw(Scene& scene, RenderRequest& req)
 	const static ImGuiTreeNodeFlags s_cflags = s_flags | ImGuiTreeNodeFlags_Bullet | ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Leaf;
 
 	const auto& frameBufferSize = req.renderContext()->frameBufferSize();
-	const auto& statistics = req.renderContext()->statistics();
+	const auto& statistics		= req.renderContext()->statistics();
 
 	TempString label;
 	FmtTo(label, "Screen: {} x {}", static_cast<int>(frameBufferSize.x), static_cast<int>(frameBufferSize.y));
@@ -73,4 +73,4 @@ void EditorStatisticsWindow::draw(Scene& scene, RenderRequest& req)
 	label.clear();
 }
 
-}
+} // namespace sge

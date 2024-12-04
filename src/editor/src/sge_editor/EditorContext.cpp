@@ -4,7 +4,7 @@ namespace sge {
 
 EditorContext* EditorContext::s_instance = nullptr;
 
-EditorContext::EditorContext() {
+EditorContext::EditorContext() noexcept {
 
 #define E(T) { \
 		static EditorPropertyDrawer_##T drawer; \

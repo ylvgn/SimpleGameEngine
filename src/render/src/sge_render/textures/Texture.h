@@ -24,6 +24,7 @@ SGE_ENUM_CLASS(TextureFilter, u8)
 //----
 SGE_ENUM_CLASS(TextureWrap, u8)
 
+
 #if 0
 #pragma mark ========= SamplerState ============
 #endif
@@ -42,6 +43,7 @@ public:
 	float	maxAnisotrory	= 1.f;
 }; // SamplerState
 
+
 #if 0
 #pragma mark ========= Texture_CreateDesc ============
 #endif
@@ -51,6 +53,7 @@ public:
 	ColorType	colorType = ColorType::RGBAb;
 	int			mipmapCount = 1;
 }; // Texture_CreateDesc
+
 
 #if 0
 #pragma mark ========= Texture ============
@@ -66,14 +69,22 @@ protected:
 	DataType _type = DataType::None;
 }; // Texture
 
+
 #if 0
 #pragma mark ========= Texture2D_UploadRequest ============
 #endif
 class Texture2D_UploadRequest : public NonCopyable {
 public:
-	Vec2i	offset{0,0};
-	Image	imageToUpload;
+	Vec2i		offset{ 0,0 };
+	ImageInfo	imageInfo;
+	ByteSpan	pixelData;
+
+	void assign(const Image& imageToUpload) {
+		pixelData = imageToUpload.pixelData();
+		imageInfo = imageToUpload.info();
+	}
 }; // Texture2D_UploadRequest
+
 
 #if 0
 #pragma mark ========= Texture2D_CreateDesc ============
@@ -85,6 +96,7 @@ struct Texture2D_CreateDesc : public Texture_CreateDesc {
 	SamplerState	samplerState;
 	UploadRequest*  uploadRequest = nullptr;
 }; // Texture2D_CreateDesc
+
 
 #if 0
 #pragma mark ========= Texture2D ============

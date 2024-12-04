@@ -196,24 +196,19 @@ void ImGui_SGE::setStyle(ImGui_SGE__Style s) {
 }
 
 void ImGui_SGE::_createFontsTexture() {
+	auto* renderer = Renderer::instance();
+
 	unsigned char* pixels;
 	int w, h;
 
 	ImGuiIO& io = ImGui::GetIO();
 	io.Fonts->GetTexDataAsAlpha8(&pixels, &w, &h);
 
-	Texture2D_CreateDesc texDesc;
-	Texture2D::UploadRequest texUploadRequest;
-	texDesc.uploadRequest = &texUploadRequest;
-	texDesc.size.set(w, h);
-	texDesc.colorType = ColorRb::kColorType;
-	texDesc.mipmapCount = 1;
-	auto& image	= texUploadRequest.imageToUpload;
-	image.create(texDesc.colorType, w, h);
+	Image image;
+	image.create(ColorRb::kColorType, w, h);
 	image.copyToPixelData(ByteSpan(pixels, w * h));
 
-	auto* renderer = Renderer::instance();
-	_fontsTexture = renderer->createTexture2D(texDesc);
+	_fontsTexture = renderer->createTexture2D(image);
 }
 
 void ImGui_SGE::setDockingEnable(bool isEnable) {
@@ -358,7 +353,7 @@ void ImGui_SGE::onDrawUI(RenderRequest& req) {
 				cmd->vertexBuffer		= _vertexBuffer;
 				cmd->vertexOffset		= (global_vtx_offset + srcBuf->VtxOffset) * vertexSize; 
 				cmd->vertexCount		= 0;
-				cmd->indexType			= RenderDataTypeUtil::get<ImDrawIdx>();
+				cmd->indexType			= _indexType();
 				cmd->indexBuffer		= _indexBuffer;
 				cmd->indexOffset		= (global_idx_offset + srcBuf->IdxOffset) * indexSize;
 				cmd->indexCount			= srcBuf->ElemCount;

@@ -5,18 +5,18 @@
 namespace sge {
 
 class EditorInspectorWindow : public EditorWindow {
-public:
-	void draw(Scene& scene, RenderRequest& req);
 private:
-	bool _active = true;
-
 	using ObjectList = Vector<Object*, 32>;
-	Map<const TypeInfo*, ObjectList>	_tempTypeMap;
-	Vector<ObjectList*>					_tempTypeList;
+
+	virtual void onDraw(Scene& scene, RenderRequest& req) final;
 
 	void _addTempList(Component* c);
-	void drawComponent(RenderRequest& req, ObjectList& list);
+	void _drawComponent(RenderRequest& req, ObjectList& list);
 
-};
+	bool _active = true;
+
+	Map<const TypeInfo*, ObjectList>	_tempTypeMap;
+	Vector<ObjectList*>					_tempTypeList;
+}; // EditorInspectorWindow
 
 } // namespace sge

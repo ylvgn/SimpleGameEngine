@@ -1,5 +1,6 @@
 #include "Material.h"
 #include <sge_render/Renderer.h>
+#include <sge_render/RenderBuiltInAssets.h>
 
 namespace sge {
 #if 0
@@ -74,9 +75,9 @@ void MaterialPass_Stage::ConstBuffer::errorType() {
 
 Texture* MaterialPass_Stage::TexParam::getUpdatedTexture() {
 	if (!_tex) {
-		auto* renderer = Renderer::instance();
+		auto* p = RenderBuiltInAssets::instance();
 		switch (_info->dataType) {
-			case DataType::Texture2D: return renderer->stockTextures.error; break;
+			case DataType::Texture2D: return p->stockTextures.error; break;
 			default: throw SGE_ERROR("unsupported texture type");
 		}
 	}

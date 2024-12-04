@@ -2,7 +2,7 @@
 
 namespace sge {
 
-void EditorInspectorWindow::draw(Scene& scene, RenderRequest& req) {
+void EditorInspectorWindow::onDraw(Scene& scene, RenderRequest& req) {
 	EditorUI::Window win("Inspector", &_active, 0);
 
 	auto* ed = EditorContext::instance();
@@ -21,7 +21,7 @@ void EditorInspectorWindow::draw(Scene& scene, RenderRequest& req) {
 	}
 
 	for (auto& objectList : _tempTypeList) {
-		drawComponent(req, *objectList);
+		_drawComponent(req, *objectList);
 	}
 }
 
@@ -41,7 +41,7 @@ void EditorInspectorWindow::_addTempList(Component* c) {
 	list->emplace_back(c);
 }
 
-void EditorInspectorWindow::drawComponent(RenderRequest& req, ObjectList& list) {
+void EditorInspectorWindow::_drawComponent(RenderRequest& req, ObjectList& list) {
 	if (list.size() <= 0) return;
 
 	auto* ed = EditorContext::instance();
