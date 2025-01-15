@@ -18,49 +18,50 @@
 @IF NOT EXIST %glslc% (
 	@echo "'glslc' path not found error: please install Vulkan SDK https://vulkan.lunarg.com/sdk/home"
 	@pause
-	@exit /b -1
+	@exit -1
 )
 
 @IF NOT EXIST %spirv_cross% (
 	@echo "'spirv-cross' path not found error: lease install Vulkan SDK https://vulkan.lunarg.com/sdk/home"
 	@pause
-	@exit /b -1
+	@exit -1
 )
 
 @call :HLSL2GLSLC %1
 
 @REM @pause
-@REM exit /B %ERRORLEVEL%
+@REM exit %ERRORLEVEL%
+goto :eof
 
-@REM #helper function ===================================
+@REM helper function ===================================
 :HLSL2SPIRV
 	%glslc% -fshader-stage=vertex   -fentry-point=vs_main -I".." -I"Assets/" -I"." -I"Assets/Shaders" -o %1.spv_vs -x hlsl %1
 	@echo off && call :ABORT_IF_ERROR
 	%glslc% -fshader-stage=fragment -fentry-point=ps_main -I".." -I"Assets/" -I"." -I"Assets/Shaders" -o %1.spv_ps -x hlsl %1
 	@echo off && call :ABORT_IF_ERROR
-@goto :eof
+@exit /B %ERRORLEVEL%
 
 :SPIRV2GLSL
 	%spirv_cross% --version %GLSL_VERSION% --no-es --no-420pack-extension --output %1.spv_vs.vert %1.spv_vs
 	@echo off && call :ABORT_IF_ERROR
 	%spirv_cross% --version %GLSL_VERSION% --no-es --no-420pack-extension --output %1.spv_ps.frag %1.spv_ps
 	@echo off && call :ABORT_IF_ERROR
-@goto :eof
+@exit /B %ERRORLEVEL%
 
 :HLSL2GLSLC
 	@call :HLSL2SPIRV %1
-	@REM @call :SPIRV2GLSL %1
-@goto :eof
+	@call :SPIRV2GLSL %1
+@exit /B %ERRORLEVEL%
 
-:ABORT_IF_ERROR:
-	if ERRORLEVEL 1 (
+:ABORT_IF_ERROR
+	if %ERRORLEVEL% neq 0 (
 		@goto :ERROR
 	)
 	@echo on
-	@goto :eof
+@exit /B %ERRORLEVEL%
 
 :ERROR
     @echo on
     @echo Failed!!
-	@REM @pause
-	@exit /B %ERRORLEVEL%
+	@pause
+	@exit %ERRORLEVEL%

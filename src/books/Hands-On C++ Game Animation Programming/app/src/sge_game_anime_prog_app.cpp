@@ -561,7 +561,7 @@ class GameAnimeProgApp : public NativeUIApp {
 	using Base = NativeUIApp;
 protected:
 	virtual void onCreate(CreateDesc& desc) override {
-		setCurDirRelativeToExecutable("/../../../../Test102");
+		setCurDirRelativeToExecutable("/../../../Test102");
 		Base::onCreate(desc);
 
 		{ // create window

@@ -15,4 +15,4 @@
 	@%~d0
 	@cd %~dp0
 	@call .\..\..\hlsl_to_glsl.bat Assets/Shaders/%1
-@goto :eof
+@exit /B %ERRORLEVEL%

@@ -87,7 +87,7 @@ mat2x4 mulDq(mat2x4 l, mat2x4 r) {
 
 // perform matrix palette skinning, same logic as linear mesh skinning skin matrix
 void main() {
-#if 0 // linear mesh skinning
+#if 0 // linear mesh skinning (src from skinned.vert)
 	mat4 m0 = pose[joints.x] * invBindPose[joints.x];
 	mat4 m1 = pose[joints.y] * invBindPose[joints.y];
 	mat4 m2 = pose[joints.z] * invBindPose[joints.z];
