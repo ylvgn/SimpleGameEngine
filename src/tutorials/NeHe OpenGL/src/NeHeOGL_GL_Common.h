@@ -2,18 +2,6 @@
 
 #include "NeHeOGL_Common.h"
 
-#include <GL/glew.h> // include glew before gl.h
-
-#include <GL/gl.h>
-#pragma comment(lib, "Opengl32.lib")
-
-#include <GL/glu.h>
-#pragma comment(lib, "GLu32.lib")
-
-//	Note: glaux has been deprecated for a long time
-//	#include <Gl/glaux.h>
-//	#pragma comment(lib, "GLaux.lib")
-
 #include "NeHeOGL_RenderState.h"
 #include "NeHeOGL_Vertex.h"
 #include "NeHeOGL_Texture2D.h"

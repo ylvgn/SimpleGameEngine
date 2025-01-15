@@ -13,7 +13,7 @@ call %VCPKG_ROOT%\bootstrap-vcpkg.bat
 %vcpkg% install vcpkg-tool-ninja:%triplets% --recurse
 %vcpkg% install fmt:%triplets% --recurse
 %vcpkg% install eastl:%triplets% --recurse
-%vcpkg% install glew:%triplets%-static --recurse
+@REM %vcpkg% install glew:%triplets%-static --recurse
 %vcpkg% install nlohmann-json:%triplets% --recurse
 %vcpkg% install libpng:%triplets% --recurse
 @REM %vcpkg% install imgui:%triplets% --recurse

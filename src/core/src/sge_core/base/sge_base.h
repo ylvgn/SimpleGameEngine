@@ -8,6 +8,7 @@
 
 #include "../detect_platform/sge_detect_platform.h"
 
+//---- os
 #if SGE_OS_WINDOWS
 	#define NOMINMAX 1
 	#include <WinSock2.h> // WinSock2.h must include before windows.h to avoid winsock1 define
@@ -15,6 +16,27 @@
 	#pragma comment(lib, "Ws2_32.lib")
 	#include <Windows.h>
 	#include <intsafe.h>
+
+	#ifndef SGE_TRY_USE_OPENGL
+		#error
+	#elif SGE_TRY_USE_OPENGL
+		#define GLEW_STATIC 1
+		// include glew before gl.h
+		#include <sge_core/glew/glew.h>
+		#include <sge_core/glew/wglew.h>
+
+		#include <GL/gl.h>
+		#include <GL/glu.h>
+
+		#if SGE_COMPILER_VC
+			#pragma comment(lib, "Opengl32.lib") // gl.h
+			#pragma comment(lib, "GLu32.lib")	 // glu.h
+		#endif
+		// Note: glaux has been deprecated for a long time
+		// #include <Gl/glaux.h>
+		// #pragma comment(lib, "GLaux.lib")
+	#endif
+
 #else
 	#include <sys/types.h>
 	#include <sys/socket.h>
@@ -22,6 +44,7 @@
 	#include <netinet/in.h> // struct sockaddr_in
 #endif
 
+//---- cpp
 #include <cassert>
 #include <exception>
 #include <iostream>
@@ -30,6 +53,7 @@
 #include <atomic>
 #include <functional>
 
+//---- externals
 #include <EASTL/vector.h>
 #include <EASTL/fixed_vector.h>
 #include <EASTL/string.h>
@@ -50,6 +74,7 @@
 
 #include <nlohmann/json.hpp>
 
+//----
 #include "sge_macro.h"
 
 using Json = nlohmann::json;

@@ -4,23 +4,6 @@
 
 #if SGE_RENDER_HAS_OPENGL
 
-// GLEW --------
-#define GLEW_STATIC 1
-#include <GL/glew.h>
-
-#if SGE_OS_WINDOWS
-	#include <GL/wglew.h>
-#endif
-// GLEW --------
-
-#include <GL/gl.h>
-#include <GL/glu.h>
-
-#if SGE_OS_WINDOWS
-	#pragma comment(lib, "Opengl32.lib")
-	#pragma comment(lib, "GLu32.lib")
-#endif
-
 #include <sge_render/RenderDataType.h>
 #include <sge_render/buffer/RenderGpuBuffer.h>
 #include <sge_render/shader/Shader.h>

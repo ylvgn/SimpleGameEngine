@@ -1,7 +1,6 @@
 #pragma once
 
 #include <sge_game_anime_prog/opengl/OpenGL_Common.h>
-#include "glad/glad.h"
 #include "IndexBuffer.h"
 
 namespace sge {

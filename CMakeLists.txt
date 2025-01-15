@@ -24,7 +24,6 @@ endif()
 #sge_dump_cmake_variables()
 
 find_package(fmt CONFIG REQUIRED)
-find_package(GLEW CONFIG REQUIRED)
 find_package(EABase CONFIG REQUIRED)
 find_package(EASTL CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)

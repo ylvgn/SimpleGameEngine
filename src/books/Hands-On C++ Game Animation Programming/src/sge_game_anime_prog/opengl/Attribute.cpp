@@ -1,6 +1,5 @@
 #include "Attribute.h"
 
-#include "glad/glad.h"
 #include <sge_game_anime_prog/math/quat.h>
 
 namespace sge {
