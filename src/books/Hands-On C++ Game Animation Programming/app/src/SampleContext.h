@@ -240,6 +240,7 @@ private:
 	SPtr<DebugDrawPL>							_ankleToDesiredToeDebugDraw;
 
 	SPtr<Shader>								_dqSkinnedShader;
+	AnimationAttribLocation						_dqGpuAttribLoc;
 
 	Vector<UPtr<Crowd>>							_crowds;
 	SPtr<Shader>								_crowdSkinnedShader;

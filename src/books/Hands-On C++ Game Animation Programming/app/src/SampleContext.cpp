@@ -1413,11 +1413,12 @@ void SampleContext::test_AlignFeetOnTheGround_onRender(Request& req) {
 void SampleContext::test_DualQuaterionMeshSkinning_onRender(Request& req) {
 	bool isDualSkinning = req.curSkinningMethod == 0;
 
-	Shader* shader = isDualSkinning ? _dqSkinnedShader : _skinnedShader;
-
 	mat4f model(mat4f::s_transform(_gpuAnimInfo.model));
-
-	test_DualQuaterionMeshSkinning_onRender_Inner(req, shader, _gpuAttribLoc, model, isDualSkinning);
+	if (isDualSkinning) {
+		test_DualQuaterionMeshSkinning_onRender_Inner(req, _dqSkinnedShader, _dqGpuAttribLoc, model, isDualSkinning);
+	} else {
+		test_DualQuaterionMeshSkinning_onRender_Inner(req, _skinnedShader, _gpuAttribLoc, model, isDualSkinning);
+	}
 }
 void SampleContext::test_InstancedCrowds_onRender(Request& req) {
 	mat4f projection(req.camera.projMatrix());
@@ -1806,8 +1807,9 @@ void SampleContext::_loadExampleShader() {
 		"Assets/Shaders/crowd.vert",
 		"Assets/Shaders/lit.frag"
 	);
-	_cpuAttribLoc.setByStaticShader (_staticShader);
+	_cpuAttribLoc.setByStaticShader(_staticShader);
 	_gpuAttribLoc.setBySkinnedShader(_skinnedShader);
+	_dqGpuAttribLoc.setBySkinnedShader(_dqSkinnedShader);
 }
 
 void SampleContext::_defaultSetAnimInfo() {
