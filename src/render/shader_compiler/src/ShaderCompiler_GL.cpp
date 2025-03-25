@@ -44,6 +44,9 @@ void ShaderCompiler_GL::compile(StrView outFilename, ShaderStageMask shaderStage
 			auto outPath = FilePath::dirname(spirvOutFilename);
 			Directory::create(outPath);
 
+			TempString glslcBin;
+			NativeUIApp::current()->executableDirPathRelativeTo(glslcBin, "glslc");
+
 			{
 				using Param = CommandLine::Param;
 				using Param_Assignment = Param::Assignment;
@@ -68,7 +71,7 @@ void ShaderCompiler_GL::compile(StrView outFilename, ShaderStageMask shaderStage
 				params.emplace_back(Param("-o", spirvOutFilename));
 				params.emplace_back(Param("-x hlsl", srcFilename));
 
-				CommandLine::runShell("glslc", params); // glslc supposed in executable folder
+				CommandLine::runShell(glslcBin, params); // glslc supposed already in executable folder
 			}
 		}
 	}

@@ -47,6 +47,7 @@ public:
 	template<class STR> void executableDirPathTo(STR& out);
 	String	executableDirPath() { String o; executableDirPathTo(o); return o; }
 
+	template<class STR> void executableDirPathRelativeTo(STR& out, StrView relativePath);
 	void	setCurDirRelativeToExecutable(StrView relativePath);
 
 	virtual void onRun() = 0;
@@ -80,6 +81,12 @@ void AppBase::executableDirPathTo(STR& out) {
 	auto dir = FilePath::dirname(out.view());
 	out.resize(dir.size());
 }
-#endif  // SGE_OS_WINDOWS
+
+template<class STR> inline
+void AppBase::executableDirPathRelativeTo(STR& out, StrView relativePath) {
+	executableDirPathTo(out);
+	FilePath::combineTo(out, relativePath);
+}
+#endif // SGE_OS_WINDOWS
 
 } // namespace sge

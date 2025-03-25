@@ -49,10 +49,9 @@ StrView AppBase::appName() {
 #if SGE_OS_WINDOWS
 
 void AppBase::setCurDirRelativeToExecutable(StrView relativePath) {
-	TempString exeDirPath;
-	executableDirPathTo(exeDirPath);
-	FilePath::combineTo(exeDirPath, relativePath);
-	Directory::setCurrent(exeDirPath);
+	TempString newCurDir;
+	executableDirPathRelativeTo(newCurDir, relativePath);
+	Directory::setCurrent(newCurDir);
 }
 
 #endif // SGE_OS_WINDOWS

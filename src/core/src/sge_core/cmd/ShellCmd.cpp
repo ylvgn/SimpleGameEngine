@@ -34,19 +34,19 @@ void ShellCmd::onExec(Param* params, size_t n) {
 	}
 
 #if _DEBUG
-	wprintf(L"[ShellCmd]: %ls %ls\n", tmpExecFileName.c_str(), tmpParams.c_str());
+	wprintf(L"[ShellCmd]:%ls %ls\n", tmpExecFileName.c_str(), tmpParams.c_str());
 #endif
 
 	::SHELLEXECUTEINFO ShExecInfo = {};
-	ShExecInfo.cbSize			= sizeof(ShExecInfo);
-	ShExecInfo.fMask			= SEE_MASK_NOCLOSEPROCESS;
-	ShExecInfo.hwnd				= nullptr;
-	ShExecInfo.lpVerb			= L"open";
-	ShExecInfo.lpFile			= tmpExecFileName.c_str();
-	ShExecInfo.lpParameters		= tmpParams.c_str();
-	ShExecInfo.lpDirectory		= nullptr;
-	ShExecInfo.nShow			= SW_SHOW; // SW_HIDE
-	ShExecInfo.hInstApp			= nullptr;
+	ShExecInfo.cbSize			  = sizeof(ShExecInfo);
+	ShExecInfo.fMask			  = SEE_MASK_NOCLOSEPROCESS;
+	ShExecInfo.hwnd				  = nullptr;
+	ShExecInfo.lpVerb			  = L"open";
+	ShExecInfo.lpFile			  = tmpExecFileName.c_str();
+	ShExecInfo.lpParameters		  = tmpParams.c_str();
+	ShExecInfo.lpDirectory		  = nullptr;
+	ShExecInfo.nShow			  = SW_SHOW; // SW_HIDE
+	ShExecInfo.hInstApp			  = nullptr;
 	::ShellExecuteEx(&ShExecInfo);
 	::WaitForSingleObject(ShExecInfo.hProcess, INFINITE);
 	::CloseHandle(ShExecInfo.hProcess);
