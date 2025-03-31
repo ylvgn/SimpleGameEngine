@@ -1,4 +1,5 @@
 #include "Scene.h"
+#include "components/CTransform.h"
 
 namespace sge {
 
@@ -33,4 +34,4 @@ void Scene::_internalOnEntityDestroy(Entity* e) {
 	_entityIdMap.erase(e->id());
 }
 
-} // namespace
+} // namespace sge

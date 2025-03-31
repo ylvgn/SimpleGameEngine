@@ -14,7 +14,7 @@ Ray3<T> Ray3<T>::s_unprojectFromInvMatrix(const Vec2& screenPos, const Mat4& inv
 
 	Ray3 o;
 	o.origin = v0;
-	o.dir	 = (v1 - v0).normalize();
+	o.dir = (v1 - v0).normal();
 	return o;
 }
 

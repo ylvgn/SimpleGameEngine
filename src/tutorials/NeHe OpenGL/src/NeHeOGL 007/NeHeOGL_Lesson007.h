@@ -132,14 +132,14 @@ private:
 	static constexpr float a = 0.5f;
 	static const int kCubeVertexCount = 8;
 	Vector<Tuple3f, kCubeVertexCount> kCubePos = {
-		{-a, a,-a}, // 0
-		{ a, a,-a}, // 1
-		{ a, a, a}, // 2
-		{-a, a, a}, // 3
-		{-a,-a,-a}, // 4
-		{ a,-a,-a}, // 5
-		{ a,-a, a}, // 6
-		{-a,-a, a}, // 7
+		Tuple3f(-a, a,-a), // 0
+		Tuple3f( a, a,-a), // 1
+		Tuple3f( a, a, a), // 2
+		Tuple3f(-a, a, a), // 3
+		Tuple3f(-a,-a,-a), // 4
+		Tuple3f( a,-a,-a), // 5
+		Tuple3f( a,-a, a), // 6
+		Tuple3f(-a,-a, a), // 7
 	};
 
 	Vec4f		_ambient	{ 0,0,1,1 };

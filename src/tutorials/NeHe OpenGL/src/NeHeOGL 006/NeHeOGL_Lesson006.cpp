@@ -24,7 +24,7 @@ void NeHeOGL_Lesson006::onInitedGL() {
 //      |/       |/
 //      7--------6
 	static const int kCubeVertexCount = 8;
-	static Vector<Tuple3f, kCubeVertexCount> kCubePos {
+	static Vector<Vec3f, kCubeVertexCount> kCubePos {
 		{-d, d,-d}, // 0
 		{ d, d,-d}, // 1
 		{ d, d, d}, // 2

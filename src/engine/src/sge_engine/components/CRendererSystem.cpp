@@ -1,4 +1,5 @@
 #include "CRendererSystem.h"
+#include "CRenderer.h"
 
 namespace sge {
 

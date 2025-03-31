@@ -277,16 +277,16 @@ namespace OGL {
 	}
 	inline void color4f(const Color4f& c)					{ glColor4f(c.r, c.g, c.b, c.a); }
 	inline void texCoord2f(const Tuple2f& uv)				{ glTexCoord2f(uv.x, uv.y); }
-	inline void vertex3f(const Tuple3f& v)					{ glVertex3f(v.x, v.y, v.z); }
-	inline void normal3f(const Tuple3f& nl)					{ glNormal3f(nl.x, nl.y, nl.z); }
-	inline void translatef(const Tuple3f& t)				{ glTranslatef(t.x, t.y, t.z); }
-	inline void rotatef(float degrees, const Tuple3f& axis)	{ glRotatef(degrees, axis.x, axis.y, axis.z); }
-	inline void scalef(const Tuple3f& s)					{ glScalef(s.x, s.y, s.z); }
+	inline void vertex3f(const Vec3f& v)					{ glVertex3f(v.x, v.y, v.z); }
+	inline void normal3f(const Vec3f& nl)					{ glNormal3f(nl.x, nl.y, nl.z); }
+	inline void translatef(const Vec3f& t)					{ glTranslatef(t.x, t.y, t.z); }
+	inline void rotatef(float degrees, const Vec3f& axis)	{ glRotatef(degrees, axis.x, axis.y, axis.z); }
+	inline void scalef(const Vec3f& s)						{ glScalef(s.x, s.y, s.z); }
 
 	inline void color4fv(const Color4f* c)		{ glColor4fv(c->data); }
 	inline void texCoord2fv(const Tuple2f& uv)	{ glTexCoord2fv(uv.data); }
-	inline void vertex3fv(const Tuple3f* v)		{ glVertex3fv(v->data); }
-	inline void normal3fv(const Tuple3f* nl)	{ glNormal3fv(nl->data); }
+	inline void vertex3fv(const Vec3f* v)		{ glVertex3fv(v->data); }
+	inline void normal3fv(const Vec3f* nl)		{ glNormal3fv(nl->data); }
 
 #define SGE_DECLEAR_GLXXXPOINTER(GL_FUNC_NAME, FUNC_NAME, IN_SRC) \
 	inline void FUNC_NAME(const IN_SRC* const p, size_t stride) { \

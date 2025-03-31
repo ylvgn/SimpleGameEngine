@@ -15,12 +15,12 @@ void PW5_RandRect::onUpdate(float dt) {
 	int w = static_cast<int>(_clientRect.w);
 	int h = static_cast<int>(_clientRect.h);
 
-	_rc.setByLTRB(
-		static_cast<float>(rand() % w),
-		static_cast<float>(rand() % h),
-		static_cast<float>(rand() % w),
-		static_cast<float>(rand() % h)
-	);
+	::RECT rc {
+		rand() % w,
+		rand() % h,
+		rand() % w,
+		rand() % h
+	};
 
 	_color.set(
 		rand() % 256,
@@ -29,7 +29,7 @@ void PW5_RandRect::onUpdate(float dt) {
 		rand() % 256
 	);
 
-	GDI::fillRect(hdc, _rc, _color);
+	GDI::fillRect(hdc, rc, _color);
 }
 
 }

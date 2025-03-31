@@ -75,7 +75,7 @@ public:
 	}
 
 	void setByTriangle(const Vec3& v0, const Vec3& v1, const Vec3& v2) {
-		normal = (v1 - v0).cross(v2 - v0).normalize();
+		normal = (v1 - v0).cross(v2 - v0).normal();
 		distance = normal.dot(v0);
 	}
 

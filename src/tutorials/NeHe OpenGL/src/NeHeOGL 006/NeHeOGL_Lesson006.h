@@ -25,8 +25,8 @@ private:
 	void _destroy();
 
 	struct NeHeOGL_Lesson006_MyMesh : public NonCopyable {
-		Vector<Tuple3f> pos;
-		Vector<Tuple2f> uv;
+		Vector<Vec3f> pos;
+		Vector<Vec2f> uv;
 		Vector<u32>	indices;
 
 		void clean() {

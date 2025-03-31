@@ -9,7 +9,7 @@ class ShellCmd : public Cmd {
 public:
 	ShellCmd() : Base(Base::Type::Shell) {}
 protected:
-	virtual void onExec(Param* params, size_t n) override;
+	virtual void onExec(const Param* params, size_t n) const override;
 };
 
 } // namespace sge

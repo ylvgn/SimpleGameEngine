@@ -16,6 +16,7 @@
 	#pragma comment(lib, "Ws2_32.lib")
 	#include <Windows.h>
 	#include <intsafe.h>
+	#include <xmmintrin.h>
 
 	#ifndef SGE_TRY_USE_OPENGL
 		#error
@@ -148,7 +149,7 @@ template <class T, class... Args> inline UPtr<T> UPtr_make(Args&&... args) {
 	return eastl::make_unique<T>(SGE_FORWARD(args)...);
 }
 
-template<class T> using Span = eastl::span<T>;
+template<class T> using Span = eastl::span<T>; // mutable
 using ByteSpan = Span<const u8>;
 
 template<class DST, class SRC> inline 
@@ -220,8 +221,7 @@ class StrViewT : public StrViewT_Base<T> { // immutable string view
 	using Base::mnCount;
 	using Base::mpBegin;
 public:
-
-									 StrViewT() = default;
+						EA_CONSTEXPR StrViewT() = default;
 						EA_CONSTEXPR StrViewT(const StrViewT& other)				EA_NOEXCEPT : Base(other) {}
 						EA_CONSTEXPR StrViewT(const T* s)							EA_NOEXCEPT : Base(s) {}
 						EA_CONSTEXPR explicit StrViewT(const T* s, size_type count)	EA_NOEXCEPT : Base(s, count) {}
@@ -231,11 +231,11 @@ public:
 
 	explicit operator bool() const { return !empty(); }
 
-	const	T&	operator[]	(int i)		const	{ return at(i); }
-	const	T&	at(int i)				const	{ _checkBound(i); return mpBegin[i]; }
-	const	T&	unsafe_at(int i)		const	{ return mpBegin[i]; }
-	const	T&	back(int i = 0)			const	{ return at(mnCount - i - 1); }
-	const	T&	unsafe_back(int i = 0)	const	{ unsafe_at(mnCount - i - 1); }
+	const T&	operator[]	(int i)		const	{ return at(i); }
+	const T&	at			(int i)		const	{ _checkBound(i); return mpBegin[i]; }
+	const T&	unsafe_at	(int i)		const	{ return mpBegin[i]; }
+	const T&	back		(int i = 0)	const	{ return at(mnCount - i - 1); }
+	const T&	unsafe_back	(int i = 0)	const	{ unsafe_at(mnCount - i - 1); }
 
 			bool inBound(int i)			const	{ return i >= 0 && i < mnCount; }
 
@@ -249,14 +249,14 @@ public:
 
 	StrViewT<T> slice(int offset, int size) const {
 		if (offset < 0 || size < 0 || offset + size > mnCount)
-			throw std::out_of_range("StrViewT::slice -- out of range");
+			throw std::out_of_range("StrViewT::slice");
 		return StrViewT(begin() + offset, size);
 	}
 
 private:
 	void _checkBound(int i) const {
 		if (!inBound(i))
-			throw std::out_of_range("StrViewT::_checkBound -- out of range");
+			throw std::out_of_range("StrViewT::_checkBound");
 	}
 };
 

@@ -28,10 +28,10 @@ void PW5_MyMappingMode::_example1() {
 	hdc.clearBg();
 
 	// The mapping mode is said to define the mapping of the "window" (logical coordinates) to the "viewport" (device coordinates)
-	// device units (which are pixels): device(viewport) coordinates
+	// device(viewport) coordinates: device units (which are pixels), like GetClientRect, without titlebar, menubar.
 	// logical(window) coordinates: depends on mapping mode.
 
-	// The window is specified in terms of logical coordinates,
+	// The window is specified in terms of logical coordinates (world space/page space),
 	// which might be
 		// pixels(MM_TEXT),
 		// millimeters(MM_LOMETRIC/MM_HIMETRIC),
@@ -40,13 +40,13 @@ void PW5_MyMappingMode::_example1() {
 
 	// coordinates:
 		// screen coordinates: GetWindowRect, GetCursorPos
-			// The upper left corner of the screen is the point(0, 0)
-		// Whole−window coordinates: GetWindowDC
+			// (0,0) at top-left of primary display
+		// Whole−window coordinates (window-relative coordinates): GetWindowDC
 			// refer to a program's entire application window,
 			// including the title bar, menu, scroll bars, and border
 			// upper left corner of the sizing border
-		// client area coordinates: GetDC or BeginPaint
-			// upper left corner of the client area
+		// client area coordinates: GetDC, BeginPaint, Rectangle, LineTo, TextOut, etc
+			// (0,0) at top-left of client area, window's client area (inside borders/title bar)
 
 	// If you feel comfortable working in units of pixels,
 	// you don't need to use any mapping modes except the default MM_TEXT mode.

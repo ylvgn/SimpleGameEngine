@@ -1,5 +1,8 @@
 #pragma once
 
+#include <sge_core/string/StringUtil.h>
+#include <sge_core/math/Rect2.h>
+
 #if SGE_OS_WINDOWS
 
 namespace sge {

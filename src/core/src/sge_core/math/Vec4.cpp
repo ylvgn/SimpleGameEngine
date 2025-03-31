@@ -15,6 +15,4 @@ namespace sge {
 	template Vec4_Basic<double>;
 #endif
 
-
-
 }

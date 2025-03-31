@@ -8,7 +8,7 @@ namespace sge {
 #endif
 #if SGE_OS_WINDOWS
 
-void ShellCmd::onExec(Param* params, size_t n) {
+void ShellCmd::onExec(const Param* params, size_t n) const {
 	TempStringW tmpExecFileName;
 	UtfUtil::convert(tmpExecFileName, _execFileName);
 	tmpExecFileName.replaceChars(L'/', L'\\'); // Windows OS path separator need \ instead of /

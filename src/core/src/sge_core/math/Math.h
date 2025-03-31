@@ -157,8 +157,8 @@ namespace sge { namespace Math {
 	template<>	constexpr f64	epsilon<f64 >() { return DBL_EPSILON; }
 	template<>	constexpr f128	epsilon<f128>() { return LDBL_EPSILON; }
 
-	template<class T, class EP = T> SGE_INLINE bool equals (const T& a, const T& b, const EP& ep = epsilon<T>()) { return abs(a-b) <= ep; }
-	template<class T, class EP = T> SGE_INLINE bool equals0(const T& a,             const EP& ep = epsilon<T>()) { return abs( a ) <= ep; }
+	template<class T, class EP = T> SGE_INLINE constexpr bool equals (const T& a, const T& b, const EP& ep = epsilon<T>()) { return abs(a-b) <= ep; }
+	template<class T, class EP = T> SGE_INLINE constexpr bool equals0(const T& a,             const EP& ep = epsilon<T>()) { return abs( a ) <= ep; }
 
 //-------------- Lerp ----------------
 //! linear interpolation out = a+w*(b-a)

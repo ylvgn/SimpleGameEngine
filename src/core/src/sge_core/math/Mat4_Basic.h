@@ -17,28 +17,57 @@ struct Mat4_Basic_Data {
 		struct { Vec4 cx, cy, cz, cw; };
 		Vec4	_columns[4];
 		T		_elements[kElementCount];
+
+		struct {
+			float xx, xy, xz, xw;
+			float yx, yy, yz, yw;
+			float zx, zy, zz, zw;
+			float wx, wy, wz, ww;
+		};
 	};
 
-	Mat4_Basic_Data() = default;
-	constexpr Mat4_Basic_Data(const Vec4& cx_, const Vec4& cy_, const Vec4& cz_, const Vec4& cw_) {
+
+	SGE_INLINE explicit constexpr Mat4_Basic_Data() = default;
+	SGE_INLINE			constexpr Mat4_Basic_Data(T xx, T xy, T xz, T xw,
+												  T yx, T yy, T yz, T yw,
+												  T zx, T zy, T zz, T zw,
+												  T wx, T wy, T wz, T ww)
+		: cx(xx, xy, xz, xw)
+		, cy(yx, yy, yz, yw)
+		, cz(zx, zy, zz, zw)
+		, cw(wx, wy, wz, ww)
+	{}
+
+	SGE_INLINE constexpr Mat4_Basic_Data(const Vec4& cx_, const Vec4& cy_, const Vec4& cz_, const Vec4& cw_) {
 		set(cx_, cy_, cz_, cw_);
 	}
 
-	constexpr void set(const Vec4& cx_, const Vec4& cy_, const Vec4& cz_, const Vec4& cw_) {
+	SGE_INLINE constexpr void set(const Vec4& cx_, const Vec4& cy_, const Vec4& cz_, const Vec4& cw_) {
 		cx = cx_; cy = cy_; cz = cz_; cw = cw_;
 	}
+
+	SGE_INLINE constexpr void set(T xx, T xy, T xz, T xw,
+								  T yx, T yy, T yz, T yw,
+								  T zx, T zy, T zz, T zw,
+								  T wx, T wy, T wz, T ww)
+	{
+		cx.set(xx, xy, xz, xw);
+		cy.set(yx, yy, yz, yw);
+		cz.set(zx, zy, zz, zw);
+		cw.set(wx, wy, wz, ww);
+	}
+
 }; // Mat4_Basic_Data
 
 template<class T, class DATA = Mat4_Basic_Data<T> >
 struct Mat4_Basic : public DATA {
 	using Mat4	= Mat4_Basic;
 	using Vec4	= typename DATA::Vec4;
-	using Vec3	= sge::Vec3<T>;
-	using Rect2	= sge::Rect2<T>;
-	using Quat4	= sge::Quat4<T>;
+	using Vec3	= Vec3<T>;
+	using Rect2	= Rect2<T>;
+	using Quat4	= Quat4<T>;
 
 	using ElementType	= typename DATA::ElementType;
-	using Scalar		= T;
 
 	using DATA::cx;
 	using DATA::cy;
@@ -46,17 +75,17 @@ struct Mat4_Basic : public DATA {
 	using DATA::cw;
 	using DATA::kElementCount;
 
-	static SGE_INLINE const Mat4&	s_identity();
+	static SGE_INLINE constexpr const Mat4&	s_identity();
 	
-	static SGE_INLINE		Mat4	s_translate	(const Vec3 & t);
-	static SGE_INLINE		Mat4	s_rotate	(const Vec3 & r);
-	static SGE_INLINE		Mat4	s_rotateX	(const T & rad);
-	static SGE_INLINE		Mat4	s_rotateY	(const T & rad);
-	static SGE_INLINE		Mat4	s_rotateZ	(const T & rad);
-	static SGE_INLINE		Mat4	s_scale		(const Vec3 & s);
-	static SGE_INLINE		Mat4	s_shear		(const Vec3 & v);
+	static SGE_INLINE constexpr Mat4	s_translate	(const Vec3& t);
+	static SGE_INLINE constexpr Mat4	s_rotate	(const Vec3& r);
+	static SGE_INLINE constexpr Mat4	s_rotateX	(const T& rad);
+	static SGE_INLINE constexpr Mat4	s_rotateY	(const T& rad);
+	static SGE_INLINE constexpr Mat4	s_rotateZ	(const T& rad);
+	static SGE_INLINE constexpr Mat4	s_scale		(const Vec3& s);
+	static SGE_INLINE constexpr Mat4	s_shear		(const Vec3& v);
 
-	static SGE_INLINE		Mat4	s_quat		(const Quat4& q);
+	static SGE_INLINE constexpr	Mat4	s_quat		(const Quat4& q);
 
 	static SGE_INLINE		Mat4	s_TRS(const Vec3 & translate, const Vec3 & rotate, const Vec3 & scale);
 	static SGE_INLINE		Mat4	s_TRS(const Vec3 & translate, const Quat4& rotate, const Vec3 & scale);
@@ -66,9 +95,19 @@ struct Mat4_Basic : public DATA {
 	static SGE_INLINE		Mat4	s_ortho			(T left, T right, T bottom, T top, T zNear, T zFar);
 	static SGE_INLINE		Mat4	s_lookAt		(const Vec3 & eye, const Vec3 & aim, const Vec3 & up);
 
-	Mat4() = default;
-	constexpr Mat4(const Vec4& cx_, const Vec4& cy_, const Vec4& cz_, const Vec4& cw_)
+	SGE_INLINE constexpr Mat4() = default;
+	SGE_INLINE constexpr Mat4(const Vec4& cx_, const Vec4& cy_, const Vec4& cz_, const Vec4& cw_)
 		: DATA(cx_, cy_, cz_, cw_)
+	{}
+
+	Mat4(T xx, T xy, T xz, T xw,
+		 T yx, T yy, T yz, T yw,
+		 T zx, T zy, T zz, T zw,
+		 T wx, T wy, T wz, T ww)
+		: DATA(	xx, xy, xz, xw,
+				yx, yy, yz, yw,
+				zx, zy, zz, zw,
+				wx, wy, wz, ww)
 	{}
 
 	SGE_INLINE			Vec4& operator[](int i)			{ return _columns[i]; }
@@ -88,21 +127,20 @@ struct Mat4_Basic : public DATA {
 	Mat4 inverse3x3			 () const;
 	Mat4 inverse3x3Transpose () const;
 
-	SGE_INLINE Mat4 operator*(const Mat4& r) const;
+	SGE_INLINE Mat4 operator * (const Mat4& r) const;
 
-	SGE_INLINE Mat4 operator+(const Scalar& s) const { Vec4 v(s,s,s,s); return Mat4(cx + v, cy + v, cz + v, cw + v); }
-	SGE_INLINE Mat4 operator-(const Scalar& s) const { Vec4 v(s,s,s,s); return Mat4(cx - v, cy - v, cz - v, cw - v); }
+	SGE_INLINE Mat4 operator + (T s) const { Vec4 v(s,s,s,s); return Mat4(cx + v, cy + v, cz + v, cw + v); }
+	SGE_INLINE Mat4 operator - (T s) const { Vec4 v(s,s,s,s); return Mat4(cx - v, cy - v, cz - v, cw - v); }
+	SGE_INLINE Mat4 operator * (T s) const { Vec4 v(s,s,s,s); return Mat4(cx * v, cy * v, cz * v, cw * v); }
+	SGE_INLINE Mat4 operator / (T s) const { Vec4 v(s,s,s,s); return Mat4(cx / v, cy / v, cz / v, cw / v); }
 
-	SGE_INLINE Mat4 operator*(const Scalar& s) const { Vec4 v(s,s,s,s); return Mat4(cx * v, cy * v, cz * v, cw * v); }
-	SGE_INLINE Mat4 operator/(const Scalar& s) const { Vec4 v(s,s,s,s); return Mat4(cx / v, cy / v, cz / v, cw / v); }
+	SGE_INLINE void operator += (T s) { Vec4 v(s,s,s,s); cx += v; cy += v; cz += v; cw += v; }
+	SGE_INLINE void operator -= (T s) { Vec4 v(s,s,s,s); cx -= v; cy -= v; cz -= v; cw -= v; }
+	SGE_INLINE void operator *= (T s) { Vec4 v(s,s,s,s); cx *= v; cy *= v; cz *= v; cw *= v; }
+	SGE_INLINE void operator /= (T s) { Vec4 v(s,s,s,s); cx /= v; cy /= v; cz /= v; cw /= v; }
 
-	SGE_INLINE void operator+=(const Scalar& s) { Vec4 v(s,s,s,s); cx += v; cy += v; cz += v; cw += v; }
-	SGE_INLINE void operator-=(const Scalar& s) { Vec4 v(s,s,s,s); cx -= v; cy -= v; cz -= v; cw -= v; }
-	SGE_INLINE void operator*=(const Scalar& s) { Vec4 v(s,s,s,s); cx *= v; cy *= v; cz *= v; cw *= v; }
-	SGE_INLINE void operator/=(const Scalar& s) { Vec4 v(s,s,s,s); cx /= v; cy /= v; cz /= v; cw /= v; }
-
-	SGE_INLINE bool operator==(const Mat4& r) const { return cx == r.cx && cy == r.cy && cz == r.cz && cw == r.cw; }
-	SGE_INLINE bool operator!=(const Mat4& r) const { return cx != r.cx || cy != r.cy || cz != r.cz || cw != r.cw; }
+	SGE_INLINE bool operator == (const Mat4& r) const { return cx == r.cx && cy == r.cy && cz == r.cz && cw == r.cw; }
+	SGE_INLINE bool operator != (const Mat4& r) const { return cx != r.cx || cy != r.cy || cz != r.cz || cw != r.cw; }
 
 	SGE_INLINE Vec4	mulPoint	(const Vec4& v) const { return Vec4(cx * v.x + cy * v.y  + cz * v.z + cw * v.w); }
 
@@ -135,7 +173,7 @@ SGE_FORMATTER_T( SGE_ARGS(class T, class DATA), Mat4_Basic< SGE_ARGS(T, DATA) >)
 #pragma mark ------------------- static functions -------------------
 #endif
 
-template<class T, class DATA> SGE_INLINE
+template<class T, class DATA> SGE_INLINE constexpr
 const Mat4_Basic<T, DATA> & Mat4_Basic<T, DATA>::s_identity() {
 	static Mat4 s({1, 0, 0, 0},
 				  {0, 1, 0, 0},
@@ -144,7 +182,7 @@ const Mat4_Basic<T, DATA> & Mat4_Basic<T, DATA>::s_identity() {
 	return s;
 }
 
-template<class T, class DATA> SGE_INLINE
+template<class T, class DATA> SGE_INLINE constexpr
 Mat4_Basic<T, DATA> Mat4_Basic<T, DATA>::s_translate(const Vec3& t) {
 	return Mat4({1,   0,   0,   0},
 				{0,   1,   0,   0},
@@ -152,7 +190,7 @@ Mat4_Basic<T, DATA> Mat4_Basic<T, DATA>::s_translate(const Vec3& t) {
 				{t.x, t.y, t.z, 1});
 }
 
-template<class T, class DATA> SGE_INLINE
+template<class T, class DATA> SGE_INLINE constexpr
 Mat4_Basic<T, DATA> Mat4_Basic<T, DATA>::s_rotate(const Vec3& rad) {
 	if (rad.equals0()) return s_identity();
 
@@ -168,7 +206,7 @@ Mat4_Basic<T, DATA> Mat4_Basic<T, DATA>::s_rotate(const Vec3& rad) {
 		{0,         0,                        0,                      1});
 }
 
-template<class T, class DATA> SGE_INLINE
+template<class T, class DATA> SGE_INLINE constexpr
 Mat4_Basic<T, DATA> Mat4_Basic<T, DATA>::s_quat(const Quat4& q) {
 	T qxx(q.x * q.x);
 	T qyy(q.y * q.y);
@@ -187,7 +225,7 @@ Mat4_Basic<T, DATA> Mat4_Basic<T, DATA>::s_quat(const Quat4& q) {
 		{T(0),                T(0),                T(0),                T(1)});
 }
 
-template<class T, class DATA> SGE_INLINE
+template<class T, class DATA> SGE_INLINE constexpr
 Mat4_Basic<T, DATA> Mat4_Basic<T, DATA>::s_rotateX(const T& rad) {
 	if (Math::equals0(rad)) return s_identity();
 
@@ -199,7 +237,7 @@ Mat4_Basic<T, DATA> Mat4_Basic<T, DATA>::s_rotateX(const T& rad) {
 				{0, 0, 0, 1});
 }
 
-template<class T, class DATA> SGE_INLINE
+template<class T, class DATA> SGE_INLINE constexpr
 Mat4_Basic<T, DATA> Mat4_Basic<T, DATA>::s_rotateY(const T& rad) {
 	if (Math::equals0(rad)) return s_identity();
 
@@ -211,7 +249,7 @@ Mat4_Basic<T, DATA> Mat4_Basic<T, DATA>::s_rotateY(const T& rad) {
 				{0, 0, 0, 1});
 }
 
-template<class T, class DATA> SGE_INLINE
+template<class T, class DATA> SGE_INLINE constexpr
 Mat4_Basic<T, DATA> Mat4_Basic<T, DATA>::s_rotateZ(const T& rad) {
 	if (Math::equals0(rad)) return s_identity();
 
@@ -223,7 +261,7 @@ Mat4_Basic<T, DATA> Mat4_Basic<T, DATA>::s_rotateZ(const T& rad) {
 				{ 0, 0, 0, 1});
 }
 
-template<class T, class DATA> SGE_INLINE
+template<class T, class DATA> SGE_INLINE constexpr
 Mat4_Basic<T, DATA> Mat4_Basic<T, DATA>::s_scale(const Vec3& s) {
 	return Mat4({s.x, 0,   0,   0},
 				{0,   s.y, 0,   0},
@@ -231,7 +269,7 @@ Mat4_Basic<T, DATA> Mat4_Basic<T, DATA>::s_scale(const Vec3& s) {
 				{0,   0,   0,   1});
 }
 
-template<class T, class DATA> SGE_INLINE
+template<class T, class DATA> SGE_INLINE constexpr
 Mat4_Basic<T, DATA> Mat4_Basic<T, DATA>::s_shear(const Vec3& v) {
 	return Mat4( {  1,   0,  0,  0},
 				 {v.x,   1,  0,  0},
@@ -239,7 +277,7 @@ Mat4_Basic<T, DATA> Mat4_Basic<T, DATA>::s_shear(const Vec3& v) {
 				 {  0,   0,  0,  1});
 }
 
-template<class T, class DATA> SGE_INLINE 
+template<class T, class DATA> SGE_INLINE
 Mat4_Basic<T, DATA> Mat4_Basic<T, DATA>::s_TRS(const Vec3& translate, const Vec3& rotate, const Vec3& scale) {
 	Vec3 s, c;
 	Math::sincos(rotate.x, s.x, c.x);
@@ -303,8 +341,8 @@ Mat4_Basic<T, DATA> Mat4_Basic<T, DATA>::s_ortho(T left, T right, T bottom, T to
 
 template<class T, class DATA> SGE_INLINE
 Mat4_Basic<T, DATA> Mat4_Basic<T, DATA>::s_lookAt(const Vec3& eye, const Vec3& aim, const Vec3& up) {
-	auto f = (aim - eye).normalize();
-	auto s = f.cross(up).normalize();
+	auto f = (aim - eye).normal();
+	auto s = f.cross(up).normal();
 	auto u = s.cross(f);
 
 	return Mat4(

@@ -21,10 +21,10 @@ public:
 	void setWorkingDir(StrView s)		{ _workingDir.assign(s.begin(), s.end()); }
 	void setExecFileName(StrView s)		{ _execFileName.assign(s.begin(), s.end()); }
 
-	void exec(Param* params, size_t n);
+	void exec(const Param* params, size_t n) const;
 
 	template<size_t N>
-	void exec(const Param(&params)[N]) {
+	void exec(const Param(&params)[N]) const {
 		if (!N) return;
 		exec(params, N);
 	}
@@ -36,7 +36,7 @@ protected:
 		: _type(type)
 	{}
 
-	virtual void onExec(Param* params, size_t n) = 0;
+	virtual void onExec(const Param* params, size_t n) const = 0;
 
 	String			_workingDir;
 	String			_execFileName;

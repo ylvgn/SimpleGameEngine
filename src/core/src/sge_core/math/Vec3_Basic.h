@@ -1,8 +1,6 @@
 #pragma once
 
-#include "Tuple3.h"
 #include "Vec2.h"
-#include "Rect2.h"
 
 namespace sge {
 
@@ -10,105 +8,111 @@ template<class T> using Vec3_Basic_Data = Tuple3<T>;
 
 template<class T, class DATA = Vec3_Basic_Data<T> >
 struct Vec3_Basic : public DATA {
-public:
 	using Vec3 = Vec3_Basic;
 	using Vec2 = Vec2<T>;
 
-	using ElementType	= typename DATA::ElementType;
-	using Scalar		= T;
+	sgeTuple_InterfaceFunctions_Impl(Vec3_Basic, typename DATA::ElementType, 3)
 
-	using DATA::x; // require this on gcc/clang, otherwise the fullname `Base::x` is needed instead of `x`
+	using DATA::x; // require this on gcc/clang, otherwise the fullname `DATA::x` is needed instead of `x`
 	using DATA::y;
 	using DATA::z;
 	using DATA::data;
-	using DATA::kElementCount;
 
-	SGE_INLINE static constexpr Vec3 s_zero()		{ return Vec3(0,0,0); }
-	SGE_INLINE static constexpr Vec3 s_one()		{ return Vec3(1,1,1); }
+	SGE_INLINE static constexpr This s_zero()		{ return This( 0, 0, 0); }
+	SGE_INLINE static constexpr This s_one()		{ return This( 1, 1, 1); }
 
-	SGE_INLINE static constexpr Vec3 s_forward()	{ return Vec3( 0, 0, 1); }
-	SGE_INLINE static constexpr Vec3 s_back()		{ return Vec3( 0, 0,-1); }
-	SGE_INLINE static constexpr Vec3 s_up()			{ return Vec3( 0, 1, 0); }
-	SGE_INLINE static constexpr Vec3 s_down()		{ return Vec3( 0,-1, 0); }
-	SGE_INLINE static constexpr Vec3 s_right()		{ return Vec3( 1 ,0, 0); }
-	SGE_INLINE static constexpr Vec3 s_left()		{ return Vec3(-1 ,0, 0); }
+	SGE_INLINE static constexpr This s_forward()	{ return This( 0, 0, 1); }
+	SGE_INLINE static constexpr This s_back()		{ return This( 0, 0,-1); }
+	SGE_INLINE static constexpr This s_up()			{ return This( 0, 1, 0); }
+	SGE_INLINE static constexpr This s_down()		{ return This( 0,-1, 0); }
+	SGE_INLINE static constexpr This s_right()		{ return This( 1 ,0, 0); }
+	SGE_INLINE static constexpr This s_left()		{ return This(-1 ,0, 0); }
 
-	SGE_INLINE static constexpr Vec3 s_inf()		{ auto f = Math::inf<T>(); return Vec3(f,f,f); }
+	SGE_INLINE static constexpr This s_inf()		{ auto v = Math::inf<T>(); return This(v); }
 
-	SGE_INLINE static constexpr Vec3 s_xy0(const Vec2& v) { return Vec3(v.x, v.y, T(0)); }
-	SGE_INLINE static constexpr Vec3 s_xy1(const Vec2& v) { return Vec3(v.x, v.y, T(1)); }
-	SGE_INLINE static constexpr Vec3 s_x0y(const Vec2& v) { return Vec3(v.x, T(0), v.y); }
-	SGE_INLINE static constexpr Vec3 s_x1y(const Vec2& v) { return Vec3(v.x, T(1), v.y); }
+	SGE_INLINE static constexpr This s_xy0(const Vec2& v) { return This(v.x, v.y, T(0)); }
+	SGE_INLINE static constexpr This s_xy1(const Vec2& v) { return This(v.x, v.y, T(1)); }
+	SGE_INLINE static constexpr This s_x0y(const Vec2& v) { return This(v.x, T(0), v.y); }
+	SGE_INLINE static constexpr This s_x1y(const Vec2& v) { return This(v.x, T(1), v.y); }
 
-	Vec3() = default;
-	constexpr Vec3(const Tuple3<T> & v) { set(v); }
-	constexpr Vec3(const T& x_, const T& y_, const T& z_) { set(x_, y_, z_); }
-	constexpr Vec3(const Vec2& v, const T& z_) { set(v.x, v.y, z_); }
+	SGE_INLINE explicit	constexpr Vec3(T v)								{ DATA::setAll(v); }
+	SGE_INLINE			constexpr Vec3(T x_, T y_, T z_)				{ DATA::set(x_,  y_,  z_); }
+	SGE_INLINE			constexpr Vec3(const Vec2& v, const T& z_)		{ DATA::set(v.x, v.y, z_); }
+	SGE_INLINE			constexpr Vec3(const Tuple2<T>& v, const T& z_) { DATA::set(v.x, v.y, z_); }
+	SGE_INLINE			constexpr Vec3(const Tuple3<T>& v)				{ DATA::set(v); }
 
-	SGE_INLINE void set(const Tuple3<T> & v) { DATA::set(v); }
-	SGE_INLINE void set(const T& x_, const T& y_, const T& z_) { set(Tuple3<T>(x_, y_, z_)); }
+	SGE_INLINE constexpr void setToDefaultValue()						{ DATA::set(0,0,0); }
+	SGE_INLINE constexpr bool isAll (const T& v)	const { return equals(This(v)); }
 
-	SGE_INLINE bool equals(const Vec3& r, const T& epsilon = Math::epsilon<T>()) const;
-	SGE_INLINE bool equals0(              const T& epsilon = Math::epsilon<T>()) const;
+	SGE_INLINE constexpr bool equals (const This& r, const T& epsilon = Math::epsilon<T>()) const;
+	SGE_INLINE constexpr bool equals0(               const T& epsilon = Math::epsilon<T>()) const;
 
-	SGE_INLINE void setAll(const T& v) { set(v,v,v); }
-	SGE_INLINE bool isAll (const T& v) { return equals(Vec3(v,v,v)); }
+	SGE_INLINE constexpr This operator - ()				   const { return This(-x, -y, -z); }
 
-	SGE_INLINE Vec3 operator-() const { return Vec3(-x, -y, -z); }
+	SGE_INLINE			 This operator + (const This &	r) const { return This(x + r.x, y + r.y, z + r.z); }
+	SGE_INLINE			 This operator - (const This &	r) const { return This(x - r.x, y - r.y, z - r.z); }
+	SGE_INLINE			 This operator * (const This &	r) const { return This(x * r.x, y * r.y, z * r.z); }
+	SGE_INLINE			 This operator / (const This &	r) const { return This(x / r.x, y / r.y, z / r.z); }
 
-	SGE_INLINE Vec3 operator+(const Vec3& r) const { return Vec3(x + r.x, y + r.y, z + r.z); }
-	SGE_INLINE Vec3 operator-(const Vec3& r) const { return Vec3(x - r.x, y - r.y, z - r.z); }
-	SGE_INLINE Vec3 operator*(const Vec3& r) const { return Vec3(x * r.x, y * r.y, z * r.z); }
-	SGE_INLINE Vec3 operator/(const Vec3& r) const { return Vec3(x / r.x, y / r.y, z / r.z); }
+	SGE_INLINE			 This operator + (T	s) const { return This(x + s, y + s, z + s); }
+	SGE_INLINE			 This operator - (T	s) const { return This(x - s, y - s, z - s); }
+	SGE_INLINE			 This operator * (T	s) const { return This(x * s, y * s, z * s); }
+	SGE_INLINE			 This operator / (T	s) const { return This(x / s, y / s, z / s); }
 
-	SGE_INLINE Vec3 operator+(const Scalar& s) const { return Vec3(x + s, y + s, z + s); }
-	SGE_INLINE Vec3 operator-(const Scalar& s) const { return Vec3(x - s, y - s, z - s); }
-	SGE_INLINE Vec3 operator*(const Scalar& s) const { return Vec3(x * s, y * s, z * s); }
-	SGE_INLINE Vec3 operator/(const Scalar& s) const { return Vec3(x / s, y / s, z / s); }
+	SGE_INLINE			 void operator += (const This & r) { x += r.x; y += r.y; z += r.z; }
+	SGE_INLINE			 void operator -= (const This & r) { x -= r.x; y -= r.y; z -= r.z; }
+	SGE_INLINE			 void operator *= (const This & r) { x *= r.x; y *= r.y; z *= r.z; }
+	SGE_INLINE			 void operator /= (const This & r) { x /= r.x; y /= r.y; z /= r.z; }
 
-	SGE_INLINE void operator+=(const Vec3& r) { x += r.x; y += r.y; z += r.z; }
-	SGE_INLINE void operator-=(const Vec3& r) { x -= r.x; y -= r.y; z -= r.z; }
-	SGE_INLINE void operator*=(const Vec3& r) { x *= r.x; y *= r.y; z *= r.z; }
-	SGE_INLINE void operator/=(const Vec3& r) { x /= r.x; y /= r.y; z /= r.z; }
+	SGE_INLINE			 void operator += (T s) { x += s; y += s; z += s; }
+	SGE_INLINE			 void operator -= (T s) { x -= s; y -= s; z -= s; }
+	SGE_INLINE			 void operator *= (T s) { x *= s; y *= s; z *= s; }
+	SGE_INLINE			 void operator /= (T s) { x /= s; y /= s; z /= s; }
 
-	SGE_INLINE void operator+=(const Scalar& s) { x += s; y += s; z += s; }
-	SGE_INLINE void operator-=(const Scalar& s) { x -= s; y -= s; z -= s; }
-	SGE_INLINE void operator*=(const Scalar& s) { x *= s; y *= s; z *= s; }
-	SGE_INLINE void operator/=(const Scalar& s) { x /= s; y /= s; z /= s; }
+	SGE_INLINE constexpr bool operator == (const This & r) const { return x == r.x && y == r.y && z == r.z; }
+	SGE_INLINE constexpr bool operator != (const This & r) const { return x != r.x || y != r.y || z != r.z; }
 
-	SGE_INLINE bool operator==(const Vec3& r) const { return x == r.x && y == r.y && z == r.z; }
-	SGE_INLINE bool operator!=(const Vec3& r) const { return x != r.x || y != r.y || z != r.z; }
+	SGE_NODISCARD SGE_INLINE This	cross	(const This& v) const { return This(y*v.z - z*v.y, z*v.x - x*v.z,x*v.y - y*v.x); }
+	SGE_NODISCARD SGE_INLINE T		dot		(const This& v) const { return (x*v.x) + (y*v.y) + (z*v.z); }
 
-			T& operator[](int i)		{ return data[i]; }
-	const	T& operator[](int i) const	{ return data[i]; }
+	SGE_NODISCARD SGE_INLINE T		magnitude		() const { T m = sqrMagnitude(); return Math::equals0(m) ? T(0) : Math::sqrt(m); }
+	SGE_NODISCARD SGE_INLINE T		sqrMagnitude	() const { return dot(*this); }
 
-	SGE_NODISCARD SGE_INLINE Vec3	cross	(const Vec3& v) const	{ return Vec3(y*v.z - z*v.y, z*v.x - x*v.z,x*v.y - y*v.x); }
-	SGE_NODISCARD SGE_INLINE T		dot		(const Vec3& v) const	{ return (x*v.x) + (y*v.y) + (z*v.z); }
+	SGE_NODISCARD SGE_INLINE T		length			() const { return magnitude(); }
+	SGE_NODISCARD SGE_INLINE T		sqrLength		() const { return sqrMagnitude(); }
 
-	SGE_NODISCARD SGE_INLINE T		magnitude		() const	{ T m = sqrMagnitude(); return Math::equals0(m) ? T(0) : Math::sqrt(m); }
-	SGE_NODISCARD SGE_INLINE T		sqrMagnitude	() const	{ return dot(*this); }
+	SGE_NODISCARD SGE_INLINE T		distance		(const This &r) const { return (*this - r).length();    }
+	SGE_NODISCARD SGE_INLINE T		sqrDistance		(const This &r) const { return (*this - r).sqrLength(); }
 
-	SGE_NODISCARD SGE_INLINE T		length			() const	{ return magnitude(); }
-	SGE_NODISCARD SGE_INLINE T		sqrLength		() const	{ return sqrMagnitude(); }
+	SGE_NODISCARD SGE_INLINE constexpr This normal	 ()	const { T m = magnitude(); return Math::equals0(m) ? s_zero() : (*this / m); }
+				  SGE_INLINE constexpr void normalize()		  { *this = normal(); }
 
-	SGE_NODISCARD SGE_INLINE T		distance		(const Vec3 &r) const	{ return (*this - r).length();    }
-	SGE_NODISCARD SGE_INLINE T		sqrDistance		(const Vec3 &r) const	{ return (*this - r).sqrLength(); }
+	SGE_NODISCARD SGE_INLINE constexpr Vec3 xyz() const { return Vec3(x, y, z); }
+	SGE_NODISCARD SGE_INLINE constexpr Vec3 xzy() const { return Vec3(x, z, y); }
+	SGE_NODISCARD SGE_INLINE constexpr Vec3 yxz() const { return Vec3(y, x, z); }
+	SGE_NODISCARD SGE_INLINE constexpr Vec3 yzx() const { return Vec3(y, z, x); }
+	SGE_NODISCARD SGE_INLINE constexpr Vec3 zxy() const { return Vec3(z, x, y); }
+	SGE_NODISCARD SGE_INLINE constexpr Vec3 zyx() const { return Vec3(z, y, x); }
 
-	SGE_NODISCARD Vec3 normalize() const { T m = magnitude(); return Math::equals0(m) ? s_zero() : (*this / m); }
-
-	SGE_INLINE constexpr Vec2 xy() const { return Vec2(x,y); }
-	SGE_INLINE constexpr Vec2 xz() const { return Vec2(x,z); }
-
-	Tuple3<T> toTuple() const { return Tuple3<T>(x,y,z); }
-	operator Tuple3<T>() const { return toTuple(); }
+	SGE_NODISCARD SGE_INLINE constexpr Vec2 xy () const { return Vec2(x, y); }
+	SGE_NODISCARD SGE_INLINE constexpr Vec2 xz () const { return Vec2(x, z); }
+	SGE_NODISCARD SGE_INLINE constexpr Vec2 yx () const { return Vec2(y, x); }
+	SGE_NODISCARD SGE_INLINE constexpr Vec2 yz () const { return Vec2(y, z); }
+	SGE_NODISCARD SGE_INLINE constexpr Vec2 zx () const { return Vec2(z, x); }
+	SGE_NODISCARD SGE_INLINE constexpr Vec2 zy () const { return Vec2(z, y); }
 
 	void onFormat(fmt::format_context& ctx) const {
 		fmt::format_to(ctx.out(), "({}, {}, {})", x, y, z);
 	}
 
-	template<class R, class DATA> constexpr
-	static Vec3 s_cast(const Vec3_Basic<R, DATA>& r) {
-		return Vec3(static_cast<T>(r.x), static_cast<T>(r.y), static_cast<T>(r.z));
+				  SGE_INLINE constexpr void operator=		(const Tuple3<T>& v) { DATA::set(v.x, v.y, v.z); }
+	SGE_NODISCARD SGE_INLINE constexpr Tuple3<T> toTuple	() const			 { return Tuple3<T>(x, y, z); }
+				  SGE_INLINE constexpr operator Tuple3<T>	() const			 { return toTuple(); }
+
+	template<class V> SGE_INLINE constexpr
+	static This s_cast(const V& v) { return This(static_cast<ElementType>(v.x),
+												 static_cast<ElementType>(v.y),
+												 static_cast<ElementType>(v.z));
 	}
 };
 
@@ -121,21 +125,27 @@ using Vec3d_Basic = Vec3_Basic<double>;
 // another work around for comma
 SGE_FORMATTER_T( SGE_ARGS(class T, class DATA), Vec3_Basic< SGE_ARGS(T, DATA) >)
 
+#if 0
+#pragma mark ------------------- instance functions -------------------
+#endif
 
-template<class T, class DATA> SGE_INLINE
-bool Vec3_Basic<T, DATA>::equals(const Vec3& r, const T& epsilon) const {
+template<class T, class DATA> SGE_INLINE constexpr
+bool Vec3_Basic<T, DATA>::equals(const This& r, const T& epsilon) const {
 	return Math::equals(x, r.x, epsilon)
 		&& Math::equals(y, r.y, epsilon)
 		&& Math::equals(z, r.z, epsilon);
 }
 
-template<class T, class DATA> SGE_INLINE
+template<class T, class DATA> SGE_INLINE constexpr
 bool Vec3_Basic<T, DATA>::equals0(const T& epsilon) const {
 	return Math::equals0(x, epsilon)
 		&& Math::equals0(y, epsilon)
 		&& Math::equals0(z, epsilon);
 }
 
+#if 0
+#pragma mark ------------------- global functions -------------------
+#endif
 
 namespace Math {
 

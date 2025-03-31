@@ -1,4 +1,5 @@
 #include "Entity.h"
+#include "components/CTransform.h"
 
 namespace sge {
 
@@ -16,4 +17,4 @@ Entity::Entity() {
 	_transform = addComponent<CTransform>();
 }
 
-} // namespace
+} // namespace sge

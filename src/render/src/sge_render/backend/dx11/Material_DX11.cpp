@@ -4,6 +4,7 @@
 
 #include "Renderer_DX11.h"
 #include "RenderContext_DX11.h"
+#include "Texture_DX11.h"
 
 namespace sge {
 

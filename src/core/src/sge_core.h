@@ -21,6 +21,7 @@
 #include <sge_core/math/Tuple3.h>
 #include <sge_core/math/Tuple4.h>
 #include <sge_core/math/Vec2.h>
+#include <sge_core/math/Rect2.h>
 #include <sge_core/math/Vec3.h>
 #include <sge_core/math/Vec4.h>
 #include <sge_core/math/Mat4.h>

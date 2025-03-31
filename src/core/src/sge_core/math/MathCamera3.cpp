@@ -6,7 +6,7 @@ namespace Math {
 template<class T>
 void Camera3<T>::pan(T x, T y) {
 	auto v = _aim - _pos;
-	auto right = _up.cross(v).normalize();
+	auto right = _up.cross(v).normal();
 
 	auto q = Quat4::s_eulerY(x) * Quat4::s_angleAxis(y, right);
 	v    = q * v;
@@ -16,8 +16,8 @@ void Camera3<T>::pan(T x, T y) {
 
 template<class T>
 void Camera3<T>::orbit(T x, T y) {
-	auto v = _pos - _aim;
-	auto right = _up.cross(v).normalize();
+	auto v		= _pos - _aim;
+	auto right	= _up.cross(v).normal();
 
 	auto q = Quat4::s_angleAxis(y, right) * Quat4::s_eulerY(x);
 	v    = q * v;
@@ -28,7 +28,7 @@ void Camera3<T>::orbit(T x, T y) {
 template<class T>
 void Camera3<T>::move(T x, T y, T z) {
 	auto v		= _aim - _pos;
-	auto dir	= v.normalize();
+	auto dir	= v.normal();
 	auto right	= _up.cross(dir);
 
 	auto t = right * x + _up * y + dir * z;
@@ -38,12 +38,12 @@ void Camera3<T>::move(T x, T y, T z) {
 
 template<class T>
 void Camera3<T>::dolly(T z) {
-	auto v = _pos - _aim;
-	auto dir = v.normalize();
-	auto d = v.length();
+	auto v	 = _pos - _aim;
+	auto dir = v.normal();
+	auto d	 = v.length();
+
 	d += z;
 	d = Math::max(d, static_cast<T>(0.001));
-	
 	_pos = _aim + dir * d;
 }
 

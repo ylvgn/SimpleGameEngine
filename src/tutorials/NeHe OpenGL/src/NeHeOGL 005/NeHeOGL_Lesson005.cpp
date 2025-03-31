@@ -856,14 +856,14 @@ void NeHeOGL_Lesson005::_drawMyCube2() {
 
 void NeHeOGL_Lesson005::_drawMyCube3() {
 	static constexpr Tuple3f kCubePos[8] = {
-		{ -d, d,-d },
-		{  d, d,-d },
-		{  d, d, d },
-		{ -d, d, d },
-		{ -d,-d,-d },
-		{  d,-d,-d },
-		{  d,-d, d },
-		{ -d,-d, d },
+		Tuple3f( -d, d,-d),
+		Tuple3f(  d, d,-d),
+		Tuple3f(  d, d, d),
+		Tuple3f( -d, d, d),
+		Tuple3f( -d,-d,-d),
+		Tuple3f(  d,-d,-d),
+		Tuple3f(  d,-d, d),
+		Tuple3f( -d,-d, d),
 	};
 
 	{ // glDrawElements without glBegin

@@ -13,7 +13,6 @@ protected:
 	virtual void onCreate(CreateDesc& desc) override;
 	virtual void onUpdate(float dt) override;
 private:
-	Rect2f	_rc;
 	Color4b _color;
 };
 

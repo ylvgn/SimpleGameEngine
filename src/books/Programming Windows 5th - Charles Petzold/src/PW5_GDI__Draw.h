@@ -165,6 +165,8 @@ namespace GDI {
 		drawLine(hdc, iFrom, iTo);
 	}
 
+	int fillRect(const ::HDC& hdc, const ::RECT& ltrb, const Color4b& c);
+	int fillRect(const ::HDC& hdc, const ::RECT& ltrb, StockObj_Brush flag);
 	int fillRect(const ::HDC& hdc, const Rect2f& xywh, const Color4b& c);
 	int fillRect(const ::HDC& hdc, const Rect2f& xywh, StockObj_Brush flag);
 

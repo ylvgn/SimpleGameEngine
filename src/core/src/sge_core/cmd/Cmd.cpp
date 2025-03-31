@@ -3,7 +3,7 @@
 
 namespace sge {
 
-void Cmd::exec(Param* params, size_t n) {
+void Cmd::exec(const Param* params, size_t n) const {
 	SGE_ASSERT(!_execFileName.empty());
 
 	auto oldDir = Directory::current();
