@@ -60,17 +60,21 @@ public:
 	}
 
 	void example1() {
+		Mat4f matrix_model = Mat4f::s_identity();
+		auto mvp = _matrix_vp * matrix_model;
 		auto& s = _testShader;
 		s->bind();
-			s->setUniform("matMVP", _matrix_vp);
+			s->setUniform("matMVP", mvp);
 			_editMesh.draw();
 		s->unbind();
 	}
 
 	void example2() {
+		Mat4f matrix_model = Mat4f::s_identity();
+		auto mvp = _matrix_vp * matrix_model;
 		auto& s = _testCgShader;
 		s->bind();
-			s->setUniformCg("_matMVP", _matrix_vp);
+			s->setUniformCg("_matMVP", mvp);
 			_editMesh.draw();
 		s->unbind();
 	}

@@ -36,10 +36,10 @@ void main()
 {
 
 
-    _r0003 = cg_Vertex.x*_matMVP[0];
-    _r0003 = _r0003 + cg_Vertex.y*_matMVP[1];
-    _r0003 = _r0003 + cg_Vertex.z*_matMVP[2];
-    _r0003 = _r0003 + cg_Vertex.w*_matMVP[3];
+    _r0003.x = dot(_matMVP[0], cg_Vertex);
+    _r0003.y = dot(_matMVP[1], cg_Vertex);
+    _r0003.z = dot(_matMVP[2], cg_Vertex);
+    _r0003.w = dot(_matMVP[3], cg_Vertex);
     gl_Position = _r0003;
     cg_FrontColor = COLOR;
     return;

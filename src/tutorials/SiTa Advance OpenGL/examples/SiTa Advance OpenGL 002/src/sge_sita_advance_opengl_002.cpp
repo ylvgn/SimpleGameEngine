@@ -95,10 +95,12 @@ public:
 	}
 
 	void example1(float uptime) {
+		Mat4f matrix_model = Mat4f::s_identity();
+		auto mvp = _matrix_vp * matrix_model;
 		{
 			auto& s = _simpleColorShader;
 			s->bind();
-				s->setUniform("matMVP", _matrix_vp);
+				s->setUniform("matMVP", mvp);
 
 				s->draw(_gridMesh);
 				s->draw(_originMesh);
@@ -109,7 +111,7 @@ public:
 			auto& s = _simpleLightingShader;
 			s->bind();
 				s->setUniform("uptime", uptime);
-				s->setUniform("matMVP", _matrix_vp);
+				s->setUniform("matMVP", mvp);
 				s->setUniform("lightPos", Vec3f(1,2,2));
 
 				glEnable(GL_POLYGON_OFFSET_FILL);
@@ -121,10 +123,12 @@ public:
 	}
 
 	void example2(float uptime) {
+		Mat4f matrix_model = Mat4f::s_identity();
+		auto mvp = _matrix_vp * matrix_model;
 		{
 			auto& s = _simpleColorCgShader;
 			s->bind();
-				s->setUniformCg("_matMVP", _matrix_vp);
+				s->setUniformCg("_matMVP", mvp);
 
 				s->drawCg(_gridCgMesh);
 				s->drawCg(_originCgMesh);
@@ -134,7 +138,7 @@ public:
 		{
 			auto& s = _simpleLightingCgShader;
 			s->bind();
-				s->setUniformCg("_matMVP", _matrix_vp);
+				s->setUniformCg("_matMVP", mvp);
 				s->setUniform("_lightPos", Vec3f(-1,2,2));
 				s->setUniform("_uptime", uptime);
 

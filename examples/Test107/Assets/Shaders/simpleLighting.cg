@@ -26,7 +26,7 @@ v2f vs_main(MyVertexInput i) {
 	float t = uptime * 0.5 + o.pos.x - o.pos.z;
 	o.pos.y += sin(t * 2) * 0.25;
 
-	o.pos = mul(o.pos, matMVP);
+	o.pos = mul(matMVP, o.pos);
 	return o;
 }
 

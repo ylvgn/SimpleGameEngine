@@ -15,21 +15,18 @@
 //var sampler2D sampler1 :  : _sampler1 : -1 : 1
 //var float4 i.color : $vin.COLOR : COLOR : 0 : 1
 //var float2 i.uv : $vin.TEXCOORD0 : TEXCOORD0 : 0 : 1
-//var float4 i.normal : $vin.TEXCOORD1 :  : 0 : 0
 //var float4 ps_main : $vout.COLOR : COLOR : -1 : 1
 
 #version 330
 
 struct MyVertexInput {
     vec4 _color1;
-    vec4 _normal1;
     vec2 _uv1;
 };
 
 struct v2f {
     vec4 _color;
     vec2 _uv;
-    vec4 _normal;
 };
 
 vec4 _ret_0;

@@ -167,7 +167,8 @@ void MyShader::setUniform(StrView name, const Mat4f& value) {
 
 void MyShader::setUniformCg(StrView name, const Mat4f& value) {
 	auto loc = getUniformLoc(name);
-	glUniform4fv(loc, 4, value._elements);
+	auto mat = value.transpose();
+	glUniform4fv(loc, 4, mat._elements);
 }
 
 void MyShader::setUniform(StrView name, const MyTexture2D& value) {

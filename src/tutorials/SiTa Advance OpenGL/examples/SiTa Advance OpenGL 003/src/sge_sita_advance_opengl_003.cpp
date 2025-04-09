@@ -98,10 +98,12 @@ public:
 	}
 
 	void example1(float uptime) {
+		Mat4f matrix_model = Mat4f::s_identity();
+		auto mvp = _matrix_vp * matrix_model;
 		{
 			auto& s = _simpleColorShader;
 			s->bind();
-				s->setUniform("matMVP", _matrix_vp);
+				s->setUniform("matMVP", mvp);
 
 				s->draw(_gridMesh);
 				s->draw(_originMesh);
@@ -111,7 +113,7 @@ public:
 		{
 			auto& s = _simpleTextureShader;
 			s->bind();
-				s->setUniform("matMVP", _matrix_vp);
+				s->setUniform("matMVP", mvp);
 				s->setUniform("sampler0", _tex0);
 				s->setUniform("sampler1", _tex1);
 				s->setUniform("uptime", uptime);
@@ -122,10 +124,12 @@ public:
 	}
 
 	void example2(float uptime) {
+		Mat4f matrix_model = Mat4f::s_identity();
+		auto mvp = _matrix_vp * matrix_model;
 		{
 			auto& s = _simpleColorCgShader;
 			s->bind();
-				s->setUniformCg("_matMVP", _matrix_vp);
+				s->setUniformCg("_matMVP", mvp);
 
 				s->drawCg(_gridCgMesh);
 				s->drawCg(_originCgMesh);
@@ -135,7 +139,7 @@ public:
 		{
 			auto& s = _simpleCgTextureShader;
 			s->bind();
-				s->setUniformCg("_matMVP", _matrix_vp);
+				s->setUniformCg("_matMVP", mvp);
 				s->setUniform("_uptime", uptime);
 				s->setUniform("_sampler0", _tex0);
 				s->setUniform("_sampler1", _tex1);

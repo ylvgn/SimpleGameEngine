@@ -16,7 +16,7 @@ mat4x4 matMVP; // Projection * ModelView
 
 v2f vs_main(MyVertexInput i) {
 	v2f o;
-	o.pos = mul(i.pos, matMVP);
+	o.pos = mul(matMVP, i.pos);
 	return o;
 }
 

@@ -53,14 +53,15 @@ void main()
     v2f _o;
     float _t;
 
+    _o._pos1 = cg_Vertex;
     _t = (_uptime*5.00000000E-001 + cg_Vertex.x) - cg_Vertex.z;
     _a0006 = _t*2.00000000E+000;
     _TMP0 = sin(_a0006);
     _o._pos1.y = cg_Vertex.y + _TMP0*2.50000000E-001;
-    _r0008 = cg_Vertex.x*_matMVP[0];
-    _r0008 = _r0008 + _o._pos1.y*_matMVP[1];
-    _r0008 = _r0008 + cg_Vertex.z*_matMVP[2];
-    _r0008 = _r0008 + cg_Vertex.w*_matMVP[3];
+    _r0008.x = dot(_matMVP[0], _o._pos1);
+    _r0008.y = dot(_matMVP[1], _o._pos1);
+    _r0008.z = dot(_matMVP[2], _o._pos1);
+    _r0008.w = dot(_matMVP[3], _o._pos1);
     cg_TexCoord0 = cg_Vertex;
     cg_TexCoord1 = NORMAL;
     gl_Position = _r0008;
