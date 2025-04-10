@@ -25,7 +25,7 @@ struct Vec3_SSE_Data {
 	SGE_INLINE void setAll(const T& v)			{ set(v,v,v); }
 };
 
-using Vec3f_SSE_Data = Vec3_SSE_Data<float,  __m128 >; // SSE
+using Vec3f_SSE_Data = Vec3_SSE_Data< float,  __m128>; // SSE
 using Vec3d_SSE_Data = Vec3_SSE_Data<double, __m256d>; // AVX
 
 template<class T> struct Vec3_SSE_Select  { using Data = Vec3_Basic_Data<T>; };
@@ -36,6 +36,8 @@ template<class T> using Vec3_SSE = Vec3_Basic<T, typename Vec3_SSE_Select<T>::Da
 
 using Vec3f_SSE = Vec3_SSE< float>;
 using Vec3d_SSE = Vec3_SSE<double>;
+
+SGE_FORMATTER_T(class T, Vec3_SSE<T>)
 
 SGE_INLINE constexpr Vec3f_SSE Vec3_SSE_make( __m128 m) { Vec3f_SSE o; o._m = m; return o; }
 SGE_INLINE constexpr Vec3d_SSE Vec3_SSE_make(__m256d m) { Vec3d_SSE o; o._m = m; return o; }

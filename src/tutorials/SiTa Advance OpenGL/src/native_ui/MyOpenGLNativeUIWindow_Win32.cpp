@@ -165,7 +165,6 @@ void MyOpenGLNativeUIWindow_Win32::onCreate(CreateDesc& desc) {
 	onInitGL();
 
 	::ShowWindow(_hwnd, SW_SHOW);
-	::UpdateWindow(_hwnd);
 }
 
 void MyOpenGLNativeUIWindow_Win32::destroy() {

@@ -7,6 +7,13 @@
 
 namespace sge {
 
+#define Renderer_ApiType_ENUM_LIST(E) \
+	E(Unknown,) \
+	E(DX11,) \
+	E(OpenGL,) \
+//----
+SGE_ENUM_CLASS(Renderer_ApiType, u8)
+
 class RenderContext;
 struct RenderContext_CreateDesc;
 
@@ -18,12 +25,7 @@ class RenderBuiltInAssets;
 class Renderer : public NonCopyable {
 public:
 	using BuiltInAssets = RenderBuiltInAssets;
-
-	enum class ApiType {
-		None = 0,
-		DX11,
-		OpenGL,
-	};
+	using ApiType = Renderer_ApiType;
 
 	struct CreateDesc {
 		CreateDesc() noexcept;
@@ -37,11 +39,15 @@ public:
 	Renderer() noexcept;
 	virtual ~Renderer();
 
-	static Renderer* instance()	{ return s_instance; };
+	static Renderer* instance() { return s_instance; };
 
 	const RenderAdapterInfo& adapterInfo() const { return _adapterInfo; };
 
-	bool vsync() const { return _vsync; }
+	void	setVSync(bool b) { _vsync = b; }
+	bool	vsync()			const { return _vsync; }
+
+	ApiType	apiType()		const { return _apiType; }
+	bool	multithread()	const { return _multithread; }
 
 	SPtr<RenderContext>		createContext		(RenderContext_CreateDesc& desc)	{ return onCreateContext(desc); }
 	SPtr<RenderGpuBuffer>	createGpuBuffer		(RenderGpuBuffer_CreateDesc& desc)	{ return onCreateGpuBuffer(desc); }
@@ -67,11 +73,13 @@ protected:
 
 	static Renderer*		s_instance;
 
+	ApiType					_apiType = ApiType::Unknown;
 	StringMap< Shader* >	_shaders;
 	RenderAdapterInfo		_adapterInfo;
 	BuiltInAssets*			_builtInAssets = nullptr;
 
-	bool _vsync : 1;
+	bool					_multithread	: 1;
+	bool					_vsync			: 1;
 }; // Renderer
 
 } // namespace sge

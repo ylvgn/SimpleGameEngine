@@ -6,12 +6,11 @@ namespace sge {
 
 template<class T>
 struct Rect2 {
-	using ElementType	= T;
-	using This			= typename Rect2<T>;
+	using ElementType = T;
+	using This		  = typename Rect2<T>;
+	using Vec2		  = Vec2<T>;
 
 	static const size_t kElementCount = 4;
-
-	using Vec2 = Vec2<T>;
 
 	union {
 		struct { T x, y, w, h; };
@@ -19,18 +18,17 @@ struct Rect2 {
 		T data[kElementCount];
 	};
 
-	SGE_INLINE explicit	constexpr Rect2() = default;
-	SGE_INLINE explicit	constexpr Rect2(T v) : x(v), y(v), w(v), h(v) {}
-	SGE_INLINE			constexpr Rect2(T x_, T y_, T w_, T h_) : x(x_), y(y_), w(w_), h(h_) {}
-	SGE_INLINE			constexpr Rect2(const Vec2& pos_, const Vec2& size_) : pos(pos_), size(size_) {}
+	SGE_INLINE constexpr explicit Rect2() = default;
+	SGE_INLINE constexpr explicit Rect2(T v)									: x(v), y(v), w(v), h(v) {}
+	SGE_INLINE constexpr		  Rect2(T x_, T y_, T w_, T h_)					: x(x_), y(y_), w(w_), h(h_) {}
+	SGE_INLINE constexpr		  Rect2(const Vec2& pos_, const Vec2& size_)	: pos(pos_), size(size_) {}
 
 	SGE_INLINE constexpr void set(const T& x_, const T& y_, const T& w_, const T& h_) {
 		x = x_; y = y_; w = w_; h = h_;
 	}
 
 	SGE_INLINE constexpr void set(const Vec2& pos_, const Vec2& size_) {
-		pos = pos_;
-		size = size_;
+		pos = pos_; size = size_;
 	}
 
 	SGE_INLINE constexpr T xMin() const { return x; }
@@ -56,7 +54,7 @@ struct Rect2 {
 			&& pt.y >= yMin() && pt.y <= yMax();
 	}
 
-	Rect2<T> intersectRect(const Rect2& r) const {
+	SGE_NODISCARD Rect2<T> intersectRect(const Rect2& r) const {
 		T left		= Math::max(xMin(), r.xMin());
 		T top		= Math::max(yMin(), r.yMin());
 		T right		= Math::min(xMax(), r.xMax());
@@ -68,7 +66,7 @@ struct Rect2 {
 		return o;
 	}
 
-	Rect2<T> unionRect(const Rect2& r) const {
+	SGE_NODISCARD Rect2<T> unionRect(const Rect2& r) const {
 		T left		= Math::min(xMin(), r.xMin());
 		T top		= Math::min(yMin(), r.yMin());
 		T right		= Math::max(xMax(), r.xMax());
@@ -83,12 +81,19 @@ struct Rect2 {
 #if SGE_OS_WINDOWS
 	explicit constexpr Rect2(const RECT& r) { set(r); }
 
-	constexpr void set(const RECT& src) {
-		set((T)src.left,
-			(T)src.top,
-			(T)(src.right - src.left),
-			(T)(src.bottom - src.top)
+	SGE_INLINE constexpr void set(const RECT& src) {
+		set(T(src.left),
+			T(src.top),
+			T(src.right - src.left),
+			T(src.bottom - src.top)
 		);
+	}
+
+	SGE_INLINE constexpr RECT toRECT() const {
+		::RECT o;
+		o.left = static_cast<LONG>(xMin());	o.right = static_cast<LONG>(xMax());
+		o.top  = static_cast<LONG>(yMin());	o.bottom = static_cast<LONG>(yMax());
+		return o;
 	}
 #endif // SGE_OS_WINDOWS
 };
@@ -96,6 +101,6 @@ struct Rect2 {
 using Rect2i = Rect2<int>;
 using Rect2f = Rect2<float>;
 
-SGE_FORMATTER_T(SGE_ARGS(class T), Rect2< SGE_ARGS(T) >)
+SGE_FORMATTER_T(class T, Rect2<T>)
 
 }

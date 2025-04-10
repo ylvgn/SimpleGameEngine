@@ -12,7 +12,6 @@ void PW5_MySysMets2::onCreate(CreateDesc& desc) {
 
 	desc.ownDC = true;
 	Base::onCreate(desc);
-	setWindowTitle("PW5_MySysMets2");
 	s_defaultWndProc = reinterpret_cast<WNDPROC>(::SetWindowLongPtr(_hwnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(s_wndProc)));
 	
 	const auto& sysmetrics = _dm->data();

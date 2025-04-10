@@ -15,7 +15,7 @@ Renderer::CreateDesc::CreateDesc() noexcept
 #elif SGE_OS_LINUX
 	apiType = ApiType::OpenGL;
 #else
-	apiType = ApiType::None;
+	apiType = ApiType::Unknown;
 #endif
 }
 
@@ -30,11 +30,15 @@ Renderer* Renderer::create(CreateDesc& desc) {
 		}break;
 		default: throw SGE_ERROR("unsupported renderer api");
 	}
+	p->_apiType		= desc.apiType;
+	p->_multithread = desc.multithread;
 	return p;
 }
 
 Renderer::Renderer() noexcept
 	: _vsync(true)
+	, _multithread(false)
+	, _apiType(Renderer::ApiType::Unknown)
 {
 	SGE_ASSERT(s_instance == nullptr);
 	s_instance = this;

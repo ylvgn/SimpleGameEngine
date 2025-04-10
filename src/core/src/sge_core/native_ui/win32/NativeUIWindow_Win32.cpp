@@ -115,28 +115,43 @@ void NativeUIWindow_Win32::onCreate(CreateDesc& desc) {
 
 	_pressedKeyCodes.resize(kKeyCodeCount);
 
-	// TODO call 'ShowWindow' when created render context
-	ShowWindow(_hwnd, SW_SHOW);
-	//UpdateWindow(_hwnd); // !!<--- do not call UpdateWindow, default OS will call it.
+	// TODO use 'RenderContext' to call '::ShowWindow'
+	::ShowWindow(_hwnd, SW_SHOW);
+//	::UpdateWindow(_hwnd); // !!<--- do not call UpdateWindow,  os will default call it.
 }
 
-void NativeUIWindow_Win32::onSetWindowTitle(StrView title) {
+void NativeUIWindow_Win32::onSetNativeWindowTitle(StrView title) {
 	if (!_hwnd) return;
 	TempStringW tmp = UtfUtil::toStringW(title);
-	SetWindowText(_hwnd, tmp.c_str());
+	::SetWindowText(_hwnd, tmp.c_str());
 }
 
-void NativeUIWindow_Win32::onSetWindowPos(const Vec2f& pos) {
-	Base::onSetWindowPos(pos);
-	SetWindowPos(_hwnd, HWND_TOP, int(pos.x), int(pos.y), 0, 0, SWP_ASYNCWINDOWPOS | SWP_NOSIZE);
+void NativeUIWindow_Win32::onSetNativeWorldPos(const Vec2f& screenPos) {
+	if (!_hwnd) return;
+
+	auto rc = s_win32_getWorldRect(_hwnd);
+
+	::POINT out_screenPosPt;
+	Win32Util::convert(out_screenPosPt, screenPos);
+	if (auto parentHwnd = ::GetParent(_hwnd)) {
+		::MapWindowPoints(nullptr, parentHwnd, &out_screenPosPt, 1);
+	}
+	::MoveWindow(_hwnd, out_screenPosPt.x, out_screenPosPt.y, static_cast<int>(rc.w), static_cast<int>(rc.h), false);
 }
 
-void NativeUIWindow_Win32::onSetWindowSize(const Vec2f& size) {
-	Base::onSetWindowPos(size);
-	SetWindowPos(_hwnd, HWND_TOP, 0, 0, int(size.x), int(size.y), SWP_ASYNCWINDOWPOS | SWP_NOMOVE);
+void NativeUIWindow_Win32::onSetNativeSize(const Vec2f& size) {
+	if (!_hwnd) return;
+
+	::SetWindowPos(_hwnd, nullptr, 0, 0, static_cast<int>(size.x), static_cast<int>(size.y), SWP_NOMOVE);
+
+	// get again after ::SetWindowPos
+	auto rc = s_win32_getWorldRect(_hwnd);
+	Base::onSetWorldPos(rc.pos);
+
+	// os will default send 'WM_SIZE' message, so _clientRect will refresh.
 }
 
-void NativeUIWindow_Win32::onSetCursor(UIMouseCursor type) {
+void NativeUIWindow_Win32::onSetNativeCursor(UIMouseCursor type) {
 	if (!_hwnd) return;
 
 	using Cursor	= UIMouseCursor;
@@ -154,11 +169,12 @@ void NativeUIWindow_Win32::onSetCursor(UIMouseCursor type) {
 		case Cursor::No:		cursor = IDC_NO;		break;
 		case Cursor::None:		SetCursor(NULL);		return;
 	}
-	SetCursor(LoadCursor(0, cursor));
+	::SetCursor(LoadCursor(0, cursor));
 }
 
 void NativeUIWindow_Win32::onDrawNeeded() {
-	InvalidateRect(_hwnd, nullptr, false);
+	Base::onDrawNeeded();
+	::InvalidateRect(_hwnd, nullptr, false);
 }
 
 void NativeUIWindow_Win32::onScrollWindow(const Vec2i& delta) {
@@ -197,12 +213,12 @@ LRESULT WINAPI NativeUIWindow_Win32::s_wndProc(HWND hwnd, UINT msg, WPARAM wPara
 		}break;
 
 		case WM_PAINT: {
-			PAINTSTRUCT ps;
-			BeginPaint(hwnd, &ps);
+			::PAINTSTRUCT ps;
+			::BeginPaint(hwnd, &ps);
 			if (auto* thisObj = s_getThis(hwnd)) {
 				thisObj->onDraw();
 			}
-			EndPaint(hwnd, &ps);
+			::EndPaint(hwnd, &ps);
 			return 0;
 		}break;
 
@@ -213,10 +229,36 @@ LRESULT WINAPI NativeUIWindow_Win32::s_wndProc(HWND hwnd, UINT msg, WPARAM wPara
 			}
 		}break;
 
+		case WM_ACTIVATE: {
+			if (auto* thisObj = s_getThis(hwnd)) {
+				u16 a = LOWORD(wParam);
+				switch (a) {
+				case WA_ACTIVE:		thisObj->onActive(true);  break;
+				case WA_CLICKACTIVE:thisObj->onActive(true);  break;
+				case WA_INACTIVE:	thisObj->onActive(false); break;
+				}
+			}
+		}break;
+
+		case WM_MOVE: {
+			if (auto* thisObj = s_getThis(hwnd)) {
+				auto rc = s_win32_getWorldRect(hwnd);
+				thisObj->onSetWorldPos(rc.pos);
+			}
+		}break;
+
+		case WM_SIZING: {
+			if (auto* thisObj = s_getThis(hwnd)) {
+				thisObj->setWorldRect(s_win32_getWorldRect(hwnd));
+			}
+		}break;
+
 		case WM_SIZE: {
 			if (auto* thisObj = s_getThis(hwnd)) {
-				RECT clientRect;
-				GetClientRect(hwnd, &clientRect);
+				thisObj->setWorldRect(s_win32_getWorldRect(hwnd));
+
+				::RECT clientRect;
+				::GetClientRect(hwnd, &clientRect);
 				Rect2f newClientRect = Win32Util::toRect2f(clientRect);
 				if (newClientRect != thisObj->_clientRect) {
 					thisObj->onClientRectChanged(newClientRect);
@@ -225,24 +267,19 @@ LRESULT WINAPI NativeUIWindow_Win32::s_wndProc(HWND hwnd, UINT msg, WPARAM wPara
 			}
  		}break;
 
-		case WM_ACTIVATE: {
-			if (auto* thisObj = s_getThis(hwnd)) {
-				u16 a = LOWORD(wParam);
-				switch (a) {
-					case WA_ACTIVE:		thisObj->onActive(true);  break;
-					case WA_CLICKACTIVE:thisObj->onActive(true);  break;
-					case WA_INACTIVE:	thisObj->onActive(false); break;
-				}
-			}
-		}break;
-
 		default: {
 			if (auto* thisObj = s_getThis(hwnd)) {
 				return thisObj->_handleNativeEvent(hwnd, msg, wParam, lParam);
 			}
 		}break;
 	}
-	return DefWindowProc(hwnd, msg, wParam, lParam);
+	return ::DefWindowProc(hwnd, msg, wParam, lParam);
+}
+
+NativeUIWindow_Win32::Rect2 NativeUIWindow_Win32::s_win32_getWorldRect(HWND hwnd) {
+	::RECT rc;
+	::GetWindowRect(hwnd, &rc);
+	return Rect2(rc);
 }
 
 bool NativeUIWindow_Win32::_handleNativeUIMouseEvent(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {

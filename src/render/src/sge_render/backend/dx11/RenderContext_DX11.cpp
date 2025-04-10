@@ -39,7 +39,7 @@ RenderContext_DX11::RenderContext_DX11(CreateDesc& desc)
 }
 
 void RenderContext_DX11::onBeginRender() {
-	auto* dc = _renderer->d3dDeviceContext();
+	auto* ctx = _renderer->d3dDeviceContext();
 
 	// clear render target
 	if (!_renderTargetView) {
@@ -48,24 +48,24 @@ void RenderContext_DX11::onBeginRender() {
 
 	// set-up render target
 	DX11_ID3DRenderTargetView* rt = _renderTargetView;
-	dc->OMSetRenderTargets(1, &rt, _depthStencilView);
+	ctx->OMSetRenderTargets(1, &rt, _depthStencilView);
 
 	D3D11_VIEWPORT viewport = {};
-	viewport.TopLeftX	= 0;
-	viewport.TopLeftY	= 0;
-	viewport.Width		= _frameBufferSize.x;
-	viewport.Height		= _frameBufferSize.y;
-	viewport.MinDepth	= 0;
-	viewport.MaxDepth	= 1;
+	viewport.TopLeftX = 0;
+	viewport.TopLeftY = 0;
+	viewport.Width = _frameBufferSize.x;
+	viewport.Height = _frameBufferSize.y;
+	viewport.MinDepth = 0;
+	viewport.MaxDepth = 1;
 
 	D3D11_RECT scissorRect = {};
-	scissorRect.left	= 0;
-	scissorRect.top		= 0;
-	scissorRect.right	= static_cast<LONG>(_frameBufferSize.x);
-	scissorRect.bottom	= static_cast<LONG>(_frameBufferSize.y);
+	scissorRect.left = 0;
+	scissorRect.top = 0;
+	scissorRect.right = static_cast<LONG>(_frameBufferSize.x);
+	scissorRect.bottom = static_cast<LONG>(_frameBufferSize.y);
 
-	dc->RSSetViewports(1, &viewport);
-	dc->RSSetScissorRects(1, &scissorRect);
+	ctx->RSSetViewports(1, &viewport);
+	ctx->RSSetScissorRects(1, &scissorRect);
 }
 
 void RenderContext_DX11::onEndRender() {
@@ -76,16 +76,16 @@ void RenderContext_DX11::onCommit(RenderCommandBuffer& cmdBuf) {
 }
 
 void RenderContext_DX11::onCmd_ClearFrameBuffers(RenderCommand_ClearFrameBuffers& cmd) {
-	auto* dc = _renderer->d3dDeviceContext();
+	auto* ctx = _renderer->d3dDeviceContext();
 
 	// clear back buffer(color buffer)
 	if (_renderTargetView && cmd.color.has_value()) {
-		dc->ClearRenderTargetView(_renderTargetView, cmd.color->data);
+		ctx->ClearRenderTargetView(_renderTargetView, cmd.color->data);
 	}
 
 	// clear depth&stencil buffer
 	if (_depthStencilView && (cmd.depth.has_value() || cmd.stencil.has_value())) {
-		dc->ClearDepthStencilView(_depthStencilView, D3D11_CLEAR_DEPTH, *cmd.depth, static_cast<UINT8>(*cmd.stencil));
+		ctx->ClearDepthStencilView(_depthStencilView, D3D11_CLEAR_DEPTH, *cmd.depth, static_cast<UINT8>(*cmd.stencil));
 	}
 }
 
@@ -103,7 +103,7 @@ void RenderContext_DX11::onCmd_DrawCall(RenderCommand_DrawCall& cmd) {
 		if (!indexBuffer) { SGE_ASSERT(false); return; }
 	}
 
-	auto* dc = _renderer->d3dDeviceContext();
+	auto* ctx = _renderer->d3dDeviceContext();
 
 	_setTestDefaultRenderState();
 
@@ -114,7 +114,7 @@ void RenderContext_DX11::onCmd_DrawCall(RenderCommand_DrawCall& cmd) {
 	}
 
 	auto primitive = Util::getDxPrimitiveTopology(cmd.primitive);
-	dc->IASetPrimitiveTopology(primitive);
+	ctx->IASetPrimitiveTopology(primitive);
 
 	UINT stride			= static_cast<UINT>(cmd.vertexLayout->stride);
 	UINT vertexOffset	= static_cast<UINT>(cmd.vertexOffset);
@@ -124,17 +124,17 @@ void RenderContext_DX11::onCmd_DrawCall(RenderCommand_DrawCall& cmd) {
 	UINT indexCount		= static_cast<UINT>(cmd.indexCount);
 
 	DX11_ID3DBuffer* ppVertexBuffers[] = { vertexBuffer ? vertexBuffer->d3dBuf() : nullptr };
-	dc->IASetVertexBuffers(0, 1, ppVertexBuffers, &stride, &vertexOffset);
+	ctx->IASetVertexBuffers(0, 1, ppVertexBuffers, &stride, &vertexOffset);
 
 //	_renderer->validateContext();
 
 	if (indexCount > 0) {
 		auto indexType = Util::getDxFormat(cmd.indexType);
-		dc->IASetIndexBuffer(indexBuffer->d3dBuf(), indexType, indexOffset);
-		dc->DrawIndexed(indexCount, 0, 0);
+		ctx->IASetIndexBuffer(indexBuffer->d3dBuf(), indexType, indexOffset);
+		ctx->DrawIndexed(indexCount, 0, 0);
 	}
 	else {
-		dc->Draw(vertexCount, 0);
+		ctx->Draw(vertexCount, 0);
 	}
 
 	// test
@@ -146,9 +146,9 @@ void RenderContext_DX11::onCmd_DrawCall(RenderCommand_DrawCall& cmd) {
 
 void RenderContext_DX11::onCmd_SetScissorRect(RenderCommand_SetScissorRect& cmd) {
 	auto* ctx = _renderer->d3dDeviceContext();
-	auto s = cmd.rect;
-	auto d = Util::toD3DRect(s);
-	ctx->RSSetScissorRects(1, &d);
+	::D3D11_RECT rc;
+	Util::convert(rc, cmd.rect);
+	ctx->RSSetScissorRects(1, &rc);
 }
 
 void RenderContext_DX11::onCmd_SwapBuffers(RenderCommand_SwapBuffers& cmd) {
@@ -211,7 +211,7 @@ void RenderContext_DX11::onSetFrameBufferSize(const Vec2f& newSize) {
 
 void RenderContext_DX11::_setTestDefaultRenderState() {
 	auto* dev = _renderer->d3dDevice();
-	auto* dc = _renderer->d3dDeviceContext();
+	auto* ctx = _renderer->d3dDeviceContext();
 
 	HRESULT hr;
 	if (!_testRasterizerState) {
@@ -280,11 +280,11 @@ void RenderContext_DX11::_setTestDefaultRenderState() {
 		Util::throwIfError(hr);
 	}
 
-	dc->RSSetState(_testRasterizerState);
-	dc->OMSetDepthStencilState(_testDepthStencilState, 1);
+	ctx->RSSetState(_testRasterizerState);
+	ctx->OMSetDepthStencilState(_testDepthStencilState, 1);
 
 	Color4f blendColor(1,1,1,1);
-	dc->OMSetBlendState(_testBlendState, blendColor.data, 0xffffffff);
+	ctx->OMSetBlendState(_testBlendState, blendColor.data, 0xffffffff);
 }
 
 void RenderContext_DX11::_setTestShaders(const VertexLayout* vertexLayout) {
@@ -292,7 +292,7 @@ void RenderContext_DX11::_setTestShaders(const VertexLayout* vertexLayout) {
 	const wchar_t* shaderFile = L"Assets/Shaders/test.hlsl";
 
 	auto* dev = _renderer->d3dDevice();
-	auto* dc = _renderer->d3dDeviceContext();
+	auto* ctx = _renderer->d3dDeviceContext();
 
 	if (!_testVertexShader) {
 		ComPtr<ID3DBlob>	bytecode;
@@ -316,12 +316,12 @@ void RenderContext_DX11::_setTestShaders(const VertexLayout* vertexLayout) {
 		Util::throwIfError(hr);
 	}
 
-	dc->VSSetShader(_testVertexShader, 0, 0);
-	dc->PSSetShader(_testPixelShader, 0, 0);
+	ctx->VSSetShader(_testVertexShader, 0, 0);
+	ctx->PSSetShader(_testPixelShader, 0, 0);
 
 	auto* inputLayout = _getTestInputLayout(vertexLayout);
 	if (!inputLayout) { SGE_ASSERT(false); return; }
-	dc->IASetInputLayout(inputLayout);
+	ctx->IASetInputLayout(inputLayout);
 }
 
 DX11_ID3DInputLayout* RenderContext_DX11::_getTestInputLayout(const VertexLayout* src) {

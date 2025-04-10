@@ -15,10 +15,10 @@ class NativeUIWindow_Win32 : public NativeUIWindow_Base {
 	using Util = Win32Util;
 protected:
 	virtual void onCreate(CreateDesc& desc) override;
-	virtual void onSetWindowTitle(StrView title) override;
-	virtual void onSetWindowPos(const Vec2f& pos) override;
-	virtual void onSetWindowSize(const Vec2f& size) override;
-	virtual void onSetCursor(UIMouseCursor type) override;
+	virtual void onSetNativeWindowTitle(StrView title) override;
+	virtual void onSetNativeWorldPos(const Vec2f& screenPos) override;
+	virtual void onSetNativeSize(const Vec2f& size) override;
+	virtual void onSetNativeCursor(UIMouseCursor type) override;
 	virtual void onDrawNeeded() override;
 	virtual void onScrollWindow(const Vec2i& delta) override;
 	virtual UPtr<NativeUIScrollInfo_Base> onCreateScrollBar(NativeUIScrollInfo_Base::CreateDesc& desc) override;
@@ -33,6 +33,7 @@ public:
 
 private:
 	static LRESULT WINAPI s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+	static Rect2 s_win32_getWorldRect(HWND hwnd);
 
 	SGE_INLINE static This* s_getThis(HWND hwnd) {
 		return reinterpret_cast<This*>(::GetWindowLongPtr(hwnd, GWLP_USERDATA));

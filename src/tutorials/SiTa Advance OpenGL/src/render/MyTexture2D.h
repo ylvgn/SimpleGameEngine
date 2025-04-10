@@ -4,7 +4,7 @@
 
 namespace sge {
 
-class MyTexture2D : public NonCopyable {
+class MyTexture2D : public Object {
 public:
 	~MyTexture2D() { destroy(); }
 

@@ -84,7 +84,7 @@ protected:
 #if 0
 #pragma mark ========= Shader ============
 #endif
-class Shader : public RefCountBase {
+class Shader : public Object {
 public:
 	using Pass			= ShaderPass;
 	using Stage			= ShaderStage;

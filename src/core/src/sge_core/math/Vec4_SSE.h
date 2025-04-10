@@ -36,6 +36,8 @@ template<class T> using Vec4_SSE = Vec4_Basic<T, typename Vec4_SSE_Select<T>::Da
 using Vec4f_SSE = Vec4_SSE< float>;
 using Vec4d_SSE = Vec4_SSE<double>;
 
+SGE_FORMATTER_T(class T, Vec4_SSE<T>)
+
 SGE_INLINE constexpr Vec4f_SSE Vec4_SSE_make( __m128 m) { Vec4f_SSE o; o._m = m; return o; }
 SGE_INLINE constexpr Vec4d_SSE Vec4_SSE_make(__m256d m) { Vec4d_SSE o; o._m = m; return o; }
 

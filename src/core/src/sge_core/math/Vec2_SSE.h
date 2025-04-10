@@ -32,8 +32,10 @@ template<> struct Vec2_SSE_Select<double> { using Data = Vec2d_SSE_Data; };
 
 template<class T> using Vec2_SSE = Vec2_Basic<T, typename Vec2_SSE_Select<T>::Data >;
 
-using Vec2f_SSE = Vec2_SSE<float>;
+using Vec2f_SSE = Vec2_SSE< float>;
 using Vec2d_SSE = Vec2_SSE<double>;
+
+SGE_FORMATTER_T(class T, Vec2_SSE<T>)
 
 SGE_INLINE constexpr Vec2d_SSE Vec2_SSE_make(__m128d m) { Vec2d_SSE o; o._m = m; return o; }
 

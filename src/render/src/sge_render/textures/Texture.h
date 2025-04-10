@@ -58,7 +58,7 @@ public:
 #if 0
 #pragma mark ========= Texture ============
 #endif
-class Texture : public RefCountBase {
+class Texture : public Object {
 	using CreateDesc = Texture_CreateDesc;
 	using DataType = RenderDataType;
 

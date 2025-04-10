@@ -57,6 +57,7 @@
 //---- externals
 #include <EASTL/vector.h>
 #include <EASTL/fixed_vector.h>
+#include <EASTL/list.h>
 #include <EASTL/string.h>
 #include <EASTL/fixed_string.h>
 #include <EASTL/string_view.h>
@@ -196,7 +197,31 @@ public:
 
 	void remove(const T& value) { eastl::remove(begin(), end(), value); }
 };
-			
+
+template<class T> using List_Base = typename eastl::list<T>;
+template<class T>
+class List : public List_Base<T> {
+	using Base		= typename List_Base<T>;
+	using size_type = typename Base::size_type;
+public:
+	using Base::begin;
+	using Base::end;
+
+			 List() = default;
+	explicit List(size_type n)						: Base(n)	 {}
+			 List(std::initializer_list<T> list)	: Base(list) {}
+
+	Span<      T> span()			{ return Span<      T>(begin(), end()); }
+	Span<const T> span() const		{ return Span<const T>(begin(), end()); }
+
+	operator Span<      T>()		{ return span(); }
+	operator Span<const T>() const	{ return span(); }
+
+	void appendRange(const Span<const T>& r) { Base::insert_range(r.begin(), r.end()); }
+
+	bool inBound(int i) const { return i >= 0 && i < Base::size(); }
+};
+
 template<class KEY, class VALUE>	using Map		= eastl::map<KEY, VALUE>;
 template<class KEY, class VALUE>	using VectorMap	= eastl::vector_map<KEY, VALUE>;
 template<class VALUE>				using StringMap	= eastl::string_map<VALUE>;
@@ -205,7 +230,9 @@ template<size_t N>					using Bitset	= eastl::bitset<N>;
 template<class T>					using Opt		= eastl::optional<T>;
 
 using Any = eastl::any;
-template <class T, class... Args> inline Any Any_make(Args&&... args) {
+
+template <class T, class... Args> inline
+Any Any_make(Args&&... args) {
 	return eastl::make_any<T>(SGE_FORWARD(args)...);
 }
 
@@ -319,7 +346,8 @@ public:
 			if (sv) append(sv);
 		}
 	}
-	template<class... ARGS> void set(ARGS&&... args) 			{ Base::clear(); append(SGE_FORWARD(args)...); }
+
+	template<class... ARGS> void set(ARGS&&... args) { Base::clear(); append(SGE_FORWARD(args)...); }
 
 	StrViewT	view() const { return StrViewT(data(), size()); }
 
@@ -382,11 +410,11 @@ StringT<T, N> operator+(const StringT<T, N>& a, const T* b) {
 	return a + view;
 }
 
-inline StrView StrView_make(ByteSpan s) {
+SGE_NODISCARD inline StrView StrView_make(ByteSpan s) {
 	return StrView(reinterpret_cast<const char*>(s.data()), s.size());
 }
 
-inline ByteSpan ByteSpan_make(StrView v) {
+SGE_NODISCARD inline ByteSpan ByteSpan_make(StrView v) {
 	return ByteSpan(reinterpret_cast<const u8*>(v.data()), v.size());
 }
 
@@ -490,8 +518,8 @@ private:
 	T _oldValue;
 };
 
-template<class T> inline ScopedValue<T> ScopedValue_make(T& p) { return ScopedValue<T>(p); }
-template<class T> inline ScopedValue<T> ScopedValue_make(T& p, const T& newValue) { return ScopedValue<T>(p, newValue); }
+SGE_NODISCARD template<class T> inline ScopedValue<T> ScopedValue_make(T& p)					{ return ScopedValue<T>(p); }
+SGE_NODISCARD template<class T> inline ScopedValue<T> ScopedValue_make(T& p, const T& newValue) { return ScopedValue<T>(p, newValue); }
 
 
 template<class First, class Second>
@@ -506,9 +534,13 @@ struct Pair {
 };
 
 template<class First, class Second> inline
-Pair<First, Second> Pair_make(const First& first, const Second& second) { return Pair<First, Second>(first, second); }
+Pair<First, Second> Pair_make(const First& first, const Second& second) {
+	return Pair<First, Second>(first, second);
+}
 
 template<class First, class Second = typename First> inline
-Pair<First, Second> Pair_make() { return Pair<First, Second>(First(), Second()); }
+Pair<First, Second> Pair_make() {
+	return Pair<First, Second>(First(), Second());
+}
 
 } // namespace sge
