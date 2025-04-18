@@ -64,7 +64,7 @@ public:
 	GLint getAttribLoc(StrView name);
 
 	constexpr static const int kMaxSamplers = 16;
-	void setUniform(StrView name, const MyTexture2D& value);
+	void setUniform(StrView name, MyTexture2D* value);
 
 	void draw(const MyRenderMesh& mesh);
 	void drawCg(const MyRenderMesh& mesh);
@@ -72,7 +72,6 @@ public:
 	void dumpActiveAttrib();
 
 private:
-
 	void _compileShader(GLuint& shader, GLenum type, StrView filename);
 	void _getShaderInfoLog(GLuint shader, String& outMsg);
 

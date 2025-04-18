@@ -16,9 +16,8 @@ public:
 protected:
 	virtual void onCreate(CreateDesc& desc) override;
 	virtual void onSwapBuffers() override;
-
 	virtual void onBeginRender() override;
-	virtual void onEndRender() override;
+	virtual void onEndRender()	 override;
 
 private:
 	void _makeCurrent();
@@ -28,4 +27,4 @@ private:
 };
 
 }
-#endif
+#endif // SGE_OS_WINDOWS

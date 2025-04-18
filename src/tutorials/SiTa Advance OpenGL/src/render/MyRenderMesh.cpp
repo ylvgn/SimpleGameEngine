@@ -3,6 +3,13 @@
 
 namespace sge {
 
+void MyVertexBuffer::destroy() {
+	if (_p) {
+		glDeleteBuffers(1, &_p);
+		_p = 0;
+	}
+}
+
 template<class T>
 void MyVertexBuffer::create(const Span<const T> data) {
 	destroy();
@@ -10,13 +17,39 @@ void MyVertexBuffer::create(const Span<const T> data) {
 	if (data.empty())
 		return;
 
-	glGenBuffers(1, &_p);
-	glBindBuffer(GL_ARRAY_BUFFER, _p);
-	glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(data.size_bytes()), data.data(), GL_DYNAMIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	SGE_GL_CALL(glGenBuffers(1, &_p));
+	GLenum target = GL_ARRAY_BUFFER;
+	GLenum usage = GL_DYNAMIC_DRAW;
+	SGE_GL_CALL(glBindBuffer(target, _p));
+	SGE_GL_CALL(glBufferData(target, static_cast<GLsizeiptr>(data.size_bytes()), data.data(), usage));
+	SGE_GL_CALL(glBindBuffer(target, 0));
 }
 
-void MyVertexBuffer::destroy() {
+void MyVertexBuffer::create(size_t bufferSize) {
+	destroy();
+
+	if (bufferSize <= 0)
+		return;
+
+	GLenum target = GL_ARRAY_BUFFER;
+	GLenum usage = GL_DYNAMIC_DRAW;
+	SGE_GL_CALL(glGenBuffers(1, &_p));
+	SGE_GL_CALL(glBindBuffer(target, _p));
+	SGE_GL_CALL(glBufferData(target, static_cast<GLsizeiptr>(bufferSize), nullptr, usage));
+	SGE_GL_CALL(glBindBuffer(target, 0));
+}
+
+void MyVertexBuffer::uploadToGpu(ByteSpan data, size_t offset) {
+	if (data.empty())
+		return;
+
+	GLenum target = GL_ARRAY_BUFFER;
+	SGE_GL_CALL(glBindBuffer(target, _p));
+	SGE_GL_CALL(glBufferSubData(target, static_cast<GLintptr>(offset), static_cast<GLsizeiptr>(data.size()), data.data()));
+	SGE_GL_CALL(glBindBuffer(target, 0));
+}
+
+void MyIndexBuffer::destroy() {
 	if (_p) {
 		glDeleteBuffers(1, &_p);
 		_p = 0;
@@ -25,20 +58,40 @@ void MyVertexBuffer::destroy() {
 
 void MyIndexBuffer::create(const Span<const IndexType> data) {
 	destroy();
+
 	if (data.empty())
 		return;
 
-	glGenBuffers(1, &_p);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _p);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLsizeiptr>(data.size_bytes()), data.data(), GL_DYNAMIC_DRAW);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	GLenum target = GL_ELEMENT_ARRAY_BUFFER;
+	GLenum usage = GL_DYNAMIC_DRAW;
+	SGE_GL_CALL(glGenBuffers(1, &_p));
+	SGE_GL_CALL(glBindBuffer(target, _p));
+	SGE_GL_CALL(glBufferData(target, static_cast<GLsizeiptr>(data.size_bytes()), data.data(), usage));
+	SGE_GL_CALL(glBindBuffer(target, 0));
 }
 
-void MyIndexBuffer::destroy() {
-	if (_p) {
-		glDeleteBuffers(1, &_p);
-		_p = 0;
-	}
+void MyIndexBuffer::create(size_t bufferSize) {
+	destroy();
+
+	if (bufferSize <= 0)
+		return;
+
+	GLenum target = GL_ELEMENT_ARRAY_BUFFER;
+	GLenum usage = GL_DYNAMIC_DRAW;
+	SGE_GL_CALL(glGenBuffers(1, &_p));
+	SGE_GL_CALL(glBindBuffer(target, _p));
+	SGE_GL_CALL(glBufferData(target, static_cast<GLsizeiptr>(bufferSize), nullptr, usage));
+	SGE_GL_CALL(glBindBuffer(target, 0));
+}
+
+void MyIndexBuffer::uploadToGpu(ByteSpan data, size_t offset) {
+	if (data.empty())
+		return;
+
+	GLenum target = GL_ELEMENT_ARRAY_BUFFER;
+	SGE_GL_CALL(glBindBuffer(target, _p));
+	SGE_GL_CALL(glBufferSubData(target, static_cast<GLintptr>(offset), static_cast<GLsizeiptr>(data.size()), data.data()));
+	SGE_GL_CALL(glBindBuffer(target, 0));
 }
 
 void MyRenderMesh::create(MyEditMesh& src) {
@@ -54,9 +107,9 @@ void MyRenderMesh::create(MyEditMesh& src) {
 		vertexData.resize(vertexCount);
 		auto* dst = vertexData.begin();
 
-		auto* pos = src.pos.begin();		auto* ed_pos = src.pos.end();
-		auto* uv = src.uv[0].begin();		auto* ed_uv = src.uv[0].end();
-		auto* color = src.color.begin();	auto* ed_color = src.color.end();
+		auto* pos    = src.pos.begin();		auto* ed_pos = src.pos.end();
+		auto* uv     = src.uv[0].begin();	auto* ed_uv = src.uv[0].end();
+		auto* color  = src.color.begin();	auto* ed_color = src.color.end();
 		auto* normal = src.normal.begin();	auto* ed_normal = src.normal.end();
 
 		if (src.uv[0].size() < vertexCount)
@@ -77,9 +130,9 @@ void MyRenderMesh::create(MyEditMesh& src) {
 			dst++;
 		}
 
-		SGE_ASSERT(pos == ed_pos); SGE_UNUSED(ed_pos);
-		SGE_ASSERT(uv == ed_uv); SGE_UNUSED(ed_uv);
-		SGE_ASSERT(color == ed_color); SGE_UNUSED(ed_color);
+		SGE_ASSERT(pos == ed_pos);		 SGE_UNUSED(ed_pos);
+		SGE_ASSERT(uv == ed_uv);		 SGE_UNUSED(ed_uv);
+		SGE_ASSERT(color == ed_color);	 SGE_UNUSED(ed_color);
 		SGE_ASSERT(normal == ed_normal); SGE_UNUSED(ed_normal);
 	}
 
@@ -104,9 +157,9 @@ void MyRenderMesh::createCg(MyEditMesh& src) {
 		vertexData.resize(vertexCount);
 		auto* dst = vertexData.begin();
 
-		auto* pos = src.pos.begin();		auto* ed_pos = src.pos.end();
-		auto* uv = src.uv[0].begin();		auto* ed_uv = src.uv[0].end();
-		auto* color = src.color.begin();	auto* ed_color = src.color.end();
+		auto* pos    = src.pos.begin();		auto* ed_pos    = src.pos.end();
+		auto* uv     = src.uv[0].begin();	auto* ed_uv     = src.uv[0].end();
+		auto* color  = src.color.begin();	auto* ed_color  = src.color.end();
 		auto* normal = src.normal.begin();	auto* ed_normal = src.normal.end();
 
 		if (src.uv[0].size() < vertexCount)
@@ -142,9 +195,9 @@ void MyRenderMesh::createCg(MyEditMesh& src) {
 			dst++;
 		}
 
-		SGE_ASSERT(pos == ed_pos); SGE_UNUSED(ed_pos);
-		SGE_ASSERT(uv == ed_uv); SGE_UNUSED(ed_uv);
-		SGE_ASSERT(color == ed_color); SGE_UNUSED(ed_color);
+		SGE_ASSERT(pos == ed_pos);       SGE_UNUSED(ed_pos);
+		SGE_ASSERT(uv == ed_uv);		 SGE_UNUSED(ed_uv);
+		SGE_ASSERT(color == ed_color);	 SGE_UNUSED(ed_color);
 		SGE_ASSERT(normal == ed_normal); SGE_UNUSED(ed_normal);
 	}
 

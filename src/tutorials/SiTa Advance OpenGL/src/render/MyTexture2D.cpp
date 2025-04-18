@@ -3,44 +3,9 @@
 
 namespace sge {
 
-void MyTexture2D::create(int width, int height, Color4b* pixels) {
-	destroy();
-
-	if (!my_is_pow2(width) || !my_is_pow2(height))
-		throw SGE_ERROR("width or height must be power of 2");
-
-	glGenTextures(1, &_tex);
-	glBindTexture(GL_TEXTURE_2D, _tex);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	_width  = width;
-	_height = height;
-}
-
-void MyTexture2D::destroy() {
-	if (_tex) {
-		glDeleteTextures(1, &_tex);
-		_tex = 0;
-	}
-}
-
-void MyTexture2D::bind() const {
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, _tex);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-}
-
-void MyTexture2D::unbind() const {
-	glDisable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, 0);
-}
-
+#if 0
+#pragma mark ========= PngReader ============
+#endif
 class PngReader : public NonCopyable {
 public:
 	~PngReader() { destroy(); }
@@ -211,6 +176,49 @@ private:
 	ByteSpan		_data;
 	const u8*		_readPtr = nullptr;
 };
+
+#if 0
+#pragma mark ========= MyTexture2D ============
+#endif
+void MyTexture2D::create(int width, int height, Color4b* pixels) {
+	destroy();
+
+	if (!my_is_pow2(width) || !my_is_pow2(height))
+		throw SGE_ERROR("width or height must be power of 2");
+
+	glGenTextures(1, &_tex);
+	glBindTexture(GL_TEXTURE_2D, _tex);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	SGE_ASSERT(glGetError() == GL_NO_ERROR);
+
+	_width  = width;
+	_height = height;
+}
+
+void MyTexture2D::destroy() {
+	if (_tex) {
+		glDeleteTextures(1, &_tex);
+		_tex = 0;
+	}
+}
+
+void MyTexture2D::bind() const {
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, _tex);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+}
+
+void MyTexture2D::unbind() const {
+	glDisable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, 0);
+}
 
 void MyTexture2D::loadPngFile(StrView filename, bool mulAlpha) {
 	PngReader r;

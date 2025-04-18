@@ -2,6 +2,16 @@
 
 #include "../MyCommon.h"
 
+#define SGE_GL_CALL(_CALL) do { \
+	_CALL; \
+	GLenum gl_err = glGetError(); \
+	if (gl_err != 0) { \
+		SGE_LOG("GL error 0x{:x} returned from '{}'.\n", gl_err, #_CALL); \
+		SGE_ASSERT(false); \
+	} \
+} while (0) \
+//----
+
 namespace sge {
 
 enum class RenderPrimitiveType {

@@ -1,0 +1,27 @@
+struct VS_INPUT {
+	float2 pos 	 	: POSITION;
+	float4 color 	: COLOR;
+	float2 uv  	    : TEXCOORD0;
+};
+
+struct PS_INPUT {
+	float4 pos 		: POSITION;
+	float4 color 	: COLOR;
+	float2 uv  	    : TEXCOORD0;
+};
+
+mat4x4 matMVP;
+sampler2D sampler0;
+			
+PS_INPUT vs_main(VS_INPUT i) {
+	PS_INPUT o;
+	o.pos   = mul(matMVP, float4(i.pos.x, i.pos.y, 0, 1));
+	o.color = i.color;
+	o.uv    = i.uv;
+	return o;
+}
+
+float4 ps_main(PS_INPUT i) : COLOR {
+	float4 texColor0 = tex2D(sampler0, i.uv);
+	return i.color * texColor0;
+}

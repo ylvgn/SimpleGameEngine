@@ -1,0 +1,44 @@
+// glslf output by Cg compiler
+// cgc version 3.1.0013, build date Apr 18 2012
+// command line args: -profile glslf -po version=330
+// source file: imgui.cg
+//vendor NVIDIA Corporation
+//version 3.1.0.13
+//profile glslf
+//program ps_main
+//semantic matMVP
+//semantic sampler0
+//var sampler2D sampler0 :  : _sampler0 : -1 : 1
+//var float4 i.color : $vin.COLOR : COLOR : 0 : 1
+//var float2 i.uv : $vin.TEXCOORD0 : TEXCOORD0 : 0 : 1
+//var float4 ps_main : $vout.COLOR : COLOR : -1 : 1
+
+#version 330
+
+struct VS_INPUT {
+    vec4 _color1;
+    vec2 _uv1;
+};
+
+struct PS_INPUT {
+    vec4 _color;
+    vec2 _uv;
+};
+
+vec4 _ret_0;
+uniform sampler2D _sampler0;
+in vec4 cg_FrontColor;
+in vec4 cg_TexCoord0;
+out vec4 cg_FragColor;
+
+ // main procedure, the original name was ps_main
+void main()
+{
+
+    vec4 _texColor0;
+
+    _texColor0 = texture(_sampler0, cg_TexCoord0.xy);
+    _ret_0 = cg_FrontColor*_texColor0;
+    cg_FragColor = _ret_0;
+    return;
+} // main end

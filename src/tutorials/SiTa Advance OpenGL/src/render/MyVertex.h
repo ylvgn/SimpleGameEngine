@@ -16,4 +16,4 @@ struct alignas(16) MyVertexCg_PosColorUvNormal {
 	Vec4f	normal;
 };
 
-}
+} // namespace sge

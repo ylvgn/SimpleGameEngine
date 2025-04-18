@@ -203,4 +203,4 @@ void MyOpenGLNativeUIWindow_Win32::onEndRender() {
 
 }
 
-#endif
+#endif // SGE_OS_WINDOWS

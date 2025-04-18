@@ -1,0 +1,56 @@
+// glslv output by Cg compiler
+// cgc version 3.1.0013, build date Apr 18 2012
+// command line args: -profile glslv -po version=330
+// source file: imgui.cg
+//vendor NVIDIA Corporation
+//version 3.1.0.13
+//profile glslv
+//program vs_main
+//semantic matMVP
+//semantic sampler0
+//var float4x4 matMVP :  : _matMVP[0], 4 : -1 : 1
+//var float2 i.pos : $vin.POSITION : POSITION : 0 : 1
+//var float4 i.color : $vin.COLOR : COLOR : 0 : 1
+//var float2 i.uv : $vin.TEXCOORD0 : TEXCOORD0 : 0 : 1
+//var float4 vs_main.pos : $vout.POSITION : HPOS : -1 : 1
+//var float4 vs_main.color : $vout.COLOR : COLOR : -1 : 1
+//var float2 vs_main.uv : $vout.TEXCOORD0 : TEXCOORD0 : -1 : 1
+
+#version 330
+
+struct VS_INPUT {
+    vec2 _pos;
+    vec4 _color;
+    vec2 _uv;
+};
+
+struct PS_INPUT {
+    vec4 _pos1;
+    vec4 _color1;
+    vec2 _uv1;
+};
+
+vec4 _r0004;
+vec4 _v0004;
+in vec4 COLOR;
+in vec4 TEXCOORD0;
+uniform vec4 _matMVP[4];
+in vec4 cg_Vertex;
+out vec4 cg_FrontColor;
+out vec4 cg_TexCoord0;
+
+ // main procedure, the original name was vs_main
+void main()
+{
+
+
+    _v0004 = vec4(cg_Vertex.x, cg_Vertex.y, 0.00000000E+000, 1.00000000E+000);
+    _r0004.x = dot(_matMVP[0], _v0004);
+    _r0004.y = dot(_matMVP[1], _v0004);
+    _r0004.z = dot(_matMVP[2], _v0004);
+    _r0004.w = dot(_matMVP[3], _v0004);
+    cg_TexCoord0.xy = TEXCOORD0.xy;
+    gl_Position = _r0004;
+    cg_FrontColor = COLOR;
+    return;
+} // main end

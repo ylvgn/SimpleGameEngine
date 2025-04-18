@@ -81,7 +81,7 @@ void MyShader::bind() {
 		SGE_ASSERT(glIsProgram(_program) == GL_TRUE);
 
 	SGE_ASSERT(_boundTexCount == 0);
-	glUseProgram(_program);
+	SGE_GL_CALL(glUseProgram(_program));
 }
 
 void MyShader::unbind() {
@@ -92,7 +92,7 @@ void MyShader::unbind() {
 	}
 
 	_boundTexCount = 0;
-	glUseProgram(0);
+	SGE_GL_CALL(glUseProgram(0));
 }
 
 GLint MyShader::getUniformLoc(StrView name) {
@@ -107,85 +107,87 @@ GLint MyShader::getUniformLoc(StrView name) {
 void MyShader::setUniform(StrView name, const i32& value) {
 	// If location is equal to - 1, the data passed in will be silently ignored and the specified uniform variable will not be changed.
 	auto loc = getUniformLoc(name);
-	glUniform1iv(loc, 1, &value);
+	SGE_GL_CALL(glUniform1iv(loc, 1, &value));
 }
 
 void MyShader::setUniform(StrView name, const u32& value) {
 	auto loc = getUniformLoc(name);
-	glUniform1uiv(loc, 1, &value);
+	SGE_GL_CALL(glUniform1uiv(loc, 1, &value));
 }
 
 void MyShader::setUniform(StrView name, const float& value) {
 	auto loc = getUniformLoc(name);
-	glUniform1fv(loc, 1, &value);
+	SGE_GL_CALL(glUniform1fv(loc, 1, &value));
 }
 
 void MyShader::setUniform(StrView name, const Tuple2i& value) {
 	auto loc = getUniformLoc(name);
-	glUniform2iv(loc, 1, value.data);
+	SGE_GL_CALL(glUniform2iv(loc, 1, value.data));
 }
 
 void MyShader::setUniform(StrView name, const Tuple3i& value) {
 	auto loc = getUniformLoc(name);
-	glUniform3iv(loc, 1, value.data);
+	SGE_GL_CALL(glUniform3iv(loc, 1, value.data));
 }
 
 void MyShader::setUniform(StrView name, const Tuple4i& value) {
 	auto loc = getUniformLoc(name);
-	glUniform4iv(loc, 1, value.data);
+	SGE_GL_CALL(glUniform4iv(loc, 1, value.data));
 }
 
 void MyShader::setUniform(StrView name, const Tuple2f& value) {
 	auto loc = getUniformLoc(name);
-	glUniform2fv(loc, 1, value.data);
+	SGE_GL_CALL(glUniform2fv(loc, 1, value.data));
 }
 
 void MyShader::setUniform(StrView name, const Tuple3f& value) {
 	auto loc = getUniformLoc(name);
-	glUniform3fv(loc, 1, value.data);
+	SGE_GL_CALL(glUniform3fv(loc, 1, value.data));
 }
 
 void MyShader::setUniform(StrView name, const Tuple4f& value) {
 	auto loc = getUniformLoc(name);
-	glUniform4fv(loc, 1, value.data);
+	SGE_GL_CALL(glUniform4fv(loc, 1, value.data));
 }
 
 void MyShader::setUniform(StrView name, const Color4f& value) {
 	auto loc = getUniformLoc(name);
-	glUniform4fv(loc, 1, value.data);
+	SGE_GL_CALL(glUniform4fv(loc, 1, value.data));
 }
 
 void MyShader::setUniform(StrView name, const Quat4f& value) {
 	auto loc = getUniformLoc(name);
-	glUniform4fv(loc, 1, value.data);
+	SGE_GL_CALL(glUniform4fv(loc, 1, value.data));
 }
 
 void MyShader::setUniform(StrView name, const Mat4f& value) {
 	auto loc = getUniformLoc(name);
-	glUniformMatrix4fv(loc, 1, false, value._elements);
+	SGE_GL_CALL(glUniformMatrix4fv(loc, 1, false, value._elements));
 }
 
 void MyShader::setUniformCg(StrView name, const Mat4f& value) {
 	auto loc = getUniformLoc(name);
 	auto mat = value.transpose();
-	glUniform4fv(loc, 4, mat._elements);
+	SGE_GL_CALL(glUniform4fv(loc, 4, mat._elements));
 }
 
-void MyShader::setUniform(StrView name, const MyTexture2D& value) {
+void MyShader::setUniform(StrView name, MyTexture2D* value) {
+	if (!value) { SGE_ASSERT(false); return; }
+
 	if (_boundTexCount >= kMaxSamplers)
 		throw SGE_ERROR("too many samplers");
 
 	auto loc = getUniformLoc(name);	
-	glUniform1i(loc, _boundTexCount);
+	SGE_GL_CALL(glUniform1i(loc, _boundTexCount));
 
-	glActiveTexture(GL_TEXTURE0 + _boundTexCount);
-	value.bind();
+	SGE_GL_CALL(glActiveTexture(GL_TEXTURE0 + _boundTexCount));
+	value->bind();
 
 	{
 		auto& t = _texUnits[_boundTexCount];
 		t.sampler.create();
 		t.sampler.bind(_boundTexCount);
-		t.tex = &value;
+		t.tex = value;
 	}
 
 	_boundTexCount++;
@@ -223,15 +225,15 @@ void MyShader::draw(const MyRenderMesh& mesh) {
 
 	if (mesh.indexCount > 0) {
 		const void* indexBufferOffset = 0;
-		glDrawElements(my_getGlPrimitiveTopology(mesh.primitive), static_cast<GLsizei>(mesh.indexCount), GL_UNSIGNED_SHORT, indexBufferOffset);
+		SGE_GL_CALL(glDrawElements(my_getGlPrimitiveTopology(mesh.primitive), static_cast<GLsizei>(mesh.indexCount), GL_UNSIGNED_SHORT, indexBufferOffset));
 	}
 	else {
-		glDrawArrays(my_getGlPrimitiveTopology(mesh.primitive), 0, static_cast<GLsizei>(mesh.vertexCount));
+		SGE_GL_CALL(glDrawArrays(my_getGlPrimitiveTopology(mesh.primitive), 0, static_cast<GLsizei>(mesh.vertexCount)));
 	}
 
-	_vertexArray.unbind();
 	mesh.vertexBuffer.unbind();
 	mesh.indexBuffer.unbind();
+	_vertexArray.unbind();
 }
 
 void MyShader::drawCg(const MyRenderMesh& mesh) {
@@ -257,10 +259,10 @@ void MyShader::drawCg(const MyRenderMesh& mesh) {
 
 	if (mesh.indexCount > 0) {
 		const void* indexBufferOffset = 0;
-		glDrawElements(my_getGlPrimitiveTopology(mesh.primitive), static_cast<GLsizei>(mesh.indexCount), GL_UNSIGNED_SHORT, indexBufferOffset);
+		SGE_GL_CALL(glDrawElements(my_getGlPrimitiveTopology(mesh.primitive), static_cast<GLsizei>(mesh.indexCount), GL_UNSIGNED_SHORT, indexBufferOffset));
 	}
 	else {
-		glDrawArrays(my_getGlPrimitiveTopology(mesh.primitive), 0, static_cast<GLsizei>(mesh.vertexCount));
+		SGE_GL_CALL(glDrawArrays(my_getGlPrimitiveTopology(mesh.primitive), 0, static_cast<GLsizei>(mesh.vertexCount)));
 	}
 
 	_vertexArray.unbind();
@@ -270,7 +272,7 @@ void MyShader::drawCg(const MyRenderMesh& mesh) {
 
 void MyShader::dumpActiveAttrib() {
 	GLint activeCount = 0;
-	glGetProgramiv(_program, GL_ACTIVE_ATTRIBUTES, &activeCount);
+	SGE_GL_CALL(glGetProgramiv(_program, GL_ACTIVE_ATTRIBUTES, &activeCount));
 
 	static const size_t kszNameSize = 1024;
 	for (int i = 0; i < activeCount; ++i) {
@@ -279,7 +281,7 @@ void MyShader::dumpActiveAttrib() {
 		GLint   out_dataSize = 0;
 		GLenum  out_dataType = 0;
 
-		glGetActiveAttrib(_program, static_cast<GLuint>(i), kszNameSize, &out_len, &out_dataSize, &out_dataType, out_szName);
+		SGE_GL_CALL(glGetActiveAttrib(_program, static_cast<GLuint>(i), kszNameSize, &out_len, &out_dataSize, &out_dataType, out_szName));
 		out_szName[kszNameSize] = 0;
 
 		auto loc = glGetAttribLocation(_program, out_szName);
@@ -297,11 +299,11 @@ void MyShader::_compileShader(GLuint& shader, GLenum type, StrView filename) {
 	StrView sourceCode = StrView_make(mm.span());
 	auto* const data = sourceCode.data();
 	GLint dataSize = static_cast<GLint>(sourceCode.size());
-	glShaderSource(shader, 1, &data, &dataSize);
-	glCompileShader(shader);
+	SGE_GL_CALL(glShaderSource(shader, 1, &data, &dataSize));
+	SGE_GL_CALL(glCompileShader(shader));
 
 	GLint compiled;
-	glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
+	SGE_GL_CALL(glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled));
 	if (compiled != GL_TRUE) {
 		String errmsg;
 		_getShaderInfoLog(shader, errmsg);

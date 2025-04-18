@@ -8,14 +8,16 @@ namespace sge {
 class MyVertexBuffer : public NonCopyable {
 public:
 	~MyVertexBuffer() { destroy(); }
+	void destroy();
 
 	template<class T>
 	void create(const Span<const T> data);
+	void create(size_t bufferSize);
 
-	void destroy();
+	void uploadToGpu(ByteSpan data, size_t offset = 0);
 
-	void bind	() const { glBindBuffer(GL_ARRAY_BUFFER, _p); }
-	void unbind	() const { glBindBuffer(GL_ARRAY_BUFFER, 0); }
+	void bind	() const { SGE_GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, _p)); }
+	void unbind	() const { SGE_GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, 0)); }
 private:
 	GLuint _p = 0;
 };
@@ -25,12 +27,15 @@ public:
 	using IndexType = MyEditMesh::IndexType;
 
 	~MyIndexBuffer() { destroy(); }
-
-	void create(const Span<const IndexType> data);
 	void destroy();
 
-	void bind	() const { glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _p); }
-	void unbind	() const { glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); }
+	void create(const Span<const IndexType> data);
+	void create(size_t bufferSize);
+
+	void uploadToGpu(ByteSpan data, size_t offset = 0);
+
+	void bind	() const { SGE_GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _p)); }
+	void unbind	() const { SGE_GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)); }
 private:
 	GLuint _p = 0;
 };
