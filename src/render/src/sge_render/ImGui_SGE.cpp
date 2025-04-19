@@ -308,6 +308,8 @@ void ImGui_SGE::onDrawUI(RenderRequest& req) {
 		_indexBuffer	= renderer->createGpuBuffer(desc);
 	}
 
+	auto scissorRectScope = req.scissorRectScope();
+
 	{
 		_vertexData.clear();
 		_indexData.clear();

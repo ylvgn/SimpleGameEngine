@@ -166,13 +166,14 @@ void Material_GL::MyPass::_bindRenderState(RenderContext_GL* ctx) {
 
 	Util::throwIfError();
 
+	glEnable(GL_SCISSOR_TEST);
+
 // TODO
 //	glDisable(GL_POLYGON_OFFSET_FILL);
 //	glPolygonOffset(-1.f, 0.001f);
 // 
 //	glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE);
 //	glDisable(GL_SAMPLE_COVERAGE);
-//	glDisable(GL_SCISSOR_TEST); //!!<-- always enable scissor test
 //	glDisable(GL_MULTISAMPLE);
 //	glDisable(GL_DITHER);
 }

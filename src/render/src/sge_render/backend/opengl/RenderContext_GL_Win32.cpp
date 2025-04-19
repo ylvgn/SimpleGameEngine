@@ -251,7 +251,8 @@ void RenderContext_GL_Win32::onCmd_DrawCall(RenderCommand_DrawCall& cmd) {
 }
 
 void RenderContext_GL_Win32::onCmd_SetScissorRect(RenderCommand_SetScissorRect& cmd) {
-	auto rc = cmd.rect; // TODO some bug, cuz glScissor is global space, but how to fix it ???
+	Rect2f rc = cmd.rect;
+	rc.y = _frameBufferSize.y - rc.yMax(); // OpenGL using bottom-left coordinate
 	glScissor(GLint(rc.x), GLint(rc.y), GLsizei(rc.w), GLsizei(rc.h));
 }
 
