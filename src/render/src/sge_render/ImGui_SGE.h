@@ -1,4 +1,5 @@
 #pragma once
+
 #include "imgui.h"
 #include <sge_render/command/RenderRequest.h>
 
@@ -18,7 +19,7 @@ struct ImGui_SGE__Util {
 
 	static void convert(Color4f& o, const ImColor& i) { convert(o, i.Value); }
 	static void convert(ImColor& o, const Color4f& i) { convert(o.Value, i); }
-};
+}; // ImGui_SGE__Util
 
 enum class ImGui_SGE__Style {
 	Classic,
@@ -47,6 +48,7 @@ public:
 	~ImGui_SGE();
 
 	void create(CreateDesc& desc);
+	void create() { CreateDesc desc; create(desc); }
 	void destroy();
 
 	void setStyle(ImGui_SGE__Style s);
@@ -63,7 +65,7 @@ public:
 	void onUIKeyboardEvent(UIKeyboardEvent& ev);
 
 private:
-	void			_createFontsTexture();
+	void			_createFontTexture();
 
 	int				_mouseButton(UIMouseEventButton v);
 	ImGuiKey		_keyCode(UIKeyboardEventKeyCode v);
@@ -77,7 +79,7 @@ private:
 	RenderDataType	_indexType() const { return RenderDataTypeUtil::get<ImDrawIdx>(); }
 
 	SPtr<Material>			_material;
-	SPtr<Texture2D>			_fontsTexture;
+	SPtr<Texture2D>			_fontTex;
 
 	const VertexLayout*		_vertexLayout = nullptr;
 	SPtr<RenderGpuBuffer>	_vertexBuffer;
@@ -90,10 +92,10 @@ private:
 	ImGuiContext*			_ctx = nullptr;
 }; // ImGui_SGE
 
-inline Vec2f	Vec2f_make	(const ImVec2& v)						{ return Vec2f(v.x, v.y); }
-inline Vec4f	Vec4f_make	(const ImVec4& v)						{ return Vec4f(v.x, v.y, v.z, v.w); }
-inline Color4f	Color4f_make(const ImVec4& v)						{ return Color4f(v.x, v.y, v.z, v.w); }
-inline Color4f	Color4f_make(const ImColor& v)						{ return Color4f_make(v.Value); }
-inline Rect2f	Rect2f_make	(const ImVec2& pos, const ImVec2& size)	{ return Rect2f(pos.x, pos.y, size.x, size.y); }
+SGE_NODISCARD inline Vec2f	 Vec2f_make	  (const ImVec2& v)							{ return Vec2f(v.x, v.y); }
+SGE_NODISCARD inline Vec4f	 Vec4f_make	  (const ImVec4& v)							{ return Vec4f(v.x, v.y, v.z, v.w); }
+SGE_NODISCARD inline Color4f Color4f_make (const ImVec4& v)							{ return Color4f(v.x, v.y, v.z, v.w); }
+SGE_NODISCARD inline Color4f Color4f_make (const ImColor& v)						{ return Color4f_make(v.Value); }
+SGE_NODISCARD inline Rect2f	 Rect2f_make  (const ImVec2& pos, const ImVec2& size)	{ return Rect2f(pos.x, pos.y, size.x, size.y); }
 
 } // namespace sge

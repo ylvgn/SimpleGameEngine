@@ -155,7 +155,10 @@ void ShaderParser::_readPass() {
 
 		if (_token.isIdentifier("DepthTest") ) { nextToken(); readEnum(o.renderState.depthTest.op); continue; }
 		if (_token.isIdentifier("DepthWrite")) { nextToken(); readBool(o.renderState.depthTest.writeMask); continue; }
-
+#if 0 // TODO
+		if (_token.isIdentifier("StencilTest")) { nextToken(); readEnum(o.renderState.stencilTest.op); continue; }
+		if (_token.isIdentifier("StencilRef") ) { nextToken(); readNumber(o.renderState.stencilTest.ref); continue; }
+#endif
 		if (_token.isIdentifier("BlendRGB")  ) { nextToken(); _readBlendFunc(o.renderState.blend.rgb); continue; }
 		if (_token.isIdentifier("BlendAlpha")) { nextToken(); _readBlendFunc(o.renderState.blend.alpha); continue; }
 

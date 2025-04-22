@@ -30,7 +30,7 @@ public:
 
 			wc.cbSize			= sizeof(wc);
 			wc.hInstance		= hInstance;
-			wc.style			= CS_OWNDC;
+			wc.style			= CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
 			wc.lpfnWndProc		= DefWindowProc;
 			wc.hCursor			= LoadCursor(nullptr, IDC_ARROW);
 			wc.hbrBackground	= nullptr;
@@ -227,7 +227,6 @@ void RenderContext_GL_Win32::onCmd_DrawCall(RenderCommand_DrawCall& cmd) {
 		GLsizei stride		 = static_cast<GLsizei>(cmd.vertexLayout->stride); SGE_UNUSED(stride);
 		GLsizei vertexCount  = static_cast<GLsizei>(cmd.vertexCount);
 		GLsizei indexCount   = static_cast<GLsizei>(cmd.indexCount);
-
 		GLsizei vertexOffset = static_cast<GLsizei>(cmd.vertexOffset);
 		SGE_UNUSED(vertexOffset);
 
@@ -250,12 +249,18 @@ void RenderContext_GL_Win32::onCmd_DrawCall(RenderCommand_DrawCall& cmd) {
 	vertexBuffer->unbind();
 }
 
-void RenderContext_GL_Win32::onCmd_SetScissorRect(RenderCommand_SetScissorRect& cmd) {
+void RenderContext_GL_Win32::onCmd_SetScissorRect(RenderCommand_SetScissorRect& cmd) { // still some bug why ???
 	Rect2f rc = cmd.rect;
 	rc.y = _frameBufferSize.y - rc.yMax(); // OpenGL using bottom-left coordinate
 	glScissor(GLint(rc.x), GLint(rc.y), GLsizei(rc.w), GLsizei(rc.h));
 }
-
+#if 0 // no use now
+void RenderContext_GL_Win32::onCmd_SetViewport(RenderCommand_SetViewport& cmd) {
+	Rect2f& rc = cmd.rect;
+	glViewport(GLint(rc.x), GLint(rc.y), GLsizei(rc.w), GLsizei(rc.h));
+	glDepthRange(GLclampd(cmd.depthRange.x), GLclampd(cmd.depthRange.y));
+}
+#endif
 void RenderContext_GL_Win32::onCmd_SwapBuffers(RenderCommand_SwapBuffers& cmd) {
 	if (_win32_dc)
 		SwapBuffers(_win32_dc);
@@ -276,6 +281,7 @@ void RenderContext_GL_Win32::onSetFrameBufferSize(const Vec2f& newSize) {
 	}
 #endif
 	glViewport(0, 0, newWidth, newHeight);
+	glScissor(0, 0, newWidth, newHeight);
 	Util::throwIfError();
 }
 

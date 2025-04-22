@@ -59,6 +59,8 @@ public:
     }
 
 	virtual void onInitGL() override {
+//		glEnable(GL_SCISSOR_TEST); Dont glEnable GL_SCISSOR_TEST once
+
 		if (!IMGUI_CHECKVERSION())
 			throw SGE_ERROR("ImGui version error");
 
@@ -204,7 +206,7 @@ void MyImGuiUIWindow::Impl::ImGui_ImplOpenGL3_RenderDrawData(ImDrawData* draw_da
 	GLboolean last_enable_cull_face		= glIsEnabled(GL_CULL_FACE);
 	GLboolean last_enable_depth_test	= glIsEnabled(GL_DEPTH_TEST);
 	GLboolean last_enable_stencil_test	= glIsEnabled(GL_STENCIL_TEST);
-	GLboolean last_enable_scissor_test	= glIsEnabled(GL_SCISSOR_TEST);
+//	GLboolean last_enable_scissor_test	= glIsEnabled(GL_SCISSOR_TEST);
 
 	// Setup desired GL state
 	// Recreate the VAO every time (this is to easily allow multiple GL contexts to be rendered to. VAO are not shared among GL contexts)
@@ -236,7 +238,6 @@ void MyImGuiUIWindow::Impl::ImGui_ImplOpenGL3_RenderDrawData(ImDrawData* draw_da
 		_mesh.indexBuffer.uploadToGpu(indexData);
 
 		_mesh.vertexBuffer.bind();
-		_mesh.indexBuffer.bind();
 
 		SGE_GL_CALL(glEnableVertexAttribArray(AttribLocationVtxPos));
 		SGE_GL_CALL(glEnableVertexAttribArray(AttribLocationVtxUV));
@@ -269,7 +270,9 @@ void MyImGuiUIWindow::Impl::ImGui_ImplOpenGL3_RenderDrawData(ImDrawData* draw_da
 
 			// Bind texture, Draw
 			_fontTex->bind(); // SGE_GL_CALL(glBindTexture(GL_TEXTURE_2D, (GLuint)(intptr_t)pcmd->GetTexID()));
-
+#if MyImGuiUIWindow_TEST_RENDER_MESH
+			_mesh.indexBuffer.bind();
+#endif
 			auto indexBufferOffset = pcmd->IdxOffset * indexSize;
 			SGE_GL_CALL(glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_SHORT, (void*)(intptr_t)indexBufferOffset));
 		}
@@ -299,7 +302,7 @@ void MyImGuiUIWindow::Impl::ImGui_ImplOpenGL3_RenderDrawData(ImDrawData* draw_da
 	if (last_enable_cull_face)		glEnable(GL_CULL_FACE);	   else glDisable(GL_CULL_FACE);
 	if (last_enable_depth_test)		glEnable(GL_DEPTH_TEST);   else glDisable(GL_DEPTH_TEST);
 	if (last_enable_stencil_test)	glEnable(GL_STENCIL_TEST); else glDisable(GL_STENCIL_TEST);
-	if (last_enable_scissor_test)	glEnable(GL_SCISSOR_TEST); else glDisable(GL_SCISSOR_TEST);
+//	if (last_enable_scissor_test)	glEnable(GL_SCISSOR_TEST); else glDisable(GL_SCISSOR_TEST);
 
 	glViewport(last_viewport[0], last_viewport[1], (GLsizei)last_viewport[2], (GLsizei)last_viewport[3]);
 	glScissor(last_scissor_box[0], last_scissor_box[1], (GLsizei)last_scissor_box[2], (GLsizei)last_scissor_box[3]);
@@ -315,7 +318,7 @@ void MyImGuiUIWindow::Impl::ImGui_ImplOpenGL3_SetupRenderState(ImDrawData* draw_
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_STENCIL_TEST);
 
-	glEnable(GL_SCISSOR_TEST);
+	glEnable(GL_SCISSOR_TEST); // must enable GL_SCISSOR_TEST each frame
 
 	// Setup viewport, orthographic projection matrix
 	// Our visible imgui space lies from draw_data->DisplayPos (top left) to draw_data->DisplayPos+data_data->DisplaySize (bottom right). DisplayPos is (0,0) for single viewport apps.

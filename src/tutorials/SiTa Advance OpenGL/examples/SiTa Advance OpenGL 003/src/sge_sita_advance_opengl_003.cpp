@@ -39,8 +39,11 @@ public:
 			_originCgMesh.createCg(editMesh);
 		}
 
-		_tex0.loadPngFile("Assets/Textures/Kingfisher.png", false);
-		_tex1.loadPngFile("Assets/Textures/happymask.png", false);
+		_tex0 = new MyTexture2D();
+		_tex1 = new MyTexture2D();
+
+		_tex0->loadPngFile("Assets/Textures/Kingfisher.png", false);
+		_tex1->loadPngFile("Assets/Textures/happymask.png", false);
 
 		_simpleColorShader->loadFile("Assets/Shaders/simpleColor");
 		_simpleTextureShader->loadFile("Assets/Shaders/simpleTexture");
@@ -154,8 +157,8 @@ private:
 
 	MyHiResTimer	_uptime;
 
-	MyTexture2D		_tex0;
-	MyTexture2D		_tex1;
+	SPtr<MyTexture2D> _tex0;
+	SPtr<MyTexture2D> _tex1;
 
 //-----
 	MyRenderMesh	_gridMesh;

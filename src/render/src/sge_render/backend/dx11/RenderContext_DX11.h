@@ -16,6 +16,7 @@ public:
 	void onCmd_SwapBuffers(RenderCommand_SwapBuffers& cmd);
 	void onCmd_DrawCall(RenderCommand_DrawCall& cmd);
 	void onCmd_SetScissorRect(RenderCommand_SetScissorRect& cmd);
+//	void onCmd_SetViewport(RenderCommand_SetViewport& cmd); no use now
 
 	Renderer_DX11* renderer() { return _renderer; }
 

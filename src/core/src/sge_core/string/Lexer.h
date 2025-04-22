@@ -79,6 +79,17 @@ public:
 	template<class E> void readEnum(E& v);
 	void readBool(bool& v); //!!<-------- pass 1 bit bool& cause undefined behaviour
 
+	void readNumber(u8 & v) { _readNumber(v); }
+	void readNumber(u16& v) { _readNumber(v); }
+	void readNumber(u32& v) { _readNumber(v); }
+	void readNumber(u64& v) { _readNumber(v); }
+	void readNumber(i8 & v) { _readNumber(v); }
+	void readNumber(i16& v) { _readNumber(v); }
+	void readNumber(i32& v) { _readNumber(v); }
+	void readNumber(i64& v) { _readNumber(v); }
+	void readNumber(f32& v) { _readNumber(v); }
+	void readNumber(f64& v) { _readNumber(v); }
+
 	StrView getLastFewLines(size_t lineCount);
 
 	const char& ch		() const { return _ch;		}
@@ -111,6 +122,8 @@ protected:
 	size_t			_line       = 0;
 	const char*     _cur        = nullptr;
 	char			_ch         = 0;
+private:
+	template<class T> void _readNumber(T& v);
 };
 
 template<class E> inline
@@ -126,6 +139,19 @@ void Lexer::readEnum(E& v) {
 	nextToken();
 }
 
+template<class T> inline
+void Lexer::_readNumber(T& v) {
+	if (!_token.isNumber()) {
+		errorUnexpectedToken();
+		return;
+	}
+	if (!StringUtil::tryParse(_token.str, v)) {
+		errorUnexpectedToken();
+		return;
+	}
+	nextToken();
+}
+
 SGE_FORMATTER(Lexer::Token)
 
-}
+} // namespace sge

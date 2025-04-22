@@ -5,7 +5,7 @@
 #if SGE_OS_WINDOWS
 #if SGE_RENDER_HAS_OPENGL
 
-#define MY_TEST_FRAMEBUFFER 0
+#define MY_TEST_FRAMEBUFFER 0 // no need in Win32 why ???
 
 namespace sge {
 
@@ -17,10 +17,11 @@ public:
 	RenderContext_GL_Win32(CreateDesc& desc);
 	~RenderContext_GL_Win32();
 
-	void onCmd_ClearFrameBuffers(RenderCommand_ClearFrameBuffers&	cmd);
-	void onCmd_SwapBuffers		(RenderCommand_SwapBuffers&			cmd);
-	void onCmd_DrawCall			(RenderCommand_DrawCall&			cmd);
-	void onCmd_SetScissorRect	(RenderCommand_SetScissorRect&		cmd);
+	void onCmd_ClearFrameBuffers(RenderCommand_ClearFrameBuffers& cmd);
+	void onCmd_SwapBuffers		(RenderCommand_SwapBuffers& cmd);
+	void onCmd_DrawCall			(RenderCommand_DrawCall& cmd);
+	void onCmd_SetScissorRect	(RenderCommand_SetScissorRect& cmd);
+//	void onCmd_SetViewport		(RenderCommand_SetViewport& cmd); no use now
 
 protected:
 	Renderer_GL*			_renderer	= nullptr;

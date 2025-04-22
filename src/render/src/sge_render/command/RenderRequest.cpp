@@ -12,13 +12,13 @@ RenderRequest::RenderRequest() {
 	light_color = Vec3f(1,1,1);
 }
 
-void RenderRequest::reset(RenderContext* ctx, const Math::Camera3f& _camera) {
+void RenderRequest::reset(RenderContext* ctx, const Math::Camera3f& camera) {
 	_renderContext = ctx;
 	commandBuffer.reset(ctx);
 
-	matrix_view	= _camera.viewMatrix();
-	matrix_proj	= _camera.projMatrix();
-	cameraPos	= _camera.pos();
+	matrix_view	= camera.viewMatrix();
+	matrix_proj	= camera.projMatrix();
+	cameraPos	= camera.pos();
 
 	if (lineMaterial) {
 		auto mvp = matrix_proj * matrix_view;

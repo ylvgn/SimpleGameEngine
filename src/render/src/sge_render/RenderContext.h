@@ -68,6 +68,7 @@ protected:
 				CMD_CASE(SwapBuffers)
 				CMD_CASE(DrawCall)
 				CMD_CASE(SetScissorRect)
+//				CMD_CASE(SetViewport) no use now
 				default:
 					throw SGE_ERROR("unhandled command");
 			}

@@ -28,6 +28,8 @@ public:
 	Image() = default;
 	Image(Image && r);
 
+	void operator=(Image&& r);
+
 					void		clear();
 
 					void		loadFile(StrView filename, ColorType expectType = ColorType::None);

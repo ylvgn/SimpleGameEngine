@@ -172,6 +172,7 @@ struct Vector_Base<T, 0, true> {
 template<class T, size_t N = 0, bool bEnableOverflow = true>
 class Vector : public Vector_Base<T, N, bEnableOverflow>::Type {
 	using Base = typename Vector_Base<T, N, bEnableOverflow>::Type;
+	using This = Vector;
 public:
 	using Base::begin;
 	using Base::end;
@@ -179,7 +180,7 @@ public:
 	Vector() = default;
 	Vector(std::initializer_list<T> list) : Base(list) {}
 
-	void appendRange(const Span<const T>& r) { Base::insert(end(), r.begin(), r.end()); }
+	void appendRange(const Span<const T>& rhs) { Base::insert(end(), rhs.begin(), rhs.end()); }
 
 	Span<      T> span()			{ return Span<      T>(begin(), end()); }
 	Span<const T> span() const		{ return Span<const T>(begin(), end()); }
@@ -196,6 +197,10 @@ public:
 	bool inBound(int i) const { return i >= 0 && i < Base::size(); }
 
 	void remove(const T& value) { eastl::remove(begin(), end(), value); }
+
+	void resizeToLocalBufSize() { Base::resize(N); }
+
+	void move(This& rhs) { Base::clear(); *this = eastl::move(rhs); }
 };
 
 template<class T> using List_Base = typename eastl::list<T>;

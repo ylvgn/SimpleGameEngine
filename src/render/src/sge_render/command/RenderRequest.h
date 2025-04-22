@@ -26,7 +26,7 @@ public:
 
 	RenderRequest();
 
-	void reset(RenderContext* ctx, const Math::Camera3f& _camera);
+	void reset(RenderContext* ctx, const Math::Camera3f& camera);
 
 	//TODO: move to separate cbuffer
 	void setMaterialCommonParams(Material* mtl, const Mat4f& matrix = Mat4f::s_identity());
@@ -48,6 +48,9 @@ public:
 
 	SGE_NODISCARD	RenderScissorRectScope	scissorRectScope()	{ return RenderScissorRectScope(&commandBuffer); }
 	SGE_INLINE		void setScissorRect(const Rect2f& rect)		{ commandBuffer.setScissorRect(rect); }
+
+//	SGE_NODISCARD	RenderViewportScope	viewportScope() { return RenderViewportScope(&commandBuffer); }
+//	SGE_INLINE		void setViewport(const Rect2f& rect) { commandBuffer.setViewport(rect); } no use now
 
 	void commit();
 

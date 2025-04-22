@@ -71,4 +71,4 @@ void MyOpenGLNativeUIWindow_Win32::onSwapBuffers() {
 
 }
 
-#endif
+#endif // SGE_OS_WINDOWS

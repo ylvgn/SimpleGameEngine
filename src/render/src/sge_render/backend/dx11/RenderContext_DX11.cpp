@@ -18,7 +18,7 @@ RenderContext_DX11::RenderContext_DX11(CreateDesc& desc)
 	auto* hWnd = win->_hwnd;
 
 	{
-		DXGI_SWAP_CHAIN_DESC swapChainDesc					= {};
+		::DXGI_SWAP_CHAIN_DESC swapChainDesc				= {};
 		swapChainDesc.BufferDesc.Width						= 8;								// set the back buffer width
 		swapChainDesc.BufferDesc.Height						= 8;								// set the back buffer height
 		swapChainDesc.BufferDesc.Format						= DXGI_FORMAT_R8G8B8A8_UNORM;		// use 32-bit color
@@ -50,19 +50,19 @@ void RenderContext_DX11::onBeginRender() {
 	DX11_ID3DRenderTargetView* rt = _renderTargetView;
 	ctx->OMSetRenderTargets(1, &rt, _depthStencilView);
 
-	D3D11_VIEWPORT viewport = {};
-	viewport.TopLeftX = 0;
-	viewport.TopLeftY = 0;
-	viewport.Width = _frameBufferSize.x;
-	viewport.Height = _frameBufferSize.y;
-	viewport.MinDepth = 0;
-	viewport.MaxDepth = 1;
+	::D3D11_VIEWPORT viewport		= {};
+	viewport.TopLeftX			= 0;
+	viewport.TopLeftY			= 0;
+	viewport.Width				= _frameBufferSize.x;
+	viewport.Height				= _frameBufferSize.y;
+	viewport.MinDepth			= 0;
+	viewport.MaxDepth			= 1;
 
-	D3D11_RECT scissorRect = {};
-	scissorRect.left = 0;
-	scissorRect.top = 0;
-	scissorRect.right = static_cast<LONG>(_frameBufferSize.x);
-	scissorRect.bottom = static_cast<LONG>(_frameBufferSize.y);
+	::D3D11_RECT scissorRect	= {};
+	scissorRect.left			= 0;
+	scissorRect.top				= 0;
+	scissorRect.right			= static_cast<LONG>(_frameBufferSize.x);
+	scissorRect.bottom			= static_cast<LONG>(_frameBufferSize.y);
 
 	ctx->RSSetViewports(1, &viewport);
 	ctx->RSSetScissorRects(1, &scissorRect);
@@ -150,7 +150,19 @@ void RenderContext_DX11::onCmd_SetScissorRect(RenderCommand_SetScissorRect& cmd)
 	Util::convert(rc, cmd.rect);
 	ctx->RSSetScissorRects(1, &rc);
 }
-
+#if 0 // no use now
+void RenderContext_DX11::onCmd_SetViewport(RenderCommand_SetViewport& cmd) {
+	auto* ctx = _renderer->d3dDeviceContext();
+	::D3D11_VIEWPORT viewport	= {};
+	viewport.TopLeftX			= cmd.rect.x;
+	viewport.TopLeftY			= cmd.rect.y;
+	viewport.Width				= cmd.rect.w;
+	viewport.Height				= cmd.rect.h;
+	viewport.MinDepth			= cmd.depthRange.x; // 0
+	viewport.MaxDepth			= cmd.depthRange.y; // 1
+	ctx->RSSetViewports(1, &viewport);
+}
+#endif
 void RenderContext_DX11::onCmd_SwapBuffers(RenderCommand_SwapBuffers& cmd) {
 	HRESULT hr = _swapChain->Present(_renderer->vsync() ? 1 : 0, 0);
 	Util::throwIfError(hr);

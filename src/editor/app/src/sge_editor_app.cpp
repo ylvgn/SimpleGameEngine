@@ -189,6 +189,7 @@ public:
 		_renderContext->setFrameBufferSize(clientRect().size);
 		_renderContext->beginRender();
 		_renderRequest.reset(_renderContext, _camera);
+//		_renderRequest.setViewport(clientRect()); no use now
 
 		{ // set camera culling frustum
 			auto fov = _camera.fov();
@@ -217,15 +218,15 @@ public:
 
 		CRendererSystem::instance()->render(_renderRequest);
 
+//----- ui stuff
 		ImGui::ShowDemoWindow(nullptr);
 		_hierarchyWindow.draw(_scene, _renderRequest);
 		_inspectorWindow.draw(_scene, _renderRequest);
 		_statisticsWindow.draw(_scene, _renderRequest);
-
 		_renderContext->drawUI(_renderRequest);
+
 		_renderRequest.swapBuffers();
 		_renderRequest.commit();
-
 		_renderContext->endRender();
 		drawNeeded();
 	}
@@ -281,11 +282,14 @@ public:
 		EngineContext::create();
 
 		{ // create window
+			TempString title;
+			FmtTo(title, "SGE Editor - {}, VSync: {}", Renderer::instance()->apiType(), Renderer::instance()->vsync());
+
 			NativeUIWindow::CreateDesc winDesc;
 			winDesc.isMainWindow = true;
 			winDesc.rect = { 10, 10, 1040, 880 };
 			_mainWin.create(winDesc);
-			_mainWin.setWindowTitle("SGE Editor");
+			_mainWin.setWindowTitle(title);
 		}
 	}
 

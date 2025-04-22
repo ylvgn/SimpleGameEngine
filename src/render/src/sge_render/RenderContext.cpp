@@ -7,8 +7,7 @@ RenderContext::RenderContext(CreateDesc& desc) {
 }
 
 void RenderContext::onPostCreate() {
-	ImGui_SGE::CreateDesc desc;
-	_imgui.create(desc);
+	_imgui.create();
 }
 
 void RenderContext::beginRender() {

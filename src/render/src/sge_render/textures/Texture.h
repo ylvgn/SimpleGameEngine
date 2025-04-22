@@ -24,6 +24,17 @@ SGE_ENUM_CLASS(TextureFilter, u8)
 //----
 SGE_ENUM_CLASS(TextureWrap, u8)
 
+#define TextureCubeFaceOrder_ENUM_LIST(E) \
+	E(Right,) \
+	E(Left,) \
+	E(Top,) \
+	E(Bottom,) \
+	E(Front,) \
+	E(Back,) \
+	E(_END,) \
+//----
+SGE_ENUM_CLASS(TextureCubeFaceOrder, u8)
+
 
 #if 0
 #pragma mark ========= SamplerState ============
@@ -43,7 +54,6 @@ public:
 	float	maxAnisotrory	= 1.f;
 }; // SamplerState
 
-
 #if 0
 #pragma mark ========= Texture_CreateDesc ============
 #endif
@@ -59,11 +69,11 @@ public:
 #pragma mark ========= Texture ============
 #endif
 class Texture : public Object {
+public:
 	using CreateDesc = Texture_CreateDesc;
-	using DataType = RenderDataType;
+	using DataType	 = RenderDataType;
 
 	DataType type() const { return _type; }
-
 protected:
 	Texture() = default;
 	DataType _type = DataType::None;
@@ -74,16 +84,51 @@ protected:
 #pragma mark ========= Texture2D_UploadRequest ============
 #endif
 class Texture2D_UploadRequest : public NonCopyable {
+	using This = Texture2D_UploadRequest;
 public:
-	Vec2i		offset{ 0,0 };
-	ImageInfo	imageInfo;
-	ByteSpan	pixelData;
+
+	This() = default;
+	This(This&& r) noexcept {
+		operator=(SGE_MOVE(r));
+	}
+
+	void operator=(This&& rhs) noexcept { // !!<---- please remember to handle this when declare new class member
+		offset	  = rhs.offset;
+		imageInfo = rhs.imageInfo;
+		pixelData = rhs.pixelData;
+	}
 
 	void assign(const Image& imageToUpload) {
 		pixelData = imageToUpload.pixelData();
 		imageInfo = imageToUpload.info();
 	}
+
+	Vec2i		offset {0,0};
+	ImageInfo	imageInfo;
+	ByteSpan	pixelData;
 }; // Texture2D_UploadRequest
+
+
+#if 0
+#pragma mark ========= TextureCube_UploadRequest ============
+#endif
+class TextureCube_UploadRequest : public NonCopyable {
+	using This = TextureCube_UploadRequest;
+	using UploadRequest = Texture2D_UploadRequest;
+public:
+	static constexpr int kFaceMaxCount = 6;
+	SGE_STATIC_ASSERT(This::kFaceMaxCount == enumInt(TextureCubeFaceOrder::_END));
+
+	void assign(Span<Image> imageToUploads) {
+		reqs.resizeToLocalBufSize();
+		for (int i = 0; i < kFaceMaxCount; ++i) {
+			reqs[i].assign(imageToUploads[i]);
+		}
+	}
+
+	Vector<UploadRequest, kFaceMaxCount> reqs;
+
+}; // TextureCube_UploadRequest
 
 
 #if 0
@@ -96,6 +141,16 @@ struct Texture2D_CreateDesc : public Texture_CreateDesc {
 	SamplerState	samplerState;
 	UploadRequest*  uploadRequest = nullptr;
 }; // Texture2D_CreateDesc
+
+
+#if 0
+#pragma mark ========= TextureCube_CreateDesc ============
+#endif
+struct TextureCube_CreateDesc : public Texture2D_CreateDesc {
+	using UploadRequest = TextureCube_UploadRequest;
+
+	UploadRequest* uploadRequest = nullptr;
+}; // TextureCube_CreateDesc
 
 
 #if 0
@@ -119,7 +174,22 @@ protected:
 	SamplerState	_samplerState;
 	Vec2i			_size {0,0};
 	int				_mipmapCount = 0;
-	ColorType		_colorType = ColorType::None;
+	ColorType		_colorType	 = ColorType::None;
 }; // Texture2D
 
+
+#if 0
+#pragma mark ========= TextureCube ============
+#endif
+class TextureCube : public Texture2D {
+	using Base = Texture2D;
+public:
+	using CreateDesc	= TextureCube_CreateDesc;
+	using UploadRequest = TextureCube_UploadRequest;
+
+protected:
+	TextureCube(CreateDesc& desc); // please create from 'Renderer::createTextureCube'
+}; // TextureCube
+
 } // namespace sge
+

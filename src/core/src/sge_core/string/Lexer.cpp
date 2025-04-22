@@ -116,6 +116,7 @@ void Lexer::readString(String& outputStr) {
 void Lexer::readBool(bool& v) {
 	if (!_token.isIdentifier()) {
 		errorUnexpectedToken();
+		return;
 	}
 
 	if (_token.str == "true")

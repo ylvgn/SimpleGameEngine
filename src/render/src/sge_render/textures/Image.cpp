@@ -5,6 +5,16 @@
 
 namespace sge {
 
+Image::Image(Image&& r) {
+	operator=(SGE_MOVE(r));
+}
+
+void Image::operator=(Image&& r) {
+	_info = r._info;
+	_pixelData.move(r._pixelData);
+	r.clear();
+}
+
 void Image::clear() {
 	_info = ImageInfo();
 	_pixelData.clear();

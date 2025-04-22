@@ -17,7 +17,7 @@ struct NativeUIScrollInfo_CreateDesc {
 	{}
 
 	Axis	axis;
-	Vec2i	range {0};
+	Vec2i	range {0,0};
 	int		step = 0;
 	u32		page = 0;
 };

@@ -97,7 +97,7 @@ struct RenderState {
 	struct StencilTest {
 		Cull			cull = Cull::None;
 
-		DepthTestOp		op = DepthTestOp::Always;
+		DepthTestOp		op   = DepthTestOp::Always;
 		u8				ref	 = 0;
 		u8				mask = 0xff;
 

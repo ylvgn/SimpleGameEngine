@@ -110,7 +110,7 @@ protected:
 	Rect2	_clientRect {0};
 
 	UIMouseEventButton	_pressedMouseButtons = UIMouseEventButton::None;
-	Vec2f				_mousePos {0};
+	Vec2f				_mousePos {0,0};
 	
 	Vector<UIKeyboardEvent::Type, kKeyCodeCount> _pressedKeyCodes;
 };

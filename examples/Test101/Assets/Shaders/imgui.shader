@@ -10,7 +10,7 @@ Shader {
 		DepthTest	Always
 //		DepthWrite	false
 
-		BlendRGB 	Add One OneMinusSrcAlpha
+		BlendRGB 	Add SrcAlpha OneMinusSrcAlpha
 		BlendAlpha	Add One OneMinusSrcAlpha
 		
 		VsFunc		vs_main
