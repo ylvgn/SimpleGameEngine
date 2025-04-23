@@ -223,6 +223,7 @@ public:
 	using PixelStage	= MaterialPass_PixelStage;
 
 	void setParam(StrView name, Texture2D*     v) { _setTexParam(name, v); }
+	void setParam(StrView name, TextureCube*   v) { _setTexParam(name, v); }
 	void setParam(StrView name, const i32&     v) { _setParam(name, v); }
 	void setParam(StrView name, const u32&     v) { _setParam(name, v); }
 	void setParam(StrView name, const float&   v) { _setParam(name, v); }

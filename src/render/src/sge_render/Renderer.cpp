@@ -95,6 +95,27 @@ SPtr<Texture2D> Renderer::createSolidColorTexture2D(const Color4b& color) {
 	return createTexture2D(image);
 }
 
+SPtr<TextureCube> Renderer::createTextureCubeFromFiles(Span<StrView> filenames, const SamplerState& samplerState) {
+	SGE_ASSERT(filenames.size() == TextureCube_UploadRequest::kFaceMaxCount);
+
+	Vector<Image, TextureCube_UploadRequest::kFaceMaxCount> imageToUploads;
+	for (int i = 0; i < TextureCube_UploadRequest::kFaceMaxCount; ++i) {
+		auto& image = imageToUploads.emplace_back();
+		image.loadFile(filenames[i]);
+	}
+
+	TextureCube_CreateDesc texDesc;
+	texDesc.samplerState = samplerState;
+	texDesc.colorType	 = imageToUploads[0].colorType();
+	texDesc.size		 = imageToUploads[0].size();
+
+	TextureCube_UploadRequest uploadRequest;
+	texDesc.uploadRequest = &uploadRequest;
+	texDesc.uploadRequest->assign(imageToUploads);
+
+	return createTextureCube(texDesc);
+}
+
 SPtr<Shader> Renderer::createShader(StrView filename) {
 	TempString tmpName(filename);
 	auto it = _shaders.find(tmpName.c_str());

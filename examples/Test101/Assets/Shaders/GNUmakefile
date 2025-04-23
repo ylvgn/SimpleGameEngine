@@ -6,6 +6,7 @@ input_files :=\
 	line.shader \
 	test_constbuffer.shader \
 	test_texture.shader \
+	skybox.shader \
 #-------------
 
 #input_files := test.shader # just single test

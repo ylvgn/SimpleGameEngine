@@ -164,6 +164,7 @@ public:
 		_compile("Assets/Shaders/line.shader", include_dirs);
 		_compile("Assets/Shaders/test_constbuffer.shader", include_dirs);
 		_compile("Assets/Shaders/test_texture.shader", include_dirs);
+		_compile("Assets/Shaders/skybox.shader", include_dirs);
 
 		_compile("Assets/Shaders/test.hlsl", include_dirs);
 

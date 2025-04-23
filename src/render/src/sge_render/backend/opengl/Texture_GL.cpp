@@ -6,9 +6,9 @@
 namespace sge {
 
 #if 0
-#pragma mark ========= Texture2D_GL::Format ============
+#pragma mark ========= Texture2D_GL__Format ============
 #endif
-void Texture2D_GL::Format::set(ColorType colorType) {
+void Texture2D_GL__Format::set(ColorType colorType) {
 	switch (colorType) {
 		case ColorType::RGBAb:		{ internalFormat = GL_RGBA8;	sourceFormat = GL_RGBA;		elementType = GL_UNSIGNED_BYTE;	} break;
 		case ColorType::RGBb:		{ internalFormat = GL_RGB8;		sourceFormat = GL_RGB;		elementType = GL_UNSIGNED_BYTE;	} break;
@@ -103,6 +103,102 @@ Texture2D_GL::Texture2D_GL(CreateDesc& desc)
 
 		if (unpackAlignment != 4)
 			glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+	}
+
+	unbind();
+	Util::throwIfError();
+}
+
+
+#if 0
+#pragma mark ========= TextureCube_GL ============
+#endif
+TextureCube_GL::~TextureCube_GL() {
+	if (_tex) {
+		glDeleteTextures(1, &_tex);
+		_tex = 0;
+	}
+}
+
+TextureCube_GL::TextureCube_GL(CreateDesc& desc)
+	: Base(desc)
+{
+	glGenTextures(1, &_tex);
+	Util::throwIfError();
+
+	_format.set(desc.colorType);
+
+	bind();
+
+	GLsizei w = desc.size.x;
+	GLsizei h = desc.size.y;
+
+	// TODO: upload texture with glCompressedTexSubImage2D/glTexSubImage2D
+	GLint unpackAlignment = 4;
+	
+	static const constexpr int kFaceMaxCount = UploadRequest::kFaceMaxCount;
+
+	Vector<const void*, kFaceMaxCount> pixelDataPtrs {
+		nullptr,
+		nullptr,
+		nullptr,
+		nullptr,
+		nullptr,
+		nullptr,
+	};
+
+	if (desc.uploadRequest) {
+		auto& reqs = desc.uploadRequest->reqs;
+
+		for (int i = 0; i < reqs.size(); ++i) {
+			const auto& req = reqs[i];
+
+			const auto& info = req.imageInfo;
+			const auto& pixelData = req.pixelData;
+
+			if (info.colorType == ColorType::None) {
+				throw SGE_ERROR("");
+			}
+
+			auto s = Math::clamp(info.size, Vec2i::s_zero(), size() - req.offset);
+			if (s != info.size) {
+				throw SGE_ERROR("out of texture area");
+			}
+
+			SGE_ASSERT(req.offset == Vec2i::s_zero()); // TODO: upload texture with glCompressedTexSubImage2D/glTexSubImage2D
+
+			if (!ColorUtil::isCompressedType(desc.colorType)) { // TODO BlockCompress texture is not allow check ???
+				int pixelSizeInBytes = info.pixelSizeInBytes();
+
+				size_t expectedDataSize = info.strideInBytes * info.height();
+				if (pixelData.size() < expectedDataSize) {
+					throw SGE_ERROR("out of texture area");
+				}
+				if (pixelSizeInBytes % 4) unpackAlignment = 1;
+			}
+			pixelDataPtrs[i] = pixelData.data();
+		}
+	}
+
+	SGE_ASSERT(pixelDataPtrs.size() == kFaceMaxCount);
+	for (int i = 0; i < kFaceMaxCount; ++i) {
+		auto* pixelDataPtr = pixelDataPtrs[i];
+		GLenum target = Util::getGlTextureCubeFaceOrder(static_cast<TextureCubeFaceOrder>(i));
+
+		if (ColorUtil::isCompressedType(desc.colorType)) {
+			GLsizei imageSize = ColorUtil::bytesPerPixelBlockImageSize(w, h, desc.colorType);
+			glCompressedTexImage2D(target, 0, _format.internalFormat, w, h, 0, imageSize, pixelDataPtr);
+			Util::throwIfError();
+		} else {
+			if (unpackAlignment != 4)
+				glPixelStorei(GL_UNPACK_ALIGNMENT, unpackAlignment);
+
+			glTexImage2D(target, 0, _format.internalFormat, w, h, 0, _format.sourceFormat, _format.elementType, pixelDataPtr);
+			Util::throwIfError();
+
+			if (unpackAlignment != 4)
+				glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+		}
 	}
 
 	unbind();

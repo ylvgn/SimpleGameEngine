@@ -94,8 +94,7 @@ void Material_GL::MyPass::_bindRenderState(RenderContext_GL* ctx) {
 	auto& depthTest = rs.depthTest;
 	if (depthTest.isEnable()) {
 		glEnable(GL_DEPTH_TEST);
-		glDepthMask(depthTest.writeMask ? GL_TRUE : GL_FALSE);
-		
+
 		auto depthOp = Util::getGlDepthTestOp(depthTest.op);
 		glDepthFunc(depthOp);
 		// glDepthRange(0, 1); TODO
@@ -104,6 +103,7 @@ void Material_GL::MyPass::_bindRenderState(RenderContext_GL* ctx) {
 	else {
 		glDisable(GL_DEPTH_TEST);
 	}
+	glDepthMask(depthTest.writeMask ? GL_TRUE : GL_FALSE);
 
 // -----
 	auto stencilTest = rs.stencilTest;
@@ -174,6 +174,7 @@ void Material_GL::MyPass::_bindRenderState(RenderContext_GL* ctx) {
 // 
 //	glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE);
 //	glDisable(GL_SAMPLE_COVERAGE);
+//	glDisable(GL_SCISSOR_TEST); //!!<-- always enable scissor test
 //	glDisable(GL_MULTISAMPLE);
 //	glDisable(GL_DITHER);
 }
@@ -252,6 +253,27 @@ void Material_GL::s_bindStageHelper(RenderContext_GL* ctx, STAGE* stage) {
 						GLfloat maxAnisotrory = Math::clamp(samplerState.maxAnisotrory, 1.f, mamaximumAnisotropyx);
 						glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, maxAnisotrory);
 					#endif
+				} break;
+
+				case RenderDataType::TextureCube: {
+					auto* texCube = static_cast<TextureCube_GL*>(tex);
+					if (!texCube) throw SGE_ERROR("");
+
+					const auto& samplerState = texCube->samplerState();
+					GLenum wrapS		= Util::getGlTextureWrap(samplerState.wrapU);
+					GLenum wrapT		= Util::getGlTextureWrap(samplerState.wrapV);
+					GLenum wrapR		= Util::getGlTextureWrap(samplerState.wrapW);
+					GLenum minFilter	= Util::getGLTextureMinFilter(samplerState.filter, texCube->mipmapCount());
+					GLenum magFilter	= Util::getGLTextureMagFilter(samplerState.filter);
+
+					texCube->bind();
+
+					glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, wrapS);
+					glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, wrapT);
+					glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, wrapR);
+
+					glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, minFilter);
+					glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, magFilter);
 				} break;
 
 				default: throw SGE_ERROR("bind unsupported texture type '{}'", texParam.dataType());

@@ -75,8 +75,9 @@ struct DX11Util {
 	static D3D11_BLEND_OP				getDxBlendOp(RenderState_BlendOp v);
 	static D3D11_BLEND					getDxBlendFactor(RenderState_BlendFactor v);
 
-	static D3D11_FILTER					getDxTextureFilter(TextureFilter v);
-	static D3D11_TEXTURE_ADDRESS_MODE	getDxTextureWrap(TextureWrap v);
+	static D3D11_FILTER					getDxTextureFilter(TextureFilter t);
+	static D3D11_TEXTURE_ADDRESS_MODE	getDxTextureWrap(TextureWrap t);
+	static D3D11_TEXTURECUBE_FACE		getDxTextureCubeFaceOrder(TextureCubeFaceOrder t);
 
 	static const char*					getDxSemanticName(VertexSemanticType v);
 	static VertexSemanticType			parseDxSemanticName(StrView s);
@@ -378,6 +379,22 @@ D3D11_TEXTURE_ADDRESS_MODE DX11Util::getDxTextureWrap(TextureWrap t) {
 		case SRC::MirrorOnce:	return D3D11_TEXTURE_ADDRESS_MIRROR_ONCE;
 	//---
 		default: throw SGE_ERROR("unsupported TextureWrap '{}'", t);
+	}
+}
+
+SGE_INLINE
+D3D11_TEXTURECUBE_FACE DX11Util::getDxTextureCubeFaceOrder(TextureCubeFaceOrder t) {
+	// https://learn.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_texturecube_face
+	using SRC = TextureCubeFaceOrder;
+	switch (t) {
+		case SRC::Right:	return D3D11_TEXTURECUBE_FACE_POSITIVE_X;
+		case SRC::Left:		return D3D11_TEXTURECUBE_FACE_NEGATIVE_X;
+		case SRC::Top:		return D3D11_TEXTURECUBE_FACE_POSITIVE_Y;
+		case SRC::Bottom:	return D3D11_TEXTURECUBE_FACE_NEGATIVE_Y;
+		case SRC::Front:	return D3D11_TEXTURECUBE_FACE_POSITIVE_Z;
+		case SRC::Back:		return D3D11_TEXTURECUBE_FACE_NEGATIVE_Z;
+	//---
+		default: throw SGE_ERROR("unsupported TextureCubeFaceOrder '{}'", t);
 	}
 }
 

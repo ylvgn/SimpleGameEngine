@@ -36,9 +36,10 @@ struct GLUtil {
 	static GLenum		getGlBlendOp(RenderState_BlendOp o);
 	static GLenum		getGlBlendFactor(RenderState_BlendFactor f);
 
-	static GLenum		getGLTextureMinFilter(TextureFilter v, int mipmapCount = 1);
-	static GLenum		getGLTextureMagFilter(TextureFilter v);
-	static GLenum		getGlTextureWrap(TextureWrap v);
+	static GLenum		getGLTextureMinFilter(TextureFilter t, int mipmapCount = 1);
+	static GLenum		getGLTextureMagFilter(TextureFilter t);
+	static GLenum		getGlTextureWrap(TextureWrap t);
+	static GLenum		getGlTextureCubeFaceOrder(TextureCubeFaceOrder t);
 
 	static const char*	getGlSemanticName(VertexSemanticType v);
 	static int			getComponentCount(RenderDataType v);
@@ -311,11 +312,11 @@ GLenum GLUtil::getGlBlendFactor(RenderState_BlendFactor f) {
 }
 
 SGE_INLINE
-GLenum GLUtil::getGLTextureMinFilter(TextureFilter v, int mipmapCount /*= 1*/) {
+GLenum GLUtil::getGLTextureMinFilter(TextureFilter t, int mipmapCount /*= 1*/) {
 	bool m = mipmapCount > 1;
 
 	using SRC = TextureFilter;
-	switch (v) {
+	switch (t) {
 		case SRC::Point:		return m ? GL_NEAREST_MIPMAP_NEAREST : GL_NEAREST;
 		case SRC::Linear:		return m ? GL_NEAREST_MIPMAP_LINEAR  : GL_LINEAR;
 		case SRC::Bilinear:		return m ? GL_LINEAR_MIPMAP_NEAREST  : GL_LINEAR;
@@ -326,14 +327,14 @@ GLenum GLUtil::getGLTextureMinFilter(TextureFilter v, int mipmapCount /*= 1*/) {
 		case SRC::Anisotropic:	return GL_LINEAR;
 #endif
 	//---
-		default: throw SGE_ERROR("unsupported TextureFilter '{}'", v);
+		default: throw SGE_ERROR("unsupported TextureFilter '{}'", t);
 	}
 }
 
 SGE_INLINE
-GLenum GLUtil::getGLTextureMagFilter(TextureFilter v) {
+GLenum GLUtil::getGLTextureMagFilter(TextureFilter t) {
 	using SRC = TextureFilter;
-	switch (v) {
+	switch (t) {
 		case SRC::Point:		return GL_NEAREST;
 		case SRC::Linear:		return GL_LINEAR;
 		case SRC::Bilinear:		return GL_LINEAR;
@@ -344,20 +345,35 @@ GLenum GLUtil::getGLTextureMagFilter(TextureFilter v) {
 		case SRC::Anisotropic:	return GL_LINEAR;
 #endif
 	//---
-		default: throw SGE_ERROR("unsupported TextureFilter '{}'", v);
+		default: throw SGE_ERROR("unsupported TextureFilter '{}'", t);
 	}
 }
 
 SGE_INLINE
-GLenum GLUtil::getGlTextureWrap(TextureWrap v) {
+GLenum GLUtil::getGlTextureWrap(TextureWrap t) {
 	using SRC = TextureWrap;
-	switch (v) {
+	switch (t) {
 		case SRC::Repeat:		return GL_REPEAT;
 		case SRC::Clamp:		return GL_CLAMP_TO_EDGE;
 		case SRC::Mirror:		return GL_MIRRORED_REPEAT;
 		case SRC::MirrorOnce:	return GL_MIRROR_CLAMP_TO_EDGE;
 	//---
-		default: throw SGE_ERROR("unsupported TextureWrap '{}'", v);
+		default: throw SGE_ERROR("unsupported TextureWrap '{}'", t);
+	}
+}
+
+SGE_INLINE
+GLenum GLUtil::getGlTextureCubeFaceOrder(TextureCubeFaceOrder t) {
+	using SRC = TextureCubeFaceOrder;
+	switch (t) {
+		case SRC::Right:	return GL_TEXTURE_CUBE_MAP_POSITIVE_X;
+		case SRC::Left:		return GL_TEXTURE_CUBE_MAP_NEGATIVE_X;
+		case SRC::Top:		return GL_TEXTURE_CUBE_MAP_POSITIVE_Y;
+		case SRC::Bottom:	return GL_TEXTURE_CUBE_MAP_NEGATIVE_Y;
+		case SRC::Front:	return GL_TEXTURE_CUBE_MAP_POSITIVE_Z;
+		case SRC::Back:		return GL_TEXTURE_CUBE_MAP_NEGATIVE_Z;
+	//---
+		default: throw SGE_ERROR("unsupported TextureCubeFaceOrder '{}'", t);
 	}
 }
 

@@ -91,10 +91,14 @@ public:
 		EngineContext::create();
 
 		{ // create window
+			TempString title;
+			FmtTo(title, "Learn OpenGL - {}, VSync: {}", Renderer::instance()->apiType(), Renderer::instance()->vsync());
+
 			NativeUIWindow::CreateDesc winDesc;
 			winDesc.isMainWindow = true;
 			winDesc.rect = { 10, 10, 1040, 880 };
 			_mainWin.create(winDesc);
+			_mainWin.setWindowTitle(title);
 		}
 	}
 

@@ -238,8 +238,16 @@ void Material_DX11::s_bindStageHelper(RenderContext_DX11* ctx, STAGE* stage) {
 				stage->_dxSetShaderResource(dc, bindPoint, rv);
 				stage->_dxSetSampler(dc, bindPoint, ss);
 			} break;
+			case RenderDataType::TextureCube: {
+				auto* texCube = static_cast<TextureCube_DX11*>(tex);
+				auto* rv = texCube->resourceView();
+				auto* ss = texCube->samplerState();
 
-			default: throw SGE_ERROR("bind unsupported texture type");
+				stage->_dxSetShaderResource(dc, bindPoint, rv);
+				stage->_dxSetSampler(dc, bindPoint, ss);
+			} break;
+		//----
+			default: throw SGE_ERROR("bind unsupported texture type '{}'", texParam.dataType());
 		}
 	}
 }

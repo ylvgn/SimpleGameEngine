@@ -12,13 +12,34 @@ public:
 		auto* renderer = Renderer::instance();
 		auto* editor = EditorContext::instance();
 
-		_shader = renderer->createShader("Assets/Shaders/test.shader");
+		{ // create shader
+			_shader = renderer->createShader("Assets/Shaders/test.shader");
+			_skyboxShader = renderer->createShader("Assets/Shaders/skybox.shader");
+		}
 
 		{ // create texture
 			_testTexture = renderer->createTexture2DFromFile("Assets/Textures/uvChecker_BC7.dds");
 		}
 
-		{ // create entity
+		{ // create texture cube(skybox)
+			SamplerState s;
+			s.filter = SamplerState::Filter::Linear;
+			s.wrapU = SamplerState::Wrap::Clamp;
+			s.wrapV = SamplerState::Wrap::Clamp;
+			s.wrapW = SamplerState::Wrap::Clamp;
+
+			Vector<StrView, TextureCube_UploadRequest::kFaceMaxCount> filenames;
+			filenames.resizeToLocalBufSize();
+			filenames[enumInt(TextureCubeFaceOrder::Right)]  = "Assets/Textures/Skybox/right.png";
+			filenames[enumInt(TextureCubeFaceOrder::Left)]	 = "Assets/Textures/Skybox/left.png";
+			filenames[enumInt(TextureCubeFaceOrder::Top)]	 = "Assets/Textures/Skybox/top.png";
+			filenames[enumInt(TextureCubeFaceOrder::Bottom)] = "Assets/Textures/Skybox/bottom.png";
+			filenames[enumInt(TextureCubeFaceOrder::Front)]  = "Assets/Textures/Skybox/front.png";
+			filenames[enumInt(TextureCubeFaceOrder::Back)]   = "Assets/Textures/Skybox/back.png";
+			_testTextureCube = renderer->createTextureCubeFromFiles(filenames, s);
+		}
+
+		{ // create 1 entity
 			{ // create mesh
 				EditMesh editMesh;
 
@@ -28,9 +49,11 @@ public:
 				_meshAsset = new MeshAsset();
 				_meshAsset->mesh.create(editMesh);
 			}
+
 			auto* e = _scene.addEntity("Entity");
 			auto* t = e->transform();
-			{ // CMeshRenderer
+			t->setLocalPos(0, 0, 0);
+			{ // add CMeshRenderer
 				auto* mr = e->addComponent<CMeshRenderer>();
 				mr->mesh = _meshAsset;
 				auto mtl = renderer->createMaterial();
@@ -40,39 +63,39 @@ public:
 				mtl->setParam("mainTex", _testTexture);
 				mr->material = mtl;
 			}
+		}
 
-			{ // CTransform
-				t->setLocalPos(0, 0, 0);
+		{ // create 2 entity
+			{ // create mesh
+				EditMesh editMesh;
+
+				WavefrontObjLoader::readFile(editMesh, "Assets/Mesh/box.obj");
+				EditMeshUtil::addColors(editMesh, Color4b(255, 255, 255, 255));
+
+				_boxMesh = new MeshAsset();
+				_boxMesh->mesh.create(editMesh);
 			}
 
-			editor->entitySelection.add(EntityId(1));
+			auto* e = _scene.addEntity("skybox");
+			auto* t = e->transform();
+			t->setLocalPos(0, 0, 0);
+			t->setLocalScale({ 60.f,35.f,35.f });
+			{ // add CMeshRenderer
+				auto* mr = e->addComponent<CMeshRenderer>();
+				mr->mesh = _boxMesh;
+				auto mtl = renderer->createMaterial();
+				mtl->setShader(_skyboxShader);
+				mtl->setParam("skyboxMap", _testTextureCube);
+				mr->material = mtl;
+			}
 		}
+
+		editor->entitySelection.add(EntityId(1));
 	}
 
 	virtual void onUIKeyboardEvent(UIKeyboardEvent& ev) override {
 		using KeyCode = UIKeyboardEventKeyCode;
-
 		Base::onUIKeyboardEvent(ev);
-
-		::RECT rc;
-		::GetWindowRect(_hwnd, &rc);
-#if 0
-		Vec2f posV2{ float(rc.left), float(rc.top)};
-		if (ev.isDown(KeyCode::W))		{ setWorldPos(posV2.x, posV2.y - 10); }
-		else if (ev.isDown(KeyCode::S)) { setWorldPos(posV2.x, posV2.y + 10); }
-		else if (ev.isDown(KeyCode::A)) { setWorldPos(posV2.x - 10, posV2.y); }
-		else if (ev.isDown(KeyCode::D)) { setWorldPos(posV2.x + 10, posV2.y); }
-#endif
-
-		Rect2f r;
-		Win32Util::convert(r, rc);
-		Vec2f sizeV2 = r.size;
-
-		if (ev.isDown(KeyCode::W)) { sizeV2.y += 10; }
-		else if (ev.isDown(KeyCode::S)) { sizeV2.y -= 10; }
-		else if (ev.isDown(KeyCode::A)) { sizeV2.x += 10; }
-		else if (ev.isDown(KeyCode::D)) { sizeV2.x -= 10; }
-		setSize(sizeV2);
 	}
 
 	virtual void onDraw() override {
@@ -105,6 +128,10 @@ public:
 	SPtr<Texture2D>		_testTexture;
 	SPtr<MeshAsset>		_meshAsset;
 	SPtr<Shader>		_shader;
+
+	SPtr<Shader>		_skyboxShader;
+	SPtr<MeshAsset>		_boxMesh;
+	SPtr<TextureCube>	_testTextureCube;
 };
 
 } // namespace sge
