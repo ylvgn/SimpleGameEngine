@@ -92,3 +92,4 @@ add_subdirectory(src/tutorials/SiTa\ Advance\ OpenGL)
 #-- Learn OpenGL - Joey de Vries ---
 add_subdirectory(src/books/Learn\ OpenGL\ -\ Joey\ de\ Vries)
 add_subdirectory(src/books/Learn\ OpenGL\ -\ Joey\ de\ Vries/examples/sge_learnopengl_example_001)
+add_subdirectory(src/books/Learn\ OpenGL\ -\ Joey\ de\ Vries/examples/sge_learnopengl_example_002)

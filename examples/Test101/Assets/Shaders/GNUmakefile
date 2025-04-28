@@ -7,8 +7,10 @@ input_files :=\
 	test_constbuffer.shader \
 	test_texture.shader \
 	skybox.shader \
+	pbr.shader \
 #-------------
 
-#input_files := test.shader # just single test
+# just for single test
+#input_files := pbr.shader
 
 include ../../../../src/sge_shader_compiler.GNUmakefile

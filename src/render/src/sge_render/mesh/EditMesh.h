@@ -25,7 +25,6 @@ struct EditMeshUtil {
 class EditMesh : public NonCopyable {
 	using Util = EditMeshUtil;
 public:
-
 	static const u8 kUvCountMax = 4;
 
 	RenderPrimitiveType	primitive = RenderPrimitiveType::Triangles;

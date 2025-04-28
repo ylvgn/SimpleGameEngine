@@ -156,7 +156,7 @@ public:
 		include_dirs.emplace_back(".");
 		include_dirs.emplace_back("..");
 		include_dirs.emplace_back("Assets");
-#if 1
+#if 0
 		_compile("Assets/Shaders/test.shader", include_dirs);
 		_compile("Assets/Shaders/terrain.shader", include_dirs);
 		_compile("Assets/Shaders/terrain_test.shader", include_dirs);
@@ -165,11 +165,12 @@ public:
 		_compile("Assets/Shaders/test_constbuffer.shader", include_dirs);
 		_compile("Assets/Shaders/test_texture.shader", include_dirs);
 		_compile("Assets/Shaders/skybox.shader", include_dirs);
+		_compile("Assets/Shaders/pbr.shader", include_dirs);
 
 		_compile("Assets/Shaders/test.hlsl", include_dirs);
 
 #else // just for single test
-		_compile("Assets/Shaders/test.shader", include_dirs);
+		_compile("Assets/Shaders/pbr.shader", include_dirs);
 #endif
 		SGE_LOG("\n---- end ----\n");
 	}

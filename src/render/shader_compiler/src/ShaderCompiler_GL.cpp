@@ -135,7 +135,7 @@ void ShaderCompiler_GL::_convert(Compiler& comp, DataType& o, const SPIRType& i,
 			throw SGE_ERROR("unsupported SPIRType: {}", static_cast<int>(type));
 	}
 
-	if (!i.array.empty()) {
+	if (!i.array.empty() && (columns > 1)) {
 		// Get array stride, e.g. float4 foo[]; Will have array stride of 16 bytes.
 		// size_t array_stride = comp.type_struct_member_array_stride(i, memberIndex);
 		throw SGE_ERROR("unsupported SPIRType array: {}", static_cast<int>(type));

@@ -57,3 +57,15 @@
 #define PA_TANGENT0(T) 	VA_TANGENT0(T)
 #define PA_BINORMAL(T) 	VA_BINORMAL(T)
 #define PA_BINORMAL0(T) VA_BINORMAL0(T)
+
+// ----- constant
+static const float SGE_PI = 3.1415926535;
+
+
+// --------- macro
+#define SGE_TEX2D(T) \
+Texture2D T; \
+SamplerState T##_Sampler; \
+// -----
+
+#define SGE_TEX2D_SAMPLE(T, UV) T.Sample(T##_Sampler, UV)

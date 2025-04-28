@@ -46,7 +46,7 @@ PixelIn vs_main(VertexIn i) {
 	PixelIn o;
 	float4 positionOS = float4(i.positionOS, 1.0);
 
-	o.positionWS  = mul(sge_matrix_model, positionOS)
+	o.positionWS  = mul(sge_matrix_model, positionOS);
 	o.positionHCS = mul(sge_matrix_mvp,  positionOS);
 	o.normal      = i.normal;
 	return o;

@@ -37,6 +37,8 @@ void RenderRequest::setMaterialCommonParams(Material* mtl, const Mat4f& matrix_m
 
 	auto mvp = matrix_proj * matrix_view * matrix_model;
 	mtl->setParam("sge_matrix_mvp",		mvp);
+	
+	mtl->setParam("sge_matrix_it_model", matrix_model.inverse3x3Transpose());
 
 	mtl->setParam("sge_camera_pos",		cameraPos);
 

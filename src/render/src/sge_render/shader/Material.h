@@ -58,6 +58,8 @@ protected:
 		void _setParam(const VarInfo* varInfo, const Tuple3f& value) { _setParamCheckType(varInfo, value); }
 		void _setParam(const VarInfo* varInfo, const Tuple4f& value) { _setParamCheckType(varInfo, value); }
 		void _setParam(const VarInfo* varInfo, const Mat4f&   value) { _setParamCheckType(varInfo, value); }
+		void _setParam(const VarInfo* varInfo, const Color4b& value) { _setParamCheckType(varInfo, value); }
+		void _setParam(const VarInfo* varInfo, const Color4f& value) { _setParamCheckType(varInfo, value); }
 
 		template<class V>
 		void _setParamCheckType(const VarInfo* varInfo, const V& value) {
@@ -234,6 +236,8 @@ public:
 	void setParam(StrView name, const Tuple3f& v) { _setParam(name, v); }
 	void setParam(StrView name, const Tuple4f& v) { _setParam(name, v); }
 	void setParam(StrView name, const Mat4f&   v) { _setParam(name, v); }
+	void setParam(StrView name, const Color4f& v) { _setParam(name, v); }
+	void setParam(StrView name, const Color4b& v) { _setParam(name, v); }
 
 	void setShader(Shader* shader);
 	Span< UPtr<Pass> >	passes() { return _passes; }
