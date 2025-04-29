@@ -10,6 +10,9 @@ public:
 		auto* renderer = Renderer::instance();
 		auto* editor = EditorContext::instance();
 
+		_camera.setPos(0, 0, 10);
+		_camera.setAim(0, 0, 0);
+
 		{ // create shader
 			_shader = renderer->createShader("Assets/Shaders/pbr.shader");
 		}
@@ -33,44 +36,41 @@ public:
 				_meshAsset->mesh.create(editMesh);
 			}
 
-			Vec3f lightPositions[] = {
-				Vec3f(0.0f, 0.0f, 10.0f),
-				Vec3f(3.0f, 13.0f, 3.0f),
-				Vec3f(0.0f, 3.0f, 0.0f),
-				Vec3f(-3.0f, -3.0f, -3.0f),
-			};
-#if 0 // TODO Color4b in cpu side, float3 in gpu side
-			Color4b lightColors[] = {
-				Color4b(150, 150, 150, 255),
-			};
-#else
-			float d = 255.f;
-			Vec3f lightColors[] = {
-				Vec3f(d,   d,   d),
-				Vec3f(d,   0.f, 0.f),
-				Vec3f(0.f, d,   0.f),
-				Vec3f(0.f, 0.f, d),
-			};
-#endif
-			SGE_STATIC_ASSERT(sizeof(lightPositions) / sizeof(lightPositions[0]) == sizeof(lightColors) / sizeof(lightColors[0]));
-
-			auto* e = _scene.addEntity("Sphere");
+			auto* e = _scene.addEntity("My Sphere");
 			auto* t = e->transform();
-			t->setLocalPos(0, 0, 0);
+			t->setLocalPos(0, 1.5f, 0);
 			{ // add CMeshRenderer
 				auto* mr = e->addComponent<CMeshRenderer>();
 				mr->mesh = _meshAsset;
 				auto mtl = renderer->createMaterial();
 				mtl->setShader(_shader);
-#if 1 // test 1 light first, unsupported float3 lightPositions[4] in shader compiler
-				mtl->setParam("my_light_positions", lightPositions[0]);
-				mtl->setParam("my_light_colors", lightColors[0]);
+				// TODO: when forget pass anyone texture will throw exception
+				// TODO: cpu Color4b to float3 HLSL
+				// TODO: shader compiler reflection const buffer(uniform variable) array vector like float3[]
 				mtl->setParam("albedoMap", _albedoMap);
 				mtl->setParam("normalMap", _normalMap);
 				mtl->setParam("metallicMap", _metallicMap);
 				mtl->setParam("roughnessMap", _roughnessMap);
-				mtl->setParam("aoMap", _aoMap); // when forget pass one texture will crash TODO
-#endif
+				mtl->setParam("aoMap", _aoMap);
+				mtl->setParam("my_switch_impl", 1);
+				mr->material = mtl;
+			}
+		}
+
+		{
+			auto* e = _scene.addEntity("Learn OpenGL Sphere");
+			auto* t = e->transform();
+			t->setLocalPos(0, -1.5f, 0);
+			{ // add CMeshRenderer
+				auto* mr = e->addComponent<CMeshRenderer>();
+				mr->mesh = _meshAsset;
+				auto mtl = renderer->createMaterial();
+				mtl->setShader(_shader);
+				mtl->setParam("albedoMap", _albedoMap);
+				mtl->setParam("normalMap", _normalMap);
+				mtl->setParam("metallicMap", _metallicMap);
+				mtl->setParam("roughnessMap", _roughnessMap);
+				mtl->setParam("aoMap", _aoMap);
 				mr->material = mtl;
 			}
 		}
@@ -94,7 +94,7 @@ public:
 		_renderRequest.reset(_renderContext, _camera);
 
 		_renderRequest.cameraFrustum = _camera.frustum();
-		_renderRequest.clearFrameBuffers()->setColor({ 0, 0, 0.2f, 1 });
+		_renderRequest.clearFrameBuffers()->setColor({ 0, 0, 0.f, 1 });
 
 		CRendererSystem::instance()->render(_renderRequest);
 

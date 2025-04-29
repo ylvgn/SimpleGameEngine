@@ -60,7 +60,7 @@
 
 // ----- constant
 static const float SGE_PI = 3.1415926535;
-
+static const float SGE_EPSILON = 0.000001;
 
 // --------- macro
 #define SGE_TEX2D(T) \
