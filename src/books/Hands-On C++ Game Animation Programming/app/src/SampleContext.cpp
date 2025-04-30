@@ -1538,7 +1538,7 @@ void SampleContext::test_AdditiveBlending_onDrawUI(Request& req) {
 	}
 
 	NuklearUI::Label("Strength:");
-	NuklearUI::SliderFloat(&_additiveTime, 0.0f, 1.0f);
+	NuklearUI::SliderFloat(&_additiveTime, 0.0f, 0.99f);
 
 	NuklearUI::LayoutRowDynamic(20, 1);
 #define E(NAME, VALUE) \

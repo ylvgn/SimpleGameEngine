@@ -72,7 +72,6 @@ public:
 
 protected:
 	virtual void onCreate(CreateDesc& desc) override  {
-		desc.ownDC = true;
 		Base::onCreate(desc);
 
 		_hdc = ::GetDC(_hwnd);
@@ -89,15 +88,15 @@ protected:
 			pfd.cStencilBits 	= 8;
 			pfd.iLayerType 		= PFD_MAIN_PLANE;
 
-			int pixelFormat 	= ChoosePixelFormat(_hdc, &pfd);
-			SetPixelFormat(_hdc, pixelFormat, &pfd);
+			int pixelFormat 	= ::ChoosePixelFormat(_hdc, &pfd);
+			::SetPixelFormat(_hdc, pixelFormat, &pfd);
 
 			// legacy render context
-			::HGLRC tempRC = wglCreateContext(_hdc);
-			wglMakeCurrent(_hdc, tempRC);
+			::HGLRC tempRC = ::wglCreateContext(_hdc);
+			::wglMakeCurrent(_hdc, tempRC);
 
 			// legacy render context just for get function pointer of 'wglCreateContextAttribsARB'
-			PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = reinterpret_cast<PFNWGLCREATECONTEXTATTRIBSARBPROC>(wglGetProcAddress("wglCreateContextAttribsARB"));
+			PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = reinterpret_cast<PFNWGLCREATECONTEXTATTRIBSARBPROC>(::wglGetProcAddress("wglCreateContextAttribsARB"));
 			const int attribList[] = {
 				WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
 				WGL_CONTEXT_MINOR_VERSION_ARB, 3,
@@ -110,12 +109,12 @@ protected:
 			// modern render context
 			::HGLRC hglrc = wglCreateContextAttribsARB(_hdc, 0, attribList);
 
-			wglMakeCurrent(NULL, NULL);
-			wglDeleteContext(tempRC);
-			wglMakeCurrent(_hdc, hglrc);
+			::wglMakeCurrent(NULL, NULL);
+			::wglDeleteContext(tempRC);
+			::wglMakeCurrent(_hdc, hglrc);
 
 			// use 'glad' to load all OpenGL core function
-			if (!gladLoadGL()) {
+			if (!::gladLoadGL()) {
 				throw SGE_ERROR("Could not initialize GLAD\n");
 			}
 
@@ -152,20 +151,17 @@ protected:
 		_timingInfo.create(_hwnd);
 #endif
 
-		// set-up camera
 		_camera.setPos(0, 10, 10);
 		_camera.setAim(0, 0, 0);
 
-		// create Nuklear (kind of ImGui)
-		NuklearUI::createContext();
+		NuklearUI::createContext(); // create Nuklear (kind of ImGui)
 
-		// create sample
 		_createSample();
 	}
 
 	virtual void onCloseButton() override {
 		if (_vertexArrayObject != 0) {
-			::HGLRC hglrc = wglGetCurrentContext();
+			::HGLRC hglrc = ::wglGetCurrentContext();
 
 			// delete VAO
 			glBindVertexArray(0);
@@ -176,8 +172,8 @@ protected:
 			NuklearUI::destroyContext();
 
 			// delete render context
-			wglMakeCurrent(NULL, NULL);
-			wglDeleteContext(hglrc);
+			::wglMakeCurrent(NULL, NULL);
+			::wglDeleteContext(hglrc);
 		}
 
 		::ReleaseDC(_hwnd, _hdc);
@@ -569,7 +565,7 @@ protected:
 			winDesc.isMainWindow = true;
 			winDesc.rect = { 10, 10, 1500, 900 };
 			_mainWin.create(winDesc);
-			_mainWin.setWindowTitle("SGE Game Anime Prog Window");
+			_mainWin.setWindowTitle("SGE Game Anime Prog Window - OpenGL");
 		}
 	}
 
