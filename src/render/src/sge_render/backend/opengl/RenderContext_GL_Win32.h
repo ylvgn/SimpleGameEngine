@@ -5,8 +5,6 @@
 #if SGE_OS_WINDOWS
 #if SGE_RENDER_HAS_OPENGL
 
-#define MY_TEST_FRAMEBUFFER 0 // no need in Win32 why ???
-
 namespace sge {
 
 class Renderer_GL;
@@ -39,33 +37,16 @@ private:
 	class FalseContext;
 	static const wchar_t* kClassName;
 
-	void _createBuffers();
-
-	void _destroyBuffers();
-	void _destroyTestScreenFrameBuffer();
 	void _destroyTestShaders();
 
 	void _setTestShaders(const VertexLayout* vertexLayout);
-	void _setTestFrameBufferScreenShaders();
 
 	HDC		_win32_dc = nullptr;
 	HGLRC	_win32_rc = nullptr;
 
-    GLuint	_viewFramebuffer				= 0;
-	GLuint	_viewRenderbuffer				= 0;
-    GLuint	_depthRenderbuffer				= 0;
-
-	GLuint	_testShaderProgram				= 0;
-	GLuint	_testVertexShader				= 0;
-	GLuint	_testPixelShader				= 0;
-
-	GLuint	_testFrameBufferShaderProgram	= 0;
-	GLuint	_testFrameBufferVertexShader	= 0;
-	GLuint	_testFrameBufferPixelShader		= 0;
-
-	GLuint	_testScreenQuadVertexbuffer		= 0;
-	GLuint	_testScreenQuadTexturebuffer	= 0;
-	GLuint	_testScreenQuadRenderbuffer		= 0;
+	GLuint	_testShaderProgram	= 0;
+	GLuint	_testVertexShader	= 0;
+	GLuint	_testPixelShader	= 0;
 }; // RenderContext_GL_Win32
 
 } // namespace sge

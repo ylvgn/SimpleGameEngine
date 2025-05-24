@@ -14,7 +14,7 @@ class Renderer_GL : public Renderer {
 public:
 	Renderer_GL(CreateDesc& desc);
 
-	static Renderer_GL* current() { return static_cast<Renderer_GL*>(s_instance); }
+	static Renderer_GL* instance() { return static_cast<Renderer_GL*>(s_instance); }
 
 protected:
 	sgeRenderer_InterfaceFunctions(GL);

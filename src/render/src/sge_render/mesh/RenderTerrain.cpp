@@ -223,7 +223,7 @@ void RenderTerrain::Patch::render(RenderRequest& req) {
 	_material->setParam("patchIndex", _index);
 
 	auto passes = _material->passes();
-	for (size_t i = 0; i < passes.size(); i++) {
+	for (int i = 0; i < passes.size(); i++) {
 		auto* cmd				= req.addDrawCall();
 #if _DEBUG
 		cmd->debugLoc			= SGE_LOC;

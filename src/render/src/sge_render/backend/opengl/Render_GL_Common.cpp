@@ -33,59 +33,6 @@ void GLUtil::compileShader(GLuint& shader, GLenum shaderStageType, StrView filen
 	}
 }
 
-void GLUtil::linkShader(GLuint& program, GLuint& vsShader, GLuint& psShader) {
-	if (!vsShader && !psShader) {
-		SGE_ASSERT(false);
-		return;
-	}
-
-	if (!program) {
-		program = glCreateProgram();
-		throwIfError();
-	}
-
-	if (vsShader) {
-		glAttachShader(program, vsShader);
-		throwIfError();
-	}
-	if (psShader) {
-		glAttachShader(program, psShader);
-		throwIfError();
-	}
-
-	glLinkProgram(program);
-	throwIfError();
-
-	GLint linked;
-	glGetProgramiv(program, GL_LINK_STATUS, &linked);
-	if (linked != GL_TRUE) {
-		String errmsg;
-		getProgramInfoLog(program, errmsg);
-
-		TempString tmp;
-		FmtTo(tmp, "link shader error: {}", errmsg);
-
-		throw SGE_ERROR("{}", tmp.c_str());
-	}
-
-	glValidateProgram(program);
-	throwIfError();
-
-	GLint validated;
-	glGetProgramiv(program, GL_VALIDATE_STATUS, &validated);
-	if (validated != GL_TRUE) {
-		String errmsg;
-		getProgramInfoLog(program, errmsg);
-
-		TempString tmp;
-		FmtTo(tmp, "validate shader error: {}", errmsg);
-
-		throw SGE_ERROR("{}", tmp.c_str());
-	}
-
-	SGE_ASSERT(glIsProgram(program) == GL_TRUE);
-}
-
 void GLUtil::getShaderInfoLog(GLuint& shader, String& outMsg) {
 	outMsg.clear();
 	if (!shader) return;

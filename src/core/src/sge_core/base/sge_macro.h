@@ -182,5 +182,9 @@
 
 #define SGE_NAMED_IO(SE, V)	SE.named_io(#V, V)
 
-
 #define SGE_UNUSED(v) (void)(v);
+
+#define SGE_STATIC_ASSERT_NO_MEMBER_CLASS(T) \
+	class T##_Dummy : public T { uint8_t T##EnsureNoMemberIn; }; \
+	SGE_STATIC_ASSERT(sizeof(T##_Dummy) == 1) \
+//----

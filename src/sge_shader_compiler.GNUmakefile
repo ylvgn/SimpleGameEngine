@@ -14,7 +14,6 @@ ifeq ($(OS), Windows_NT) # is Windows_NT on XP, 2000, 7, Vista, 10, 11...
 	CMAKE_RUNTIME_OUTPUT_DIRECTORY := $(realpath ../../../../examples/_bin)/$(VCPKG_TARGET_TRIPLET)/$(CMAKE_BUILD_TYPE)
 else ifeq ($(shell uname), Darwin)
 	SGE_PLATFORM_OS := MacOSX
-
 else ifeq ($(shell uname), Linux)
 	SGE_PLATFORM_OS := Linux
 else
@@ -27,9 +26,9 @@ ifeq ($(SGE_PLATFORM_OS), Windows)
 	exe_suffix=.exe
 	export exe_suffix
 
-	BUILD_DX11				:= true
-	BUILD_SPIRV				:= true
-	BUILD_GLSL				:= true
+	BUILD_DX11	:= true
+	BUILD_SPIRV	:= true
+	BUILD_GLSL	:= true
 
 else ifeq ($(SGE_PLATFORM_OS), MacOSX)
 	$(error TODO)
@@ -69,25 +68,27 @@ spirv_cross=$(sge_tools_bin)/spirv-cross$(exe_suffix)
 export spirv_cross
 
 all: start $(output_targets)
-	@echo ===== End =====
+	#@echo ===== End =====
+	$(info ===== End =====)
 
 start:
-	@echo ==========================
-	@echo sge_tools_bin=$(sge_tools_bin)
-	@echo SGE_PLATFORM_OS=$(SGE_PLATFORM_OS)
-	@echo sgeFileCmd=$(sgeFileCmd)
-	@echo sgeShaderCompiler=$(sgeShaderCompiler)
-	@echo MAKE=$(MAKE)
-	@echo ninja=$(ninja)
-	@echo glslc=$(glslc)
-	@echo spirv_cross=$(spirv_cross)
-	@echo outdir=$(outdir)
-	@echo input_files=$(input_files)
-	@echo output_targets=$(output_targets)
-	@echo ==========================
+	#@echo ==========================
+	$(info ==========================)
+	$(info sge_tools_bin=$(sge_tools_bin))
+	$(info SGE_PLATFORM_OS=$(SGE_PLATFORM_OS))
+	$(info sgeFileCmd=$(sgeFileCmd))
+	$(info sgeShaderCompiler=$(sgeShaderCompiler))
+	$(info MAKE=$(MAKE))
+	$(info ninja=$(ninja))
+	$(info glslc=$(glslc))
+	$(info spirv_cross=$(spirv_cross))
+	$(info outdir=$(outdir))
+	$(info input_files=$(input_files))
+	$(info output_targets=$(output_targets))
+	$(info ==========================)
 
 $(outdir)/%.shader/info.json: %.shader start FORCE
-	@echo [==== $(realpath $(outdir)/$<) ====]
+	$(info [==== $(realpath $(outdir)/$<) ====])
 	$(sgeShaderCompiler) -genMakefile -file="$<" -out="$(outdir)/$<"
 	@"$(MAKE)" --quiet -C "$(outdir)/$<"
 

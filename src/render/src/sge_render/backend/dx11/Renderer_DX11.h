@@ -14,7 +14,7 @@ class Renderer_DX11 : public Renderer {
 	using Util = DX11Util;
 public:
 	Renderer_DX11(CreateDesc& desc);
-	static Renderer_DX11* instance() { return static_cast<Renderer_DX11*>(s_instance); }
+	static Renderer_DX11*	instance() { return static_cast<Renderer_DX11*>(s_instance); }
 
 	DX11_IDXGIFactory*      dxgiFactory()		{ return _dxgiFactory;      }
 	DX11_IDXGIDevice*       dxgiDevice()		{ return _dxgiDevice;       }

@@ -12,6 +12,14 @@ RenderRequest::RenderRequest() {
 	light_color = Vec3f(1,1,1);
 }
 
+Renderer* RenderRequest::renderer()	const {
+	return Renderer::instance();
+}
+
+RenderBuiltInAssets* RenderRequest::builtInAssets() const {
+	return renderer()->builtInAssets();
+}
+
 void RenderRequest::reset(RenderContext* ctx, const Math::Camera3f& camera) {
 	_renderContext = ctx;
 	commandBuffer.reset(ctx);
@@ -65,7 +73,7 @@ void RenderRequest::drawSubMesh(const SrcLoc& debugLoc, const RenderSubMesh& sub
 
 	auto passes = material->passes();
 
-	for (size_t i = 0; i < passes.size(); ++i) {
+	for (int i = 0; i < passes.size(); ++i) {
 		auto* cmd = commandBuffer.addDrawCall();
 #if _DEBUG
 		cmd->debugLoc			= debugLoc;

@@ -19,7 +19,7 @@ struct StringUtil {
 	static Pair<StrView, StrView> splitByChar	(StrView view, char seperator);
 	static Pair<StrView, StrView> getLine		(StrView view);
 
-	static StrView	trimChar(StrView view, StrView seperators);
+	static StrView trimChar(StrView view, StrView seperators);
 
 	static const char* findChar			(StrView view, StrView charList, bool ignoreCase);
 	static const char* findCharFromEnd	(StrView view, StrView charList, bool ignoreCase);
@@ -28,7 +28,7 @@ struct StringUtil {
 	static int  ignoreCaseCompare(char a, char b)		{ return tolower(a) - tolower(b); }
 	static int  ignoreCaseCompare(wchar_t a, wchar_t b) { return towlower(a) - towlower(b); }
 
-	constexpr static const char* extractFromPrefix(const char* src, const char* prefix);
+	static constexpr const char* extractFromPrefix(const char* src, const char* prefix);
 
 	static void getTokens(StrView view, Vector<StrView>& outList, char separator);
 
@@ -45,6 +45,7 @@ struct StringUtil {
 	static bool tryParse(StrView view, f32& outValue);
 	static bool tryParse(StrView view, f64& outValue);
 };
+SGE_STATIC_ASSERT_NO_MEMBER_CLASS(StringUtil);
 
 inline
 Pair<StrView, StrView> StringUtil::splitByChar(StrView view, StrView seperators) {
@@ -81,7 +82,7 @@ StrView StringUtil::trimChar(StrView view, StrView charList) {
 	return StrView(p, e-p);
 }
 
-constexpr
+constexpr inline
 const char* StringUtil::extractFromPrefix(const char* src, const char* prefix) {
 	if (!src || !prefix) return "";
 	auto srcLen = charStrlen(src);

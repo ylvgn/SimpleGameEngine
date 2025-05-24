@@ -14,9 +14,9 @@
 
 [SearchableFiles.include]
 /src/
+/examples/Test101/Assets/Shaders/
 # /externals/vcpkg/buildtrees/nlohmann-json
 # /externals/vcpkg/buildtrees/imgui
-# /externals/vcpkg/buildtrees/nuklear
 # /externals/vcpkg/buildtrees/eastl
 
 [SourceExplorer.ignore]

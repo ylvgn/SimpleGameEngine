@@ -66,7 +66,8 @@ SGE_ENUM_CLASS(RenderState_BlendFactor, u8)
 //-----
 SGE_ENUM_CLASS(RenderState_StencilTestOp, u8)
 
-struct RenderState {
+class RenderState {
+public:
 	using Cull			= RenderState_Cull;
 	using DepthTestOp	= RenderState_DepthTestOp;
 	using StencilTestOp = RenderState_StencilTestOp;
@@ -74,7 +75,7 @@ struct RenderState {
 	using BlendFactor	= RenderState_BlendFactor;
 
 	bool	wireframe = false;
-	Cull	cull = Cull::Back;
+	Cull	cull	  = Cull::Back;
 
 	struct DepthTest {
 		DepthTestOp	op = DepthTestOp::LessEqual;

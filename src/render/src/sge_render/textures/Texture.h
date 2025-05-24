@@ -39,7 +39,7 @@ SGE_ENUM_CLASS(TextureCubeFaceOrder, u8)
 #if 0
 #pragma mark ========= SamplerState ============
 #endif
-struct SamplerState {
+class SamplerState {
 public:
 	using Filter	= TextureFilter;
 	using Wrap		= TextureWrap;
@@ -57,7 +57,7 @@ public:
 #if 0
 #pragma mark ========= Texture_CreateDesc ============
 #endif
-struct Texture_CreateDesc {
+class Texture_CreateDesc {
 public:
 	String		name;
 	ColorType	colorType = ColorType::RGBAb;
@@ -86,7 +86,6 @@ protected:
 class Texture2D_UploadRequest : public NonCopyable {
 	using This = Texture2D_UploadRequest;
 public:
-
 	This() = default;
 	This(This&& r) noexcept {
 		operator=(SGE_MOVE(r));
@@ -134,7 +133,8 @@ public:
 #if 0
 #pragma mark ========= Texture2D_CreateDesc ============
 #endif
-struct Texture2D_CreateDesc : public Texture_CreateDesc {
+class Texture2D_CreateDesc : public Texture_CreateDesc {
+public:
 	using UploadRequest = Texture2D_UploadRequest;
 
 	Vec2i			size {0,0};
@@ -146,7 +146,8 @@ struct Texture2D_CreateDesc : public Texture_CreateDesc {
 #if 0
 #pragma mark ========= TextureCube_CreateDesc ============
 #endif
-struct TextureCube_CreateDesc : public Texture2D_CreateDesc {
+class TextureCube_CreateDesc : public Texture2D_CreateDesc {
+public:
 	using UploadRequest = TextureCube_UploadRequest;
 
 	UploadRequest* uploadRequest = nullptr;

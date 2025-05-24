@@ -5,7 +5,7 @@ namespace sge {
 struct BitUtil {
 	BitUtil() = delete;
 public:
-	template<class T>	constexpr	static bool	hasAny	(T  value, T bits)			{ return (value & bits) != T(0);    }
+	template<class T>	constexpr	static bool	hasAny	(T  value, T bits)			{ return (value & bits) != T(0); }
 	template<class T>	constexpr	static bool	has		(T  value, T bits)			{ return (value & bits) == bits; }	
 	template<class T>	constexpr	static void	set		(T& value, T bits, bool b)	{ b ? set(value, bits) : unset(value, bits); }
 	template<class T>	constexpr	static void	set		(T& value, T bits)			{ value |=  bits; }

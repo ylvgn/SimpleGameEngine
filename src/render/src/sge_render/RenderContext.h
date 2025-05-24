@@ -6,16 +6,19 @@
 
 namespace sge {
 
-struct RenderContext_CreateDesc {
+class RenderContext_CreateDesc {
+public:
 	NativeUIWindow* window = nullptr;
 };
 
-struct RenderContext_Statistics { // TODO tmp
+class RenderContext_Statistics { // TODO
+	using This = RenderContext_Statistics;
+public:
 	int drawCall = 0;
 	u64 verts = 0;
 	u64 tris = 0;
 
-	void clean() { memset(this, 0, sizeof(RenderContext_Statistics)); }
+	void clean() { memset(this, 0, sizeof(This)); }
 };
 
 #if 0
@@ -26,7 +29,6 @@ public:
 	using CreateDesc = RenderContext_CreateDesc;
 	using Statistics = RenderContext_Statistics;
 
-	RenderContext(CreateDesc& desc);
 	virtual ~RenderContext() = default;
 
 	void beginRender();
@@ -45,6 +47,8 @@ public:
 	void onUIKeyboardEvent(UIKeyboardEvent& ev);
 
 protected:
+	RenderContext(CreateDesc& desc); // please create from 'Renderer::createRenderContext'
+
 	virtual void onBeginRender() {}
 	virtual void onEndRender() {}
 

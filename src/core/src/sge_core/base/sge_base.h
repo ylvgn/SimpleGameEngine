@@ -329,6 +329,8 @@ public:
 						StringT(const Base& s)					EA_NOEXCEPT : Base(s.data(), s.size()) {}
 	template<size_t M>	StringT(const StringT<T, M>& s)			EA_NOEXCEPT : Base(s.data(), s.size()) {}
 
+	explicit operator bool() const { return !Base::empty(); }
+
 						void operator=(const StringT& s)		{ Base::assign(s.data(), s.size()); }
 	template<size_t N>	void operator=(const StringT<T, N>& r)	{ Base::assign(s.data(), s.size()); }
 	template<class R>	void operator=(R&& r)					{ Base::operator=(SGE_FORWARD(r)); }

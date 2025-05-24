@@ -1,7 +1,9 @@
 *.blend1
 *.vs
 
-_build
-examples/_bin
-_ninja
-/externals/vcpkg
+[Bb]uild
+_[Bb]uild
+[Ee]xamples/_bin
+[Ee]xternals/vcpkg
+_[Nn]inja
+[Nn]inja

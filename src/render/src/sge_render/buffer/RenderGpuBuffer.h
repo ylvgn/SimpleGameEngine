@@ -1,16 +1,11 @@
 #pragma once
 
+#include "../RenderDataType.h"
+
 namespace sge {
 
-#define RenderGpuBufferType_ENUM_LIST(E) \
-	E(None,) \
-	E(Vertex,) \
-	E(Index,) \
-	E(Const,) \
-//----
-SGE_ENUM_CLASS(RenderGpuBufferType, u8)
-
-struct RenderGpuBuffer_CreateDesc {
+class RenderGpuBuffer_CreateDesc {
+public:
 	using Type = RenderGpuBufferType;
 
 	Type	type		= Type::None;
@@ -20,8 +15,8 @@ struct RenderGpuBuffer_CreateDesc {
 
 class RenderGpuBuffer : public Object {
 public:
-	using Type			= RenderGpuBufferType;
-	using CreateDesc	= RenderGpuBuffer_CreateDesc;
+	using Type		 = RenderGpuBufferType;
+	using CreateDesc = RenderGpuBuffer_CreateDesc;
 
 	void create(CreateDesc& desc);
 

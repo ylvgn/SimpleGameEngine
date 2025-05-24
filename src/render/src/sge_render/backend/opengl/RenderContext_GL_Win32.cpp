@@ -21,10 +21,10 @@ public:
 	void FalseContext::create() {
 		destroy();
 
-		auto hInstance = GetModuleHandle(nullptr);
+		auto hInstance = ::GetModuleHandle(nullptr);
 
-		WNDCLASSEX wc;
-		bool isRegistered = (0 != GetClassInfoEx(hInstance, kClassName, &wc));
+		::WNDCLASSEX wc;
+		bool isRegistered = (0 != ::GetClassInfoEx(hInstance, kClassName, &wc));
 		if (!isRegistered) {
 			memset(&wc, 0, sizeof(wc));
 
@@ -41,20 +41,20 @@ public:
 				throw SGE_ERROR("RegisterClassEx");
 		}
 
-		DWORD dwExStyle = 0;
-		DWORD dwStyle	= WS_POPUP;
+		::DWORD dwExStyle = 0;
+		::DWORD dwStyle	= WS_POPUP;
 
-		_hwnd = CreateWindowEx(dwExStyle, kClassName, kClassName, dwStyle,
+		_hwnd = ::CreateWindowEx(dwExStyle, kClassName, kClassName, dwStyle,
 							   0,0,0,0,
 							   nullptr, nullptr, hInstance, nullptr);
 		if (!_hwnd)
 			throw SGE_ERROR("CreateWindowEx");
 
-		_dc = GetDC(_hwnd);
+		_dc = ::GetDC(_hwnd);
 		if (!_dc)
 			throw SGE_ERROR("GetDC");
 
-		PIXELFORMATDESCRIPTOR pfd;
+		::PIXELFORMATDESCRIPTOR pfd;
 		memset(&pfd, 0, sizeof(pfd));
 		pfd.nSize		= sizeof(pfd);
 		pfd.nVersion	= 1;
@@ -64,14 +64,14 @@ public:
 		pfd.cDepthBits	= 32;
 		pfd.iLayerType	= PFD_MAIN_PLANE;
 
-		int nPixelFormat = ChoosePixelFormat(_dc, &pfd);
+		int nPixelFormat = ::ChoosePixelFormat(_dc, &pfd);
 		if (!nPixelFormat)
 			throw SGE_ERROR("ChoosePixelFormat");
 
-		if (!SetPixelFormat(_dc, nPixelFormat, &pfd))
+		if (!::SetPixelFormat(_dc, nPixelFormat, &pfd))
 			throw SGE_ERROR("SetPixelFormat");
 
-		_rc = wglCreateContext(_dc);
+		_rc = ::wglCreateContext(_dc);
 		if (!_rc)
 			throw SGE_ERROR("wglCreateContext");
 
@@ -81,16 +81,16 @@ public:
 
 	void FalseContext::destroy() {
 		if (_rc) {
-			wglDeleteContext(_rc);
+			::wglDeleteContext(_rc);
 			_rc = nullptr;
 		}
 		if (_dc) {
 			SGE_ASSERT(_hwnd != nullptr);
-			ReleaseDC(_hwnd, _dc);
+			::ReleaseDC(_hwnd, _dc);
 			_dc = nullptr;
 		}
 		if (_hwnd) {
-			DestroyWindow(_hwnd);
+			::DestroyWindow(_hwnd);
 			_hwnd = nullptr;
 		}
 	}
@@ -109,7 +109,7 @@ private:
 #endif
 RenderContext_GL_Win32::RenderContext_GL_Win32(CreateDesc& desc)
 	: Base(desc)
-	, _renderer(Renderer_GL::current())
+	, _renderer(Renderer_GL::instance())
 	, _window(static_cast<NativeUIWindow_Win32*>(desc.window))
 {
 	FalseContext falseContext;
@@ -175,9 +175,7 @@ RenderContext_GL_Win32::RenderContext_GL_Win32(CreateDesc& desc)
 
 RenderContext_GL_Win32::~RenderContext_GL_Win32() {
 	_destroyTestShaders();
-#if MY_TEST_FRAMEBUFFER
-	_destroyTestScreenFrameBuffer();
-#endif
+
 	if (_win32_rc) {
 		wglDeleteContext(_win32_rc);
 		_win32_rc = nullptr;
@@ -249,7 +247,7 @@ void RenderContext_GL_Win32::onCmd_DrawCall(RenderCommand_DrawCall& cmd) {
 	vertexBuffer->unbind();
 }
 
-void RenderContext_GL_Win32::onCmd_SetScissorRect(RenderCommand_SetScissorRect& cmd) { // still some bug why ???
+void RenderContext_GL_Win32::onCmd_SetScissorRect(RenderCommand_SetScissorRect& cmd) {
 	Rect2f rc = cmd.rect;
 	rc.y = _frameBufferSize.y - rc.yMax(); // OpenGL using bottom-left coordinate
 	glScissor(GLint(rc.x), GLint(rc.y), GLsizei(rc.w), GLsizei(rc.h));
@@ -274,157 +272,84 @@ void RenderContext_GL_Win32::onCommit(RenderCommandBuffer& cmdBuf) {
 void RenderContext_GL_Win32::onSetFrameBufferSize(const Vec2f& newSize) {
 	int newWidth = int(newSize.x);
 	int newHeight = int(newSize.y);
-#if MY_TEST_FRAMEBUFFER
-	// TODO: reset frame buffer size
-	if (_viewFramebuffer && newWidth > 0 && newHeight > 0) {
-		_createBuffers();
-	}
-#endif
+
 	glViewport(0, 0, newWidth, newHeight);
 	glScissor(0, 0, newWidth, newHeight);
 	Util::throwIfError();
 }
 
-void RenderContext_GL_Win32::_destroyBuffers() {
-	if (_viewFramebuffer) {
-		glDeleteFramebuffers(1, &_viewFramebuffer);
-		_viewFramebuffer = 0;
-	}
-	if (_viewRenderbuffer) {
-		glDeleteRenderbuffers(1, &_viewRenderbuffer);
-		_viewRenderbuffer = 0;
-	}
-	if (_depthRenderbuffer) {
-		glDeleteRenderbuffers(1, &_depthRenderbuffer);
-		_depthRenderbuffer = 0;
-	}
-	if (!_testScreenQuadTexturebuffer) { // TODO tmp
-		glDeleteTextures(1, &_testScreenQuadTexturebuffer);
-		_testScreenQuadTexturebuffer = 0;
-	}
-}
-
 void RenderContext_GL_Win32::onBeginRender() {
 	_vao.bind();
-#if MY_TEST_FRAMEBUFFER
-	if (!_viewFramebuffer)
-		_createBuffers();
-	glBindFramebuffer(GL_FRAMEBUFFER, _viewFramebuffer);
-	Util::throwIfError();
-#endif
 }
 
 void RenderContext_GL_Win32::onEndRender() {
-#if MY_TEST_FRAMEBUFFER
-	_setTestFrameBufferScreenShaders();
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glDisable(GL_DEPTH_TEST);
-	glClear(GL_COLOR_BUFFER_BIT);
-	glBindTexture(GL_TEXTURE_2D, _testScreenQuadTexturebuffer);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-#endif
-}
-
-void RenderContext_GL_Win32::_setTestFrameBufferScreenShaders() {
-	static const char* s_vs_source = "#version 330\n"
-		"layout(location = 0) in vec2 i_positionOS;\n"
-		"layout(location = 1) in vec2 i_uv;\n"
-		"out vec2 uv;\n"
-		"void main()\n"
-		"{\n"
-			"gl_Position = vec4(i_positionOS.xy, 0.0, 1.0);\n"
-			"uv = i_uv;\n"
-		"}";
-
-	static const char* s_ps_source = "#version 330\n"
-		"uniform sampler2D _73;\n"
-		"in vec2 uv;\n"
-		"layout(location = 0) out vec4 _entryPointOutput;\n"
-		"void main()\n"
-		"{\n"
-			"_entryPointOutput = vec4(texture(_73, uv).xyz, 1.0);\n"
-		"}";
-
-	static float s_quadVertices[] = {
-		// pos(xy)     // uv
-		-1.0f,  1.0f,  0.0f, 1.0f,
-		-1.0f, -1.0f,  0.0f, 0.0f,
-		 1.0f, -1.0f,  1.0f, 0.0f,
-
-		-1.0f,  1.0f,  0.0f, 1.0f,
-		 1.0f, -1.0f,  1.0f, 0.0f,
-		 1.0f,  1.0f,  1.0f, 1.0f
-	};
-
-	if (!_testFrameBufferVertexShader) {
-		auto& shader = _testFrameBufferVertexShader;
-
-		shader = glCreateShader(GL_VERTEX_SHADER);
-		Util::throwIfError();
-
-		GLint sourceLen = static_cast<GLint>(charStrlen(s_vs_source));
-		glShaderSource(shader, 1, &s_vs_source, &sourceLen);
-		glCompileShader(shader);
-		Util::throwIfError();
-	}
-
-	if (!_testFrameBufferPixelShader) {
-		auto& shader = _testFrameBufferPixelShader;
-
-		shader = glCreateShader(GL_FRAGMENT_SHADER);
-		Util::throwIfError();
-
-		GLint sourceLen = static_cast<GLint>(charStrlen(s_ps_source));
-		glShaderSource(shader, 1, &s_ps_source, &sourceLen);
-		glCompileShader(shader);
-		Util::throwIfError();
-	}
-
-	if (!_testFrameBufferShaderProgram)
-		Util::linkShader(_testFrameBufferShaderProgram, _testFrameBufferVertexShader, _testFrameBufferPixelShader);
-
-//---- use shader program
-	glUseProgram(_testFrameBufferShaderProgram);
-	Util::throwIfError();
-
-	if (!_testScreenQuadVertexbuffer) {
-		glGenBuffers(1, &_testScreenQuadVertexbuffer);
-		glBindBuffer(GL_ARRAY_BUFFER, _testScreenQuadVertexbuffer);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(s_quadVertices), &s_quadVertices, GL_STATIC_DRAW);
-		Util::throwIfError();
-	}
-
-	constexpr size_t stride = 4 * sizeof(float);
-
-	glBindBuffer(GL_ARRAY_BUFFER, _testScreenQuadVertexbuffer);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, stride, (const void*)0);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride, (const void*)(2 * sizeof(float)));
-
-	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
-	Util::throwIfError();
 }
 
 void RenderContext_GL_Win32::_setTestShaders(const VertexLayout* vertexLayout) {
-	TempString shaderFile("Assets/Shaders/test.hlsl");
+	static bool s_enterOnce = false;
 
-	//---- compile shader
-	{
-		if (!_testVertexShader) {
-			TempString tmp(shaderFile + ".spv_vs.vert");
-			Util::compileShader(_testVertexShader, Util::getGlShaderType(ShaderStageMask::Vertex), tmp);
-		}
-	}
-	{
-		if (!_testPixelShader) {
-			TempString tmp(shaderFile + ".spv_ps.frag");
-			Util::compileShader(_testPixelShader, Util::getGlShaderType(ShaderStageMask::Pixel), tmp);
-		}
-	}
+	if (!s_enterOnce) {
+		s_enterOnce = true;
+		TempString shaderFile("Assets/Shaders/test.hlsl");
 
-	if (!_testShaderProgram)
-		Util::linkShader(_testShaderProgram, _testVertexShader, _testPixelShader);
+		//---- compile shader
+		{
+			if (!_testVertexShader) {
+				TempString tmp(shaderFile + ".spv_vs.vert");
+				Util::compileShader(_testVertexShader, Util::getGlShaderType(ShaderStageMask::Vertex), tmp);
+			}
+		}
+		{
+			if (!_testPixelShader) {
+				TempString tmp(shaderFile + ".spv_ps.frag");
+				Util::compileShader(_testPixelShader, Util::getGlShaderType(ShaderStageMask::Pixel), tmp);
+			}
+		}
+
+		if (!_testShaderProgram) {
+			_testShaderProgram = glCreateProgram();
+			Util::throwIfError();
+		}
+		if (_testVertexShader) {
+			glAttachShader(_testShaderProgram, _testVertexShader);
+			Util::throwIfError();
+		}
+		if (_testPixelShader) {
+			glAttachShader(_testShaderProgram, _testPixelShader);
+			Util::throwIfError();
+		}
+
+		glLinkProgram(_testShaderProgram);
+		Util::throwIfError();
+
+		GLint linked;
+		glGetProgramiv(_testShaderProgram, GL_LINK_STATUS, &linked);
+		if (linked != GL_TRUE) {
+			String errmsg;
+			Util::getProgramInfoLog(_testShaderProgram, errmsg);
+
+			TempString tmp;
+			FmtTo(tmp, "link shader error: {}", errmsg);
+
+			throw SGE_ERROR("{}", tmp.c_str());
+		}
+
+		glValidateProgram(_testShaderProgram);
+		Util::throwIfError();
+
+		GLint validated;
+		glGetProgramiv(_testShaderProgram, GL_VALIDATE_STATUS, &validated);
+		if (validated != GL_TRUE) {
+			String errmsg;
+			Util::getProgramInfoLog(_testShaderProgram, errmsg);
+
+			TempString tmp;
+			FmtTo(tmp, "validate shader error: {}", errmsg);
+
+			throw SGE_ERROR("{}", tmp.c_str());
+		}
+		SGE_ASSERT(glIsProgram(_testShaderProgram) == GL_TRUE);
+	}
 
 //---- use shader program
 	glUseProgram(_testShaderProgram);
@@ -445,46 +370,6 @@ void RenderContext_GL_Win32::_setTestShaders(const VertexLayout* vertexLayout) {
 	Util::throwIfError();
 }
 
-void RenderContext_GL_Win32::_createBuffers() {
-	_destroyBuffers();
-
-	GLint width  = GLint(_frameBufferSize.x);
-	GLint height = GLint(_frameBufferSize.y);
-
-	// TODO
-	// view render buffer
-	glGenFramebuffers(1, &_viewFramebuffer);
-	//glGenRenderbuffers(1, &_viewRenderbuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, _viewFramebuffer);
-	//glBindRenderbuffer(GL_RENDERBUFFER, _viewRenderbuffer);
-	//glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _viewRenderbuffer);
-	Util::throwIfError();
-
-	SGE_ASSERT(width > 0 && height > 0);
-	glGenTextures(1, &_testScreenQuadTexturebuffer);
-	glBindTexture(GL_TEXTURE_2D, _testScreenQuadTexturebuffer);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _testScreenQuadTexturebuffer, 0);
-	Util::throwIfError();
-
-	// depth/stencil render buffer
-	bool needDepthBuffer = true;
-	if (needDepthBuffer) {
-		glGenRenderbuffers(1, &_depthRenderbuffer);
-		glBindRenderbuffer(GL_RENDERBUFFER, _depthRenderbuffer);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _depthRenderbuffer);
-		Util::throwIfError();
-	}
-
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-		throw SGE_ERROR("failed to create frame buffer");
-	}
-}
-
 void RenderContext_GL_Win32::_destroyTestShaders() {
 	if (_testVertexShader) {
 		glDeleteShader(_testVertexShader);
@@ -497,17 +382,6 @@ void RenderContext_GL_Win32::_destroyTestShaders() {
 	if (_testShaderProgram) {
 		glDeleteProgram(_testShaderProgram);
 		_testShaderProgram = 0;
-	}
-}
-
-void RenderContext_GL_Win32::_destroyTestScreenFrameBuffer() {
-	if (!_testScreenQuadVertexbuffer) {
-		glDeleteBuffers(1, &_testScreenQuadVertexbuffer);
-		_testScreenQuadVertexbuffer = 0;
-	}
-	if (_testScreenQuadRenderbuffer) {
-		glDeleteRenderbuffers(1, &_testScreenQuadRenderbuffer);
-		_testScreenQuadRenderbuffer = 0;
 	}
 }
 
