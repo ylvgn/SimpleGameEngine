@@ -89,7 +89,7 @@ SGE_TEX2D(roughnessMap)
 SGE_TEX2D(aoMap)
 
 // unit test
-#define SGE_TEST_A 0 // attenuation
+#define SGE_TEST_A 0 // Light Attenuation
 #define SGE_TEST_D 0 // Normal Distribution
 #define SGE_TEST_G 0 // Geometry Distribution
 #define SGE_TEST_F 0 // Fresnel Distribution
@@ -158,7 +158,7 @@ float SchlickGGX(float NdotX, float roughness)
     float k = roughnessSqr / 2.0;
     
     float denom = NdotX * (1.0 - k) + k;
-    return NdotX / max(denom, SGE_EPSILON); // Avoid division by zero
+    return NdotX / max(denom, SGE_EPSILON);
 }
 
 float SchlickGGX_UE4(float NdotX, float roughness)
@@ -300,6 +300,7 @@ float4 ps_main(PixelIn input) : SV_TARGET
 			float  G = SmithGGXGeometricShadowingFunction(NdotV, NdotL, s.roughness);
 			float3 F = SchlickFresnelFunction(s.specular, LdotH);
 			float3 specular = (D * F * G) / ( max((4.0 * (NdotL * NdotV)), SGE_EPSILON));
+
 #if SGE_TEST_D
 		return float4(0,D,0,1);
 #endif
@@ -312,10 +313,7 @@ float4 ps_main(PixelIn input) : SV_TARGET
 			float3 kS = F;
 			float3 kD = (1.0 - kS) * (1.0 - s.metallic); // diffuse is only applied where light isn't reflected
 
-			// Lambertian diffuse
-			float lambertian = max(dot(s.normal, -lightDir), 0);
-			float3 diffuse = lambertian * (kD * s.albedo) / SGE_PI;
-
+			float3 diffuse = (kD * s.diffuse) / SGE_PI;
 			Lo += (diffuse + specular) * radiance * NdotL;
 		}
 		else { // Learn Opengl Impl: https://learnopengl.com/code_viewer_gh.php?code=src/6.pbr/1.2.lighting_textured/1.2.pbr.fs
@@ -376,5 +374,7 @@ float4 ps_main(PixelIn input) : SV_TARGET
 //	return float4(1,0,0,1);
 //	return float4(s.ambient, 1.0);
 //	return float4(my_light_colors[2], 1.0);
-	return float4(Color_Linear_to_sRGB(color), 1.0);
+
+	color = color / (color + 1.0); // HDR tonemapping
+	return float4(Color_Linear_to_sRGB(color), 1.0); // gamma correction
 }
