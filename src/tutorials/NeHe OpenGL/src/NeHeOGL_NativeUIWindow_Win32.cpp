@@ -5,7 +5,6 @@
 namespace sge {
 
 void NeHeOGL_NativeUIWindow_Win32::onCreate(CreateDesc& desc) {
-	desc.ownDC = true;
 	Base::onCreate(desc);
 
 	_camera.setPos(0, 10, 10);

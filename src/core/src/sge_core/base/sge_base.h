@@ -525,8 +525,8 @@ private:
 	T _oldValue;
 };
 
-SGE_NODISCARD template<class T> inline ScopedValue<T> ScopedValue_make(T& p)					{ return ScopedValue<T>(p); }
-SGE_NODISCARD template<class T> inline ScopedValue<T> ScopedValue_make(T& p, const T& newValue) { return ScopedValue<T>(p, newValue); }
+template<class T> SGE_NODISCARD inline ScopedValue<T> ScopedValue_make(T& p)					{ return ScopedValue<T>(p); }
+template<class T> SGE_NODISCARD inline ScopedValue<T> ScopedValue_make(T& p, const T& newValue) { return ScopedValue<T>(p, newValue); }
 
 
 template<class First, class Second>

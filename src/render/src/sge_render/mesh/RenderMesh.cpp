@@ -93,6 +93,207 @@ void RenderMesh::create(const EditMesh& src) {
 	_subMeshes[0].create(src);
 }
 
+void RenderMesh::createQuad(float w, float h) {
+	clear();
+
+	if (w <= 0 || h <= 0)
+		return;
+
+	_primitive = RenderPrimitiveType::Triangles;
+
+	EditMesh src;
+
+	int nVertices = 4;
+	int nTriangles = 2;
+
+	src.pos.resize(nVertices);
+	src.normal.resize(nVertices);
+	src.uv[0].resize(nVertices);
+	src.color.resize(nVertices);
+
+	src.indices.resize(3 * nTriangles);
+	float halfW = w * 0.5f;
+	float halfH = h * 0.5f;
+	/*
+	   0 --- 1
+	   !    /!
+       !  /  !
+	   !/    !
+	   2 --- 3
+	*/
+	src.pos[0].set(-halfW, halfH, 0); src.uv[0][1].set(0,0);
+	src.pos[1].set( halfW, halfH, 0); src.uv[0][2].set(0,1);
+	src.pos[2].set(-halfW,-halfH, 0); src.uv[0][3].set(1,0);
+	src.pos[3].set( halfW,-halfH, 0); src.uv[0][4].set(1,1);
+
+	for (int i = 0; i < nVertices; ++i) {
+		src.normal[i].set(0, 0, 0);
+		src.color[i].set(255, 255, 255, 255);
+	}
+
+	src.indices.assign({
+		0, 1, 2,
+		2, 1, 3,
+	});
+}
+
+void RenderMesh::createSphere(float radius, int nU, int nV) {
+	clear();
+
+	if (radius <= 0 || nU < 2 || nV < 2)
+		return;
+
+	_primitive = RenderPrimitiveType::Triangles;
+
+	static constexpr float PI = Math::PI<float>();
+	static constexpr float PI2 = 2.f * PI;
+
+	EditMesh src;
+	
+	int nVertices  = (nU + 1) * (nV + 1);
+	int nTriangles = nU * nV * 2;
+
+	src.pos.resize(nVertices);
+	src.normal.resize(nVertices);
+	src.tangent.resize(nVertices);
+	src.uv[0].resize(nVertices);
+	src.color.resize(nVertices);
+	src.indices.resize(3 * nTriangles);
+
+	for (int v = 0; v <= nV; ++v)
+	{
+		for (int u = 0; u <= nU; ++u)
+		{
+			float theta = u / float(nU) * PI;
+			float phi   = v / float(nV) * PI * 2;
+
+			int index = u + (nU + 1) * v;
+
+			Vec3f vertex, tangent, normal;
+			Vec2f texCoord;
+
+			// normal
+			normal[0] = Math::sin(theta) * Math::cos(phi);
+			normal[1] = Math::sin(theta) * Math::sin(phi);
+			normal[2] = Math::cos(theta);
+			normal.normalize();
+
+			// position
+			vertex = normal * radius;
+
+			// tangent
+			theta += PI2;
+			tangent[0] = Math::sin(theta) * Math::cos(phi);
+			tangent[1] = Math::sin(theta) * Math::sin(phi);
+			tangent[2] = Math::cos(theta);
+			tangent.normalize();
+
+			// texture coordinates
+			texCoord[1] = u / float(nU);
+			texCoord[0] = v / float(nV);
+
+			src.pos[index] = vertex;
+			src.normal[index] = normal;
+			src.tangent[index] = tangent;
+			src.uv[0][index] = texCoord;
+			src.color[index] = Color4b(255,255,255,255);
+		}
+	}
+
+	int index = 0;
+	for (int v = 0; v < nV; ++v)
+	{
+		for (int u = 0; u < nU; ++u)
+		{
+			int vindex = u + (nU + 1) * v;
+
+			src.indices[index + 0] = vindex;
+			src.indices[index + 1] = vindex + 1;
+			src.indices[index + 2] = vindex + 1 + (nU + 1);
+
+			src.indices[index + 3] = vindex;
+			src.indices[index + 4] = vindex + 1 + (nU + 1);
+			src.indices[index + 5] = vindex + (nU + 1);
+
+			index += 6;
+		}
+	}
+
+	create(src);
+}
+
+void RenderMesh::createRadialGrid(float gridSize, int nU, int nV) {
+	clear();
+
+	if (gridSize <= 0 || nU < 1 || nV < 1)
+		return;
+
+	_primitive = RenderPrimitiveType::Triangles;
+
+	EditMesh src;
+
+	int nVertices = (nU + 1) * (nV + 1);
+	int nTriangles = nU * nV * 2;
+
+	src.pos.resize(nVertices);
+	src.normal.resize(nVertices);
+	src.tangent.resize(nVertices);
+	src.uv[0].resize(nVertices);
+	src.color.resize(nVertices);
+	src.indices.resize(3 * nTriangles);
+
+	static constexpr float PI = Math::PI<float>();
+	static constexpr float PI2 = 2.f * PI;
+
+	for (int v = 0; v <= nV; ++v)
+	{
+		for (int u = 0; u <= nU; ++u)
+		{
+			float dx = u / float(nU);
+			float dy = v / float(nV);
+
+			float r = gridSize * dx * dx;
+
+			int index = u + (nU + 1) * v;
+
+			Vec3f vertex;
+			Vec2f texCoord;
+
+			vertex.x = r * Math::cos(PI2 * dy);
+			vertex.y = 0.f;
+			vertex.z = r * Math::sin(PI2 * dy);
+
+			texCoord[1] = u / float(nU);
+			texCoord[0] = v / float(nV);
+
+			src.pos[index]	   = vertex;
+			src.uv[0][index]   = texCoord;
+			src.tangent[index] = Tuple3f(0,0,1);
+			src.normal[index]  = Tuple3f(0,1,0);
+			src.color[index]   = Color4b(255, 255, 255, 255);
+		}
+	}
+
+	int index = 0;
+	for (int v = 0; v < nV; ++v)
+	{
+		for (int u = 0; u < nU; ++u)
+		{
+			int vindex = u + (nU + 1) * v;
+
+			src.indices[index++] = vindex;
+			src.indices[index++] = vindex + 1;
+			src.indices[index++] = vindex + 1 + (nU + 1);
+
+			src.indices[index++] = vindex;
+			src.indices[index++] = vindex + 1 + (nU + 1);
+			src.indices[index++] = vindex + (nU + 1);
+		}
+	}
+
+	create(src);
+}
+
 void RenderMesh::clear() {
 	_vertexLayout = nullptr;
 	_subMeshes.clear();
@@ -295,4 +496,4 @@ void RenderSubMesh::_setIndexBuffer(ByteSpan indexData) {
 	_indexBuffer->uploadToGpu(indexData);
 }
 
-}
+} // namespace sge

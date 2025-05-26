@@ -36,7 +36,7 @@ struct FilePath {
 
 template<class STR, class... Args> SGE_INLINE
 void FilePath::combineTo(STR& src_path, Args&&... paths) {
-	using View = STR::StrViewT;
+	using View = typename STR::StrViewT;
 
 	View views[] { SGE_FORWARD(paths)... };
 	size_t n = sizeof...(paths);

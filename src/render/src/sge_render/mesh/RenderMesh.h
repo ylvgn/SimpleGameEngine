@@ -81,6 +81,10 @@ public:
 	static constexpr size_t kSubMeshMaxVertexCount = 0x8000;
 
 	void create(const EditMesh& src);
+	void createQuad(float w, float h);
+	void createSphere(float radius, int nU = 2, int nV = 2);
+	void createRadialGrid(float gridSize, int nU = 1, int nV = 1);
+
 	void clear();
 
 	RenderPrimitiveType primitive()		const		{ return _primitive; }

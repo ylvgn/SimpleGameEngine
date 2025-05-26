@@ -44,33 +44,43 @@ void EditorStatisticsWindow::onDraw(Scene& scene, RenderRequest& req) {
 
 	const static ImGuiTreeNodeFlags s_flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_DefaultOpen;
 	EditorUI::TreeNode graphics("Graphics", s_flags);
-	if (!graphics.isOpen()) {
-		return;
+	if (graphics.isOpen()) {
+		const static ImGuiTreeNodeFlags s_cflags = s_flags | ImGuiTreeNodeFlags_Bullet | ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Leaf;
+
+		const auto& frameBufferSize = req.renderContext()->frameBufferSize();
+		const auto& statistics		= req.renderContext()->statistics();
+
+		TempString label;
+		FmtTo(label, "Screen: {} x {}", static_cast<int>(frameBufferSize.x), static_cast<int>(frameBufferSize.y));
+		EditorUI::TreeNode screen(label, s_cflags);
+		label.clear();
+
+		FmtTo(label, "DrawCall: {}", statistics.drawCall);
+		EditorUI::TreeNode dc(label, s_cflags);
+		label.clear();
+
+		String verts = _getNumberDesc(statistics.verts);
+		FmtTo(label, "Verts: {}", verts);
+		EditorUI::TreeNode vertexes(label, s_cflags);
+		label.clear();
+
+		String tris = _getNumberDesc(statistics.tris);
+		FmtTo(label, "Tris: {}", tris);
+		EditorUI::TreeNode triangles(label, s_cflags);
+		label.clear();
 	}
 
-	const static ImGuiTreeNodeFlags s_cflags = s_flags | ImGuiTreeNodeFlags_Bullet | ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Leaf;
+#if 0 // TODO: some bug when open 'graphics' node
+	EditorUI::TreeNode others("Others", s_flags);
+	if (others.isOpen()) {
+		const static ImGuiTreeNodeFlags s_cflags = s_flags | ImGuiTreeNodeFlags_Bullet | ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Leaf;
 
-	const auto& frameBufferSize = req.renderContext()->frameBufferSize();
-	const auto& statistics		= req.renderContext()->statistics();
-
-	TempString label;
-	FmtTo(label, "Screen: {} x {}", static_cast<int>(frameBufferSize.x), static_cast<int>(frameBufferSize.y));
-	EditorUI::TreeNode screen(label, s_cflags);
-	label.clear();
-
-	FmtTo(label, "DrawCall: {}", statistics.drawCall);
-	EditorUI::TreeNode dc(label, s_cflags);
-	label.clear();
-
-	String verts = _getNumberDesc(statistics.verts);
-	FmtTo(label, "Verts: {}", verts);
-	EditorUI::TreeNode vertexes(label, s_cflags);
-	label.clear();
-
-	String tris = _getNumberDesc(statistics.tris);
-	FmtTo(label, "Tris: {}", tris);
-	EditorUI::TreeNode triangles(label, s_cflags);
-	label.clear();
+		TempString label;
+		FmtTo(label, "Camera Pos: ({}, {}, {})", Math::roundToInt(req.cameraPos.x), Math::roundToInt(req.cameraPos.y), Math::roundToInt(req.cameraPos.z));
+		EditorUI::TreeNode cameraPos(label, s_cflags);
+		label.clear();
+	}
+#endif
 }
 
 } // namespace sge

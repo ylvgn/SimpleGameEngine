@@ -59,8 +59,10 @@ float   terrainHeight;
 PixelIn vs_main(VertexIn i) {
 	PixelIn o;
 
-//	float2 patchPos = patchIndex * patchSize;
-	float2 patchPos = patchIndex * (patchSize + 1); // debug
+	float2 patchPos = patchIndex * patchSize;
+#if 0 // just for test
+	float2 patchPos = patchIndex * (patchSize + 1);
+#endif
 	float2 vertexPos2D = float2(patchPos + i.positionOS);
 
 	float2 uv = (i.positionOS + patchIndex * patchSize) / terrainSize;

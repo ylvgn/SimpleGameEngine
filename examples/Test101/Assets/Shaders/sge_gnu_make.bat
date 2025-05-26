@@ -14,4 +14,5 @@ cd %~dp0
 	@pause
 )
 
+@REM sge_editor_app will call this .bat, do not @pause default!!
 @REM @pause

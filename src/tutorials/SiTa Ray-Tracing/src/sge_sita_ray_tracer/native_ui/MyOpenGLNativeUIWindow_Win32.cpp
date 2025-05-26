@@ -5,7 +5,6 @@
 namespace sge {
 
 void MyOpenGLNativeUIWindow_Win32::onCreate(CreateDesc& desc) {
-	desc.ownDC = true;
 	Base::onCreate(desc);
 	initGL();
 }

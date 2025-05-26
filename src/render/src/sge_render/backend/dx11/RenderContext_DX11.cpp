@@ -50,7 +50,7 @@ void RenderContext_DX11::onBeginRender() {
 	DX11_ID3DRenderTargetView* rt = _renderTargetView;
 	ctx->OMSetRenderTargets(1, &rt, _depthStencilView);
 
-	::D3D11_VIEWPORT viewport		= {};
+	::D3D11_VIEWPORT viewport	= {};
 	viewport.TopLeftX			= 0;
 	viewport.TopLeftY			= 0;
 	viewport.Width				= _frameBufferSize.x;

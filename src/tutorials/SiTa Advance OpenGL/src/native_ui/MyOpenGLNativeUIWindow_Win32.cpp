@@ -109,7 +109,6 @@ void MyOpenGLNativeUIWindow_Win32::onCreate(CreateDesc& desc) {
 	falseContext.create();
 	glewInit();
 
-	desc.ownDC = true;
 	Base::onCreate(desc);
 
 	if (!_hwnd)
