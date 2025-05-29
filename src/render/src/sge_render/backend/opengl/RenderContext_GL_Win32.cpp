@@ -206,45 +206,60 @@ void RenderContext_GL_Win32::onCmd_ClearFrameBuffers(RenderCommand_ClearFrameBuf
 }
 
 void RenderContext_GL_Win32::onCmd_DrawCall(RenderCommand_DrawCall& cmd) {
-	if (!cmd.vertexLayout) { SGE_ASSERT(false); return; }
-
-	auto* vertexBuffer = static_cast<RenderGpuBuffer_GL*>(cmd.vertexBuffer.ptr());
-	RenderGpuBuffer_GL* indexBuffer = nullptr;
-
-	if (!vertexBuffer && cmd.vertexCount <= 0) { SGE_ASSERT(false); return; }
-	if (cmd.primitive == RenderPrimitiveType::None) { SGE_ASSERT(false); return; }
-
-	if (cmd.indexCount > 0) {
-		indexBuffer = static_cast<RenderGpuBuffer_GL*>(cmd.indexBuffer.ptr());
-		if (!indexBuffer) { SGE_ASSERT(false); return; }
-	}
-
-	vertexBuffer->bind();
+	if (cmd.isComputeCall())
 	{
-		auto	primitive	 = Util::getGlPrimitiveTopology(cmd.primitive);
-		GLsizei stride		 = static_cast<GLsizei>(cmd.vertexLayout->stride); SGE_UNUSED(stride);
-		GLsizei vertexCount  = static_cast<GLsizei>(cmd.vertexCount);
-		GLsizei indexCount   = static_cast<GLsizei>(cmd.indexCount);
-		GLsizei vertexOffset = static_cast<GLsizei>(cmd.vertexOffset);
-		SGE_UNUSED(vertexOffset);
+		auto* mtlPass = cmd.getMaterialPass();
+		if (!mtlPass) { SGE_ASSERT(false); return; }
 
-		if (auto* pass = cmd.getMaterialPass()) {
-			pass->bind(this, cmd);
-		} else {
-			_setTestShaders(cmd.vertexLayout);
-		}
-
-		if (indexCount > 0) {
-			indexBuffer->bind();
-			glDrawElements(primitive, indexCount, Util::getGlFormat(cmd.indexType), reinterpret_cast<const void*>(cmd.indexOffset));
-			indexBuffer->unbind();
-			Util::throwIfError();
-		} else {
-			glDrawArrays(primitive, 0, static_cast<GLsizei>(vertexCount));
-			Util::throwIfError();
-		}
+		auto scopedBind = mtlPass->scopedBind(*this, cmd);
+		auto tc = Vec3<GLuint>::s_cast(cmd.threadGroupCount.value());
+		glDispatchCompute(tc.x, tc.y, tc.z);
 	}
-	vertexBuffer->unbind();
+	else
+	{
+		if (!cmd.vertexLayout) { SGE_ASSERT(false); return; }
+
+		auto* vertexBuffer = static_cast<RenderGpuBuffer_GL*>(cmd.vertexBuffer.ptr());
+		RenderGpuBuffer_GL* indexBuffer = nullptr;
+
+		if (!vertexBuffer && cmd.vertexCount <= 0) { SGE_ASSERT(false); return; }
+		if (cmd.primitive == RenderPrimitiveType::None) { SGE_ASSERT(false); return; }
+
+		if (cmd.indexCount > 0) {
+			indexBuffer = static_cast<RenderGpuBuffer_GL*>(cmd.indexBuffer.ptr());
+			if (!indexBuffer) { SGE_ASSERT(false); return; }
+		}
+
+		glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer->handle()); // TODO, when bind ssbo, treat as vbo, do not call vertexBuffer->bind();
+		{
+
+			auto	primitive	 = Util::getGlPrimitiveTopology(cmd.primitive);
+			GLsizei stride		 = static_cast<GLsizei>(cmd.vertexLayout->stride); SGE_UNUSED(stride);
+			GLsizei vertexCount  = static_cast<GLsizei>(cmd.vertexCount);
+			GLsizei indexCount   = static_cast<GLsizei>(cmd.indexCount);
+			GLsizei vertexOffset = static_cast<GLsizei>(cmd.vertexOffset);
+			SGE_UNUSED(vertexOffset);
+
+			auto* mtlPass = cmd.getMaterialPass();
+			if (!mtlPass) { SGE_ASSERT(false); return; }
+			auto scopedBind = mtlPass->scopedBind(*this, cmd);
+
+			if (indexCount > 0) {
+				indexBuffer->bind();
+					glDrawElements(primitive
+									, indexCount
+									, Util::getGlFormat(cmd.indexType)
+									, reinterpret_cast<const void*>(cmd.indexOffset)
+					);
+					Util::throwIfError();
+				indexBuffer->unbind();
+			} else {
+				glDrawArrays(primitive, 0, static_cast<GLsizei>(vertexCount));
+				Util::throwIfError();
+			}
+		}
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+	}
 }
 
 void RenderContext_GL_Win32::onCmd_SetScissorRect(RenderCommand_SetScissorRect& cmd) {
@@ -252,16 +267,11 @@ void RenderContext_GL_Win32::onCmd_SetScissorRect(RenderCommand_SetScissorRect& 
 	rc.y = _frameBufferSize.y - rc.yMax(); // OpenGL using bottom-left coordinate
 	glScissor(GLint(rc.x), GLint(rc.y), GLsizei(rc.w), GLsizei(rc.h));
 }
-#if 0 // no use now
-void RenderContext_GL_Win32::onCmd_SetViewport(RenderCommand_SetViewport& cmd) {
-	Rect2f& rc = cmd.rect;
-	glViewport(GLint(rc.x), GLint(rc.y), GLsizei(rc.w), GLsizei(rc.h));
-	glDepthRange(GLclampd(cmd.depthRange.x), GLclampd(cmd.depthRange.y));
-}
-#endif
+
 void RenderContext_GL_Win32::onCmd_SwapBuffers(RenderCommand_SwapBuffers& cmd) {
-	if (_win32_dc)
+	if (_win32_dc) {
 		SwapBuffers(_win32_dc);
+	}
 	Util::throwIfError();
 }
 

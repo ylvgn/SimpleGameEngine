@@ -2,6 +2,7 @@
 
 namespace sge {
 
+// FYI: https://learnopengl.com/PBR/Lighting
 class sge_learnopengl_example_002 : public JoeyOGL_NativeUIWindow {
 	using Base = JoeyOGL_NativeUIWindow;
 public:
@@ -25,6 +26,22 @@ public:
 			_aoMap		  = renderer->createTexture2DFromFile("Assets/Textures/pbr/rusted_iron/ao.png");
 		}
 
+		Tuple3f light_colors[4] = {
+			Tuple3f(1, 0, 0),
+			Tuple3f(0, 1, 0),
+			Tuple3f(0, 0, 1),
+			Tuple3f(0.1f, 0.1f, 0.1f),
+		};
+		RenderFloat32x3Array my_light_colors(light_colors, 4);
+
+		Tuple3f light_positions[4] = {
+			Tuple3f(0.5f, 0.0f, 0.0f),
+			Tuple3f(0.0f, 0.5f, 0.0f),
+			Tuple3f(0.0f, 0.0f, 0.5f),
+			Tuple3f(0.5f, 0.5f, 0.5f),
+		};
+		RenderFloat32x3Array my_light_positions(light_positions, 4);
+
 		{ // create entity
 			{ // create mesh
 				EditMesh editMesh;
@@ -46,13 +63,14 @@ public:
 				mtl->setShader(_shader);
 				// TODO: when forget pass anyone texture will throw exception
 				// TODO: cpu Color4b to float3 HLSL
-				// TODO: shader compiler reflection const buffer(uniform variable) array vector like float3[]
 				mtl->setParam("albedoMap", _albedoMap);
 				mtl->setParam("normalMap", _normalMap);
 				mtl->setParam("metallicMap", _metallicMap);
 				mtl->setParam("roughnessMap", _roughnessMap);
 				mtl->setParam("aoMap", _aoMap);
 				mtl->setParam("my_switch_impl", 1);
+				mtl->setParam("my_light_positions", my_light_positions);
+				mtl->setParam("my_light_colors", my_light_colors);
 				mr->material = mtl;
 			}
 		}
@@ -71,6 +89,9 @@ public:
 				mtl->setParam("metallicMap", _metallicMap);
 				mtl->setParam("roughnessMap", _roughnessMap);
 				mtl->setParam("aoMap", _aoMap);
+				mtl->setParam("my_switch_impl", 0);
+				mtl->setParam("my_light_positions", my_light_positions);
+				mtl->setParam("my_light_colors", my_light_colors);
 				mr->material = mtl;
 			}
 		}
@@ -94,13 +115,13 @@ public:
 		_renderRequest.reset(_renderContext, _camera);
 
 		_renderRequest.cameraFrustum = _camera.frustum();
-		_renderRequest.clearFrameBuffers()->setColor({ 0, 0, 0.f, 1 });
+		_renderRequest.clearFrameBuffers()->setColor({ 0, 0, 0.2f, 1 });
 
 		CRendererSystem::instance()->render(_renderRequest);
 
-		_hierarchyWindow.draw(_scene, _renderRequest);
-		_inspectorWindow.draw(_scene, _renderRequest);
-		_statisticsWindow.draw(_scene, _renderRequest);
+		//_hierarchyWindow.draw(_scene,  _renderRequest);
+		//_inspectorWindow.draw(_scene,  _renderRequest);
+		//_statisticsWindow.draw(_scene, _renderRequest);
 
 		_renderContext->drawUI(_renderRequest);
 		_renderRequest.swapBuffers();
@@ -110,13 +131,13 @@ public:
 		drawNeeded();
 	}
 
-	SPtr<MeshAsset>		_meshAsset;
-	SPtr<Texture2D>		_albedoMap;
-	SPtr<Texture2D>		_normalMap;
-	SPtr<Texture2D>		_metallicMap;
-	SPtr<Texture2D>		_roughnessMap;
-	SPtr<Texture2D>		_aoMap;
-	SPtr<Shader>		_shader;
+	SPtr<MeshAsset>	_meshAsset;
+	SPtr<Texture2D>	_albedoMap;
+	SPtr<Texture2D>	_normalMap;
+	SPtr<Texture2D>	_metallicMap;
+	SPtr<Texture2D>	_roughnessMap;
+	SPtr<Texture2D>	_aoMap;
+	SPtr<Shader>	_shader;
 };
 
 } // namespace sge

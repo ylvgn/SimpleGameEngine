@@ -1,9 +1,9 @@
 #include "Material_GL.h"
-
-#if SGE_RENDER_HAS_OPENGL
-
 #include "RenderContext_GL.h"
 #include "Texture_GL.h"
+#include "RenderGpuStorageBuffer_GL.h"
+
+#if SGE_RENDER_HAS_OPENGL
 
 namespace sge {
 
@@ -13,6 +13,10 @@ namespace sge {
 void Material_GL::MyVertexStage::bind(RenderContext_GL* ctx, RenderCommand_DrawCall& drawCall) {
 	bindInputLayout(ctx, drawCall);
 	s_bindStageHelper(ctx, this);
+}
+
+void Material_GL::MyVertexStage::unbind(RenderContext_GL* ctx, RenderCommand_DrawCall& drawCall) {
+	s_unbindStageHelper(ctx, this);
 }
 
 void Material_GL::MyVertexStage::bindInputLayout(RenderContext_GL* ctx, RenderCommand_DrawCall& drawCall) {
@@ -47,28 +51,61 @@ void Material_GL::MyPixelStage::bind(RenderContext_GL* ctx, RenderCommand_DrawCa
 	s_bindStageHelper(ctx, this);
 }
 
+void Material_GL::MyPixelStage::unbind(RenderContext_GL* ctx, RenderCommand_DrawCall& drawCall) {
+	s_unbindStageHelper(ctx, this);
+}
+
+
+#if 0
+#pragma mark ========= Material_GL::MyComputeStage ============
+#endif
+void Material_GL::MyComputeStage::bind(RenderContext_GL* ctx, RenderCommand_DrawCall& drawCall) {
+	s_bindStageHelper(ctx, this);
+}
+
+void Material_GL::MyComputeStage::unbind(RenderContext_GL* ctx, RenderCommand_DrawCall& drawCall) {
+	s_unbindStageHelper(ctx, this);
+}
+
 
 #if 0
 #pragma mark ========= Material_GL::MyPass ============
 #endif
 Material_GL::MyPass::MyPass(Material_GL* material, ShaderPass* shaderPass) noexcept
 	: Base(material, shaderPass)
-	, _vertexStage(this, shaderPass->vertexStage())
-	, _pixelStage (this, shaderPass->pixelStage())
+	, _myVertexStage(this, shaderPass->vertexStage())
+	, _myPixelStage (this, shaderPass->pixelStage())
+	, _myComputeStage(this, shaderPass->computeStage())
 {
-	Base::_vertexStage = &_vertexStage;
-	Base::_pixelStage  = &_pixelStage;
+	_vertexStage	= &_myVertexStage;
+	_pixelStage		= &_myPixelStage;
+	_computeStage	= &_myComputeStage;
 }
 
 void Material_GL::MyPass::onBind(RenderContext* ctx_, RenderCommand_DrawCall& drawCall) {
 	auto* ctx = static_cast<RenderContext_GL*>(ctx_);
 
-	shaderPass()->bind();
+	auto* shaderPass_ = shaderPass();
+	if (!shaderPass_) throw SGE_ERROR("");
+	shaderPass_->bind();
 
-	_vertexStage.bind(ctx, drawCall);
-	_pixelStage.bind(ctx, drawCall);
+	if (hasVS()) _myVertexStage.bind(ctx, drawCall);
+	if (hasPS()) _myPixelStage.bind(ctx, drawCall);
+	if (hasCS()) _myComputeStage.bind(ctx, drawCall);
 
 	_bindRenderState(ctx);
+}
+
+void Material_GL::MyPass::onUnbind(RenderContext* ctx_, RenderCommand_DrawCall& drawCall) {
+	auto* ctx = static_cast<RenderContext_GL*>(ctx_);
+
+	auto* shaderPass_ = shaderPass();
+	if (!shaderPass_) throw SGE_ERROR("");
+	shaderPass_->unbind();
+
+	if (hasVS()) { _myVertexStage.unbind(ctx, drawCall); }
+	if (hasPS()) { _myPixelStage.unbind(ctx, drawCall); }
+	if (hasCS()) { _myComputeStage.unbind(ctx, drawCall); }
 }
 
 void Material_GL::MyPass::_bindRenderState(RenderContext_GL* ctx) {
@@ -189,18 +226,19 @@ sgeMaterial_InterfaceFunctions_Impl(GL);
 template<class STAGE>
 void Material_GL::s_bindStageHelper(RenderContext_GL* ctx, STAGE* stage) {
 	auto* shaderStage = stage->shaderStage();
-	if (!shaderStage) return;
+	if (!shaderStage) throw SGE_ERROR("");
+	//shaderStage->bind(ctx); no need atm
 
 	const auto& program = stage->shaderPass()->program();
 
-	{ //const buffer
+	{ // const buffer
 		for (auto& cb : stage->constBuffers()) {
 			auto* gpuBuffer = static_cast<RenderGpuBuffer_GL*>(cb.gpuBuffer.ptr());
 			if (!gpuBuffer)
-				throw SGE_ERROR("cosnt buffer is null");
+				throw SGE_ERROR("const buffer is null");
 
-			auto handler = gpuBuffer->handle();
-			if (!handler)
+			auto handle = gpuBuffer->handle();
+			if (!handle)
 				throw SGE_ERROR("gl buffer is null");
 
 			auto* cbInfo = cb.info();
@@ -209,15 +247,15 @@ void Material_GL::s_bindStageHelper(RenderContext_GL* ctx, STAGE* stage) {
 			if (ubIndex == GL_INVALID_INDEX)
 				throw SGE_ERROR("shader program not found uniform block '{}'", cbInfo->name);
 
-			GLuint bindPoint = cbInfo->bindPoint; // glsl uniform loc
+			GLuint bindPoint = Util::castGLuint(cbInfo->bindPoint); // glsl uniform loc
 
-			stage->_glSetConstBuffer(ubIndex, bindPoint, handler);
+			stage->_glSetConstBuffer(ubIndex, bindPoint, handle);
 
 			cb.uploadToGpu();
 		}
 	}
 
-	{ //bind texture
+	{ // bind texture
 		GLuint texUnit = 0;
 		for (auto& texParam : stage->texParams()) {
 			auto* tex = texParam.getUpdatedTexture();
@@ -283,6 +321,43 @@ void Material_GL::s_bindStageHelper(RenderContext_GL* ctx, STAGE* stage) {
 		}
 		glActiveTexture(GL_TEXTURE0 /* + 0*/);
 		Util::throwIfError();
+	}
+
+	{ // bind storage buffers
+		for (auto& bufParam : stage->storageBufParams()) {
+			auto* sbuf = static_cast<RenderGpuStorageBuffer_GL*>(bufParam.storageGpuBuffer());
+			if (!sbuf) continue;
+
+			auto* gpuBuffer = sbuf->gpuBuffer();
+			if (!gpuBuffer)
+				throw SGE_ERROR("ssao buffer is null");
+
+			auto handle = gpuBuffer->handle();
+			if (!handle)
+				throw SGE_ERROR("gl buffer is null");
+
+			GLuint bindPoint = Util::castGLuint(bufParam.bindPoint());
+			glBindBufferRange(GL_SHADER_STORAGE_BUFFER, bindPoint, handle, 0, gpuBuffer->bufferSize());
+		}
+	}
+}
+
+template<class STAGE>
+void Material_GL::s_unbindStageHelper(RenderContext_GL* ctx, STAGE* stage) {
+	auto* shaderStage = stage->shaderStage();
+	if (!shaderStage) throw SGE_ERROR("");
+	//shaderStage->unbind(ctx); no need atm
+
+	{ // unbind storage buffers
+		for (auto& bufParam : stage->storageBufParams()) {
+			auto* sbuf = static_cast<RenderGpuStorageBuffer_GL*>(bufParam.storageGpuBuffer());
+			if (!sbuf) continue;
+
+			auto* gpuBuffer = sbuf->gpuBuffer();
+			if (!gpuBuffer)
+				throw SGE_ERROR("ssao buffer is null");
+			gpuBuffer->unbind();
+		}
 	}
 }
 

@@ -54,7 +54,7 @@ class ShaderCompiler_DX11_ID3DInclude : public ID3DInclude {
 		u8*		_buf = nullptr;
 		size_t  _bufSize = 0;
 		String  _filename;
-	};
+	}; // Chunk
 
 public:
 	ShaderCompiler_DX11_ID3DInclude(StrView srcFilename, Vector<String>& include_dirs) noexcept
@@ -97,7 +97,7 @@ public:
 					if (File::exists(tmpName)) {
 						break;
 					}
-					SGE_DUMP_VAR(FilePath::realpath(tmpName));
+//					SGE_DUMP_VAR(FilePath::realpath(tmpName));
 					tmpName.clear();
 				}
 				if (tmpName.empty()) {
@@ -178,6 +178,7 @@ private:
 	String					 _filename;
 }; // ShaderCompiler_DX11_ID3DInclude
 
+
 #if 0
 #pragma mark ========= ShaderCompiler_DX11 ============
 #endif
@@ -220,12 +221,12 @@ void ShaderCompiler_DX11::compile(StrView outFilename, ShaderStageMask shaderSta
 
 	TempString profileA = profile;
 	auto hr = ::D3DCompile2(hlsl.data(), hlsl.size(), memmap.filename().c_str(),
-								 macros, &include,
-								 entryPoint.c_str(),
-								 profileA.c_str(),
-								 flags1, flags2, 0, nullptr, 0,
-								 bytecode.ptrForInit(),
-								 errorMsg.ptrForInit());
+							macros, &include,
+							entryPoint.c_str(),
+							profileA.c_str(),
+							flags1, flags2, 0, nullptr, 0,
+							bytecode.ptrForInit(),
+							errorMsg.ptrForInit());
 
 	if (FAILED(hr)) {
 		throw SGE_ERROR("HRESULT={}\n Error Message: {}", hr, Util::toStrView(errorMsg));
@@ -243,7 +244,7 @@ void ShaderCompiler_DX11::_reflect(StrView outFilename, ByteSpan bytecode, Shade
 	auto hr = ::D3DReflect(bytecode.data(), bytecode.size(), IID_PPV_ARGS(reflect.ptrForInit()));
 	Util::throwIfError(hr);
 
-	D3D11_SHADER_DESC desc;
+	::D3D11_SHADER_DESC desc;
 	hr = reflect->GetDesc(&desc);
 	Util::throwIfError(hr);
 
@@ -256,6 +257,7 @@ void ShaderCompiler_DX11::_reflect(StrView outFilename, ByteSpan bytecode, Shade
 		_reflect_constBuffers	(outInfo, reflect, desc);
 		_reflect_textures		(outInfo, reflect, desc);
 		_reflect_samplers		(outInfo, reflect, desc);
+		_reflect_storageBuffers (outInfo, reflect, desc);
 	}
 
 	{
@@ -265,9 +267,9 @@ void ShaderCompiler_DX11::_reflect(StrView outFilename, ByteSpan bytecode, Shade
 }
 
 void ShaderCompiler_DX11::_reflect_inputs(ShaderStageInfo& outInfo, DX11_ID3DShaderReflection* reflect, D3D11_SHADER_DESC& desc) {
-	HRESULT hr;
-
+	::HRESULT hr;
 	outInfo.inputs.reserve(desc.InputParameters);
+
 	for (UINT i = 0; i < desc.InputParameters; ++i) {
 		auto& dst = outInfo.inputs.emplace_back();
 
@@ -310,9 +312,9 @@ void ShaderCompiler_DX11::_reflect_inputs(ShaderStageInfo& outInfo, DX11_ID3DSha
 }
 
 void ShaderCompiler_DX11::_reflect_constBuffers(ShaderStageInfo& outInfo, DX11_ID3DShaderReflection* reflect, D3D11_SHADER_DESC& desc) {
-	HRESULT hr;
-
+	::HRESULT hr;
 	outInfo.constBuffers.reserve(desc.BoundResources);
+
 	for (UINT i = 0; i < desc.BoundResources; ++i) {
 		D3D11_SHADER_INPUT_BIND_DESC resDesc;
 		hr = reflect->GetResourceBindingDesc(i, &resDesc);
@@ -332,34 +334,51 @@ void ShaderCompiler_DX11::_reflect_constBuffers(ShaderStageInfo& outInfo, DX11_I
 		outCB.bindCount	= static_cast<i16>(resDesc.BindCount);
 		outCB.dataSize	= bufDesc.Size;
 
-		{
+		{ // variables
 			outCB.variables.reserve(bufDesc.Variables);
-			for (UINT j=0; j<bufDesc.Variables; j++) {
+			for (UINT j = 0; j < bufDesc.Variables; j++) {
 				auto cbv = cb->GetVariableByIndex(j);
-				D3D11_SHADER_VARIABLE_DESC varDesc;
+				::D3D11_SHADER_VARIABLE_DESC varDesc;
 				hr = cbv->GetDesc(&varDesc);
 				Util::throwIfError(hr);
 
-				D3D11_SHADER_TYPE_DESC varType;
+				::D3D11_SHADER_TYPE_DESC varType;
 				hr = cbv->GetType()->GetDesc(&varType);
 				Util::throwIfError(hr);
 
-				if (0 == (varDesc.uFlags & D3D_SVF_USED)) continue;
+				if (0 == (varDesc.uFlags & D3D_SVF_USED))
+					continue;
 
-				auto& outVar = outCB.variables.emplace_back();
-				outVar.name = varDesc.Name;
-				outVar.offset = varDesc.StartOffset;
-				//------------------------------
+				auto& outVar			= outCB.variables.emplace_back();
+
+				using SGE_Offset		= decltype(outVar.offset);
+				using SGE_ElementCount  = decltype(outVar.elementCount);
+				using SGE_DataSize		= decltype(outVar.dataSize);
+
+				const auto& varDataSize		= varDesc.Size;
+				const auto& varElementCount = varType.Elements;
+
+				outVar.name		= varDesc.Name;
+				outVar.offset	= static_cast<SGE_Offset>(varDesc.StartOffset);
+				outVar.dataSize	= static_cast<SGE_DataSize>(varDataSize);
+
+				if (varType.Offset > 0) {
+					// TODO: custom structure
+				} else {
+					outVar.elementCount = static_cast<SGE_ElementCount>(varElementCount);
+				}
+
 				TempString dataType;
 				switch (varType.Type) {
-					case D3D_SVT_BOOL:	dataType.append("Bool");	break;
-					case D3D_SVT_INT:	dataType.append("Int32");	break;
-					case D3D_SVT_UINT:	dataType.append("UInt32");	break;
-					case D3D_SVT_UINT8:	dataType.append("UInt8");	break;
-					case D3D_SVT_FLOAT: dataType.append("Float32");	break;
-					case D3D_SVT_DOUBLE:dataType.append("Float64");	break;
-				//----
-					default: throw SGE_ERROR("unsupported type {}", static_cast<int>(varType.Type));
+					case D3D_SVT_BOOL:	 dataType.append("Bool");		break;
+					case D3D_SVT_INT:	 dataType.append("Int32");		break;
+					case D3D_SVT_UINT:	 dataType.append("UInt32");		break;
+					case D3D_SVT_UINT8:	 dataType.append("UInt8");		break;
+					case D3D_SVT_FLOAT:  dataType.append("Float32");	break;
+					case D3D_SVT_DOUBLE: dataType.append("Float64");	break;
+				//---
+					default:
+						throw SGE_ERROR("unsupported type {}", static_cast<int>(varType.Type));
 				}
 
 				switch (varType.Class) {
@@ -375,8 +394,13 @@ void ShaderCompiler_DX11::_reflect_constBuffers(ShaderStageInfo& outInfo, DX11_I
 						FmtTo(dataType, "_{}x{}", varType.Rows, varType.Columns); // e.g. ${dataType}_4x4
 						outVar.rowMajor = true;
 						break;
-				//----
-					default: throw SGE_ERROR("unsupported Class {}", static_cast<int>(varType.Class));
+				//---
+					default:
+						throw SGE_ERROR("unsupported Class {}", static_cast<int>(varType.Class));
+				}
+
+				if (varType.Elements > 0) {
+					dataType.append("Array");
 				}
 
 				if (!enumTryParse(outVar.dataType, dataType)) {
@@ -393,9 +417,9 @@ void ShaderCompiler_DX11::_reflect_constBuffers(ShaderStageInfo& outInfo, DX11_I
 }
 
 void ShaderCompiler_DX11::_reflect_textures(ShaderStageInfo& outInfo, DX11_ID3DShaderReflection* reflect, D3D11_SHADER_DESC& desc) {
-	HRESULT hr;
-
+	::HRESULT hr;
 	outInfo.textures.reserve(desc.BoundResources);
+
 	for (UINT i = 0; i < desc.BoundResources; ++i) {
 		D3D11_SHADER_INPUT_BIND_DESC resDesc;
 		hr = reflect->GetResourceBindingDesc(i, &resDesc);
@@ -418,17 +442,18 @@ void ShaderCompiler_DX11::_reflect_textures(ShaderStageInfo& outInfo, DX11_ID3DS
 			case D3D_SRV_DIMENSION_TEXTURE2DARRAY:	outTex.dataType = DataType::Texture2DArray;   break;
 			case D3D_SRV_DIMENSION_TEXTURECUBEARRAY:outTex.dataType = DataType::TextureCubeArray; break;
 		//----
-			default: throw SGE_ERROR("unsupported texture dimension {}", static_cast<int>(resDesc.Dimension));
+			default:
+				throw SGE_ERROR("unsupported texture dimension {}", static_cast<int>(resDesc.Dimension));
 		}
 	}
 }
 
 void ShaderCompiler_DX11::_reflect_samplers(ShaderStageInfo& outInfo, DX11_ID3DShaderReflection* reflect, D3D11_SHADER_DESC& desc) {
-	HRESULT hr;
-
+	::HRESULT hr;
 	outInfo.samplers.reserve(desc.BoundResources);
+
 	for (UINT i = 0; i < desc.BoundResources; ++i) {
-		D3D11_SHADER_INPUT_BIND_DESC resDesc;
+		::D3D11_SHADER_INPUT_BIND_DESC resDesc;
 		hr = reflect->GetResourceBindingDesc(i, &resDesc);
 		Util::throwIfError(hr);
 
@@ -438,6 +463,29 @@ void ShaderCompiler_DX11::_reflect_samplers(ShaderStageInfo& outInfo, DX11_ID3DS
 		outSampler.name			= resDesc.Name;
 		outSampler.bindPoint	= static_cast<i16>(resDesc.BindPoint);
 		outSampler.bindCount	= static_cast<i16>(resDesc.BindCount);
+	}
+}
+
+void ShaderCompiler_DX11::_reflect_storageBuffers(ShaderStageInfo& outInfo, DX11_ID3DShaderReflection* reflect, D3D11_SHADER_DESC& desc) {
+	::HRESULT hr;
+	outInfo.storageBuffers.reserve(desc.BoundResources);
+
+	for (UINT i = 0; i < desc.BoundResources; ++i) {
+		::D3D11_SHADER_INPUT_BIND_DESC resDesc;
+		hr = reflect->GetResourceBindingDesc(i, &resDesc);
+		Util::throwIfError(hr);
+
+		if (resDesc.Type != D3D_SIT_STRUCTURED			 // struct
+			&& resDesc.Type != D3D_SIT_UAV_RWSTRUCTURED  // RWStructuredBuffer<T>
+			&& resDesc.Type != D3D_SIT_UAV_RWBYTEADDRESS // RWByteAddressBuffer
+		)
+		continue;
+
+		auto& sbuf = outInfo.storageBuffers.emplace_back();
+		sbuf.name = resDesc.Name;
+		sbuf.bindPoint = static_cast<i16>(resDesc.BindPoint);
+		sbuf.bindCount = static_cast<i16>(resDesc.BindCount);
+		sbuf.rawUAV	   = (resDesc.Type == D3D_SIT_UAV_RWBYTEADDRESS);
 	}
 }
 

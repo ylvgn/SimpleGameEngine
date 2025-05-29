@@ -12,6 +12,7 @@ namespace sge {
 class Material_DX11 : public Material {
 	using Base = Material;
 	using Util = DX11Util;
+
 	sgeMaterial_InterfaceFunctions(DX11);
 
 	class MyPass;
@@ -32,8 +33,10 @@ class Material_DX11 : public Material {
 
 		ShaderStage* shaderStage() { return static_cast<ShaderStage*>(_shaderStage); }
 
-		void bind(RenderContext_DX11* ctx, RenderCommand_DrawCall& drawCall);
-		void bindInputLayout(RenderContext_DX11* ctx, const VertexLayout* vertexLayout);
+		void bind  (RenderContext_DX11* ctx, RenderCommand_DrawCall& drawCall);
+		void unbind(RenderContext_DX11* ctx, RenderCommand_DrawCall& drawCall);
+
+		void _bindInputLayout(RenderContext_DX11* ctx, const VertexLayout* vertexLayout);
 
 		void _dxSetConstBuffer(DX11_ID3DDeviceContext* dc, UINT bindPoint, DX11_ID3DBuffer* d3dBuf) {
 			dc->VSSetConstantBuffers(bindPoint, 1, &d3dBuf);
@@ -66,7 +69,8 @@ class Material_DX11 : public Material {
 
 		ShaderStage* shaderStage() { return static_cast<ShaderStage*>(_shaderStage); }
 
-		void bind(RenderContext_DX11* ctx, RenderCommand_DrawCall& drawCall);
+		void bind  (RenderContext_DX11* ctx, RenderCommand_DrawCall& drawCall);
+		void unbind(RenderContext_DX11* ctx, RenderCommand_DrawCall& drawCall);
 
 		void _dxSetConstBuffer(DX11_ID3DDeviceContext* dc, UINT bindPoint, DX11_ID3DBuffer* d3dBuf) {
 			dc->PSSetConstantBuffers(bindPoint, 1, &d3dBuf);
@@ -83,6 +87,38 @@ class Material_DX11 : public Material {
 
 
 	#if 0
+	#pragma mark ========= Material_DX11::MyComputeStage ============
+	#endif
+	class MyComputeStage : public Material::ComputeStage {
+		using Base = typename Material::ComputeStage;
+	public:
+		using ShaderStage	= Shader_DX11::MyComputeStage;
+		using ShaderPass	= Shader_DX11::MyPass;
+		using Pass			= Material_DX11::MyPass;
+
+		MyComputeStage(MyPass* pass, ShaderComputeStage* shaderStage) noexcept
+			: Base(pass, shaderStage)
+		{}
+
+		ShaderStage* shaderStage() { return static_cast<ShaderStage*>(_shaderStage); }
+
+		void bind  (RenderContext_DX11* ctx, RenderCommand_DrawCall& drawCall);
+		void unbind(RenderContext_DX11* ctx, RenderCommand_DrawCall& drawCall);
+
+		void _dxSetConstBuffer(DX11_ID3DDeviceContext* dc, UINT bindPoint, DX11_ID3DBuffer* d3dBuf) {
+			dc->CSSetConstantBuffers(bindPoint, 1, &d3dBuf);
+		}
+
+		void _dxSetShaderResource(DX11_ID3DDeviceContext* dc, UINT bindPoint, DX11_ID3DShaderResourceView* rv) {
+			dc->CSSetShaderResources(bindPoint, 1, &rv);
+		}
+
+		void _dxSetSampler(DX11_ID3DDeviceContext* dc, UINT bindPoint, DX11_ID3DSamplerState* ss) {
+			dc->CSSetSamplers(bindPoint, 1, &ss);
+		}
+	}; // MyComputeStage
+
+	#if 0
 	#pragma mark ========= Material_DX11::MyPass ============
 	#endif
 	class MyPass : public Material::Pass {
@@ -94,30 +130,35 @@ class Material_DX11 : public Material {
 
 		MyShaderPass* shaderPass() const { return static_cast<MyShaderPass*>(_shaderPass); }
 
-		virtual void onBind(RenderContext* ctx, RenderCommand_DrawCall& drawCall) final;
+		virtual void onBind  (RenderContext* ctx, RenderCommand_DrawCall& drawCall) final;
+		virtual void onUnbind(RenderContext* ctx, RenderCommand_DrawCall& drawCall) final;
 
 		void _bindRenderState(RenderContext_DX11* ctx);
 
-		MyVertexStage _vertexStage;
-		 MyPixelStage  _pixelStage;
+		MyVertexStage	_myVertexStage;
+		MyPixelStage	_myPixelStage;
+		MyComputeStage  _myComputeStage;
 
 		ComPtr<DX11_ID3DRasterizerState>	_rasterizerState;
 		ComPtr<DX11_ID3DDepthStencilState>	_depthStencilState;
 		ComPtr<DX11_ID3DBlendState>			_blendState;
 	}; // MyPass
 
-	#if 0
-	#pragma mark ========= Material_DX11 ============
-	#endif
+#if 0
+#pragma mark ========= Material_DX11 ============
+#endif
 	using Pass			= MyPass;
 	using VertexStage	= MyVertexStage;
 	using PixelStage	= MyPixelStage;
+	using ComputeStage  = MyComputeStage;
 
 	Shader_DX11* shader() { return static_cast<Shader_DX11*>(_shader.ptr()); }
 
 	template<class STAGE>
 	static void s_bindStageHelper(RenderContext_DX11* ctx, STAGE* stage);
 
+	template<class STAGE>
+	static void s_unbindStageHelper(RenderContext_DX11* ctx, STAGE* stage);
 }; // Material_DX11
 
 } // namespace sge

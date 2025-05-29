@@ -5,6 +5,7 @@
 #if SGE_RENDER_HAS_OPENGL
 
 namespace sge {
+
 #if 0
 #pragma mark ========= RenderContext_GL_Base::VertexArray ============
 #endif

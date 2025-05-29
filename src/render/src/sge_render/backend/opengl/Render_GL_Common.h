@@ -11,7 +11,7 @@
 
 namespace sge {
 
-struct GLUtil {
+struct GLUtil : public RenderCommonBase {
 	GLUtil() = delete;
 
 	static void			reportError(GLenum errCode);
@@ -19,7 +19,6 @@ struct GLUtil {
 	static bool			assertIfError();
 
 	static void			compileShader(GLuint& shader, GLenum shaderStageType, StrView filename);
-	static void			linkShader(GLuint& program, GLuint& vsShader, GLuint& psShader);
 	static void			getShaderInfoLog(GLuint& shader, String& outMsg);
 	static void			getProgramInfoLog(GLuint& program, String& outMsg);
 
@@ -41,6 +40,10 @@ struct GLUtil {
 	static GLenum		getGlTextureWrap(TextureWrap t);
 	static GLenum		getGlTextureCubeFaceOrder(TextureCubeFaceOrder t);
 
+	static GLsizei		castGLsizei(int v)	{ return static_cast<GLsizei>(v); }
+	static GLuint		castGLuint(int v)	{ return static_cast<GLuint>(v); }
+	static GLint		castGLint(int v)	{ return static_cast<GLint>(v); }
+
 	static const char*	getGlSemanticName(VertexSemanticType v);
 	static int			getComponentCount(RenderDataType v);
 
@@ -54,6 +57,7 @@ struct GLUtil {
 private:
 	static bool			_checkError(GLenum errCode);
 };
+SGE_STATIC_ASSERT_NO_MEMBER_CLASS(GLUtil);
 
 SGE_INLINE
 bool GLUtil::_checkError(GLenum errCode) {
@@ -106,6 +110,7 @@ GLenum GLUtil::getGlBufferBindingTarget(RenderGpuBufferType v) {
 		case SRC::Vertex:	return GL_ARRAY_BUFFER;
 		case SRC::Index:	return GL_ELEMENT_ARRAY_BUFFER;
 		case SRC::Const:	return GL_UNIFORM_BUFFER;
+		case SRC::Storage:	return GL_SHADER_STORAGE_BUFFER;
 	//---
 		default: throw SGE_ERROR("unsupported RenderGpuBufferType '{}'", v);
 	}
@@ -204,6 +209,7 @@ GLenum GLUtil::getGlShaderType(ShaderStageMask s) {
 	switch (s) {
 		case SRC::Vertex:	return GL_VERTEX_SHADER;
 		case SRC::Pixel:	return GL_FRAGMENT_SHADER;
+		case SRC::Compute:	return GL_COMPUTE_SHADER;
 	//---
 		default: throw SGE_ERROR("unsupported ShaderStageMask '{}'", s);
 	}
@@ -216,13 +222,14 @@ const char* GLUtil::getGlStageProfile(ShaderStageMask s) {
 
 	static constexpr const char* vs = StringUtil::extractFromPrefix(Profile::GLSL_VS, "vs_");
 	static constexpr const char* ps = StringUtil::extractFromPrefix(Profile::GLSL_PS, "ps_");
-	static constexpr const char* cs = StringUtil::extractFromPrefix(Profile::GLSL_CS, "cs_"); SGE_UNUSED(cs);
+	static constexpr const char* cs = StringUtil::extractFromPrefix(Profile::GLSL_CS, "cs_");
 
 	switch (s) {
 		case SRC::Vertex:	return vs;
 		case SRC::Pixel:	return ps;
+		case SRC::Compute:	return cs;
 	//---
-		default: return "";
+		default: throw SGE_ERROR("unsupported ShaderStageMask '{}'", s);
 	}
 }
 

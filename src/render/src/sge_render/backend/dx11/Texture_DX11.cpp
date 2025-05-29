@@ -13,17 +13,17 @@ Texture2D_DX11::Texture2D_DX11(CreateDesc& desc)
 	auto* dev		= renderer->d3dDevice();
 
 	::D3D11_TEXTURE2D_DESC dxDesc = {};
-	dxDesc.Width				= desc.size.x;
-	dxDesc.Height				= desc.size.y;
-	dxDesc.MipLevels			= desc.mipmapCount;
-	dxDesc.ArraySize			= 1;
-	dxDesc.Format				= Util::getDxColorType(desc.colorType);
-	dxDesc.SampleDesc.Count		= 1;
-	dxDesc.SampleDesc.Quality	= 0;
-	dxDesc.Usage				= D3D11_USAGE_DEFAULT;
-	dxDesc.BindFlags			= D3D11_BIND_SHADER_RESOURCE; // D3D11_BIND_RENDER_TARGET
-	dxDesc.CPUAccessFlags		= 0; // D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE
-	dxDesc.MiscFlags			= 0; // D3D11_RESOURCE_MISC_GENERATE_MIPS
+	dxDesc.Width				  = desc.size.x;
+	dxDesc.Height				  = desc.size.y;
+	dxDesc.MipLevels			  = desc.mipmapCount;
+	dxDesc.ArraySize			  = 1;
+	dxDesc.Format				  = Util::getDxColorType(desc.colorType);
+	dxDesc.SampleDesc.Count		  = 1;
+	dxDesc.SampleDesc.Quality	  = 0;
+	dxDesc.Usage				  = D3D11_USAGE_DEFAULT;
+	dxDesc.BindFlags			  = D3D11_BIND_SHADER_RESOURCE; // D3D11_BIND_RENDER_TARGET
+	dxDesc.CPUAccessFlags		  = 0; // D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE
+	dxDesc.MiscFlags			  = 0; // D3D11_RESOURCE_MISC_GENERATE_MIPS
 
 	::D3D11_SUBRESOURCE_DATA initData = {};
 

@@ -32,7 +32,9 @@ public:
 		{}
 
 		void load(StrView passPath, DX11_ID3DDevice* dev);
-		void bind(RenderContext_DX11* ctx);
+
+		void bind  (RenderContext_DX11* ctx);
+		void unbind(RenderContext_DX11* ctx);
 
 		ByteSpan	bytecode()	const { return _bytecode; }
 		MyPass*		pass()		const { return static_cast<MyPass*>(_pass); }
@@ -55,7 +57,9 @@ public:
 		{}
 
 		void load(StrView passPath, DX11_ID3DDevice* dev);
-		void bind(RenderContext_DX11* ctx);
+
+		void bind  (RenderContext_DX11* ctx);
+		void unbind(RenderContext_DX11* ctx);
 
 		ByteSpan	bytecode()	const { return _bytecode; }
 		MyPass*		pass()		const { return static_cast<MyPass*>(_pass); }
@@ -64,6 +68,32 @@ public:
 		ComPtr<DX11_ID3DPixelShader>	_shader;
 		Vector<u8>						_bytecode;
 	}; // MyPixelStage
+
+
+	#if 0
+	#pragma mark ========= Shader_DX11::MyComputeStage ============
+	#endif
+	class MyComputeStage : public Shader::ComputeStage {
+		using Base = typename Shader::ComputeStage;
+	public:
+		using Pass = MyPass;
+
+		MyComputeStage(MyPass* pass) noexcept
+			: Base(pass)
+		{}
+
+		void load(StrView passPath, DX11_ID3DDevice* dev);
+
+		void bind  (RenderContext_DX11* ctx);
+		void unbind(RenderContext_DX11* ctx);
+
+		ByteSpan	bytecode()	const { return _bytecode; }
+		MyPass*		pass()		const { return static_cast<MyPass*>(_pass); }
+
+	private:
+		ComPtr<DX11_ID3DComputeShader>	_shader;
+		Vector<u8>						_bytecode;
+	}; // MyComputeStage
 
 	#if 0
 	#pragma mark ========= Shader_DX11::MyPass ============
@@ -80,15 +110,17 @@ public:
 
 		virtual void onInit() final;
 
-		MyVertexStage	_vertexStage;
-		 MyPixelStage	_pixelStage;
+		MyVertexStage	_myVertexStage;
+		MyPixelStage	_myPixelStage;
+		MyComputeStage  _myComputeStage;
 	}; // MyPass
 
-	#if 0
-	#pragma mark ========= Shader_DX11 ============
-	#endif
+#if 0
+#pragma mark ========= Shader_DX11 ============
+#endif
 	using VertexStage	= MyVertexStage;
 	using PixelStage	= MyPixelStage;
+	using ComputeStage	= MyComputeStage;
 	using Pass			= MyPass;
 
 	static void s_loadStageFile(StrView passPath, StrView profile, Vector<u8>& outBytecode, ShaderStageInfo& outInfo);

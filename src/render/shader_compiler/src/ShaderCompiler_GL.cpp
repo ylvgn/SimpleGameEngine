@@ -34,13 +34,6 @@ void ShaderCompiler_GL::compile(StrView outFilename, ShaderStageMask shaderStage
 
 	{ // HLSL -> SPIRV
 		if (!File::exists(spirvOutFilename)) {
-			TempString tmpShaderStage;
-			switch (shaderStage) {
-				case ShaderStageMask::Vertex: tmpShaderStage = "vertex";	break;
-				case ShaderStageMask::Pixel:  tmpShaderStage = "fragment";	break;
-				default: throw SGE_ERROR("unsupported ShaderStageMask '{}'", shaderStage);
-			}
-
 			auto outPath = FilePath::dirname(spirvOutFilename);
 			Directory::create(outPath);
 
@@ -55,7 +48,7 @@ void ShaderCompiler_GL::compile(StrView outFilename, ShaderStageMask shaderStage
 				params.emplace_back(Param("-fhlsl-functionality1"));
 				params.emplace_back(Param("-fhlsl-iomap"));
 
-				auto fshader_stage = Param("-fshader-stage", tmpShaderStage);
+				auto fshader_stage = Param("-fshader-stage", FileExtension::get(shaderStage));
 				fshader_stage.opAssignment = Param_Assignment::Equals;
 				params.emplace_back(fshader_stage);
 
@@ -120,7 +113,7 @@ void ShaderCompiler_GL::_convert(Compiler& comp, DataType& o, const SPIRType& i,
 		case SRC::UInt:		dataType.append("UInt32");	break;
 		case SRC::Int64:	dataType.append("Int64");	break;
 		case SRC::UInt64:	dataType.append("UInt64");	break;
-		case SRC::Half:		dataType.append("Float32");	break;
+		case SRC::Half:		dataType.append("Float16");	break;
 		case SRC::Float:	dataType.append("Float32");	break;
 		case SRC::Double:	dataType.append("Float64");	break;
 
@@ -135,12 +128,6 @@ void ShaderCompiler_GL::_convert(Compiler& comp, DataType& o, const SPIRType& i,
 			throw SGE_ERROR("unsupported SPIRType: {}", static_cast<int>(type));
 	}
 
-	if (!i.array.empty() && (columns > 1)) {
-		// Get array stride, e.g. float4 foo[]; Will have array stride of 16 bytes.
-		// size_t array_stride = comp.type_struct_member_array_stride(i, memberIndex);
-		throw SGE_ERROR("unsupported SPIRType array: {}", static_cast<int>(type));
-	}
-
 	if (image.type != 0) {
 		using Dim				= spv::Dim;
 		using ImageFormat		= spv::ImageFormat;
@@ -151,7 +138,9 @@ void ShaderCompiler_GL::_convert(Compiler& comp, DataType& o, const SPIRType& i,
 			case Dim::Dim2D: dataType.append("2D"); break;
 			case Dim::Dim3D: dataType.append("3D"); break;
 			case Dim::DimCube: dataType.append("Cube"); break;
-			default: throw SGE_ERROR("invalid texture dimension");
+		//---
+			default:
+				throw SGE_ERROR("invalid texture dimension");
 		}
 
 		if (image.arrayed) dataType.append("Array");
@@ -173,12 +162,19 @@ void ShaderCompiler_GL::_convert(Compiler& comp, DataType& o, const SPIRType& i,
 		} else if (columns > 1) {
 			FmtTo(dataType, "_{}x{}", columns, vecsize);	// matrix
 		}
+
+		if (!i.array.empty()) {
+			dataType.append("Array");
+		}
 	}
 
-	if (!enumTryParse(o, dataType))
+	if (!enumTryParse(o, dataType)) {
 		throw SGE_ERROR("cannot parse dataType {}", dataType);
+	}
 
-	SGE_ASSERT(o != DataType::None);
+	if (o == DataType::None) {
+		throw SGE_ERROR("dataType is None");
+	}
 }
 
 void ShaderCompiler_GL::_reflect(StrView outFilename, Compiler& comp, ShaderStageMask shaderStage, StrView profile) {
@@ -195,6 +191,7 @@ void ShaderCompiler_GL::_reflect(StrView outFilename, Compiler& comp, ShaderStag
 		_reflect_constBuffers	(outInfo, comp, resources);
 		_reflect_textures		(outInfo, comp, resources);
 		_reflect_samplers		(outInfo, comp, resources);
+		_reflect_storageBuffers (outInfo, comp, resources);
 	}
 
 	{
@@ -238,41 +235,53 @@ void ShaderCompiler_GL::_reflect_constBuffers(ShaderStageInfo& outInfo, Compiler
 	for (const auto& resource : resources.uniform_buffers) {
 		auto& outCB = outInfo.constBuffers.emplace_back();
 
-		using BindPoint = decltype(outCB.bindPoint);
-		using BindCount = decltype(outCB.bindCount);
-		using DataSize	= decltype(outCB.dataSize);
+		using SGE_BindPoint = decltype(outCB.bindPoint);
+		using SGE_BindCount = decltype(outCB.bindCount);
+		using SGE_DataSize	= decltype(outCB.dataSize);
 
 		auto  resId = resource.id;
 		const auto& uniform_type = comp.get_type(resource.base_type_id);
 
-		outCB.bindPoint = static_cast<BindPoint>(comp.get_decoration(resId, spv::DecorationBinding));
+		outCB.bindPoint = static_cast<SGE_BindPoint>(comp.get_decoration(resId, spv::DecorationBinding));
 
 		if (outCB.bindPoint >= GL_MAX_UNIFORM_BUFFER_BINDINGS)
 			throw SGE_ERROR("invalid bindPoint out of bound: {} >= {}", outCB.bindPoint, GL_MAX_UNIFORM_BUFFER_BINDINGS);
 
 		outCB.name.assign(resource.name.c_str(), resource.name.size());
-		outCB.dataSize = static_cast<DataSize>(comp.get_declared_struct_size(uniform_type));
-		outCB.bindCount = Math::max(BindCount(uniform_type.array.size()), BindCount(1));
+		outCB.dataSize = static_cast<SGE_DataSize>(comp.get_declared_struct_size(uniform_type));
+		outCB.bindCount = Math::max(SGE_BindCount(uniform_type.array.size()), SGE_BindCount(1));
 
 		int i = 0;
 		for (const auto& member_type_id : uniform_type.member_types) {
-			auto& member_type = comp.get_type(member_type_id);
+			auto& outVar = outCB.variables.emplace_back();
 
-			auto& outVar	  = outCB.variables.emplace_back();
-			using SGE_Offset  = decltype(outVar.offset);
+			using SGE_Offset	    = decltype(outVar.offset);
+			using SGE_ElementCount  = decltype(outVar.elementCount);
+			using SGE_DataSize		= decltype(outVar.dataSize);
 
-			const auto& member_name   = comp.get_member_name(uniform_type.self, i);
-			const auto& member_offset = comp.type_struct_member_offset(uniform_type, i);
+			auto& member_type				= comp.get_type(member_type_id);
+			const auto& member_name			= comp.get_member_name(uniform_type.self, i);
+			const auto& member_offset		= comp.type_struct_member_offset(uniform_type, i);
+			const auto& struct_member_size  = comp.get_declared_struct_member_size(uniform_type, i);
 
 			outVar.name.assign(member_name.data(), member_name.size());
-			outVar.offset = static_cast<SGE_Offset>(member_offset);
+			outVar.offset   = static_cast<SGE_Offset>(member_offset);
+			outVar.dataSize = static_cast<SGE_DataSize>(struct_member_size);
+
+			if (!member_type.array.empty()) { // array
+				const auto& element_count = member_type.array[0];
+				if (element_count > 0) {
+					outVar.elementCount = static_cast<SGE_ElementCount>(element_count);
+				} else {
+					// TODO array runtime size
+				}
+			}
 
 			if (comp.get_member_decoration(resId, i, spv::Decoration::DecorationRowMajor)) {
 				outVar.rowMajor = true;
 			}
 
 			_convert(comp, outVar.dataType, member_type, i);
-
 			++i;
 		}
 	}
@@ -286,15 +295,15 @@ void ShaderCompiler_GL::_reflect_textures(ShaderStageInfo& outInfo, Compiler& co
 
 		using BindPoint = decltype(outTex.bindPoint);
 		using BindCount = decltype(outTex.bindCount);
-		using BindSet	= decltype(outTex.bindSet);
+//		using BindSet	= decltype(outTex.bindSet);
 
-		auto  resId = resource.id;
+		auto  resId		 = resource.id;
 		const auto& type = comp.get_type(resource.type_id);
 
 		outTex.name.assign(resource.name.c_str(), resource.name.size());
 		outTex.bindPoint = static_cast<BindPoint>(comp.get_decoration(resId, spv::DecorationBinding));
 		outTex.bindCount = Math::max(BindCount(type.array.size()), BindCount(1));
-		outTex.bindSet	 = static_cast<BindSet>(comp.get_decoration(resId, spv::DecorationDescriptorSet));
+//		outTex.bindSet	 = static_cast<BindSet>(comp.get_decoration(resId, spv::DecorationDescriptorSet));
 
 		_convert(comp, outTex.dataType, type);
 	}
@@ -308,17 +317,60 @@ void ShaderCompiler_GL::_reflect_samplers(ShaderStageInfo& outInfo, Compiler& co
 
 		using BindPoint	= decltype(outSampler.bindPoint);
 		using BindCount	= decltype(outSampler.bindCount);
-		using BindSet	= decltype(outSampler.bindSet);		
+//		using BindSet	= decltype(outSampler.bindSet);		
 
 		auto  resId = resource.id;
 		const auto& type = comp.get_type(resource.type_id);
 
 		outSampler.name.assign(resource.name.c_str(), resource.name.size());
-		outSampler.bindPoint	= static_cast<BindPoint>(comp.get_decoration(resId, spv::DecorationBinding));
-		outSampler.bindCount	= static_cast<BindSet>(type.array.empty() ? 1 : type.array[0]);
-		outSampler.bindSet		= static_cast<BindSet>(comp.get_decoration(resId, spv::DecorationDescriptorSet));
+		outSampler.bindPoint = static_cast<BindPoint>(comp.get_decoration(resId, spv::DecorationBinding));
+		outSampler.bindCount = static_cast<BindCount>(type.array.empty() ? 1 : type.array[0]);
+//		outSampler.bindSet	 = static_cast<BindSet>(comp.get_decoration(resId, spv::DecorationDescriptorSet));
 
 		_convert(comp, outSampler.dataType, type);
+	}
+}
+
+void ShaderCompiler_GL::_reflect_storageBuffers(ShaderStageInfo& outInfo, Compiler& comp, const ShaderResources& resources) {
+	outInfo.storageBuffers.reserve(resources.storage_buffers.size());
+
+	for (const auto& resource : resources.storage_buffers) {
+		auto& outStorageBuffer = outInfo.storageBuffers.emplace_back();
+
+		using BindPoint	= decltype(outStorageBuffer.bindPoint);
+		using BindCount	= decltype(outStorageBuffer.bindCount);
+//		using BindSet	= decltype(outStorageBuffer.rawUAV);
+
+		auto  resId = resource.id;
+		const auto& type = comp.get_type(resource.base_type_id);
+
+		outStorageBuffer.name.assign(resource.name.c_str(), resource.name.size());
+		outStorageBuffer.bindPoint = static_cast<BindPoint>(comp.get_decoration(resId, spv::DecorationBinding));
+		outStorageBuffer.bindCount = static_cast<BindCount>(type.array.empty() ? 1 : type.array[0]);
+//		outStorageBuffer.bindSet   = static_cast<BindSet>(comp.get_decoration(resId, spv::DecorationDescriptorSet));
+
+		if (type.basetype == SPIRType::Struct) {
+			if (!type.member_types.empty()) {
+				const auto& member_type = comp.get_type(type.member_types[0]);
+
+				if (!member_type.array.empty()) {
+					if (member_type.array[0] == 0) {
+						outStorageBuffer.rawUAV = true;
+					}
+					else {
+						// TODO Fixed-size array
+					}
+				}
+
+#if 0 // no need atm
+				// Check member base type
+				switch (member_type.basetype) {
+					case SPIRType::UInt: SGE_DUMP_VAR("Member Base type: uint"); break;
+					default: break;
+				}
+#endif
+			}
+		}
 	}
 }
 
@@ -363,7 +415,12 @@ void ShaderCompiler_GL::_beforeCompileSPIRVToGLSL(Compiler& comp, ShaderStageMas
 				comp.set_name(resId, resource.name); // --rename-interface-variable out <loc> <new_variable_name>
 			}
 		} break;
-		default: throw SGE_ERROR("unsupported ShaderStageMask '{}'", shaderStage);
+		case ShaderStageMask::Compute: {
+			// do nothing
+		} break;
+	//---
+		default:
+			throw SGE_ERROR("ShaderCompiler_GL: unsupported ShaderStageMask '{}'", shaderStage);
 	}
 }
 

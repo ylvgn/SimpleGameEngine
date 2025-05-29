@@ -15,7 +15,6 @@ class RenderSubMesh;
 	E(SwapBuffers,) \
 	E(DrawCall,) \
 	E(SetScissorRect,) \
-	/*E(SetViewport,) no use now */ \
 //----
 SGE_ENUM_CLASS(RenderCommandType, u32)
 
@@ -94,6 +93,8 @@ public:
 		return material ? material->getPass(materialPassIndex) : nullptr;
 	}
 
+	bool isComputeCall() const { return threadGroupCount.has_value(); }
+
 	RenderPrimitiveType		primitive = RenderPrimitiveType::None;
 
 	const VertexLayout*		vertexLayout = nullptr;
@@ -103,14 +104,15 @@ public:
 	SPtr<RenderGpuBuffer>	indexBuffer;
 
 	SPtr<Material>			material;
-	size_t					materialPassIndex = 0;
+	int						materialPassIndex = 0;
 
 	size_t					indexOffset		= 0;
 	size_t					vertexOffset	= 0;
 	size_t					vertexCount		= 0;
 	size_t					indexCount		= 0;
-}; // RenderCommand_DrawCall
 
+	Opt<Vec3i>				threadGroupCount;
+}; // RenderCommand_DrawCall
 
 #if 0
 #pragma mark ========= RenderCommand_SetScissorRect ============
@@ -124,21 +126,6 @@ public:
 
 	Rect2f rect {0};
 }; // RenderCommand_SetScissorRect
-
-#if 0
-#pragma mark ========= RenderCommand_SetViewport no use now ============
-//#endif
-class RenderCommand_SetViewport : public RenderCommand {
-	using Base = RenderCommand;
-public:
-	RenderCommand_SetViewport() noexcept
-		: Base(Type::SetViewport)
-	{}
-
-	Rect2f rect		  {0};
-	Vec2f  depthRange {0,1};
-}; // RenderCommand_SetViewport
-#endif
 
 #if 0
 #pragma mark ========= RenderCommandBuffer ============
@@ -158,13 +145,7 @@ public:
 		auto* cmd = newCommand<RenderCommand_SetScissorRect>();
 		cmd->rect = rect;
 	}
-#if 0 // no use now
-	void setViewport(const Rect2f& rect) {
-		_viewport = rect;
-		auto* cmd = newCommand<RenderCommand_SetViewport>();
-		cmd->rect = rect;
-	}
-#endif
+
 	RenderCommand_ClearFrameBuffers*	clearFrameBuffers()	{ return newCommand<RenderCommand_ClearFrameBuffers>();	}
 	RenderCommand_SwapBuffers*			swapBuffers()		{ return newCommand<RenderCommand_SwapBuffers>();		}
 	RenderCommand_DrawCall*				addDrawCall()		{ return newCommand<RenderCommand_DrawCall>();			}
@@ -217,42 +198,6 @@ private:
 	Rect2f				 _rect{0};
 }; // RenderScissorRectScope
 
-
-#if 0
-#pragma mark ========= RenderViewportScope no use now============
-//#endif
-class RenderViewportScope : public NonCopyable
-{
-public:
-	RenderViewportScope() = default;
-
-	RenderViewportScope(RenderViewportScope && r) {
-		_cmdBuf		= r._cmdBuf;
-		_rect		= r._rect;
-		r._cmdBuf	= nullptr;
-	}
-
-	RenderViewportScope(RenderCommandBuffer* cmdBuf)
-	{
-		if (!cmdBuf) return;
-		_rect = cmdBuf->viewport();
-		_cmdBuf = cmdBuf;
-	}
-
-	~RenderViewportScope() { detach(); }
-
-	void detach()
-	{
-		if (!_cmdBuf) return;
-		_cmdBuf->setViewport(_rect);
-		_cmdBuf = nullptr;
-	}
-
-private:
-	RenderCommandBuffer* _cmdBuf = nullptr;
-	Rect2f _rect {0};
-}; // RenderViewportScope
-#endif
 
 } // namespace sge
 

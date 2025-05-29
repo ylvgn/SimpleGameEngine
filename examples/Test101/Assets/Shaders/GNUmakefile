@@ -8,6 +8,8 @@ input_files :=\
 	test_texture.shader \
 	skybox.shader \
 	pbr.shader \
+	test_compute_triangles.shader \
+	test_compute_triangles_display.shader \
 #-------------
 
 # just for single test

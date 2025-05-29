@@ -9,8 +9,8 @@ void RenderGpuBuffer_DX11::onCreate(CreateDesc& desc)  {
 	if (desc.bufferSize <= 0)	throw SGE_ERROR("buffer size = 0");
 	if (desc.stride <= 0)		throw SGE_ERROR("stride == 0");
 
-	D3D11_BUFFER_DESC bd = {};
-	bd.ByteWidth = Util::castUINT(Math::alignTo(desc.bufferSize, 16));
+	::D3D11_BUFFER_DESC bd = {};
+	bd.ByteWidth = Util::castUINT(Math::alignTo(desc.bufferSize, decltype(desc.bufferSize)(16)));
 	bd.StructureByteStride = Util::castUINT(desc.stride);
 
 	switch (desc.type) {
@@ -29,7 +29,20 @@ void RenderGpuBuffer_DX11::onCreate(CreateDesc& desc)  {
 			bd.BindFlags		= D3D11_BIND_CONSTANT_BUFFER;
 			bd.CPUAccessFlags	= D3D11_CPU_ACCESS_WRITE;
 		}break;
-		default: throw SGE_ERROR("unsupport gpu buffer type");
+		case Type::Storage: {
+			bd.Usage			= D3D11_USAGE_DEFAULT; // GPU read/write
+			bd.BindFlags		= D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_VERTEX_BUFFER;
+			bd.MiscFlags		= D3D11_RESOURCE_MISC_BUFFER_ALLOW_RAW_VIEWS; // D3D11_RESOURCE_MISC_BUFFER_STRUCTURED
+		}break;
+	//---
+		default:
+			throw SGE_ERROR("unsupported gpu buffer type: {}", desc.type);
+	}
+
+	if (bd.MiscFlags == D3D11_RESOURCE_MISC_BUFFER_STRUCTURED) {
+		if (bd.ByteWidth != Math::alignTo(bd.ByteWidth, bd.StructureByteStride)) {
+			throw SGE_ERROR("ByteWidth({}) must be an exact multiple of the StructureByteStride({})", bd.ByteWidth, bd.StructureByteStride);
+		}
 	}
 
 	auto* renderer = Renderer_DX11::instance();
@@ -43,7 +56,7 @@ void RenderGpuBuffer_DX11::onUploadToGpu(ByteSpan data, size_t offset) {
 	auto* renderer = Renderer_DX11::instance();
 	auto* ctx = renderer->d3dDeviceContext();
 
-	D3D11_MAPPED_SUBRESOURCE mapped = {};
+	::D3D11_MAPPED_SUBRESOURCE mapped = {};
 
 	auto hr = ctx->Map(_d3dBuf, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
 	Util::throwIfError(hr);

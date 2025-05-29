@@ -8,11 +8,13 @@
 namespace sge {
 
 #define ShaderStageMask_ENUM_LIST(E) \
-	E(None,   = 0) \
-	E(Vertex, = 1 << 0) \
-	E(Pixel,  = 1 << 1) \
+	E(None,    = 0) \
+	E(Vertex,  = 1 << 0) \
+	E(Pixel,   = 1 << 1) \
+	E(Compute, = 1 << 2) \
 //----
 SGE_ENUM_CLASS(ShaderStageMask, u8)
+SGE_ENUM_ALL_OPERATOR(ShaderStageMask)
 
 #define ShaderPropType_ENUM_LIST(E) \
 	E(None,) \
@@ -43,7 +45,7 @@ struct ShaderPropTypeUtil {
 	template<> static constexpr	Type get<Vec4f>()	{ return Type::Vec4f; }
 	template<> static constexpr	Type get<Color4f>()	{ return Type::Color4f; }
 }; // ShaderPropTypeUtil
-
+SGE_STATIC_ASSERT_NO_MEMBER_CLASS(ShaderPropTypeUtil);
 
 #if 0
 #pragma mark ========= ShaderInfo ============
@@ -68,6 +70,7 @@ struct ShaderInfo {
 		String			name;
 		String			vsFunc;
 		String			psFunc;
+		String			csFunc;
 		RenderState		renderState;
 
 		template<class SE>
@@ -75,6 +78,7 @@ struct ShaderInfo {
 			SGE_NAMED_IO(se, name);
 			SGE_NAMED_IO(se, vsFunc);
 			SGE_NAMED_IO(se, psFunc);
+			SGE_NAMED_IO(se, csFunc);
 			SGE_NAMED_IO(se, renderState);
 		}
 	};
@@ -83,6 +87,7 @@ struct ShaderInfo {
 	Vector<Pass, 1>	passes;
 
 	String name;
+
 	void clear();
 
 	void onFormat(fmt::format_context& ctx) const;
@@ -92,14 +97,15 @@ struct ShaderInfo {
 		SGE_NAMED_IO(se, props);
 		SGE_NAMED_IO(se, passes);
 	}
-
 }; // ShaderInfo
 SGE_FORMATTER(ShaderInfo)
 
+
 #if 0
-#pragma mark ========= ShaderInfo ============
+#pragma mark ========= ShaderStageProfile ============
 #endif
-struct ShaderStageProfile {
+class ShaderStageProfile {
+public:
 	constexpr static StrLiteral DX11_VS = "vs_5_0";
 	constexpr static StrLiteral DX11_PS = "ps_5_0";
 	constexpr static StrLiteral DX11_CS = "cs_5_0";
@@ -111,7 +117,34 @@ struct ShaderStageProfile {
 	constexpr static StrLiteral SPIRV_VS = "vs_1_1";
 	constexpr static StrLiteral SPIRV_PS = "ps_1_1";
 	constexpr static StrLiteral SPIRV_CS = "cs_1_1";
-};
+}; // ShaderStageProfile
+
+
+#if 0
+#pragma mark ========= ShaderStageFileExtension ============
+#endif
+class ShaderStageFileExtension {
+public:
+	constexpr static StrLiteral VS   = "vertex";
+	constexpr static StrLiteral PS   = "fragment";
+	constexpr static StrLiteral TESC = "tesscontrol";
+	constexpr static StrLiteral TESE = "tesseval";
+	constexpr static StrLiteral GS   = "geometry";
+	constexpr static StrLiteral CS   = "compute";
+
+	static constexpr StrLiteral get(ShaderStageMask s) {
+		using SRC = ShaderStageMask;
+
+		switch (s) {
+			case SRC::Vertex:	return VS;
+			case SRC::Pixel:	return PS;
+			case SRC::Compute:	return CS;
+		//---
+			default: throw SGE_ERROR("unsupported ShaderStageMask '{}'", s);
+		}
+	}
+}; // ShaderStageFileExtension
+SGE_STATIC_ASSERT_NO_MEMBER_CLASS(ShaderStageFileExtension);
 
 #if 0
 #pragma mark ========= ShaderStageInfo ============
@@ -129,12 +162,13 @@ public:
 	String			profile;
 	ShaderStageMask	stage = ShaderStageMask::None;
 
+//----------
 	class Param {
 	public:
-		String name;
+		String	name;
 		DataType dataType;
-		i16	bindPoint = 0;
-		i16	bindCount = 0;
+		i16		 bindPoint = 0;
+		i16		 bindCount = 0;
 
 		template<class SE>
 		void onJson(SE& se) {
@@ -145,6 +179,7 @@ public:
 		}
 	};
 
+//----------
 	class Input {
 	public:
 		String			name;
@@ -161,35 +196,44 @@ public:
 		}
 	};
 
+//----------
 	class Variable {
 	public:
 		String		name;
-		size_t		offset   = 0;
-		DataType	dataType = DataType::None;
-		bool		rowMajor = true;
+		size_t		offset		  = 0;
+		size_t		dataSize	  = 0;
+		u16			elementCount  = 0;
+		DataType	dataType	  = DataType::None;
+		bool		rowMajor	  = true;
+
+		bool isArray() const { return elementCount > 0; }
 
 		template<class SE>
 		void onJson(SE& se) {
 			SGE_NAMED_IO(se, name);
 			SGE_NAMED_IO(se, offset);
+			SGE_NAMED_IO(se, dataSize);
+			SGE_NAMED_IO(se, elementCount);
 			SGE_NAMED_IO(se, dataType);
+			SGE_NAMED_IO(se, rowMajor);
 		}
 	};
 
+//----------
 	class ConstBuffer {
 	public:
-		String			name;
-		i16				bindPoint = 0;
-		i16				bindCount = 0;
-		size_t			dataSize  = 0;
+		String	name;
+		size_t	dataSize  = 0;
+		i16		bindPoint = 0;
+		i16		bindCount = 0;
 		Vector<Variable, 4>	variables;
 
 		template<class SE>
 		void onJson(SE& se) {
 			SGE_NAMED_IO(se, name);
+			SGE_NAMED_IO(se, dataSize);
 			SGE_NAMED_IO(se, bindPoint);
 			SGE_NAMED_IO(se, bindCount);
-			SGE_NAMED_IO(se, dataSize);
 			SGE_NAMED_IO(se, variables);
 		}
 
@@ -205,13 +249,12 @@ public:
 	Vector<Param, 8>		params;
 	Vector<ConstBuffer, 4>	constBuffers;
 
-	//----------
+//----------
 	class Texture {
 	public:
 		String		name;
 		i16			bindPoint	= 0;
 		i16			bindCount	= 0;
-		i16			bindSet		= 0;
 		DataType	dataType	= DataType::None;
 
 		template<class SE>
@@ -219,19 +262,17 @@ public:
 			SGE_NAMED_IO(se, name);
 			SGE_NAMED_IO(se, bindPoint);
 			SGE_NAMED_IO(se, bindCount);
-			SGE_NAMED_IO(se, bindSet);
 			SGE_NAMED_IO(se, dataType);
 		}
 	};
-	Vector<Texture, 8>		textures;
+	Vector<Texture, 8> textures;
 
-	//----------
+//----------
 	class Sampler {
 	public:
 		String			name;
 		i16				bindPoint	= 0;
 		i16				bindCount	= 0;
-		i16				bindSet		= 0;
 		RenderDataType	dataType	= RenderDataType::None;
 
 		template<class SE>
@@ -239,13 +280,30 @@ public:
 			SGE_NAMED_IO(se, name);
 			SGE_NAMED_IO(se, bindPoint);
 			SGE_NAMED_IO(se, bindCount);
-			SGE_NAMED_IO(se, bindSet);
 			SGE_NAMED_IO(se, dataType);
 		}
 	};
-	Vector<Sampler, 8>		samplers;
+	Vector<Sampler, 8> samplers;
 
-	//----------
+//----------
+	class StorageBuffer {
+	public:
+		String	name;
+		i16		bindPoint = 0;
+		i16		bindCount = 0;
+		bool	rawUAV	  = false;
+
+		template<class SE>
+		void onJson(SE & se) {
+			SGE_NAMED_IO(se, name);
+			SGE_NAMED_IO(se, bindPoint);
+			SGE_NAMED_IO(se, bindCount);
+			SGE_NAMED_IO(se, rawUAV);
+		}
+	};
+	Vector<StorageBuffer, 8> storageBuffers;
+
+//----------
 	template<class SE>
 	void onJson(SE& se) {
 		SGE_NAMED_IO(se, profile);
@@ -254,6 +312,7 @@ public:
 		SGE_NAMED_IO(se, constBuffers);
 		SGE_NAMED_IO(se, textures);
 		SGE_NAMED_IO(se, samplers);
+		SGE_NAMED_IO(se, storageBuffers);
 	}
 }; // ShaderStageInfo
 

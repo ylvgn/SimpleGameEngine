@@ -8,7 +8,8 @@ namespace sge {
 
 class ShaderCompiler : public ConsoleApp {
 public:
-	using Profile = ShaderStageProfile;
+	using Profile	    = ShaderStageProfile;
+	using FileExtension = ShaderStageFileExtension;
 
 	struct Option {
 		struct Marco {
@@ -102,6 +103,7 @@ public:
 
 			if (tokens[0] == "vs") stage = ShaderStageMask::Vertex;
 			else if (tokens[0] == "ps") stage = ShaderStageMask::Pixel;
+			else if (tokens[0] == "cs") stage = ShaderStageMask::Compute;
 			else return false;
 
 			if (!StringUtil::tryParse(tokens[1], major)) return false;
@@ -119,6 +121,7 @@ public:
 			if (tokens.size() < 2) return false;
 			if (tokens[0] == "vs") stage = ShaderStageMask::Vertex;
 			else if (tokens[0] == "ps") stage = ShaderStageMask::Pixel;
+			else if (tokens[0] == "cs") stage = ShaderStageMask::Compute;
 			else return false;
 
 			if (!StringUtil::tryParse(tokens[1], major)) return false;
@@ -143,8 +146,8 @@ public:
 		SGE_LOG("==== sge_shader_compiler Help: ===="
 			"\n\tsge_shader_compiler -genMakefile -file=<filename> -out=<outdir> -I=<dirpath1> -I=<dirpath2>"
 			"\n\tsge_shader_compiler -genNinja -file=<filename> -out=<outdir> -I=<dirpath1> -I=<dirpath2>"
-			"\n\tsge_shader_compiler -hlsl -file=<filename> -out=<filename> -profile=vs_5_0|ps_5_0 -entry=<entry-point> -I=<dirpath1> -I=<dirpath2>"
-			"\n\tsge_shader_compiler -glsl -file=<filename> -out=<filename> -profile=vs_330|ps_330 -entry=<entry-point> -I=<dirpath1> -I=<dirpath2>"
+			"\n\tsge_shader_compiler -hlsl -file=<filename> -out=<filename> -profile=vs_5_0|ps_5_0|cs_5_0 -entry=<entry-point> -I=<dirpath1> -I=<dirpath2>"
+			"\n\tsge_shader_compiler -glsl -file=<filename> -out=<filename> -profile=vs_330|ps_330|cs_430 -entry=<entry-point> -I=<dirpath1> -I=<dirpath2>"
 			"\n\tsge_shader_compiler -genNinjaConfigure -file=<outfilename> -out=<outdir> -I=<dirpath1> -I=<dirpath2>"
 		);
 	}
@@ -170,7 +173,7 @@ public:
 		_compile("Assets/Shaders/test.hlsl", include_dirs);
 
 #else // just for single test
-		_compile("Assets/Shaders/pbr.shader", include_dirs);
+		_compile("Assets/Shaders/test_compute_triangles.shader", include_dirs);
 #endif
 		SGE_LOG("\n---- end ----\n");
 	}
@@ -425,9 +428,18 @@ private:
 		TempString include_dirs;
 		opt.include_dirsTo(include_dirs, "-I=");
 
-		makefile.append(Fmt(fmt, passIndex, Profile::DX11_VS, pass.vsFunc, include_dirs));
-		makefile.append("\n# ---");
-		makefile.append(Fmt(fmt, passIndex, Profile::DX11_PS, pass.psFunc, include_dirs));
+		if (pass.vsFunc) {
+			makefile.append(Fmt(fmt, passIndex, Profile::DX11_VS, pass.vsFunc, include_dirs));
+			makefile.append("\n# ---");
+		}
+		if (pass.psFunc) {
+			makefile.append(Fmt(fmt, passIndex, Profile::DX11_PS, pass.psFunc, include_dirs));
+			makefile.append("\n# ---");
+		}
+		if (pass.csFunc) {
+			makefile.append(Fmt(fmt, passIndex, Profile::DX11_CS, pass.csFunc, include_dirs));
+			makefile.append("\n# ---");
+		}
 
 		makefile.append("\nendif # BUILD_DX11\n");
 	}
@@ -445,10 +457,18 @@ private:
 		TempString include_dirs;
 		opt.include_dirsTo(include_dirs);
 		
-		// TODO fshader-stage
-		makefile.append(Fmt(fmt, passIndex, Profile::SPIRV_VS, "vertex", pass.vsFunc, include_dirs));
-		makefile.append("\n# ---");
-		makefile.append(Fmt(fmt, passIndex, Profile::SPIRV_PS, "fragment", pass.psFunc, include_dirs));
+		if (pass.vsFunc) {
+			makefile.append(Fmt(fmt, passIndex, Profile::SPIRV_VS, FileExtension::VS, pass.vsFunc, include_dirs));
+			makefile.append("\n# ---");
+		}
+		if (pass.psFunc) {
+			makefile.append(Fmt(fmt, passIndex, Profile::SPIRV_PS, FileExtension::PS, pass.psFunc, include_dirs));
+			makefile.append("\n# ---");
+		}
+		if (pass.csFunc) {
+			makefile.append(Fmt(fmt, passIndex, Profile::SPIRV_CS, FileExtension::CS, pass.csFunc, include_dirs));
+			makefile.append("\n# ---");
+		}
 
 		makefile.append("\nendif # BUILD_SPIRV\n");
 	}
@@ -469,10 +489,18 @@ private:
 		TempString include_dirs;
 		opt.include_dirsTo(include_dirs);
 
-		// TODO fshader-stage
-		makefile.append(Fmt(fmt, passIndex, Profile::GLSL_VS, "vertex", pass.vsFunc, include_dirs));
-		makefile.append("\n# ---");
-		makefile.append(Fmt(fmt, passIndex, Profile::GLSL_PS, "fragment", pass.psFunc, include_dirs));
+		if (pass.vsFunc) {
+			makefile.append(Fmt(fmt, passIndex, Profile::GLSL_VS, FileExtension::VS, pass.vsFunc, include_dirs));
+			makefile.append("\n# ---");
+		}
+		if (pass.psFunc) {
+			makefile.append(Fmt(fmt, passIndex, Profile::GLSL_PS, FileExtension::PS, pass.psFunc, include_dirs));
+			makefile.append("\n# ---");
+		}
+		if (pass.csFunc) {
+			makefile.append(Fmt(fmt, passIndex, Profile::GLSL_CS, FileExtension::CS, pass.csFunc, include_dirs));
+			makefile.append("\n# ---");
+		}
 
 		makefile.append("\nendif # BUILD_GLSL\n");
 	}
@@ -588,8 +616,9 @@ private:
 		TempString include_dirs;
 		opt.include_dirsTo(include_dirs, "-I=");
 
-		ninja.append(Fmt(fmt, passIndex, Profile::DX11_VS, pass.vsFunc, include_dirs));
-		ninja.append(Fmt(fmt, passIndex, Profile::DX11_PS, pass.psFunc, include_dirs));
+		if (pass.vsFunc) ninja.append(Fmt(fmt, passIndex, Profile::DX11_VS, pass.vsFunc, include_dirs));
+		if (pass.psFunc) ninja.append(Fmt(fmt, passIndex, Profile::DX11_PS, pass.psFunc, include_dirs));
+		if (pass.csFunc) ninja.append(Fmt(fmt, passIndex, Profile::DX11_CS, pass.csFunc, include_dirs));
 	}
 
 	void _genNinja_SPIRV(String& ninja, int passIndex, const ShaderInfo::Pass& pass) {
@@ -607,9 +636,9 @@ private:
 		TempString include_dirs;
 		opt.include_dirsTo(include_dirs);
 
-		// TODO fshader-stage
-		ninja.append(Fmt(fmt, passIndex, Profile::GLSL_VS, "vertex", pass.vsFunc, include_dirs));
-		ninja.append(Fmt(fmt, passIndex, Profile::GLSL_PS, "fragment", pass.psFunc, include_dirs));
+		if (pass.vsFunc) ninja.append(Fmt(fmt, passIndex, Profile::GLSL_VS, FileExtension::VS, pass.vsFunc, include_dirs));
+		if (pass.psFunc) ninja.append(Fmt(fmt, passIndex, Profile::GLSL_PS, FileExtension::PS, pass.psFunc, include_dirs));
+		if (pass.csFunc) ninja.append(Fmt(fmt, passIndex, Profile::GLSL_CS, FileExtension::CS, pass.csFunc, include_dirs));
 	}
 
 	void _genNinja_GLSL(String& ninja, int passIndex, const ShaderInfo::Pass& pass) {
@@ -626,8 +655,9 @@ private:
 		TempString include_dirs;
 		opt.include_dirsTo(include_dirs, "-I=");
 
-		ninja.append(Fmt(fmt, passIndex, Profile::GLSL_VS, pass.vsFunc, include_dirs));
-		ninja.append(Fmt(fmt, passIndex, Profile::GLSL_PS, pass.psFunc, include_dirs));
+		if (pass.vsFunc) ninja.append(Fmt(fmt, passIndex, Profile::GLSL_VS, pass.vsFunc, include_dirs));
+		if (pass.psFunc) ninja.append(Fmt(fmt, passIndex, Profile::GLSL_PS, pass.psFunc, include_dirs));
+		if (pass.csFunc) ninja.append(Fmt(fmt, passIndex, Profile::GLSL_CS, pass.csFunc, include_dirs));
 	}
 
 	void _compileHLSL() {
@@ -729,7 +759,7 @@ private:
 		size_t passIndex = 0;
 		for (auto& pass : info.passes) {
 
-			if (!pass.vsFunc.empty()) {
+			if (pass.vsFunc) {
 				{ // DX11
 					ShaderCompiler_DX11 c;
 					TempString outFilename = Fmt("{}/dx11/pass{}/{}.bin", outdir, passIndex, Profile::DX11_VS);
@@ -744,7 +774,7 @@ private:
 				}
 			}
 
-			if (!pass.psFunc.empty()) {
+			if (pass.psFunc) {
 				{ // DX11
 					ShaderCompiler_DX11 c;
 					TempString outFilename = Fmt("{}/dx11/pass{}/{}.bin", outdir, passIndex, Profile::DX11_PS);
@@ -756,6 +786,21 @@ private:
 					TempString outFilename = Fmt("{}/glsl/pass{}/{}.glsl", outdir, passIndex, Profile::GLSL_PS);
 					TempString profile = GLUtil::getGlStageProfile(ShaderStageMask::Pixel);
 					c.compile(outFilename, ShaderStageMask::Pixel, profile, shaderFilename, pass.psFunc, include_dirs);
+				}
+			}
+
+			if (pass.csFunc) {
+				{ // DX11
+					ShaderCompiler_DX11 c;
+					TempString outFilename = Fmt("{}/dx11/pass{}/{}.bin", outdir, passIndex, Profile::DX11_CS);
+					TempString profile = DX11Util::getDxStageProfile(ShaderStageMask::Compute);
+					c.compile(outFilename, ShaderStageMask::Compute, profile, shaderFilename, pass.csFunc, include_dirs);
+				}
+				{ // GLSL
+					ShaderCompiler_GL c;
+					TempString outFilename = Fmt("{}/glsl/pass{}/{}.glsl", outdir, passIndex, Profile::GLSL_CS);
+					TempString profile = GLUtil::getGlStageProfile(ShaderStageMask::Compute);
+					c.compile(outFilename, ShaderStageMask::Compute, profile, shaderFilename, pass.csFunc, include_dirs);
 				}
 			}
 

@@ -13,10 +13,14 @@ namespace sge {
 #endif
 void Material_DX11::MyVertexStage::bind(RenderContext_DX11* ctx, RenderCommand_DrawCall& drawCall) {
 	s_bindStageHelper(ctx, this);
-	bindInputLayout(ctx, drawCall.vertexLayout);
+	_bindInputLayout(ctx, drawCall.vertexLayout);
 }
 
-void Material_DX11::MyVertexStage::bindInputLayout(RenderContext_DX11* ctx, const VertexLayout* vertexLayout) {
+void Material_DX11::MyVertexStage::unbind(RenderContext_DX11* ctx, RenderCommand_DrawCall& drawCall) {
+	s_unbindStageHelper(ctx, this);
+}
+
+void Material_DX11::MyVertexStage::_bindInputLayout(RenderContext_DX11* ctx, const VertexLayout* vertexLayout) {
 	if (!vertexLayout)
 		throw SGE_ERROR("vertexLayout is null");
 
@@ -76,29 +80,60 @@ void Material_DX11::MyPixelStage::bind(RenderContext_DX11* ctx, RenderCommand_Dr
 	s_bindStageHelper(ctx, this);
 }
 
+void Material_DX11::MyPixelStage::unbind(RenderContext_DX11* ctx, RenderCommand_DrawCall& drawCall) {
+	s_unbindStageHelper(ctx, this);
+}
+
+
+#if 0
+#pragma mark ========= Material_DX11::MyComputeStage ============
+#endif
+void Material_DX11::MyComputeStage::bind(RenderContext_DX11* ctx, RenderCommand_DrawCall& drawCall) {
+	s_bindStageHelper(ctx, this);
+}
+
+void Material_DX11::MyComputeStage::unbind(RenderContext_DX11* ctx, RenderCommand_DrawCall& drawCall) {
+	s_unbindStageHelper(ctx, this);
+}
+
 
 #if 0
 #pragma mark ========= Material_DX11::MyPass ============
 #endif
 Material_DX11::MyPass::MyPass(Material_DX11* material, ShaderPass* shaderPass) noexcept
 	: Base(material, shaderPass)
-	, _vertexStage(this, shaderPass->vertexStage())
-	, _pixelStage (this, shaderPass->pixelStage())
+	, _myVertexStage(this, shaderPass->vertexStage())
+	, _myPixelStage(this, shaderPass->pixelStage())
+	, _myComputeStage(this, shaderPass->computeStage())
 {
-	Base::_vertexStage = &_vertexStage;
-	Base::_pixelStage  = &_pixelStage;
+	_vertexStage	= &_myVertexStage;
+	_pixelStage		= &_myPixelStage;
+	_computeStage	= &_myComputeStage;
 }
 
 void Material_DX11::MyPass::onBind(RenderContext* ctx_, RenderCommand_DrawCall& drawCall) {
 	auto* ctx = static_cast<RenderContext_DX11*>(ctx_);
-	_vertexStage.bind(ctx, drawCall);
-	_pixelStage.bind (ctx, drawCall);
+
+	//shaderPass()->bind(ctx); no need atm
+
+	if (hasVS()) { _myVertexStage.bind(ctx, drawCall);   }
+	if (hasPS()) { _myPixelStage.bind(ctx, drawCall);    }
+	if (hasCS()) { _myComputeStage.bind(ctx, drawCall);  }
 
 	_bindRenderState(ctx);
 }
 
-void Material_DX11::MyPass::_bindRenderState(RenderContext_DX11* ctx) {
+void Material_DX11::MyPass::onUnbind(RenderContext* ctx_, RenderCommand_DrawCall& drawCall) {
+	auto* ctx = static_cast<RenderContext_DX11*>(ctx_);
 
+	//shaderPass()->unbind(ctx); no need atm
+
+	if (hasVS()) { _myVertexStage.unbind(ctx, drawCall); }
+	if (hasPS()) { _myPixelStage.unbind(ctx, drawCall); }
+	if (hasCS()) { _myComputeStage.unbind(ctx, drawCall); }
+}
+
+void Material_DX11::MyPass::_bindRenderState(RenderContext_DX11* ctx) {
 	if (!_rasterizerState) {
 		HRESULT hr;
 		auto* dev = ctx->renderer()->d3dDevice();
@@ -205,49 +240,88 @@ sgeMaterial_InterfaceFunctions_Impl(DX11);
 template<class STAGE>
 void Material_DX11::s_bindStageHelper(RenderContext_DX11* ctx, STAGE* stage) {
 	auto* shaderStage = stage->shaderStage();
-	if (!shaderStage) return;
+	if (!shaderStage) throw SGE_ERROR("");
 	shaderStage->bind(ctx);
 
 	auto* dc = ctx->renderer()->d3dDeviceContext();
 
-	for (auto& cb : stage->constBuffers()) {
-		cb.uploadToGpu();
+	{ // const buffer
+		for (auto& cb : stage->constBuffers()) {
+			cb.uploadToGpu();
 
-		auto* cbInfo = cb.info();
-		UINT bindPoint = cbInfo->bindPoint;
+			auto* cbInfo = cb.info();
+			UINT bindPoint = cbInfo->bindPoint;
 
-		auto* gpuBuffer = static_cast<RenderGpuBuffer_DX11*>(cb.gpuBuffer.ptr());
-		if (!gpuBuffer) throw SGE_ERROR("const buffer is null");
+			auto* gpuBuffer = static_cast<RenderGpuBuffer_DX11*>(cb.gpuBuffer.ptr());
+			if (!gpuBuffer) throw SGE_ERROR("const buffer is null");
 
-		auto* d3dBuf = gpuBuffer->d3dBuf();
-		if (!d3dBuf) throw SGE_ERROR("d3dbuffer is null");
+			auto* d3dBuf = gpuBuffer->d3dBuf();
+			if (!d3dBuf) throw SGE_ERROR("d3dbuffer is null");
 
-		stage->_dxSetConstBuffer(dc, bindPoint, d3dBuf);
+			stage->_dxSetConstBuffer(dc, bindPoint, d3dBuf);
+		}
+	}
+	
+	{ // bind texture
+		for (auto& texParam : stage->texParams()) {
+			auto* tex = texParam.getUpdatedTexture();
+			int bindPoint = texParam.bindPoint();
+
+			switch (texParam.dataType()) {
+				case RenderDataType::Texture2D: {
+					auto* tex2d = static_cast<Texture2D_DX11*>(tex);
+					auto* rv = tex2d->resourceView();
+					auto* ss = tex2d->samplerState();
+
+					stage->_dxSetShaderResource(dc, bindPoint, rv);
+					stage->_dxSetSampler(dc, bindPoint, ss);
+				} break;
+				case RenderDataType::TextureCube: {
+					auto* texCube = static_cast<TextureCube_DX11*>(tex);
+					auto* rv = texCube->resourceView();
+					auto* ss = texCube->samplerState();
+
+					stage->_dxSetShaderResource(dc, bindPoint, rv);
+					stage->_dxSetSampler(dc, bindPoint, ss);
+				} break;
+			//----
+				default: throw SGE_ERROR("bind unsupported texture type '{}'", texParam.dataType());
+			}
+		}
 	}
 
-	for (auto& texParam : stage->texParams()) {
-		auto* tex = texParam.getUpdatedTexture();
-		int bindPoint = texParam.bindPoint();
+	{ // bind storage buffers
+		for (auto& bufParam : stage->storageBufParams()) {
+			auto* sbuf = static_cast<RenderGpuStorageBuffer_DX11*>(bufParam.storageGpuBuffer());
+			if (!sbuf) continue;
 
-		switch (texParam.dataType()) {
-			case RenderDataType::Texture2D: {
-				auto* tex2d = static_cast<Texture2D_DX11*>(tex);
-				auto* rv = tex2d->resourceView();
-				auto* ss = tex2d->samplerState();
+			auto* uav = sbuf->uav();
 
-				stage->_dxSetShaderResource(dc, bindPoint, rv);
-				stage->_dxSetSampler(dc, bindPoint, ss);
-			} break;
-			case RenderDataType::TextureCube: {
-				auto* texCube = static_cast<TextureCube_DX11*>(tex);
-				auto* rv = texCube->resourceView();
-				auto* ss = texCube->samplerState();
+			if (stage->isCS()) {
+				dc->CSSetUnorderedAccessViews(0, 1, &uav, nullptr);
+			}
+		}
+	}
+}
 
-				stage->_dxSetShaderResource(dc, bindPoint, rv);
-				stage->_dxSetSampler(dc, bindPoint, ss);
-			} break;
-		//----
-			default: throw SGE_ERROR("bind unsupported texture type '{}'", texParam.dataType());
+template<class STAGE>
+void Material_DX11::s_unbindStageHelper(RenderContext_DX11* ctx, STAGE* stage) {
+	auto* shaderStage = stage->shaderStage();
+
+	if (!shaderStage) throw SGE_ERROR("");
+	shaderStage->unbind(ctx);
+
+	auto* dc = ctx->renderer()->d3dDeviceContext();
+
+	{ // unbind storage buffers
+		for (auto& bufParam : stage->storageBufParams()) {
+			auto* sbuf = static_cast<RenderGpuStorageBuffer_DX11*>(bufParam.storageGpuBuffer());
+			if (!sbuf) continue;
+
+			if (stage->isCS()) {
+				DX11_ID3DUnorderedAccessView* uav[1] = { nullptr };
+				dc->CSSetUnorderedAccessViews(0, 1, uav, nullptr);
+			}
 		}
 	}
 }

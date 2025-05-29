@@ -12,9 +12,10 @@ class ShaderPass;
 #endif
 class ShaderStage : public NonCopyable {
 public:
-	ShaderStage() = delete;
+	const ShaderStageInfo*	info()		const { return &_info; }
+	const ShaderInfo::Pass* passInfo()	const;
 
-	const ShaderStageInfo* info() const { return &_info; }
+	virtual ShaderStageMask stageMask() { return ShaderStageMask::None; }
 
 protected:
 	ShaderStage(ShaderPass* pass) noexcept;
@@ -23,37 +24,54 @@ protected:
 	ShaderPass*		_pass = nullptr;
 }; // ShaderStage
 
+
 #if 0
 #pragma mark ========= ShaderVertexStage ============
 #endif
 class ShaderVertexStage : public ShaderStage {
+	using This = ShaderVertexStage;
 	using Base = ShaderStage;
 public:
-	ShaderVertexStage(ShaderPass* pass) : Base(pass) {}
+	static constexpr ShaderStageMask s_stageMask() { return ShaderStageMask::Vertex; }
 
-	static constexpr ShaderStageMask stageMask() { return ShaderStageMask::Vertex; }
-
+	ShaderVertexStage(ShaderPass* pass) noexcept : Base(pass) {}
+	virtual ShaderStageMask stageMask() override { return This::s_stageMask(); }
 }; // ShaderVertexStage
+
 
 #if 0
 #pragma mark ========= ShaderPixelStage ============
 #endif
 class ShaderPixelStage  : public ShaderStage {
+	using This = ShaderPixelStage;
 	using Base = ShaderStage;
 public:
-	ShaderPixelStage(ShaderPass* pass) : Base(pass) {}
+	static constexpr ShaderStageMask s_stageMask() { return ShaderStageMask::Pixel; }
 
-	static constexpr ShaderStageMask stageMask() { return ShaderStageMask::Pixel; }
-
+	ShaderPixelStage(ShaderPass* pass) noexcept : Base(pass) {}
+	virtual ShaderStageMask stageMask() override { return This::s_stageMask(); }
 }; // ShaderPixelStage
+
+
+#if 0
+#pragma mark ========= ShaderComputeStage ============
+#endif
+class ShaderComputeStage : public ShaderStage {
+	using This = ShaderComputeStage;
+	using Base = ShaderStage;
+public:
+	static constexpr ShaderStageMask s_stageMask() { return ShaderStageMask::Compute; }
+
+	ShaderComputeStage(ShaderPass* pass) noexcept : Base(pass) {}
+	virtual ShaderStageMask stageMask() override { return This::s_stageMask(); }
+}; // ShaderComputeStage
+
 
 #if 0
 #pragma mark ========= ShaderPass ============
 #endif
 class ShaderPass : public NonCopyable {
 public:
-	ShaderPass() = delete;
-
 	using Info = ShaderInfo::Pass;
 
 	virtual ~ShaderPass() = default;
@@ -62,11 +80,19 @@ public:
 
 	StrView	shaderFilename() const;
 
-	ShaderVertexStage*	vertexStage() { return _vertexStage; }
-	ShaderPixelStage*   pixelStage()  { return _pixelStage; }
+	ShaderVertexStage*	vertexStage()	const { return _vertexStage; }
+	ShaderPixelStage*   pixelStage()	const { return _pixelStage; }
+	ShaderComputeStage*	computeStage()	const { return _computeStage; }
 
 	Shader*	shader()	const { return _shader; }
 	int		passIndex()	const { return _passIndex; }
+
+	bool	        isCompute()  const { return BitUtil::has(_stageMasks, ShaderStageMask::Compute); }
+	ShaderStageMask stageMasks() const { return _stageMasks; }
+
+	bool hasVS() const { return BitUtil::hasAny(_stageMasks, ShaderStageMask::Vertex); }
+	bool hasPS() const { return BitUtil::hasAny(_stageMasks, ShaderStageMask::Pixel); }
+	bool hasCS() const { return BitUtil::hasAny(_stageMasks, ShaderStageMask::Compute); }
 
 friend class Shader;
 protected:
@@ -75,11 +101,21 @@ protected:
 	virtual void onInit() = 0;
 
 	const Info*			_info			= nullptr;
+	Shader*				_shader			= nullptr;
+
 	ShaderVertexStage*	_vertexStage	= nullptr;
 	ShaderPixelStage*   _pixelStage		= nullptr;
-	Shader*				_shader			= nullptr;
+	ShaderComputeStage* _computeStage	= nullptr;
+
+	ShaderStageMask		_stageMasks     = ShaderStageMask::None;
 	int					_passIndex		= -1;
 }; // ShaderPass
+
+SGE_INLINE // TODO: may write to a new cpp file
+const ShaderInfo::Pass* ShaderStage::passInfo() const {
+	return _pass->info();
+}
+
 
 #if 0
 #pragma mark ========= Shader ============
@@ -90,6 +126,7 @@ public:
 	using Stage			= ShaderStage;
 	using VertexStage	= ShaderVertexStage;
 	using PixelStage	= ShaderPixelStage;
+	using ComputeStage  = ShaderComputeStage;
 
 	virtual ~Shader();
 
@@ -103,7 +140,7 @@ public:
 	Span< UPtr<ShaderPass> >	passes()				{ return _passes; }
 
 protected:
-	Shader() = default; // please create from 'Renderer::createShader'
+	Shader() noexcept = default; // please create from 'Renderer::createShader'
 
 	virtual UPtr<Shader::Pass> onCreatePass(int passIndex) = 0;
 

@@ -148,9 +148,6 @@ void ShaderParser::_readPass() {
 		if (_token.isOperator("}"))	{ nextToken(); break; }
 		if (_token.isNewline())		{ nextToken(); continue; }
 
-		if (_token.isIdentifier("VsFunc")) { nextToken(); readIdentifier(o.vsFunc); continue; }
-		if (_token.isIdentifier("PsFunc")) { nextToken(); readIdentifier(o.psFunc); continue; }
-
 		if (_token.isIdentifier("Cull")) { nextToken(); readEnum(o.renderState.cull); continue; }
 
 		if (_token.isIdentifier("DepthTest") ) { nextToken(); readEnum(o.renderState.depthTest.op); continue; }
@@ -164,6 +161,9 @@ void ShaderParser::_readPass() {
 
 		if (_token.isIdentifier("Wireframe")) { nextToken(); readBool(o.renderState.wireframe); continue; }
 
+		if (_token.isIdentifier("VsFunc")) { nextToken(); readIdentifier(o.vsFunc); continue; }
+		if (_token.isIdentifier("PsFunc")) { nextToken(); readIdentifier(o.psFunc); continue; }
+		if (_token.isIdentifier("CsFunc")) { nextToken(); readIdentifier(o.csFunc); continue; }
 		return errorUnexpectedToken();
 	}
 }
@@ -174,4 +174,4 @@ void ShaderParser::_readBlendFunc(RenderState::BlendFunc& v) {
 	readEnum(v.dstFactor);
 }
 
-} // namespace
+} // namespace sge

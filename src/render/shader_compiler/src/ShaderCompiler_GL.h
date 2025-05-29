@@ -10,10 +10,12 @@ class ShaderCompiler_GL : public NonCopyable {
 	using Util				= GLUtil;
 	using DataType			= RenderDataType;
 	using Profile			= ShaderStageProfile;
+	using FileExtension		= ShaderStageFileExtension;
 
 	using Compiler			= spirv_cross::CompilerGLSL;
 	using CompilerOptions	= spirv_cross::CompilerGLSL::Options;
 	using ShaderResources	= spirv_cross::ShaderResources;
+	using Resource			= spirv_cross::Resource;
 	using SPIRType			= spirv_cross::SPIRType;
 
 public:
@@ -32,6 +34,7 @@ private:
 	static void _reflect_constBuffers	(ShaderStageInfo& outInfo, Compiler& comp, const ShaderResources& resources);
 	static void _reflect_textures		(ShaderStageInfo& outInfo, Compiler& comp, const ShaderResources& resources);
 	static void _reflect_samplers		(ShaderStageInfo& outInfo, Compiler& comp, const ShaderResources& resources);
+	static void _reflect_storageBuffers (ShaderStageInfo& outInfo, Compiler& comp, const ShaderResources& resources);
 
 	static StrView _findLastNameWithoutUnderscore(StrView s);
 

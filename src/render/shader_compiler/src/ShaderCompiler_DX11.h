@@ -22,6 +22,7 @@ private:
 	void _reflect_constBuffers	(ShaderStageInfo& outInfo, DX11_ID3DShaderReflection* reflect, D3D11_SHADER_DESC& desc);
 	void _reflect_textures		(ShaderStageInfo& outInfo, DX11_ID3DShaderReflection* reflect, D3D11_SHADER_DESC& desc);
 	void _reflect_samplers		(ShaderStageInfo& outInfo, DX11_ID3DShaderReflection* reflect, D3D11_SHADER_DESC& desc);
+	void _reflect_storageBuffers(ShaderStageInfo& outInfo, DX11_ID3DShaderReflection* reflect, D3D11_SHADER_DESC& desc);
 }; // ShaderCompiler_DX11
 
 } // namespace sge

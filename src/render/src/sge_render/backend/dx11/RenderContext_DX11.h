@@ -3,20 +3,20 @@
 #include <sge_render/RenderContext.h>
 #include "Render_DX11_Common.h"
 
+#if SGE_RENDER_HAS_DX11
+
 namespace sge {
 
 class RenderContext_DX11 : public RenderContext {
-private:
 	using Base = RenderContext;
 	using Util = DX11Util;
 public:
 	RenderContext_DX11(CreateDesc& desc);
 
 	void onCmd_ClearFrameBuffers(RenderCommand_ClearFrameBuffers& cmd);
-	void onCmd_SwapBuffers(RenderCommand_SwapBuffers& cmd);
-	void onCmd_DrawCall(RenderCommand_DrawCall& cmd);
-	void onCmd_SetScissorRect(RenderCommand_SetScissorRect& cmd);
-//	void onCmd_SetViewport(RenderCommand_SetViewport& cmd); no use now
+	void onCmd_SwapBuffers		(RenderCommand_SwapBuffers& cmd);
+	void onCmd_DrawCall			(RenderCommand_DrawCall& cmd);
+	void onCmd_SetScissorRect	(RenderCommand_SetScissorRect& cmd);
 
 	Renderer_DX11* renderer() { return _renderer; }
 
@@ -51,4 +51,6 @@ protected:
 	void _setTestDefaultRenderState();
 }; // RenderContext_DX11
 
-} // namespace
+} // namespace sge
+
+#endif // SGE_RENDER_HAS_DX11

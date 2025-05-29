@@ -1,11 +1,10 @@
 #pragma once
 
 #include <sge_render/shader/Material.h>
-
-#if SGE_RENDER_HAS_OPENGL
-
 #include "Shader_GL.h"
 #include "RenderGpuBuffer_GL.h"
+
+#if SGE_RENDER_HAS_OPENGL
 
 namespace sge {
 
@@ -32,7 +31,9 @@ class Material_GL : public Material {
 			: Base(pass, shaderStage)
 		{}
 
-		void bind(RenderContext_GL* ctx, RenderCommand_DrawCall& drawCall);
+		void bind  (RenderContext_GL* ctx, RenderCommand_DrawCall& drawCall);
+		void unbind(RenderContext_GL* ctx, RenderCommand_DrawCall& drawCall);
+
 		void bindInputLayout(RenderContext_GL* ctx, RenderCommand_DrawCall& drawCall);
 
 		Pass*			pass()			const { return static_cast<Pass*>(_pass); }
@@ -62,7 +63,8 @@ class Material_GL : public Material {
 			: Base(pass, shaderStage)
 		{}
 
-		void bind(RenderContext_GL* ctx, RenderCommand_DrawCall& drawCall);
+		void bind  (RenderContext_GL* ctx, RenderCommand_DrawCall& drawCall);
+		void unbind(RenderContext_GL* ctx, RenderCommand_DrawCall& drawCall);
 
 		Pass*			pass()			const { return static_cast<Pass*>(_pass); }
 		ShaderStage*	shaderStage()	const { return static_cast<ShaderStage*>(_shaderStage); }
@@ -76,6 +78,34 @@ class Material_GL : public Material {
 	}; // MyPixelStage
 
 	#if 0
+	#pragma mark ========= Material_GL::MyComputeStage ============
+	#endif
+	class MyComputeStage : public Material::ComputeStage {
+		using Base = typename Material::ComputeStage;
+	public:
+		using Pass			= Material_GL::MyPass;
+		using ShaderStage	= Shader_GL::MyComputeStage;
+		using ShaderPass	= Shader_GL::MyPass;
+
+		MyComputeStage(MyPass* pass, ShaderComputeStage* shaderStage) noexcept
+			: Base(pass, shaderStage)
+		{}
+
+		void bind  (RenderContext_GL* ctx, RenderCommand_DrawCall& drawCall);
+		void unbind(RenderContext_GL* ctx, RenderCommand_DrawCall& drawCall);
+
+		Pass*			pass()			const { return static_cast<Pass*>(_pass); }
+		ShaderStage*	shaderStage()	const { return static_cast<ShaderStage*>(_shaderStage); }
+		ShaderPass*		shaderPass()	const { return pass()->shaderPass(); }
+		GLuint			shaderProgram()	const { return shaderPass()->program(); }
+
+		void _glSetConstBuffer(GLuint ubIndex, GLuint bindPoint, GLuint glBuf) {
+			glBindBufferBase(GL_UNIFORM_BUFFER, bindPoint, glBuf);
+			glUniformBlockBinding(shaderProgram(), ubIndex, bindPoint);
+		}
+	}; // MyComputeState
+
+	#if 0
 	#pragma mark ========= Material_GL::MyPass ============
 	#endif
 	class MyPass : public Material::Pass {
@@ -87,12 +117,14 @@ class Material_GL : public Material {
 
 		MyShaderPass* shaderPass() const { return static_cast<MyShaderPass*>(_shaderPass); }
 
-		virtual void onBind(RenderContext* ctx, RenderCommand_DrawCall& drawCall) final;
+		virtual void onBind	 (RenderContext* ctx, RenderCommand_DrawCall& drawCall) final;
+		virtual void onUnbind(RenderContext* ctx, RenderCommand_DrawCall& drawCall) final;
 
 		void _bindRenderState(RenderContext_GL* ctx);
 
-		MyVertexStage _vertexStage;
-		 MyPixelStage  _pixelStage;
+		MyVertexStage  _myVertexStage;
+		MyPixelStage   _myPixelStage;
+		MyComputeStage _myComputeStage;
 	}; // MyPass
 
 	#if 0
@@ -101,11 +133,15 @@ class Material_GL : public Material {
 	using Pass			= MyPass;
 	using VertexStage	= MyVertexStage;
 	using PixelStage	= MyPixelStage;
+	using ComputeState  = MyComputeStage;
 
 	Shader_GL* shader() { return static_cast<Shader_GL*>(_shader.ptr()); }
 
 	template<class STAGE>
 	static void s_bindStageHelper(RenderContext_GL* ctx, STAGE* stage);
+
+	template<class STAGE>
+	static void s_unbindStageHelper(RenderContext_GL* ctx, STAGE* stage);
 };
 
 } // namespace sge

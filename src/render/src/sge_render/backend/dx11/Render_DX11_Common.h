@@ -2,8 +2,6 @@
 
 #include <sge_render/Render_Common.h>
 
-#if SGE_RENDER_HAS_DX11
-
 #include <d3d11.h>
 #include <d3d11_4.h>
 #include <dxgi1_4.h>
@@ -16,7 +14,11 @@
 #include <sge_render/shader/Shader.h>
 #include <sge_render/textures/Texture.h>
 
-#include <sge_core/native_ui/win32/Win32Util.h>
+#if SGE_OS_WINDOWS
+	#include <sge_core/native_ui/win32/Win32Util.h>
+#endif
+
+#if SGE_RENDER_HAS_DX11
 
 namespace sge {
 
@@ -48,16 +50,19 @@ using DX11_ID3DBlob					= ID3DBlob;
 
 using DX11_ID3DVertexShader			= ID3D11VertexShader;
 using DX11_ID3DPixelShader			= ID3D11PixelShader;
+using DX11_ID3DComputeShader		= ID3D11ComputeShader;
 using DX11_ID3DInputLayout			= ID3D11InputLayout;
 
 using DX11_ID3DRasterizerState		= ID3D11RasterizerState;
 using DX11_ID3DDepthStencilState	= ID3D11DepthStencilState;
 using DX11_ID3DBlendState			= ID3D11BlendState;
 
+using DX11_ID3DUnorderedAccessView = ID3D11UnorderedAccessView;
+
 // render reflect -------------
 using DX11_ID3DShaderReflection		= ID3D11ShaderReflection;
 
-struct DX11Util {
+struct DX11Util : public RenderCommonBase {
 	DX11Util() = delete;
 
 	static void throwIfError(::HRESULT hr);
@@ -104,11 +109,15 @@ struct DX11Util {
 	static Rect2f toRect2f(const ::D3D11_RECT& i)	{ Rect2f o;			convert(o, i);	return o; }
 	static ::D3D11_RECT toD3DRect(const Rect2f& i)	{ ::D3D11_RECT o;	convert(o, i);	return o; }
 
+	static Renderer_DX11*			renderer();
+	static DX11_ID3DDevice*			d3dDevice();
+	static DX11_ID3DDeviceContext*  d3dDeviceContext();
 private:
 	static bool _checkError(::HRESULT hr) {
 		return FAILED(hr); // if got error, return true
 	}
 };
+SGE_STATIC_ASSERT_NO_MEMBER_CLASS(DX11Util);
 
 SGE_INLINE
 ByteSpan DX11Util::toSpan(DX11_ID3DBlob* blob) {
@@ -141,16 +150,21 @@ const char* DX11Util::getDxStageProfile(ShaderStageMask s) {
 	switch (s) {
 		case SRC::Vertex:	return ShaderStageProfile::DX11_VS;
 		case SRC::Pixel:	return ShaderStageProfile::DX11_PS;
+		case SRC::Compute:	return ShaderStageProfile::DX11_CS;
 	//---
-		default: return "";
+		default: throw SGE_ERROR("unsupported ShaderStageMask '{}'", s);
 	}
 }
 
 SGE_INLINE
 void DX11Util::reportError(::HRESULT hr) {
 	if (_checkError(hr)) {
+#if SGE_OS_WINDOWS
 		auto str = Win32Util::error(hr);
 		SGE_LOG("HRESULT(0x{:0X}) {}", static_cast<u32>(hr), str);
+#else
+		SGE_LOG("HRESULT(0x{:0X})", static_cast<u32>(hr));
+#endif
 	}
 }
 

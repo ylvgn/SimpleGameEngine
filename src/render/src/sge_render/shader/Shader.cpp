@@ -10,6 +10,7 @@ ShaderStage::ShaderStage(ShaderPass* pass) noexcept
 {
 }
 
+
 #if 0
 #pragma mark ========= ShaderPass ============
 #endif
@@ -18,12 +19,16 @@ ShaderPass::ShaderPass(Shader* shader, int passIndex) noexcept
 	, _passIndex(passIndex)
 	, _info(shader->passInfo(passIndex))
 {
+	if (_info->vsFunc) _stageMasks |= ShaderStageMask::Vertex;
+	if (_info->psFunc) _stageMasks |= ShaderStageMask::Pixel;
+	if (_info->csFunc) _stageMasks |= ShaderStageMask::Compute;
 }
 
 StrView ShaderPass::shaderFilename() const {
 	SGE_ASSERT(_shader != nullptr);
 	return _shader ? _shader->filename().c_str() : StrView();
 }
+
 
 #if 0
 #pragma mark ========= Shader ============

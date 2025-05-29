@@ -34,7 +34,7 @@ public:
 
 		void load(StrView passPath);
 
-		GLenum	shaderStageType()	const { return Util::getGlShaderType(stageMask()); }
+		GLenum	shaderStageType()	const { return Util::getGlShaderType(s_stageMask()); }
 		MyPass* pass()				const { return static_cast<MyPass*>(_pass); }
 
 	friend class MyPass;
@@ -58,7 +58,7 @@ public:
 
 		void load(StrView passPath);
 
-		GLenum	shaderStageType()	const { return Util::getGlShaderType(stageMask()); }
+		GLenum	shaderStageType()	const { return Util::getGlShaderType(s_stageMask()); }
 		MyPass* pass()				const { return static_cast<MyPass*>(_pass); }
 
 	friend class MyPass;
@@ -67,35 +67,62 @@ public:
 	}; // MyPixelStage
 
 	#if 0
+	#pragma mark ========= Shader_GL::MyComputeStage ============
+	#endif
+	class MyComputeStage : public Shader::ComputeStage {
+		using Base = typename Shader::ComputeStage;
+	public:
+		using Pass = MyPass;
+
+		MyComputeStage(MyPass* pass) noexcept
+			: Base(pass)
+		{}
+
+		~MyComputeStage() noexcept;
+
+		void load(StrView passPath);
+
+		GLenum	shaderStageType()	const { return Util::getGlShaderType(s_stageMask()); }
+		MyPass* pass()				const { return static_cast<MyPass*>(_pass); }
+
+	friend class MyPass;
+	private:
+		GLuint _handle = 0;
+	}; // MyComputeStage
+
+	#if 0
 	#pragma mark ========= Shader_GL::MyPass ============
 	#endif
 	class MyPass : public Shader::Pass {
 		using Base = typename Shader::Pass;
 	public:
-
 		MyPass(Shader_GL* shader, int passIndex) noexcept;
 		~MyPass() noexcept;
 
-		void bind();
+		void bind  ();
 		void unbind();
 
-		Shader_GL* shader() const { return static_cast<Shader_GL*>(_shader); }
-		GLuint program() const { return _program; }
+		Shader_GL*	shader()	const { return static_cast<Shader_GL*>(_shader); }
+		GLuint		program()	const { return _program; }
 
 	private:
 		virtual void onInit() final;
 
-		MyVertexStage	_vertexStage;
-		MyPixelStage	_pixelStage;
+		void _linkProgram();
+
+		MyVertexStage	_myVertexStage;
+		MyPixelStage	_myPixelStage;
+		MyComputeStage	_myComputeStage;
 		GLuint			_program = 0;
 	}; // MyPass
 
-	#if 0
-	#pragma mark ========= Shader_GL ============
-	#endif
+#if 0
+#pragma mark ========= Shader_GL ============
+#endif
 	using Pass			= MyPass;
 	using VertexStage	= MyVertexStage;
 	using PixelStage	= MyPixelStage;
+	using ComputeStage	= MyComputeStage;
 
 	static void s_loadStageFile(StrView passPath, StrView profile, GLenum shaderStageType, GLuint& handle, ShaderStageInfo& outInfo);
 
