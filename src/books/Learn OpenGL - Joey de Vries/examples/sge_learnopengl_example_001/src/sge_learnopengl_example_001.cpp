@@ -1,9 +1,8 @@
 #include <sge_learnopengl.h>
 
-#include <sge_core/native_ui/win32/Win32Util.h> // just for test
-
 namespace sge {
 
+// FYI: https://learnopengl.com/Advanced-OpenGL/Cubemaps
 class sge_learnopengl_example_001 : public JoeyOGL_NativeUIWindow {
 	using Base = JoeyOGL_NativeUIWindow;
 public:

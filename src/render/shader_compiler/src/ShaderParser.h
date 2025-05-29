@@ -1,4 +1,5 @@
 #pragma once
+
 #include <sge_core/string/Lexer.h>
 #include <sge_render/shader/ShaderInfo.h>
 
@@ -8,7 +9,6 @@ class ShaderParser : public Lexer {
 public:
 	static void readFile(ShaderInfo& outInfo, StrView filename);
 	static void readMem (ShaderInfo& outInfo, ByteSpan data, StrView filename);
-
 private:
 	void _readMem(ShaderInfo& outInfo, ByteSpan data, StrView filename);
 
@@ -21,7 +21,6 @@ private:
 
 	ShaderInfo* _outInfo = nullptr;
 	MemMapFile  _memMapFile;
-
 }; // ShaderParser
 
 } // namespace sge

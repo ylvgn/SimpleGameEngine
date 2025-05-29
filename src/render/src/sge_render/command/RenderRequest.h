@@ -49,9 +49,6 @@ public:
 	SGE_NODISCARD	RenderScissorRectScope	scissorRectScope()	{ return RenderScissorRectScope(&commandBuffer); }
 	SGE_INLINE		void setScissorRect(const Rect2f& rect)		{ commandBuffer.setScissorRect(rect); }
 
-//	SGE_NODISCARD	RenderViewportScope	viewportScope() { return RenderViewportScope(&commandBuffer); }
-//	SGE_INLINE		void setViewport(const Rect2f& rect) { commandBuffer.setViewport(rect); } no use now
-
 	void commit();
 
 	struct Debug {
@@ -60,11 +57,13 @@ public:
 	Debug debug;
 
 	const RenderContext* renderContext() const { return _renderContext; }
+	Renderer* renderer()				 const;
+	RenderBuiltInAssets* builtInAssets() const;
 
 private:
 	struct InlineDraw {
-		Vector<u8>	vertexData;
-		Vector<u8>	indexData;
+		Vector<u8>				vertexData;
+		Vector<u8>				indexData;
 		SPtr<RenderGpuBuffer>	vertexBuffer;
 		SPtr<RenderGpuBuffer>	indexBuffer;
 
@@ -72,8 +71,7 @@ private:
 		void uploadToGpu();
 	private:
 		void _uploadToGpu(SPtr<RenderGpuBuffer>& buf, const Vector<u8>& data);
-	};
-
+	}; // InlineDraw
 	InlineDraw	_inlineDraw;
 
 	RenderContext* _renderContext = nullptr;

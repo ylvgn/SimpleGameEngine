@@ -17,13 +17,41 @@ namespace sge { namespace Math {
 		template<class T>
 		static constexpr T alignTo_uint(T n, T a) {
 			SGE_STATIC_ASSERT(TypeTraits::isUnsigned<T>::value);
+			if (a == 0) return 0;
 			T r = n % a;
 			return r ? (n + a - r) : n;
 		//	return (n + a - 1) / a * a;
 		}
-	};
 
-	constexpr size_t alignTo(size_t n, size_t a) { return _Helper::alignTo_uint(n, a); }
+		template<class T>
+		static constexpr T alignTo_int(T n, T a) {
+			SGE_STATIC_ASSERT(TypeTraits::isSigned<T>::value);
+			if (a == 0) return 0;
+			a = Math::abs(a);
+
+			if (n >= 0) {
+				T r = n % a;
+				if (r == 0) return n;
+				return n + (a - r);
+			}
+			else {
+				T r = (-n) % a;
+				if (r == 0) return n;
+				return n - (a - r);
+			}
+		}
+	}; // _Helper
+	SGE_STATIC_ASSERT_NO_MEMBER_CLASS(_Helper);
+
+	constexpr i8  alignTo(i8  n, i8  a) { return _Helper::alignTo_int(n, a); }
+	constexpr i16 alignTo(i16 n, i16 a) { return _Helper::alignTo_int(n, a); }
+	constexpr i32 alignTo(i32 n, i32 a) { return _Helper::alignTo_int(n, a); }
+	constexpr i64 alignTo(i64 n, i64 a) { return _Helper::alignTo_int(n, a); }
+
+	constexpr u8  alignTo(u8  n, u8  a) { return _Helper::alignTo_uint(n, a); }
+	constexpr u16 alignTo(u16 n, u16 a) { return _Helper::alignTo_uint(n, a); }
+	constexpr u32 alignTo(u32 n, u32 a) { return _Helper::alignTo_uint(n, a); }
+	constexpr u64 alignTo(u64 n, u64 a) { return _Helper::alignTo_uint(n, a); }
 
 //--------
 	template< class T > constexpr T		NaN		()				{ return std::numeric_limits<T>::quiet_NaN(); }
@@ -107,10 +135,9 @@ namespace sge { namespace Math {
 #if 0
 #pragma mark ------ Trigonometry ------
 #endif
-	template< class T> constexpr T	PI()	{ return static_cast<T>(3.14159265358979323846); }
-
-	template<class T> constexpr T	twoPI	()		{ return PI<T>() * 2; }
-	template<class T> constexpr T	halfPI	()		{ return PI<T>() * 0.5; }
+	template<class T> constexpr T	PI		()	{ return static_cast<T>(3.14159265358979323846); }
+	template<class T> constexpr T	twoPI	()	{ return PI<T>() * 2; }
+	template<class T> constexpr T	halfPI	()	{ return PI<T>() * 0.5; }
 
 	template<class T> SGE_INLINE T	radians	(T deg) { return deg * (PI<T>() / static_cast<T>(180)); }
 	template<class T> SGE_INLINE T	degrees	(T rad) { return rad * (static_cast<T>(180) / PI<T>()); }
@@ -127,8 +154,8 @@ namespace sge { namespace Math {
 	SGE_INLINE float  atan2(float  a, float  b) { return ::atan2f(a, b); }
 	SGE_INLINE double atan2(double a, double b) { return ::atan2 (a, b); }
 
-	SGE_INLINE float  asin(float  rad)	{ return ::asinf(rad); }
-	SGE_INLINE double asin(double rad)	{ return ::asin (rad); }
+	SGE_INLINE float  asin(float  rad) { return ::asinf(rad); }
+	SGE_INLINE double asin(double rad) { return ::asin (rad); }
 
 	SGE_INLINE float  acos(float  rad) { return ::acosf(rad); }
 	SGE_INLINE double acos(double rad) { return ::acos(rad); }
@@ -151,11 +178,11 @@ namespace sge { namespace Math {
 
 	template<class T> T abs(const T& v) { return v < 0 ? -v : v; }
 
-	template<class T> constexpr T epsilon();
-	template<>	constexpr int	epsilon<int >() { return 0; }
-	template<>	constexpr f32	epsilon<f32 >() { return FLT_EPSILON; }
-	template<>	constexpr f64	epsilon<f64 >() { return DBL_EPSILON; }
-	template<>	constexpr f128	epsilon<f128>() { return LDBL_EPSILON; }
+	template<class T> constexpr T	 epsilon();
+	template<>		  constexpr int	 epsilon<int >() { return 0; }
+	template<>		  constexpr f32	 epsilon<f32 >() { return FLT_EPSILON; }
+	template<>		  constexpr f64	 epsilon<f64 >() { return DBL_EPSILON; }
+	template<>		  constexpr f128 epsilon<f128>() { return LDBL_EPSILON; }
 
 	template<class T, class EP = T> SGE_INLINE constexpr bool equals (const T& a, const T& b, const EP& ep = epsilon<T>()) { return abs(a-b) <= ep; }
 	template<class T, class EP = T> SGE_INLINE constexpr bool equals0(const T& a,             const EP& ep = epsilon<T>()) { return abs( a ) <= ep; }
@@ -207,7 +234,7 @@ namespace sge { namespace Math {
 		y = y * (threehalfs - (x2 * y * y));
 		//	y  = y * ( threehalfs - ( x2 * y * y ) );   // 2nd iteration, this can be removed
 		return y;
-	#endif
+	#endif // SGE_CPU_FEATURE_SSE2
 	}
 
 	SGE_INLINE double rsqrt_fast(double n) {

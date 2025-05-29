@@ -76,15 +76,15 @@ public:
 	virtual void onCreate(CreateDesc& desc) override {
 		setCurDirRelativeToExecutable("/../../../Test101");
 
-//		CommandLine::runShell("Assets/Shaders/sge_ninja.bat"); some bug when file alredy exists will not force build after modified.
+//		CommandLine::runShell("Assets/Shaders/sge_ninja.bat"); //some bug when file already exists will not force build after modified.
 		CommandLine::runShell("Assets/Shaders/sge_gnu_make.bat");
 
 		Base::onCreate(desc);
 
 		{ // create renderer
 			Renderer::CreateDesc renderDesc;
-//			renderDesc.apiType = Renderer::ApiType::OpenGL;
-			renderDesc.apiType = Renderer::ApiType::DX11;
+			renderDesc.apiType = Renderer::ApiType::OpenGL; // pbr in OpenGL still has some bug
+//			renderDesc.apiType = Renderer::ApiType::DX11;
 			Renderer::create(renderDesc);
 		}
 

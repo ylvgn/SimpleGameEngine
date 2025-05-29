@@ -61,7 +61,7 @@ float3		sge_light_color;
 
 // lights
 static const int kLightCount = 4;
-#if 1
+#if 0
 static const float d = 5;
 static const float3 my_light_positions[kLightCount] = {
 	float3(d, 0, 0),
@@ -69,15 +69,18 @@ static const float3 my_light_positions[kLightCount] = {
 	float3(0, 0, d),
 	float3(d, d, d),
 };
+#else
+	float3 my_light_positions[kLightCount];
+#endif
 
+#if 0
 static const float3 my_light_colors[kLightCount] = {
-	float3(1, 0, 0),
-	float3(0, 1, 0),
-	float3(0, 0, 1),
+	float3(1,   0,   0),
+	float3(0,   1,   0),
+	float3(0,   0,   1),
 	float3(0.1, 0.1, 0.1),
 };
 #else
-	float3 my_light_positions[kLightCount];
 	float3 my_light_colors[kLightCount];
 #endif
 
@@ -267,7 +270,7 @@ float4 ps_main(PixelIn input) : SV_TARGET
 
 	float3 Lo = 0;
 
-#if 0
+#if 1
 	for (int i = 0; i < kLightCount; ++i)
 #else
 	int i = 0; // just test single point light

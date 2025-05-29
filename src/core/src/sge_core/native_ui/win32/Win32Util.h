@@ -92,8 +92,8 @@ struct Win32Util {
 	static ::RECT	toRect(const Rect2f& i)		{ ::RECT o;  convert(o, i); return o; }
 
 	static int		toVKKey(const KeyCode& i);
-
 }; // Win32Util
+SGE_STATIC_ASSERT_NO_MEMBER_CLASS(Win32Util);
 
 } // namespace sge
 

@@ -266,6 +266,8 @@ public:
 	const T&	operator[]	(int i)		const	{ return at(i); }
 	const T&	at			(int i)		const	{ _checkBound(i); return mpBegin[i]; }
 	const T&	unsafe_at	(int i)		const	{ return mpBegin[i]; }
+	 	  T*	tryAt(int i)					{ return inBound(i) ? &mpBegin[i] : nullptr; }
+	const T*	tryAt(int i)			const	{ return inBound(i) ? &mpBegin[i] : nullptr; }
 	const T&	back		(int i = 0)	const	{ return at(mnCount - i - 1); }
 	const T&	unsafe_back	(int i = 0)	const	{ unsafe_at(mnCount - i - 1); }
 
@@ -331,9 +333,9 @@ public:
 
 	explicit operator bool() const { return !Base::empty(); }
 
-						void operator=(const StringT& s)		{ Base::assign(s.data(), s.size()); }
-	template<size_t N>	void operator=(const StringT<T, N>& r)	{ Base::assign(s.data(), s.size()); }
-	template<class R>	void operator=(R&& r)					{ Base::operator=(SGE_FORWARD(r)); }
+						void operator= (const StringT& s)		{ Base::assign(s.data(), s.size()); }
+	template<size_t N>	void operator= (const StringT<T, N>& r)	{ Base::assign(s.data(), s.size()); }
+	template<class R>	void operator= (R&& r)					{ Base::operator=(SGE_FORWARD(r)); }
 
 						void operator+=(StrViewT v)				{ Base::append(v.begin(), v.end()); }
 	template<size_t N>	void operator+=(const StringT<T, N>& v) { Base::append(v.begin(), v.end()); }

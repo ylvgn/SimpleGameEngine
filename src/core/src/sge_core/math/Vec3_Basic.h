@@ -41,8 +41,8 @@ struct Vec3_Basic : public DATA {
 	SGE_INLINE			constexpr Vec3(const Tuple2<T>& v, const T& z_) { DATA::set(v.x, v.y, z_); }
 	SGE_INLINE			constexpr Vec3(const Tuple3<T>& v)				{ DATA::set(v); }
 
-	SGE_INLINE constexpr void setToDefaultValue()						{ DATA::set(0,0,0); }
-	SGE_INLINE constexpr bool isAll (const T& v)	const { return equals(This(v)); }
+	SGE_INLINE constexpr void setToDefaultValue()		{ DATA::set(0,0,0); }
+	SGE_INLINE constexpr bool isAll (const T& v) const	{ return equals(This(v)); }
 
 	SGE_INLINE constexpr bool equals (const This& r, const T& epsilon = Math::epsilon<T>()) const;
 	SGE_INLINE constexpr bool equals0(               const T& epsilon = Math::epsilon<T>()) const;

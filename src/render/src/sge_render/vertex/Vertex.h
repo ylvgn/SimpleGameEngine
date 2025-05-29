@@ -61,8 +61,8 @@ struct VertexTypeUtil {
 #undef LSR
 	static constexpr VertexType make(
 		RenderDataType posType,
-		RenderDataType colorType, u8 colorCount,
-		RenderDataType uvType, u8 uvCount,
+		RenderDataType colorType,  u8 colorCount,
+		RenderDataType uvType,	   u8 uvCount,
 		RenderDataType normalType, u8 normalCount, u8 tangentCount, u8 binormalCount)
 	{
 		VertexType t = addPos(VertexType::None, posType);
@@ -219,9 +219,9 @@ struct VertexLayout : public NonCopyable {
 private:
 	template<class VERTEX, class ATTR>
 	void _addElement(Semantic semantic, ATTR VERTEX::* attr, size_t index) {
+		using A = std::remove_extent_t<ATTR>;
 		auto& o = elements.push_back();
 		o.semantic = semantic;
-		using A = std::remove_extent_t<ATTR>;
 		o.dataType = RenderDataTypeUtil::get<A>();
 		o.offset = static_cast<u16>(memberOffset(attr) + sizeof(A) * index);
 	}
@@ -251,7 +251,6 @@ struct VertexBase {
 	static const u8 kNormalCount	= 0;
 	static const u8 kTangentCount	= 0;
 	static const u8 kBinormalCount	= 0;
-
 }; // VertexBase
 
 #if 0
@@ -420,6 +419,7 @@ struct VertexT_VertexId : public BASE {
 }; // VertexT_VertexId
 
 
+//----
 using Vertex_Pos2f			= VertexT_Pos<Tuple2f>;
 
 using Vertex_Pos			= VertexT_Pos<Tuple3f>;

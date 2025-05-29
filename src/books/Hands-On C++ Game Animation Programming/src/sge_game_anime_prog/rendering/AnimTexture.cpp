@@ -110,7 +110,7 @@ void AnimTexture::unset(u32 textureIndex) {
 }
 
 void AnimTexture::resize(size_t newTexSize) {
-	newTexSize = Math::alignTo(newTexSize, 16);
+	newTexSize = Math::alignTo(newTexSize, decltype(newTexSize)(16));
 
 	if (_data) {
 		delete[] _data;
