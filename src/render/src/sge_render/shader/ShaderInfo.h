@@ -146,6 +146,7 @@ public:
 }; // ShaderStageFileExtension
 SGE_STATIC_ASSERT_NO_MEMBER_CLASS(ShaderStageFileExtension);
 
+
 #if 0
 #pragma mark ========= ShaderStageInfo ============
 #endif

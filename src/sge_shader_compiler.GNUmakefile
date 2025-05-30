@@ -68,11 +68,9 @@ spirv_cross=$(sge_tools_bin)/spirv-cross$(exe_suffix)
 export spirv_cross
 
 all: start $(output_targets)
-	#@echo ===== End =====
 	$(info ===== End =====)
 
 start:
-	#@echo ==========================
 	$(info ==========================)
 	$(info sge_tools_bin=$(sge_tools_bin))
 	$(info SGE_PLATFORM_OS=$(SGE_PLATFORM_OS))
