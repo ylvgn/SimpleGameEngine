@@ -368,10 +368,10 @@ struct ColorLA {
 
 	constexpr void set(const ColorLA<T>& v) { *this = v; }
 
-	constexpr ColorL operator+ (const T& s) const { return ColorL(l + s, a + s); }
-	constexpr ColorL operator- (const T& s) const { return ColorL(l - s, a - s); }
-	constexpr ColorL operator* (const T& s) const { return ColorL(l * s, a * s); }
-	constexpr ColorL operator/ (const T& s) const { return ColorL(l / s, a / s); }
+	constexpr ColorLA operator+ (const T& s) const { return ColorLA(l + s, a + s); }
+	constexpr ColorLA operator- (const T& s) const { return ColorLA(l - s, a - s); }
+	constexpr ColorLA operator* (const T& s) const { return ColorLA(l * s, a * s); }
+	constexpr ColorLA operator/ (const T& s) const { return ColorLA(l / s, a / s); }
 
 	bool operator== (const ColorLA<T>& v) const { return l == v.l; && a == v.a; }
 	bool operator!= (const ColorLA<T>& v) const { return l != v.l; || a != v.a; }
