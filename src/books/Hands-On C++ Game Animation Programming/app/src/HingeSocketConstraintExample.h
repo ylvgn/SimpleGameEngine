@@ -8,12 +8,12 @@ namespace sge {
 */
 
 template<class IKSolver>
-struct HingeSocketConstraintExample : public IKExampleTestBase<IKSolver> {
+class HingeSocketConstraintExample : public IKExampleTestBase<IKSolver> {
 	using Base = typename IKExampleTestBase<IKSolver>;
 	using This = typename HingeSocketConstraintExample<IKSolver>;
 	using DebugDrawPL = DebugDraw_PointLines;
 public:
-	HingeSocketConstraintExample() : Base() {}
+	HingeSocketConstraintExample();
 
 	static HingeSocketConstraintExample* instance();
 

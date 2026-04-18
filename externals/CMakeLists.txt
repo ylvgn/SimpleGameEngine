@@ -28,3 +28,8 @@ sge_copy_files_post_build(${PROJECT_NAME}
 #-- vcpkg python3 ---
 sge_vcpkg_find_python(sge_python3 3)
 sge_copy_dir_post_build(${PROJECT_NAME} ${sge_python3} ${SGE_RUNTIME_OUTPUT_DIRECTORY_CONFIGURATION}/python3)
+
+add_subdirectory(EABase)
+add_subdirectory(EASTL)
+add_subdirectory(glad)
+add_subdirectory(SPIRV-Cross)

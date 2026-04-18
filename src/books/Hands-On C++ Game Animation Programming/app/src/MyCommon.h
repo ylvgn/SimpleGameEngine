@@ -1,5 +1,7 @@
 #pragma once
 
+#include "sge_game_anime_prog_app-pch.h"
+
 namespace sge {
 
 class Mesh;

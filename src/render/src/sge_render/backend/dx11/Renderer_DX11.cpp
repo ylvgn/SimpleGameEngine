@@ -3,6 +3,7 @@
 #include "RenderGpuBuffer_DX11.h"
 #include "Material_DX11.h"
 #include "Texture_DX11.h"
+#include "RenderGpuStorageBuffer_DX11.h"
 
 #if SGE_RENDER_HAS_DX11
 

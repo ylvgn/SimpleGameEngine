@@ -171,6 +171,17 @@ namespace GDI {
 		drawPoint(hdc, pt_, c, ptSize);
 	}
 
+	inline int fillRect(const ::HDC& hdc, const ::RECT& ltrb, const Color4b& c) {
+		ScopedCreateSolidBrush brush(hdc, c);
+		return FillRect(hdc, &ltrb, brush);
+	}
+
+	inline int fillRect(const ::HDC& hdc, const Rect2f& xywh, const Color4b& c) {
+		::RECT ltrb;
+		Win32Util::convert(ltrb, xywh);
+		return GDI::fillRect(hdc, ltrb, c);
+	}
+
 } // namespace GDI
 } // namespace sge
 

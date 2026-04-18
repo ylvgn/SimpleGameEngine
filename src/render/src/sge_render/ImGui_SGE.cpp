@@ -402,13 +402,14 @@ bool ImGui_SGE::onUIMouseEvent(UIMouseEvent& ev) {
 int ImGui_SGE::_mouseButton(UIMouseEventButton v) {
 	using Button = UIMouseEventButton;
 	switch (v) {
-		case Button::Left:		return ImGuiPopupFlags_MouseButtonLeft;
-		case Button::Right:		return ImGuiPopupFlags_MouseButtonRight;
-		case Button::Middle:	return ImGuiPopupFlags_MouseButtonMiddle;
+		case Button::Left:		return 0;
+		case Button::Right:		return 1;
+		case Button::Middle:	return 2;
 		case Button::Button4:	return 3;
 		case Button::Button5:	return 4;
+		default:
+			throw SGE_ERROR("unsupported UIMouseEventButton");
 	}
-	return ImGuiPopupFlags_None;
 }
 
 void ImGui_SGE::onUIKeyboardEvent(UIKeyboardEvent& ev) {
@@ -487,9 +488,6 @@ ImGuiKey ImGui_SGE::_keyCode(UIKeyboardEventKeyCode v) {
 		case SRC::KeypadMultiply:	return ImGuiKey_KeypadMultiply;
 		case SRC::KeypadMinus:		return ImGuiKey_KeypadSubtract;
 		case SRC::KeypadPlus:	 	return ImGuiKey_KeypadAdd;
-		case SRC::Ctrl:				return ImGuiKey_ModCtrl;
-		case SRC::Shift:			return ImGuiKey_ModShift;
-		case SRC::Alt:				return ImGuiKey_ModAlt;
 		case SRC::LShift:			return ImGuiKey_LeftShift;
 		case SRC::LCtrl:			return ImGuiKey_LeftCtrl;
 		case SRC::LAlt:				return ImGuiKey_LeftAlt;

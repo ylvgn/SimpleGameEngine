@@ -1,9 +1,15 @@
 #include "HingeSocketConstraintExample.h"
-
+#include "SampleRequest.h"
 #include <sge_game_anime_prog/ik/CCDSolver.h>
 #include <sge_game_anime_prog/ik/FABRIKSolver.h>
 
 namespace sge {
+
+template<class IKSolver>
+HingeSocketConstraintExample<IKSolver>::HingeSocketConstraintExample()
+	: Base()
+{
+}
 
 template<class IKSolver>
 HingeSocketConstraintExample<IKSolver>* HingeSocketConstraintExample<IKSolver>::instance() {
@@ -108,6 +114,7 @@ void HingeSocketConstraintExample<IKSolver>::s_constraintHandler(int i, IKSolver
 // debug drawline end ------------------------
 }
 
+// explicit specialization to force VisualC check syntax in function body
 template HingeSocketConstraintExample<CCDSolver>;
 template HingeSocketConstraintExample<FABRIKSolver>;
 

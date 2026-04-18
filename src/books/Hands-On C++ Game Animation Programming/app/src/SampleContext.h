@@ -10,7 +10,6 @@
 
 namespace sge {
 
-struct SampleRequest;
 class DebugDraw;
 class DebugDraw_PointLines;
 

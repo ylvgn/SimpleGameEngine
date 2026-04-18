@@ -90,6 +90,15 @@ namespace GDI {
 		return GetStockFont(enumInt(flag));
 	}
 
+	inline int fillRect(const ::HDC& hdc, const ::RECT& ltrb, StockObj_Brush flag) {
+		return ::FillRect(hdc, &ltrb, GDI::getStockObject(flag));
+	}
+	inline int fillRect(const ::HDC& hdc, const Rect2f& xywh, StockObj_Brush flag) {
+		::RECT ltrb;
+		Win32Util::convert(ltrb, xywh);
+		return GDI::fillRect(hdc, ltrb, flag);
+	}
+
 } // namespace GDI
 } // namespace sge
 

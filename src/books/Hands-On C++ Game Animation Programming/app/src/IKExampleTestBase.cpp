@@ -1,4 +1,5 @@
 #include "IKExampleTestBase.h"
+#include "SampleRequest.h"
 
 namespace sge {
 
@@ -47,7 +48,7 @@ void IKExampleTestBase<IKSolver>::_createLoopingClip() {
 }
 
 template<class IKSolver>
-IKExampleTestBase<IKSolver>::IKExampleTestBase() {
+IKExampleTestBase<IKSolver>::IKExampleTestBase() : Base() {
 	_createIKChains();
 	_createLoopingClip();
 }
@@ -105,4 +106,13 @@ void IKExampleTestBase<IKSolver>::onRender(Request& req) {
 	}
 }
 
+} // namespace sge
+
+
+// explicit specialization to force VisualC check syntax in function body
+#include <sge_game_anime_prog/ik/CCDSolver.h>
+#include <sge_game_anime_prog/ik/FABRIKSolver.h>
+namespace sge {
+	template IKExampleTestBase<CCDSolver>;
+	template IKExampleTestBase<FABRIKSolver>;
 }

@@ -1,0 +1,28 @@
+set(PROJECT_NAME SPIRV-Cross)
+message("==== ${PROJECT_NAME} ====")
+#project(${PROJECT_NAME})
+
+set(SPIRV_CROSS_EXCEPTIONS_TO_ASSERTIONS OFF)
+set(SPIRV_CROSS_SHARED 			OFF)
+set(SPIRV_CROSS_STATIC 			ON)
+set(SPIRV_CROSS_ENABLE_TESTS 	OFF)
+set(SPIRV_CROSS_CLI 			OFF)
+
+set(SPIRV_CROSS_ENABLE_GLSL 	ON)
+set(SPIRV_CROSS_ENABLE_HLSL 	OFF)
+set(SPIRV_CROSS_ENABLE_MSL 		OFF)
+set(SPIRV_CROSS_ENABLE_CPP 		OFF)
+set(SPIRV_CROSS_ENABLE_REFLECT 	OFF)
+set(SPIRV_CROSS_ENABLE_C_API 	OFF)
+set(SPIRV_CROSS_ENABLE_UTIL 	OFF)
+
+add_subdirectory(SPIRV-Cross-main)
+set_target_properties (spirv-cross-core PROPERTIES FOLDER "externals")
+set_target_properties (spirv-cross-glsl PROPERTIES FOLDER "externals")
+
+#set(SpirvCrossIncludeDir "${CMAKE_CURRENT_SOURCE_DIR}/SPIRV-Cross-main/include")
+#file(GLOB_RECURSE all_files "${SpirvCrossIncludeDir}/*.h")
+#add_library(${PROJECT_NAME} INTERFACE)
+#target_sources(${PROJECT_NAME} PUBLIC ${all_files})
+#target_include_directories(${PROJECT_NAME} INTERFACE ${SpirvCrossIncludeDir})
+#set_target_properties (${PROJECT_NAME} PROPERTIES FOLDER "externals")

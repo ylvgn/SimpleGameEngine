@@ -1,9 +1,15 @@
 #include "BallSocketConstraintExample.h"
-
+#include "SampleRequest.h"
 #include <sge_game_anime_prog/ik/CCDSolver.h>
 #include <sge_game_anime_prog/ik/FABRIKSolver.h>
 
 namespace sge {
+
+template<class IKSolver>
+BallSocketConstraintExample<IKSolver>::BallSocketConstraintExample()
+	: Base()
+{
+}
 
 template<class IKSolver>
 BallSocketConstraintExample<IKSolver>* BallSocketConstraintExample<IKSolver>::instance() {
@@ -54,6 +60,7 @@ void BallSocketConstraintExample<IKSolver>::s_constraintHandler(int i, IKSolver*
 	}
 }
 
+// explicit specialization to force VisualC check syntax in function body
 template BallSocketConstraintExample<CCDSolver>;
 template BallSocketConstraintExample<FABRIKSolver>;
 

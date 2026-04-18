@@ -1,5 +1,6 @@
 #pragma once
 
+#include "MyCommon.h"
 #include <sge_game_anime_prog/math/vec3.h>
 #include <sge_game_anime_prog/math/mat4.h>
 

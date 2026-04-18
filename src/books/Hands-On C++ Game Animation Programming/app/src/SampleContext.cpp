@@ -1,4 +1,5 @@
 #include "SampleContext.h"
+#include "SampleRequest.h"
 
 namespace sge {
 

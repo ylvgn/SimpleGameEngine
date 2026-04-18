@@ -3,6 +3,7 @@
 #include "RenderGpuBuffer_GL.h"
 #include "Material_GL.h"
 #include "Texture_GL.h"
+#include "RenderGpuStorageBuffer_GL.h"
 
 #if SGE_RENDER_HAS_OPENGL
 

@@ -13,7 +13,7 @@ class BallSocketConstraintExample : public IKExampleTestBase<IKSolver> {
 	using Base = typename IKExampleTestBase<IKSolver>;
 	using This = typename BallSocketConstraintExample<IKSolver>;
 public:
-	BallSocketConstraintExample() : Base() {}
+	BallSocketConstraintExample();
 
 	static BallSocketConstraintExample* instance();
 

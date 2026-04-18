@@ -11,7 +11,6 @@ class DebugDraw_PointLines;
 template<class IKSolver>
 class IKExampleTestBase : public ExampleTestBase {
 	using Base			= ExampleTestBase;
-	using SampleRequest = Track_SampleRequest;
 	using DebugDrawPL	= typename DebugDraw_PointLines;
 public:
 	IKExampleTestBase();
@@ -28,7 +27,7 @@ protected:
 	SPtr<DebugDrawPL>			_ikChainsVisual;
 	Vector<UPtr<DebugDraw>, 3>	_targetVisual;
 
-	SampleRequest				_sr;
+	Track_SampleRequest			_sr;
 
 	Transform					_target;
 	TransformTrack				_targetPath;

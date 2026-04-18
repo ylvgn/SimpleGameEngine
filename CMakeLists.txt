@@ -24,16 +24,19 @@ endif()
 #sge_dump_cmake_variables()
 
 find_package(fmt CONFIG REQUIRED)
-find_package(EABase CONFIG REQUIRED)
-find_package(EASTL CONFIG REQUIRED)
+#find_package(EABase CONFIG REQUIRED)
+#find_package(EASTL CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 find_package(PNG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
-find_package(glad CONFIG REQUIRED)
-find_package(spirv_cross_core CONFIG REQUIRED)
-find_package(spirv_cross_glsl CONFIG REQUIRED)
+#find_package(glad CONFIG REQUIRED)
+#find_package(spirv_cross_core CONFIG REQUIRED)
+#find_package(spirv_cross_glsl CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
+
+#-- externals ---
+add_subdirectory(externals)
 
 #-- core ---
 add_subdirectory(src/core)
@@ -52,9 +55,6 @@ add_subdirectory(src/editor/app)
 
 #-- tools ---
 add_subdirectory(src/tools/file_cmd)
-
-#-- externals ---
-add_subdirectory(externals)
 
 set_property (DIRECTORY PROPERTY VS_STARTUP_PROJECT sge_editor_app) # Set as Startup Project
 

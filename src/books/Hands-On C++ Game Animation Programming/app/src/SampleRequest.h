@@ -1,5 +1,7 @@
 #pragma once
 
+#include <sge_core/base/sge_base.h>
+
 namespace sge {
 
 #define MySampleType_ENUM_LIST(E) \
