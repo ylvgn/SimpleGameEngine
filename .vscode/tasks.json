@@ -1,0 +1,34 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "sge_gen_vs2022",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "-G", "Visual Studio 17 2022",
+                "-B", "_build/vscode-x64-windows",
+                "."
+            ],
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "sge_install_vs2022",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--build", "_build/vscode-x64-windows",
+                "--config", "Release"
+            ],
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "sge_gen_and_install_vs2022",
+            "dependsOn": ["sge_gen_vs2022", "sge_install_vs2022"],
+            "group": "build",
+            "problemMatcher": []
+        }
+    ]
+}

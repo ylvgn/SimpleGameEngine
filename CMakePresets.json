@@ -1,0 +1,30 @@
+{
+    "version": 3,
+    "configurePresets": [
+        {
+            "name": "sge-x64-windows",
+            "generator": "Visual Studio 17 2022",
+            "binaryDir": "${sourceDir}/_build/vscode-x64-windows",
+            "cacheVariables": {
+                "CMAKE_CONFIGURATION_TYPES": "Debug;Release;RelWithDebInfo;MinSizeRel"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "sge-x64-windows-Debug",
+            "configurePreset": "sge-x64-windows",
+            "configuration": "Debug"
+        },
+        {
+            "name": "sge-x64-windows-Release",
+            "configurePreset": "sge-x64-windows",
+            "configuration": "Release"
+        },
+        {
+            "name": "sge-x64-windows-RelWithDebInfo",
+            "configurePreset": "sge-x64-windows",
+            "configuration": "RelWithDebInfo"
+        }
+    ]
+}

@@ -1,0 +1,10 @@
+{
+    "folders": [
+        {
+            "path": "."
+        }
+    ],
+    "settings": {
+        //"cmake.buildDirectory": !!<-- do not set this var, use setting.json "cmake.useCMakePresets": "always" instead.
+    }
+}

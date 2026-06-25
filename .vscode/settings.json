@@ -1,0 +1,34 @@
+{
+	"dotnet.defaultSolution": "disable",
+	"cmake.useCMakePresets": "always",
+
+	"files.exclude": {
+		"**/_build": true,
+		"**/externals/vcpkg": true,
+		"**/examples/_bin": true,
+		"**/externals/EABase": true,
+		"**/externals/EASTL": true,
+		"**/externals/glad": true,
+		"**/externals/SPIRV-Cross": true,
+
+		"**/src/books": true,
+		"**/src/tutorials": true,
+
+		"**/examples/Test101/Assets/Mesh": true,
+		"**/examples/Test101/Assets/Textures": true,
+		"**/examples/Test101/Assets/Terrain": true,
+
+		"**/examples/Test102": true,
+		"**/examples/Test103": true,
+		"**/examples/Test104": true,
+		"**/examples/Test105": true,
+		"**/examples/Test106": true,
+
+		"**/examples/Test107/Assets/Mesh": true,
+		"**/examples/Test107/Assets/Textures": true,
+		"**/examples/Test107/Assets/Models": true,
+	},
+	"search.exclude": {
+		"**/*.gitignore": true,
+	}
+}
