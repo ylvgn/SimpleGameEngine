@@ -105,19 +105,19 @@ function(sge_output_copy_files in_output_name)
     )
 endfunction()
 
-function(sge_output_mkdir in_output_name in_dir)
+macro(sge_output_mkdir in_output_name in_dir)
 	add_custom_target(
 		OUTPUT ${in_output_name}
 		COMMAND ${CMAKE_COMMAND} -E make_directory ${in_dir}
 	)
-endfunction()
+endmacro()
 
-function(sge_add_cmd_post_build target_name)
+macro(sge_add_cmd_post_build target_name)
 	add_custom_command(
 		TARGET ${target_name} POST_BUILD
 		COMMAND ${ARGN}
 	)
-endfunction()
+endmacro()
 
 function(sge_copy_files_post_build target_name)
 #	sge_dump_ARGN(${ARGN})
@@ -128,10 +128,8 @@ function(sge_copy_files_post_build target_name)
             "\nexample:\n\sge_copy_files_post_build(${target_name} foo1.txt foo2.txt bar/my_dst)\n"
         )
     endif()
-    # add_custom_command(TARGET ${target_name} POST_BUILD
-    #     COMMAND ${CMAKE_COMMAND} -E copy_if_different ${ARGN}
-    # )
-	sge_add_cmd_post_build(${target_name} COMMAND ${CMAKE_COMMAND} -E copy_if_different ${ARGN})
+
+	sge_add_cmd_post_build(${target_name} ${CMAKE_COMMAND} -E copy_if_different ${ARGN})
 endfunction()
 
 function(sge_copy_dir_post_build target_name src_dir dst_dir)

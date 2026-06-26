@@ -36,7 +36,10 @@ find_package(glm CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 
 #-- externals ---
-add_subdirectory(externals)
+add_subdirectory(externals/EABase)
+add_subdirectory(externals/EASTL)
+add_subdirectory(externals/glad)
+add_subdirectory(externals/SPIRV-Cross)
 
 #-- core ---
 add_subdirectory(src/core)
@@ -55,6 +58,9 @@ add_subdirectory(src/editor/app)
 
 #-- tools ---
 add_subdirectory(src/tools/file_cmd)
+
+#-- _sge_externals ---
+add_subdirectory(externals) # !!<-- Keep last one then make sure Post-Build Event work fine.
 
 set_property (DIRECTORY PROPERTY VS_STARTUP_PROJECT sge_editor_app) # Set as Startup Project
 
