@@ -80,15 +80,65 @@ void ShaderCompiler_GL::compile(StrView outFilename, ShaderStageMask shaderStage
 
 		CompilerOptions options;
 		options.es = false;										// --no-es
-		options.enable_420pack_extension = false;				// --no-420pack-extension
+		options.enable_420pack_extension = true;					// emit layout(binding=X) for samplers and UBOs
 		if (!StringUtil::tryParse(profile, options.version)) {	// --version <glsl_profile>
 			throw SGE_ERROR("invalid GLSL profile error: {}", profile);
 		}
 
-		comp.build_combined_image_samplers();
+		comp.build_combined_image_samplers(); // Creates combined samplers with auto-generated names
+
+		// Rename combined samplers to their original texture names and assign explicit bindings.
+		// glslc does not auto-assign SPIR-V binding decorations for HLSL textures without register(),
+		// so we assign sequential bindings (0, 1, 2, ...) here. Combined with enable_420pack_extension,
+		// this produces `layout(binding=X)` in the GLSL, making bindPoint usable as a texture unit.
+		{
+			auto combined = comp.get_combined_image_samplers();
+			auto resources = comp.get_shader_resources();
+			int binding = 0;
+			for (auto& cs : combined) {
+				for (auto& img : resources.separate_images) {
+					if (cs.image_id == img.id) {
+						comp.set_name(cs.combined_id, img.name);
+						// Set binding on both combined sampler (for GLSL layout) and original image (for reflection)
+						comp.set_decoration(cs.combined_id, spv::DecorationBinding, binding);
+						comp.set_decoration(img.id,         spv::DecorationBinding, binding);
+						break;
+					}
+				}
+				++binding;
+			}
+		}
+
 		comp.set_common_options(options);
 
 		auto GLSLSource = comp.compile();
+
+		// Pixel shader: negate dFdy/dFdyFine/dFdyCoarse to match DirectX ddy sign convention.
+		// OpenGL dFdy = +Y upward; HLSL ddy = +Y downward (origin top-left).
+		// Wrap each call as (-dFdy(...)) so the sign matches DX11 behavior.
+		// Only applied to pixel/fragment shaders (dFdy is undefined in vertex shaders).
+		if (BitUtil::hasAny(shaderStage, ShaderStageMask::Pixel)) {
+			const char* kDFdyNames[] = { "dFdyCoarse(", "dFdyFine(", "dFdy(" }; // longest first to avoid partial match
+			for (const char* searchStr : kDFdyNames) {
+				std::string search  = searchStr;
+				std::string replace = std::string("(-") + searchStr;
+				size_t pos = 0;
+				while ((pos = GLSLSource.find(search, pos)) != std::string::npos) {
+					GLSLSource.replace(pos, search.size(), replace);
+					// Find matching ')' for the inner dFdy( and insert ')' to close outer '('
+					size_t depth = 1;
+					size_t scan  = pos + replace.size();
+					while (scan < GLSLSource.size() && depth > 0) {
+						if      (GLSLSource[scan] == '(') ++depth;
+						else if (GLSLSource[scan] == ')') --depth;
+						++scan;
+					}
+					GLSLSource.insert(scan, ")");
+					pos = scan + 1;
+				}
+			}
+		}
+
 		StrView source(GLSLSource.c_str(), GLSLSource.size());
 		File::writeFileIfChanged(outFilename, source, false);	// --output <glsl filename>
 		_reflect(outFilename, comp, shaderStage, profile);
@@ -248,7 +298,13 @@ void ShaderCompiler_GL::_reflect_constBuffers(ShaderStageInfo& outInfo, Compiler
 			throw SGE_ERROR("invalid bindPoint out of bound: {} >= {}", outCB.bindPoint, GL_MAX_UNIFORM_BUFFER_BINDINGS);
 
 		outCB.name.assign(resource.name.c_str(), resource.name.size());
-		outCB.dataSize = static_cast<SGE_DataSize>(comp.get_declared_struct_size(uniform_type));
+		{
+			// std140 §2.15: UBO total size must be rounded up to the block's base alignment.
+			// The largest possible base alignment in std140 is vec4 = 16 bytes.
+			static constexpr size_t kStd140BlockAlignment = 16;
+			size_t rawSize = comp.get_declared_struct_size(uniform_type);
+			outCB.dataSize = static_cast<SGE_DataSize>(Math::alignTo(rawSize, kStd140BlockAlignment));
+		}
 		outCB.bindCount = Math::max(SGE_BindCount(uniform_type.array.size()), SGE_BindCount(1));
 
 		int i = 0;

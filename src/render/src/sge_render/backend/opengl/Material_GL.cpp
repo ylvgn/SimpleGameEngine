@@ -182,11 +182,11 @@ void Material_GL::MyPass::_bindRenderState(RenderContext_GL* ctx) {
 
 		GLenum rgbOp = blend.rgb.op == BlendOp::Disable
 						? GL_FUNC_ADD
-						: Util::getGlBlendOp(blend.alpha.op);
+						: Util::getGlBlendOp(blend.rgb.op);
 
 		GLenum alphaOp = blend.alpha.op == BlendOp::Disable
 						? GL_FUNC_ADD
-						: Util::getGlBlendOp(blend.rgb.op);
+						: Util::getGlBlendOp(blend.alpha.op);
 
 		glBlendEquationSeparate(rgbOp, alphaOp);
 		glBlendFuncSeparate(rgbSrcFactor, rgbDstFactor, alphaSrcFactor, alphaDstFactor);
@@ -259,11 +259,15 @@ void Material_GL::s_bindStageHelper(RenderContext_GL* ctx, STAGE* stage) {
 		GLuint texUnit = 0;
 		for (auto& texParam : stage->texParams()) {
 			auto* tex = texParam.getUpdatedTexture();
-			int bindPoint = texParam.bindPoint(); // glsl uniform loc
-
-			glActiveTexture(GL_TEXTURE0 + texUnit);
+			GLuint bindPoint = static_cast<GLuint>(texParam.bindPoint());
+#if GL_ARB_shading_language_420pack // must SPIRV compile op "enable_420pack_extension" default set true
+			// With enable_420pack_extension, GLSL has layout(binding=X) which pre-sets
+			// the sampler uniform to the texture unit. No glGetUniformLocation or glUniform1i needed.
+			glActiveTexture(GL_TEXTURE0 + bindPoint);
+#else
 			glUniform1i(bindPoint, texUnit);
-			Util::throwIfError();
+			glActiveTexture(static_cast<GLenum>(GL_TEXTURE0 + texUnit));
+#endif
 
 			switch (texParam.dataType()) {
 				case RenderDataType::Texture2D: {
@@ -292,7 +296,6 @@ void Material_GL::s_bindStageHelper(RenderContext_GL* ctx, STAGE* stage) {
 						glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, maxAnisotrory);
 					#endif
 				} break;
-
 				case RenderDataType::TextureCube: {
 					auto* texCube = static_cast<TextureCube_GL*>(tex);
 					if (!texCube) throw SGE_ERROR("");
@@ -316,9 +319,8 @@ void Material_GL::s_bindStageHelper(RenderContext_GL* ctx, STAGE* stage) {
 
 				default: throw SGE_ERROR("bind unsupported texture type '{}'", texParam.dataType());
 			}
-
-			++texUnit;
 		}
+		++texUnit;
 		glActiveTexture(GL_TEXTURE0 /* + 0*/);
 		Util::throwIfError();
 	}

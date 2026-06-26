@@ -105,35 +105,32 @@ protected:
 				return;
 
 			u8* dst = cpuBuffer.data() + varInfo->offset;
-			auto end = varInfo->offset + value.sizeInBytes();
+
+			// why varInfo->dataSize? Use the reflected dataSize (which already accounts for GPU packing) for bounds checking
+				// instead of value.sizeInBytes() which is CPU side alignment.
+			auto end = varInfo->offset + varInfo->dataSize;
 			if (end > cpuBuffer.size())
 				throw SGE_ERROR("ConstBuffer setParam '{}' out of range", varInfo->name);
 
-			if (varInfo->dataSize % V::s_PackingSizeInBytes() == 0)
+			const auto& gpuStride = V::s_PackingSizeInBytes();
+			const auto& cpuStride = V::s_ElementSizeInBytes();
+
+			// Safety: assert element <= stride. (e.g. Float32x3:12 < Float32x4:16)
+			// If element > stride that would be a layout mismatch - should never happen.
+			SGE_ASSERT(cpuStride <= gpuStride, "Array element size must be <= GPU packing stride");
+
+			if (cpuStride == gpuStride)
 			{
 				memcpy(dst, value.data(), value.sizeInBytes());
 			}
 			else
 			{
-				using ElementType = V::ElementType;
-
-				int remainingSizeInBytes = V::s_PackingSizeInBytes();
+				// Copy each element individually, advance dst by full GPU stride.
+				auto* src = value.data();
 				for (int i = 0; i < value.size(); ++i) {
-					remainingSizeInBytes -= V::s_ElementSizeInBytes();
-					memcpy(dst, &value[i], V::s_ElementSizeInBytes());
-					
-					size_t byteOffset = static_cast<size_t>(ptrdiff_t(dst - cpuBuffer.data()));
-//					SGE_DUMP_VAR(i, byteOffset, *reinterpret_cast<ElementType*>(dst));
-					if (byteOffset + V::s_ElementSizeInBytes() > cpuBuffer.size()) {
-						throw SGE_ERROR("ConstBuffer setParam '{}[{}]' out of range", varInfo->name, i);
-					}
-
-					if (remainingSizeInBytes < V::s_ElementSizeInBytes()) {
-						dst += V::s_PackingSizeInBytes();
-						remainingSizeInBytes = V::s_PackingSizeInBytes();
-					} else {
-						dst += V::s_ElementSizeInBytes();
-					}
+					memcpy(dst, src, cpuStride);
+					dst += gpuStride;
+					src ++;
 				}
 			}
 			_gpuDirty = true;
