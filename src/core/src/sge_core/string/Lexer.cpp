@@ -134,10 +134,10 @@ StrView Lexer::getLastFewLines(size_t lineCount) {
 		return StrView();
 
 	auto n = lineCount;
-	auto* start = _source.data();
+	auto* begin = _source.begin();
 
 	auto* p = _cur;
-	for (; p >= start && n > 0; ++p) {
+	for (; p >= begin && n > 0; p--) {
 		if (*p == '\n') {
 			--n;
 		}
