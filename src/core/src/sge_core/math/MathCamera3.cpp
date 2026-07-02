@@ -30,12 +30,11 @@ void Camera3<T>::move(T x, T y, T z) {
 	auto v	 	= _aim - _pos;
 	auto dir 	= v.normal();
 	auto right 	= _up.cross(dir).normal();
-    auto up    	= dir.cross(right); // perpendicular to both dir and right
+    auto up    	= dir.cross(right); // up must perpendicular to both dir and right
 
 	auto t 	= right * x + up * y + dir * z;
 	_pos 	+= t;
 	_aim 	+= t;
-	_up 	= up;   // simple fix up perpendicular to dir and right
 }
 
 template<class T>
